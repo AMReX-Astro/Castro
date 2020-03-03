@@ -147,6 +147,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Castro_nd.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ca-network-init-subroutine">ca_network_init subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-network-finalize-subroutine">ca_network_finalize subroutine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ca-eos-init-subroutine">ca_eos_init subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-eos-finalize-subroutine">ca_eos_finalize subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-extern-init-subroutine">ca_extern_init subroutine</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ca-get-abort-on-failure-subroutine">ca_get_abort_on_failure subroutine</a></li>
@@ -304,6 +305,22 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">network_finalize()</span></code>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ca-eos-init-subroutine">
+<h2>ca_eos_init subroutine<a class="headerlink" href="#ca-eos-init-subroutine" title="Permalink to this headline">¶</a></h2>
+<dl class="subroutine">
+<dt id="f/_/ca_eos_init">
+<em class="property">subroutine  </em><code class="descname">ca_eos_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_eos_init" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">small_dens()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_init()</span></code>)</td>
 </tr>
 </tbody>
 </table>
@@ -577,7 +594,7 @@ extern_probin_module</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dm</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_init()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_dens()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_get_small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
+<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code>, <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</td>
 </tr>
 </tbody>
 </table>

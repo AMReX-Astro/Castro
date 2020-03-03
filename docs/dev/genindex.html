@@ -437,6 +437,8 @@
 </li>
       <li><a href="file/timestep_nd_f.html#f/timestep_module/ca_check_timestep"><strong>ca_check_timestep() (fortran subroutine in module timestep_module)</strong></a>
 </li>
+      <li><a href="file/Castro_util_nd_f.html#f/castro_util_module/ca_clamp_temp"><strong>ca_clamp_temp() (fortran subroutine in module castro_util_module)</strong></a>
+</li>
       <li><a href="file/GR_Gravity_1d_f.html#f/_/ca_compute_avgpres"><strong>ca_compute_avgpres() (fortran subroutine)</strong></a>, <a href="file/GR_Gravity_2d_f.html#f/_/ca_compute_avgpres"><strong>[1]</strong></a>, <a href="file/GR_Gravity_3d_f.html#f/_/ca_compute_avgpres"><strong>[2]</strong></a>
 </li>
       <li><a href="file/Castro_util_nd_f.html#f/castro_util_module/ca_compute_avgstate"><strong>ca_compute_avgstate() (fortran subroutine in module castro_util_module)</strong></a>
@@ -472,8 +474,6 @@
       <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ca_compute_rosseland"><strong>ca_compute_rosseland() (fortran subroutine in module rad_nd_module)</strong></a>
 </li>
       <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ca_compute_scattering"><strong>ca_compute_scattering() (fortran subroutine in module rad_nd_module)</strong></a>
-</li>
-      <li><a href="file/Castro_util_nd_f.html#f/castro_util_module/ca_compute_temp"><strong>ca_compute_temp() (fortran subroutine in module castro_util_module)</strong></a>
 </li>
       <li><a href="file/Rad_nd_f.html#f/rad_nd_module/ca_compute_temp_given_rhoe"><strong>ca_compute_temp_given_rhoe() (fortran subroutine in module rad_nd_module)</strong></a>
 </li>
@@ -572,6 +572,8 @@
       <li><a href="file/Tagging_nd_f.html#f/tagging_module/ca_enucerror"><strong>ca_enucerror() (fortran subroutine in module tagging_module)</strong></a>
 </li>
       <li><a href="file/Castro_nd_f.html#f/_/ca_eos_finalize"><strong>ca_eos_finalize() (fortran subroutine)</strong></a>
+</li>
+      <li><a href="file/Castro_nd_f.html#f/_/ca_eos_init"><strong>ca_eos_init() (fortran subroutine)</strong></a>
 </li>
       <li><a href="file/RadPlotvar_1d_f.html#f/_/ca_er_com2lab"><strong>ca_er_com2lab() (fortran subroutine)</strong></a>, <a href="file/RadPlotvar_2d_f.html#f/_/ca_er_com2lab"><strong>[1]</strong></a>, <a href="file/RadPlotvar_3d_f.html#f/_/ca_er_com2lab"><strong>[2]</strong></a>
 </li>
@@ -1031,12 +1033,12 @@
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rot_source_type</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-5">castro.rotation_include_centrifugal</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rotation_include_coriolis</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="runtime_parameters.html#index-5">castro.rotation_include_domegadt</a>
 </li>
       <li><a href="runtime_parameters.html#index-5">castro.rotational_dPdt</a>
@@ -1239,8 +1241,6 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">Castro::enforce_min_density (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">[1]</a>
 </li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro12eos_finalizeEv">Castro::eos_finalize (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12eos_finalizeEv">[1]</a>
-</li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro8ErborderE">Castro::Erborder (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro8ErborderE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro14err_list_namesE">Castro::err_list_names (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro14err_list_namesE">[1]</a>
@@ -1360,10 +1360,6 @@
       <li><a href="class/classCastro.html#_CPPv4N6Castro15momz_flux_has_pE">Castro::momz_flux_has_p (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15momz_flux_has_pE">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro6n_lostE">Castro::n_lost (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro6n_lostE">[1]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro16network_finalizeEv">Castro::network_finalize (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro16network_finalizeEv">[1]</a>
-</li>
-      <li><a href="class/classCastro.html#_CPPv4N6Castro12network_initEv">Castro::network_init (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12network_initEv">[1]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro12no_tile_sizeE">Castro::no_tile_size (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro12no_tile_sizeE">[1]</a>
 </li>
@@ -1877,9 +1873,7 @@
 </li>
       <li><a href="file/HABEC_nd_f.html#f/habec_nd_module/edge_center_metric"><strong>edge_center_metric() (fortran subroutine in module habec_nd_module)</strong></a>
 </li>
-      <li><a href="file/edge_util_nd_f.html#f/edge_util_module/edge_state_temp_to_pres"><strong>edge_state_temp_to_pres() (fortran subroutine in module edge_util_module)</strong></a>
-</li>
-      <li><a href="file/edge_util_nd_f.html#f/edge_util_module"><strong>edge_util_module (module)</strong></a>
+      <li><a href="file/Castro__hydro_8H.html#_CPPv423edge_state_temp_to_presRK3BoxKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE">edge_state_temp_to_pres (C++ function)</a>
 </li>
       <li><a href="file/Gravity_nd_f.html#f/gravity_module/edgetolerance"><strong>edgetolerance (fortran variable in module gravity_module)</strong></a>
 </li>
@@ -1895,10 +1889,10 @@
 </li>
       <li><a href="file/Tagging_nd_f.html#f/tagging_module/entgrad_rel"><strong>entgrad_rel (fortran variable in module tagging_module)</strong></a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Tagging_nd_f.html#f/tagging_module/enucerr"><strong>enucerr (fortran variable in module tagging_module)</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="build_system.html#index-9">EOS_DIR</a>
 </li>
       <li><a href="EOSNetwork.html#index-0">eos_t</a>
@@ -3395,7 +3389,7 @@
 </li>
       <li><a href="file/prob_params_nd_f.html#f/prob_params_module/ref_ratio"><strong>ref_ratio (fortran variable in module prob_params_module)</strong></a>
 </li>
-      <li><a href="file/edge_util_nd_f.html#f/edge_util_module/reset_edge_state_thermo"><strong>reset_edge_state_thermo() (fortran subroutine in module edge_util_module)</strong></a>
+      <li><a href="file/Castro__hydro_8H.html#_CPPv423reset_edge_state_thermoRKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEE">reset_edge_state_thermo (C++ function)</a>
 </li>
       <li><a href="file/advection_util_nd_f.html#f/advection_util_module/reset_to_small_state"><strong>reset_to_small_state() (fortran subroutine in module advection_util_module)</strong></a>
 </li>

@@ -11,6 +11,11 @@ ca\_network\_finalize subroutine
 
 .. f:autosubroutine:: ca_network_finalize
 
+ca\_eos\_init subroutine
+------------------------
+
+.. f:autosubroutine:: ca_eos_init
+
 ca\_eos\_finalize subroutine
 ----------------------------
 
