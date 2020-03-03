@@ -337,8 +337,11 @@ contains
 
 
 
-  subroutine ca_sumlocsquaredmass(lo, hi, rho, r_lo, r_hi, dx,&
-                                  vol, v_lo, v_hi, mass, idir) bind(C, name="ca_sumlocsquaredmass")
+  subroutine ca_sumlocsquaredmass(lo, hi, &
+                                  rho, r_lo, r_hi, &
+                                  vol, v_lo, v_hi, &
+                                  mass, dx, idir) &
+                                  bind(C, name="ca_sumlocsquaredmass")
 
     use prob_params_module, only: problo, center, dim
     use amrex_constants_module, only: HALF
@@ -347,47 +350,66 @@ contains
 
     implicit none
 
-    integer,  intent(in   ), value :: idir
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: r_lo(3), r_hi(3)
     integer,  intent(in   ) :: v_lo(3), v_hi(3)
-    real(rt), intent(inout) :: mass
-    real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in   ) :: rho(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
     real(rt), intent(in   ) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
+    real(rt), intent(inout) :: mass
+    real(rt), intent(in   ) :: dx(3)
+    integer,  intent(in   ), value :: idir
 
     integer  :: i, j, k
     real(rt) :: x, y, z
 
     !$gpu
 
-    if (idir .eq. 0) then
-       do i = lo(1), hi(1)
-          x = problo(1) + (dble(i)+HALF) * dx(1) - center(1)
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
+    if (idir .eq. 0) then ! sum(mass * x^2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             do i = lo(1), hi(1)
+                x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
                 call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (x**2))
-             enddo
-          enddo
-       enddo
-    else if (idir .eq. 1 .and. dim .ge. 2) then
-       do j = lo(2), hi(2)
-          y = problo(2) + (dble(j)+HALF) * dx(2) - center(2)
-          do k = lo(3), hi(3)
+             end do
+          end do
+       end do
+
+    else if (idir .eq. 1) then ! sum(mass * y^2)
+
+       do k = lo(3), hi(3)
+          do j = lo(2), hi(2)
+             y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
              do i = lo(1), hi(1)
                 call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (y**2))
-             enddo
-          enddo
-       enddo
-    else if (dim .eq. 3) then
+             end do
+          end do
+       end do
+
+    else if (idir .eq. 2) then ! sum(mass * z^2)
+
        do k = lo(3), hi(3)
-          z = problo(3) + (dble(k)+HALF) * dx(3) - center(3)
+          z = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
                 call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (z**2))
-             enddo
-          enddo
-       enddo
+             end do
+          end do
+       end do
+
+    else ! sum(mass * r^2)
+
+       do k = lo(3), hi(3)
+          z = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+          do j = lo(2), hi(2)
+             y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+             do i = lo(1), hi(1)
+                x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+                call reduce_add(mass, rho(i,j,k) * vol(i,j,k) * (x**2 + y**2 + z**2))
+             end do
+          end do
+       end do
+
     end if
 
   end subroutine ca_sumlocsquaredmass

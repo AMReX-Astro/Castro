@@ -939,8 +939,6 @@ contains
     real(rt) :: uL(NVAR), uR(NVAR), qL(NQ), qR(NQ), volL, volR, flux_coefL, flux_coefR
     integer  :: idxL(3), idxR(3), UMOM
 
-    real(rt) :: momentum_ceiling
-
     !$gpu
 
     dtdx = dt / dx(idir)
@@ -1016,9 +1014,9 @@ contains
                    drhouLF = flux_coefL * fluxLF(UMOM)
                    rhouLF = abs(uL(UMOM) - drhouLF)
 
-                   ! Solve for theta from (1 - theta) * rhouLF + theta * rhou = momentum_ceiling.
+                   ! Solve for theta from (1 - theta) * rhouLF + theta * rhou = rhoL * speed_limit.
 
-                   theta = (momentum_ceiling - rhouLF) / (rhouL - rhouLF)
+                   theta = abs(rhoL * speed_limit - rhouLF) / abs(rhouL - rhouLF)
 
                    ! Limit theta to the valid range (this will deal with roundoff issues).
 
@@ -1029,7 +1027,7 @@ contains
                    drhouLF = flux_coefR * fluxLF(UMOM)
                    rhouLF = abs(uR(UMOM) + drhouLF)
 
-                   theta = (momentum_ceiling - abs(rhouLF)) / (abs(rhouR - rhouLF))
+                   theta = abs(rhoR * speed_limit - rhouLF) / abs(rhouR - rhouLF)
 
                    theta = min(ONE, max(theta, ZERO))
 
@@ -1047,26 +1045,6 @@ contains
 #ifdef SHOCK_VAR
              flux(i,j,k,USHK) = ZERO
 #endif
-
-             ! Now, apply our requirement that the final flux cannot violate the momentum ceiling.
-
-             do n = 1, 3
-
-                UMOM = UMX + n - 1
-
-                drhouR = flux_coefR * flux(i,j,k,UMOM)
-                drhouL = flux_coefL * flux(i,j,k,UMOM)
-
-                drhoR = flux_coefR * flux(i,j,k,URHO)
-                drhoL = flux_coefL * flux(i,j,k,URHO)
-
-                if (abs(uR(UMOM) + drhouR) > (uR(URHO) + drhoR) * speed_limit) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uR(UMOM))) / drhouR)
-                else if (abs(uL(UMOM) - drhouL) > (uL(URHO) - drhoL) * speed_limit) then
-                   flux(i,j,k,:) = flux(i,j,k,:) * abs((momentum_ceiling - abs(uL(UMOM))) / drhouL)
-                endif
-
-             end do
 
           enddo
        enddo
