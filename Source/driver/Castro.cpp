@@ -189,8 +189,11 @@ Castro::variableCleanUp ()
 
     ca_finalize_meth_params();
 
-    network_finalize();
+    ca_network_finalize();
+
     eos_finalize();
+    ca_eos_finalize();
+
 #ifdef SPONGE
     sponge_finalize();
 #endif
@@ -3104,24 +3107,6 @@ Castro::amrinfo_finalize()
 }
 
 void
-Castro::network_init ()
-{
-   ca_network_init();
-}
-
-void
-Castro::network_finalize ()
-{
-   ca_network_finalize();
-}
-
-void
-Castro::eos_finalize ()
-{
-   ca_eos_finalize();
-}
-
-void
 Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
@@ -3286,34 +3271,52 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+  {
 
       int num_ghost = ng;
 #ifdef TRUE_SDC
       if (sdc_order == 4) {
-        // only one ghost cell is at cell-centers
-        num_ghost = 1;
+          // only one ghost cell is at cell-centers
+          num_ghost = 1;
       }
 #endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
-      // general EOS version
+#ifdef TRUE_SDC
+      FArrayBox& u_fab = (sdc_order == 4) ? Stemp[mfi] : State[mfi];
+#else
+      FArrayBox& u_fab = State[mfi];
+#endif
 
-#ifdef TRUE_SDC
-      if (sdc_order == 4) {
-          // note, this is working on a growntilebox, but we will not have
-          // valid cell-centers in the very last ghost cell
-          ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-      } else {
-#endif
+      Array4<Real> const u = u_fab.array();
+
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      {
+
+          Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+          eos_t eos_state;
+
+          eos_state.rho = u(i,j,k,URHO);
+          eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
+          eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+          for (int n = 0; n < NumSpec; ++n)
+              eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          for (int n = 0; n < NumAux; ++n)
+              eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+
+          eos(eos_input_re, eos_state);
+
+          u(i,j,k,UTEMP) = eos_state.T;
+
+      });
+
+      if (clamp_ambient_temp == 1) {
 #pragma gpu box(bx)
-          ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(State[mfi]));
-#ifdef TRUE_SDC
+          ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(u_fab));
       }
-#endif
 
   }
 
