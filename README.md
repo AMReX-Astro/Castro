@@ -18,24 +18,17 @@ http://amrex-astro.github.io/Castro/
 
 ## Getting Started
 
-You can download Castro and all the necessary dependencies (AMReX and
-the Microphysics repo) using the script:
+The "Getting Started" section of the User's Guide walks you
+through running your first problem:
 
-https://raw.githubusercontent.com/AMReX-Astro/Castro/development/Util/scripts/get_castro.sh
+https://amrex-astro.github.io/Castro/docs/getting_started.html
 
-Running this will clone the repositories and create a file
-`castro_exports.sh` which you can source or copy to your `.bashrc`
-to define the necessary environment variables.
+This will have you clone Castro and its dependencies (AMReX and
+StarKiller Microphysics),
 
 The User's Guide in written in re-structured text using Sphinx, with
-the source in `Castro/sphinx_docs/`, and is built automatically
-via travis from the `development` branch.  You can find
-the online guide at:
-
-https://amrex-astro.github.io/Castro/docs/index.html
-
-The Getting Started section should guide you through your first run.
-
+the source in `Castro/Docs/`, and is built automatically
+via travis from the `development` branch.
 
 ## Call Graph
 
