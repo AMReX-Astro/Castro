@@ -132,6 +132,9 @@ endif
 
 USE_MLMG = FALSE
 
+# Enable C++ EOS functionality
+USE_CXX_EOS = TRUE
+
 #------------------------------------------------------------------------------
 # Castro directories
 #------------------------------------------------------------------------------
@@ -291,6 +294,8 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 # file (including the general_null network) to our temporary build
 # directory
 NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
+USE_CXX_EOS := TRUE
+
 USE_CXX_EOS := TRUE
 
 include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
