@@ -39,5 +39,4 @@ ifneq ($(DIM), 1)
   CEXE_sources += trans.cpp
 endif
 
-ca_F90EXE_sources += edge_util_nd.F90
-
+CEXE_sources += edge_util.cpp
