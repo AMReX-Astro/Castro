@@ -33,7 +33,7 @@ authors:
     affiliation: 1
   - name: Michael Zingale
     orcid: 0000-0001-8401-030X
-    affiliation: 2
+    affiliation: "2, 4"
 affiliations:
   - name: Center for Computational Sciences and Engineering, Lawrence Berkeley National Laboratory
     index: 1
@@ -41,6 +41,8 @@ affiliations:
     index: 2
   - name: NVIDIA Corp
     index: 3
+  - name: Center for Computational Astrophysics, Flatiron Institute
+    index: 4
 date: 17 February 2020
 bibliography: paper.bib
 ---
