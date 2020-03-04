@@ -640,10 +640,10 @@ Castro::riemannus(const Box& bx,
     // set the left and right states for this interface
 
 #ifdef RADIATION
-    Real laml[ngroups];
-    Real lamr[ngroups];
+    Real laml[NGROUPS];
+    Real lamr[NGROUPS];
 
-    for (int g = 0; g < ngroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
       if (idir == 0) {
         laml[g] = qaux(i-1,j,k,QLAMS+g);
       } else if (idir == 1) {
@@ -663,11 +663,11 @@ Castro::riemannus(const Box& bx,
     Real v2l = ql(i,j,k,iv2);
 
 #ifdef RADIATION
-    Real pl = ql(i,j,k,qptot);
-    Real rel = ql(i,j,k,qreitot);
-    Real erl[ngroups];
-    for (int g = 0; g < ngroups; g++) {
-      erl[g] = ql(i,j,k,qrad+g);
+    Real pl = ql(i,j,k,QPTOT);
+    Real rel = ql(i,j,k,QREITOT);
+    Real erl[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
+      erl[g] = ql(i,j,k,QRAD+g);
     }
     Real pl_g = ql(i,j,k,QPRES);
     Real rel_g = ql(i,j,k,QREINT);
@@ -684,11 +684,11 @@ Castro::riemannus(const Box& bx,
     Real v2r = qr(i,j,k,iv2);
 
 #ifdef RADIATION
-    Real pr = qr(i,j,k,qptot);
-    Real rer = qr(i,j,k,qreitot);
-    Real err[ngroups];
-    for (int g = 0; g < ngroups; g++) {
-      err[g] = qr(i,j,k,qrad:qrad-1+ngroups);
+    Real pr = qr(i,j,k,QPTOT);
+    Real rer = qr(i,j,k,QREITOT);
+    Real err[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
+      err[g] = qr(i,j,k,QRAD+g);
     }
     Real pr_g = qr(i,j,k,QPRES);
     Real rer_g = qr(i,j,k,QREINT);
@@ -816,22 +816,22 @@ Castro::riemannus(const Box& bx,
     Real reo = fp*rel + fm*rer;
     Real gamco = fp*gamcl + fm*gamcr;
 #ifdef RADIATION
-    Real lambda[ngroups];
-    for (int g = 0; g < ngroups; g++) {
+    Real lambda[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
       lambda[g] = fp*laml[g] + fm*lamr[g];
     }
 
     if (ustar == 0) {
       // harmonic average
-      for (int g = 0, g < ngroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         lambda[g] = 2.0_rt*(laml[g]*lamr[g])/(laml[g] + lamr[g] + 1.e-50_rt);
       }
     }
 
     Real po_g = fp*pl_g + fm*pr_g;
-    Real reo_r[ngroups];
-    Real po_r[ngroups];
-    for (int g = 0; g < ngroups; g++) {
+    Real reo_r[NGROUPS];
+    Real po_r[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
       reo_r[g] = fp*erl[g] + fm*err[g];
       po_r[g] = lambda[g]*reo_r[g];
     }
@@ -867,7 +867,8 @@ Castro::riemannus(const Box& bx,
     Real pstar_g = po_g + drho*co_g*co_g;
     pstar_g = amrex::max(pstar_g, small_pres);
 
-    for (int g = 0; g < ngroups; g++) {
+    Real estar_r[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
       estar_r[g] = reo_r[g] + drho*(reo_r[g] + po_r[g])*roinv;
     }
 #else
@@ -911,8 +912,8 @@ Castro::riemannus(const Box& bx,
     Real pgdnv_t = frac*pstar + (1.0_rt - frac)*po;
     Real pgdnv_g = frac*pstar_g + (1.0_rt - frac)*po_g;
     Real regdnv_g = frac*estar_g + (1.0_rt - frac)*reo_g;
-    Real regdnv_r[ngroups];
-    for (int g = 0; g < ngroups; g++) {
+    Real regdnv_r[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
       regdnv_r[g] = frac*estar_r[g] + (1.0_rt - frac)*reo_r[g];
     }
 #else
@@ -934,7 +935,7 @@ Castro::riemannus(const Box& bx,
       pgdnv_t = po;
       pgdnv_g = po_g;
       regdnv_g = reo_g;
-      for (int g = 0; g < ngroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         regdnv_r[g] = reo_r[g];
       }
 #else
@@ -951,7 +952,7 @@ Castro::riemannus(const Box& bx,
       pgdnv_t = pstar;
       pgdnv_g = pstar_g;
       regdnv_g = estar_g;
-      for (int g = 0; g < ngroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         regdnv_r[g] = estar_r[g];
       }
 #else
@@ -961,8 +962,8 @@ Castro::riemannus(const Box& bx,
     }
 
 #ifdef RADIATION
-    for (int g = 0, g < ngroups; g++) {
-      qint(i,j,k,QRAD+g) = amrex::max(regdnv_[g], 0.0_rt);
+    for (int g = 0; g < NGROUPS; g++) {
+      qint(i,j,k,QRAD+g) = amrex::max(regdnv_r[g], 0.0_rt);
     }
 
     qint(i,j,k,QPRES) = pgdnv_g;
@@ -970,11 +971,11 @@ Castro::riemannus(const Box& bx,
     qint(i,j,k,QREINT) = regdnv_g;
 
     qint(i,j,k,QREITOT) = regdnv_g;
-    for (int g = 0; g < ngroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
       qint(i,j,k,QREITOT) += regdnv_r[g];
     }
 
-    for (int g = 0; g < ngroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
       lambda_int(i,j,k,g) = lambda[g];
     }
 

@@ -4,6 +4,7 @@
 
 #ifdef RADIATION
 #include "Radiation.H"
+#include "fluxlimiter.H"
 #endif
 
 #include <eos.H>
@@ -271,6 +272,12 @@ Castro::compute_flux_q(const Box& bx,
     mom_check = momz_flux_has_p[idir];
   }
 
+#ifdef RADIATION
+    int fspace_t = Radiation::fspace_advection_type;
+    int comov = Radiation::comoving;
+    int limiter = Radiation::limiter;
+    int closure = Radiation::closure;
+#endif
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -321,15 +328,15 @@ Castro::compute_flux_q(const Box& bx,
 #endif
 
 #ifdef RADIATION
-    if (fspace_type == 1) {
-      for (int g = 0; g < ngroups; g++) {
-        Real eddf = Edd_factor(lambda(i,j,k,g));
+    if (fspace_t == 1) {
+      for (int g = 0; g < NGROUPS; g++) {
+        Real eddf = Edd_factor(lambda(i,j,k,g), limiter, closure);
         Real f1 = 0.5e0_rt*(1.0_rt-eddf);
         rF(i,j,k,g) = (1.0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv;
       }
     } else {
       // type 2
-      for (int g = 0; g < ngroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv;
       }
     }
@@ -352,7 +359,7 @@ Castro::compute_flux_q(const Box& bx,
     qgdnv_zone[GDW] = qint(i,j,k,QW);
     qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
 #ifdef RADIATION
-    for (int g = 0; g < ngroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
       qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
       qgdnv_zone(GDERADS+g] = qint(i,j,k,QRAD+g);
     }
@@ -393,7 +400,7 @@ Castro::store_godunov_state(const Box& bx,
     qgdnv(i,j,k,GDW) = qint(i,j,k,QW);
     qgdnv(i,j,k,GDPRES) = qint(i,j,k,QPRES);
 #ifdef RADIATION
-    for (int g = 0; g < ngroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
       qgdnv(i,j,k,GDLAMS+g) = lambda(i,j,k,g);
       qgdnv(i,j,k,GDERADS+g) = qint(i,j,k,QRAD+g);
     }

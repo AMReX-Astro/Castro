@@ -413,7 +413,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       rad_flux[0].resize(gxbx, Radiation::nGroups);
       Elixir elix_rad_flux_x = rad_flux[0].elixir();
       fab_size += rad_flux[0].nBytes();
-      Array4<Real> const rad_flux_arr = (rad_flux[0]).array();
+      auto rad_flux0_arr = (rad_flux[0]).array();
 #endif
 
 #if AMREX_SPACEDIM >= 2
@@ -431,7 +431,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       rad_flux[1].resize(gybx, Radiation::nGroups);
       Elixir elix_rad_flux_y = rad_flux[1].elixir();
       fab_size += rad_flux[1].nBytes();
-      Array4<Real> const rad_flux1_arr = (rad_flux[1]).array();
+      auto const rad_flux1_arr = (rad_flux[1]).array();
 #endif
 #endif
 
@@ -450,7 +450,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       rad_flux[2].resize(gzbx, Radiation::nGroups);
       Elixir elix_rad_flux_z = rad_flux[2].elixir();
       fab_size += rad_flux[2].nBytes();
-      Array4<Real> const rad_flux2_arr = (rad_flux[2]).array();
+      auto const rad_flux2_arr = (rad_flux[2]).array();
 #endif
 #endif
 
