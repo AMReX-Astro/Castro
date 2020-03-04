@@ -255,7 +255,7 @@
                     const amrex::Real gamer, const amrex::Real clsqr,
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
                     amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, 2*HISTORY_SIZE>& pstar_hist_extra);
+                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
 
     AMREX_GPU_HOST_DEVICE
     void

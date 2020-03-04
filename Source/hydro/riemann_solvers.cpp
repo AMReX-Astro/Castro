@@ -29,7 +29,7 @@ Castro::riemanncg(const Box& bx,
 
 #ifndef AMREX_USE_CUDA
   GpuArray<Real, HISTORY_SIZE> pstar_hist;
-  GpuArray<Real, 2*HISTORY_SIZE> pstar_hist_extra;
+  GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
 
   if (cg_maxiter > HISTORY_SIZE) {
     amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
@@ -371,7 +371,7 @@ Castro::riemanncg(const Box& bx,
             std::cout << iter << " " << pstar_hist[iter] << std::endl;
           }
           std::cout << "pstar extra history: " << std::endl;
-          for (int iter = 0; iter < 2*cg_maxiter; iter++) {
+          for (int iter = 0; iter < PSTAR_BISECT_FACTOR*cg_maxiter; iter++) {
             std::cout << iter << " " << pstar_hist_extra[iter] << std::endl;
           }
 
