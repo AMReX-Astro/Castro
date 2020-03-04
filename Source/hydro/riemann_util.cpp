@@ -60,6 +60,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
                         const Real ur, const Real pr, const Real taur,
                         const Real gamer, const Real clsqr,
                         const Real gdot, const Real gmin, const Real gmax,
+                        const int lcg_maxiter, const Real lcg_tol,
                         Real& pstar, Real& gamstar,
                         bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
 
@@ -107,7 +108,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
   converged = false;
   Real pstar_c = 0.0;
 
-  for (int iter = 0; iter < PSTAR_BISECT_FACTOR*cg_maxiter; iter++) {
+  for (int iter = 0; iter < PSTAR_BISECT_FACTOR*lcg_maxiter; iter++) {
 
     pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
     pstar_hist_extra[iter] = pstar_c;
@@ -126,7 +127,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
     Real f_c = ustar_l - ustar_r;
 
-    if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < cg_tol * pstar_c ) {
+    if ( 0.5_rt * std::abs(pstar_lo - pstar_hi) < lcg_tol * pstar_c ) {
       converged = true;
       break;
     }

@@ -238,6 +238,8 @@
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
              const int idir,
+             const amrex::GpuArray<int, npassive>& upass_map_p,
+             const amrex::GpuArray<int, npassive>& qpass_map_p,
              amrex::Real* f);
 
     AMREX_GPU_HOST_DEVICE
@@ -255,6 +257,7 @@
                     const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
                     const amrex::Real gamer, const amrex::Real clsqr,
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
+                    const int lcg_maxiter, const amrex::Real lcg_tol,
                     amrex::Real& pstar, amrex::Real& gamstar,
                     bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
 

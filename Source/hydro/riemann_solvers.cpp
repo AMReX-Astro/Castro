@@ -95,6 +95,13 @@ Castro::riemanncg(const Box& bx,
 
   const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
 
+  GpuArray<int, npassive> upass_map_p;
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; ++n) {
+    upass_map_p[n] = upass_map[n];
+    qpass_map_p[n] = qpass_map[n];
+  }
+
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
@@ -371,6 +378,7 @@ Castro::riemanncg(const Box& bx,
                         ul, pl, taul, gamel, clsql,
                         ur, pr, taur, gamer, clsqr,
                         gdot, gmin, gmax,
+                        lcg_maxiter, lcg_tol, 
                         pstar, gamstar, converged, pstar_hist_extra);
 
         if (!converged) {
@@ -539,8 +547,8 @@ Castro::riemanncg(const Box& bx,
 
     // advected quantities -- only the contact matters
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map[ipassive];
-      int nqp = qpass_map[ipassive];
+      int n  = upass_map_p[ipassive];
+      int nqp = qpass_map_p[ipassive];
 
       if (ustar > 0.0_rt) {
         qint(i,j,k,nqp) = ql(i,j,k,nqp);
@@ -609,10 +617,17 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == NoSlipWall);
 
   const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
+  const int luse_eos_in_riemann = use_eos_in_riemann;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
+
+  GpuArray<int, npassive> upass_map_p;
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; ++n) {
+    upass_map_p[n] = upass_map[n];
+    qpass_map_p[n] = qpass_map[n];
+  }
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -781,7 +796,7 @@ Castro::riemannus(const Box& bx,
     }
 #endif
 
-    Real wsmall = small_dens*csmall;
+    Real wsmall = lsmall_dens*csmall;
 
     // this is Castro I: Eq. 33
     Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
@@ -988,7 +1003,7 @@ Castro::riemannus(const Box& bx,
 
     // we are potentially thermodynamically inconsistent, fix that
     // here
-    if (use_eos_in_riemann == 1) {
+    if (luse_eos_in_riemann == 1) {
       // we need to know the species -- they only jump across
       // the contact
       eos_t eos_state;
@@ -1016,7 +1031,7 @@ Castro::riemannus(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map[ipassive];
+      int nqp = qpass_map_p[ipassive];
       qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
     }
 
@@ -1085,7 +1100,6 @@ Castro::HLLC(const Box& bx,
 
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
-  const Real lT_guess = T_guess;
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -1303,6 +1317,8 @@ void
 Castro::HLL(const Real* ql, const Real* qr,
             const Real cl, const Real cr,
             const int idir,
+            const GpuArray<int, npassive>& upass_map_p,
+            const GpuArray<int, npassive>& qpass_map_p,
             Real* f) {
 
 
@@ -1443,8 +1459,8 @@ Castro::HLL(const Real* ql, const Real* qr,
 
   // passively-advected scalar fluxes
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map[ipassive];
-    int nqs = qpass_map[ipassive];
+    int n  = upass_map_p[ipassive];
+    int nqs = qpass_map_p[ipassive];
 
     fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
     fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];

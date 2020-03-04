@@ -244,8 +244,10 @@ Castro::variableSetUp ()
   // Fortran versions in ca_set_method_params
   int ipassive = 0;
 
-  upass_map.resize(npassive);
-  qpass_map.resize(npassive);
+  //upass_map.resize(npassive);
+  //qpass_map.resize(npassive);
+  amrex::GpuArray<int, npassive> upass_map;
+  amrex::GpuArray<int, npassive> qpass_map;
 
   for (int iadv = 0; iadv < NumAdv; ++iadv) {
     upass_map[ipassive] = UFA + iadv;

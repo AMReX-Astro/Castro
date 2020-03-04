@@ -69,6 +69,14 @@ Castro::cmpflx_plus_godunov(const Box& bx,
   if (hybrid_riemann == 1) {
     // correct the fluxes using an HLL scheme if we are in a shock
     // and doing the hybrid approach
+
+    GpuArray<int, npassive> upass_map_p;
+    GpuArray<int, npassive> qpass_map_p;
+    for (int n = 0; n < npassive; ++n) {
+      upass_map_p[n] = upass_map[n];
+      qpass_map_p[n] = qpass_map[n];
+    }
+
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
@@ -106,7 +114,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
           qr_zone[n] = qp(i,j,k,n);
         }
 
-        HLL(ql_zone, qr_zone, cl, cr, idir, flx_zone);
+        HLL(ql_zone, qr_zone, cl, cr, idir,
+            upass_map_p, qpass_map_p,
+            flx_zone);
 
         for (int n = 0; n < NUM_STATE; n++) {
           flx(i,j,k,n) = flx_zone[n];
