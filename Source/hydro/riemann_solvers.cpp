@@ -355,6 +355,9 @@ Castro::riemanncg(const Box& bx,
           pstaru = amrex::max(pstaru, pstar_hist[n]);
         }
 
+        pstarl = amrex::max(pstarl, small_pres);
+        pstaru = amrex::max(pstaru, small_pres);
+
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,
                         ur, pr, taur, gamer, clsqr,
