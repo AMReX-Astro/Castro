@@ -274,7 +274,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // for 1-d, we are done here, so just copy f_avg to flux[0],
             // since there is no face averaging
             Array4<Real> const flux_arr = (flux[0]).array();
-            Array4<const Real> const f_avg_arr = f_avg.array();
 
             AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
                 flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);});
