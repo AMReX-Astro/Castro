@@ -732,7 +732,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-#pragma gpu box(cybx)
       cmpflx_plus_godunov(cybx,
                           qym_arr, qyp_arr,
                           ftmp1_arr, q_int_arr,

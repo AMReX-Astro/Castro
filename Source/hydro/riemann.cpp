@@ -172,6 +172,8 @@ Castro::riemann_state(const Box& bx,
     // new values for p on the edges that are
     // thermodynamically consistent.
 
+    const Real lT_guess = T_guess;
+
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
@@ -179,7 +181,7 @@ Castro::riemann_state(const Box& bx,
 
      // this is an initial guess for iterations, since we
      // can't be certain what temp is on interfaces
-     eos_state.T = T_guess;
+     eos_state.T = lT_guess;
 
      // minus state
      eos_state.rho = qm(i,j,k,QRHO);

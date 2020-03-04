@@ -234,6 +234,7 @@
               amrex::Array4<amrex::Real> const qint,
               const int idir);
 
+    AMREX_GPU_HOST_DEVICE
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
              const int idir,
