@@ -46,16 +46,12 @@ Castro::riemanncg(const Box& bx,
   const auto domhi = geom.Domain().hiVect3d();
 
   int iu, iv1, iv2;
-  int im1, im2, im3;
   int sx, sy, sz;
 
   if (idir == 0) {
     iu = QU;
     iv1 = QV;
     iv2 = QW;
-    im1 = UMX;
-    im2 = UMY;
-    im3 = UMZ;
     sx = 1;
     sy = 0;
     sz = 0;
@@ -64,9 +60,6 @@ Castro::riemanncg(const Box& bx,
     iu = QV;
     iv1 = QU;
     iv2 = QW;
-    im1 = UMY;
-    im2 = UMX;
-    im3 = UMZ;
     sx = 0;
     sy = 1;
     sz = 0;
@@ -75,9 +68,6 @@ Castro::riemanncg(const Box& bx,
     iu = QW;
     iv1 = QU;
     iv2 = QV;
-    im1 = UMZ;
-    im2 = UMX;
-    im3 = UMY;
     sx = 0;
     sy = 0;
     sz = 1;
@@ -240,13 +230,13 @@ Castro::riemanncg(const Box& bx,
     pstar = amrex::max(pstar, small_pres);
 
     // get the shock speeds -- this computes W_s from CG Eq. 34
-    Real gamstar;
-    Real wlsq;
+    Real gamstar = 0.0;
+    Real wlsq = 0.0;
 
     wsqge(pl, taul, gamel, gdot, gamstar,
           gmin, gmax, clsql, pstar, wlsq);
 
-    Real wrsq;
+    Real wrsq = 0.0;
     wsqge(pr, taur, gamer, gdot, gamstar,
           gmin, gmax, clsqr, pstar, wrsq);
 
@@ -278,6 +268,7 @@ Castro::riemanncg(const Box& bx,
 
       wsqge(pr, taur, gamer, gdot, gamstar,
             gmin, gmax, clsqr, pstar, wrsq);
+
 
       // NOTE: these are really the inverses of the wave speeds!
       wl = 1.0_rt / std::sqrt(wlsq);
@@ -336,7 +327,7 @@ Castro::riemanncg(const Box& bx,
 #ifndef AMREX_USE_CUDA
         std::cout <<  "pstar history: " << std::endl;
         for (int iter=0; iter < cg_maxiter; iter++) {
-          std::cout << iter << " " << pstar_hist[iter];
+          std::cout << iter << " " << pstar_hist[iter] << std::endl;
         }
 
         std::cout << std::endl;
@@ -363,6 +354,7 @@ Castro::riemanncg(const Box& bx,
           pstarl = amrex::min(pstarl, pstar_hist[n]);
           pstaru = amrex::max(pstaru, pstar_hist[n]);
         }
+
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,
                         ur, pr, taur, gamer, clsqr,
@@ -371,12 +363,13 @@ Castro::riemanncg(const Box& bx,
 
         if (!converged) {
 
-          std::cout << "pstar history: ";
+          std::cout << "pstar history: " << std::endl;
           for (int iter = 0; iter < cg_maxiter; iter++) {
-            std::cout << iter << " " << pstar_hist[iter];
+            std::cout << iter << " " << pstar_hist[iter] << std::endl;
           }
+          std::cout << "pstar extra history: " << std::endl;
           for (int iter = 0; iter < 2*cg_maxiter; iter++) {
-            std::cout << iter << " " << pstar_hist_extra[iter];
+            std::cout << iter << " " << pstar_hist_extra[iter] << std::endl;
           }
 
           std::cout << std::endl;
@@ -456,7 +449,7 @@ Castro::riemanncg(const Box& bx,
     // now that we know which state (left or right) we need to worry
     // about, get the value of gamstar and wosq across the wave we
     // are dealing with.
-    Real wosq;
+    Real wosq = 0.0;
     wsqge(po, tauo, gameo, gdot, gamstar,
           gmin, gmax, clsq, pstar, wosq);
 
@@ -547,6 +540,7 @@ Castro::riemanncg(const Box& bx,
     }
 
   });
+
 }
 
 void
@@ -573,31 +567,22 @@ Castro::riemannus(const Box& bx,
   const auto domhi = geom.Domain().hiVect3d();
 
   int iu, iv1, iv2;
-  int im1, im2, im3;
 
   if (idir == 0) {
     iu = QU;
     iv1 = QV;
     iv2 = QW;
-    im1 = UMX;
-    im2 = UMY;
-    im3 = UMZ;
 
   } else if (idir == 1) {
     iu = QV;
     iv1 = QU;
     iv2 = QW;
-    im1 = UMY;
-    im2 = UMX;
-    im3 = UMZ;
 
   } else {
     iu = QW;
     iv1 = QU;
     iv2 = QV;
-    im1 = UMZ;
-    im2 = UMX;
-    im3 = UMY;
+
   }
 
   const int* lo_bc = phys_bc.lo();
@@ -1042,16 +1027,12 @@ Castro::HLLC(const Box& bx,
   const auto domhi = geom.Domain().hiVect3d();
 
   int iu, iv1, iv2;
-  int im1, im2, im3;
   int sx, sy, sz;
 
   if (idir == 0) {
     iu = QU;
     iv1 = QV;
     iv2 = QW;
-    im1 = UMX;
-    im2 = UMY;
-    im3 = UMZ;
     sx = 1;
     sy = 0;
     sz = 0;
@@ -1060,9 +1041,6 @@ Castro::HLLC(const Box& bx,
     iu = QV;
     iv1 = QU;
     iv2 = QW;
-    im1 = UMY;
-    im2 = UMX;
-    im3 = UMZ;
     sx = 0;
     sy = 1;
     sz = 0;
@@ -1071,9 +1049,6 @@ Castro::HLLC(const Box& bx,
     iu = QW;
     iv1 = QU;
     iv2 = QV;
-    im1 = UMZ;
-    im2 = UMX;
-    im3 = UMY;
     sx = 0;
     sy = 0;
     sz = 1;

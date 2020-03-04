@@ -20,7 +20,7 @@ void
 Castro::wsqge(const Real p, const Real v,
               const Real gam, const Real gdot, Real& gstar,
               const Real gmin, const Real gmax, const Real csq,
-              Real& pstar, Real& wsq) {
+              const Real pstar, Real& wsq) {
 
   // compute the lagrangian wave speeds -- this is the approximate
   // version for the Colella & Glaz algorithm
@@ -72,11 +72,11 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
 
   // lo bounds
-  Real wlsq;
+  Real wlsq = 0.0;
   wsqge(pl, taul, gamel, gdot,
          gamstar, gmin, gmax, clsql, pstar_lo, wlsq);
 
-  Real wrsq;
+  Real wrsq = 0.0;
   wsqge(pr, taur, gamer, gdot,
          gamstar, gmin, gmax, clsqr, pstar_lo, wrsq);
 

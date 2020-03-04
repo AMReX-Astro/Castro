@@ -244,7 +244,7 @@
     wsqge(const amrex::Real p, const amrex::Real v,
           const amrex::Real gam, const amrex::Real gdot, amrex::Real& gstar,
           const amrex::Real gmin, const amrex::Real gmax, const amrex::Real csq,
-          amrex::Real& pstar, amrex::Real& wsq);
+          const amrex::Real pstar, amrex::Real& wsq);
 
     AMREX_GPU_HOST_DEVICE
     void
