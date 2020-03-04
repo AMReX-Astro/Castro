@@ -408,7 +408,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qe_x = qe[0].elixir();
       auto qex_arr = qe[0].array();
       fab_size += qe[0].nBytes();
-      Array4<Real> const qe0_arr = (qe[0]).array();
 
 #ifdef RADIATION
       rad_flux[0].resize(gxbx, Radiation::nGroups);
@@ -427,7 +426,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qe_y = qe[1].elixir();
       auto qey_arr = qe[1].array();
       fab_size += qe[1].nBytes();
-      Array4<Real> const qe1_arr = (qe[1]).array();
 
 #ifdef RADIATION
       rad_flux[1].resize(gybx, Radiation::nGroups);
@@ -447,7 +445,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qe_z = qe[2].elixir();
       auto qez_arr = qe[2].array();
       fab_size += qe[2].nBytes();
-      Array4<Real> const qe2_arr = (qe[2]).array();
 
 #ifdef RADIATION
       rad_flux[2].resize(gzbx, Radiation::nGroups);
@@ -472,7 +469,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux0_arr, lambda_int_arr,
 #endif
-                          qe0_arr,
+                          qex_arr,
                           qaux_arr,
                           shk_arr,
                           0);
@@ -486,51 +483,43 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_ftmp1 = ftmp1.elixir();
       auto ftmp1_arr = ftmp1.array();
       fab_size += ftmp1.nBytes();
-      Array4<Real> const ftmp1_arr = ftmp1.array();
 
       ftmp2.resize(obx, NUM_STATE);
       Elixir elix_ftmp2 = ftmp2.elixir();
       auto ftmp2_arr = ftmp2.array();
       fab_size += ftmp2.nBytes();
-      Array4<Real> const ftmp2_arr = ftmp2.array();
 
 #ifdef RADIATION
       rftmp1.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp1 = rftmp1.elixir();
       auto rftmp1_arr = rftmp1.array();
       fab_size += rftmp1.nBytes();
-      Array4<Real> const rftmp1_arr = rftmp1.array();
 
       rftmp2.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp2 = rftmp2.elixir();
       auto rftmp2_arr = rftmp2.array();
       fab_size += rftmp2.nBytes();
-      Array4<Real> const rftmp2_arr = rftmp2.array();
 #endif
 
       qgdnvtmp1.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
       auto qgdnvtmp1_arr = qgdnvtmp1.array();
       fab_size += qgdnvtmp1.nBytes();
-      Array4<Real> const qgdnvtmp1_arr = qgdnvtmp1.array();
 
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
       auto qgdnvtmp2_arr = qgdnvtmp2.array();
       fab_size += qgdnvtmp2.nBytes();
-      Array4<Real> const qgdnvtmp2_arr = qgdnvtmp2.array();
 
       ql.resize(obx, NQ);
       Elixir elix_ql = ql.elixir();
       auto ql_arr = ql.array();
       fab_size += ql.nBytes();
-      Array4<Real> const ql_arr = ql.array();
 
       qr.resize(obx, NQ);
       Elixir elix_qr = qr.elixir();
       auto qr_arr = qr.array();
       fab_size += qr.nBytes();
-      Array4<Real> const qr_arr = qr.array();
 #endif
 
 
@@ -570,7 +559,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rftmp2_arr, lambda_int_arr,
 #endif
-                          qe1_arr,
+                          qey_arr,
                           qaux_arr, shk_arr,
                           1);
 
@@ -604,7 +593,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux0_arr, lambda_int_arr,
 #endif
-                          qe0_arr,
+                          qex_arr,
                           qaux_arr, shk_arr,
                           0);
 
@@ -641,7 +630,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux1_arr, lambda_int_arr,
 #endif
-                          qe1_arr,
+                          qey_arr,
                           qaux_arr, shk_arr,
                           1);
 #endif // 2-d
@@ -684,13 +673,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmyx = qmyx.elixir();
       auto qmyx_arr = qmyx.array();
       fab_size += qmyx.nBytes();
-      Array4<Real> const qmyx_arr = qmyx.array();
 
       qpyx.resize(tyxbx, NQ);
       Elixir elix_qpyx = qpyx.elixir();
       auto qpyx_arr = qpyx.array();
       fab_size += qpyx.nBytes();
-      Array4<Real> const qpyx_arr = qpyx.array();
 
       // ftmp1 = fx
       // rftmp1 = rfx
@@ -717,13 +704,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmzx = qmzx.elixir();
       auto qmzx_arr = qmzx.array();
       fab_size += qmzx.nBytes();
-      Array4<Real> const qmzx_arr = qmzx.array();
 
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
       auto qpzx_arr = qpzx.array();
       fab_size += qpzx.nBytes();
-      Array4<Real> const qpzx_arr = qpzx.array();
 
       trans_single(tzxbx, 0, 2,
                    qzm_arr, qmzx_arr,
@@ -765,13 +750,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmxy = qmxy.elixir();
       auto qmxy_arr = qmxy.array();
       fab_size += qmxy.nBytes();
-      Array4<Real> const qmxy_arr = qmxy.array();
 
       qpxy.resize(txybx, NQ);
       Elixir elix_qpxy = qpxy.elixir();
       auto qpxy_arr = qpxy.array();
       fab_size += qpxy.nBytes();
-      Array4<Real> const qpxy_arr = qpxy.array();
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -798,13 +781,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmzy = qmzy.elixir();
       auto qmzy_arr = qmzy.array();
       fab_size += qmzy.nBytes();
-      Array4<Real> const qmzy_arr = qmzy.array();
 
       qpzy.resize(tzybx, NQ);
       Elixir elix_qpzy = qpzy.elixir();
       auto qpzy_arr = qpzy.array();
       fab_size += qpzy.nBytes();
-      Array4<Real> const qpzy_arr = qpzy.array();
 
       // ftmp1 = fy
       // rftmp1 = rfy
@@ -848,13 +829,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmxz = qmxz.elixir();
       auto qmxz_arr = qmxz.array();
       fab_size += qmxz.nBytes();
-      Array4<Real> const qmxz_arr = qmxz.array();
 
       qpxz.resize(txzbx, NQ);
       Elixir elix_qpxz = qpxz.elixir();
       auto qpxz_arr = qpxz.array();
       fab_size += qpxz.nBytes();
-      Array4<Real> const qpxz_arr = qpxz.array();
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -881,13 +860,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Elixir elix_qmyz = qmyz.elixir();
       auto qmyz_arr = qmyz.array();
       fab_size += qmyz.nBytes();
-      Array4<Real> const qmyz_arr = qmyz.array();
 
       qpyz.resize(tyzbx, NQ);
       Elixir elix_qpyz = qpyz.elixir();
       auto qpyz_arr = qpyz.array();
       fab_size += qpyz.nBytes();
-      Array4<Real> const qpyz_arr = qpyz.array();
 
       // ftmp1 = fz
       // rftmp1 = rfz
@@ -976,7 +953,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux0_arr, lambda_int_arr,
 #endif
-                          qe0_arr,
+                          qex_arr,
                           qaux_arr, shk_arr,
                           0);
 
@@ -1049,7 +1026,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux1_arr, lambda_int_arr,
 #endif
-                          qe1_arr,
+                          qey_arr,
                           qaux_arr, shk_arr,
                           1);
 
@@ -1123,7 +1100,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
                           rad_flux2_arr, lambda_int_arr,
 #endif
-                          qe2_arr,
+                          qez_arr,
                           qaux_arr, shk_arr,
                           2);
 
