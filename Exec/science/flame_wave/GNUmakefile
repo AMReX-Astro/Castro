@@ -28,7 +28,7 @@ EOS_DIR     := helmholtz
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox13
 
-INTEGRATOR_DIR := VODE90
+INTEGRATOR_DIR := VODE
 
 CONDUCTIVITY_DIR := stellar
 

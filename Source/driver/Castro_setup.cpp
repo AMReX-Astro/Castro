@@ -2,6 +2,7 @@
 
 #include "AMReX_LevelBld.H"
 #include <AMReX_ParmParse.H>
+#include "eos.H"
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_bc_fill_nd_F.H"
@@ -157,14 +158,20 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // Read in the input values to Fortran.
+  ca_set_castro_method_params();
+
   // Initialize the runtime parameters for any of the external
   // microphysics (these are the parameters that are in the &extern
   // block of the probin file)
   extern_init();
 
   // Initialize the network
-  network_init();
+  ca_network_init();
 
+  // Initialize the EOS
+  ca_eos_init();
+  eos_init();
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
@@ -209,9 +216,6 @@ Castro::variableSetUp ()
   ca_get_method_params(&NUM_GROW);
 
   const Real run_strt = ParallelDescriptor::second() ;
-
-  // Read in the input values to Fortran.
-  ca_set_castro_method_params();
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);
@@ -464,15 +468,7 @@ Castro::variableSetUp ()
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
-    const int len = 20;
-    Vector<int> int_aux_names(len);
-    // This call return the actual length of each string in "len"
-    ca_get_aux_names(int_aux_names.dataPtr(),&i,&len);
-    char char_aux_names[len+1];
-    for (int j = 0; j < len; j++)
-      char_aux_names[j] = int_aux_names[j];
-    char_aux_names[len] = '\0';
-    aux_names.push_back(std::string(char_aux_names));
+    aux_names.push_back(short_aux_names_cxx[i]);
   }
 
   if ( ParallelDescriptor::IOProcessor())

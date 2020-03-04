@@ -21,8 +21,6 @@ castro.hi_bc       =  2   2
 castro.do_hydro = 1
 castro.do_react = 0
 
-castro.ppm_predict_gammae = 1
-
 # TIME STEP CONTROL
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
@@ -43,7 +41,7 @@ amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 256
 
 # CHECKPOINT FILES
-amr.check_file      = sedov_2d_cyl_in_cart_chk     # root name of checkpoint file
+amr.check_file      = sedov_2d_cyl_in_cart_chk   # root name of checkpoint file
 amr.check_int       = 20       # number of timesteps between checkpoints
 
 # PLOTFILES
@@ -52,4 +50,4 @@ amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords.gammae
+amr.probin_file = probin.2d.cyl_in_cartcoords.testsuite

@@ -28,7 +28,6 @@
    x-velocity             QU        NQSRC                                   1                 None
    y-velocity             QV        NQSRC                                   1                 None
    z-velocity             QW        NQSRC                                   1                 None
-   gamma_e                QGAME     NQSRC                                   1                 None
    gamma_c                QGC       NQSRC                                   1                 None
    pressure               QPRES     NQSRC                                   1                 None
    rho-e                  QREINT    NQSRC                                   1                 None
@@ -62,7 +61,6 @@
    y-velocity             GDV       None            1                   None
    z-velocity             GDW       None            1                   None
    pressure               GDPRES    None            1                   None
-   gamma_e                GDGAME    None            1                   None
    flux-limiter           GDLAMS    None          (ngroups, NGROUPS)    RADIATION
    radiation              GDERADS   None          (ngroups, NGROUPS)    RADIATION
 

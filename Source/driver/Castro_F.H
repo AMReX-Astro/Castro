@@ -12,13 +12,13 @@ extern "C"
 
   void ca_network_finalize();
 
+  void ca_eos_init();
+
   void ca_eos_finalize();
 
   void burner_init();
 
   void ca_extern_init(const int* name, const int* namlen);
-
-  void ca_get_aux_names(int* aux_names,  const int* iaux, const int* len);
 
 #ifdef REACTIONS
   void ca_get_abort_on_failure(int * abort_on_failure);
@@ -161,7 +161,7 @@ extern "C"
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 
-  void ca_compute_temp
+  void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e
@@ -270,8 +270,10 @@ extern "C"
      const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
 
   void ca_sumlocsquaredmass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(rho),
+     const BL_FORT_FAB_ARG_3D(vol),
+     amrex::Real* mass, const amrex::Real* dx, int idir);
 
   void ca_sumproduct
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),

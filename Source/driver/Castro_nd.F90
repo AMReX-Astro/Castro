@@ -31,6 +31,19 @@ subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
 end subroutine ca_network_finalize
 
 
+subroutine ca_eos_init() bind(C, name="ca_eos_init")
+
+  use meth_params_module, only: small_dens, small_temp
+  use eos_module, only: eos_init
+
+  implicit none
+
+  call eos_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
+
+end subroutine ca_eos_init
+
 
 subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
     !
@@ -71,35 +84,6 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
-
-subroutine ca_get_aux_names(aux_names,iaux,len) &
-     bind(C, name="ca_get_aux_names")
-     !
-     ! Binds to C function `ca_get_aux_names`
-
-  use network, only: naux, short_aux_names
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in   ) :: iaux
-  integer, intent(inout) :: len
-  integer, intent(inout) :: aux_names(len)
-
-  ! Local variables
-  integer   :: i
-
-  len = len_trim(short_aux_names(iaux+1))
-
-  do i = 1,len
-     aux_names(i) = ichar(short_aux_names(iaux+1)(i:i))
-  end do
-
-end subroutine ca_get_aux_names
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
 
 
 #ifdef REACTIONS
@@ -389,8 +373,6 @@ subroutine ca_set_method_params(dm) &
 
   use meth_params_module
   use network, only : nspec, naux
-  use eos_module, only: eos_init
-  use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
 
@@ -476,15 +458,7 @@ subroutine ca_set_method_params(dm) &
      small_ener = 1.e-200_rt
   endif
 
-  ! Note that the EOS may modify our choices because of its
-  ! internal limitations, so the small_dens and small_temp
-  ! may be modified coming back out of this routine.
-
-  call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-  ! Update device variables
-
-  !$acc update device(small_dens, small_temp)
+  !$acc update device(small_dens, small_temp, small_pres, small_ener)
 
 end subroutine ca_set_method_params
 

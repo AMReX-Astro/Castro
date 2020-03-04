@@ -31,7 +31,6 @@ castro.fixed_dt = 1.5e-3
 # SDC + 4th order
 castro.sdc_order = 4
 castro.time_integration_method = 2
-castro.fourth_order = 1
 castro.limit_fourth_order = 0
 
 # DIAGNOSTICS & VERBOSITY
