@@ -107,7 +107,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
   converged = false;
   Real pstar_c = 0.0;
 
-  for (int iter = 0; iter < cg_maxiter; iter++) {
+  for (int iter = 0; iter < 2*cg_maxiter; iter++) {
 
     pstar_c = 0.5_rt * (pstar_lo + pstar_hi);
     pstar_hist_extra[iter] = pstar_c;
