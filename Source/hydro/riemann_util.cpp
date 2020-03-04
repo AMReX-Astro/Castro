@@ -250,7 +250,7 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMX;
     im2 = UMY;
     im3 = UMZ;
-    mom_check = momx_flux_has_p[im1];
+    mom_check = momx_flux_has_p[idir];
 
   } else if (idir == 1) {
     iu = QV;
@@ -259,7 +259,7 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMY;
     im2 = UMX;
     im3 = UMZ;
-    mom_check = momy_flux_has_p[im1];
+    mom_check = momy_flux_has_p[idir];
 
   } else {
     iu = QW;
@@ -268,7 +268,7 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMZ;
     im2 = UMX;
     im3 = UMY;
-    mom_check = momz_flux_has_p[im1];
+    mom_check = momz_flux_has_p[idir];
   }
 
 
@@ -423,11 +423,11 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
 
   int mom_check = 0;
   if (idir == 0) {
-    mom_check = momx_flux_has_p[UMX];
+    mom_check = momx_flux_has_p[idir];
   } else if (idir == 1) {
-    mom_check = momy_flux_has_p[UMY];
+    mom_check = momy_flux_has_p[idir];
   } else {
-    mom_check = momz_flux_has_p[UMZ];
+    mom_check = momz_flux_has_p[idir];
   }
 
   if (mom_check) {

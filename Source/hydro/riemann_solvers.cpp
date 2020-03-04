@@ -1397,17 +1397,17 @@ Castro::HLL(const Real* ql, const Real* qr,
   fl_tmp = ql[QRHO]*ql[ivel]*ql[ivel];
   fr_tmp = qr[QRHO]*qr[ivel]*qr[ivel];
   if (idir == 0) {
-    if (momx_flux_has_p[UMX]) {
+    if (momx_flux_has_p[idir]) {
       fl_tmp = fl_tmp + ql[QPRES];
       fr_tmp = fr_tmp + qr[QPRES];
     }
   } else if (idir == 1) {
-    if (momy_flux_has_p[UMY]) {
+    if (momy_flux_has_p[idir]) {
       fl_tmp = fl_tmp + ql[QPRES];
       fr_tmp = fr_tmp + qr[QPRES];
     }
   } else {
-    if (momz_flux_has_p[UMZ]) {
+    if (momz_flux_has_p[idir]) {
       fl_tmp = fl_tmp + ql[QPRES];
       fr_tmp = fr_tmp + qr[QPRES];
     }
