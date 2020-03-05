@@ -186,11 +186,11 @@ Castro::shock(const Box& bx,
     e_z = 0.0_rt;
 #endif
 
-    Real d = 1.0_rt / (e_x + e_y + e_z + small);
+    Real denom = 1.0_rt / (e_x + e_y + e_z + small);
 
-    e_x = e_x * d;
-    e_y = e_y * d;
-    e_z = e_z * d;
+    e_x = e_x * denom;
+    e_y = e_y * denom;
+    e_z = e_z * denom;
 
     // project the pressures onto the shock direction
     Real p_pre  = e_x * px_pre + e_y * py_pre + e_z * pz_pre;
