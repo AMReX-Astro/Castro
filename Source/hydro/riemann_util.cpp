@@ -148,18 +148,18 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::cons_state(const Real* q, Real* U) {
+Castro::cons_state(const Real* qstate, Real* U) {
 
-  U[URHO] = q[QRHO];
+  U[URHO] = qstate[QRHO];
 
   // since we advect all 3 velocity components regardless of dimension, this
   // will be general
-  U[UMX]  = q[QRHO]*q[QU];
-  U[UMY]  = q[QRHO]*q[QV];
-  U[UMZ]  = q[QRHO]*q[QW];
+  U[UMX]  = qstate[QRHO]*qstate[QU];
+  U[UMY]  = qstate[QRHO]*qstate[QV];
+  U[UMZ]  = qstate[QRHO]*qstate[QW];
 
-  U[UEDEN] = q[QREINT] + 0.5_rt*q[QRHO]*(q[QU]*q[QU] + q[QV]*q[QV] + q[QW]*q[QW]);
-  U[UEINT] = q[QREINT];
+  U[UEDEN] = qstate[QREINT] + 0.5_rt*qstate[QRHO]*(qstate[QU]*qstate[QU] + qstate[QV]*qstate[QV] + qstate[QW]*qstate[QW]);
+  U[UEINT] = qstate[QREINT];
 
   // we don't care about T here, but initialize it to make NaN
   // checking happy
@@ -172,7 +172,7 @@ Castro::cons_state(const Real* q, Real* U) {
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
     int n  = upass_map[ipassive];
     int nqs = qpass_map[ipassive];
-    U[n] = q[QRHO]*q[nqs];
+    U[n] = qstate[QRHO]*qstate[nqs];
   }
 }
 
@@ -183,36 +183,36 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
 
   Real u_k = 0.0;
   if (idir == 0) {
-    u_k = q[QU];
+    u_k = qstate[QU];
   } else if (idir == 1) {
-    u_k = q[QV];
+    u_k = qstate[QV];
   } else if (idir == 2) {
-    u_k = q[QW];
+    u_k = qstate[QW];
   }
 
-  Real hllc_factor = q[QRHO]*(S_k - u_k)/(S_k - S_c);
+  Real hllc_factor = qstate[QRHO]*(S_k - u_k)/(S_k - S_c);
   U[URHO] = hllc_factor;
 
   if (idir == 0) {
     U[UMX]  = hllc_factor*S_c;
-    U[UMY]  = hllc_factor*q[QV];
-    U[UMZ]  = hllc_factor*q[QW];
+    U[UMY]  = hllc_factor*qstate[QV];
+    U[UMZ]  = hllc_factor*qstate[QW];
 
   } else if (idir == 1) {
-    U[UMX]  = hllc_factor*q[QU];
+    U[UMX]  = hllc_factor*qstate[QU];
     U[UMY]  = hllc_factor*S_c;
-    U[UMZ]  = hllc_factor*q[QW];
+    U[UMZ]  = hllc_factor*qstate[QW];
 
   } else {
-    U[UMX]  = hllc_factor*q[QU];
-    U[UMY]  = hllc_factor*q[QV];
+    U[UMX]  = hllc_factor*qstate[QU];
+    U[UMY]  = hllc_factor*qstate[QV];
     U[UMZ]  = hllc_factor*S_c;
   }
 
-  U[UEDEN] = hllc_factor*(q[QREINT]/q[QRHO] +
-                          0.5_rt*(q[QU]*q[QU] + q[QV]*q[QV] + q[QW]*q[QW]) +
-                          (S_c - u_k)*(S_c + q[QPRES]/(q[QRHO]*(S_k - u_k))));
-  U[UEINT] = hllc_factor*q[QREINT]/q[QRHO];
+  U[UEDEN] = hllc_factor*(qstate[QREINT]/qstate[QRHO] +
+                          0.5_rt*(qstate[QU]*qstate[QU] + qstate[QV]*qstate[QV] + qstate[QW]*qstate[QW]) +
+                          (S_c - u_k)*(S_c + qstate[QPRES]/(qstate[QRHO]*(S_k - u_k))));
+  U[UEINT] = hllc_factor*qstate[QREINT]/qstate[QRHO];
 
   U[UTEMP] = 0.0; // we don't evolve T
 
@@ -223,7 +223,7 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
     int n  = upass_map[ipassive];
     int nqs = qpass_map[ipassive];
-    U[n] = hllc_factor*q[nqs];
+    U[n] = hllc_factor*qstate[nqs];
   }
 }
 
