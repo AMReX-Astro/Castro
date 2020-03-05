@@ -270,9 +270,10 @@
     AMREX_GPU_HOST_DEVICE
     void
     HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
-               const amrex::Real* q, amrex::Real* U);
+               const amrex::Real* q, amrex::Real* U,
+               const GpuArray<int, npassive>& qpass_map_p,
+               const GpuArray<int, npassive>& upass_map_p);
 
-    AMREX_GPU_HOST_DEVICE
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const qint,
@@ -283,7 +284,6 @@
 #endif
                    const int idir, const int enforce_eos);
 
-    AMREX_GPU_HOST_DEVICE
     void
     store_godunov_state(const amrex::Box& bx,
                         amrex::Array4<amrex::Real const> const qint,
@@ -296,6 +296,7 @@
     void
     compute_flux(const int idir, const amrex::Real bnd_fac,
                  const amrex::Real* U, const amrex::Real p,
+                 const GpuArray<int, npassive>& upass_map_p,
                  amrex::Real* F);
 
 

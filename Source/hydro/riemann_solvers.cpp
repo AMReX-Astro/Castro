@@ -1275,7 +1275,7 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = qr(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pr, F_state);
+      compute_flux(idir, bnd_fac, U_state, pr, upass_map_p, F_state);
 
     } else if (S_r > 0.0_rt && S_c <= 0.0_rt) {
       // R* region
@@ -1283,8 +1283,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = qr(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pr, F_state);
-      HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state);
+      compute_flux(idir, bnd_fac, U_state, pr, upass_map_p, F_state);
+      HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
 
       // correct the flux
       for (int n = 0; n < NUM_STATE; n++) {
@@ -1297,8 +1297,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = ql(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pl, F_state);
-      HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state);
+      compute_flux(idir, bnd_fac, U_state, pl, upass_map_p, F_state);
+      HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
 
       // correct the flux
       for (int n = 0; n < NUM_STATE; n++) {
@@ -1311,7 +1311,7 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = ql(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pl, F_state);
+      compute_flux(idir, bnd_fac, U_state, pl, upass_map_p, F_state);
     }
 
     for (int n = 0; n < NUM_STATE; n++) {

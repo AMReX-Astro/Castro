@@ -181,7 +181,9 @@ Castro::cons_state(const Real* qstate, Real* U,
 AMREX_GPU_HOST_DEVICE
 void
 Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
-                   const Real* q, Real* U) {
+                   const Real* qstate, Real* U,
+                   const GpuArray<int, npassive>& qpass_map_p,
+                   const GpuArray<int, npassive>& upass_map_p) {
 
   Real u_k = 0.0;
   if (idir == 0) {
@@ -223,13 +225,12 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map[ipassive];
-    int nqs = qpass_map[ipassive];
+    int n  = upass_map_p[ipassive];
+    int nqs = qpass_map_p[ipassive];
     U[n] = hllc_factor*qstate[nqs];
   }
 }
 
-AMREX_GPU_HOST_DEVICE
 void
 Castro::compute_flux_q(const Box& bx,
                        Array4<Real const> const qint,
@@ -276,11 +277,20 @@ Castro::compute_flux_q(const Box& bx,
   }
 
 #ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
+  int fspace_t = Radiation::fspace_advection_type;
+  int comov = Radiation::comoving;
+  int limiter = Radiation::limiter;
+  int closure = Radiation::closure;
 #endif
+
+  const Real lT_guess = T_guess;
+
+  GpuArray<int, npassive> upass_map_p;
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; ++n) {
+    upass_map_p[n] = upass_map[n];
+    qpass_map_p[n] = qpass_map[n];
+  }
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -297,7 +307,7 @@ Castro::compute_flux_q(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qint(i,j,k,QFS+n);
       }
-      eos_state.T = T_guess;  // initial guess
+      eos_state.T = lT_guess;  // initial guess
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qint(i,j,k,QFX+n);
       }
@@ -347,8 +357,8 @@ Castro::compute_flux_q(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map[ipassive];
-      int nqp = qpass_map[ipassive];
+      int n  = upass_map_p[ipassive];
+      int nqp = qpass_map_p[ipassive];
 
       F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
     }
@@ -380,7 +390,6 @@ Castro::compute_flux_q(const Box& bx,
 }
 
 
-AMREX_GPU_HOST_DEVICE
 void
 Castro::store_godunov_state(const Box& bx,
                             Array4<Real const> const qint,
@@ -415,6 +424,7 @@ AMREX_GPU_HOST_DEVICE
 void
 Castro::compute_flux(const int idir, const Real bnd_fac,
                      const Real* U, const Real p,
+                     const GpuArray<int, npassive>& upass_map_p,
                      Real* F) {
 
   // given a conserved state, compute the flux in direction idir
@@ -456,7 +466,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
 #endif
 
   for (int ipassive=0; ipassive < npassive; ipassive++) {
-    int n = upass_map[ipassive];
+    int n = upass_map_p[ipassive];
     F[n] = U[n]*u_flx;
   }
 }
