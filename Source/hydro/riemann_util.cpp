@@ -181,7 +181,7 @@ void
 Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
                    const Real* q, Real* U) {
 
-  Real u_k;
+  Real u_k = 0.0;
   if (idir == 0) {
     u_k = q[QU];
   } else if (idir == 1) {
