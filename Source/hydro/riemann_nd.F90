@@ -526,7 +526,7 @@ contains
 
 #ifndef AMREX_USE_CUDA
     call bl_allocate(pstar_hist, 1,iter_max)
-    call bl_allocate(pstar_hist_extra, 1,2*iter_max)
+    call bl_allocate(pstar_hist_extra, 1,5*iter_max)
 #endif
 
     do k = lo(3), hi(3)
@@ -784,7 +784,7 @@ contains
                       do iter = 1, iter_max
                          print *, iter, pstar_hist(iter)
                       enddo
-                      do iter = 1, 2 * iter_max
+                      do iter = 1, 5 * iter_max
                          print *, iter + iter_max, pstar_hist_extra(iter)
                       enddo
 
