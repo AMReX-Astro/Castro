@@ -106,6 +106,7 @@ Castro::riemanncg(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
+
     // deal with hard walls
     Real bnd_fac = 1.0_rt;
 
@@ -142,6 +143,7 @@ Castro::riemanncg(const Box& bx,
     Real ul = ql(i,j,k,iu);
     Real v1l = ql(i,j,k,iv1);
     Real v2l = ql(i,j,k,iv2);
+
 
     // sometime we come in here with negative energy or pressure
     // note: reset both in either case, to remain thermo
@@ -315,7 +317,7 @@ Castro::riemanncg(const Box& bx,
 
       // the new pstar is found via CG Eq. 18
       Real denom = dpditer/amrex::max(zp+zm, lsmall*cavg);
-      Real pstar_old = pstar;
+      pstar_old = pstar;
       pstar = pstar - denom*(ustar_r - ustar_l);
       pstar = amrex::max(pstar, lsmall_pres);
 
@@ -343,8 +345,8 @@ Castro::riemanncg(const Box& bx,
 
 #ifndef AMREX_USE_CUDA
         std::cout <<  "pstar history: " << std::endl;
-        for (int iter=0; iter < lcg_maxiter; iter++) {
-          std::cout << iter << " " << pstar_hist[iter] << std::endl;
+        for (int iter_l=0; iter_l < lcg_maxiter; iter_l++) {
+          std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
         }
 
         std::cout << std::endl;
@@ -385,12 +387,12 @@ Castro::riemanncg(const Box& bx,
         if (!converged) {
 
           std::cout << "pstar history: " << std::endl;
-          for (int iter = 0; iter < lcg_maxiter; iter++) {
-            std::cout << iter << " " << pstar_hist[iter] << std::endl;
+          for (int iter_l = 0; iter_l < lcg_maxiter; iter_l++) {
+            std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
           }
           std::cout << "pstar extra history: " << std::endl;
-          for (int iter = 0; iter < PSTAR_BISECT_FACTOR*lcg_maxiter; iter++) {
-            std::cout << iter << " " << pstar_hist_extra[iter] << std::endl;
+          for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*lcg_maxiter; iter_l++) {
+            std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
           }
 
           std::cout << std::endl;
@@ -548,7 +550,6 @@ Castro::riemanncg(const Box& bx,
 
     // advected quantities -- only the contact matters
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map_p[ipassive];
       int nqp = qpass_map_p[ipassive];
 
       if (ustar > 0.0_rt) {
@@ -1142,8 +1143,6 @@ Castro::HLLC(const Box& bx,
 
     // pick left velocities based on direction
     Real ul  = ql(i,j,k,iu);
-    Real v1l = ql(i,j,k,iv1);
-    Real v2l = ql(i,j,k,iv2);
 
     Real pl = amrex::max(ql(i,j,k,QPRES), lsmall_pres);
     Real rel = ql(i,j,k,QREINT);
@@ -1152,8 +1151,6 @@ Castro::HLLC(const Box& bx,
 
     // pick right velocities based on direction
     Real ur  = qr(i,j,k,iu);
-    Real v1r = qr(i,j,k,iv1);
-    Real v2r = qr(i,j,k,iv2);
 
     Real pr = amrex::max(qr(i,j,k,QPRES), lsmall_pres);
     Real rer = qr(i,j,k,QREINT);
@@ -1252,7 +1249,6 @@ Castro::HLLC(const Box& bx,
     frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
 
     Real rgdnv = frac*rstar + (1.0_rt - frac)*ro;
-    Real regdnv = frac*estar + (1.0_rt - frac)*reo;
 
     qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo;
     qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po;
@@ -1331,7 +1327,7 @@ Castro::HLL(const Real* ql, const Real* qr,
             const int idir,
             const GpuArray<int, npassive>& upass_map_p,
             const GpuArray<int, npassive>& qpass_map_p,
-            Real* f) {
+            Real* flux_hll) {
 
 
   constexpr Real small = 1.e-10_rt;
@@ -1414,7 +1410,7 @@ Castro::HLL(const Real* ql, const Real* qr,
   Real fl_tmp = ql[QRHO]*ql[ivel];
   Real fr_tmp = qr[QRHO]*qr[ivel];
 
-  f[URHO] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO] - ql[QRHO]);
+  flux_hll[URHO] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO] - ql[QRHO]);
 
   // normal momentum flux.  Note for 1-d and 2-d non cartesian
   // r-coordinate, we leave off the pressure term and handle that
@@ -1438,19 +1434,19 @@ Castro::HLL(const Real* ql, const Real* qr,
     }
   }
 
-  f[imom] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivel] - ql[QRHO]*ql[ivel]);
+  flux_hll[imom] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivel] - ql[QRHO]*ql[ivel]);
 
   // transverse momentum flux
   fl_tmp = ql[QRHO]*ql[ivel]*ql[ivelt];
   fr_tmp = qr[QRHO]*qr[ivel]*qr[ivelt];
 
-  f[imomt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivelt] - ql[QRHO]*ql[ivelt]);
+  flux_hll[imomt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivelt] - ql[QRHO]*ql[ivelt]);
 
 
   fl_tmp = ql[QRHO]*ql[ivel]*ql[iveltt];
   fr_tmp = qr[QRHO]*qr[ivel]*qr[iveltt];
 
-  f[imomtt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[iveltt] - ql[QRHO]*ql[iveltt]);
+  flux_hll[imomtt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[iveltt] - ql[QRHO]*ql[iveltt]);
 
   // total energy flux
   Real rhoEl = ql[QREINT] + 0.5_rt*ql[QRHO]*(ql[ivel]*ql[ivel] + ql[ivelt]*ql[ivelt] + ql[iveltt]*ql[iveltt]);
@@ -1459,14 +1455,14 @@ Castro::HLL(const Real* ql, const Real* qr,
   Real rhoEr = qr[QREINT] + 0.5_rt*qr[QRHO]*(qr[ivel]*qr[ivel] + qr[ivelt]*qr[ivelt] + qr[iveltt]*qr[iveltt]);
   fr_tmp = qr[ivel]*(rhoEr + qr[QPRES]);
 
-  f[UEDEN] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl);
+  flux_hll[UEDEN] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl);
 
 
   // eint flux
   fl_tmp = ql[QREINT]*ql[ivel];
   fr_tmp = qr[QREINT]*qr[ivel];
 
-  f[UEINT] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QREINT] - ql[QREINT]);
+  flux_hll[UEINT] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QREINT] - ql[QREINT]);
 
 
   // passively-advected scalar fluxes
@@ -1477,6 +1473,6 @@ Castro::HLL(const Real* ql, const Real* qr,
     fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
     fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
 
-    f[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
+    flux_hll[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
   }
 }

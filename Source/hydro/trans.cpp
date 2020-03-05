@@ -186,7 +186,9 @@ Castro::trans_single(const Box& bx,
         Real du = ugp - ugm;
 #endif
         Real pav = 0.5_rt * (pgp + pgm);
+#ifdef RADIATION
         Real uav = 0.5_rt * (ugp + ugm);
+#endif
 
         // this is the gas gamma_1
 #ifdef RADIATION
@@ -601,7 +603,6 @@ Castro::trans_final(const Box& bx,
 
             Real dupt1 = pgt1p * ugt1p - pgt1m * ugt1m;
             Real pt1av = 0.5_rt * (pgt1p + pgt1m);
-            Real ut1av = 0.5_rt * (ugt1p + ugt1m);
             Real dut1 = ugt1p - ugt1m;
 #ifdef RADIATION
             Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux(iln,jln,kln,QGAMCG) - 1.0_rt));
@@ -611,7 +612,6 @@ Castro::trans_final(const Box& bx,
 
             Real dupt2 = pgt2p * ugt2p - pgt2m * ugt2m;
             Real pt2av = 0.5_rt * (pgt2p + pgt2m);
-            Real ut2av = 0.5_rt * (ugt2p + ugt2m);
             Real dut2 = ugt2p - ugt2m;
 #ifdef RADIATION
             Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux(iln,jln,kln,QGAMCG) - 1.0_rt));

@@ -22,7 +22,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                             Array4<Real> const lambda_int,
 #endif
                             Array4<Real> const qgdnv,
-                            Array4<Real const> const qaux,
+                            Array4<Real const> const qaux_arr,
                             Array4<Real const> const shk,
                             const int idir) {
 
@@ -42,7 +42,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 #ifdef RADIATION
                   lambda_int,
 #endif
-                  qaux,
+                  qaux_arr,
                   idir, 0);
 
     compute_flux_q(bx,
@@ -56,7 +56,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     // HLLC
     HLLC(bx,
          qm, qp,
-         qaux,
+         qaux_arr,
          flx, qint,
          idir);
 
@@ -95,14 +95,14 @@ Castro::cmpflx_plus_godunov(const Box& bx,
         Real cl;
         Real cr;
         if (idir == 0) {
-          cl = qaux(i-1,j,k,QC);
-          cr = qaux(i,j,k,QC);
+          cl = qaux_arr(i-1,j,k,QC);
+          cr = qaux_arr(i,j,k,QC);
         } else if (idir == 1) { 
-          cl = qaux(i,j-1,k,QC);
-          cr = qaux(i,j,k,QC);
+          cl = qaux_arr(i,j-1,k,QC);
+          cr = qaux_arr(i,j,k,QC);
         } else {
-          cl = qaux(i,j,k-1,QC);
-          cr = qaux(i,j,k,QC);
+          cl = qaux_arr(i,j,k-1,QC);
+          cr = qaux_arr(i,j,k,QC);
         }
 
         Real ql_zone[NQ];
@@ -143,7 +143,7 @@ Castro::riemann_state(const Box& bx,
 #ifdef RADIATION
                       Array4<Real> lambda_int,
 #endif
-                      Array4<Real const> const qaux,
+                      Array4<Real const> const qaux_arr,
                       const int idir, const int compute_gammas) {
 
   // just compute the hydrodynamic state on the interfaces
@@ -233,7 +233,7 @@ Castro::riemann_state(const Box& bx,
 
     riemannus(bx,
               qm, qp,
-              qaux, qint,
+              qaux_arr, qint,
 #ifdef RADIATION
               lambda_int,
 #endif
@@ -245,7 +245,7 @@ Castro::riemann_state(const Box& bx,
 #ifndef RADIATION
     riemanncg(bx,
               qm, qp,
-              qaux, qint,
+              qaux_arr, qint,
               idir);
 #endif
 
