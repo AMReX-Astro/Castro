@@ -186,7 +186,9 @@ Castro::trans_single(const Box& bx,
         Real du = ugp - ugm;
 #endif
         Real pav = 0.5_rt * (pgp + pgm);
+#ifdef RADIATION
         Real uav = 0.5_rt * (ugp + ugm);
+#endif
 
         // this is the gas gamma_1
 #ifdef RADIATION
