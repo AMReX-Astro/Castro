@@ -263,7 +263,9 @@
 
     AMREX_GPU_HOST_DEVICE
     void
-    cons_state(const amrex::Real* q, amrex::Real* U);
+    cons_state(const amrex::Real* q, amrex::Real* U,
+               const GpuArray<int, npassive>& qpass_map_p,
+               const GpuArray<int, npassive>& upass_map_p);
 
     AMREX_GPU_HOST_DEVICE
     void

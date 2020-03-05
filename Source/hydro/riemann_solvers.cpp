@@ -88,6 +88,7 @@ Castro::riemanncg(const Box& bx,
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lsmall_temp = small_temp;
+  const Real lsmall = small;
 
   const int lcg_blend = cg_blend;
   const int lcg_maxiter = cg_maxiter;
@@ -212,8 +213,8 @@ Castro::riemanncg(const Box& bx,
     Real clsql = gcl*pl*rl;
     Real clsqr = gcr*pr*rr;
 
-    Real csmall = amrex::max(small, amrex::max(small * qaux(i,j,k,QC),
-                                               small * qaux(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux(i,j,k,QC),
+                                                lsmall * qaux(i-sx,j-sy,k-sz,QC)));
 
     Real cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC));
 
@@ -313,7 +314,7 @@ Castro::riemanncg(const Box& bx,
       }
 
       // the new pstar is found via CG Eq. 18
-      Real denom = dpditer/amrex::max(zp+zm, small*cavg);
+      Real denom = dpditer/amrex::max(zp+zm, lsmall*cavg);
       Real pstar_old = pstar;
       pstar = pstar - denom*(ustar_r - ustar_l);
       pstar = amrex::max(pstar, lsmall_pres);
@@ -498,7 +499,7 @@ Castro::riemanncg(const Box& bx,
       spout = ushock;
     }
 
-    Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), small*cavg));
+    Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), lsmall*cavg));
 
     // the transverse velocity states only depend on the
     // direction that the contact moves
@@ -618,6 +619,8 @@ Castro::riemannus(const Box& bx,
 
   const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
   const int luse_eos_in_riemann = use_eos_in_riemann;
+
+  const Real lsmall = small;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
@@ -726,7 +729,7 @@ Castro::riemannus(const Box& bx,
 #endif
 
     if (idir == 0) {
-      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)));
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)));
       cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC));
       gamcl = qaux(i-1,j,k,QGAMC);
       gamcr = qaux(i,j,k,QGAMC);
@@ -736,7 +739,7 @@ Castro::riemannus(const Box& bx,
 #endif
 
     } else if (idir == 1) {
-      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)));
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)));
       cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC));
       gamcl = qaux(i,j-1,k,QGAMC);
       gamcr = qaux(i,j,k,QGAMC);
@@ -746,7 +749,7 @@ Castro::riemannus(const Box& bx,
 #endif
 
     } else {
-      csmall = amrex::max(small, small * amrex::max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)));
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)));
       cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC));
       gamcl = qaux(i,j,k-1,QGAMC);
       gamcr = qaux(i,j,k,QGAMC);
@@ -915,7 +918,7 @@ Castro::riemannus(const Box& bx,
 
     Real scr = spout - spin;
     if (spout-spin == 0.0_rt) {
-      scr = small*cavg;
+      scr = lsmall*cavg;
     }
 
     // interpolate for the case that we are in a rarefaction
@@ -1100,6 +1103,15 @@ Castro::HLLC(const Box& bx,
 
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
+  const Real lsmall = small;
+  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
+
+  GpuArray<int, npassive> upass_map_p;
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; ++n) {
+    upass_map_p[n] = upass_map[n];
+    qpass_map_p[n] = qpass_map[n];
+  }
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -1148,13 +1160,13 @@ Castro::HLLC(const Box& bx,
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
-    Real csmall = amrex::max(small, amrex::max(small * qaux(i,j,k,QC), small * qaux(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux(i,j,k,QC), lsmall * qaux(i-sx,j-sy,k-sz,QC)));
     Real cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC));
 
     Real gamcl;
     Real gamcr;
 
-    if (use_reconstructed_gamma1 == 1) {
+    if (luse_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
     } else {
@@ -1233,7 +1245,7 @@ Castro::HLLC(const Box& bx,
 
     Real scr = spout-spin;
     if (spout-spin == 0.0_rt) {
-      scr = small*cavg;
+      scr = lsmall*cavg;
     }
 
     Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
@@ -1266,7 +1278,7 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = qr(i,j,k,n);
       }
-      cons_state(q_zone, U_state);
+      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
       compute_flux(idir, bnd_fac, U_state, pr, F_state);
 
     } else if (S_r > 0.0_rt && S_c <= 0.0_rt) {
@@ -1274,7 +1286,7 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = qr(i,j,k,n);
       }
-      cons_state(q_zone, U_state);
+      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
       compute_flux(idir, bnd_fac, U_state, pr, F_state);
       HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state);
 
@@ -1288,7 +1300,7 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = ql(i,j,k,n);
       }
-      cons_state(q_zone, U_state);
+      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
       compute_flux(idir, bnd_fac, U_state, pl, F_state);
       HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state);
 
@@ -1302,7 +1314,7 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = ql(i,j,k,n);
       }
-      cons_state(q_zone, U_state);
+      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
       compute_flux(idir, bnd_fac, U_state, pl, F_state);
     }
 

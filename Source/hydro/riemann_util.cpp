@@ -148,7 +148,10 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::cons_state(const Real* q, Real* U) {
+Castro::cons_state(const Real* q, Real* U,
+                   const GpuArray<int, npassive>& qpass_map_p,
+                   const GpuArray<int, npassive>& upass_map_p) {
+
 
   U[URHO] = q[QRHO];
 
@@ -170,8 +173,8 @@ Castro::cons_state(const Real* q, Real* U) {
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map[ipassive];
-    int nqs = qpass_map[ipassive];
+    int n  = upass_map_p[ipassive];
+    int nqs = qpass_map_p[ipassive];
     U[n] = q[QRHO]*q[nqs];
   }
 }
