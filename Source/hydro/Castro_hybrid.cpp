@@ -1,5 +1,8 @@
 #include "Castro.H"
+#include "Castro_util.H"
 #include "Castro_F.H"
+
+#include "hybrid.H"
 
 using namespace amrex;
 
@@ -78,19 +81,39 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 {
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(state[mfi]),
-                               BL_TO_FORTRAN_ANYD(sources[mfi]),
-                               mult_factor);
+        auto u = state.array(mfi);
+        auto src = sources.array(mfi);
 
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real loc[3];
+
+            position(i, j, k, geomdata, loc);
+
+            loc[0] -= center[0];
+            loc[1] -= center[1];
+
+            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+            Real RInv = 1.0_rt / R;
+
+            src(i,j,k,UMR) = src(i,j,k,UMR) + mult_factor * (rhoInv * RInv * RInv * RInv) *
+                                              u(i,j,k,UML) * u(i,j,k,UML);
+
+        });
     }
 }
 
@@ -101,6 +124,11 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 {
     BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -108,8 +136,32 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+        auto u = state.array(mfi);
+
+        // Convert linear momentum to hybrid momentum.
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real loc[3];
+
+            position(i, j, k, geomdata, loc);
+
+            for (int i = 0; i < AMREX_SPACEDIM; ++i)
+                loc[i] -= center[i];
+
+            Real linear_mom[3];
+
+            for (int i = 0; i < 3; ++i)
+                linear_mom[i] = u(i,j,k,UMX+i);
+
+            Real hybrid_mom[3];
+
+            linear_to_hybrid(loc, linear_mom, hybrid_mom);
+
+            for (int i = 0; i < 3; ++i)
+                u(i,j,k,UMR+i) = hybrid_mom[i];
+
+        });
     }
 }
 
@@ -120,6 +172,11 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 {
     BL_PROFILE("Castro::hybrid_to_linear_momentum()");
 
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -127,7 +184,31 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_hybrid_to_linear_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+        auto u = state.array(mfi);
+
+        // Convert hybrid momentum to linear momentum.
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real loc[3];
+
+            position(i, j, k, geomdata, loc);
+
+            for (int i = 0; i < AMREX_SPACEDIM; ++i)
+                loc[i] -= center[i];
+
+            Real hybrid_mom[3];
+
+            for (int i = 0; i < 3; ++i)
+                hybrid_mom[i] = u(i,j,k,UMR+i);
+
+            Real linear_mom[3];
+
+            hybrid_to_linear(loc, hybrid_mom, linear_mom);
+
+            for (int i = 0; i < 3; ++i)
+                u(i,j,k,UMX+i) = linear_mom[i];
+
+        });
     }
 }
