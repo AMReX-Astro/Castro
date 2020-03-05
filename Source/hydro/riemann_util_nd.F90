@@ -113,7 +113,7 @@ contains
 
     ! bisection
     iter = 1
-    do while (iter <= cg_maxiter)
+    do while (iter <= 5*cg_maxiter)
 
        pstar_c = HALF * (pstar_lo + pstar_hi)
 
@@ -146,6 +146,8 @@ contains
           pstar_lo = pstar_c
           f_lo = f_c
        endif
+
+       iter = iter + 1
     enddo
 
     pstar = pstar_c
