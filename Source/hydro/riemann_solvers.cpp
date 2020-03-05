@@ -1173,7 +1173,7 @@ Castro::HLLC(const Box& bx,
     pstar = amrex::max(pstar, lsmall_pres);
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
+    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
       ustar = 0.0_rt;
     }
 
