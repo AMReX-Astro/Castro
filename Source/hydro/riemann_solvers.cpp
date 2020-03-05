@@ -105,6 +105,7 @@ Castro::riemanncg(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
+
     // deal with hard walls
     Real bnd_fac = 1.0_rt;
 
@@ -141,6 +142,7 @@ Castro::riemanncg(const Box& bx,
     Real ul = ql(i,j,k,iu);
     Real v1l = ql(i,j,k,iv1);
     Real v2l = ql(i,j,k,iv2);
+
 
     // sometime we come in here with negative energy or pressure
     // note: reset both in either case, to remain thermo
@@ -314,7 +316,7 @@ Castro::riemanncg(const Box& bx,
 
       // the new pstar is found via CG Eq. 18
       Real denom = dpditer/amrex::max(zp+zm, small*cavg);
-      Real pstar_old = pstar;
+      pstar_old = pstar;
       pstar = pstar - denom*(ustar_r - ustar_l);
       pstar = amrex::max(pstar, lsmall_pres);
 
