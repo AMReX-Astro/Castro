@@ -1,363 +1,382 @@
-! These routines do the characteristic tracing under the parabolic
-! profiles in each zone to the edge / half-time.
+#include "Castro.H"
+#include "Castro_F.H"
+#include "Castro_hydro_F.H"
 
-module trace_ppm_rad_module
+#ifdef RADIATION
+#include "Radiation.H"
+#endif
 
-  use prob_params_module, only : dg
-  use castro_error_module, only : castro_error
-  use amrex_fort_module, only : rt => amrex_real
-  use amrex_constants_module
+#include <cmath>
 
-  implicit none
+#include <ppm.H>
 
-contains
+using namespace amrex;
 
-
-  subroutine trace_ppm_rad(lo, hi, &
-                           idir, &
-                           q, qd_lo, qd_hi, &
-                           qaux, qa_lo, qa_hi, &
-                           srcQ, src_lo, src_hi, &
-                           flatn, f_lo, f_hi, &
-                           qm, qm_lo, qm_hi, &
-                           qp, qp_lo, qp_hi, &
+void
+Castro::trace_ppm_rad(const Box& bx,
+                      const int idir,
+                      Array4<Real const> const q_arr,
+                      Array4<Real const> const qaux_arr,
+                      Array4<Real const> const srcQ,
+                      Array4<Real const> const flatn,
+                      Array4<Real> const qm,
+                      Array4<Real> const qp,
 #if (AMREX_SPACEDIM < 3)
-                           dloga, dloga_lo, dloga_hi, &
+                      Array4<Real const> const dloga,
 #endif
-                           vlo, vhi, domlo, domhi, &
-                           dx, dt)
+                      const Box& vbx,
+                      const Real dt) {
 
-    use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQAUX, NQSRC, QRHO, QU, QV, QW, &
-                                   QREINT, QPRES, QC, QCG, QGAMC, QGAMCG, QLAMS, QTEMP, &
-                                   qrad, qptot, qreitot, &
-                                   small_dens, small_pres, &
-                                   ppm_type, ppm_temp_fix
+  // These routines do the characteristic tracing under the parabolic
+  // profiles in each zone to the edge / half-time.
 
-    use rad_params_module, only : ngroups
-    use amrex_constants_module
-    use prob_params_module, only : physbc_lo, physbc_hi, Outflow
-    use amrex_fort_module, only : rt => amrex_real
-    use ppm_module, only : ppm_reconstruct_f90, ppm_int_profile_f90
+  // To allow for easy integration of radiation, we adopt the
+  // following conventions:
+  //
+  // rho : mass density
+  // u, v, w : velocities
+  // p : gas (hydro) pressure
+  // ptot : total pressure (note for pure hydro, this is
+  //        just the gas pressure)
+  // rhoe_g : gas specific internal energy
+  // cgas : sound speed for just the gas contribution
+  // cc : total sound speed (including radiation)
+  // h_g : gas specific enthalpy / cc**2
+  // gam_g : the gas Gamma_1
+  //
+  // for pure hydro, we will only consider:
+  //   rho, u, v, w, ptot, rhoe_g, cc, h_g
 
-    implicit none
+  const auto dx = geom.CellSizeArray();
 
-    integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qa_lo(3), qa_hi(3)
-    integer, intent(in) :: src_lo(3), src_hi(3)
-    integer, intent(in) :: f_lo(3), f_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-#if (AMREX_SPACEDIM < 3)
-    integer, intent(in) :: dloga_lo(3), dloga_hi(3)
-#endif
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: vlo(3), vhi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
+  Real hdt = 0.5_rt * dt;
+  Real dtdx = dt / dx[idir];
 
-    real(rt), intent(in) ::     q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-    real(rt), intent(in) ::  qaux(qa_lo(1):qa_hi(1),qa_lo(2):qa_hi(2),qa_lo(3):qa_hi(3),NQAUX)
-    real(rt), intent(in) ::  srcQ(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3),NQSRC)
-    real(rt), intent(in) ::  flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
+  auto lo = bx.loVect3d();
+  auto hi = bx.hiVect3d();
 
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
+  auto vlo = vbx.loVect3d();
+  auto vhi = vbx.hiVect3d();
 
-#if (AMREX_SPACEDIM < 3)
-    real(rt), intent(in) :: dloga(dloga_lo(1):dloga_hi(1),dloga_lo(2):dloga_hi(2),dloga_lo(3):dloga_hi(3))
-#endif
-    real(rt), intent(in) :: dt, dx(3)
+#ifndef AMREX_USE_CUDA
 
-    integer :: QUN, QUT, QUTT
+  // if we're on the CPU, we preprocess the sources over the whole
+  // tile up front -- we don't want to trace under a source that is
+  // empty. This check only needs to be done over the tile we're
+  // working on, since the PPM reconstruction and integration done
+  // here is only local to this tile.
 
-    ! Local variables
-    integer :: i, j, k, g
-    integer :: n, ipassive
-
-    real(rt) :: hdt, dtdx
-
-    real(rt) :: sm, sp
-
-    real(rt) :: s(-2:2)
-    real(rt) :: Ip(1:3,NQ)
-    real(rt) :: Im(1:3,NQ)
-
-    real(rt) :: Ip_src(1:3,NQSRC)
-    real(rt) :: Im_src(1:3,NQSRC)
+  GpuArray<int, NQSRC> do_source_trace;
 
 
-    ! To allow for easy integration of radiation, we adopt the
-    ! following conventions:
-    !
-    ! rho : mass density
-    ! u, v, w : velocities
-    ! p : gas (hydro) pressure
-    ! ptot : total pressure (note for pure hydro, this is
-    !        just the gas pressure)
-    ! rhoe_g : gas specific internal energy
-    ! cgas : sound speed for just the gas contribution
-    ! cc : total sound speed (including radiation)
-    ! h_g : gas specific enthalpy / cc**2
-    ! gam_g : the gas Gamma_1
-    !
-    ! for pure hydro, we will only consider:
-    !   rho, u, v, w, ptot, rhoe_g, cc, h_g
+  for (int n = 0; n < NQSRC; n++) {
+    do_source_trace[n] = 0;
 
-    real(rt) :: cc, csq, cgassq, Clag
-    real(rt) :: rho, un, p, rhoe_g, h_g, tau
-    real(rt) :: ptot, gam_g
-
-    real(rt) :: drho, dptot, drhoe_g
-    real(rt) :: de, dge, dtau
-    real(rt) :: dup, dvp, dptotp
-    real(rt) :: dum, dvm, dptotm
-
-    real(rt) :: rho_ref, un_ref, p_ref, rhoe_g_ref, h_g_ref
-    real(rt) :: tau_ref
-    real(rt) :: ptot_ref
-
-    real(rt) :: gam_ref, gfactor
-
-    real(rt) :: alpham, alphap, alpha0r, alpha0e_g
-    real(rt) :: sourcr, sourcp, source, courn, eta, dlogatmp, sourcer(0:ngroups-1)
-    real(rt) :: tau_s, e_s
-
-    real(rt), dimension(0:ngroups-1) :: er, der, alphar, qrtmp,hr
-    real(rt), dimension(0:ngroups-1) :: lam0, lamp, lamm
-
-    real(rt), dimension(0:ngroups-1) :: er_ref
-
-    real(rt) :: er_foo
-
-    logical :: source_nonzero(NQSRC)
-    logical :: reconstruct_state(NQ)
-
-    !$gpu
-
-    hdt = HALF * dt
-    dtdx = dt / dx(idir)
-
-#ifndef AMREX_USE_GPU
-    if (ppm_type == 0) then
-       print *,'Oops -- shouldnt be in tracexy_ppm with ppm_type = 0'
-       call castro_error("Error:: trace_ppm_rad_nd.f90 :: tracexy_ppm_rad")
-    end if
+    for (int k = lo[2]-2*dg2; k <= hi[2]+2*dg2; k++) {
+      for (int j = lo[1]-2*dg1; j <= hi[1]+2*dg1; j++) {
+        for (int i = lo[0]-2; i <= hi[0]+2; i++) {
+          if (std::abs(srcQ(i,j,k,n)) > 0.0_rt) {
+            do_source_trace[n] = 1;
+            break;
+          }
+        }
+        if (do_source_trace[n] == 1) break;
+      }
+      if (do_source_trace[n] == 1) break;
+    }
+  }
 #endif
 
-    ! we don't need to reconstruct all of the NQ state variables,
-    ! depending on how we are tracing
-    reconstruct_state(:) = .true.
-    if (ppm_temp_fix == 0 .or. ppm_temp_fix == 2) then
-       reconstruct_state(QTEMP) = .false.
-    endif
+  // This does the characteristic tracing to build the interface
+  // states using the normal predictor only (no transverse terms).
+  //
+  // For each zone, we construct Im and Ip arrays -- these are the averages
+  // of the various primitive state variables under the parabolic
+  // interpolant over the region swept out by one of the 3 different
+  // characteristic waves.
+  //
+  // Im is integrating to the left interface of the current zone
+  // (which will be used to build the right ("p") state at that interface)
+  // and Ip is integrating to the right interface of the current zone
+  // (which will be used to build the left ("m") state at that interface).
+  //
+  //
+  // The choice of reference state is designed to minimize the
+  // effects of the characteristic projection.  We subtract the I's
+  // off of the reference state, project the quantity such that it is
+  // in terms of the characteristic varaibles, and then add all the
+  // jumps that are moving toward the interface to the reference
+  // state to get the full state on that interface.
 
-    ! preprocess the sources -- we don't want to trace under a source
-    ! that is empty. This check only needs to be done over the tile
-    ! we're working on, since the PPM reconstruction and integration
-    ! done here is only local to this tile.
+  int QUN, QUT, QUTT;
 
-    do n = 1, NQSRC
-       if (maxval(abs(srcQ(lo(1)-2:hi(1)+2,lo(2)-2*dg(2):hi(2)+2*dg(2),lo(3)-2*dg(3):hi(3)+2*dg(3),n))) == ZERO) then
-          source_nonzero(n) = .false.
-       else
-          source_nonzero(n) = .true.
-       endif
-    enddo
+  if (idir == 0) {
+    QUN = QU;
+    QUT = QV;
+    QUTT = QW;
+  } else if (idir == 1) {
+    QUN = QV;
+    QUT = QW;
+    QUTT = QU;
+  } else if (idir == 2) {
+    QUN = QW;
+    QUT = QU;
+    QUTT = QV;
+  }
 
+  Real lsmall_dens = small_dens;
+  Real lsmall_pres = small_pres;
 
-    !=========================================================================
-    ! PPM CODE
-    !=========================================================================
+  GpuArray<int, npassive> qpass_map_p;
+  for (int n = 0; n < npassive; n++){
+    qpass_map_p[n] = qpass_map[n];
+  }
 
-    ! This does the characteristic tracing to build the interface
-    ! states using the normal predictor only (no transverse terms).
-    !
-    ! We come in with the Im and Ip arrays -- these are the averages
-    ! of the various primitive state variables under the parabolic
-    ! interpolant over the region swept out by one of the 3 different
-    ! characteristic waves.
-    !
-    ! Im is integrating to the left interface of the current zone
-    ! (which will be used to build the right ("p") state at that interface)
-    ! and Ip is integrating to the right interface of the current zone
-    ! (which will be used to build the left ("m") state at that interface).
-    !
-    ! The indices are: Ip(i, j, k, wave, var)
-    !
-    ! The choice of reference state is designed to minimize the
-    ! effects of the characteristic projection.  We subtract the I's
-    ! off of the reference state, project the quantity such that it is
-    ! in terms of the characteristic varaibles, and then add all the
-    ! jumps that are moving toward the interface to the reference
-    ! state to get the full state on that interface.
+  // Trace to left and right edges using upwind PPM
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
 
+   Real lam0[NGROUPS];
+   Real lamp[NGROUPS];
+   Real lamm[NGROUPS];
 
-    if (idir == 1) then
-       QUN = QU
-       QUT = QV
-       QUTT = QW
-    else if (idir == 2) then
-       QUN = QV
-       QUT = QW
-       QUTT = QU
-    else if (idir == 3) then
-       QUN = QW
-       QUT = QU
-       QUTT = QV
-    endif
+    for (int g = 0; g < NGROUPS; g++) {
+      lam0[g] = qaux_arr(i,j,k,QLAMS+g);
+      lamp[g] = qaux_arr(i,j,k,QLAMS+g);
+      lamm[g] = qaux_arr(i,j,k,QLAMS+g);
+    }
 
+    Real rho = q_arr(i,j,k,QRHO);
 
-    ! Trace to left and right edges using upwind PPM
+    // cgassq is the gas soundspeed **2
+    // cc is the total soundspeed **2 (gas + radiation)
+    Real cgassq = qaux_arr(i,j,k,QCG)*qaux_arr(i,j,k,QCG);
+    Real cc = qaux_arr(i,j,k,QC);
+    Real csq = cc*cc;
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             gfactor = ONE ! to help compiler resolve ANTI dependence
-
-             do g=0, ngroups-1
-                lam0(g) = qaux(i,j,k,QLAMS+g)
-                lamp(g) = qaux(i,j,k,QLAMS+g)
-                lamm(g) = qaux(i,j,k,QLAMS+g)
-             end do
-
-             rho = q(i,j,k,QRHO)
-             tau = ONE/rho
-
-             ! cgassq is the gas soundspeed **2
-             ! cc is the total soundspeed **2 (gas + radiation)
-             cgassq = qaux(i,j,k,QCG)**2
-             cc = qaux(i,j,k,QC)
-             csq = cc**2
-             Clag = rho*cc
-
-             un = q(i,j,k,QUN)
-
-             p = q(i,j,k,QPRES)
-             rhoe_g = q(i,j,k,QREINT)
-             h_g = ( (p+rhoe_g)/rho)/csq
-
-             gam_g = qaux(i,j,k,QGAMCG)
-
-             ptot = q(i,j,k,qptot)
-
-             er(:) = q(i,j,k,qrad:qrad-1+ngroups)
-             hr(:) = (lam0+ONE)*er/rho
+    Real un = q_arr(i,j,k,QUN);
 
 
-             ! do the parabolic reconstruction and compute the
-             ! integrals under the characteristic waves
-             do n = 1, NQ
-                if (.not. reconstruct_state(n)) cycle
+    // do the parabolic reconstruction and compute the
+    // integrals under the characteristic waves
+    Real s[5];
+    Real flat = flatn(i,j,k);
+    Real sm;
+    Real sp;
 
-                if (idir == 1) then
-                   s(:) = q(i-2:i+2,j,k,n)
-                else if (idir == 2) then
-                   s(:) = q(i,j-2:j+2,k,n)
-                else
-                   s(:) = q(i,j,k-2:k+2,n)
-                end if
-
-                call ppm_reconstruct_f90(s, flatn(i,j,k), sm, sp)
-
-                call ppm_int_profile_f90(sm, sp, s(0), un, cc, dtdx, Ip(:,n), Im(:,n))
-             end do
-
-             ! source terms
-             do n = 1, NQSRC
-                if (source_nonzero(n)) then
-
-                   if (idir == 1) then
-                      s(:) = srcQ(i-2:i+2,j,k,n)
-                   else if (idir == 2) then
-                      s(:) = srcQ(i,j-2:j+2,k,n)
-                   else
-                      s(:) = srcQ(i,j,k-2:k+2,n)
-                   end if
-
-                   call ppm_reconstruct_f90(s, flatn(i,j,k), sm, sp)
-
-                   call ppm_int_profile_f90(sm, sp, s(0), un, cc, dtdx, Ip_src(:,n), Im_src(:,n))
-                else
-                   Ip_src(:,n) = ZERO
-                   Im_src(:,n) = ZERO
-                end if
-
-             end do
+    Real Ip[NQ][3];
+    Real Im[NQ][3];
 
 
-             ! do the passives separately
-             call trace_ppm_species(i, j, k, &
-                                    idir, &
-                                    q, qd_lo, qd_hi, &
-                                    Ip, Im, &
-                                    Ip_src, Im_src, &
-                                    qm, qm_lo, qm_hi, &
-                                    qp, qp_lo, qp_hi, &
-                                    vlo, vhi, domlo, domhi, &
-                                    dx, dt)
+    for (int n = 0; n < NQ; n++) {
+      if (n == QTEMP) continue;
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,n);
+        s[im1] = q_arr(i-1,j,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i+1,j,k,n);
+        s[ip2] = q_arr(i+2,j,k,n);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,n);
+        s[im1] = q_arr(i,j-1,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j+1,k,n);
+        s[ip2] = q_arr(i,j+2,k,n);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,n);
+        s[im1] = q_arr(i,j,k-1,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j,k+1,n);
+        s[ip2] = q_arr(i,j,k+2,n);
+
+      }
+
+      ppm_reconstruct(s, flat, sm, sp);
+      ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
+
+    }
 
 
-             !-------------------------------------------------------------------
-             ! plus state on face i
-             !-------------------------------------------------------------------
+    // source terms
+    Real Ip_src[NQSRC][3];
+    Real Im_src[NQSRC][3];
 
-             if ((idir == 1 .and. i >= vlo(1)) .or. &
-                 (idir == 2 .and. j >= vlo(2)) .or. &
-                 (idir == 3 .and. k >= vlo(3))) then
+    for (int n = 0; n < NQSRC; n++) {
 
-                ! Set the reference state
-                ! This will be the fastest moving state to the left --
-                ! this is the method that Miller & Colella and Colella &
-                ! Woodward use
-                rho_ref  = Im(1,QRHO)
-                un_ref    = Im(1,QUN)
+      // do we even need to trace (non-zero source?)
+#ifndef AMREX_USE_CUDA
+      int do_trace = do_source_trace[n];
+#else
+      int do_trace = 0;
+      if (idir == 0) {
+        for (int b = i-2; b <= i+2; b++) {
+          if (std::abs(srcQ(b,j,k,n)) > 0.0_rt) {
+            do_trace = 1;
+            break;
+          }
+        }
+      } else if (idir == 1) {
+        for (int b = j-2; b <= j+2; b++) {
+          if (std::abs(srcQ(i,b,k,n)) > 0.0_rt) {
+            do_trace = 1;
+            break;
+          }
+        }
+      } else {
+        for (int b = k-2; b <= k+2; b++) {
+          if (std::abs(srcQ(i,j,b,n)) > 0.0_rt) {
+            do_trace = 1;
+            break;
+          }
+        }
+      }
+#endif
 
-                p_ref    = Im(1,QPRES)
-                rhoe_g_ref = Im(1,QREINT)
+      if (do_trace) {
 
-                tau_ref  = ONE/Im(1,QRHO)
+        if (idir == 0) {
+          s[im2] = srcQ(i-2,j,k,n);
+          s[im1] = srcQ(i-1,j,k,n);
+          s[i0]  = srcQ(i,j,k,n);
+          s[ip1] = srcQ(i+1,j,k,n);
+          s[ip2] = srcQ(i+2,j,k,n);
 
-                !gam_g_ref  = Im_gc(i,j,k,1,1)
-                ptot_ref = Im(1,QPTOT)
+        } else if (idir == 1) {
+          s[im2] = srcQ(i,j-2,k,n);
+          s[im1] = srcQ(i,j-1,k,n);
+          s[i0]  = srcQ(i,j,k,n);
+          s[ip1] = srcQ(i,j+1,k,n);
+          s[ip2] = srcQ(i,j+2,k,n);
 
-                er_ref(:) = Im(1,QRAD:QRAD-1+ngroups)
+        } else {
+          s[im2] = srcQ(i,j,k-2,n);
+          s[im1] = srcQ(i,j,k-1,n);
+          s[i0]  = srcQ(i,j,k,n);
+          s[ip1] = srcQ(i,j,k+1,n);
+          s[ip2] = srcQ(i,j,k+2,n);
+
+        }
+
+        ppm_reconstruct(s, flat, sm, sp);
+        ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
+
+      } else {
+        Ip_src[n][0] = 0.0_rt;
+        Ip_src[n][1] = 0.0_rt;
+        Ip_src[n][2] = 0.0_rt;
+
+        Im_src[n][0] = 0.0_rt;
+        Im_src[n][1] = 0.0_rt;
+        Im_src[n][2] = 0.0_rt;
+      }
+
+    }
 
 
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
+    // do the passives separately
 
-                ! *m are the jumps carried by u-c
-                ! *p are the jumps carried by u+c
+    // the passive stuff is the same regardless of the tracing
+  
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-                ! Note: for the transverse velocities, the jump is carried
-                !       only by the u wave (the contact)
+      int n = qpass_map_p[ipassive];
 
-                ! we also add the sources here so they participate in the tracing
-                dum    = un_ref    - Im(1,QUN) - hdt*Im_src(1,QUN)
-                dptotm = ptot_ref - Im(1,qptot) - hdt*Im_src(1,QPRES)
+      // Plus state on face i
+      if ((idir == 0 && i >= vlo[0]) ||
+          (idir == 1 && j >= vlo[1]) ||
+          (idir == 2 && k >= vlo[2])) {
 
-                drho    = rho_ref    - Im(2,QRHO) - hdt*Im_src(2,QRHO)
-                dptot   = ptot_ref   - Im(2,qptot) - hdt*Im_src(2,QPRES)
-                drhoe_g = rhoe_g_ref - Im(2,QREINT) - hdt*Im_src(2,QREINT)
+        // We have
+        //
+        // q_l = q_ref - Proj{(q_ref - I)}
+        //
+        // and Proj{} represents the characteristic projection.
+        // But for these, there is only 1-wave that matters, the u
+        // wave, so no projection is needed.  Since we are not
+        // projecting, the reference state doesn't matter
 
-                ! since d(rho)/dt = S_rho, d(tau**{-1})/dt = S_rho, so d(tau)/dt = -S_rho*tau**2
-                dtau  = tau_ref  - ONE/Im(2,QRHO) + hdt*Im_src(2,QRHO)/Im(2,QRHO)**2
-                der(:)  = er_ref(:)  - Im(2,qrad:qrad-1+ngroups)
+        qp(i,j,k,n) = Im[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
+#endif
+      }
 
-                dup    = un_ref    - Im(3,QUN) - hdt*Im_src(3,QUN)
-                dptotp = ptot_ref - Im(3,qptot) - hdt*Im_src(3,QPRES)
+      // Minus state on face i+1
+      if (idir == 0 && i <= vhi[0]) {
+        qm(i+1,j,k,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
 
+      } else if (idir == 1 && j <= vhi[1]) {
+        qm(i,j+1,k,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
+      } else if (idir == 2 && k <= vhi[2]) {
+        qm(i,j,k+1,n) = Ip[n][1];
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
+#endif
+      }
+    }
 
-                ! (rho, u, p, (rho e) eigensystem
+    // plus state on face i
 
-                ! These are analogous to the beta's from the original PPM
-                ! paper (except we work with rho instead of tau).  This is
-                ! simply (l . dq), where dq = qref - I(q)
+    if ((idir == 0 && i >= vlo[0]) ||
+        (idir == 1 && j >= vlo[1]) ||
+        (idir == 2 && k >= vlo[2])) {
+
+      // Set the reference state
+      // This will be the fastest moving state to the left --
+      // this is the method that Miller & Colella and Colella &
+      // Woodward use
+      Real rho_ref = Im[QRHO][0];
+      Real un_ref = Im[QUN][0];
+
+      Real p_ref = Im[QPRES][0];
+      Real rhoe_g_ref = Im[QREINT][0];
+
+      Real ptot_ref = Im[QPTOT][0];
+      Real er_ref[NGROUPS];
+      for (int g=0; g < NGROUPS; g++) {
+        er_ref[g] = Im[QRAD+g][0];
+      }
+
+      rho_ref = amrex::max(rho_ref, lsmall_dens);
+      p_ref = amrex::max(p_ref, lsmall_pres);
+
+      // *m are the jumps carried by u-c
+      // *p are the jumps carried by u+c
+
+      // Note: for the transverse velocities, the jump is carried
+      //       only by the u wave (the contact)
+
+      // we also add the sources here so they participate in the tracing
+      Real dum = un_ref - Im[QUN][0] - hdt*Im_src[QUN][0];
+      Real dptotm = ptot_ref - Im[qptot][0] - hdt*Im_src[QPRES][0];
+
+      Real drho = rho_ref - Im[QRHO][1] - hdt*Im_src[QRHO][1];
+      Real dptot = ptot_ref - Im[qptot][1] - hdt*Im_src[QPRES][1];
+      Real drhoe_g = rhoe_g_ref - Im[QREINT][1] - hdt*Im_src[QREINT][1];
+
+      Real der[NGROUPS];
+      for (int g-0; g < NGROUPS; g++) {
+        der[g] = er_ref[g] - Im[QRAD+g][1];
+      }
+
+      Real dup = un_ref - Im[QUN][2] - hdt*Im_src[QUN][2];
+      Real dptotp = ptot_ref - Im[QPTOT][2] - hdt*Im_src[QPRES][2];
+
+      // {rho, u, p, (rho e)} eigensystem
+
+      // These are analogous to the beta's from the original PPM
+      // paper (except we work with rho instead of tau).  This is
+      // simply (l . dq), where dq = qref - I(q)
 
                 alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
                 alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc

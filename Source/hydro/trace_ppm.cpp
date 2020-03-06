@@ -305,7 +305,7 @@ Castro::trace_ppm(const Box& bx,
 
     // do the passives separately
 
-  // the passive stuff is the same regardless of the tracing
+    // the passive stuff is the same regardless of the tracing
   
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
