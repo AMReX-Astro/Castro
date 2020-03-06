@@ -474,7 +474,7 @@ Castro::trace_ppm(const Box& bx,
       Real dup = un_ref - Ip[QUN][2] - hdt*Ip_src[QUN][2];
       Real dptotp = p_ref - Ip[QPRES][2] - hdt*Ip_src[QPRES][2];
 
-      // (rho, u, p, (rho e)) eigensystem
+      // {rho, u, p, (rho e)} eigensystem
 
       // These are analogous to the beta's from the original PPM
       // paper (except we work with rho instead of tau).  This is

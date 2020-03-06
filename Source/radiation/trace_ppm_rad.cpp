@@ -156,6 +156,20 @@ Castro::trace_ppm_rad(const Box& bx,
 
     Real un = q_arr(i,j,k,QUN);
 
+    Real p = q_arr(i,j,k,QPRES);
+    Real rhoe_g = q_arr(i,j,k,QREINT);
+    Real h_g = ( (p+rhoe_g)/rho)/csq;
+
+    Real gam_g = qaux_arr(i,j,k,QGAMCG);
+
+    Real ptot = q_arr(i,j,k,QPTOT);
+
+    Real er[NGROUPS];
+    Real hr[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
+      er[g] = q_arr(i,j,k,QRAD+g);
+      hr[g] = (lam0[g] + 1.0_rt)*er[g]/rho;
+    }
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
@@ -343,7 +357,7 @@ Castro::trace_ppm_rad(const Box& bx,
 
       Real ptot_ref = Im[QPTOT][0];
       Real er_ref[NGROUPS];
-      for (int g=0; g < NGROUPS; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         er_ref[g] = Im[QRAD+g][0];
       }
 
@@ -358,14 +372,14 @@ Castro::trace_ppm_rad(const Box& bx,
 
       // we also add the sources here so they participate in the tracing
       Real dum = un_ref - Im[QUN][0] - hdt*Im_src[QUN][0];
-      Real dptotm = ptot_ref - Im[qptot][0] - hdt*Im_src[QPRES][0];
+      Real dptotm = ptot_ref - Im[QPTOT][0] - hdt*Im_src[QPRES][0];
 
       Real drho = rho_ref - Im[QRHO][1] - hdt*Im_src[QRHO][1];
-      Real dptot = ptot_ref - Im[qptot][1] - hdt*Im_src[QPRES][1];
+      Real dptot = ptot_ref - Im[QPTOT][1] - hdt*Im_src[QPRES][1];
       Real drhoe_g = rhoe_g_ref - Im[QREINT][1] - hdt*Im_src[QREINT][1];
 
       Real der[NGROUPS];
-      for (int g-0; g < NGROUPS; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         der[g] = er_ref[g] - Im[QRAD+g][1];
       }
 
@@ -378,389 +392,305 @@ Castro::trace_ppm_rad(const Box& bx,
       // paper (except we work with rho instead of tau).  This is
       // simply (l . dq), where dq = qref - I(q)
 
-                alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
-                alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-                alpha0r = drho - dptot/csq
-                alpha0e_g = drhoe_g - dptot*h_g
+      Real alpham = 0.5_rt*(dptotm/(rho*cc) - dum)*rho/cc;
+      Real alphap = 0.5_rt*(dptotp/(rho*cc) + dup)*rho/cc;
+      Real alpha0r = drho - dptot/csq;
+      Real alpha0e_g = drhoe_g - dptot*h_g;
 
-                alphar(:) = der(:) - dptot/csq*hr
+      Real alphar[NGROUPS];
+      for (int g = 0; g < NGROUPS; g++) {
+        alphar[g] = der[g] - dptot/csq*hr[g];
+      }
 
-                if (un-cc > ZERO) then
-                   alpham = ZERO
-                else
-                   alpham = -alpham
-                end if
+      alpham = un-cc > 0.0_rt ? 0.0_rt : -alpham;
+      alphap = un+cc > 0.0_rt ? 0.0_rt : -alphap;
+      alpha0r = un > 0.0_rt ? 0.0_rt : -alpha0r;
+      alpha0e_g = un > 0.0_rt ? 0.0_rt : -alpha0e_g;
 
-                if (un+cc > ZERO) then
-                   alphap = ZERO
-                else
-                   alphap = -alphap
-                end if
+      for (int g = 0; g < NGROUPS; g++) {
+        alphar[g] = un > 0.0_rt ? 0.0_rt : -alphar[g];
+      }
 
-                if (un > ZERO) then
-                   alpha0r = ZERO
-                else
-                   alpha0r = -alpha0r
-                end if
+      // The final interface states are just
+      // q_s = q_ref - sum(l . dq) r
+      // note that the a{mpz}right as defined above have the minus already
+      qp(i,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref + alphap + alpham + alpha0r);
+      qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho;
+      qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g;
 
-                if (un > ZERO) then
-                   alphar(:) = ZERO
-                else
-                   alphar(:) = -alphar(:)
-                end if
+      qp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq;
+      for (int g = 0; g < NGROUPS; g++) {
+        qp(i,j,k,QPRES) += -lamp[g]*alphar[g];
+      }
+      qp(i,j,k,QPRES) = amrex::max(lsmall_pres, qp(i,j,k,QPRES));
 
-                if (un > ZERO) then
-                   alpha0e_g = ZERO
-                else
-                   alpha0e_g = -alpha0e_g
-                end if
+      qp(i,j,k,QPTOT) = ptot_ref + (alphap + alpham)*csq;
+      qp(i,j,k,QREITOT) = qp(i,j,k,QREINT);
 
+      Real qrtmp;
+      for (int g = 0; g < NGROUPS; g++) {
+        qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+        qp(i,j,k,QRAD+g) = qrtmp;
+        qp(i,j,k,QREITOT) += qrtmp;
+      }
 
-                ! The final interface states are just
-                ! q_s = q_ref - sum(l . dq) r
-                ! note that the a{mpz}right as defined above have the minus already
-                qp(i,j,k,QRHO) = rho_ref + alphap + alpham + alpha0r
-                qp(i,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                qp(i,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                qp(i,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq - sum(lamp(:)*alphar(:))
+      for (int g = 0; g < NGROUPS; g++) {
+        if (qp(i,j,k,QRAD+g) < 0.0_rt) {
+          Real er_foo = -qp(i,j,k,QRAD+g);
+          qp(i,j,k,QRAD+g) = 0.0_rt;
+          qp(i,j,k,QPTOT) += lamp[g] * er_foo;
+          qp(i,j,k,QREITOT) += er_foo;
+        }
+      }
 
-                qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                qp(i,j,k,qrad:qrad-1+ngroups) = qrtmp
+      // Transverse velocities -- there's no projection here, so
+      // we don't need a reference state.  We only care about
+      // the state traced under the middle wave
 
-                qp(i,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                qp(i,j,k,qreitot) = qp(i,j,k,QREINT) + sum(qrtmp)
+      // Recall that I already takes the limit of the parabola
+      // in the event that the wave is not moving toward the
+      // interface
+      qp(i,j,k,QUT) = Im[QUT][1] + hdt*Im_src[QUT][1];
+      qp(i,j,k,QUTT) = Im[QUTT][1] + hdt*Im_src[QUTT][1];
 
+    }
 
-                ! Enforce small_*
-                qp(i,j,k,QRHO) = max(qp(i,j,k,QRHO), small_dens)
-                qp(i,j,k,QPRES) = max(qp(i,j,k,QPRES),small_pres)
+    // minus state on face i + 1
 
-                do g = 0, ngroups-1
-                   if (qp(i,j,k,qrad+g) < ZERO) then
-                      er_foo = - qp(i,j,k,qrad+g)
-                      qp(i,j,k,qrad+g) = ZERO
-                      qp(i,j,k,qptot) = qp(i,j,k,qptot) + lamp(g) * er_foo
-                      qp(i,j,k,qreitot) = qp(i,j,k,qreitot) + er_foo
-                   end if
-                end do
+    if ((idir == 0 && i <= vhi[0]) ||
+        (idir == 1 && j <= vhi[1]) ||
+        (idir == 2 && k <= vhi[2])) {
 
+      // Set the reference state
+      // This will be the fastest moving state to the right
+      Real rho_ref = Ip[QRHO][2];
+      Real un_ref = Ip[QUN][2];
 
-                ! Transverse velocities -- there's no projection here, so
-                ! we don't need a reference state.  We only care about
-                ! the state traced under the middle wave
+      Real p_ref = Ip[QPRES][2];
+      Real rhoe_g_ref = Ip[QREINT][2];
 
-                ! Recall that I already takes the limit of the parabola
-                ! in the event that the wave is not moving toward the
-                ! interface
-                qp(i,j,k,QUT) = Im(2,QUT) + hdt*Im_src(2,QUT)
-                qp(i,j,k,QUTT) = Im(2,QUTT) + hdt*Im_src(2,QUTT)
+      Real ptot_ref = Ip[QPTOT][2];
+      Real er_ref[NGROUPS];
+      for (int g = 0; g < NGROUPS; g++) {
+        er_ref[g] = Ip[QRAD+g][2];
+      }
 
-             end if
+      rho_ref = amrex::max(rho_ref, lsmall_dens);
+      p_ref = amrex::max(p_ref, lsmall_pres);
 
+      // *m are the jumps carried by u-c
+      // *p are the jumps carried by u+c
 
-             !-------------------------------------------------------------------
-             ! minus state on face i + 1
-             !-------------------------------------------------------------------
-             if ((idir == 1 .and. i <= vhi(1)) .or. &
-                 (idir == 2 .and. j <= vhi(2)) .or. &
-                 (idir == 3 .and. k <= vhi(3))) then
+      Real dum = un_ref - Ip[QUN][0] - hdt*Ip_src[QUN][0];
+      Real dptotm = ptot_ref - Ip[QPTOT][0] - hdt*Ip_src[QPRES][0];
 
-                ! Set the reference state
-                ! This will be the fastest moving state to the right
-                rho_ref  = Ip(3,QRHO)
-                un_ref    = Ip(3,QUN)
+      Real drho = rho_ref - Ip[QRHO][1] - hdt*Ip_src[QRHO][1];
+      Real dptot = ptot_ref - Ip[QPTOT][1] - hdt*Ip_src[QPRES][1];
+      Real drhoe_g = rhoe_g_ref - Ip[QREINT][1] - hdt*Ip_src[QREINT][1];
 
-                p_ref    = Ip(3,QPRES)
-                rhoe_g_ref = Ip(3,QREINT)
+      Real der[NGROUPS];
+      for (int g = 0; g < NGROUPS; g++) { 
+        der[g]  = er_ref[g]  - Ip[QRAD+g][1];
+      }
 
-                tau_ref  = ONE/Ip(3,QRHO)
+      Real dup = un_ref - Ip[QUN][2] - hdt*Ip_src[QUN][2];
+      Real dptotp = ptot_ref - Ip[QPTOT][2] - hdt*Ip_src[QPRES][2];
 
-                !gam_g_ref  = Ip_gc(i,j,k,3,1)
+      // {rho, u, p, (rho e)} eigensystem
 
-                ptot_ref = Ip(3,QPTOT)
+      // These are analogous to the beta's from the original PPM
+      // paper (except we work with rho instead of tau).  This is
+      // simply (l . dq), where dq = qref - I(q)
 
-                er_ref(:) = Ip(3,QRAD:QRAD-1+ngroups)
+      Real alpham = 0.5_rt*(dptotm/(rho*cc) - dum)*rho/cc;
+      Real alphap = 0.5_rt*(dptotp/(rho*cc) + dup)*rho/cc;
+      Real alpha0r = drho - dptot/csq;
+      Real alpha0e_g = drhoe_g - dptot*h_g;
 
-                rho_ref = max(rho_ref,small_dens)
-                p_ref = max(p_ref,small_pres)
+      Real alphar[NGROUPS];
+      for (int g = 0; g < NGROUPS; g++) {
+        alphar[g] = der[g] - dptot/csq*hr[g];
+      }
 
-                ! *m are the jumps carried by u-c
-                ! *p are the jumps carried by u+c
+      alpham = un-cc > 0.0_rt ? -alpham : 0.0_rt;
+      alphap = un+cc > 0.0_rt ? -alphap : 0.0_rt;
+      alpha0r = un > 0.0_rt ? -alpha0r : 0.0_rt;
+      alpha0e_g = un > 0.0_rt ? -alpha0e_g : 0.0_rt;
 
-                dum    = un_ref    - Ip(1,QUN) - hdt*Ip_src(1,QUN)
-                dptotm = ptot_ref - Ip(1,qptot) - hdt*Ip_src(1,QPRES)
+      for (int g = 0; g < NGROUPS; g++) {
+        alphar[g] = un > 0.0_rt ? -alphar[g] : 0.0_rt;
+      }
 
-                drho    = rho_ref    - Ip(2,QRHO) - hdt*Ip_src(2,QRHO)
-                dptot   = ptot_ref   - Ip(2,qptot) - hdt*Ip_src(2,QPRES)
-                drhoe_g = rhoe_g_ref - Ip(2,QREINT) - hdt*Ip_src(2,QREINT)
-                dtau  = tau_ref  - ONE/Ip(2,QRHO) + hdt*Ip_src(2,QRHO)/Ip(2,QRHO)**2
-                der(:)  = er_ref(:)  - Ip(2,qrad:qrad-1+ngroups)
+      // The final interface states are just
+      // q_s = q_ref - sum (l . dq) r
+      // note that the a{mpz}left as defined above have the minus already
 
-                dup    = un_ref    - Ip(3,QUN) - hdt*Ip_src(3,QUN)
-                dptotp = ptot_ref - Ip(3,qptot) - hdt*Ip_src(3,QPRES)
+      if (idir == 0) {
+        qm(i+1,j,k,QRHO) = amrex::max(lsmall_dens, rho_ref + alphap + alpham + alpha0r);
+        qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho;
+        qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g;
 
+        qm(i+1,j,k,QPRES) = p_ref + (alphap + alpham)*cgassq;
+        for (int g = 0; g < NGROUPS; g++) {
+          qm(i+1,j,k,QPRES) += -lamm[g]*alphar[g];
+        }
 
-                ! Optionally use the reference state in evaluating the
-                ! eigenvectors -- NOT YET IMPLEMENTED
+        qm(i+1,j,k,QPTOT) = ptot_ref + (alphap + alpham)*csq;
+        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT);
 
-                ! (rho, u, p, (rho e)) eigensystem
+        Real qrtmp;
+        for (int g = 0; g < NGROUPS; g++) {
+          qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+          qm(i+1,j,k,QRAD+g) = qrtmp;
+          qm(i+1,j,k,QREITOT) += qrtmp;
+        }
 
-                ! These are analogous to the beta's from the original PPM
-                ! paper (except we work with rho instead of tau).  This is
-                ! simply (l . dq), where dq = qref - I(q)
+        for (int g = 0; g < NGROUPS; g++) {
+          if (qm(i+1,j,k,QRAD+g) < 0.0_rt) {
+            Real er_foo = -qm(i+1,j,k,QRAD+g);
+            qm(i+1,j,k,QRAD+g) = 0.0_rt;
+            qm(i+1,j,k,QPTOT) += lamm[g] * er_foo;
+            qm(i+1,j,k,QREITOT) += er_foo;
+          }
+        }
 
-                alpham = HALF*(dptotm/(rho*cc) - dum)*rho/cc
-                alphap = HALF*(dptotp/(rho*cc) + dup)*rho/cc
-                alpha0r = drho - dptot/csq
-                alpha0e_g = drhoe_g - dptot*h_g
+        // transverse velocities
+        qm(i+1,j,k,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
+        qm(i+1,j,k,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
 
-                alphar(:) = der(:) - dptot/csq*hr
+      } else if (idir == 1) {
+        qm(i,j+1,k,QRHO) = amrex::max(lsmall_dens, rho_ref + alphap + alpham + alpha0r);
+        qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc/rho;
+        qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g;
 
-                if (un-cc > ZERO) then
-                   alpham = -alpham
-                else
-                   alpham = ZERO
-                end if
+        qm(i,j+1,k,QPRES) = p_ref + (alphap + alpham)*cgassq;
+        for (int g = 0; g < NGROUPS; g++) {
+          qm(i,j+1,k,QPRES) += -lamm[g]*alphar[g];
+        }
 
-                if (un+cc > ZERO) then
-                   alphap = -alphap
-                else
-                   alphap = ZERO
-                end if
+        qm(i,j+1,k,QPTOT) = ptot_ref + (alphap + alpham)*csq;
+        qm(i,j+1,k,QREITOT) = qm(i,j+1,k,QREINT);
 
-                if (un > ZERO) then
-                   alpha0r = -alpha0r
-                else
-                   alpha0r = ZERO
-                end if
+        Real qrtmp;
+        for (int g = 0; g < NGROUPS; g++) {
+          qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+          qm(i,j+1,k,QRAD+g) = qrtmp;
+          qm(i,j+1,k,QREITOT) += qrtmp;
+        }
 
-                if (un > ZERO) then
-                   alphar(:) = -alphar(:)
-                else
-                   alphar(:) = ZERO
-                end if
+        for (int g = 0; g < NGROUPS; g++) {
+          qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+          qm(i,j+1,k,QRAD+g) = qrtmp;
+          qm(i,j+1,k,QREITOT) += qrtmp;
+        }
 
-                if (un > ZERO) then
-                   alpha0e_g = -alpha0e_g
-                else
-                   alpha0e_g = ZERO
-                end if
+        for (int g = 0; g < NGROUPS; g++) {
+          if (qm(i,j+1,k,QRAD+g) < 0.0_rt) {
+            Real er_foo = -qm(i,j+1,k,QRAD+g);
+            qm(i,j+1,k,QRAD+g) = 0.0_rt;
+            qm(i,j+1,k,QPTOT) += lamm[g] * er_foo;
+            qm(i,j+1,k,QREITOT) += er_foo;
+          }
+        }
 
-                ! The final interface states are just
-                ! q_s = q_ref - sum (l . dq) r
-                ! note that the a{mpz}left as defined above have the minus already
-
-                if (idir == 1) then
-                   qm(i+1,j,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                   qm(i+1,j,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                   qm(i+1,j,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qm(i+1,j,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qm(i+1,j,k,qrad:qrad-1+ngroups) = qrtmp
-
-                   qm(i+1,j,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qm(i+1,j,k,qreitot) = qm(i+1,j,k,QREINT) + sum(qrtmp)
-
-                else if (idir == 2) then
-                   qm(i,j+1,k,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                   qm(i,j+1,k,QUN) = un_ref + (alphap - alpham)*cc/rho
-                   qm(i,j+1,k,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qm(i,j+1,k,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qm(i,j+1,k,qrad:qrad-1+ngroups) = qrtmp
-
-                   qm(i,j+1,k,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qm(i,j+1,k,qreitot) = qm(i,j+1,k,QREINT) + sum(qrtmp)
-
-                else if (idir == 3) then
-                   qm(i,j,k+1,QRHO) = max(small_dens, rho_ref + alphap + alpham + alpha0r)
-                   qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc/rho
-                   qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g
-                   qm(i,j,k+1,QPRES) = max(small_pres, p_ref + (alphap + alpham)*cgassq - sum(lamm(:)*alphar(:)))
-
-                   qrtmp = er_ref(:) + (alphap + alpham)*hr + alphar(:)
-                   qm(i,j,k+1,qrad:qrad-1+ngroups) = qrtmp
-
-                   qm(i,j,k+1,qptot) = ptot_ref + (alphap + alpham)*csq
-                   qm(i,j,k+1,qreitot) = qm(i,j,k+1,QREINT) + sum(qrtmp)
-
-                end if
-
-                if (idir == 1) then
-                   do g=0,ngroups-1
-                      if (qm(i+1,j,k,qrad+g) < ZERO) then
-                         er_foo = - qm(i+1,j,k,qrad+g)
-                         qm(i+1,j,k,qrad+g) = ZERO
-                         qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + lamm(g) * er_foo
-                         qm(i+1,j,k,qreitot) = qm(i+1,j,k,qreitot) + er_foo
-                      end if
-                   end do
-
-                   ! transverse velocities
-                   qm(i+1,j,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
-                   qm(i+1,j,k,QUTT) = Ip(2,QUTT) + hdt*Ip_src(2,QUTT)
-
-                else if (idir == 2) then
-                   do g=0,ngroups-1
-                      if (qm(i,j+1,k,qrad+g) < ZERO) then
-                         er_foo = - qm(i,j+1,k,qrad+g)
-                         qm(i,j+1,k,qrad+g) = ZERO
-                         qm(i,j+1,k,qptot) = qm(i,j+1,k,qptot) + lamm(g) * er_foo
-                         qm(i,j+1,k,qreitot) = qm(i,j+1,k,qreitot) + er_foo
-                      end if
-                   end do
-
-                   ! transverse velocities
-                   qm(i,j+1,k,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
-                   qm(i,j+1,k,QUTT) = Ip(2,QUTT) + hdt*Ip_src(2,QUTT)
-
-                else if (idir == 3) then
-                   do g=0,ngroups-1
-                      if (qm(i,j,k+1,qrad+g) < ZERO) then
-                         er_foo = - qm(i,j,k+1,qrad+g)
-                         qm(i,j,k+1,qrad+g) = ZERO
-                         qm(i,j,k+1,qptot) = qm(i,j,k+1,qptot) + lamm(g) * er_foo
-                         qm(i,j,k+1,qreitot) = qm(i,j,k+1,qreitot) + er_foo
-                      end if
-                   end do
-
-                   ! transverse velocities
-                   qm(i,j,k+1,QUT) = Ip(2,QUT) + hdt*Ip_src(2,QUT)
-                   qm(i,j,k+1,QUTT) = Ip(2,QUTT) + hdt*Ip_src(2,QUTT)
-
-                end if
-
-             end if
+        // transverse velocities
+        qm(i,j+1,k,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
+        qm(i,j+1,k,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
 
 
-             !-------------------------------------------------------------------
-             ! geometry source terms
-             !-------------------------------------------------------------------
+      } else {
+
+        qm(i,j,k+1,QRHO) = amrex::max(lsmall_dens, rho_ref + alphap + alpham + alpha0r);
+        qm(i,j,k+1,QUN) = un_ref + (alphap - alpham)*cc/rho;
+        qm(i,j,k+1,QREINT) = rhoe_g_ref + (alphap + alpham)*h_g*csq + alpha0e_g;
+
+        qm(i,j,k+1,QPRES) = p_ref + (alphap + alpham)*cgassq;
+        for (int g = 0; g < NGROUPS; g++) {
+          qm(i,j,k+1,QPRES) += -lamm[g]*alphar[g];
+        }
+
+        qm(i,j,k+1,QPTOT) = ptot_ref + (alphap + alpham)*csq;
+        qm(i,j,k+1,QREITOT) = qm(i,j,k+1,QREINT);
+
+        Real qrtmp;
+        for (int g = 0; g < NGROUPS; g++) {
+          qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+          qm(i,j,k+1,QRAD+g) = qrtmp;
+          qm(i,j,k+1,QREITOT) += qrtmp;
+        }
+
+        for (int g = 0; g < NGROUPS; g++) {
+          qrtmp = er_ref[g] + (alphap + alpham)*hr[g] + alphar[g];
+          qm(i,j,k+1,QRAD+g) = qrtmp;
+          qm(i,j,k+1,QREITOT) += qrtmp;
+        }
+
+        for (int g = 0; g < NGROUPS; g++) {
+          if (qm(i,j,k+1,QRAD+g) < 0.0_rt) {
+            Real er_foo = -qm(i,j,k+1,QRAD+g);
+            qm(i,j,k+1,QRAD+g) = 0.0_rt;
+            qm(i,j,k+1,QPTOT) += lamm[g] * er_foo;
+            qm(i,j,k+1,QREITOT) += er_foo;
+          }
+        }
+
+        // transverse velocities
+        qm(i,j,k+1,QUT) = Ip[QUT][1] + hdt*Ip_src[QUT][1];
+        qm(i,j,k+1,QUTT) = Ip[QUTT][1] + hdt*Ip_src[QUTT][1];
+
+      }
+
+    }
+
+    // geometry source terms
 
 #if (AMREX_SPACEDIM < 3)
-             if (idir == 1 .and. dloga(i,j,k) /= 0) then
-                courn = dt/dx(1)*(cc+abs(un))
-                eta = (ONE-courn)/(cc*dt*abs(dloga(i,j,k)))
-                dlogatmp = min(eta, ONE)*dloga(i,j,k)
-                sourcr = -HALF*dt*rho*dlogatmp*un
-                sourcp = sourcr*cgassq
-                source = sourcp*h_g
-                sourcer(:) = -HALF*dt*dlogatmp*un*(lam0(:)+ONE)*er(:)
+    // these only apply for x states (idir = 0)
+    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
+      Real courn = dt/dx[0]*(cc+std::abs(un));
+      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
+      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
+      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
+      Real sourcp = sourcr*cgassq;
+      Real source = sourcp*h_g;
+      Real sourcer[NGROUPS];
+      for (int g = 0; g < NGROUPS; g++) {
+        sourcer[g] = -0.5_rt*dt*dlogatmp*un*(lam0[g] + 1.0_rt)*er[g];
+      }
 
-                if (i <= vhi(1)) then
-                   qm(i+1,j,k,QRHO  ) = qm(i+1,j,k,QRHO  ) + sourcr
-                   qm(i+1,j,k,QRHO  ) = max(qm(i+1,j,k,QRHO), small_dens)
-                   qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp
-                   qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source
-                   qm(i+1,j,k,qrad:qrad-1+ngroups) = qm(i+1,j,k,qrad:qrad-1+ngroups) + sourcer(:)
-                   ! qm(i+1,j,k,qptot ) = sum(lamm(:)*qm(i+1,j,k,qrad:qradhi)) + qm(i+1,j,k,QPRES)
-                   qm(i+1,j,k,qptot) = qm(i+1,j,k,qptot) + sum(lamm(:)*sourcer(:)) + sourcp
-                   qm(i+1,j,k,qreitot) = sum(qm(i+1,j,k,qrad:qrad-1+ngroups))  + qm(i+1,j,k,QREINT)
-                end if
+      if (i <= vhi[0]) {
+        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
+        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
+        qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp;
+        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
+        for (int g = 0; g < NGROUPS; g++) {
+          qm(i+1,j,k,QRAD+g) += sourcer[g];
+        }
+        qm(i+1,j,k,QPTOT) = qm(i+1,j,k,QPTOT) + sourcp;
+        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT); 
+        for (int g = 0; g < NGROUPS; g++) {
+          qm(i+1,j,k,QPTOT) += lamm[g]*sourcer[g];
+          qm(i+1,j,k,QREITOT) += qm(i+1,j,k,QRAD+g);
+          }
+      }
 
-                if (i >= vlo(1)) then
-                   qp(i,j,k,QRHO  ) = qp(i,j,k,QRHO  ) + sourcr
-                   qp(i,j,k,QRHO  ) = max(qp(i,j,k,QRHO), small_dens)
-                   qp(i,j,k,QPRES ) = qp(i,j,k,QPRES ) + sourcp
-                   qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source
-                   qp(i,j,k,qrad:qrad-1+ngroups) = qp(i,j,k,qrad:qrad-1+ngroups) + sourcer(:)
-                   ! qp(i  ,qptot ) = sum(lamp(:)*qp(i,qrad:qradhi)) + qp(i,QPRES)
-                   qp(i,j,k,qptot) = qp(i,j,k,qptot) + sum(lamp(:)*sourcer(:)) + sourcp
-                   qp(i,j,k,qreitot) = sum(qp(i,j,k,qrad:qrad-1+ngroups))  + qp(i,j,k,QREINT)
-                end if
-             endif
+      if (i >= vlo[0]) {
+        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
+        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
+        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
+        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
+        for (int g = 0; g < NGROUPS; g++) {
+          qp(i,j,k,QRAD+g) += sourcer[g];
+        }
+        qp(i,j,k,QPTOT) = qp(i,j,k,QPTOT) + sourcp;
+        qp(i,j,k,QREITOT) = qp(i,j,k,QREINT);
+        for (int g = 0; g < NGROUPS; g++) {
+          qp(i,j,k,QPTOT) += lamp[g]*sourcer[g];
+          qp(i,j,k,QREITOT) += qp(i,j,k,QRAD+g);
+        }
+      }
+    }
 #endif
 
-          end do
-       end do
-    end do
-
-  end subroutine trace_ppm_rad
-
-  subroutine trace_ppm_species(i, j, k, &
-                               idir, &
-                               q, qd_lo, qd_hi, &
-                               Ip, Im, &
-                               Ip_src, Im_src, &
-                               qm, qm_lo, qm_hi, &
-                               qp, qp_lo, qp_hi, &
-                               vlo, vhi, domlo, domhi, &
-                               dx, dt)
-    ! here, lo and hi are the range we loop over -- this can include ghost cells
-    ! vlo and vhi are the bounds of the valid box (no ghost cells)
-
-    use network, only : nspec, naux
-    use meth_params_module, only : NQ, NQSRC, npassive, qpass_map
-
-    implicit none
-
-    integer, intent(in) :: idir
-    integer, intent(in) :: qd_lo(3), qd_hi(3)
-    integer, intent(in) :: qp_lo(3), qp_hi(3)
-    integer, intent(in) :: qm_lo(3), qm_hi(3)
-
-    integer, intent(in) :: vlo(3), vhi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
-
-    real(rt), intent(in) :: q(qd_lo(1):qd_hi(1),qd_lo(2):qd_hi(2),qd_lo(3):qd_hi(3),NQ)
-
-    real(rt), intent(in) :: Ip(1:3,NQ)
-    real(rt), intent(in) :: Im(1:3,NQ)
-
-    real(rt), intent(in) :: Ip_src(1:3,NQSRC)
-    real(rt), intent(in) :: Im_src(1:3,NQSRC)
-
-    real(rt), intent(inout) :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ)
-    real(rt), intent(inout) :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ)
-    real(rt), intent(in) :: dt, dx(3)
-
-    integer, intent(in) :: i, j, k
-
-    integer :: ipassive, n
-
-    !$gpu
-
-    ! the passive stuff is the same regardless of the tracing
-    do ipassive = 1, npassive
-       n = qpass_map(ipassive)
-
-       ! Plus state on face i
-       if ((idir == 1 .and. i >= vlo(1)) .or. &
-           (idir == 2 .and. j >= vlo(2)) .or. &
-           (idir == 3 .and. k >= vlo(3))) then
-
-          ! We have
-          !
-          ! q_l = q_ref - Proj{(q_ref - I)}
-          !
-          ! and Proj{} represents the characteristic projection.
-          ! But for these, there is only 1-wave that matters, the u
-          ! wave, so no projection is needed.  Since we are not
-          ! projecting, the reference state doesn't matter
-
-          qp(i,j,k,n) = Im(2,n)
-          if (n <= NQSRC) qp(i,j,k,n) = qp(i,j,k,n) + HALF*dt*Im_src(2,n)
-
-       end if
-
-       ! Minus state on face i+1
-       if (idir == 1 .and. i <= vhi(1)) then
-          qm(i+1,j,k,n) = Ip(2,n)
-          if (n <= NQSRC) qm(i+1,j,k,n) = qm(i+1,j,k,n) + HALF*dt*Ip_src(2,n)
-
-       else if (idir == 2 .and. j <= vhi(2)) then
-          qm(i,j+1,k,n) = Ip(2,n)
-          if (n <= NQSRC) qm(i,j+1,k,n) = qm(i,j+1,k,n) + HALF*dt*Ip_src(2,n)
-
-       else if (idir == 3 .and. k <= vhi(3)) then
-          qm(i,j,k+1,n) = Ip(2,n)
-          if (n <= NQSRC) qm(i,j,k+1,n) = qm(i,j,k+1,n) + HALF*dt*Ip_src(2,n)
-       end if
-
-    end do
-  end subroutine trace_ppm_species
-
-
-end module trace_ppm_rad_module
+  });
+}

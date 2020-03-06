@@ -185,6 +185,20 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
+    void trace_ppm_rad(const amrex::Box& bx,
+                       const int idir,
+                       amrex::Array4<amrex::Real const> const q,
+                       amrex::Array4<amrex::Real const> const qaux,
+                       amrex::Array4<amrex::Real const> const srcQ,
+                       amrex::Array4<amrex::Real const> const flatn,
+                       amrex::Array4<amrex::Real> const qm,
+                       amrex::Array4<amrex::Real> const qp,
+#if (AMREX_SPACEDIM < 3)
+                       amrex::Array4<amrex::Real const> const dloga,
+#endif
+                       const amrex::Box& vbx,
+                       const amrex::Real dt);
+
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
                       amrex::Array4<amrex::Real> const update,
