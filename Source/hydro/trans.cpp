@@ -19,7 +19,7 @@ Castro::trans_single(const Box& bx,
                      Array4<Real> const qmo,
                      Array4<Real const> const qp,
                      Array4<Real> const qpo,
-                     Array4<Real const> const qaux,
+                     Array4<Real const> const qaux_arr,
                      Array4<Real const> const flux_t,
 #ifdef RADIATION
                      Array4<Real const> const rflux_t,
@@ -168,7 +168,7 @@ Castro::trans_single(const Box& bx,
         Real ergm[NGROUPS];
 
         for (int g = 0; g < NGROUPS; ++g) {
-            lambda[g] = qaux(il,jl,kl,QLAMS+g);
+            lambda[g] = qaux_arr(il,jl,kl,QLAMS+g);
             ergp[g] = q_t(ir,jr,kr,GDERADS+g);
             ergm[g] = q_t(il,jl,kl,GDERADS+g);
         }
@@ -186,13 +186,15 @@ Castro::trans_single(const Box& bx,
         Real du = ugp - ugm;
 #endif
         Real pav = 0.5_rt * (pgp + pgm);
+#ifdef RADIATION
         Real uav = 0.5_rt * (ugp + ugm);
+#endif
 
         // this is the gas gamma_1
 #ifdef RADIATION
-        Real gamc = qaux(il,jl,kl,QGAMCG);
+        Real gamc = qaux_arr(il,jl,kl,QGAMCG);
 #else
-        Real gamc = qaux(il,jl,kl,QGAMC);
+        Real gamc = qaux_arr(il,jl,kl,QGAMC);
 #endif
 
 #ifdef RADIATION
@@ -421,7 +423,7 @@ Castro::trans_final(const Box& bx,
                     Array4<Real> const qmo,
                     Array4<Real const> const qp,
                     Array4<Real> const qpo,
-                    Array4<Real const> const qaux,
+                    Array4<Real const> const qaux_arr,
                     Array4<Real const> const flux_t1,
 #ifdef RADIATION
                     Array4<Real const> const rflux_t1,
@@ -601,22 +603,20 @@ Castro::trans_final(const Box& bx,
 
             Real dupt1 = pgt1p * ugt1p - pgt1m * ugt1m;
             Real pt1av = 0.5_rt * (pgt1p + pgt1m);
-            Real ut1av = 0.5_rt * (ugt1p + ugt1m);
             Real dut1 = ugt1p - ugt1m;
 #ifdef RADIATION
-            Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux(iln,jln,kln,QGAMCG) - 1.0_rt));
+            Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux_arr(iln,jln,kln,QGAMCG) - 1.0_rt));
 #else
-            Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux(iln,jln,kln,QGAMC) - 1.0_rt));
+            Real pt1new = cdtdx_t1 * (dupt1 + pt1av * dut1 * (qaux_arr(iln,jln,kln,QGAMC) - 1.0_rt));
 #endif
 
             Real dupt2 = pgt2p * ugt2p - pgt2m * ugt2m;
             Real pt2av = 0.5_rt * (pgt2p + pgt2m);
-            Real ut2av = 0.5_rt * (ugt2p + ugt2m);
             Real dut2 = ugt2p - ugt2m;
 #ifdef RADIATION
-            Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux(iln,jln,kln,QGAMCG) - 1.0_rt));
+            Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux_arr(iln,jln,kln,QGAMCG) - 1.0_rt));
 #else
-            Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux(iln,jln,kln,QGAMC) - 1.0_rt));
+            Real pt2new = cdtdx_t2 * (dupt2 + pt2av * dut2 * (qaux_arr(iln,jln,kln,QGAMC) - 1.0_rt));
 #endif
 
 #ifdef RADIATION
@@ -630,7 +630,7 @@ Castro::trans_final(const Box& bx,
             Real dre = 0.0_rt;
 
             for (int g = 0; g < NGROUPS; ++g) {
-                lambda[g] = qaux(iln,jln,kln,QLAMS+g);
+                lambda[g] = qaux_arr(iln,jln,kln,QLAMS+g);
                 lget1[g] = lambda[g] * (ergt1p[g] - ergt1m[g]);
                 lget2[g] = lambda[g] * (ergt2p[g] - ergt2m[g]);
                 dmt1 -= cdtdx_t1 * lget1[g];
