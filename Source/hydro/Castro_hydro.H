@@ -104,6 +104,28 @@
 #endif
                         const amrex::Real dt);
 
+#ifdef RADIATION
+    void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
+                            amrex::Array4<amrex::Real const> const q,
+                            amrex::Array4<amrex::Real const> const flatn,
+                            amrex::Array4<amrex::Real const> const qaux,
+                            amrex::Array4<amrex::Real const> const srcQ,
+                            amrex::Array4<amrex::Real> const qxm,
+                            amrex::Array4<amrex::Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                            amrex::Array4<amrex::Real> const qym,
+                            amrex::Array4<amrex::Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                            amrex::Array4<amrex::Real> const qzm,
+                            amrex::Array4<amrex::Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                            amrex::Array4<amrex::Real const> const dloga,
+#endif
+                            const amrex::Real dt);
+#endif
+
      void mol_ppm_reconstruct(const amrex::Box& bx,
                               const int idir,
                               amrex::Array4<amrex::Real const> const q_arr,
