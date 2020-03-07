@@ -401,18 +401,4 @@ contains
 
   end subroutine scf_diagnostics
 
-
-
-  subroutine scf_get_solar_mass(M_solar_out) bind(C, name="scf_get_solar_mass")
-
-    use fundamental_constants_module, only: M_solar
-
-    implicit none
-
-    real(rt), intent(inout) :: M_solar_out
-
-    M_solar_out = M_solar
-
-  end subroutine scf_get_solar_mass
-
 end module scf_relaxation_module
