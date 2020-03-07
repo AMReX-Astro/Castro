@@ -67,21 +67,23 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_hybrid_flux(const Real* state, const GeometryData& geomdata, const Real* center,
                          int idir, int i, int j, int k, Real* flux, bool cell_centered = false)
 {
-    Real loc[3];
-    Real u_adv;
+    bool ccx = true;
+    bool ccy = true;
+    bool ccz = true;
 
     if (idir == 0) {
-        position(i, j, k, geomdata, loc, true, false, false);
-        u_adv = state[GDU];
+        ccx = cell_centered;
     }
     else if (idir == 1) {
-        position(i, j, k, geomdata, loc, false, true, false);
-        u_adv = state[GDV];
+        ccy = cell_centered;
     }
     else {
-        position(i, j, k, geomdata, loc, false, false, true);
-        u_adv = state[GDW];
+        ccz = cell_centered;
     }
+
+    Real loc[3];
+
+    position(i, j, k, geomdata, loc, ccx, ccy, ccz);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
         loc[dir] -= center[dir];
@@ -94,6 +96,8 @@ void compute_hybrid_flux(const Real* state, const GeometryData& geomdata, const 
     Real hybrid_mom[3];
 
     linear_to_hybrid(loc, linear_mom, hybrid_mom);
+
+    Real u_adv = state[GDU + idir];
 
     if (idir == 0) {
         flux[UMR] = hybrid_mom[0] * u_adv;
