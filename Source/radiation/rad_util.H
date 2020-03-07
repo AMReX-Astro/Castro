@@ -7,46 +7,31 @@ using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
+compute_ptot_ctot(const Real* lam, const Real* q,
+                  Real cg,
+                  Real& ptot, Real& ctot, Real& gamc_tot) {
 
-    use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQ
-    use fluxlimiter_module, only : Edd_factor ! function
-    use amrex_fort_module, only : rt => amrex_real
+  Real csrad2 = 0.0_rt;
+  Real prad = 0.0_rt;
 
-    real(rt), intent(in) :: lam(0:ngroups-1)
-    real(rt), intent(in) :: q(NQ)
-    real(rt), intent(in) :: cg
-    real(rt), intent(out) :: ptot
-    real(rt), intent(out) :: ctot
-    real(rt), intent(out) :: gamc_tot
+  for (int g = 0; g < NGROUPS; g++) {
+    Real gamr = 0.0;
+    if (comoving) {
+      Real Eddf = Edd_factor(lam[g], limiter, closure);
+      gamr = (3.0_rt - Eddf)/2.0_rt;
+    } else {
+      gamr = lam[g] + 1.0_rt;
+    }
 
-    integer :: g
+    prad += lam[g]*q[QRAD+g];
+    csrad2 += gamr * (lam[g]*q[QRAD+g]) / q[QRHO];
+  }
 
-    real(rt) :: csrad2, Eddf, gamr, prad
+  ptot = q[QPRES] + prad;
 
-    !$gpu
+  ctot = cg*cg + csrad2;
+  gamc_tot = ctot * q[QRHO] / ptot;
 
-    csrad2 = ZERO
-    prad = ZERO
-
-    do g = 0, ngroups-1
-       if (comoving) then
-          Eddf = Edd_factor(lam(g))
-          gamr = (THREE - Eddf)/TWO
-       else
-          gamr = lam(g) + ONE
-       end if
-
-       prad = prad + lam(g)*q(QRAD+g)
-       csrad2 = csrad2 + gamr * (lam(g)*q(QRAD+g)) / q(QRHO)
-    end do
-
-    ptot = q(QPRES) + prad
-
-    ctot = cg**2 + csrad2
-    gamc_tot = ctot * q(QRHO) / ptot
-
-    ctot = sqrt(ctot)
-
-  end subroutine compute_ptot_ctot
+  ctot = std::sqrt(ctot);
+}
 
