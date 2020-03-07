@@ -1,4 +1,13 @@
-  subroutine compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
+#include <cmath>
+
+#ifndef _rad_util_H_
+#define _rad_util_H_
+
+using namespace amrex;
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+compute_ptot_ctot(lam, q, cg, ptot, ctot, gamc_tot)
 
     use meth_params_module, only : QPRES, QRHO, comoving, QRAD, QPTOT, NQ
     use fluxlimiter_module, only : Edd_factor ! function
