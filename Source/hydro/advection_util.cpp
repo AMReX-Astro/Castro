@@ -452,7 +452,7 @@ Castro::scale_flux(const Box& bx,
                    Array4<Real const> const qint,
 #endif
                    Array4<Real> const flux,
-                   Array4<Real const> const area,
+                   Array4<Real const> const area_arr,
                    const Real dt) {
 
 #if AMREX_SPACEDIM == 1
@@ -462,11 +462,11 @@ Castro::scale_flux(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
-    flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k);
+    flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
 #if AMREX_SPACEDIM == 1
     // Correct the momentum flux with the grad p part.
     if (coord_type == 0 && n == UMX) {
-      flux(i,j,k,n) += dt * area(i,j,k) * qint(i,j,k,GDPRES);
+      flux(i,j,k,n) += dt * area_arr(i,j,k) * qint(i,j,k,GDPRES);
     }
 #endif
   });
@@ -477,12 +477,12 @@ Castro::scale_flux(const Box& bx,
 void
 Castro::scale_rad_flux(const Box& bx,
                        Array4<Real> const rflux,
-                       Array4<Real const> area,
+                       Array4<Real const> area_arr,
                        const Real dt) {
 
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
-    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k);
+    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });
 }
 #endif

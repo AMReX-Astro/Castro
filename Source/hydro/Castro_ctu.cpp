@@ -98,9 +98,9 @@ Castro::consup_hydro(const Box& bx,
 
 void
 Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
-                       Array4<Real const> const q,
+                       Array4<Real const> const q_arr,
                        Array4<Real const> const flatn,
-                       Array4<Real const> const qaux,
+                       Array4<Real const> const qaux_arr,
                        Array4<Real const> const srcQ,
                        Array4<Real> const qxm,
                        Array4<Real> const qxp,
@@ -127,7 +127,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     if (idir == 0) {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -138,7 +138,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -150,7 +150,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qzm, qzp,
                 vbx, dt);
 

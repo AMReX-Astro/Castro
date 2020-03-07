@@ -49,8 +49,6 @@ extern "C"
                        amrex::Real* kin_eng, amrex::Real* pot_eng,
                        amrex::Real* int_eng, amrex::Real* mass);
 
-  void scf_get_solar_mass(amrex::Real* M_solar);
-
 #ifdef __cplusplus
 }
 #endif

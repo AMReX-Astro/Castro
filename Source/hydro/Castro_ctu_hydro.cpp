@@ -1,9 +1,14 @@
 #include "Castro.H"
+#include "Castro_util.H"
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
+#endif
+
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
 #endif
 
 using namespace amrex;
@@ -24,7 +29,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   hydro_source.setVal(0.0);
 
+  GeometryData geomdata = geom.data();
+
   const Real *dx = geom.CellSize();
+  auto dx_arr = geom.CellSizeArray();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
 
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
@@ -1199,13 +1210,23 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #ifdef HYBRID_MOMENTUM
-#pragma gpu box(bx)
-    add_hybrid_advection_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                dt,
-                                BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                                BL_TO_FORTRAN_ANYD(qe[0]),
-                                BL_TO_FORTRAN_ANYD(qe[1]),
-                                BL_TO_FORTRAN_ANYD(qe[2]));
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    {
+
+        Real loc[3];
+
+        position(i, j, k, geomdata, loc);
+
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+            loc[dir] -= center[dir];
+
+        Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+        Real RInv = 1.0_rt / R;
+
+        update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
+                                                         (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
+
+    });
 #endif
 
 #ifdef RADIATION
