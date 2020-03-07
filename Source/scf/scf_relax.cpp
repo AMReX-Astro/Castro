@@ -437,9 +437,6 @@ Castro::do_hscf_solve()
 
             // Grab the value for the solar mass.
 
-            Real M_solar;
-            scf_get_solar_mass(&M_solar);
-
             std::cout << std::endl << std::endl;
             std::cout << "   Relaxation iterations completed: " << j << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
