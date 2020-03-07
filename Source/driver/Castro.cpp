@@ -675,26 +675,6 @@ Castro::initMFs()
         P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
 
-    // Keep track of which components of the momentum flux have pressure
-    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geom().IsRZ())) {
-        momx_flux_has_p[0] = 0;
-    }
-    else {
-        momx_flux_has_p[0] = 1;
-    }
-
-    momx_flux_has_p[1] = 0;
-    momx_flux_has_p[2] = 0;
-
-    momy_flux_has_p[0] = 0;
-    momy_flux_has_p[1] = 1;
-    momy_flux_has_p[2] = 0;
-
-    momz_flux_has_p[0] = 0;
-    momz_flux_has_p[1] = 0;
-    momz_flux_has_p[2] = 1;
-
-
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(BL_SPACEDIM);

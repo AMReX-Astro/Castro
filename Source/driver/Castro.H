@@ -1179,13 +1179,6 @@ protected:
     amrex::FluxRegister phi_reg;
 #endif
 
-    // Does the momentum flux include the pressure term?
-    // First index is the coordinate direction, second
-    // index is the momentum direction.
-    amrex::GpuArray<int, 3> momx_flux_has_p;
-    amrex::GpuArray<int, 3> momy_flux_has_p;
-    amrex::GpuArray<int, 3> momz_flux_has_p;
-
 ///
 /// Scalings for the flux registers.
 ///
