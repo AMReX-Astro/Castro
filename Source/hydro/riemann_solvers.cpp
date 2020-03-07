@@ -1378,7 +1378,7 @@ Castro::HLL(const Real* ql, const Real* qr,
   // compute the average sound speed. This uses an approximation from
   // E88, eq. 5.6, 5.7 that assumes gamma falls between 1
   // and 5/3
-  Real cavg = std::sqrt( (std::pow(rhol_sqrt*cl, 2) + std::pow(rhor_sqrt*cr, 2))*rhod +
+  Real cavg = std::sqrt( (rhol_sqrt*cl*cl + rhor_sqrt*cr*cr))*rhod +
                          0.5_rt*rhol_sqrt*rhor_sqrt*rhod*rhod*std::pow(qr[ivel] - ql[ivel], 2));
 
 
