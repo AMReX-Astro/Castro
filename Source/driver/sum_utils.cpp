@@ -23,17 +23,30 @@ Castro::sumDerive (const std::string& name,
     if (level < parent->finestLevel())
     {
         const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
-#endif
-    {
-        for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+        sum = amrex::ReduceSum(*mf, mask, 0,
+        [=] AMREX_GPU_HOST_DEVICE (Box const& b, Array4<Real const> const& fab,
+                                   Array4<Real const> const& mfab) -> Real
         {
-            sum += (*mf)[mfi].sum(mfi.tilebox(),0);
-        }
+            Real t = 0.0;
+            AMREX_LOOP_3D(b, i, j, k,
+            {
+                t += mfab(i,j,k) * fab(i,j,k);
+            });
+            return t;
+        });
+    }
+    else
+    {
+        sum = amrex::ReduceSum(*mf, 0,
+        [=] AMREX_GPU_HOST_DEVICE (Box const& b, Array4<Real const> const& fab) -> Real
+        {
+            Real t = 0.0;
+            AMREX_LOOP_3D(b, i, j, k,
+            {
+                t += fab(i,j,k);
+            });
+            return t;
+        });
     }
 
     if (!local)
