@@ -146,20 +146,20 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 
             position(i, j, k, geomdata, loc);
 
-            for (int i = 0; i < AMREX_SPACEDIM; ++i)
-                loc[i] -= center[i];
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+                loc[dir] -= center[dir];
 
             Real linear_mom[3];
 
-            for (int i = 0; i < 3; ++i)
-                linear_mom[i] = u(i,j,k,UMX+i);
+            for (int dir = 0; dir < 3; ++dir)
+                linear_mom[dir] = u(i,j,k,UMX+dir);
 
             Real hybrid_mom[3];
 
             linear_to_hybrid(loc, linear_mom, hybrid_mom);
 
-            for (int i = 0; i < 3; ++i)
-                u(i,j,k,UMR+i) = hybrid_mom[i];
+            for (int dir = 0; dir < 3; ++dir)
+                u(i,j,k,UMR+dir) = hybrid_mom[dir];
 
         });
     }
@@ -194,20 +194,20 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 
             position(i, j, k, geomdata, loc);
 
-            for (int i = 0; i < AMREX_SPACEDIM; ++i)
-                loc[i] -= center[i];
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+                loc[dir] -= center[dir];
 
             Real hybrid_mom[3];
 
-            for (int i = 0; i < 3; ++i)
-                hybrid_mom[i] = u(i,j,k,UMR+i);
+            for (int dir = 0; dir < 3; ++dir)
+                hybrid_mom[dir] = u(i,j,k,UMR+dir);
 
             Real linear_mom[3];
 
             hybrid_to_linear(loc, hybrid_mom, linear_mom);
 
-            for (int i = 0; i < 3; ++i)
-                u(i,j,k,UMX+i) = linear_mom[i];
+            for (int dir = 0; dir < 3; ++dir)
+                u(i,j,k,UMX+dir) = linear_mom[dir];
 
         });
     }
