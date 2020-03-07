@@ -18,6 +18,7 @@
 #define MAX_LEV 30
 
 #include "gravity_defaults.H"
+#include "fundamental_constants.H"
 
 using namespace amrex;
 
