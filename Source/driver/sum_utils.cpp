@@ -11,29 +11,6 @@
 using namespace amrex;
 
 Real
-Castro::sumDerive (const std::string& name,
-                   Real               time,
-                   bool               local)
-{
-    auto mf = derive(name, time, 0);
-
-    BL_ASSERT(mf);
-
-    if (level < parent->finestLevel())
-    {
-        const MultiFab& mask = getLevel(level+1).build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
-
-    Real sum = (*mf).sum(0, local);
-
-    if (!local)
-        ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
-}
-
-Real
 Castro::volWgtSum (const std::string& name,
                    Real               time,
                    bool               local,

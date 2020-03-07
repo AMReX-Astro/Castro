@@ -1293,15 +1293,6 @@ protected:
     void initMFs ();
 
 ///
-/// integrate derived quantities over domain
-///
-/// @param name     Name of quantity to integrate
-/// @param time     current time
-/// @param local
-///
-    amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
-
-///
 /// Calculates volume weight sums of variables and prints to screen
 ///
     void sum_integrated_quantities ();
