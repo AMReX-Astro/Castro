@@ -323,10 +323,6 @@ Castro::wd_update (Real time, Real dt)
 
     // Free-fall timescale ~ 1 / sqrt(G * rho_avg}
 
-    Real Gconst;
-
-    get_grav_const(&Gconst);
-
     if (mass_p > 0.0 && vol_p[2] > 0.0) {
       rho_avg_p = mass_p / vol_p[2];
       t_ff_p = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_p));

@@ -348,30 +348,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else {
 
 #ifdef RADIATION
-#pragma gpu box(obx)
-        ctu_ppm_rad_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                           AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                           BL_TO_FORTRAN_ANYD(q[mfi]),
-                           BL_TO_FORTRAN_ANYD(flatn),
-                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                           BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                           BL_TO_FORTRAN_ANYD(qxm),
-                           BL_TO_FORTRAN_ANYD(qxp),
+        ctu_ppm_rad_states(obx, bx,
+                           q_arr, flatn_arr, qaux_arr, src_q_arr,
+                           qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
-                           BL_TO_FORTRAN_ANYD(qym),
-                           BL_TO_FORTRAN_ANYD(qyp),
+                           qym_arr, qyp_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                           BL_TO_FORTRAN_ANYD(qzm),
-                           BL_TO_FORTRAN_ANYD(qzp),
+                           qzm_arr, qzp_arr,
 #endif
-                           AMREX_REAL_ANYD(dx), dt,
-#if (AMREX_SPACEDIM < 3)
-                           BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+#if AMREX_SPACEDIM < 3
+                           dLogArea_arr,
 #endif
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                           dt);
 #else
-
 
         ctu_ppm_states(obx, bx,
                        q_arr, flatn_arr, qaux_arr, src_q_arr,
