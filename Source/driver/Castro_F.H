@@ -131,20 +131,6 @@ extern "C"
      const amrex::Real* dx, const int coord_type, const int idir);
 
 
-#ifdef HYBRID_MOMENTUM
-  void ca_linear_to_hybrid_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_to_linear_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_hydro_source
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources),
-     const amrex::Real mult_factor);
-#endif
-
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
 
