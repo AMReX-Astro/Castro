@@ -7,6 +7,10 @@
 #include "fluxlimiter.H"
 #endif
 
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
+#endif
+
 #include <eos.H>
 
 #include <cmath>
@@ -292,6 +296,11 @@ Castro::compute_flux_q(const Box& bx,
     qpass_map_p[n] = qpass_map[n];
   }
 
+  GeometryData geomdata = geom.data();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
@@ -381,7 +390,7 @@ Castro::compute_flux_q(const Box& bx,
     for (int n = 0; n < NUM_STATE; n++) {
       F_zone[n] = F(i,j,k,n);
     }
-    compute_hybrid_flux(qgdnv_zone, F_zone, idir, i, j, k);
+    compute_hybrid_flux(qgdnv_zone, geomdata, center.begin(), idir, i, j, k, F_zone);
     for (int n = 0; n < NUM_STATE; n++) {
       F(i,j,k,n) = F_zone[n];
     }
