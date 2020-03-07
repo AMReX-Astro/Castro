@@ -78,7 +78,7 @@ Castro::uflatten(const Box& bx,
 
     denom = amrex::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = min(1.0_rt, max(0.0_rt, dzcut * (zeta - zcut1)));
+    z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
     tst = 0.0_rt;
     if (q_arr(i,j-1,k,QV) - q_arr(i,j+1,k,QV) >= 0.0_rt) {
@@ -97,7 +97,7 @@ Castro::uflatten(const Box& bx,
 
     denom = amrex::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = min(1.0_rt, max(0.0_rt, dzcut * (zeta - zcut1)));
+    z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
     tst = 0.0_rt;
     if (q_arr(i,j-1-ishft,k,QV) - q_arr(i,j+1-ishft,k,QV) >= 0.0_rt) {

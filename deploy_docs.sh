@@ -1,14 +1,15 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Build the documentation from the SOURCE_BRANCH
+# Build the documentation from the MASTER_BRANCH or DEV_BRANCH
 # and push it to TARGET_BRANCH.
-SOURCE_BRANCH="development"
+MASTER_BRANCH="master"
+DEV_BRANCH="development"
 TARGET_BRANCH="gh-pages"
 
 # Pull requests and commits to other branches shouldn't try to deploy
-if [ "$TRAVIS_PULL_REQUEST" != "false" -o "$TRAVIS_BRANCH" != "$SOURCE_BRANCH" ]; then
-    echo "Skipping deploy on $TRAVIS_BRANCH. We only deploy docs automatically from development."
+if [ "$TRAVIS_PULL_REQUEST" != "false" ] || { [ "$TRAVIS_BRANCH" != "$MASTER_BRANCH" ] && [ "$TRAVIS_BRANCH" != "$DEV_BRANCH" ]; }; then
+    echo "Skipping deploy on $TRAVIS_BRANCH. We only deploy docs automatically from development and master."
     exit 0
 fi
 
@@ -43,11 +44,27 @@ cd out
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
 cd ..
 
-# Clean out existing contents
-rm -rf out/docs/**/* || exit 0
+# Clean out existing contents. If it's the master branch, then 
+# move dev docs to a temporary directory then move back again after 
+# everything is deleted
+if [ "$TRAVIS_BRANCH" = "$MASTER_BRANCH" ]; then
+    mkdir tmp
+    mv -r out/docs/dev tmp || true
+    rm -rf out/docs/**/* || exit 0
+    mv tmp/dev out/docs || true
+    rmdir tmp
+else 
+    rm -rf out/docs/dev/**/* || exit 0
+fi
 
 # Pull from SOURCE_BRANCH again
 git pull || true
+
+# if on the dev branch, use the dev_layout.html template to get the 
+# links correct
+if [ "$TRAVIS_BRANCH" = "$DEV_BRANCH" ]; then
+    mv Docs/source/_templates/dev_layout.html Docs/source/_templates/layout.html 
+fi
 
 # Build the Sphinx documentation
 cd Docs
@@ -55,7 +72,12 @@ make html
 cd ../
 
 mkdir -p out/docs/
-mv Docs/build/html/* out/docs
+if [ "$TRAVIS_BRANCH" = "$MASTER_BRANCH" ]; then
+    mv Docs/build/html/* out/docs
+else 
+    mkdir -p out/docs/dev/
+    mv Docs/build/html/* out/docs/dev
+fi
 touch out/.nojekyll
 
 # Now let's go have some fun with the cloned repo

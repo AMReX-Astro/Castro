@@ -104,6 +104,28 @@
 #endif
                         const amrex::Real dt);
 
+#ifdef RADIATION
+    void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
+                            amrex::Array4<amrex::Real const> const q,
+                            amrex::Array4<amrex::Real const> const flatn,
+                            amrex::Array4<amrex::Real const> const qaux,
+                            amrex::Array4<amrex::Real const> const srcQ,
+                            amrex::Array4<amrex::Real> const qxm,
+                            amrex::Array4<amrex::Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                            amrex::Array4<amrex::Real> const qym,
+                            amrex::Array4<amrex::Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                            amrex::Array4<amrex::Real> const qzm,
+                            amrex::Array4<amrex::Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                            amrex::Array4<amrex::Real const> const dloga,
+#endif
+                            const amrex::Real dt);
+#endif
+
      void mol_ppm_reconstruct(const amrex::Box& bx,
                               const int idir,
                               amrex::Array4<amrex::Real const> const q_arr,
@@ -111,6 +133,43 @@
                               amrex::Array4<amrex::Real> const qm,
                               amrex::Array4<amrex::Real> const qp);
 
+     void trans_single(const amrex::Box& bx,
+                       int idir_t, int idir_n,
+                       amrex::Array4<amrex::Real const> const qm,
+                       amrex::Array4<amrex::Real> const qmo,
+                       amrex::Array4<amrex::Real const> const qp,
+                       amrex::Array4<amrex::Real> const qpo,
+                       amrex::Array4<amrex::Real const> const qaux,
+                       amrex::Array4<amrex::Real const> const flux_t,
+#ifdef RADIATION
+                       amrex::Array4<amrex::Real const> const rflux_t,
+#endif
+                       amrex::Array4<amrex::Real const> const q_t,
+#if AMREX_SPACEDIM == 2
+                       amrex::Array4<amrex::Real const> const area_t,
+                       amrex::Array4<amrex::Real const> const vol,
+#endif
+                       amrex::Real hdt, amrex::Real cdtdx);
+
+     void trans_final(const amrex::Box& bx,
+                      int idir_n, int idir_t1, int idir_t2,
+                      amrex::Array4<amrex::Real const> const qm,
+                      amrex::Array4<amrex::Real> const qmo,
+                      amrex::Array4<amrex::Real const> const qp,
+                      amrex::Array4<amrex::Real> const qpo,
+                      amrex::Array4<amrex::Real const> const qaux,
+                      amrex::Array4<amrex::Real const> const flux_t1,
+#ifdef RADIATION
+                      amrex::Array4<amrex::Real const> const rflux_t1,
+#endif
+                      amrex::Array4<amrex::Real const> const flux_t2,
+#ifdef RADIATION
+                      amrex::Array4<amrex::Real const> const rflux_t2,
+#endif
+                      amrex::Array4<amrex::Real const> const q_t1,
+                      amrex::Array4<amrex::Real const> const q_t2,
+                      amrex::Real hdt, amrex::Real cdtdx_n,
+                      amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
     void trace_ppm(const amrex::Box& bx,
                    const int idir,
@@ -125,6 +184,20 @@
 #endif
                    const amrex::Box& vbx,
                    const amrex::Real dt);
+
+    void trace_ppm_rad(const amrex::Box& bx,
+                       const int idir,
+                       amrex::Array4<amrex::Real const> const q,
+                       amrex::Array4<amrex::Real const> const qaux,
+                       amrex::Array4<amrex::Real const> const srcQ,
+                       amrex::Array4<amrex::Real const> const flatn,
+                       amrex::Array4<amrex::Real> const qm,
+                       amrex::Array4<amrex::Real> const qp,
+#if (AMREX_SPACEDIM < 3)
+                       amrex::Array4<amrex::Real const> const dloga,
+#endif
+                       const amrex::Box& vbx,
+                       const amrex::Real dt);
 
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const shk,
@@ -162,6 +235,13 @@
                         amrex::Array4<amrex::Real const> area,
                         const amrex::Real dt);
 #endif
+
+    void reset_edge_state_thermo(const amrex::Box& bx,
+                                 amrex::Array4<amrex::Real> const qedge);
+
+    void edge_state_temp_to_pres(const Box& bx,
+                                 amrex::Array4<amrex::Real> const qm,
+                                 amrex::Array4<amrex::Real> const qp);
 
 #ifdef HYBRID_MOMENTUM
 

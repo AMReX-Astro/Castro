@@ -352,60 +352,23 @@ contains
   end subroutine ca_reset_internal_e
 
 
-  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
+  subroutine ca_clamp_temp(lo, hi, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
 
-    use network, only: nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, UFS, UFX, &
-                                  clamp_ambient_temp, ambient_safety_factor
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
     use ambient_module, only: ambient_state
-    use amrex_constants_module, only: ZERO, HALF, ONE
-#ifndef AMREX_USE_CUDA
-    use castro_error_module, only: castro_error
-#endif
+    use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: s_lo(3),s_hi(3)
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    integer  :: i,j,k
+    integer  :: i, j, k
     real(rt) :: rhoInv
 
-    type (eos_t) :: eos_state
-
     !$gpu
-
-    ! First check the inputs for validity.
-
-#ifndef AMREX_USE_CUDA
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             if (state(i,j,k,URHO) <= ZERO) then
-                print *,'   '
-                print *,'>>> Error: Castro_util.F90::ca_compute_temp ',i,j,k
-                print *,'>>> ... negative density ',state(i,j,k,URHO)
-                print *,'    '
-                call castro_error("Error:: compute_temp_nd.f90")
-             end if
-
-             if (state(i,j,k,UEINT) <= ZERO) then
-                print *,'   '
-                print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
-                print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
-                print *,'   '
-                call castro_error("Error:: compute_temp_nd.f90")
-             end if
-
-          enddo
-       enddo
-    enddo
-#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -413,29 +376,17 @@ contains
 
              rhoInv = ONE / state(i,j,k,URHO)
 
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = state(i,j,k,UTEMP) ! Initial guess for the EOS
-             eos_state % e   = state(i,j,k,UEINT) * rhoInv
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             call eos(eos_input_re, eos_state)
-
-             state(i,j,k,UTEMP) = eos_state % T
-
-             if (clamp_ambient_temp == 1) then
-                if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-                   state(i,j,k,UTEMP) = ambient_state(UTEMP)
-                   state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-                   state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-                end if
+             if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+                state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+                state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
              end if
 
           enddo
        enddo
     enddo
 
-  end subroutine ca_compute_temp
+  end subroutine ca_clamp_temp
 
 
 

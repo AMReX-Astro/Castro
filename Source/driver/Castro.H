@@ -25,6 +25,8 @@ constexpr int Shock = USHK;
 #include <AMReX_iMultiFab.H>
 #include <AMReX_ErrorList.H>
 #include <AMReX_FluxRegister.H>
+#include <network.H>
+#include <eos.H>
 
 #ifdef BL_LAZY
 #include <AMReX_Lazy.H>
@@ -1200,16 +1202,7 @@ protected:
     amrex::Real wall_time_start;
 
 
-///
-/// Call extern/networks/.../network.f90::network_init()
-///
     static void extern_init ();
-
-    static void network_init ();
-
-    static void network_finalize ();
-
-    static void eos_finalize ();
 
     static void amrinfo_init();
 

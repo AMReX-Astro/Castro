@@ -23,16 +23,6 @@ extern "C"
                       const amrex::Real dt, const amrex::Real* dx,
                       amrex::Real* courno, const int verbose);
 
-#ifdef HYBRID_MOMENTUM
-  void add_hybrid_advection_source
-    (const int* lo, const int* hi,
-     const amrex::Real dt,
-     BL_FORT_FAB_ARG_3D(hydro_source),
-     const BL_FORT_FAB_ARG_3D(qx),
-     const BL_FORT_FAB_ARG_3D(qy),
-     const BL_FORT_FAB_ARG_3D(qz));
-#endif
-
 #ifdef RADIATION
   void ctu_rad_consup
     (const int* lo, const int* hi,
@@ -105,31 +95,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(area),
      const amrex::Real dt, const amrex::Real* dx);
 
-#ifdef RADIATION
-  void ctu_ppm_rad_states
-     (const int* lo, const int* hi,
-      const int* vlo, const int* vhi,
-      const BL_FORT_FAB_ARG_3D(q),
-      const BL_FORT_FAB_ARG_3D(flatn),
-      const BL_FORT_FAB_ARG_3D(qaux),
-      const BL_FORT_FAB_ARG_3D(srcQ),
-      BL_FORT_FAB_ARG_3D(qxm),
-      BL_FORT_FAB_ARG_3D(qxp),
-#if AMREX_SPACEDIM >= 2
-      BL_FORT_FAB_ARG_3D(qym),
-      BL_FORT_FAB_ARG_3D(qyp),
-#endif
-#if AMREX_SPACEDIM == 3
-      BL_FORT_FAB_ARG_3D(qzm),
-      BL_FORT_FAB_ARG_3D(qzp),
-#endif
-      const amrex::Real* dx, const amrex::Real dt,
-#if AMREX_SPACEDIM < 3
-      const BL_FORT_FAB_ARG_3D(dloga),
-#endif
-      const int* domlo, const int* domhi);
-#endif
-
   void ctu_plm_states
      (const int* lo, const int* hi,
       const int* vlo, const int* vhi,
@@ -153,47 +118,6 @@ extern "C"
       const BL_FORT_FAB_ARG_3D(dloga),
 #endif
       const int* domlo, const int* domhi);
-
-  void trans_single(const int* lo, const int* hi,
-                    const int idir_t, const int idir_n,
-                    const BL_FORT_FAB_ARG_3D(qym),
-                    BL_FORT_FAB_ARG_3D(qymo),
-                    const BL_FORT_FAB_ARG_3D(qyp),
-                    BL_FORT_FAB_ARG_3D(qypo),
-                    const BL_FORT_FAB_ARG_3D(qaux),
-                    const BL_FORT_FAB_ARG_3D(fx),
-#ifdef RADIATION
-                    const BL_FORT_FAB_ARG_3D(rfx),
-#endif
-                    const BL_FORT_FAB_ARG_3D(qx),
-#if AMREX_SPACEDIM == 2
-                    const BL_FORT_FAB_ARG_3D(area1),
-                    const BL_FORT_FAB_ARG_3D(vol),
-#endif
-                    const amrex::Real hdt, const amrex::Real cdtdx);
-
-  void trans_final(const int* lo, const int* hi,
-                   const int idir_n, const int idir_t1, const int idir_t2,
-                   const BL_FORT_FAB_ARG_3D(qm),
-                   BL_FORT_FAB_ARG_3D(qmo),
-                   const BL_FORT_FAB_ARG_3D(qp),
-                   BL_FORT_FAB_ARG_3D(qpo),
-                   const BL_FORT_FAB_ARG_3D(qaux),
-                   const BL_FORT_FAB_ARG_3D(fyz),
-#ifdef RADIATION
-                   const BL_FORT_FAB_ARG_3D(rfyz),
-#endif
-                   const BL_FORT_FAB_ARG_3D(fzy),
-#ifdef RADIATION
-                   const BL_FORT_FAB_ARG_3D(rfzy),
-#endif
-                   const BL_FORT_FAB_ARG_3D(qy),
-                   const BL_FORT_FAB_ARG_3D(qz),
-                   const amrex::Real hdt, const amrex::Real cdtdx, const amrex::Real cdtdy, const amrex::Real cdtdz);
-
-  void reset_edge_state_thermo
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(qm));
 
   void ca_mol_plm_reconstruct
     (const int* lo, const int* hi,
