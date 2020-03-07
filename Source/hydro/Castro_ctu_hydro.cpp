@@ -337,7 +337,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else {
 
 #ifdef RADIATION
-#pragma gpu box(obx)
         ctu_ppm_rad_states(obx, bx,
                            q_arr, flatn_arr, qaux_arr, src_q_arr,
                            qxm_arr, qxp_arr,
