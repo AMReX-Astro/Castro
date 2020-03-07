@@ -43,6 +43,7 @@ AMReX_buildInfo.cpp
 
 # These files are created at build time
 Exec/**/extern.F90
+Exec/**/extern_parameters.*
 Exec/**/prob_params_auto.F90
 Exec/**/actual_network.F90
 Exec/**/helm_table.dat
@@ -57,14 +58,14 @@ Exec/**/set_godunov.H
 
 Backtrace.*
 
-sphinx_docs/build
-sphinx_docs/doxy_files
-sphinx_docs/class
-sphinx_docs/classlist.rst
-sphinx_docs/source/file/
-sphinx_docs/source/filelist.rst
-sphinx_docs/source/namespace/
-sphinx_docs/source/namespacelist.rst
-sphinx_docs/source/runtime_parameters.rst
-sphinx_docs/source/*_files.rst
-sphinx_docs/source/preprocessed_files
+Docs/build
+Docs/doxy_files
+Docs/class
+Docs/classlist.rst
+Docs/source/file/
+Docs/source/filelist.rst
+Docs/source/namespace/
+Docs/source/namespacelist.rst
+Docs/source/runtime_parameters.rst
+Docs/source/*_files.rst
+Docs/source/preprocessed_files
