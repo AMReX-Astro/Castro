@@ -4,6 +4,8 @@
 
 #ifdef RADIATION
 #include "Radiation.H"
+#include "fluxlimiter.H"
+#include "rad_util.H"
 #endif
 
 #include "eos.H"
@@ -31,6 +33,12 @@ Castro::ctoprim(const Box& bx,
 
   Real lsmall_dens = small_dens;
   Real ldual_energy_eta1 = dual_energy_eta1;
+
+#ifdef RADIATION
+  int is_comoving = Radiation::comoving;
+  int limiter = Radiation::limiter;
+  int closure = Radiation::closure;
+#endif
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -143,7 +151,10 @@ Castro::ctoprim(const Box& bx,
     Real ptot;
     Real ctot;
     Real gamc_tot;
-    compute_ptot_ctot(lams, qs, qaux_arr(i,j,k,QCG), ptot, ctot, gamc_tot);
+    compute_ptot_ctot(lams, qs,
+                      is_comoving, limiter, closure,
+                      qaux_arr(i,j,k,QCG),
+                      ptot, ctot, gamc_tot);
 
     q_arr(i,j,k,QPTOT) = ptot;
 

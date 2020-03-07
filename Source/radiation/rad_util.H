@@ -8,6 +8,7 @@ using namespace amrex;
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 compute_ptot_ctot(const Real* lam, const Real* q,
+                  int is_comoving, int limiter, int closure,
                   Real cg,
                   Real& ptot, Real& ctot, Real& gamc_tot) {
 
@@ -16,7 +17,7 @@ compute_ptot_ctot(const Real* lam, const Real* q,
 
   for (int g = 0; g < NGROUPS; g++) {
     Real gamr = 0.0;
-    if (comoving) {
+    if (is_comoving) {
       Real Eddf = Edd_factor(lam[g], limiter, closure);
       gamr = (3.0_rt - Eddf)/2.0_rt;
     } else {
