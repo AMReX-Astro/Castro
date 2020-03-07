@@ -236,9 +236,6 @@ Gravity::read_params ()
 
         if (pp.contains("sl_tol"))
             amrex::Warning("The gravity parameter sl_tol is no longer used.");
-
-        Real Gconst;
-        get_grav_const(&Gconst);
         Ggravity = 4.0 * M_PI * Gconst;
         if (verbose > 1 && ParallelDescriptor::IOProcessor())
         {
