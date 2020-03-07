@@ -40,7 +40,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="File ppm.H" href="ppm_8H.html" />
-    <link rel="prev" title="fourth_order_nd.F90" href="fourth_order_nd_f.html" /> 
+    <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -148,6 +148,7 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">hybrid_advection_nd.F90</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#f/hybrid_advection_module">hybrid_advection_module</a></li>
 </ul>
@@ -254,7 +255,7 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="#f/hybrid_advection_module/r_min" title="f/hybrid_advection_module/r_min"><code class="xref f f-var docutils literal notranslate"><span class="pre">r_min</span></code></a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/hybrid_advection_module/add_hybrid_advection_source" title="f/hybrid_advection_module/add_hybrid_advection_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_advection_source()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/add_hybrid_momentum_source" title="f/hybrid_advection_module/add_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_momentum_source()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/ca_hybrid_hydro_source" title="f/hybrid_advection_module/ca_hybrid_hydro_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_hybrid_hydro_source()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/ca_hybrid_to_linear_momentum" title="f/hybrid_advection_module/ca_hybrid_to_linear_momentum"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_hybrid_to_linear_momentum()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/ca_linear_to_hybrid_momentum" title="f/hybrid_advection_module/ca_linear_to_hybrid_momentum"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_linear_to_hybrid_momentum()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/hybrid_to_linear" title="f/hybrid_advection_module/hybrid_to_linear"><code class="xref f f-func docutils literal notranslate"><span class="pre">hybrid_to_linear()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/linear_to_hybrid" title="f/hybrid_advection_module/linear_to_hybrid"><code class="xref f f-func docutils literal notranslate"><span class="pre">linear_to_hybrid()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a></td>
+<tr class="field-even field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/hybrid_advection_module/add_hybrid_advection_source" title="f/hybrid_advection_module/add_hybrid_advection_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">add_hybrid_advection_source()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/hybrid_to_linear" title="f/hybrid_advection_module/hybrid_to_linear"><code class="xref f f-func docutils literal notranslate"><span class="pre">hybrid_to_linear()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/linear_to_hybrid" title="f/hybrid_advection_module/linear_to_hybrid"><code class="xref f f-func docutils literal notranslate"><span class="pre">linear_to_hybrid()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/set_hybrid_momentum_source" title="f/hybrid_advection_module/set_hybrid_momentum_source"><code class="xref f f-func docutils literal notranslate"><span class="pre">set_hybrid_momentum_source()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -272,92 +273,6 @@
 </li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/hybrid_advection_module/ca_linear_to_hybrid_momentum">
-<em class="property">subroutine  </em><code class="descclassname">hybrid_advection_module/</code><code class="descname">ca_linear_to_hybrid_momentum</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/hybrid_advection_module/ca_linear_to_hybrid_momentum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert linear momentum to hybrid momentum.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ump()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>), <a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/linear_to_hybrid" title="f/hybrid_advection_module/linear_to_hybrid"><code class="xref f f-func docutils literal notranslate"><span class="pre">linear_to_hybrid()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/hybrid_advection_module/ca_hybrid_to_linear_momentum">
-<em class="property">subroutine  </em><code class="descclassname">hybrid_advection_module/</code><code class="descname">ca_hybrid_to_linear_momentum</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/hybrid_advection_module/ca_hybrid_to_linear_momentum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert hybrid momentum to linear momentum.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ump()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umz()</span></code>), <a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/hybrid_to_linear" title="f/hybrid_advection_module/hybrid_to_linear"><code class="xref f f-func docutils literal notranslate"><span class="pre">hybrid_to_linear()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/hybrid_advection_module/ca_hybrid_hydro_source">
-<em class="property">subroutine  </em><code class="descclassname">hybrid_advection_module/</code><code class="descname">ca_hybrid_hydro_source</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>state</em>, <em>s_lo</em>, <em>s_hi</em>, <em>ext_src</em>, <em>e_lo</em>, <em>e_hi</em>, <em>mult_factor</em><span class="sig-paren">)</span><a class="headerlink" href="#f/hybrid_advection_module/ca_hybrid_hydro_source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fill a sources array with the source terms in the hybrid momentum
-equations.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>state</strong> (s_hi(1)-(s_lo(1))+1,s_hi(2)-(s_lo(2))+1,s_hi(3)-(s_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>s_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ext_src</strong> (e_hi(1)-(e_lo(1))+1,e_hi(2)-(e_lo(2))+1,e_hi(3)-(e_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>e_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>e_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>mult_factor</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nsrc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">umr()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">uml()</span></code>), <a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module" title="f/prob_params_module: This module stores the runtime parameters that define the problem domain. These parameter are initialized in set_problem_params()."><code class="xref f f-mod docutils literal notranslate"><span class="pre">prob_params_module</span></code></a> (<a class="reference internal" href="prob_params_nd_f.html#f/prob_params_module/center" title="f/prob_params_module/center"><code class="xref f f-func docutils literal notranslate"><span class="pre">center()</span></code></a>), <a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module" title="f/castro_util_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_util_module</span></code></a> (<a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_util_nd_f.html#f/castro_util_module/position" title="f/castro_util_module/position"><code class="xref f f-func docutils literal notranslate"><span class="pre">position()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="function">
 <dt id="f/hybrid_advection_module/linear_to_hybrid">
 <em class="property">function  </em><code class="descclassname">hybrid_advection_module/</code><code class="descname">linear_to_hybrid</code><span class="sig-paren">(</span><em>loc</em>, <em>mom_in</em><span class="sig-paren">)</span><a class="headerlink" href="#f/hybrid_advection_module/linear_to_hybrid" title="Permalink to this definition">¶</a></dt>
@@ -379,7 +294,7 @@ that has radial and angular components.</p>
 <tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>)</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/reset_to_small_state" title="f/advection_util_module/reset_to_small_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_small_state()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/ca_linear_to_hybrid_momentum" title="f/hybrid_advection_module/ca_linear_to_hybrid_momentum"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_linear_to_hybrid_momentum()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a></p>
+<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="advection_util_nd_f.html#f/advection_util_module/reset_to_small_state" title="f/advection_util_module/reset_to_small_state"><code class="xref f f-func docutils literal notranslate"><span class="pre">reset_to_small_state()</span></code></a>, <a class="reference internal" href="#f/hybrid_advection_module/compute_hybrid_flux" title="f/hybrid_advection_module/compute_hybrid_flux"><code class="xref f f-func docutils literal notranslate"><span class="pre">compute_hybrid_flux()</span></code></a></p>
 </td>
 </tr>
 </tbody>
@@ -403,29 +318,7 @@ that has radial and angular components.</p>
 <tr class="field-even field"><th class="field-name">Return:</th><td class="field-body"><p class="first"><strong>mom_out</strong> (3)<em> [</em><em>real</em><em>]</em></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>)</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#f/hybrid_advection_module/ca_hybrid_to_linear_momentum" title="f/hybrid_advection_module/ca_hybrid_to_linear_momentum"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_hybrid_to_linear_momentum()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/hybrid_advection_module/add_hybrid_momentum_source">
-<em class="property">subroutine  </em><code class="descclassname">hybrid_advection_module/</code><code class="descname">add_hybrid_momentum_source</code><span class="sig-paren">(</span><em>loc</em>, <em>mom</em>, <em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#f/hybrid_advection_module/add_hybrid_momentum_source" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update hybrid momenta to account for source term to linear momenta.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>loc</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>mom</strong> (3)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>source</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
+<tr class="field-odd field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>)</p>
 </td>
 </tr>
 </tbody>
@@ -535,7 +428,7 @@ that has radial and angular components.</p>
         <a href="ppm_8H.html" class="btn btn-neutral float-right" title="File ppm.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="fourth_order_nd_f.html" class="btn btn-neutral float-left" title="fourth_order_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -10,6 +10,7 @@ Hydro
    file/Castro_mol_nd_f
    file/advection_util_nd_f
    file/fourth_order_nd_f
+   file/hybrid_8H
    file/hybrid_advection_nd_f
    file/ppm_8H
    file/ppm_nd_f

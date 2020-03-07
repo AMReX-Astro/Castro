@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ppm_nd.F90 &mdash; Castro 20.03
+  <title>File hybrid.H &mdash; Castro 20.03
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="riemann_nd.F90" href="riemann_nd_f.html" />
-    <link rel="prev" title="File ppm.H" href="ppm_8H.html" /> 
+    <link rel="next" title="hybrid_advection_nd.F90" href="hybrid_advection_nd_f.html" />
+    <link rel="prev" title="fourth_order_nd.F90" href="fourth_order_nd_f.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/ppm_nd_f.html">master</a> | <a href="../file/ppm_nd_f.html">development</a>
+        Branch: <a href="../../file/hybrid_8H.html">master</a> | <a href="../file/hybrid_8H.html">development</a>
     </div>
 
         </div>
@@ -148,13 +148,10 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ppm_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#f/ppm_module">ppm_module</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="ppm_nd_f.html">ppm_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_nd_f.html">riemann_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_util_nd_f.html">riemann_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
@@ -225,13 +222,13 @@
         
           <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
         
-      <li>ppm_nd.F90</li>
+      <li>File hybrid.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/ppm_nd_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/hybrid_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -244,74 +241,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="ppm-nd-f90">
-<h1>ppm_nd.F90<a class="headerlink" href="#ppm-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="f/ppm_module">
-<span id="ppm-module"></span><h2>ppm_module<a class="headerlink" href="#f/ppm_module" title="Permalink to this headline">¶</a></h2>
-<p class="rubric">Quick access</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/ppm_module/ppm_int_profile_f90" title="f/ppm_module/ppm_int_profile_f90"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_int_profile_f90()</span></code></a>, <a class="reference internal" href="#f/ppm_module/ppm_reconstruct_f90" title="f/ppm_module/ppm_reconstruct_f90"><code class="xref f f-func docutils literal notranslate"><span class="pre">ppm_reconstruct_f90()</span></code></a></td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Needed modules</p>
-<ul class="simple">
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">half()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">sixth()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">two3rd()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">three()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">six()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">seven12th()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">twelfth()</span></code>)</li>
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
-</ul>
-<p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/ppm_module/ppm_reconstruct_f90">
-<em class="property">subroutine  </em><code class="descclassname">ppm_module/</code><code class="descname">ppm_reconstruct_f90</code><span class="sig-paren">(</span><em>s</em>, <em>flatn</em>, <em>sm</em>, <em>sp</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ppm_module/ppm_reconstruct_f90" title="Permalink to this definition">¶</a></dt>
-<dd><p>This routine does the reconstruction of the zone data into a parabola.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>s</strong> (5)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>flatn</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>sm</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>sp</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+  <div class="section" id="file-hybrid-h">
+<h1>File hybrid.H<a class="headerlink" href="#file-hybrid-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="hybrid_8H_1af7e449607db842de99bb032c747683f0"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const Real * loc, const Real * linear_mom, Real * hybrid_mom)</code></dt>
+<dd></dd></dl>
 
-<dl class="subroutine">
-<dt id="f/ppm_module/ppm_int_profile_f90">
-<em class="property">subroutine  </em><code class="descclassname">ppm_module/</code><code class="descname">ppm_int_profile_f90</code><span class="sig-paren">(</span><em>sm</em>, <em>sp</em>, <em>sc</em>, <em>u</em>, <em>c</em>, <em>dtdx</em>, <em>ip</em>, <em>im</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ppm_module/ppm_int_profile_f90" title="Permalink to this definition">¶</a></dt>
-<dd><p>Integrate the parabolic profile to the edge of the cell.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sm</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>sp</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>sc</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>u</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>c</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dtdx</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ip</strong> (3)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>im</strong> (3)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Called from:</th><td class="field-body"><p class="first last"><a class="reference internal" href="trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module/trace_ppm_rad" title="f/trace_ppm_rad_module/trace_ppm_rad"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_ppm_rad()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dl class="function">
+<dt>
+<span class="target" id="hybrid_8H_1a8c0d6db327cf1ee091f1aadb5d8197bb"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const Real * loc, const Real * hybrid_mom, Real * linear_mom)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="hybrid_8H_1aef0d628ebcfee73b9115a9fa71fd9693"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const Real * loc, const Real * linear_source, Real * hybrid_source)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="hybrid_8H_1a8b295d16965fde625fafeece5ad84c72"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const Real * state, const GeometryData &amp; geomdata, const Real * center, int idir, int i, int j, int k, Real * flux, bool cell_centered = false)</code></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="member">
+<dt>
+<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -324,10 +284,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="riemann_nd_f.html" class="btn btn-neutral float-right" title="riemann_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="hybrid_advection_nd_f.html" class="btn btn-neutral float-right" title="hybrid_advection_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ppm_8H.html" class="btn btn-neutral float-left" title="File ppm.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fourth_order_nd_f.html" class="btn btn-neutral float-left" title="fourth_order_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
