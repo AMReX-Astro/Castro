@@ -8,15 +8,6 @@ extern "C"
 {
 #endif
 
-  void ca_ctoprim(const int* lo, const int* hi,
-                  const amrex::Real* u, const int* u_lo, const int* u_hi,
-#ifdef RADIATION
-                  const amrex::Real* Er, const int* Er_lo, const int* Er_hi,
-                  const amrex::Real* lam, const int* lam_lo, const int* lam_hi,
-#endif
-                  amrex::Real* q, const int* q_lo, const int* q_hi,
-                  amrex::Real* qaux, const int* qa_lo, const int* qa_hi);
-
   void ca_compute_cfl(const int* lo, const int* hi,
                       const BL_FORT_FAB_ARG_ANYD(q),
                       const BL_FORT_FAB_ARG_ANYD(qaux),
