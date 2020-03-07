@@ -23,16 +23,6 @@ extern "C"
                       const amrex::Real dt, const amrex::Real* dx,
                       amrex::Real* courno, const int verbose);
 
-#ifdef HYBRID_MOMENTUM
-  void add_hybrid_advection_source
-    (const int* lo, const int* hi,
-     const amrex::Real dt,
-     BL_FORT_FAB_ARG_3D(hydro_source),
-     const BL_FORT_FAB_ARG_3D(qx),
-     const BL_FORT_FAB_ARG_3D(qy),
-     const BL_FORT_FAB_ARG_3D(qz));
-#endif
-
 #ifdef RADIATION
   void ctu_rad_consup
     (const int* lo, const int* hi,
