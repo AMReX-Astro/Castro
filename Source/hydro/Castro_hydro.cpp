@@ -49,7 +49,6 @@ Castro::cons_to_prim(const Real time)
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#pragma gpu box(qbx)
         ctoprim(qbx,
                 Sborder_arr,
 #ifdef RADIATION
@@ -127,7 +126,6 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
         auto q_in_arr = q_in.array(mfi);
         auto qaux_in_arr = qaux_in.array(mfi);
 
-#pragma gpu box(bx)
         ctoprim(bx,
                 u_arr,
 #ifdef RADIATION

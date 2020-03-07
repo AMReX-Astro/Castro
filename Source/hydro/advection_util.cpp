@@ -30,6 +30,7 @@ Castro::ctoprim(const Box& bx,
   }
 
   Real lsmall_dens = small_dens;
+  Real ldual_energy_eta1 = dual_energy_eta1;
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -68,7 +69,7 @@ Castro::ctoprim(const Box& bx,
                                                 q_arr(i,j,k,QV)*q_arr(i,j,k,QV) +
                                                 q_arr(i,j,k,QW)*q_arr(i,j,k,QW));
 
-    if ((uin(i,j,k,UEDEN) - kineng) > dual_energy_eta1*uin(i,j,k,UEDEN)) {
+    if ((uin(i,j,k,UEDEN) - kineng) > ldual_energy_eta1*uin(i,j,k,UEDEN)) {
       q_arr(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv;
     } else {
       q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
