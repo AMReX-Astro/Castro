@@ -31,6 +31,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   GeometryData geomdata = geom.data();
 
+  int coord = geom.Coord();
+
   const Real *dx = geom.CellSize();
   auto dx_arr = geom.CellSizeArray();
 
@@ -1281,7 +1283,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!momx_flux_has_p[0]) {
+            if (!mom_flux_has_p(0, 0, coord)) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;

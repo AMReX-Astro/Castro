@@ -1,6 +1,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
+#include "Castro_util.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -250,7 +251,9 @@ Castro::compute_flux_q(const Box& bx,
 
   int iu, iv1, iv2;
   int im1, im2, im3;
-  int mom_check = 0;
+
+  auto coord = geom.Coord();
+  auto mom_check = mom_flux_has_p(idir, idir, coord);
 
   if (idir == 0) {
     iu = QU;
@@ -259,7 +262,6 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMX;
     im2 = UMY;
     im3 = UMZ;
-    mom_check = momx_flux_has_p[idir];
 
   } else if (idir == 1) {
     iu = QV;
@@ -268,7 +270,6 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMY;
     im2 = UMX;
     im3 = UMZ;
-    mom_check = momy_flux_has_p[idir];
 
   } else {
     iu = QW;
@@ -277,7 +278,6 @@ Castro::compute_flux_q(const Box& bx,
     im1 = UMZ;
     im2 = UMX;
     im3 = UMY;
-    mom_check = momz_flux_has_p[idir];
   }
 
 #ifdef RADIATION
@@ -431,7 +431,7 @@ Castro::store_godunov_state(const Box& bx,
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::compute_flux(const int idir, const Real bnd_fac,
+Castro::compute_flux(const int idir, const Real bnd_fac, const int coord,
                      const Real* U, const Real p,
                      const GpuArray<int, npassive>& upass_map_p,
                      Real* F) {
@@ -450,14 +450,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac,
   F[UMY] = U[UMY]*u_flx;
   F[UMZ] = U[UMZ]*u_flx;
 
-  int mom_check = 0;
-  if (idir == 0) {
-    mom_check = momx_flux_has_p[idir];
-  } else if (idir == 1) {
-    mom_check = momy_flux_has_p[idir];
-  } else {
-    mom_check = momz_flux_has_p[idir];
-  }
+  auto mom_check = mom_flux_has_p(idir, idir, coord);
 
   if (mom_check) {
     // we do not include the pressure term in any non-Cartesian

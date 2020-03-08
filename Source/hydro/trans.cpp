@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -54,6 +55,8 @@ Castro::trans_single(const Box& bx,
       upass_map_p[n] = upass_map[n];
       qpass_map_p[n] = qpass_map[n];
     }
+
+    int coord = geom.Coord();
 
     bool reset_density = transverse_reset_density;
     bool reset_rhoe = transverse_reset_rhoe;
@@ -273,7 +276,7 @@ Castro::trans_single(const Box& bx,
         // x-direction, for we need to fix this now.
         Real runewn = run - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMX) -
                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UMX)) * volinv;
-        if (idir_t == 0 && !momx_flux_has_p[idir_t]) {
+        if (idir_t == 0 && !mom_flux_has_p(0, idir_t, coord)) {
             runewn = runewn - cdtdx * (pgp - pgm);
         }
         Real rvnewn = rvn - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UMY) -

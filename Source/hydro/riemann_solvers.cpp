@@ -1,6 +1,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
+#include "Castro_util.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -1114,6 +1115,8 @@ Castro::HLLC(const Box& bx,
     qpass_map_p[n] = qpass_map[n];
   }
 
+  int coord = geom.Coord();
+
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
@@ -1214,7 +1217,7 @@ Castro::HLLC(const Box& bx,
       gamco = 0.5_rt*(gamcl + gamcr);
     }
 
-    ro = std::max(lsmall_dens, ro);
+    ro = amrex::max(lsmall_dens, ro);
 
     Real roinv = 1.0_rt/ro;
     Real co = std::sqrt(std::abs(gamco*po*roinv));
@@ -1275,7 +1278,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = qr(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pr, upass_map_p, F_state);
+      compute_flux(idir, bnd_fac, coord,
+                   U_state, pr, upass_map_p, F_state);
 
     } else if (S_r > 0.0_rt && S_c <= 0.0_rt) {
       // R* region
@@ -1283,7 +1287,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = qr(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pr, upass_map_p, F_state);
+      compute_flux(idir, bnd_fac, coord,
+                   U_state, pr, upass_map_p, F_state);
       HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
 
       // correct the flux
@@ -1297,7 +1302,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = ql(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pl, upass_map_p, F_state);
+      compute_flux(idir, bnd_fac, coord,
+                   U_state, pl, upass_map_p, F_state);
       HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
 
       // correct the flux
@@ -1311,7 +1317,8 @@ Castro::HLLC(const Box& bx,
         q_zone[n] = ql(i,j,k,n);
       }
       cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
-      compute_flux(idir, bnd_fac, U_state, pl, upass_map_p, F_state);
+      compute_flux(idir, bnd_fac, coord,
+                   U_state, pl, upass_map_p, F_state);
     }
 
     for (int n = 0; n < NUM_STATE; n++) {
@@ -1324,7 +1331,7 @@ AMREX_GPU_HOST_DEVICE
 void
 Castro::HLL(const Real* ql, const Real* qr,
             const Real cl, const Real cr,
-            const int idir,
+            const int idir, const int coord,
             const GpuArray<int, npassive>& upass_map_p,
             const GpuArray<int, npassive>& qpass_map_p,
             Real* flux_hll) {
@@ -1393,8 +1400,8 @@ Castro::HLL(const Real* ql, const Real* qr,
   Real bl = amrex::min(a1, ql[ivel] - cl);
   Real br = amrex::max(a4, qr[ivel] + cr);
 
-  Real bm = std::min(0.0_rt, bl);
-  Real bp = std::max(0.0_rt, br);
+  Real bm = amrex::min(0.0_rt, bl);
+  Real bp = amrex::max(0.0_rt, br);
 
   Real bd = bp - bm;
 
@@ -1417,21 +1424,9 @@ Castro::HLL(const Real* ql, const Real* qr,
   // separately in the update, to accommodate different geometries
   fl_tmp = ql[QRHO]*ql[ivel]*ql[ivel];
   fr_tmp = qr[QRHO]*qr[ivel]*qr[ivel];
-  if (idir == 0) {
-    if (momx_flux_has_p[idir]) {
-      fl_tmp = fl_tmp + ql[QPRES];
-      fr_tmp = fr_tmp + qr[QPRES];
-    }
-  } else if (idir == 1) {
-    if (momy_flux_has_p[idir]) {
-      fl_tmp = fl_tmp + ql[QPRES];
-      fr_tmp = fr_tmp + qr[QPRES];
-    }
-  } else {
-    if (momz_flux_has_p[idir]) {
-      fl_tmp = fl_tmp + ql[QPRES];
-      fr_tmp = fr_tmp + qr[QPRES];
-    }
+  if (mom_flux_has_p(idir, idir, coord)) {
+    fl_tmp = fl_tmp + ql[QPRES];
+    fr_tmp = fr_tmp + qr[QPRES];
   }
 
   flux_hll[imom] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivel] - ql[QRHO]*ql[ivel]);
