@@ -77,6 +77,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
       qpass_map_p[n] = qpass_map[n];
     }
 
+    auto coord = geom.Coord();
+
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
@@ -114,7 +116,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
           qr_zone[n] = qp(i,j,k,n);
         }
 
-        HLL(ql_zone, qr_zone, cl, cr, idir,
+        HLL(ql_zone, qr_zone, cl, cr,
+            idir, coord,
             upass_map_p, qpass_map_p,
             flx_zone);
 
