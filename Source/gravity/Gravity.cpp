@@ -18,6 +18,7 @@
 #define MAX_LEV 30
 
 #include "gravity_defaults.H"
+#include "fundamental_constants.H"
 
 using namespace amrex;
 
@@ -2244,53 +2245,6 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     }
 
 }
-
-#if (BL_SPACEDIM == 3)
-Real
-Gravity::computeAvg (int level, MultiFab* mf, bool mask)
-{
-    BL_PROFILE("Gravity::computeAvg()");
-
-    Real        sum     = 0.0;
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx       = geom.CellSize();
-
-    BL_ASSERT(mf != 0);
-
-    if (level < parent->finestLevel() && mask)
-    {
-        Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
-        const MultiFab& mask = fine_level->build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
-#endif
-    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        Real s;
-        const Box& box  = mfi.tilebox();
-        const int* lo   = box.loVect();
-        const int* hi   = box.hiVect();
-
-        //
-        // Note that this routine will do a volume weighted sum of
-        // whatever quantity is passed in, not strictly the "mass".
-        //
-        ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-                   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
-        sum += s;
-    }
-
-    ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
-}
-#endif
 
 void
 Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
