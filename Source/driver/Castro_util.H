@@ -6,6 +6,40 @@
 using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
+{
+
+    // Keep track of which components of the momentum flux have pressure
+
+#if AMREX_SPACEDIM <= 2
+
+    if (mom_dir == 0 && flux_dir == 0) {
+
+        if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && coord == CoordSys::RZ)) {
+            return false;
+        }
+        else {
+            return true;
+        }
+
+    }
+    else {
+
+        return (mom_dir == flux_dir);
+
+    }
+
+#else // AMREX_SPACEDIM == 3; Cartesian
+
+    return (mom_dir == flux_dir);
+
+#endif
+
+}
+
+
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void position(int i, int j, int k,
               GeometryData const& geomdata, Real* loc,
               bool ccx = true, bool ccy = true, bool ccz = true)

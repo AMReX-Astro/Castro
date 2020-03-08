@@ -273,7 +273,7 @@
     AMREX_GPU_HOST_DEVICE
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
-             const int idir,
+             const int idir, const int coord,
              const amrex::GpuArray<int, npassive>& upass_map_p,
              const amrex::GpuArray<int, npassive>& qpass_map_p,
              amrex::Real* f);
@@ -330,7 +330,7 @@
 
     AMREX_GPU_HOST_DEVICE
     void
-    compute_flux(const int idir, const amrex::Real bnd_fac,
+    compute_flux(const int idir, const amrex::Real bnd_fac, const int coord,
                  const amrex::Real* U, const amrex::Real p,
                  const GpuArray<int, npassive>& upass_map_p,
                  amrex::Real* F);

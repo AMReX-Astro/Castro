@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -32,12 +33,11 @@ Castro::consup_hydro(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
-  const int flux_has_p = momx_flux_has_p[0];
+  int coord = geom.Coord();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -87,7 +87,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! flux_has_p) {
+      if (!mom_flux_has_p(0, 0, coord)) {
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif

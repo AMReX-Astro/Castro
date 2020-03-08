@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 using namespace amrex;
@@ -32,6 +33,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   MultiFab& S_new = get_new_data(State_Type);
 
+  int coord = geom.Coord();
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
@@ -654,7 +656,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!momx_flux_has_p[0]) {
+            if (!mom_flux_has_p(0, 0, coord)) {
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                                     {
                                       pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
