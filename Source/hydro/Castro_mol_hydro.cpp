@@ -136,6 +136,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
+        auto qaux_arr = qaux.array(mfi);
+
         flux[0].resize(xbx, NUM_STATE);
         Elixir elix_flux_x = flux[0].elixir();
 
@@ -183,21 +185,27 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             qm.resize(obx2, NQ);
             Elixir elix_qm = qm.elixir();
+            auto qm_arr = qm.array();
 
             qp.resize(obx2, NQ);
             Elixir elix_qp = qp.elixir();
+            auto qp_arr = qp.array();
 
             q_int.resize(nbx1, 1);
             Elixir elix_qint = q_int.elixir();
+            auto q_int_arr = q_int.array();
 
             q_avg.resize(ibx[idir], NQ);
             Elixir elix_qavg = q_avg.elixir();
+            auto q_avg_arr = q_avg.array();
 
             q_fc.resize(nbx, NQ);
             Elixir elix_qfc = q_fc.elixir();
+            auto q_fc_arr = q_fc.array();
 
             f_avg.resize(ibx[idir], NUM_STATE);
             Elixir elix_favg = f_avg.elixir();
+            auto f_avg_arr = f_avg.array();
 
             int idir_f = idir + 1;
 
@@ -228,18 +236,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // get the face-averaged state and flux, <q> and F(<q>),
             // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
-            riemann_state(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
-                          BL_TO_FORTRAN_ANYD(qm),
-                          BL_TO_FORTRAN_ANYD(qp),
-                          BL_TO_FORTRAN_ANYD(q_avg),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          idir_f, 0,
-                          ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+            riemann_state(ibx[idir],
+                          qm_arr, qp_arr,
+                          q_avg_arr,
+                          qaux_arr,
+                          idir, 0);
 
-            compute_flux_q(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
-                           BL_TO_FORTRAN_ANYD(q_avg),
-                           BL_TO_FORTRAN_ANYD(f_avg),
-                           idir_f, 0);
+            compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir, 0);
 
 
             if (do_hydro == 0) {
@@ -271,7 +274,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // for 1-d, we are done here, so just copy f_avg to flux[0],
             // since there is no face averaging
             Array4<Real> const flux_arr = (flux[0]).array();
-            Array4<const Real> const f_avg_arr = f_avg.array();
 
             AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
                 flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);});
@@ -280,9 +282,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc
-            Array4<Real> const q_fc_arr = q_fc.array();
-            Array4<const Real> const q_avg_arr = q_avg.array();
-
             AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n, {
                 bool test = (n == QGC) || (n == QTEMP);
 
@@ -302,13 +301,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               });
 
             // compute the face-center fluxes F(q_fc)
-            compute_flux_q(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                           BL_TO_FORTRAN_ANYD(q_fc),
-                           BL_TO_FORTRAN_ANYD(flux[idir]),
-                           idir_f, 0);
+            Array4<Real> const f_arr = (flux[idir]).array();
+
+            compute_flux_q(nbx, q_fc_arr, f_arr, idir, 0);
 
             if (do_hydro == 0) {
-              Array4<Real> const f_arr = (flux[idir]).array();
 
               AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
                 f_arr(i,j,k,n) = 0.0;});
@@ -401,9 +398,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             // store the Godunov state
-            ca_store_godunov_state(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                   BL_TO_FORTRAN_ANYD(q_avg),
-                                   BL_TO_FORTRAN_ANYD(qe[idir]));
+            auto qe_arr = (qe[idir]).array();
+            store_godunov_state(nbx, q_avg_arr, qe_arr);
 
           }
 
@@ -439,6 +435,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           q_int.resize(obx, NQ);
           Elixir elix_q_int = q_int.elixir();
+          auto q_int_arr = q_int.array();
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -477,20 +474,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-#pragma gpu box(nbx)
+              auto qe_arr = (qe[idir]).array();
+              auto flux_arr = (flux[idir]).array();
+
               cmpflx_plus_godunov
-                (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(qm),
-                 BL_TO_FORTRAN_ANYD(qp),
-                 BL_TO_FORTRAN_ANYD(flux[idir]),
-                 BL_TO_FORTRAN_ANYD(q_int),
-                 BL_TO_FORTRAN_ANYD(qe[idir]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                 BL_TO_FORTRAN_ANYD(shk),
-                 idir_f, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                (nbx,
+                 qm_arr, qp_arr,
+                 flux_arr, q_int_arr,
+                 qe_arr,
+                 qaux_arr, shk_arr,
+                 idir);
 
               // set UTEMP and USHK fluxes to zero
-              Array4<Real> const flux_arr = (flux[idir]).array();
               Array4<Real const> const uin_arr = Sborder.array(mfi);
 
               AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
