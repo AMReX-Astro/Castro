@@ -230,7 +230,7 @@ Some descriptions are given below.</p>
 <div class="section" id="compiler-checks">
 <h3>Compiler checks<a class="headerlink" href="#compiler-checks" title="Permalink to this headline">¶</a></h3>
 <p>Recompile the code in debug-mode by setting:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DEBUG</span> <span class="p">:</span><span class="o">=</span> <span class="n">TRUE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DEBUG</span> <span class="o">:=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> (or invoking <code class="docutils literal notranslate"><span class="pre">make</span></code> as <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">DEBUG=TRUE</span></code>).
@@ -241,7 +241,7 @@ options enabled.  Running this sometimes will show issues.</p>
 <h3>Check for invalid floating point exceptions<a class="headerlink" href="#check-for-invalid-floating-point-exceptions" title="Permalink to this headline">¶</a></h3>
 <p>Compiling in debug mode also initializes uninitialized variables to
 NaN.  For optimized code, the same can be done by setting:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span> <span class="p">:</span><span class="o">=</span> <span class="n">TRUE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span> <span class="o">:=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
 <p>in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  To capture the NaNs, use the runtime parameter:</p>
