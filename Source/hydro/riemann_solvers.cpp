@@ -1217,7 +1217,7 @@ Castro::HLLC(const Box& bx,
       gamco = 0.5_rt*(gamcl + gamcr);
     }
 
-    ro = std::max(lsmall_dens, ro);
+    ro = amrex::max(lsmall_dens, ro);
 
     Real roinv = 1.0_rt/ro;
     Real co = std::sqrt(std::abs(gamco*po*roinv));
@@ -1400,8 +1400,8 @@ Castro::HLL(const Real* ql, const Real* qr,
   Real bl = amrex::min(a1, ql[ivel] - cl);
   Real br = amrex::max(a4, qr[ivel] + cr);
 
-  Real bm = std::min(0.0_rt, bl);
-  Real bp = std::max(0.0_rt, br);
+  Real bm = amrex::min(0.0_rt, bl);
+  Real bp = amrex::max(0.0_rt, br);
 
   Real bd = bp - bm;
 
