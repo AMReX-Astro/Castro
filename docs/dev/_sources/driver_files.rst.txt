@@ -25,6 +25,5 @@ Driver
    file/prob_params_nd_f
    file/reduction_nd_f
    file/source_fill_nd_f
-   file/sums_nd_f
    file/timestep_nd_f
    

@@ -549,22 +549,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N7Gravity10computeAvgEiPN5amrex8MultiFabEb">
-<span id="_CPPv3N7Gravity10computeAvgEiPN5amrex8MultiFabEb"></span><span id="_CPPv2N7Gravity10computeAvgEiPN5amrex8MultiFabEb"></span><span id="Gravity::computeAvg__i.amrex::MultiFabP.b"></span><span class="target" id="classGravity_1ad19004f2c401204093ec0608a7704659"></span>amrex::Real <code class="descname">computeAvg</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab *<em>mf</em>, bool <em>mask</em> = true<span class="sig-paren">)</span><br /></dt>
-<dd><p>Returns the volume weighted average of <code class="docutils literal notranslate"><span class="pre">mf</span></code> at the given level</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">level</span></code>: index of AMR level </li>
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to be averaged </li>
-<li><code class="docutils literal notranslate"><span class="pre">mask</span></code>: boolean, should we mask finer levels? </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="_CPPv4N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE">
 <span id="_CPPv3N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="_CPPv2N7Gravity32create_comp_minus_level_grad_phiEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabERN5amrex6VectorINSt10unique_ptrIN5amrex8MultiFabEEEEE"></span><span id="Gravity::create_comp_minus_level_grad_phi__i.amrex::MultiFabR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabR.amrex::Vector:std::unique_ptr:amrex::MultiFab::R"></span><span class="target" id="classGravity_1a99604922c4d3d5d94c3dc313ca9dfbc0"></span>void <code class="descname">create_comp_minus_level_grad_phi</code><span class="sig-paren">(</span>int <em>level</em>, amrex::MultiFab &amp;<em>comp_phi</em>, <em class="property">const</em> amrex::Vector&lt;amrex::MultiFab *&gt; &amp;<em>comp_gphi</em>, amrex::MultiFab &amp;<em>cml_phi</em>, amrex::Vector&lt;std::unique_ptr&lt;amrex::MultiFab&gt;&gt; &amp;<em>cml_gphi</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Compute the difference between level and composite solves</p>

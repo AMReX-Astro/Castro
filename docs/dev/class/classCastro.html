@@ -1115,79 +1115,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib">
-<span id="_CPPv3N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib"></span><span id="_CPPv2N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib"></span><span id="Castro::locWgtSum2D__ssCR.amrex::Real.i.i.b"></span><span class="target" id="classCastro_1a2dd8f3a1a387c5474c2781d8fb62f64e"></span>amrex::Real <code class="descname">locWgtSum2D</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>idir1</em>, int <em>idir2</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11locWgtSum2DERKNSt6stringEN5amrex4RealEiib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Sum weighted by volume multiplied by product of distances from center in two given directions</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir1</span></code>: First direction </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir2</span></code>: Second direction </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11volWgtSumMFERKN5amrex8MultiFabEib">
-<span id="_CPPv3N6Castro11volWgtSumMFERKN5amrex8MultiFabEib"></span><span id="_CPPv2N6Castro11volWgtSumMFERKN5amrex8MultiFabEib"></span><span id="Castro::volWgtSumMF__amrex::MultiFabCR.i.b"></span><span class="target" id="classCastro_1a3bf76a8174a575257a771f768e8b6c51"></span>amrex::Real <code class="descname">volWgtSumMF</code><span class="sig-paren">(</span><em class="property">const</em> amrex::MultiFab &amp;<em>mf</em>, int <em>comp</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11volWgtSumMFERKN5amrex8MultiFabEib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Volume weighted sum of given component of multifab</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to sum </li>
-<li><code class="docutils literal notranslate"><span class="pre">comp</span></code>: Component to sum </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro16locWgtSumOneSideERKNSt6stringEN5amrex4RealEiiib">
-<span id="_CPPv3N6Castro16locWgtSumOneSideERKNSt6stringEN5amrex4RealEiiib"></span><span id="_CPPv2N6Castro16locWgtSumOneSideERKNSt6stringEN5amrex4RealEiiib"></span><span id="Castro::locWgtSumOneSide__ssCR.amrex::Real.i.i.i.b"></span><span class="target" id="classCastro_1a5f8936d69ee9fe736c9499057965dc14"></span>amrex::Real <code class="descname">locWgtSumOneSide</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>idir</em>, int <em>side</em>, int <em>bdir</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro16locWgtSumOneSideERKNSt6stringEN5amrex4RealEiiib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This function is a clone of ::locWgtSum except that it only sums over one half of the domain. The lower half corresponds to side == 0, and the upper half corresponds to side == 1. The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by, and the argument bdir gives the direction along which to bisect.</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">idir</span></code>: direction to weight by </li>
-<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: lower half (0) or upper half (1) </li>
-<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: Direction along which to bisect </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro16volWgtSumOneSideERKNSt6stringEN5amrex4RealEiib">
-<span id="_CPPv3N6Castro16volWgtSumOneSideERKNSt6stringEN5amrex4RealEiib"></span><span id="_CPPv2N6Castro16volWgtSumOneSideERKNSt6stringEN5amrex4RealEiib"></span><span id="Castro::volWgtSumOneSide__ssCR.amrex::Real.i.i.b"></span><span class="target" id="classCastro_1add28696f0f0a45ebc60d8ccb23b4b821"></span>amrex::Real <code class="descname">volWgtSumOneSide</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, int <em>side</em>, int <em>bdir</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro16volWgtSumOneSideERKNSt6stringEN5amrex4RealEiib" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This function is a clone of ::volWgtSum except it computes the result only on half of the domain. The lower half corresponds to side == 0 and the upper half corresponds to side == 1. The argument bdir gives the direction along which to bisect.</p>
-<p><dl class="docutils">
-<dt><strong>Note</strong></dt>
-<dd>Only designed to work in Cartesian geometries.</dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">side</span></code>: lower half (0) or upper half (1) </li>
-<li><code class="docutils literal notranslate"><span class="pre">bdir</span></code>: Direction along which to bisect </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="_CPPv4N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb">
 <span id="_CPPv3N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb"></span><span id="_CPPv2N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volProductSum__ssCR.ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a0227ba60b8077c4472fe94a4ddd607b7"></span>amrex::Real <code class="descname">volProductSum</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name1</em>, <em class="property">const</em> std::string &amp;<em>name2</em>, amrex::Real <em>time</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Volume weighted sum of the product of two quantities</p>
@@ -1552,22 +1479,6 @@
 <dt id="_CPPv4N6Castro7initMFsEv">
 <span id="_CPPv3N6Castro7initMFsEv"></span><span id="_CPPv2N6Castro7initMFsEv"></span><span id="Castro::initMFs"></span><span class="target" id="classCastro_1aea367f22edda2e103314daaeafd00009"></span>void <code class="descname">initMFs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro7initMFsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize the MultiFabs and flux registers that live as class members. </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro9sumDeriveERKNSt6stringEN5amrex4RealEb">
-<span id="_CPPv3N6Castro9sumDeriveERKNSt6stringEN5amrex4RealEb"></span><span id="_CPPv2N6Castro9sumDeriveERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::sumDerive__ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1acc3a5e5c6c60378396653f902e50938d"></span>amrex::Real <code class="descname">sumDerive</code><span class="sig-paren">(</span><em class="property">const</em> std::string &amp;<em>name</em>, amrex::Real <em>time</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro9sumDeriveERKNSt6stringEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>integrate derived quantities over domain</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity to integrate </li>
-<li><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </li>
-<li><code class="docutils literal notranslate"><span class="pre">local</span></code>: </li>
-</ul>
-</dd>
-</dl>
-</p>
 </dd></dl>
 
 <dl class="function">
