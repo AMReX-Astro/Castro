@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File hybrid.H &mdash; Castro 20.03
+  <title>File riemann.H &mdash; Castro 20.03
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hybrid_advection_nd.F90" href="hybrid_advection_nd_f.html" />
-    <link rel="prev" title="fourth_order_nd.F90" href="fourth_order_nd_f.html" /> 
+    <link rel="next" title="slope_nd.F90" href="slope_nd_f.html" />
+    <link rel="prev" title="File ppm.H" href="ppm_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/hybrid_8H.html">master</a> | <a href="../file/hybrid_8H.html">development</a>
+        Branch: <a href="../../file/riemann_8H.html">master</a> | <a href="../file/riemann_8H.html">development</a>
     </div>
 
         </div>
@@ -148,10 +148,10 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="trace_plm_nd_f.html">trace_plm_nd.F90</a></li>
 </ul>
@@ -220,13 +220,13 @@
         
           <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
         
-      <li>File hybrid.H</li>
+      <li>File riemann.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/hybrid_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/riemann_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -239,36 +239,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-hybrid-h">
-<h1>File hybrid.H<a class="headerlink" href="#file-hybrid-h" title="Permalink to this headline">¶</a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
-<dt>
-<span class="target" id="hybrid_8H_1af7e449607db842de99bb032c747683f0"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const Real * loc, const Real * linear_mom, Real * hybrid_mom)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="hybrid_8H_1a8c0d6db327cf1ee091f1aadb5d8197bb"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const Real * loc, const Real * hybrid_mom, Real * linear_mom)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="hybrid_8H_1aef0d628ebcfee73b9115a9fa71fd9693"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const Real * loc, const Real * linear_source, Real * hybrid_source)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="hybrid_8H_1a8b295d16965fde625fafeece5ad84c72"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const Real * state, const GeometryData &amp; geomdata, const Real * center, int idir, int i, int j, int k, Real * flux, bool cell_centered = false)</code></dt>
-<dd></dd></dl>
-
-</div>
+  <div class="section" id="file-riemann-h">
+<h1>File riemann.H<a class="headerlink" href="#file-riemann-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="member">
 <dt>
-<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
+<span class="target" id="riemann_8H_1aacaaa15a61f3a5a5ba29f1e1b0ece0ba"></span><code class="descname">const Real smlp1 = 1.e-10_rt</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="riemann_8H_1ad49c8f6ceb32df0a69dbff2d7ab214ee"></span><code class="descname">const Real small = 1.e-8_rt</code></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt>
+<span class="target" id="riemann_8H_1ab5a4f8f8cadcc9494a5f2f254ce2c916"></span><code class="descname">const Real smallu = 1.e-12_rt</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -282,10 +269,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hybrid_advection_nd_f.html" class="btn btn-neutral float-right" title="hybrid_advection_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="slope_nd_f.html" class="btn btn-neutral float-right" title="slope_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="fourth_order_nd_f.html" class="btn btn-neutral float-left" title="fourth_order_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ppm_8H.html" class="btn btn-neutral float-left" title="File ppm.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

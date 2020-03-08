@@ -13,8 +13,7 @@ Hydro
    file/hybrid_8H
    file/hybrid_advection_nd_f
    file/ppm_8H
-   file/riemann_nd_f
-   file/riemann_util_nd_f
+   file/riemann_8H
    file/slope_nd_f
    file/trace_plm_nd_f
    
