@@ -219,6 +219,124 @@
                       const amrex::Real dt);
 
 
+
+    void cmpflx_plus_godunov(const amrex::Box& bx,
+                             amrex::Array4<amrex::Real> const qm,
+                             amrex::Array4<amrex::Real> const qp,
+                             amrex::Array4<amrex::Real> const flx,
+                             amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real> const rflx,
+                             amrex::Array4<amrex::Real> const lambda_int,
+#endif
+                             amrex::Array4<amrex::Real> const qgdnv,
+                             amrex::Array4<amrex::Real const> const qaux,
+                             amrex::Array4<amrex::Real const> const shk,
+                             const int idir);
+
+    void riemann_state(const amrex::Box& bx,
+                       amrex::Array4<amrex::Real> const qm,
+                       amrex::Array4<amrex::Real> const qp,
+                       amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                       amrex::Array4<amrex::Real> lambda_int,
+#endif
+                       amrex::Array4<amrex::Real const> const qaux,
+                       const int idir, const int compute_gammas);
+
+    void riemanncg(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const ql,
+                   amrex::Array4<amrex::Real> const qr,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real> const qint,
+                   const int idir);
+
+    void riemannus(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const ql,
+                   amrex::Array4<amrex::Real> const qr,
+                   amrex::Array4<amrex::Real const> const qaux,
+                   amrex::Array4<amrex::Real> const qint,
+#ifdef RADIATION
+                   amrex::Array4<amrex::Real> const lambda_int,
+#endif
+                   const int idir, const int compute_gammas);
+
+
+    void HLLC(const amrex::Box& bx,
+              amrex::Array4<amrex::Real const> const ql,
+              amrex::Array4<amrex::Real const> const qr,
+              amrex::Array4<amrex::Real const> const qaux,
+              amrex::Array4<amrex::Real> const uflx,
+              amrex::Array4<amrex::Real> const qint,
+              const int idir);
+
+    AMREX_GPU_HOST_DEVICE
+    void HLL(const amrex::Real* ql, const amrex::Real* qr,
+             const amrex::Real cl, const amrex::Real cr,
+             const int idir,
+             const amrex::GpuArray<int, npassive>& upass_map_p,
+             const amrex::GpuArray<int, npassive>& qpass_map_p,
+             amrex::Real* f);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    wsqge(const amrex::Real p, const amrex::Real v,
+          const amrex::Real gam, const amrex::Real gdot, amrex::Real& gstar,
+          const amrex::Real gmin, const amrex::Real gmax, const amrex::Real csq,
+          const amrex::Real pstar, amrex::Real& wsq);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
+                    const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
+                    const amrex::Real gamel, const amrex::Real clsql,
+                    const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
+                    const amrex::Real gamer, const amrex::Real clsqr,
+                    const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
+                    const int lcg_maxiter, const amrex::Real lcg_tol,
+                    amrex::Real& pstar, amrex::Real& gamstar,
+                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    cons_state(const amrex::Real* q, amrex::Real* U,
+               const GpuArray<int, npassive>& qpass_map_p,
+               const GpuArray<int, npassive>& upass_map_p);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
+               const amrex::Real* q, amrex::Real* U,
+               const GpuArray<int, npassive>& qpass_map_p,
+               const GpuArray<int, npassive>& upass_map_p);
+
+    void
+    compute_flux_q(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real const> const qint,
+                   amrex::Array4<amrex::Real> const F,
+#ifdef RADIATION
+                   amrex::Array4<amrex::Real const> const lambda,
+                   amrex::Array4<amrex::Real> const rF,
+#endif
+                   const int idir, const int enforce_eos);
+
+    void
+    store_godunov_state(const amrex::Box& bx,
+                        amrex::Array4<amrex::Real const> const qint,
+#ifdef RADIATION
+                        amrex::Array4<amrex::Real const> const lambda,
+#endif
+                        amrex::Array4<amrex::Real> const qgdnv);
+
+    AMREX_GPU_HOST_DEVICE
+    void
+    compute_flux(const int idir, const amrex::Real bnd_fac,
+                 const amrex::Real* U, const amrex::Real p,
+                 const GpuArray<int, npassive>& upass_map_p,
+                 amrex::Real* F);
+
+
+
     void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const flux);
 
     void scale_flux(const amrex::Box& bx,
