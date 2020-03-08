@@ -158,3 +158,66 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     }
   }
 }
+
+
+#ifdef RADIATION
+void
+Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
+                           Array4<Real const> const q_arr,
+                           Array4<Real const> const flatn,
+                           Array4<Real const> const qaux_arr,
+                           Array4<Real const> const srcQ,
+                           Array4<Real> const qxm,
+                           Array4<Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                           Array4<Real> const qym,
+                           Array4<Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                           Array4<Real> const qzm,
+                           Array4<Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                           Array4<Real const> const dloga,
+#endif
+                           const Real dt) {
+
+
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+    if (idir == 0) {
+
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    } else {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qzm, qzp,
+                    vbx, dt);
+
+#endif
+    }
+  }
+}
+#endif

@@ -20,7 +20,6 @@ endif
 
 ca_F90EXE_sources += advection_util_nd.F90
 
-ca_F90EXE_sources += ppm_nd.F90
 CEXE_headers += ppm.H
 ca_F90EXE_sources += riemann_nd.F90
 ca_F90EXE_sources += riemann_util_nd.F90
