@@ -32,6 +32,56 @@ Castro::trans_single(const Box& bx,
 #endif
                      Real hdt, Real cdtdx)
 {
+    // Evaluate the transverse terms for both
+    // the minus and plus states.
+
+    actual_trans_single(bx, idir_t, idir_n, -1,
+                        qm, qmo,
+                        qaux_arr,
+                        flux_t,
+#ifdef RADIATION
+                        rflux_t,
+#endif
+                        q_t,
+#if AMREX_SPACEDIM == 2
+                        area_t,
+                        vol,
+#endif
+                        hdt, cdtdx);
+
+    actual_trans_single(bx, idir_t, idir_n, 0,
+                        qp, qpo,
+                        qaux_arr,
+                        flux_t,
+#ifdef RADIATION
+                        rflux_t,
+#endif
+                        q_t,
+#if AMREX_SPACEDIM == 2
+                        area_t,
+                        vol,
+#endif
+                        hdt, cdtdx);
+}
+
+
+void
+Castro::actual_trans_single(const Box& bx,
+                            int idir_t, int idir_n, int d,
+                            Array4<Real const> const q,
+                            Array4<Real> const qo,
+                            Array4<Real const> const qaux_arr,
+                            Array4<Real const> const flux_t,
+#ifdef RADIATION
+                            Array4<Real const> const rflux_t,
+#endif
+                            Array4<Real const> const q_t,
+#if AMREX_SPACEDIM == 2
+                            Array4<Real const> const area_t,
+                            Array4<Real const> const vol,
+#endif
+                            Real hdt, Real cdtdx)
+{
 
     //       qm|qp
     //         |
@@ -42,7 +92,7 @@ Castro::trans_single(const Box& bx,
     // the qp state will see the transverse flux in zone i
     // the qm state will see the transverse flux in zone i-1
 
-    // we account for this with the 'd' variable loop below
+    // we account for this with the 'd' variable:
     // d = 0 will do qp and d = -1 will do qm
 
     // idir_t is the transverse direction and we set il,jl,kl
@@ -71,8 +121,6 @@ Castro::trans_single(const Box& bx,
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
-
-      for (int d = -1; d <= 0; d++) {
 
         // We are handling the states at the interface of
         // (i, i+1) in the x-direction, and similarly for
@@ -121,22 +169,6 @@ Castro::trans_single(const Box& bx,
           kr += d;
         }
 
-        // Store a local copy of the current interface state.
-        // This is qp or qm, depending on the "d" loop.
-
-        Real lqn[NQ];
-        Real lqno[NQ];
-
-        if (d == -1) {
-            for (int n = 0; n < NQ; n++) {
-                lqn[n] = qm(i,j,k,n);
-            }
-        } else {
-            for (int n = 0; n < NQ; n++) {
-                lqn[n] = qp(i,j,k,n);
-            }
-        }
-
         // Update all of the passively-advected quantities with the
         // transverse term and convert back to the primitive quantity.
 
@@ -148,15 +180,15 @@ Castro::trans_single(const Box& bx,
             int nqp = qpass_map_p[ipassive];
 
 #if AMREX_SPACEDIM == 2
-            Real rrnew = lqn[QRHO] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
-                                            area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
-            Real compu = lqn[QRHO] * lqn[nqp] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
-                                                       area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
-            lqno[nqp] = compu / rrnew;
+            Real rrnew = q(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+                                                area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
+            Real compu = q(i,j,k,QRHO) * q(i,j,k,nqp) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
+                                                               area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
+            qo(i,j,k,nqp) = compu / rrnew;
 #else
-            Real rrnew = lqn[QRHO] - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
-            Real compu = lqn[QRHO] * lqn[nqp] - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
-            lqno[nqp] = compu / rrnew;
+            Real rrnew = q(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
+            Real compu = q(i,j,k,QRHO) * q(i,j,k,nqp) - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
+            qo(i,j,k,nqp) = compu / rrnew;
 #endif
         }
 
@@ -246,16 +278,16 @@ Castro::trans_single(const Box& bx,
 #endif
 
         // Convert to conservation form
-        Real rrn = lqn[QRHO];
-        Real run = rrn * lqn[QU];
-        Real rvn = rrn * lqn[QV];
-        Real rwn = rrn * lqn[QW];
-        Real ekenn = 0.5_rt * rrn * (lqn[QU] * lqn[QU] + lqn[QV] * lqn[QV] + lqn[QW] * lqn[QW]);
-        Real ren = lqn[QREINT] + ekenn;
+        Real rrn = q(i,j,k,QRHO);
+        Real run = rrn * q(i,j,k,QU);
+        Real rvn = rrn * q(i,j,k,QV);
+        Real rwn = rrn * q(i,j,k,QW);
+        Real ekenn = 0.5_rt * rrn * (q(i,j,k,QU) * q(i,j,k,QU) + q(i,j,k,QV) * q(i,j,k,QV) + q(i,j,k,QW) * q(i,j,k,QW));
+        Real ren = q(i,j,k,QREINT) + ekenn;
 #ifdef RADIATION
         Real ern[NGROUPS];
         for (int g = 0; g < NGROUPS; ++g) {
-            ern[g] = lqn[QRAD+g];
+            ern[g] = q(i,j,k,QRAD+g);
         }
 #endif
 
@@ -341,28 +373,28 @@ Castro::trans_single(const Box& bx,
         }
 
         // Convert back to primitive form
-        lqno[QRHO] = rrnewn;
+        qo(i,j,k,QRHO) = rrnewn;
         Real rhoinv = 1.0_rt / rrnewn;
-        lqno[QU] = runewn * rhoinv;
-        lqno[QV] = rvnewn * rhoinv;
-        lqno[QW] = rwnewn * rhoinv;
+        qo(i,j,k,QU) = runewn * rhoinv;
+        qo(i,j,k,QV) = rvnewn * rhoinv;
+        qo(i,j,k,QW) = rwnewn * rhoinv;
 
         // note: we run the risk of (rho e) being negative here
         Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) * rhoinv;
-        lqno[QREINT] = renewn - rhoekenn;
+        qo(i,j,k,QREINT) = renewn - rhoekenn;
 
         if (!reset_state) {
             // do the transverse terms for p, gamma, and rhoe, as necessary
 
-            if (reset_rhoe == 1 && lqno[QREINT] <= 0.0_rt) {
+            if (reset_rhoe == 1 && qo(i,j,k,QREINT) <= 0.0_rt) {
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
-                lqno[QREINT] = lqn[QREINT] - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
-                                                    area_t(il,jl,kl) * flux_t(il,jl,kl,UEINT) +
-                                                    pav * du) * volinv;
+                qo(i,j,k,QREINT) = q(i,j,k,QREINT) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
+                                                            area_t(il,jl,kl) * flux_t(il,jl,kl,UEINT) +
+                                                            pav * du) * volinv;
 #else
-                lqno[QREINT] = lqn[QREINT] - cdtdx * (flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav * du);
+                qo(i,j,k,QREINT) = q(i,j,k,QREINT) - cdtdx * (flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav * du);
 #endif
             }
 
@@ -372,46 +404,32 @@ Castro::trans_single(const Box& bx,
             // Add the transverse term to the p evolution eq here.
 #if AMREX_SPACEDIM == 2
             // the divergences here, dup and du, already have area factors
-            Real pnewn = lqn[QPRES] - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
+            Real pnewn = q(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
 #else
-            Real pnewn = lqn[QPRES] - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
+            Real pnewn = q(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
 #endif
-            lqno[QPRES] = amrex::max(pnewn, small_p);
+            qo(i,j,k,QPRES) = amrex::max(pnewn, small_p);
 
         }
         else {
-            lqno[QPRES] = lqn[QPRES];
+            qo(i,j,k,QPRES) = q(i,j,k,QPRES);
         }
 
 #ifdef RADIATION
         for (int g = 0; g < NGROUPS; ++g) {
-            lqno[QRAD + g] = ernewn[g];
+            qo(i,j,k,QRAD + g) = ernewn[g];
         }
 
-        lqno[QPTOT] = lqno[QPRES];
+        qo(i,j,k,QPTOT) = qo(i,j,k,QPRES);
         for (int g = 0; g < NGROUPS; ++g) {
-            lqno[QPTOT] = lqno[QPTOT] + lambda[g] * ernewn[g];
+            qo(i,j,k,QPTOT) = q(i,j,k,QPTOT) + lambda[g] * ernewn[g];
         }
 
-        lqno[QREITOT] = lqno[QREINT];
+        q(i,j,k,QREITOT) = qo(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            lqno[QREITOT] = lqno[QREITOT] + lqno[QRAD + g];
+            q(i,j,k,QREITOT) = qo(i,j,k,QREITOT) + qo(i,j,k,QRAD + g);
         }
 #endif
-
-        // store the state
-        if (d == -1) {
-            for (int n = 0; n < NQ; ++n) {
-                qmo(i,j,k,n) = lqno[n];
-            }
-        }
-        else {
-            for (int n = 0; n < NQ; ++n) {
-                qpo(i,j,k,n) = lqno[n];
-            }
-        }
-
-      } // d loop
 
     });
 
