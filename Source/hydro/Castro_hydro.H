@@ -187,6 +187,24 @@
                       amrex::Real hdt, amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
+     void actual_trans_final(const amrex::Box& bx,
+                             int idir_n, int idir_t1, int idir_t2, int d,
+                             amrex::Array4<amrex::Real const> const q,
+                             amrex::Array4<amrex::Real> const qo,
+                             amrex::Array4<amrex::Real const> const qaux,
+                             amrex::Array4<amrex::Real const> const flux_t1,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real const> const rflux_t1,
+#endif
+                             amrex::Array4<amrex::Real const> const flux_t2,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real const> const rflux_t2,
+#endif
+                             amrex::Array4<amrex::Real const> const q_t1,
+                             amrex::Array4<amrex::Real const> const q_t2,
+                             amrex::Real hdt, amrex::Real cdtdx_n,
+                             amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
+
     void trace_ppm(const amrex::Box& bx,
                    const int idir,
                    amrex::Array4<amrex::Real const> const q,
