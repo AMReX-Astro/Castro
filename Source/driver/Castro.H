@@ -892,60 +892,6 @@ public:
 
 
 ///
-/// Sum weighted by volume multiplied by product of distances from center in two given directions
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param idir1    First direction
-/// @param idir2    Second direction
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real locWgtSum2D (const std::string& name, amrex::Real time, int idir1, int idir2, bool local=false);
-
-
-///
-/// Volume weighted sum of given component of multifab
-///
-/// @param mf       MultiFab to sum
-/// @param comp     Component to sum
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real volWgtSumMF (const amrex::MultiFab& mf, int comp, bool local=false);
-
-
-///
-/// This function is a clone of ::locWgtSum except that it only sums over one half of the domain.
-/// The lower half corresponds to side == 0, and the upper half corresponds to side == 1.
-/// The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
-/// and the argument bdir gives the direction along which to bisect.
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param idir     direction to weight by
-/// @param side     lower half (0) or upper half (1)
-/// @param bdir     Direction along which to bisect
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real locWgtSumOneSide (const std::string& name, amrex::Real time, int idir, int side, int bdir, bool local=false);
-
-
-///
-/// This function is a clone of ::volWgtSum except it computes the result only on half of the domain.
-/// The lower half corresponds to side == 0 and the upper half corresponds to side == 1.
-/// The argument bdir gives the direction along which to bisect.
-///
-/// @note Only designed to work in Cartesian geometries.
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param side     lower half (0) or upper half (1)
-/// @param bdir     Direction along which to bisect
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real volWgtSumOneSide (const std::string& name, amrex::Real time, int side, int bdir, bool local=false);
-
-
-///
 /// Volume weighted sum of the product of two quantities
 ///
 /// @param name1    Name of first quantity
@@ -1341,15 +1287,6 @@ protected:
 /// Initialize the MultiFabs and flux registers that live as class members.
 ///
     void initMFs ();
-
-///
-/// integrate derived quantities over domain
-///
-/// @param name     Name of quantity to integrate
-/// @param time     current time
-/// @param local
-///
-    amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
 
 ///
 /// Calculates volume weight sums of variables and prints to screen

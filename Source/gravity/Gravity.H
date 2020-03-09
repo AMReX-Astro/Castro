@@ -216,16 +216,6 @@ public:
 
 
 ///
-/// Returns the volume weighted average of ``mf`` at the given level
-///
-/// @param level    index of AMR level
-/// @param mf       MultiFab to be averaged
-/// @param mask     boolean, should we mask finer levels?
-///
-  amrex::Real computeAvg    (int level, amrex::MultiFab* mf, bool mask=true);
-
-
-///
 /// Compute the difference between level and composite solves
 ///
 /// @param level        level index
