@@ -66,8 +66,8 @@ Castro::trans_single(const Box& bx,
 void
 Castro::actual_trans_single(const Box& bx,
                             int idir_t, int idir_n, int d,
-                            Array4<Real const> const q,
-                            Array4<Real> const qo,
+                            Array4<Real const> const q_arr,
+                            Array4<Real> const qo_arr,
                             Array4<Real const> const qaux_arr,
                             Array4<Real const> const flux_t,
 #ifdef RADIATION
@@ -171,15 +171,15 @@ Castro::actual_trans_single(const Box& bx,
             int nqp = qpassmap(ipassive);
 
 #if AMREX_SPACEDIM == 2
-            Real rrnew = q(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
+            Real rrnew = q_arr(i,j,k,QRHO) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,URHO) -
                                                 area_t(il,jl,kl) * flux_t(il,jl,kl,URHO)) * volinv;
-            Real compu = q(i,j,k,QRHO) * q(i,j,k,nqp) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
+            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,n) -
                                                                area_t(il,jl,kl) * flux_t(il,jl,kl,n)) * volinv;
-            qo(i,j,k,nqp) = compu / rrnew;
+            qo_arr(i,j,k,nqp) = compu / rrnew;
 #else
-            Real rrnew = q(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
-            Real compu = q(i,j,k,QRHO) * q(i,j,k,nqp) - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
-            qo(i,j,k,nqp) = compu / rrnew;
+            Real rrnew = q_arr(i,j,k,QRHO) - cdtdx * (flux_t(ir,jr,kr,URHO) - flux_t(il,jl,kl,URHO));
+            Real compu = q_arr(i,j,k,QRHO) * q_arr(i,j,k,nqp) - cdtdx * (flux_t(ir,jr,kr,n) - flux_t(il,jl,kl,n));
+            qo_arr(i,j,k,nqp) = compu / rrnew;
 #endif
         }
 
@@ -269,16 +269,16 @@ Castro::actual_trans_single(const Box& bx,
 #endif
 
         // Convert to conservation form
-        Real rrn = q(i,j,k,QRHO);
-        Real run = rrn * q(i,j,k,QU);
-        Real rvn = rrn * q(i,j,k,QV);
-        Real rwn = rrn * q(i,j,k,QW);
-        Real ekenn = 0.5_rt * rrn * (q(i,j,k,QU) * q(i,j,k,QU) + q(i,j,k,QV) * q(i,j,k,QV) + q(i,j,k,QW) * q(i,j,k,QW));
-        Real ren = q(i,j,k,QREINT) + ekenn;
+        Real rrn = q_arr(i,j,k,QRHO);
+        Real run = rrn * q_arr(i,j,k,QU);
+        Real rvn = rrn * q_arr(i,j,k,QV);
+        Real rwn = rrn * q_arr(i,j,k,QW);
+        Real ekenn = 0.5_rt * rrn * (q_arr(i,j,k,QU) * q_arr(i,j,k,QU) + q_arr(i,j,k,QV) * q_arr(i,j,k,QV) + q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
+        Real ren = q_arr(i,j,k,QREINT) + ekenn;
 #ifdef RADIATION
         Real ern[NGROUPS];
         for (int g = 0; g < NGROUPS; ++g) {
-            ern[g] = q(i,j,k,QRAD+g);
+            ern[g] = q_arr(i,j,k,QRAD+g);
         }
 #endif
 
@@ -364,28 +364,28 @@ Castro::actual_trans_single(const Box& bx,
         }
 
         // Convert back to primitive form
-        qo(i,j,k,QRHO) = rrnewn;
+        qo_arr(i,j,k,QRHO) = rrnewn;
         Real rhoinv = 1.0_rt / rrnewn;
-        qo(i,j,k,QU) = runewn * rhoinv;
-        qo(i,j,k,QV) = rvnewn * rhoinv;
-        qo(i,j,k,QW) = rwnewn * rhoinv;
+        qo_arr(i,j,k,QU) = runewn * rhoinv;
+        qo_arr(i,j,k,QV) = rvnewn * rhoinv;
+        qo_arr(i,j,k,QW) = rwnewn * rhoinv;
 
         // note: we run the risk of (rho e) being negative here
         Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) * rhoinv;
-        qo(i,j,k,QREINT) = renewn - rhoekenn;
+        qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
 
         if (!reset_state) {
             // do the transverse terms for p, gamma, and rhoe, as necessary
 
-            if (reset_rhoe == 1 && qo(i,j,k,QREINT) <= 0.0_rt) {
+            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
-                qo(i,j,k,QREINT) = q(i,j,k,QREINT) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT) - hdt * (area_t(ir,jr,kr) * flux_t(ir,jr,kr,UEINT) -
                                                             area_t(il,jl,kl) * flux_t(il,jl,kl,UEINT) +
                                                             pav * du) * volinv;
 #else
-                qo(i,j,k,QREINT) = q(i,j,k,QREINT) - cdtdx * (flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav * du);
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT) - cdtdx * (flux_t(ir,jr,kr,UEINT) - flux_t(il,jl,kl,UEINT) + pav * du);
 #endif
             }
 
@@ -395,30 +395,30 @@ Castro::actual_trans_single(const Box& bx,
             // Add the transverse term to the p evolution eq here.
 #if AMREX_SPACEDIM == 2
             // the divergences here, dup and du, already have area factors
-            Real pnewn = q(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
+            Real pnewn = q_arr(i,j,k,QPRES) - hdt * (dup + pav * du * (gamc - 1.0_rt)) * volinv;
 #else
-            Real pnewn = q(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
+            Real pnewn = q_arr(i,j,k,QPRES) - cdtdx * (dup + pav * du * (gamc - 1.0_rt));
 #endif
-            qo(i,j,k,QPRES) = amrex::max(pnewn, small_p);
+            qo_arr(i,j,k,QPRES) = amrex::max(pnewn, small_p);
 
         }
         else {
-            qo(i,j,k,QPRES) = q(i,j,k,QPRES);
+            qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
         }
 
 #ifdef RADIATION
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QRAD + g) = ernewn[g];
+            qo_arr(i,j,k,QRAD + g) = ernewn[g];
         }
 
-        qo(i,j,k,QPTOT) = qo(i,j,k,QPRES);
+        qo_arr(i,j,k,QPTOT) = qo_arr(i,j,k,QPRES);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QPTOT) += lambda[g] * ernewn[g];
+            qo_arr(i,j,k,QPTOT) += lambda[g] * ernewn[g];
         }
 
-        qo(i,j,k,QREITOT) = qo(i,j,k,QREINT);
+        qo_arr(i,j,k,QREITOT) = qo_arr(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QREITOT) += qo(i,j,k,QRAD + g);
+            qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD + g);
         }
 #endif
 
@@ -488,8 +488,8 @@ Castro::trans_final(const Box& bx,
 void
 Castro::actual_trans_final(const Box& bx,
                            int idir_n, int idir_t1, int idir_t2, int d,
-                           Array4<Real const> const q,
-                           Array4<Real> const qo,
+                           Array4<Real const> const q_arr,
+                           Array4<Real> const qo_arr,
                            Array4<Real const> const qaux_arr,
                            Array4<Real const> const flux_t1,
 #ifdef RADIATION
@@ -603,8 +603,8 @@ Castro::actual_trans_final(const Box& bx,
             int n = upassmap(ipassive);
             int nqp = qpassmap(ipassive);
 
-            Real rrn = q(i,j,k,QRHO);
-            Real compn = rrn * q(i,j,k,nqp);
+            Real rrn = q_arr(i,j,k,QRHO);
+            Real compn = rrn * q_arr(i,j,k,nqp);
             Real rrnewn = rrn - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,URHO) -
                                             flux_t1(il_t1,jl_t1,kl_t1,URHO))
                               - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,URHO) -
@@ -614,7 +614,7 @@ Castro::actual_trans_final(const Box& bx,
                                 - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,n) -
                                               flux_t2(il_t2,jl_t2,kl_t2,n));
 
-            qo(i,j,k,nqp) = compnn / rrnewn;
+            qo_arr(i,j,k,nqp) = compnn / rrnewn;
         }
 
         // Add the transverse differences to the normal states for the
@@ -711,16 +711,16 @@ Castro::actual_trans_final(const Box& bx,
 #endif
 
         // Convert to conservation form
-        Real rrn = q(i,j,k,QRHO);
-        Real run = rrn * q(i,j,k,QU);
-        Real rvn = rrn * q(i,j,k,QV);
-        Real rwn = rrn * q(i,j,k,QW);
-        Real ekenn = 0.5_rt * rrn * (q(i,j,k,QU) * q(i,j,k,QU) + q(i,j,k,QV) * q(i,j,k,QV) + q(i,j,k,QW) * q(i,j,k,QW));
-        Real ren = q(i,j,k,QREINT) + ekenn;
+        Real rrn = q_arr(i,j,k,QRHO);
+        Real run = rrn * q_arr(i,j,k,QU);
+        Real rvn = rrn * q_arr(i,j,k,QV);
+        Real rwn = rrn * q_arr(i,j,k,QW);
+        Real ekenn = 0.5_rt * rrn * (q_arr(i,j,k,QU) * q_arr(i,j,k,QU) + q_arr(i,j,k,QV) * q_arr(i,j,k,QV) + q_arr(i,j,k,QW) * q_arr(i,j,k,QW));
+        Real ren = q_arr(i,j,k,QREINT) + ekenn;
 #ifdef RADIATION
         Real ern[NGROUPS];
         for (int g = 0; g < NGROUPS; ++g) {
-            ern[g] = q(i,j,k,QRAD+g);
+            ern[g] = q_arr(i,j,k,QRAD+g);
         }
 #endif
 
@@ -787,21 +787,21 @@ Castro::actual_trans_final(const Box& bx,
             reset_state = true;
         }
 
-        qo(i,j,k,QRHO) = rrnewn;
-        qo(i,j,k,QU) = runewn / rrnewn;
-        qo(i,j,k,QV) = rvnewn / rrnewn;
-        qo(i,j,k,QW) = rwnewn / rrnewn;
+        qo_arr(i,j,k,QRHO) = rrnewn;
+        qo_arr(i,j,k,QU) = runewn / rrnewn;
+        qo_arr(i,j,k,QV) = rvnewn / rrnewn;
+        qo_arr(i,j,k,QW) = rwnewn / rrnewn;
 
         // note: we run the risk of (rho e) being negative here
         Real rhoekenn = 0.5_rt * (runewn * runewn + rvnewn * rvnewn + rwnewn * rwnewn) / rrnewn;
-        qo(i,j,k,QREINT) = renewn - rhoekenn;
+        qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
 
         if (!reset_state) {
-            if (reset_rhoe == 1 && qo(i,j,k,QREINT) <= 0.0_rt) {
+            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating
                 // (rho e).
-                qo(i,j,k,QREINT) = q(i,j,k,QREINT)
+                qo_arr(i,j,k,QREINT) = q_arr(i,j,k,QREINT)
                                  - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UEINT) -
                                                flux_t1(il_t1,jl_t1,kl_t1,UEINT) + pt1av * dut1)
                                  - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UEINT) -
@@ -812,28 +812,28 @@ Castro::actual_trans_final(const Box& bx,
             // If we are wrong, we will fix it later.
 
             // add the transverse term to the p evolution eq here
-            Real pnewn = q(i,j,k,QPRES) - pt1new - pt2new;
-            qo(i,j,k,QPRES) = pnewn;
+            Real pnewn = q_arr(i,j,k,QPRES) - pt1new - pt2new;
+            qo_arr(i,j,k,QPRES) = pnewn;
         }
         else {
-            qo(i,j,k,QPRES) = q(i,j,k,QPRES);
+            qo_arr(i,j,k,QPRES) = q_arr(i,j,k,QPRES);
         }
 
-        qo(i,j,k,QPRES) = amrex::max(qo(i,j,k,QPRES), small_p);
+        qo_arr(i,j,k,QPRES) = amrex::max(qo_arr(i,j,k,QPRES), small_p);
 
 #ifdef RADIATION
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QRAD+g) = ernewn[g];
+            qo_arr(i,j,k,QRAD+g) = ernewn[g];
         }
 
-        qo(i,j,k,QPTOT) = qo(i,j,k,QPRES);
+        qo_arr(i,j,k,QPTOT) = qo_arr(i,j,k,QPRES);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QPTOT) += lambda[g] * ernewn[g];
+            qo_arr(i,j,k,QPTOT) += lambda[g] * ernewn[g];
         }
 
-        qo(i,j,k,QREITOT) = qo(i,j,k,QREINT);
+        qo_arr(i,j,k,QREITOT) = qo_arr(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QREITOT) += qo(i,j,k,QRAD+g);
+            qo_arr(i,j,k,QREITOT) += qo_arr(i,j,k,QRAD+g);
         }
 #endif
 

@@ -153,8 +153,8 @@
 
      void actual_trans_single(const amrex::Box& bx,
                               int idir_t, int idir_n, int d,
-                              amrex::Array4<amrex::Real const> const q,
-                              amrex::Array4<amrex::Real> const qo,
+                              amrex::Array4<amrex::Real const> const q_arr,
+                              amrex::Array4<amrex::Real> const qo_arr,
                               amrex::Array4<amrex::Real const> const qaux,
                               amrex::Array4<amrex::Real const> const flux_t,
 #ifdef RADIATION
@@ -189,8 +189,8 @@
 
      void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
-                             amrex::Array4<amrex::Real const> const q,
-                             amrex::Array4<amrex::Real> const qo,
+                             amrex::Array4<amrex::Real const> const q_arr,
+                             amrex::Array4<amrex::Real> const qo_arr,
                              amrex::Array4<amrex::Real const> const qaux,
                              amrex::Array4<amrex::Real const> const flux_t1,
 #ifdef RADIATION
