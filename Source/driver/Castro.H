@@ -1461,17 +1461,6 @@ protected:
 /* problem-specific includes */
 #include <Problem.H>
 
-public: // for CUDA
-
-///
-/// integrate derived quantities over domain
-///
-/// @param name     Name of quantity to integrate
-/// @param time     current time
-/// @param local
-///
-    amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
-
 };
 
 //
