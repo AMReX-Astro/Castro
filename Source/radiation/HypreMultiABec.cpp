@@ -667,28 +667,6 @@ HypreMultiABec::HypreMultiABec(int _crse_level, int _fine_level,
     exit(1);
   }
 
-  int i;
-#if defined(BL_USE_MPI) || !(defined(BL_BGL) || defined(chaos_3_x86_64_ib) || defined(chaos_3_x86_64))
-//#if defined(BL_USE_MPI)
-  MPI_Initialized(&i);
-#else
-  i=1;
-#endif
-  if (!i) {
-    int   argc   = 1;
-    const char *argv[] = { "mf" };
-    // arguments must be set, though not used for anything important
-    MPI_Init(&argc, (char***)&argv);
-  }
-
-  int num_procs, myid;
-
-  MPI_Comm_size(MPI_COMM_WORLD, &num_procs );
-  MPI_Comm_rank(MPI_COMM_WORLD, &myid );
-
-  BL_ASSERT(ParallelDescriptor::NProcs() == num_procs);
-  BL_ASSERT(ParallelDescriptor::MyProc() == myid);
-
   int nparts = fine_level - crse_level + 1;
 
 #if (BL_SPACEDIM == 1)

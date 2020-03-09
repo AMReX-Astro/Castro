@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-
+#include "fundamental_constants.H"
 #include "Gravity.H"
 
 using namespace amrex;
@@ -436,9 +436,6 @@ Castro::do_hscf_solve()
         if (ParallelDescriptor::IOProcessor()) {
 
             // Grab the value for the solar mass.
-
-            Real M_solar;
-            scf_get_solar_mass(&M_solar);
 
             std::cout << std::endl << std::endl;
             std::cout << "   Relaxation iterations completed: " << j << std::endl;

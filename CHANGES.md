@@ -1,3 +1,9 @@
+# 20.04
+
+   * The conversion of the CTU hydrodynamics code to C++ continues.
+     The Riemann solvers were converted to C++ (#801) and the
+     hybrid momentum routines (#805).
+
 # 20.03
 
    * We now depend on the fundamental constants from Microphysics

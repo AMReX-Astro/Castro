@@ -12,7 +12,7 @@ constexpr int i0 = 2;
 constexpr int ip1 = 3;
 constexpr int ip2 = 4;
 
-AMREX_GPU_HOST_DEVICE inline
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const Real flatn, Real& sm, Real& sp) {
@@ -101,7 +101,7 @@ ppm_reconstruct(const Real* s,
 }
 
 
-AMREX_GPU_HOST_DEVICE inline
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_int_profile(const Real sm, const Real sp, const Real sc,
                 const Real u, const Real c, const Real dtdx,
