@@ -1,7 +1,5 @@
 #include "Castro.H"
-#include "Castro_F.H"
 #include "Castro_util.H"
-#include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -768,7 +766,7 @@ Castro::actual_trans_final(const Box& bx,
                                              rflux_t1(il_t1,jl_t1,kl_t1,g))
                                - cdtdx_t2 * (rflux_t2(ir_t2,jr_t2,kr_t2,g) -
                                              rflux_t2(il_t2,jl_t2,kl_t2,g))
-                        + der[g];
+                               + der[g];
         }
 #endif
 
@@ -804,10 +802,10 @@ Castro::actual_trans_final(const Box& bx,
                 // using the discretized expression for updating
                 // (rho e).
                 qo(i,j,k,QREINT) = q(i,j,k,QREINT)
-                               - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UEINT) -
-                                             flux_t1(il_t1,jl_t1,kl_t1,UEINT) + pt1av * dut1)
-                               - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UEINT) -
-                                             flux_t2(il_t2,jl_t2,kl_t2,UEINT) + pt2av * dut2);
+                                 - cdtdx_t1 * (flux_t1(ir_t1,jr_t1,kr_t1,UEINT) -
+                                               flux_t1(il_t1,jl_t1,kl_t1,UEINT) + pt1av * dut1)
+                                 - cdtdx_t2 * (flux_t2(ir_t2,jr_t2,kr_t2,UEINT) -
+                                               flux_t2(il_t2,jl_t2,kl_t2,UEINT) + pt2av * dut2);
             }
 
             // Pretend QREINT has been fixed and transverse_use_eos != 1.
