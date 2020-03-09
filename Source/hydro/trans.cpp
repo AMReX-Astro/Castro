@@ -416,9 +416,9 @@ Castro::actual_trans_single(const Box& bx,
             qo(i,j,k,QPTOT) = q(i,j,k,QPTOT) + lambda[g] * ernewn[g];
         }
 
-        q(i,j,k,QREITOT) = qo(i,j,k,QREINT);
+        qo(i,j,k,QREITOT) = qo(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            q(i,j,k,QREITOT) = qo(i,j,k,QREITOT) + qo(i,j,k,QRAD + g);
+            qo(i,j,k,QREITOT) = qo(i,j,k,QREITOT) + qo(i,j,k,QRAD + g);
         }
 #endif
 
