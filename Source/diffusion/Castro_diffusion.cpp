@@ -139,19 +139,25 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                                  BL_TO_FORTRAN_ANYD(coeff_cc));
 
                // Now average the data to zone edges.
+               Array4<Real const> const coeff_arr = coeff_cc.array();
 
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
                    const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-                   const int idir_f = idir + 1;
+                   Array4<Real> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
 
-#pragma gpu box(nbx)
-                   ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                            BL_TO_FORTRAN_ANYD(coeff_cc),
-                                            BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
-                                            idir_f);
+                   AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                   {
 
+                     if (idir == 0) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+                     } else if (idir == 1) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+                     } else {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+                     }
+                   });
                }
            }
        }
