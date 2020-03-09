@@ -413,12 +413,12 @@ Castro::actual_trans_single(const Box& bx,
 
         qo(i,j,k,QPTOT) = qo(i,j,k,QPRES);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QPTOT) = q(i,j,k,QPTOT) + lambda[g] * ernewn[g];
+            qo(i,j,k,QPTOT) += lambda[g] * ernewn[g];
         }
 
         qo(i,j,k,QREITOT) = qo(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QREITOT) = qo(i,j,k,QREITOT) + qo(i,j,k,QRAD + g);
+            qo(i,j,k,QREITOT) += qo(i,j,k,QRAD + g);
         }
 #endif
 
@@ -828,12 +828,12 @@ Castro::actual_trans_final(const Box& bx,
 
         qo(i,j,k,QPTOT) = qo(i,j,k,QPRES);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QPTOT) = qo(i,j,k,QPTOT) + lambda[g] * ernewn[g];
+            qo(i,j,k,QPTOT) += lambda[g] * ernewn[g];
         }
 
         qo(i,j,k,QREITOT) = qo(i,j,k,QREINT);
         for (int g = 0; g < NGROUPS; ++g) {
-            qo(i,j,k,QREITOT) = qo(i,j,k,QREITOT) + qo(i,j,k,QRAD+g);
+            qo(i,j,k,QREITOT) += qo(i,j,k,QRAD+g);
         }
 #endif
 
