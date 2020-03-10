@@ -107,7 +107,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
   ustar_l = ul - (pstar_hi - pstar)*wl;
   ustar_r = ur + (pstar_hi - pstar)*wr;
 
-  Real f_hi = ustar_l - ustar_r;
+  //Real f_hi = ustar_l - ustar_r;
 
   // bisection
   converged = false;
@@ -140,7 +140,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
     if (f_lo * f_c < 0.0_rt) {
       // root is in the left half
       pstar_hi = pstar_c;
-      f_hi = f_c;
+      //f_hi = f_c;
     } else {
       pstar_lo = pstar_c;
       f_lo = f_c;

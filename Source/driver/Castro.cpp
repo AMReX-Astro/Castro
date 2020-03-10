@@ -2871,24 +2871,24 @@ Castro::errorEst (TagBoxArray& tags,
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    Real t = time;
+    Real ltime = time;
 
     // If we are forcing a post-timestep regrid,
     // note that we need to use the new time here,
     // not the old time.
 
     if (post_step_regrid)
-        t = get_state_data(State_Type).curTime();
+        ltime = get_state_data(State_Type).curTime();
 
     // Apply each of the specified tagging functions.
 
     for (int j = 0; j < num_err_list_default; j++) {
-        apply_tagging_func(tags, t, j);
+        apply_tagging_func(tags, ltime, j);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, t);
+    apply_problem_tags(tags, ltime);
 }
 
 
