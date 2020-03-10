@@ -529,6 +529,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     lamborder.clear();
 #endif
 
+    source_corrector.clear();
     sources_for_hydro.clear();
 
     if (!keep_prev_state)
