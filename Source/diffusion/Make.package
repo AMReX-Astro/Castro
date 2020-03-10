@@ -3,6 +3,7 @@
 
 CEXE_headers += Castro_diffusion.H
 FEXE_headers += Castro_diffusion_F.H
+ca_F90EXE_sources += Diffusion_nd.F90
 
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
