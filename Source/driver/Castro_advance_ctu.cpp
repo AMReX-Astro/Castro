@@ -79,6 +79,21 @@ Castro::do_advance_ctu(Real time,
     }
 #endif
 
+    // Zero out the source term data.
+
+    sources_for_hydro.setVal(0.0, NUM_GROW);
+
+    // Add any correctors to the source term data.
+
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+        // Add the source term predictor (scaled by dt/2).
+        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        // Time center the sources.
+        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
+    }
+
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
     // later.  Note -- this does not affect the prediction of the
@@ -308,12 +323,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         }
 
-        // Reset the source term predictor.
-
-        if (do_hydro) {
-            sources_for_hydro.setVal(0.0, NUM_GROW);
-        }
-
         // Clear the contribution to the fluxes from this step.
 
         for (int dir = 0; dir < 3; ++dir)
@@ -332,38 +341,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             for (int dir = 0; dir < BL_SPACEDIM; ++dir)
                 rad_fluxes[dir]->setVal(0.0);
 #endif
-
-        if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-
-            // Normally the source term predictor is done before the swap,
-            // but the prev_state data is saved after the initial swap had
-            // been done. So we will temporarily swap the state data back,
-            // and reset the time levels.
-
-            // Note that unlike the initial application of the source term
-            // predictor before the swap, the old data will have already
-            // been allocated when we get to this point. So we want to skip
-            // this step if we didn't have old data initially.
-
-            if (prev_state_had_old_data) {
-
-                swap_state_time_levels(0.0);
-
-                const Real dt_old = prev_state_new_time - prev_state_old_time;
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
-
-                apply_source_term_predictor();
-
-                swap_state_time_levels(0.0);
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(time + dt_subcycle, dt_subcycle, 0.0);
-
-            }
-
-        }
 
         if (track_grid_losses)
             for (int i = 0; i < n_lost; i++)
@@ -464,16 +441,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // and when we are not doing a retry (which handles the swap).
 
         if (do_swap) {
-
-            // Reset the source term predictor.
-            // This must come before the swap.
-
-            if (do_hydro) {
-                sources_for_hydro.setVal(0.0, NUM_GROW);
-            }
-
-            if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1)
-                apply_source_term_predictor();
 
             swap_state_time_levels(0.0);
 

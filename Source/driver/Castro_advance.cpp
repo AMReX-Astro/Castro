@@ -159,12 +159,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #endif
 #endif
 
-    // Scale the source term predictor by the current timestep.
-
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        sources_for_hydro.mult(0.5 * dt, NUM_GROW);
-    }
-
     // For the hydrodynamics update we need to have NUM_GROW ghost
     // zones available, but the state data does not carry ghost
     // zones. So we use a FillPatch using the state data to give us
@@ -326,31 +320,20 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 
     // This array holds the sum of all source terms that affect the
-    // hydrodynamics.  If we are doing the source term predictor,
-    // we'll also use this after the hydro update to store the sum of
-    // the new-time sources, so that we can compute the time
-    // derivative of the source terms.
+    // hydrodynamics.
 
     sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
-    // Add the source term predictor.
+    // This array holds the source term corrector.
+
+    source_corrector.define(grids, dmap, NSRC, NUM_GROW);
+    source_corrector.setVal(0.0, NUM_GROW);
+
+    // Calculate the source term corrector.
     // This must happen before the swap.
 
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        apply_source_term_predictor();
-    }
-
-    // If we're doing simplified SDC, time-center the source term (using the
-    // current iteration's old sources and the last iteration's new
-    // sources). Since the "new-time" sources are just the corrector step
-    // of the predictor-corrector formalism, we want to add the full
-    // value of the "new-time" sources to the old-time sources to get a
-    // time-centered value.
-
-    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-    }
+    create_source_corrector();
 
     // Swap the new data from the last timestep into the old state data.
 

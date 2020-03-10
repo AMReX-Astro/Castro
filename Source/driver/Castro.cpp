@@ -3344,41 +3344,59 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
 
 void
-Castro::apply_source_term_predictor()
+Castro::create_source_corrector()
 {
 
-    BL_PROFILE("Castro::apply_source_term_predictor()");
+    BL_PROFILE("Castro::create_source_corrector()");
 
-    // Optionally predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term. We defer the
-    // multiplication by dt / 2 to initialize_do_advance since
-    // for a retry we may not yet know at this point what the
-    // advance timestep is.
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
 
-    // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
-    // we only need to take twice the new-time source term, since in
-    // the predictor-corrector approach, the new-time source term is
-    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
-    // non-momentum sources, so for safety we'll only apply it to the
-    // momentum sources.
+        // Optionally predict the source terms to t + dt/2,
+        // which is the time-level n+1/2 value, To do this we use a
+        // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+        // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+        // terms later; now we add the second term. We defer the
+        // multiplication by dt / 2 to initialize_do_advance since
+        // for a retry we may not yet know at this point what the
+        // advance timestep is.
 
-    // Note that if the old data doesn't exist yet (e.g. it is
-    // the first step of the simulation) FillPatch will just
-    // return the new data, so this is a valid operation and
-    // the result will be zero, so there is no source term
-    // prediction in the first step.
+        // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+        // we only need to take twice the new-time source term, since in
+        // the predictor-corrector approach, the new-time source term is
+        // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
+        // non-momentum sources, so for safety we'll only apply it to the
+        // momentum sources.
 
-    const Real old_time = get_state_data(Source_Type).prevTime();
-    const Real new_time = get_state_data(Source_Type).curTime();
+        // Note that if the old data doesn't exist yet (e.g. it is
+        // the first step of the simulation) FillPatch will just
+        // return the new data, so this is a valid operation and
+        // the result will be zero, so there is no source term
+        // prediction in the first step.
 
-    const Real dt_old = new_time - old_time;
+        const Real old_time = get_state_data(Source_Type).prevTime();
+        const Real new_time = get_state_data(Source_Type).curTime();
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
+        const Real dt_old = new_time - old_time;
 
-    sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
+
+        source_corrector.mult(2.0 / dt_old, NUM_GROW);
+
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        // If we're doing simplified SDC, time-center the source term (using the
+        // current iteration's old sources and the last iteration's new
+        // sources). Since the "new-time" sources are just the corrector step
+        // of the predictor-corrector formalism, we want to add the full
+        // value of the "new-time" sources to the old-time sources to get a
+        // time-centered value.
+
+        const Real new_time = get_state_data(Source_Type).curTime();
+
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, new_time, Source_Type, 0, NSRC);
+
+    }
 
 }
 
