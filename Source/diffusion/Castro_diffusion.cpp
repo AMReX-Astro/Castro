@@ -5,6 +5,8 @@
 using std::string;
 
 #include "Diffusion.H"
+#include "eos.H"
+#incluce "conductivity.H"
 
 using namespace amrex;
 
@@ -132,14 +134,48 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                const Box& obx = amrex::grow(bx, 1);
                coeff_cc.resize(obx, 1);
                Elixir elix_coeff_cc = coeff_cc.elixir();
+               Array4<Real> const coeff_arr = coeff_cc.array();
 
-#pragma gpu box(obx)
-               ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(grown_state[mfi]),
-                                 BL_TO_FORTRAN_ANYD(coeff_cc));
+               Array4<Real const> const U_arr = grown_state.array(mfi);
 
-               // Now average the data to zone edges.
-               Array4<Real const> const coeff_arr = coeff_cc.array();
+               AMREX_PARALLEL_FOR_3D(obx, i, j, k,
+               {
+
+                 eos_t eos_state;
+                 eos_state.rho  = U_arr(i,j,k,URHO);
+                 Real rhoinv = 1.0_rt/eos_state.rho;
+
+                 eos_state.T = U_arr(i,j,k,UTEMP);   // needed as an initial guess
+                 eos_state.e = U_arr(i,j,k,UEINT) * rhoinv;
+                 for (int n = 0; n < NumSpec; n++) {
+                   eos_state.xn[n] = state(i,j,k,UFS+n) * rhoinv;
+                 }
+                 for (int n = 0; n < NumAux; n++) {
+                   eos_state.aux[n] = state(i,j,k,UFX+n) * rhoinv;
+                 }
+
+                 if (eos_state.e < 0.0_rt) {
+                   eos_state.T = small_temp;
+                   eos(eos_input_rt, eos_state);
+                 } else {
+                   eos(eos_input_re, eos_state);
+                 }
+
+
+                 if (eos_state.rho > diffuse_cutoff_density) {
+                   conductivity(eos_state);
+
+                   if (eos_state.rho < diffuse_cutoff_density_hi) {
+                     Real multiplier = (eos_state.rho - diffuse_cutoff_density) /
+                       (diffuse_cutoff_density_hi - diffuse_cutoff_density);
+                     eos_state.conductivity = eos_state.conductivity * multiplier;
+                   }
+                 } else {
+                   eos_state.conductivity = 0.0_rt;
+                 }
+                 coeff_arr(i,j,k) = diffuse_cond_scale_fac * eos_state.conductivity;
+
+               });
 
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
