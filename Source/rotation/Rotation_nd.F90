@@ -54,8 +54,6 @@ contains
 
   end subroutine inertial_to_rotational_velocity
 
-
-
   function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
     ! Given a position and velocity, calculate
     ! the rotational acceleration. This is the sum of:

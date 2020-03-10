@@ -196,3 +196,30 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
     }
 
 }
+
+
+void
+Castro::inertial_to_rotational_velocity(const int i, const int j, const int k,
+                                        const GeometryData& geomdata, const Real* center,
+                                        const Real* omega,
+                                        const Real time, Real& v) {
+
+  // Given a velocity vector in the inertial frame, transform it to a
+  // velocity vector in the rotating frame.
+
+  // Note: this version assumes all cell-centers
+
+  Real loc[3];
+
+  position(i, j, k, geomdata, loc, ccx, ccy, ccz);
+
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    loc[dir] -= center[dir];
+  }
+
+  // do the cross product Omega x loc
+  v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
+  v[1] += -(omega[2]*loc[0] - omega[0]*loc[2]);
+  v[2] += -(omega[0]*loc[1] - omega[1]*loc[0]);
+
+}
