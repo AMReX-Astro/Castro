@@ -160,6 +160,22 @@
 #endif
                        amrex::Real hdt, amrex::Real cdtdx);
 
+     void actual_trans_single(const amrex::Box& bx,
+                              int idir_t, int idir_n, int d,
+                              amrex::Array4<amrex::Real const> const q_arr,
+                              amrex::Array4<amrex::Real> const qo_arr,
+                              amrex::Array4<amrex::Real const> const qaux,
+                              amrex::Array4<amrex::Real const> const flux_t,
+#ifdef RADIATION
+                              amrex::Array4<amrex::Real const> const rflux_t,
+#endif
+                              amrex::Array4<amrex::Real const> const q_t,
+#if AMREX_SPACEDIM == 2
+                              amrex::Array4<amrex::Real const> const area_t,
+                              amrex::Array4<amrex::Real const> const vol,
+#endif
+                              amrex::Real hdt, amrex::Real cdtdx);
+
      void trans_final(const amrex::Box& bx,
                       int idir_n, int idir_t1, int idir_t2,
                       amrex::Array4<amrex::Real const> const qm,
@@ -179,6 +195,24 @@
                       amrex::Array4<amrex::Real const> const q_t2,
                       amrex::Real hdt, amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
+
+     void actual_trans_final(const amrex::Box& bx,
+                             int idir_n, int idir_t1, int idir_t2, int d,
+                             amrex::Array4<amrex::Real const> const q_arr,
+                             amrex::Array4<amrex::Real> const qo_arr,
+                             amrex::Array4<amrex::Real const> const qaux,
+                             amrex::Array4<amrex::Real const> const flux_t1,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real const> const rflux_t1,
+#endif
+                             amrex::Array4<amrex::Real const> const flux_t2,
+#ifdef RADIATION
+                             amrex::Array4<amrex::Real const> const rflux_t2,
+#endif
+                             amrex::Array4<amrex::Real const> const q_t1,
+                             amrex::Array4<amrex::Real const> const q_t2,
+                             amrex::Real hdt, amrex::Real cdtdx_n,
+                             amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
     void trace_ppm(const amrex::Box& bx,
                    const int idir,

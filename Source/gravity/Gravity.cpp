@@ -671,27 +671,16 @@ Gravity::GetCrsePhi(int level,
     Real alpha = (time - t_old)/(t_new - t_old);
     Real omalpha = 1.0 - alpha;
 
+    MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
+
     phi_crse.clear();
     phi_crse.define(grids[level-1], dmap[level-1], 1, 1); // BUT NOTE we don't trust phi's ghost cells.
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-        FArrayBox PhiCrseTemp;
-        for (MFIter mfi(phi_crse, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
-            const Box& gtbx = mfi.growntilebox();
 
-            PhiCrseTemp.resize(gtbx,1);
-
-            PhiCrseTemp.copy(LevelData[level-1]->get_old_data(PhiGrav_Type)[mfi]);
-            PhiCrseTemp.mult(omalpha);
-
-            phi_crse[mfi].copy(LevelData[level-1]->get_new_data(PhiGrav_Type)[mfi], gtbx);
-            phi_crse[mfi].mult(alpha, gtbx);
-            phi_crse[mfi].plus(PhiCrseTemp);
-        }
-    }
+    MultiFab::LinComb(phi_crse,
+                      alpha  , phi_new, 0,
+                      omalpha, phi_old, 0,
+                      0, 1, 1);
 
     const Geometry& geom = parent->Geom(level-1);
     phi_crse.FillBoundary(geom.periodicity());
