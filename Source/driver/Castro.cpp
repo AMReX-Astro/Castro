@@ -749,6 +749,8 @@ Castro::initMFs()
     lastDtRetryLimited = false;
     lastDtFromRetry = 1.e200;
 
+    lastDt = 1.e200;
+
 }
 
 void
@@ -3356,31 +3358,31 @@ Castro::create_source_corrector()
         // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
         // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
         // terms later; now we add the second term. We defer the
-        // multiplication by dt / 2 to initialize_do_advance since
-        // for a retry we may not yet know at this point what the
+        // multiplication by dt / 2 until the actual advance, since
+        // we may be subcycling and thus not know yet what the
         // advance timestep is.
 
         // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
-        // we only need to take twice the new-time source term, since in
-        // the predictor-corrector approach, the new-time source term is
-        // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
-        // non-momentum sources, so for safety we'll only apply it to the
-        // momentum sources.
+        // we only need to take twice the new-time source term from the
+        // last timestep, since in the predictor-corrector approach,
+        // the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}.
+        // This is untrue in general for the non-momentum sources,
+        // so for safety we'll only apply it to the momentum sources.
 
-        // Note that if the old data doesn't exist yet (e.g. it is
-        // the first step of the simulation) FillPatch will just
-        // return the new data, so this is a valid operation and
-        // the result will be zero, so there is no source term
-        // prediction in the first step.
+        // Even though we're calculating this predictor from the last
+        // timestep, we've already done the swap, so the "new" data
+        // from the last timestep is currently residing in the "old"
+        // StateData. (As a corollary, this operation must be done
+        // prior to updating any of the source StateData.) Since the
+        // dt comes from the last timestep, which is no longer equal
+        // to the difference between prevTime and curTime, we rely
+        // on our recording of the last dt from the previous advance.
 
-        const Real old_time = get_state_data(Source_Type).prevTime();
-        const Real new_time = get_state_data(Source_Type).curTime();
+        const Real time = get_state_data(Source_Type).prevTime();
 
-        const Real dt_old = new_time - old_time;
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, UMX, 3, UMX);
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
-
-        source_corrector.mult(2.0 / dt_old, NUM_GROW);
+        source_corrector.mult(2.0 / lastDt, NUM_GROW);
 
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -3390,11 +3392,13 @@ Castro::create_source_corrector()
         // sources). Since the "new-time" sources are just the corrector step
         // of the predictor-corrector formalism, we want to add the full
         // value of the "new-time" sources to the old-time sources to get a
-        // time-centered value.
+        // time-centered value. Note that, as above, the "new" data from the
+        // last step is currently residing in the "old" StateData since we
+        // have already done the swap.
 
-        const Real new_time = get_state_data(Source_Type).curTime();
+        const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, new_time, Source_Type, 0, NSRC);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, 0, NSRC);
 
     }
 

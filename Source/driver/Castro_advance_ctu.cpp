@@ -83,7 +83,10 @@ Castro::do_advance_ctu(Real time,
 
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
-    // Add any correctors to the source term data.
+    // Add any correctors to the source term data. This must be done
+    // before the source term data is overwritten below.
+
+    create_source_corrector();
 
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         // Add the source term predictor (scaled by dt/2).
@@ -556,6 +559,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             }
 
         }
+
+        // Continually record the last timestep we took on this level
+        // in case we need it later. We only record it if the subcycle
+        // was completed successfully (i.e. we got to this point).
+        // Note: this is different from last_dt_subcycle. This variable
+        // records the actual timestep taken in this subcycle, while
+        // the other one records the timestep as if it had not been
+        // modified by the constraint of matching the final time.
+
+        lastDt = dt_subcycle;
 
     }
 

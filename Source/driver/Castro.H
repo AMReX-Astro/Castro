@@ -1351,6 +1351,7 @@ protected:
     int lastDtRetryLimited;
     amrex::Real lastDtFromRetry;
 
+    amrex::Real lastDt;
 
 ///
 /// for keeping track of mass changes from negative density resets

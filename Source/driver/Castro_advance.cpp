@@ -330,11 +330,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     source_corrector.define(grids, dmap, NSRC, NUM_GROW);
     source_corrector.setVal(0.0, NUM_GROW);
 
-    // Calculate the source term corrector.
-    // This must happen before the swap.
-
-    create_source_corrector();
-
     // Swap the new data from the last timestep into the old state data.
 
     swap_state_time_levels(dt);
