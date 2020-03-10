@@ -316,6 +316,7 @@ extern "C"
         FArrayBox coeff_cc;
         coeff_cc.resize(obx, 1);
         Elixir elix_coeff_cc = coeff_cc.elixir();
+        Array4<Real> const coeff_arr = coeff_cc.array();
 
         FArrayBox coeffs[3];
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -337,13 +338,19 @@ extern "C"
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-            const int idir_f = idir + 1;
+            Array4<Real> const edge_coeff_arr = (coeffs[idir]).array();
 
-#pragma gpu box(nbx)
-            ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(coeff_cc),
-                                     BL_TO_FORTRAN_ANYD(coeffs[idir]),
-                                     idir_f);
+            AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+            {
+
+              if (idir == 0) {
+                edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+              } else if (idir == 1) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+              } else {
+                edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+              }
+            });
 
         }
 
