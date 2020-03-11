@@ -820,7 +820,7 @@ public:
 /// Currently this is a lagged predictor for CTU and the
 /// time-centering correction for simplified SDC.
 ///
-    void apply_source_corrector(amrex::Real dt);
+    void create_source_corrector();
 
 
 ///
@@ -1077,6 +1077,11 @@ protected:
 ///
     amrex::MultiFab sources_for_hydro;
 
+
+///
+/// Source term corrector.
+///
+    amrex::MultiFab source_corrector;
 
 
 ///

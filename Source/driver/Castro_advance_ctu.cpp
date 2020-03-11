@@ -86,7 +86,16 @@ Castro::do_advance_ctu(Real time,
     // Add any correctors to the source term data. This must be done
     // before the source term data is overwritten below.
 
-    apply_source_corrector(dt);
+    create_source_corrector();
+
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+        // Add the source term predictor (scaled by dt/2).
+        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        // Time center the sources.
+        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
+    }
 
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly

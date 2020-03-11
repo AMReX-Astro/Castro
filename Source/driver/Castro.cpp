@@ -3346,10 +3346,10 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
 
 void
-Castro::apply_source_corrector(Real dt)
+Castro::create_source_corrector()
 {
 
-    BL_PROFILE("Castro::apply_source_corrector()");
+    BL_PROFILE("Castro::create_source_corrector()");
 
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
 
@@ -3357,7 +3357,10 @@ Castro::apply_source_corrector(Real dt)
         // which is the time-level n+1/2 value, To do this we use a
         // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
         // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-        // terms later; now we add the second term.
+        // terms later; now we add the second term. We defer the
+        // multiplication by dt / 2 until the actual advance, since
+        // we may be subcycling and thus not know yet what the
+        // advance timestep is.
 
         // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
         // we only need to take twice the new-time source term from the
@@ -3377,9 +3380,9 @@ Castro::apply_source_corrector(Real dt)
 
         const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, UMX, 3, UMX);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, UMX, 3, UMX);
 
-        sources_for_hydro.mult(dt / lastDt, NUM_GROW);
+        source_corrector.mult(2.0 / lastDt, NUM_GROW);
 
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -3395,9 +3398,7 @@ Castro::apply_source_corrector(Real dt)
 
         const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-
-        sources_for_hydro.mult(0.5 * dt, NUM_GROW);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, 0, NSRC);
 
     }
 

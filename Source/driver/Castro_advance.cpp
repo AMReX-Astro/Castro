@@ -325,6 +325,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
+    // This array holds the source term corrector.
+
+    source_corrector.define(grids, dmap, NSRC, NUM_GROW);
+    source_corrector.setVal(0.0, NUM_GROW);
+
     // Swap the new data from the last timestep into the old state data.
 
     swap_state_time_levels(dt);
@@ -519,6 +524,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     lamborder.clear();
 #endif
 
+    source_corrector.clear();
     sources_for_hydro.clear();
 
     if (!keep_prev_state)
