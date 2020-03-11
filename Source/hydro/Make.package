@@ -13,16 +13,18 @@ endif
 FEXE_headers += Castro_hydro_F.H
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
+  CEXE_headers += hybrid.H
   CEXE_sources += Castro_hybrid.cpp
   ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
 ca_F90EXE_sources += advection_util_nd.F90
 
-ca_F90EXE_sources += ppm_nd.F90
 CEXE_headers += ppm.H
-ca_F90EXE_sources += riemann_nd.F90
-ca_F90EXE_sources += riemann_util_nd.F90
+CEXE_sources += riemann.cpp
+CEXE_sources += riemann_solvers.cpp
+CEXE_sources += riemann_util.cpp
+CEXE_headers += riemann.H
 ca_F90EXE_sources += slope_nd.F90
 ca_F90EXE_sources += trace_plm_nd.F90
 CEXE_sources += trace_ppm.cpp

@@ -68,25 +68,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   }
   bho = 0; // higher order boundaries don't work with symmetric matrices
 
-  int i;
-#if defined(BL_USE_MPI) || !(defined(BL_BGL) || defined(chaos_3_x86_64_ib) || defined(chaos_3_x86_64))
-  MPI_Initialized(&i);
-#else
-  i=1;
-#endif
-  if (!i) {
-    int   argc   = 1;
-    const char *argv[] = { "mf" };
-    // arguments must be set, though not used for anything important
-    MPI_Init(&argc, (char***)&argv);
-  }
-
-  int num_procs, myid;
-
-  MPI_Comm_size(MPI_COMM_WORLD, &num_procs );
-  MPI_Comm_rank(MPI_COMM_WORLD, &myid );
-
-  for (i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < BL_SPACEDIM; i++) {
     dx[i] = geom.CellSize(i);
   }
 
@@ -117,7 +99,7 @@ HypreABec::HypreABec(const BoxArray& grids,
 
   if (geom.isAnyPeriodic()) {
     int is_periodic[BL_SPACEDIM];
-    for (i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < BL_SPACEDIM; i++) {
       is_periodic[i] = 0;
       if (geom.isPeriodic(i)) {
         is_periodic[i] = geom.period(i);
@@ -129,19 +111,16 @@ HypreABec::HypreABec(const BoxArray& grids,
   }
 #endif
 
-  if (num_procs != 1) {
+  if (ParallelDescriptor::NProcs() != 1) {
     // parallel section:
-    BL_ASSERT(ParallelDescriptor::NProcs() == num_procs);
-    BL_ASSERT(ParallelDescriptor::MyProc() == myid);
-
-    for (i = 0; i < grids.size(); i++) {
-      if (dmap[i] == myid) {
+    for (int i = 0; i < grids.size(); i++) {
+      if (dmap[i] == ParallelDescriptor::MyProc()) {
         HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
       }
     }
   }
   else {
-    for (i = 0; i < grids.size(); i++) {
+    for (int i = 0; i < grids.size(); i++) {
       HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
     }
   }
@@ -185,7 +164,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   HYPRE_StructStencilCreate(BL_SPACEDIM, BL_SPACEDIM + 1, &stencil);
 #endif
 
-  for (i = 0; i < BL_SPACEDIM + 1; i++) {
+  for (int i = 0; i < BL_SPACEDIM + 1; i++) {
     HYPRE_StructStencilSetElement(stencil, i, offsets[i]);
   }
 
@@ -216,7 +195,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
  
-  for (i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < BL_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
     bcoefs[i].reset(new MultiFab(edge_boxes, dmap, ncomp, ngrow));

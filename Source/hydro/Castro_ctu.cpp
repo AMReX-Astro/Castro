@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -32,12 +33,11 @@ Castro::consup_hydro(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
-  const int flux_has_p = momx_flux_has_p[0];
+  int coord = geom.Coord();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -87,7 +87,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! flux_has_p) {
+      if (!mom_flux_has_p(0, 0, coord)) {
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
@@ -158,3 +158,66 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     }
   }
 }
+
+
+#ifdef RADIATION
+void
+Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
+                           Array4<Real const> const q_arr,
+                           Array4<Real const> const flatn,
+                           Array4<Real const> const qaux_arr,
+                           Array4<Real const> const srcQ,
+                           Array4<Real> const qxm,
+                           Array4<Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                           Array4<Real> const qym,
+                           Array4<Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                           Array4<Real> const qzm,
+                           Array4<Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                           Array4<Real const> const dloga,
+#endif
+                           const Real dt) {
+
+
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+    if (idir == 0) {
+
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    } else {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qzm, qzp,
+                    vbx, dt);
+
+#endif
+    }
+  }
+}
+#endif
