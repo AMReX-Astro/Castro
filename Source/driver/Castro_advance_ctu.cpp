@@ -36,6 +36,30 @@ Castro::do_advance_ctu(Real time,
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+    // Zero out the source term data.
+
+    sources_for_hydro.setVal(0.0, NUM_GROW);
+
+    // Add any correctors to the source term data. This must be done
+    // before the source term data is overwritten below. Note: we do
+    // not create the corrector source if we're currently retrying the
+    // step; we will already have done it, and aside from avoiding
+    // duplicate work, we have already lost the data needed to do this
+    // calculation since we overwrote the data from the previous step.
+
+    if (!in_retry) {
+        create_source_corrector();
+    }
+
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+        // Add the source term predictor (scaled by dt/2).
+        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        // Time center the sources.
+        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
+    }
+
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
@@ -78,30 +102,6 @@ Castro::do_advance_ctu(Real time,
 
     }
 #endif
-
-    // Zero out the source term data.
-
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
-    // Add any correctors to the source term data. This must be done
-    // before the source term data is overwritten below. Note: we do
-    // not create the corrector source if we're currently retrying the
-    // step; we will already have done it, and aside from avoiding
-    // duplicate work, we have already lost the data needed to do this
-    // calculation since we overwrote the data from the previous step.
-
-    if (!in_retry) {
-        create_source_corrector();
-    }
-
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        // Add the source term predictor (scaled by dt/2).
-        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        // Time center the sources.
-        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
-    }
 
     // Construct the old-time sources from Sborder.  This will already
     // be applied to S_new (with full dt weighting), to be correctly
