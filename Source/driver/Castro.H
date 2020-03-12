@@ -1350,6 +1350,7 @@ protected:
 
     int lastDtRetryLimited;
     amrex::Real lastDtFromRetry;
+    int in_retry;
 
     amrex::Real lastDt;
 

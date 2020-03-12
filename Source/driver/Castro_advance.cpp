@@ -234,6 +234,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     lastDtRetryLimited = 0;
     lastDtFromRetry = 1.e200;
+    in_retry = false;
 
     if (use_post_step_regrid && level > 0) {
 

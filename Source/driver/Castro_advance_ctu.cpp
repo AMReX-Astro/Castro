@@ -84,9 +84,15 @@ Castro::do_advance_ctu(Real time,
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
     // Add any correctors to the source term data. This must be done
-    // before the source term data is overwritten below.
+    // before the source term data is overwritten below. Note: we do
+    // not create the corrector source if we're currently retrying the
+    // step; we will already have done it, and aside from avoiding
+    // duplicate work, we have already lost the data needed to do this
+    // calculation since we overwrote the data from the previous step.
 
-    create_source_corrector();
+    if (!in_retry) {
+        create_source_corrector();
+    }
 
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         // Add the source term predictor (scaled by dt/2).
@@ -556,6 +562,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 subcycle_time = time;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;
+                in_retry = true;
+            }
+            else {
+                in_retry = false;
             }
 
         }
