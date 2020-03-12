@@ -414,8 +414,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
-        sub_iteration += 1;
-
         if (dt_subcycle < dt_cutoff) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
@@ -461,13 +459,14 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration << " starting at time " << subcycle_time
+            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
-        // Swap the time levels. Only do this after the first iteration,
-        // and when we are not doing a retry (which handles the swap).
+        // Swap the time levels. Only do this after the first iteration;
+        // the first iteration used the swap done in initialize_advance.
+        // After that, the only exception will be if we do a retry.
 
         if (do_swap) {
 
@@ -480,11 +479,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 #endif
 
         }
+        else {
 
-        // Assume we want to do a swap in the next iteration,
-        // unless the retry tells us otherwise.
+            do_swap = true;
 
-        do_swap = true;
+        }
 
         // Set the relevant time levels.
 
@@ -561,8 +560,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
 
-        subcycle_time += dt_subcycle;
-
         // If we have hit a CFL violation during this subcycle, we must abort.
 
         if (cfl_violation && !use_retry)
@@ -578,17 +575,20 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, advance_success)) {
                 do_swap = false;
-                sub_iteration = 0;
-                subcycle_time = time;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;
                 in_retry = true;
+
+                continue;
             }
             else {
                 in_retry = false;
             }
 
         }
+
+        subcycle_time += dt_subcycle;
+        sub_iteration += 1;
 
         // Continually record the last timestep we took on this level
         // in case we need it later. We only record it if the subcycle
