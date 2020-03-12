@@ -307,19 +307,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // If we're going to do a retry, or more generally if we're about to
-    // subcycle the advance, save the simulation times of the
-    // previous state data. This must happen before the swap.
-
-    if (use_retry || do_subcycle) {
-
-        prev_state_old_time = get_state_data(State_Type).prevTime();
-        prev_state_new_time = get_state_data(State_Type).curTime();
-
-        prev_state_had_old_data = get_state_data(State_Type).hasOldData();
-
-    }
-
     // This array holds the sum of all source terms that affect the
     // hydrodynamics.
 

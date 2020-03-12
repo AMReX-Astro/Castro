@@ -1139,13 +1139,6 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
 
 
-///
-/// Save the simulation time of the prev_state.
-///
-    amrex::Real prev_state_old_time;
-    amrex::Real prev_state_new_time;
-    bool prev_state_had_old_data;
-
 
 ///
 /// Flag for indicating that we want to save prev_state until the reflux.
