@@ -342,37 +342,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     for (int k = 0; k < num_state_type; ++k)
         prev_state[k].reset(new StateData());
 
-    // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
-
-    if (use_retry || do_subcycle) {
-
-      // Store the old and new time levels.
-
-      for (int k = 0; k < num_state_type; k++) {
-
-        // We want to store the previous state in pinned memory
-        // if we're running on a GPU. This helps us alleviate
-        // pressure on the GPU memory, at the slight cost of
-        // lower bandwidth when we are saving/restoring the state.
-        // Since we're using operator= to copy the StateData,
-        // we'll use a trick where we temporarily change the
-        // the arena used by the main state and then immediately
-        // restore it.
-
-#ifdef AMREX_USE_GPU
-        Arena* old_arena = state[k].getArena();
-        state[k].setArena(The_Pinned_Arena());
-#endif
-
-        *prev_state[k] = state[k];
-
-#ifdef AMREX_USE_GPU
-        state[k].setArena(old_arena);
-#endif
-      }
-
-    }
-
     // This array holds the hydrodynamics update.
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       hydro_source.define(grids,dmap,NUM_STATE,0);
