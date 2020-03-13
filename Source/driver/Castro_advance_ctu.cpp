@@ -543,8 +543,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             advance_success = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
 #ifdef SIMPLIFIED_SDC
-            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #ifdef REACTIONS
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 if (do_react && advance_success) {
 
                     // Do the ODE integration to capture the reaction source terms.
@@ -567,24 +567,27 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 #endif
 
                 }
-#endif
-
-                if (in_retry) {
-                    in_retry = false;
-                }
-
-                if (!advance_success) {
-                    if (use_retry) {
-                        amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
-                    } else {
-                        amrex::Abort("Advance was unsuccessful.");
-                    }
-                    break;
-                }
-
-                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 #endif
+#endif
+
+            if (in_retry) {
+                in_retry = false;
+            }
+
+            if (!advance_success) {
+                if (use_retry) {
+                    amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
+                } else {
+                    amrex::Abort("Advance was unsuccessful.");
+                }
+                break;
+            }
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
+            }
+
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
@@ -611,6 +614,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 in_retry = true;
 
                 continue;
+            }
+            else {
+                in_retry = false;
             }
 
         }
