@@ -515,6 +515,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             num_sub_iters = sdc_iters;
+
+            // If we're in a retry we want to add one more iteration. This is
+            // because we will have zeroed out the lagged corrector from the
+            // last iteration/timestep and so having another iteration will
+            // approximately compensate for that.
+
+            if (in_retry) {
+                num_sub_iters += 1;
+                amrex::Print() << "Adding an SDC iteration due to the retry" << std::endl << std::endl;
+            }
         }
 
         bool advance_success = true;
@@ -523,7 +533,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 sdc_iteration = n;
-                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 
             // We do the hydro advance here, and record whether we completed it.
@@ -572,7 +582,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                     break;
                 }
 
-                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 #endif
         }
