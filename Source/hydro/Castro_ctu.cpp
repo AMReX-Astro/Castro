@@ -226,8 +226,8 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 void
 Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real const> const q_arr,
-                       Array4<Real const> const flatn,
-                       Array4<Real const> const qaux__arr,
+                       Array4<Real const> const flatn_arr,
+                       Array4<Real const> const qaux_arr,
                        Array4<Real const> const srcQ,
                        Array4<Real> const dq,
                        Array4<Real> const qxm,
@@ -276,7 +276,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
     }
 
     if (use_pslope == 1) {
-      pslope(bx, idir, &
+      pslope(bx, idir,
              q_arr,
              flatn_arr, dq, srcQ);
     }
@@ -290,7 +290,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM < 3
                 dloga,
 #endif
-                SrcQ, vbx, dt);
+                srcQ, vbx, dt);
 
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
@@ -300,7 +300,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM < 3
                 dloga,
 #endif
-                SrcQ, vbx, dt);
+                srcQ, vbx, dt);
 #endif
 
 #if AMREX_SPACEDIM == 3
@@ -308,7 +308,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       trace_plm(bx, 2,
                 q_arr, qaux_arr, dq,
                 qzm, qzp,
-                SrcQ, vbx, dt);
+                srcQ, vbx, dt);
 #endif
     }
   }

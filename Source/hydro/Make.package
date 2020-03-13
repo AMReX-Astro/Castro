@@ -26,7 +26,7 @@ CEXE_sources += riemann_solvers.cpp
 CEXE_sources += riemann_util.cpp
 CEXE_headers += riemann.H
 CEXE_sources += slope.cpp
-ca_F90EXE_sources += trace_plm_nd.F90
+CEXE_sources += trace_plm.cpp
 CEXE_sources += trace_ppm.cpp
 
 ca_F90EXE_sources += Castro_ctu_nd.F90
