@@ -429,6 +429,12 @@ protected:
 
 #include "gravity_params.H"
 
+  inline amrex::Real
+  get_const_grav() {
+    return const_grav;
+  }
+
+
 #if (BL_SPACEDIM < 3)
 
 ///

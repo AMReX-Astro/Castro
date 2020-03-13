@@ -6,6 +6,10 @@
 #include "Radiation.H"
 #endif
 
+#ifdef GRAVITY
+#include "Gravity.H"
+#endif
+
 #include <cmath>
 
 #include <ppm.H>
@@ -30,7 +34,7 @@ Castro::uslope(const Box& bx, const int idir,
   bool hi_bc_test = hi_bc[idir] == Symmetry;
 
 #ifdef GRAVITY
-  Real lconst_grav = gravity->const_grav;
+  Real lconst_grav =   get_const_grav();
 #else
   Real lconst_grav = 0.0_rt;
 #endif
