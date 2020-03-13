@@ -229,7 +229,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
 #if (AMREX_SPACEDIM < 3)
     // geometry source terms -- these only apply to the x-states
-    if (idir == 0 && dloga(i,j,k) /= 0.0_rt) {
+    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
       Real courn = dtdx*(cc + abs(un));
       Real eta = (1.0_rt-courn)/(cc*dt*abs(dloga(i,j,k)));
       Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
