@@ -523,7 +523,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (in_retry) {
                 num_sub_iters += 1;
-                amrex::Print() << "Adding an SDC iteration due to the retry" << std::endl << std::endl;
+                amrex::Print() << "Adding an SDC iteration due to the retry." << std::endl << std::endl;
             }
         }
 
