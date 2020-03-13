@@ -675,26 +675,6 @@ Castro::initMFs()
         P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
 
-    // Keep track of which components of the momentum flux have pressure
-    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geom().IsRZ())) {
-        momx_flux_has_p[0] = 0;
-    }
-    else {
-        momx_flux_has_p[0] = 1;
-    }
-
-    momx_flux_has_p[1] = 0;
-    momx_flux_has_p[2] = 0;
-
-    momy_flux_has_p[0] = 0;
-    momy_flux_has_p[1] = 1;
-    momy_flux_has_p[2] = 0;
-
-    momz_flux_has_p[0] = 0;
-    momz_flux_has_p[1] = 0;
-    momz_flux_has_p[2] = 1;
-
-
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(BL_SPACEDIM);
@@ -983,14 +963,7 @@ Castro::initData ()
 #ifdef HYBRID_MOMENTUM
        // Generate the initial hybrid momenta based on this user data.
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           const Box& box = mfi.validbox();
-           const int* lo  = box.loVect();
-           const int* hi  = box.hiVect();
-
-#pragma gpu box(box)
-           ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
-       }
+       linear_to_hybrid_momentum(S_new, 0);
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell
@@ -2898,24 +2871,24 @@ Castro::errorEst (TagBoxArray& tags,
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    Real t = time;
+    Real ltime = time;
 
     // If we are forcing a post-timestep regrid,
     // note that we need to use the new time here,
     // not the old time.
 
     if (post_step_regrid)
-        t = get_state_data(State_Type).curTime();
+        ltime = get_state_data(State_Type).curTime();
 
     // Apply each of the specified tagging functions.
 
     for (int j = 0; j < num_err_list_default; j++) {
-        apply_tagging_func(tags, t, j);
+        apply_tagging_func(tags, ltime, j);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, t);
+    apply_problem_tags(tags, ltime);
 }
 
 
@@ -3682,29 +3655,12 @@ Castro::build_fine_mask()
 
     BL_ASSERT(level > 0); // because we are building a mask for the coarser level
 
-    if (!fine_mask.empty()) return fine_mask;
-
-    BoxArray baf = parent->boxArray(level);
-    baf.coarsen(crse_ratio);
-
-    const BoxArray& bac = parent->boxArray(level-1);
-    const DistributionMapping& dmc = parent->DistributionMap(level-1);
-    fine_mask.define(bac,dmc,1,0);
-    fine_mask.setVal(1.0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(fine_mask); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = fine_mask[mfi];
-
-        const std::vector< std::pair<int,Box> >& isects = baf.intersections(fab.box());
-
-        for (int ii = 0; ii < isects.size(); ++ii)
-        {
-            fab.setVal(0.0,isects[ii].second,0);
-        }
+    if (fine_mask.empty()) {
+        fine_mask = makeFineMask(parent->boxArray(level-1),
+                                 parent->DistributionMap(level-1),
+                                 parent->boxArray(level), crse_ratio,
+                                 1.0,  // coarse
+                                 0.0); // fine
     }
 
     return fine_mask;

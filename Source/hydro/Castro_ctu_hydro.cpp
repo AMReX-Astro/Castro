@@ -1,9 +1,14 @@
 #include "Castro.H"
+#include "Castro_util.H"
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
+#endif
+
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
 #endif
 
 using namespace amrex;
@@ -24,7 +29,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   hydro_source.setVal(0.0);
 
+  GeometryData geomdata = geom.data();
+
+  int coord = geom.Coord();
+
   const Real *dx = geom.CellSize();
+  auto dx_arr = geom.CellSizeArray();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
 
   const int* domain_lo = geom.Domain().loVect();
   const int* domain_hi = geom.Domain().hiVect();
@@ -180,6 +193,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       Array4<Real const> const qaux_arr = qaux.array(mfi);
       Array4<Real const> const src_q_arr = src_q.array(mfi);
 
+      Array4<Real const> const areax_arr = area[0].array(mfi);
+#if AMREX_SPACEDIM >= 2
+      Array4<Real const> const areay_arr = area[1].array(mfi);
+#endif
+#if AMREX_SPACEDIM == 3
+      Array4<Real const> const areaz_arr = area[2].array(mfi);
+#endif
+
+      Array4<Real> const vol_arr = volume.array(mfi);
+
 #if AMREX_SPACEDIM < 3
       Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
 #endif
@@ -327,30 +350,20 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       } else {
 
 #ifdef RADIATION
-#pragma gpu box(obx)
-        ctu_ppm_rad_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                           AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                           BL_TO_FORTRAN_ANYD(q[mfi]),
-                           BL_TO_FORTRAN_ANYD(flatn),
-                           BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                           BL_TO_FORTRAN_ANYD(src_q[mfi]),
-                           BL_TO_FORTRAN_ANYD(qxm),
-                           BL_TO_FORTRAN_ANYD(qxp),
+        ctu_ppm_rad_states(obx, bx,
+                           q_arr, flatn_arr, qaux_arr, src_q_arr,
+                           qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
-                           BL_TO_FORTRAN_ANYD(qym),
-                           BL_TO_FORTRAN_ANYD(qyp),
+                           qym_arr, qyp_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                           BL_TO_FORTRAN_ANYD(qzm),
-                           BL_TO_FORTRAN_ANYD(qzp),
+                           qzm_arr, qzp_arr,
 #endif
-                           AMREX_REAL_ANYD(dx), dt,
-#if (AMREX_SPACEDIM < 3)
-                           BL_TO_FORTRAN_ANYD(dLogArea[0][mfi]),
+#if AMREX_SPACEDIM < 3
+                           dLogArea_arr,
 #endif
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                           dt);
 #else
-
 
         ctu_ppm_states(obx, bx,
                        q_arr, flatn_arr, qaux_arr, src_q_arr,
@@ -380,40 +393,48 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       q_int.resize(obx, NQ);
       Elixir elix_q_int = q_int.elixir();
       fab_size += q_int.nBytes();
+      Array4<Real> const q_int_arr = q_int.array();
 
 #ifdef RADIATION
       lambda_int.resize(obx, Radiation::nGroups);
       Elixir elix_lambda_int = lambda_int.elixir();
       fab_size += lambda_int.nBytes();
+      Array4<Real> const lambda_int_arr = lambda_int.array();
 #endif
 
       flux[0].resize(gxbx, NUM_STATE);
       Elixir elix_flux_x = flux[0].elixir();
       fab_size += flux[0].nBytes();
+      Array4<Real> const flux0_arr = (flux[0]).array();
 
       qe[0].resize(gxbx, NGDNV);
       Elixir elix_qe_x = qe[0].elixir();
+      auto qex_arr = qe[0].array();
       fab_size += qe[0].nBytes();
 
 #ifdef RADIATION
       rad_flux[0].resize(gxbx, Radiation::nGroups);
       Elixir elix_rad_flux_x = rad_flux[0].elixir();
       fab_size += rad_flux[0].nBytes();
+      auto rad_flux0_arr = (rad_flux[0]).array();
 #endif
 
 #if AMREX_SPACEDIM >= 2
       flux[1].resize(gybx, NUM_STATE);
       Elixir elix_flux_y = flux[1].elixir();
       fab_size += flux[1].nBytes();
+      Array4<Real> const flux1_arr = (flux[1]).array();
 
       qe[1].resize(gybx, NGDNV);
       Elixir elix_qe_y = qe[1].elixir();
+      auto qey_arr = qe[1].array();
       fab_size += qe[1].nBytes();
 
 #ifdef RADIATION
       rad_flux[1].resize(gybx, Radiation::nGroups);
       Elixir elix_rad_flux_y = rad_flux[1].elixir();
       fab_size += rad_flux[1].nBytes();
+      auto const rad_flux1_arr = (rad_flux[1]).array();
 #endif
 #endif
 
@@ -421,15 +442,18 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       flux[2].resize(gzbx, NUM_STATE);
       Elixir elix_flux_z = flux[2].elixir();
       fab_size += flux[2].nBytes();
+      Array4<Real> const flux2_arr = (flux[2]).array();
 
       qe[2].resize(gzbx, NGDNV);
       Elixir elix_qe_z = qe[2].elixir();
+      auto qez_arr = qe[2].array();
       fab_size += qe[2].nBytes();
 
 #ifdef RADIATION
       rad_flux[2].resize(gzbx, Radiation::nGroups);
       Elixir elix_rad_flux_z = rad_flux[2].elixir();
       fab_size += rad_flux[2].nBytes();
+      auto const rad_flux2_arr = (rad_flux[2]).array();
 #endif
 #endif
 
@@ -442,20 +466,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 1
-#pragma gpu box(xbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp),
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(xbx,
+                          qxm_arr, qxp_arr,
+                          flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux0_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[0]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qex_arr,
+                          qaux_arr,
+                          shk_arr,
+                          0);
 
 #endif // 1-d
 
@@ -464,36 +484,44 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM >= 2
       ftmp1.resize(obx, NUM_STATE);
       Elixir elix_ftmp1 = ftmp1.elixir();
+      auto ftmp1_arr = ftmp1.array();
       fab_size += ftmp1.nBytes();
 
       ftmp2.resize(obx, NUM_STATE);
       Elixir elix_ftmp2 = ftmp2.elixir();
+      auto ftmp2_arr = ftmp2.array();
       fab_size += ftmp2.nBytes();
 
 #ifdef RADIATION
       rftmp1.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp1 = rftmp1.elixir();
+      auto rftmp1_arr = rftmp1.array();
       fab_size += rftmp1.nBytes();
 
       rftmp2.resize(obx, Radiation::nGroups);
       Elixir elix_rftmp2 = rftmp2.elixir();
+      auto rftmp2_arr = rftmp2.array();
       fab_size += rftmp2.nBytes();
 #endif
 
       qgdnvtmp1.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
+      auto qgdnvtmp1_arr = qgdnvtmp1.array();
       fab_size += qgdnvtmp1.nBytes();
 
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
+      auto qgdnvtmp2_arr = qgdnvtmp2.array();
       fab_size += qgdnvtmp2.nBytes();
 
       ql.resize(obx, NQ);
       Elixir elix_ql = ql.elixir();
+      auto ql_arr = ql.array();
       fab_size += ql.nBytes();
 
       qr.resize(obx, NQ);
       Elixir elix_qr = qr.elixir();
+      auto qr_arr = qr.array();
       fab_size += qr.nBytes();
 #endif
 
@@ -512,20 +540,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnxv
-#pragma gpu box(cxbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cxbx,
+                          qxm_arr, qxp_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       // compute F^y
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -533,41 +556,32 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // ftmp2 = fy
       // rftmp2 = rfy
-#pragma gpu box(cybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qym),
-                          BL_TO_FORTRAN_ANYD(qyp),
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cybx,
+                          qym_arr, qyp_arr,
+                          ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp2),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp2_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[1]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qey_arr,
+                          qaux_arr, shk_arr,
+                          1);
 
       // add the transverse flux difference in y to the x states
       // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
 
       // ftmp2 = fy
       // rftmp2 = rfy
-#pragma gpu box(xbx)
-      trans_single(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                   2, 1,
-                   BL_TO_FORTRAN_ANYD(qxm),
-                   BL_TO_FORTRAN_ANYD(ql),
-                   BL_TO_FORTRAN_ANYD(qxp),
-                   BL_TO_FORTRAN_ANYD(qr),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp2),
+      trans_single(xbx, 1, 0,
+                   qxm_arr, ql_arr,
+                   qxp_arr, qr_arr,
+                   qaux_arr,
+                   ftmp2_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp2),
+                   rftmp2_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qe[1]),
-                   BL_TO_FORTRAN_ANYD(area[1][mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
+                   qey_arr,
+                   areay_arr,
+                   vol_arr,
                    hdt, hdtdy);
 
       reset_edge_state_thermo(xbx, ql.array());
@@ -576,20 +590,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
-#pragma gpu box(xbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr),
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(xbx,
+                          ql_arr, qr_arr,
+                          flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux0_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[0]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qex_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
@@ -598,21 +607,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
 
-#pragma gpu box(ybx)
-      trans_single(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                   1, 2,
-                   BL_TO_FORTRAN_ANYD(qym),
-                   BL_TO_FORTRAN_ANYD(ql),
-                   BL_TO_FORTRAN_ANYD(qyp),
-                   BL_TO_FORTRAN_ANYD(qr),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(ybx, 0, 1,
+                   qym_arr, ql_arr,
+                   qyp_arr, qr_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                   BL_TO_FORTRAN_ANYD(area[0][mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
+                   qgdnvtmp1_arr,
+                   areax_arr,
+                   vol_arr,
                    hdt, hdtdx);
 
       reset_edge_state_thermo(ybx, ql.array());
@@ -622,20 +627,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the y-interfaces
 
-#pragma gpu box(ybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr),
-                          BL_TO_FORTRAN_ANYD(flux[1]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(ybx,
+                          ql_arr, qr_arr,
+                          flux1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[1]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qey_arr,
+                          qaux_arr, shk_arr,
+                          1);
 #endif // 2-d
 
 
@@ -659,48 +659,41 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnxv
-#pragma gpu box(cxbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cxbx.loVect()), AMREX_INT_ANYD(cxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qxm),
-                          BL_TO_FORTRAN_ANYD(qxp),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cxbx,
+                          qxm_arr, qxp_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 
       qmyx.resize(tyxbx, NQ);
       Elixir elix_qmyx = qmyx.elixir();
+      auto qmyx_arr = qmyx.array();
       fab_size += qmyx.nBytes();
 
       qpyx.resize(tyxbx, NQ);
       Elixir elix_qpyx = qpyx.elixir();
+      auto qpyx_arr = qpyx.array();
       fab_size += qpyx.nBytes();
 
       // ftmp1 = fx
       // rftmp1 = rfx
       // qgdnvtmp1 = qgdnvx
-#pragma gpu box(tyxbx)
-      trans_single(AMREX_INT_ANYD(tyxbx.loVect()), AMREX_INT_ANYD(tyxbx.hiVect()),
-                   1, 2,
-                   BL_TO_FORTRAN_ANYD(qym),
-                   BL_TO_FORTRAN_ANYD(qmyx),
-                   BL_TO_FORTRAN_ANYD(qyp),
-                   BL_TO_FORTRAN_ANYD(qpyx),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(tyxbx, 0, 1,
+                   qym_arr, qmyx_arr,
+                   qyp_arr, qpyx_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdx);
 
       reset_edge_state_thermo(tyxbx, qmyx.array());
@@ -712,25 +705,23 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmzx.resize(tzxbx, NQ);
       Elixir elix_qmzx = qmzx.elixir();
+      auto qmzx_arr = qmzx.array();
       fab_size += qmzx.nBytes();
 
       qpzx.resize(tzxbx, NQ);
       Elixir elix_qpzx = qpzx.elixir();
+      auto qpzx_arr = qpzx.array();
       fab_size += qpzx.nBytes();
 
-#pragma gpu box(tzxbx)
-      trans_single(AMREX_INT_ANYD(tzxbx.loVect()), AMREX_INT_ANYD(tzxbx.hiVect()),
-                   1, 3,
-                   BL_TO_FORTRAN_ANYD(qzm),
-                   BL_TO_FORTRAN_ANYD(qmzx),
-                   BL_TO_FORTRAN_ANYD(qzp),
-                   BL_TO_FORTRAN_ANYD(qpzx),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(tzxbx, 0, 2,
+                   qzm_arr, qmzx_arr,
+                   qzp_arr, qpzx_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdx);
 
       reset_edge_state_thermo(tzxbx, qmzx.array());
@@ -744,48 +735,41 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-#pragma gpu box(cybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cybx.loVect()), AMREX_INT_ANYD(cybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qym),
-                          BL_TO_FORTRAN_ANYD(qyp),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cybx,
+                          qym_arr, qyp_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          1);
 
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
       qmxy.resize(txybx, NQ);
       Elixir elix_qmxy = qmxy.elixir();
+      auto qmxy_arr = qmxy.array();
       fab_size += qmxy.nBytes();
 
       qpxy.resize(txybx, NQ);
       Elixir elix_qpxy = qpxy.elixir();
+      auto qpxy_arr = qpxy.array();
       fab_size += qpxy.nBytes();
 
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-#pragma gpu box(txybx)
-      trans_single(AMREX_INT_ANYD(txybx.loVect()), AMREX_INT_ANYD(txybx.hiVect()),
-                   2, 1,
-                   BL_TO_FORTRAN_ANYD(qxm),
-                   BL_TO_FORTRAN_ANYD(qmxy),
-                   BL_TO_FORTRAN_ANYD(qxp),
-                   BL_TO_FORTRAN_ANYD(qpxy),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(txybx, 1, 0,
+                   qxm_arr, qmxy_arr,
+                   qxp_arr, qpxy_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdy);
 
       reset_edge_state_thermo(txybx, qmxy.array());
@@ -797,28 +781,26 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmzy.resize(tzybx, NQ);
       Elixir elix_qmzy = qmzy.elixir();
+      auto qmzy_arr = qmzy.array();
       fab_size += qmzy.nBytes();
 
       qpzy.resize(tzybx, NQ);
       Elixir elix_qpzy = qpzy.elixir();
+      auto qpzy_arr = qpzy.array();
       fab_size += qpzy.nBytes();
 
       // ftmp1 = fy
       // rftmp1 = rfy
       // qgdnvtmp1 = qgdnvy
-#pragma gpu box(tzybx)
-      trans_single(AMREX_INT_ANYD(tzybx.loVect()), AMREX_INT_ANYD(tzybx.hiVect()),
-                   2, 3,
-                   BL_TO_FORTRAN_ANYD(qzm),
-                   BL_TO_FORTRAN_ANYD(qmzy),
-                   BL_TO_FORTRAN_ANYD(qzp),
-                   BL_TO_FORTRAN_ANYD(qpzy),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(tzybx, 1, 2,
+                   qzm_arr, qmzy_arr,
+                   qzp_arr, qpzy_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdy);
 
       reset_edge_state_thermo(tzybx, qmzy.array());
@@ -832,48 +814,41 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-#pragma gpu box(czbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(czbx.loVect()), AMREX_INT_ANYD(czbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qzm),
-                          BL_TO_FORTRAN_ANYD(qzp),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(czbx,
+                          qzm_arr, qzp_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          2);
 
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
       qmxz.resize(txzbx, NQ);
       Elixir elix_qmxz = qmxz.elixir();
+      auto qmxz_arr = qmxz.array();
       fab_size += qmxz.nBytes();
 
       qpxz.resize(txzbx, NQ);
       Elixir elix_qpxz = qpxz.elixir();
+      auto qpxz_arr = qpxz.array();
       fab_size += qpxz.nBytes();
 
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-#pragma gpu box(txzbx)
-      trans_single(AMREX_INT_ANYD(txzbx.loVect()), AMREX_INT_ANYD(txzbx.hiVect()),
-                   3, 1,
-                   BL_TO_FORTRAN_ANYD(qxm),
-                   BL_TO_FORTRAN_ANYD(qmxz),
-                   BL_TO_FORTRAN_ANYD(qxp),
-                   BL_TO_FORTRAN_ANYD(qpxz),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(txzbx, 2, 0,
+                   qxm_arr, qmxz_arr,
+                   qxp_arr, qpxz_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdz);
 
       reset_edge_state_thermo(txzbx, qmxz.array());
@@ -885,28 +860,26 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       qmyz.resize(tyzbx, NQ);
       Elixir elix_qmyz = qmyz.elixir();
+      auto qmyz_arr = qmyz.array();
       fab_size += qmyz.nBytes();
 
       qpyz.resize(tyzbx, NQ);
       Elixir elix_qpyz = qpyz.elixir();
+      auto qpyz_arr = qpyz.array();
       fab_size += qpyz.nBytes();
 
       // ftmp1 = fz
       // rftmp1 = rfz
       // qgdnvtmp1 = qgdnvz
-#pragma gpu box(tyzbx)
-      trans_single(AMREX_INT_ANYD(tyzbx.loVect()), AMREX_INT_ANYD(tyzbx.hiVect()),
-                   3, 2,
-                   BL_TO_FORTRAN_ANYD(qym),
-                   BL_TO_FORTRAN_ANYD(qmyz),
-                   BL_TO_FORTRAN_ANYD(qyp),
-                   BL_TO_FORTRAN_ANYD(qpyz),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                   BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_single(tyzbx, 2, 1,
+                   qym_arr, qmyz_arr,
+                   qyp_arr, qpyz_arr,
+                   qaux_arr,
+                   ftmp1_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(rftmp1),
+                   rftmp1_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                   qgdnvtmp1_arr,
                    hdt, cdtdz);
 
       reset_edge_state_thermo(tyzbx, qmyz.array());
@@ -926,20 +899,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fyz
       // rftmp1 = rfyz
       // qgdnvtmp1 = qgdnvyz
-#pragma gpu box(cyzbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cyzbx.loVect()), AMREX_INT_ANYD(cyzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyz),
-                          BL_TO_FORTRAN_ANYD(qpyz),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cyzbx,
+                          qmyz_arr, qpyz_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          1);
 
       // compute F^{z|y}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
@@ -948,62 +916,48 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp2 = fzy
       // rftmp2 = rfzy
       // qgdnvtmp2 = qgdnvzy
-#pragma gpu box(czybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(czybx.loVect()), AMREX_INT_ANYD(czybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzy),
-                          BL_TO_FORTRAN_ANYD(qpzy),
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(czybx,
+                          qmzy_arr, qpzy_arr,
+                          ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp2),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp2_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp2_arr,
+                          qaux_arr, shk_arr,
+                          2);
 
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
 
-#pragma gpu box(xbx)
-      trans_final(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                  1, 2, 3,
-                  BL_TO_FORTRAN_ANYD(qxm),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qxp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(xbx, 0, 1, 2,
+                  qxm_arr, ql_arr,
+                  qxp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  qgdnvtmp1_arr,
+                  qgdnvtmp2_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
       reset_edge_state_thermo(xbx, ql.array());
 
       reset_edge_state_thermo(xbx, qr.array());
 
-#pragma gpu box(xbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr),
-                          BL_TO_FORTRAN_ANYD(flux[0]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(xbx,
+                          ql_arr, qr_arr,
+                          flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux0_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[0]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qex_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       //
       // Use qy?, q?zx, q?xz to compute final y-flux
@@ -1016,20 +970,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fzx
       // rftmp1 = rfzx
       // qgdnvtmp1 = qgdnvzx
-#pragma gpu box(czxbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(czxbx.loVect()), AMREX_INT_ANYD(czxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmzx),
-                          BL_TO_FORTRAN_ANYD(qpzx),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(czxbx,
+                          qmzx_arr, qpzx_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          2);
 
       // compute F^{x|z}
       // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
@@ -1038,42 +987,33 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp2 = fxz
       // rftmp2 = rfxz
       // qgdnvtmp2 = qgdnvxz
-#pragma gpu box(cxzbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cxzbx.loVect()), AMREX_INT_ANYD(cxzbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxz),
-                          BL_TO_FORTRAN_ANYD(qpxz),
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cxzbx,
+                          qmxz_arr, qpxz_arr,
+                          ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp2),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp2_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp2_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 
-#pragma gpu box(ybx)
-      trans_final(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                  2, 1, 3,
-                  BL_TO_FORTRAN_ANYD(qym),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qyp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+      trans_final(ybx, 1, 0, 2,
+                  qym_arr, ql_arr,
+                  qyp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
+                  qgdnvtmp2_arr,
+                  qgdnvtmp1_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
       reset_edge_state_thermo(ybx, ql.array());
@@ -1082,20 +1022,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-#pragma gpu box(ybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr),
-                          BL_TO_FORTRAN_ANYD(flux[1]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(ybx,
+                          ql_arr, qr_arr,
+                          flux1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[1]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qey_arr,
+                          qaux_arr, shk_arr,
+                          1);
 
       //
       // Use qz?, q?xy, q?yx to compute final z-flux
@@ -1108,20 +1043,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp1 = fxy
       // rftmp1 = rfxy
       // qgdnvtmp1 = qgdnvxy
-#pragma gpu box(cxybx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cxybx.loVect()), AMREX_INT_ANYD(cxybx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmxy),
-                          BL_TO_FORTRAN_ANYD(qpxy),
-                          BL_TO_FORTRAN_ANYD(ftmp1),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cxybx,
+                          qmxy_arr, qpxy_arr,
+                          ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp1),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp1_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          1, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp1_arr,
+                          qaux_arr, shk_arr,
+                          0);
 
       // compute F^{y|x}
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
@@ -1130,42 +1060,33 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // ftmp2 = fyx
       // rftmp2 = rfyx
       // qgdnvtmp2 = qgdnvyx
-#pragma gpu box(cyxbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(cyxbx.loVect()), AMREX_INT_ANYD(cyxbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(qmyx),
-                          BL_TO_FORTRAN_ANYD(qpyx),
-                          BL_TO_FORTRAN_ANYD(ftmp2),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(cyxbx,
+                          qmyx_arr, qpyx_arr,
+                          ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rftmp2),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rftmp2_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qgdnvtmp2),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          2, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qgdnvtmp2_arr,
+                          qaux_arr, shk_arr,
+                          1);
 
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-#pragma gpu box(zbx)
-      trans_final(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-                  3, 1, 2,
-                  BL_TO_FORTRAN_ANYD(qzm),
-                  BL_TO_FORTRAN_ANYD(ql),
-                  BL_TO_FORTRAN_ANYD(qzp),
-                  BL_TO_FORTRAN_ANYD(qr),
-                  BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                  BL_TO_FORTRAN_ANYD(ftmp1),
+      trans_final(zbx, 2, 0, 1,
+                  qzm_arr, ql_arr,
+                  qzp_arr, qr_arr,
+                  qaux_arr,
+                  ftmp1_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp1),
+                  rftmp1_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(ftmp2),
+                  ftmp2_arr,
 #ifdef RADIATION
-                  BL_TO_FORTRAN_ANYD(rftmp2),
+                  rftmp2_arr,
 #endif
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp1),
-                  BL_TO_FORTRAN_ANYD(qgdnvtmp2),
+                  qgdnvtmp1_arr,
+                  qgdnvtmp2_arr,
                   hdt, hdtdx, hdtdy, hdtdz);
 
       reset_edge_state_thermo(zbx, ql.array());
@@ -1175,20 +1096,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-#pragma gpu box(zbx)
-      cmpflx_plus_godunov(AMREX_INT_ANYD(zbx.loVect()), AMREX_INT_ANYD(zbx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(ql),
-                          BL_TO_FORTRAN_ANYD(qr),
-                          BL_TO_FORTRAN_ANYD(flux[2]),
-                          BL_TO_FORTRAN_ANYD(q_int),
+      cmpflx_plus_godunov(zbx,
+                          ql_arr, qr_arr,
+                          flux2_arr, q_int_arr,
 #ifdef RADIATION
-                          BL_TO_FORTRAN_ANYD(rad_flux[2]),
-                          BL_TO_FORTRAN_ANYD(lambda_int),
+                          rad_flux2_arr, lambda_int_arr,
 #endif
-                          BL_TO_FORTRAN_ANYD(qe[2]),
-                          BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                          BL_TO_FORTRAN_ANYD(shk),
-                          3, AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                          qez_arr,
+                          qaux_arr, shk_arr,
+                          2);
 
 #endif // 3-d
 
@@ -1260,21 +1176,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real> const flx_arr = (flux[0]).array();
       Array4<Real> const qx_arr = (qe[0]).array();
-      Array4<Real> const areax_arr = (area[0]).array(mfi);
 
 #if AMREX_SPACEDIM >= 2
       Array4<Real> const fly_arr = (flux[1]).array();
       Array4<Real> const qy_arr = (qe[1]).array();
-      Array4<Real> const areay_arr = (area[1]).array(mfi);
 #endif
 
 #if AMREX_SPACEDIM == 3
       Array4<Real> const flz_arr = (flux[2]).array();
       Array4<Real> const qz_arr = (qe[2]).array();
-      Array4<Real> const areaz_arr = (area[2]).array(mfi);
 #endif
-
-      Array4<Real> const vol_arr = volume.array(mfi);
 
       consup_hydro(bx,
                    shk_arr,
@@ -1291,13 +1202,23 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #ifdef HYBRID_MOMENTUM
-#pragma gpu box(bx)
-    add_hybrid_advection_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                dt,
-                                BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                                BL_TO_FORTRAN_ANYD(qe[0]),
-                                BL_TO_FORTRAN_ANYD(qe[1]),
-                                BL_TO_FORTRAN_ANYD(qe[2]));
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    {
+
+        Real loc[3];
+
+        position(i, j, k, geomdata, loc);
+
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+            loc[dir] -= center[dir];
+
+        Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+        Real RInv = 1.0_rt / R;
+
+        update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
+                                                         (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
+
+    });
 #endif
 
 #ifdef RADIATION
@@ -1329,7 +1250,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
       Array4<Real> pradial_fab = pradial.array();
-      Array4<Real> const qex_arr = (qe[0]).array();
 #endif
 
 
@@ -1363,7 +1283,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!momx_flux_has_p[0]) {
+            if (!mom_flux_has_p(0, 0, coord)) {
                 AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;

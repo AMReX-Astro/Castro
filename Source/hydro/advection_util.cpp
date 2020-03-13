@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -38,8 +39,8 @@ Castro::src_to_prim(const Box& bx,
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
       for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-        int n = upass_map[ipassive];
-        int iq = qpass_map[ipassive];
+        int n = upassmap(ipassive);
+        int iq = qpassmap(ipassive);
 
        // we may not be including the ability to have species sources,
        //  so check to make sure that we are < NQSRC
@@ -186,11 +187,11 @@ Castro::shock(const Box& bx,
     e_z = 0.0_rt;
 #endif
 
-    Real d = 1.0_rt / (e_x + e_y + e_z + small);
+    Real denom = 1.0_rt / (e_x + e_y + e_z + small);
 
-    e_x = e_x * d;
-    e_y = e_y * d;
-    e_z = e_z * d;
+    e_x = e_x * denom;
+    e_y = e_y * denom;
+    e_z = e_z * denom;
 
     // project the pressures onto the shock direction
     Real p_pre  = e_x * px_pre + e_y * py_pre + e_z * pz_pre;
@@ -452,7 +453,7 @@ Castro::scale_flux(const Box& bx,
                    Array4<Real const> const qint,
 #endif
                    Array4<Real> const flux,
-                   Array4<Real const> const area,
+                   Array4<Real const> const area_arr,
                    const Real dt) {
 
 #if AMREX_SPACEDIM == 1
@@ -462,11 +463,11 @@ Castro::scale_flux(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
-    flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k);
+    flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
 #if AMREX_SPACEDIM == 1
     // Correct the momentum flux with the grad p part.
     if (coord_type == 0 && n == UMX) {
-      flux(i,j,k,n) += dt * area(i,j,k) * qint(i,j,k,GDPRES);
+      flux(i,j,k,n) += dt * area_arr(i,j,k) * qint(i,j,k,GDPRES);
     }
 #endif
   });
@@ -477,12 +478,12 @@ Castro::scale_flux(const Box& bx,
 void
 Castro::scale_rad_flux(const Box& bx,
                        Array4<Real> const rflux,
-                       Array4<Real const> area,
+                       Array4<Real const> area_arr,
                        const Real dt) {
 
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
-    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k);
+    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });
 }
 #endif

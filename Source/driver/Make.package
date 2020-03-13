@@ -41,6 +41,7 @@ FEXE_headers += Castro_source_fill_F.H
 ca_F90EXE_sources += source_fill_nd.F90
 
 ca_F90EXE_sources += Castro_nd.F90
+CEXE_headers      += Castro_util.H
 ca_F90EXE_sources += Castro_util_nd.F90
 ca_F90EXE_sources += Derive_nd.F90
 ca_F90EXE_sources += interpolate_nd.F90
@@ -65,6 +66,5 @@ ifdef NEED_MGUTIL
 endif
 
 ca_F90EXE_sources += prob_params_nd.F90
-ca_F90EXE_sources += sums_nd.F90
 ca_F90EXE_sources += Tagging_nd.F90
 ca_F90EXE_sources += timestep_nd.F90
