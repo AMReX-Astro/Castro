@@ -51,10 +51,13 @@ Castro::uslope(const Box& bx, const int idir,
 
     // second-order -- piecewise linear slopes
 
+    const int lplm_limiter = plm_limiter;
+    const int lplm_well_balanced = plm_well_balanced;
+
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
-      if (plm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+      if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
         // we'll only do a second-order pressure slope,
         // but we'll follow the well-balanced scheme of
         // Kappeli.  Note at the moment we are assuming
@@ -113,7 +116,7 @@ Castro::uslope(const Box& bx, const int idir,
 
         dq(i,j,k,n) = flatn_arr(i,j,k)*dsgn*amrex::min(dlim, std::abs(dcen));
 
-      } else if (plm_limiter == 1) {
+      } else if (lplm_limiter == 1) {
         // the 2nd order MC limiter
 
         Real qm1;

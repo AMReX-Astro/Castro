@@ -324,7 +324,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         fab_size += dq.nBytes();
         auto dq_arr = dq.array();
 
-#pragma gpu box(obx)
         ctu_plm_states(obx, bx,
                        q_arr,
                        flatn_arr,
