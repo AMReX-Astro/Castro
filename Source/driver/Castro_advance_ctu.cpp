@@ -47,15 +47,21 @@ Castro::do_advance_ctu(Real time,
     // duplicate work, we have already lost the data needed to do this
     // calculation since we overwrote the data from the previous step.
 
-    if (!in_retry) {
-        create_source_corrector();
-    }
-
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+        // Fill the data.
+        if (!in_retry) {
+            create_source_corrector();
+        }
+
         // Add the source term predictor (scaled by dt/2).
         MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        // Fill the data.
+        if (!in_retry || sdc_iteration > 1) {
+            create_source_corrector();
+        }
+
         // Time center the sources.
         MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
     }
