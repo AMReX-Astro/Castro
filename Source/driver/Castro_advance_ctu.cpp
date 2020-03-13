@@ -47,21 +47,15 @@ Castro::do_advance_ctu(Real time,
     // duplicate work, we have already lost the data needed to do this
     // calculation since we overwrote the data from the previous step.
 
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        // Fill the data.
-        if (!in_retry) {
-            create_source_corrector();
-        }
+    if (!in_retry) {
+        create_source_corrector();
+    }
 
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         // Add the source term predictor (scaled by dt/2).
         MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        // Fill the data.
-        if (!in_retry || sdc_iteration > 1) {
-            create_source_corrector();
-        }
-
         // Time center the sources.
         MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
     }
@@ -132,9 +126,9 @@ Castro::do_advance_ctu(Real time,
       // in case we have already started with some source
       // terms (e.g. the source term predictor, or the SDC source).
 
-      if (do_hydro) {
-          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-      }
+     if (do_hydro) {
+         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
+     }
 
     } else {
       old_source.setVal(0.0, NUM_GROW);
@@ -548,6 +542,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 }
 #endif
 
+                if (in_retry) {
+                    in_retry = false;
+                }
+
                 if (!advance_success) {
                     if (use_retry) {
                         amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
@@ -586,9 +584,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 in_retry = true;
 
                 continue;
-            }
-            else {
-                in_retry = false;
             }
 
         }
