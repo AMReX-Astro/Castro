@@ -382,7 +382,7 @@ Castro::react_state(Real time, Real dt)
     MultiFab A_src(grids, dmap, NUM_STATE, ng);
     sum_of_sources(A_src);
 
-    MultiFab& reactions = get_old_data(Reactions_Type);
+    MultiFab& reactions = get_new_data(Reactions_Type);
 
     reactions.setVal(0.0);
 
