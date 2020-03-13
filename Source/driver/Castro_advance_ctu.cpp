@@ -375,6 +375,21 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             for (int i = 0; i < n_lost; i++)
                 material_lost_through_boundary_temp[i] = 0.0;
 
+        // For simplified SDC, we'll have garbage data if we
+        // attempt to use the lagged source terms (both reacting
+        // and non-reacting) from the last timestep, since that
+        // advance failed and we don't know if we can trust it.
+        // So we zero out both source term correctors.
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            source_corrector.setVal(0.0, source_corrector.nGrow());
+
+#ifdef REACTIONS
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+#endif
+        }
+
     }
 
     return do_retry;
