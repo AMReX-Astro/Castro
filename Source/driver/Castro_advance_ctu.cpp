@@ -384,9 +384,11 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             source_corrector.setVal(0.0, source_corrector.nGrow());
 
+#ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
             MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
             SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+#endif
 #endif
         }
 
