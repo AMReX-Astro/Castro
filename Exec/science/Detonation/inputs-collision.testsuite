@@ -30,7 +30,7 @@ castro.small_temp     = 1.e7
 castro.allow_small_energy = 0
 
 castro.sum_interval   = 0
-castro.v              = 0
+castro.v              = 1
 amr.v                 = 1
 
 amr.max_level       = 0

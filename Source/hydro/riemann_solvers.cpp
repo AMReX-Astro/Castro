@@ -1221,8 +1221,6 @@ Castro::HLLC(const Box& bx,
     Real rstar = ro + (pstar - po)*co2inv;
     rstar = amrex::max(lsmall_dens, rstar);
 
-    Real entho = (reo + po)*co2inv * roinv;
-
     Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
     cstar = max(cstar, csmall);
 
