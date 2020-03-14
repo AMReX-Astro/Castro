@@ -6,6 +6,34 @@
 using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+int upassmap (int ipassive)
+{
+    if (ipassive < NumAdv) {
+        return UFA + ipassive;
+    }
+    else if (ipassive < NumAdv + NumSpec) {
+        return UFS + ipassive - NumAdv;
+    }
+    else {
+        return UFX + ipassive - NumAdv - NumSpec;
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+int qpassmap (int ipassive)
+{
+    if (ipassive < NumAdv) {
+        return QFA + ipassive;
+    }
+    else if (ipassive < NumAdv + NumSpec) {
+        return QFS + ipassive - NumAdv;
+    }
+    else {
+        return QFX + ipassive - NumAdv - NumSpec;
+    }
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 {
 

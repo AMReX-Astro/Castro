@@ -18,7 +18,7 @@ void
 Castro::riemanncg(const Box& bx,
                   Array4<Real> const ql,
                   Array4<Real> const qr,
-                  Array4<Real const> const qaux,
+                  Array4<Real const> const qaux_arr,
                   Array4<Real> const qint,
                   const int idir) {
 
@@ -135,7 +135,7 @@ Castro::riemanncg(const Box& bx,
 
     Real pl = ql(i,j,k,QPRES);
     Real rel = ql(i,j,k,QREINT);
-    Real gcl = qaux(i-sx,j-sy,k-sz,QGAMC);
+    Real gcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
     if (luse_reconstructed_gamma1 == 1) {
       gcl = ql(i,j,k,QGC);
     }
@@ -176,7 +176,7 @@ Castro::riemanncg(const Box& bx,
 
     Real pr = qr(i,j,k,QPRES);
     Real rer = qr(i,j,k,QREINT);
-    Real gcr = qaux(i,j,k,QGAMC);
+    Real gcr = qaux_arr(i,j,k,QGAMC);
     if (luse_reconstructed_gamma1 == 1) {
       gcr = qr(i,j,k,QGC);
     }
@@ -216,10 +216,10 @@ Castro::riemanncg(const Box& bx,
     Real clsql = gcl*pl*rl;
     Real clsqr = gcr*pr*rr;
 
-    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux(i,j,k,QC),
-                                                lsmall * qaux(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux_arr(i,j,k,QC),
+                                                lsmall * qaux_arr(i-sx,j-sy,k-sz,QC)));
 
-    Real cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC));
+    Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
     // Note: in the original Colella & Glaz paper, they predicted
     // gamma_e to the interfaces using a special (non-hyperbolic)
@@ -570,7 +570,7 @@ void
 Castro::riemannus(const Box& bx,
                   Array4<Real> const ql,
                   Array4<Real> const qr,
-                  Array4<Real const> const qaux,
+                  Array4<Real const> const qaux_arr,
                   Array4<Real> const qint,
 #ifdef RADIATION
                   Array4<Real> const lambda_int,
@@ -667,13 +667,13 @@ Castro::riemannus(const Box& bx,
 
     for (int g = 0; g < NGROUPS; g++) {
       if (idir == 0) {
-        laml[g] = qaux(i-1,j,k,QLAMS+g);
+        laml[g] = qaux_arr(i-1,j,k,QLAMS+g);
       } else if (idir == 1) {
-        laml[g] = qaux(i,j-1,k,QLAMS+g);
+        laml[g] = qaux_arr(i,j-1,k,QLAMS+g);
       } else {
-        laml[g] = qaux(i,j,k-1,QLAMS+g);
+        laml[g] = qaux_arr(i,j,k-1,QLAMS+g);
       }
-      lamr[g] = qaux(i,j,k,QLAMS+g);
+      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
     }
 #endif
 
@@ -731,33 +731,33 @@ Castro::riemannus(const Box& bx,
 #endif
 
     if (idir == 0) {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i-1,j,k,QC)));
-      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-1,j,k,QC));
-      gamcl = qaux(i-1,j,k,QGAMC);
-      gamcr = qaux(i,j,k,QGAMC);
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i-1,j,k,QC)));
+      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-1,j,k,QC));
+      gamcl = qaux_arr(i-1,j,k,QGAMC);
+      gamcr = qaux_arr(i,j,k,QGAMC);
 #ifdef RADIATION
-      gamcgl = qaux(i-1,j,k,QGAMCG);
-      gamcgr = qaux(i,j,k,QGAMCG);
+      gamcgl = qaux_arr(i-1,j,k,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
 #endif
 
     } else if (idir == 1) {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i,j-1,k,QC)));
-      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j-1,k,QC));
-      gamcl = qaux(i,j-1,k,QGAMC);
-      gamcr = qaux(i,j,k,QGAMC);
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j-1,k,QC)));
+      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i,j-1,k,QC));
+      gamcl = qaux_arr(i,j-1,k,QGAMC);
+      gamcr = qaux_arr(i,j,k,QGAMC);
 #ifdef RADIATION
-      gamcgl = qaux(i,j-1,k,QGAMCG);
-      gamcgr = qaux(i,j,k,QGAMCG);
+      gamcgl = qaux_arr(i,j-1,k,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
 #endif
 
     } else {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux(i,j,k,QC), qaux(i,j,k-1,QC)));
-      cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i,j,k-1,QC));
-      gamcl = qaux(i,j,k-1,QGAMC);
-      gamcr = qaux(i,j,k,QGAMC);
+      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC)));
+      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i,j,k-1,QC));
+      gamcl = qaux_arr(i,j,k-1,QGAMC);
+      gamcr = qaux_arr(i,j,k,QGAMC);
 #ifdef RADIATION
-      gamcgl = qaux(i,j,k-1,QGAMCG);
-      gamcgr = qaux(i,j,k,QGAMCG);
+      gamcgl = qaux_arr(i,j,k-1,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
 #endif
     }
 
@@ -1048,7 +1048,7 @@ void
 Castro::HLLC(const Box& bx,
              Array4<Real const> const ql,
              Array4<Real const> const qr,
-             Array4<Real const> const qaux,
+             Array4<Real const> const qaux_arr,
              Array4<Real> const uflx,
              Array4<Real> const qint,
              const int idir) {
@@ -1063,29 +1063,23 @@ Castro::HLLC(const Box& bx,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
-  int iu, iv1, iv2;
+  int iu;
   int sx, sy, sz;
 
   if (idir == 0) {
     iu = QU;
-    iv1 = QV;
-    iv2 = QW;
     sx = 1;
     sy = 0;
     sz = 0;
 
   } else if (idir == 1) {
     iu = QV;
-    iv1 = QU;
-    iv2 = QW;
     sx = 0;
     sy = 1;
     sz = 0;
 
   } else {
     iu = QW;
-    iv1 = QU;
-    iv2 = QV;
     sx = 0;
     sy = 0;
     sz = 1;
@@ -1160,8 +1154,8 @@ Castro::HLLC(const Box& bx,
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
-    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux(i,j,k,QC), lsmall * qaux(i-sx,j-sy,k-sz,QC)));
-    Real cavg = 0.5_rt*(qaux(i,j,k,QC) + qaux(i-sx,j-sy,k-sz,QC));
+    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux_arr(i,j,k,QC), lsmall * qaux_arr(i-sx,j-sy,k-sz,QC)));
+    Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
     Real gamcl;
     Real gamcr;
@@ -1170,8 +1164,8 @@ Castro::HLLC(const Box& bx,
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
     } else {
-      gamcl = qaux(i-sx,j-sy,k-sz,QGAMC);
-      gamcr = qaux(i,j,k,QGAMC);
+      gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
+      gamcr = qaux_arr(i,j,k,QGAMC);
     }
 
     Real wsmall = lsmall_dens*csmall;
@@ -1227,9 +1221,6 @@ Castro::HLLC(const Box& bx,
     Real rstar = ro + (pstar - po)*co2inv;
     rstar = amrex::max(lsmall_dens, rstar);
 
-    Real entho = (reo + po)*co2inv * roinv;
-    Real estar = reo + (pstar - po)*entho;
-
     Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
     cstar = max(cstar, csmall);
 
@@ -1250,8 +1241,6 @@ Castro::HLLC(const Box& bx,
 
     Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
     frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
-
-    Real rgdnv = frac*rstar + (1.0_rt - frac)*ro;
 
     qint(i,j,k,iu) = frac*ustar + (1.0_rt - frac)*uo;
     qint(i,j,k,QPRES) = frac*pstar + (1.0_rt - frac)*po;
@@ -1337,13 +1326,12 @@ Castro::HLL(const Real* ql, const Real* qr,
             Real* flux_hll) {
 
 
-  constexpr Real small = 1.e-10_rt;
+  constexpr Real small_hll = 1.e-10_rt;
 
   int ivel, ivelt, iveltt;
   int imom, imomt, imomtt;
 
-  switch (idir) {
-  case 0:
+  if (idir == 0) {
     ivel = QU;
     ivelt = QV;
     iveltt = QW;
@@ -1352,9 +1340,7 @@ Castro::HLL(const Real* ql, const Real* qr,
     imomt = UMY;
     imomtt = UMZ;
 
-    break;
-
-  case 1:
+  } else if (idir == 1) {
     ivel = QV;
     ivelt = QU;
     iveltt = QW;
@@ -1363,9 +1349,7 @@ Castro::HLL(const Real* ql, const Real* qr,
     imomt = UMX;
     imomtt = UMZ;
 
-    break;
-
-  case 2:
+  } else {
     ivel = QW;
     ivelt = QU;
     iveltt = QV;
@@ -1373,7 +1357,6 @@ Castro::HLL(const Real* ql, const Real* qr,
     imom = UMZ;
     imomt = UMX;
     imomtt = UMY;
-
   }
 
   Real rhol_sqrt = std::sqrt(ql[QRHO]);
@@ -1405,7 +1388,7 @@ Castro::HLL(const Real* ql, const Real* qr,
 
   Real bd = bp - bm;
 
-  if (std::abs(bd) < small*amrex::max(std::abs(bm), std::abs(bp))) return;
+  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) return;
 
   bd = 1.0_rt/bd;
 
