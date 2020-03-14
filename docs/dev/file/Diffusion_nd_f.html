@@ -242,7 +242,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/diffusion_module/ca_average_coef_cc_to_ec" title="f/diffusion_module/ca_average_coef_cc_to_ec"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_average_coef_cc_to_ec()</span></code></a>, <a class="reference internal" href="#f/diffusion_module/ca_fill_temp_cond" title="f/diffusion_module/ca_fill_temp_cond"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fill_temp_cond()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/diffusion_module/ca_fill_temp_cond" title="f/diffusion_module/ca_fill_temp_cond"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_fill_temp_cond()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -277,35 +277,6 @@ by calling the cell-centered conductivity routine</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">one()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">network</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nspec()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">naux()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">urho()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">utemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ueint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufs()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">ufx()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cutoff_density_hi()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">diffuse_cond_scale_fac()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">small_temp()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">conductivity_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">conductivity()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_type_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_rt()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_input_re()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">eos_t()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">eos_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">eos()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="subroutine">
-<dt id="f/diffusion_module/ca_average_coef_cc_to_ec">
-<em class="property">subroutine  </em><code class="descclassname">diffusion_module/</code><code class="descname">ca_average_coef_cc_to_ec</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>coef_c</em>, <em>c_lo</em>, <em>c_hi</em>, <em>coef_e</em>, <em>e_lo</em>, <em>e_hi</em>, <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#f/diffusion_module/ca_average_coef_cc_to_ec" title="Permalink to this definition">¶</a></dt>
-<dd><p>This routine averages cell-centered conductivity coefficients to zone edges</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Binds to C function <code class="docutils literal notranslate"><span class="pre">ca_average_coef_cc_to_ec</span></code></p>
-</div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>coef_c</strong> (c_hi(1)-(c_lo(1))+1,c_hi(2)-(c_lo(2))+1,c_hi(3)-(c_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>c_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>c_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>coef_e</strong> (e_hi(1)-(e_lo(1))+1,e_hi(2)-(e_lo(2))+1,e_hi(3)-(e_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>e_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>e_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dir</strong><em> [</em><em>integer</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
 </td>
 </tr>
 </tbody>
