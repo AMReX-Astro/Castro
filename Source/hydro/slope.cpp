@@ -321,7 +321,7 @@ Castro::pslope(const Box& bx, const int idir,
 
       Real dcen = 0.5_rt*(dlftp1 + drgtp1);
       Real dsgn = std::copysign(1.0_rt, dcen);
-      Real dlim = dlftp1*drgtp1 >= 0.0_rt ? 2.0_rt * std::min(std::abs(dlftp1), std::abs(drgtp1)) : 0.0_rt;
+      Real dlim = dlftp1*drgtp1 >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlftp1), std::abs(drgtp1)) : 0.0_rt;
       Real dfp1 = dsgn*amrex::min(dlim, std::abs(dcen));
 
       // df at i-1
