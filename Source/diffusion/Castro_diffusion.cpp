@@ -5,8 +5,61 @@
 using std::string;
 
 #include "Diffusion.H"
+#include "eos.H"
+#include "conductivity.H"
 
 using namespace amrex;
+
+void
+Castro::fill_temp_cond(const Box& bx,
+                       Array4<Real const> const U_arr,
+                       Array4<Real> const coeff_arr) {
+
+  Real lsmall_temp = small_temp;
+  Real ldiffuse_cutoff_density = diffuse_cutoff_density;
+  Real ldiffuse_cutoff_density_hi = diffuse_cutoff_density_hi;
+  Real ldiffuse_cond_scale_fac = diffuse_cond_scale_fac;
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    eos_t eos_state;
+    eos_state.rho  = U_arr(i,j,k,URHO);
+    Real rhoinv = 1.0_rt/eos_state.rho;
+
+    eos_state.T = U_arr(i,j,k,UTEMP);   // needed as an initial guess
+    eos_state.e = U_arr(i,j,k,UEINT) * rhoinv;
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = U_arr(i,j,k,UFS+n) * rhoinv;
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = U_arr(i,j,k,UFX+n) * rhoinv;
+    }
+
+    if (eos_state.e < 0.0_rt) {
+      eos_state.T = lsmall_temp;
+      eos(eos_input_rt, eos_state);
+    } else {
+      eos(eos_input_re, eos_state);
+    }
+
+
+    if (eos_state.rho > ldiffuse_cutoff_density) {
+      conductivity(eos_state);
+
+      if (eos_state.rho < ldiffuse_cutoff_density_hi) {
+        Real multiplier = (eos_state.rho - ldiffuse_cutoff_density) /
+          (ldiffuse_cutoff_density_hi - ldiffuse_cutoff_density);
+        eos_state.conductivity = eos_state.conductivity * multiplier;
+      }
+    } else {
+      eos_state.conductivity = 0.0_rt;
+    }
+    coeff_arr(i,j,k) = ldiffuse_cond_scale_fac * eos_state.conductivity;
+
+  });
+}
+
 
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
@@ -132,26 +185,29 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                const Box& obx = amrex::grow(bx, 1);
                coeff_cc.resize(obx, 1);
                Elixir elix_coeff_cc = coeff_cc.elixir();
+               Array4<Real> const coeff_arr = coeff_cc.array();
 
-#pragma gpu box(obx)
-               ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(grown_state[mfi]),
-                                 BL_TO_FORTRAN_ANYD(coeff_cc));
+               Array4<Real const> const U_arr = grown_state.array(mfi);
 
-               // Now average the data to zone edges.
+               fill_temp_cond(obx, U_arr, coeff_arr);
 
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
                    const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-                   const int idir_f = idir + 1;
+                   Array4<Real> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
 
-#pragma gpu box(nbx)
-                   ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                            BL_TO_FORTRAN_ANYD(coeff_cc),
-                                            BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
-                                            idir_f);
+                   AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                   {
 
+                     if (idir == 0) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+                     } else if (idir == 1) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+                     } else {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+                     }
+                   });
                }
            }
        }
