@@ -250,12 +250,11 @@
 <ul class="simple">
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
 <li><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module" title="f/castro_error_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">castro_error_module</span></code></a> (<a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>)</li>
-<li><code class="xref f f-mod docutils literal notranslate"><span class="pre">cuvode_types_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">dvode_t()</span></code>)</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
 <dl class="subroutine">
 <dt id="f/sdc_vode_rhs_module/f_rhs">
-<em class="property">subroutine  </em><code class="descclassname">sdc_vode_rhs_module/</code><code class="descname">f_rhs</code><span class="sig-paren">(</span><em>t</em>, <em>vode_state</em>, <em>dudt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_vode_rhs_module/f_rhs" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">sdc_vode_rhs_module/</code><code class="descname">f_rhs</code><span class="sig-paren">(</span><em>t</em>, <em>u</em>, <em>dudt</em>, <em>rpar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_vode_rhs_module/f_rhs" title="Permalink to this definition">¶</a></dt>
 <dd><p>this is the righthand side for the ODE system that we will use
 with VODE</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -264,8 +263,9 @@ with VODE</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>t</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vode_state</strong><em> [</em><em>dvode_t</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u</strong> (vode_neqs-1+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>dudt</strong> (vode_neqs-1+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
+<li><strong>rpar</strong> (n_rpar_comps)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 </ul>
 </td>
 </tr>
@@ -281,19 +281,20 @@ with VODE</p>
 
 <dl class="subroutine">
 <dt id="f/sdc_vode_rhs_module/jac">
-<em class="property">subroutine  </em><code class="descclassname">sdc_vode_rhs_module/</code><code class="descname">jac</code><span class="sig-paren">(</span><em>time</em>, <em>vode_state</em>, <em>ml</em>, <em>mu</em>, <em>jacobian</em>, <em>nrowpd</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_vode_rhs_module/jac" title="Permalink to this definition">¶</a></dt>
+<em class="property">subroutine  </em><code class="descclassname">sdc_vode_rhs_module/</code><code class="descname">jac</code><span class="sig-paren">(</span><em>time</em>, <em>u</em>, <em>ml</em>, <em>mu</em>, <em>jacobian</em>, <em>nrowpd</em>, <em>rpar</em><span class="sig-paren">)</span><a class="headerlink" href="#f/sdc_vode_rhs_module/jac" title="Permalink to this definition">¶</a></dt>
 <dd><p>this is the Jacobian function for use with VODE</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vode_state</strong><em> [</em><em>dvode_t</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>time</strong><em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
+<li><strong>u</strong> (vode_neqs-1+1)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
 <li><strong>ml</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>mu</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
 <li><strong>jacobian</strong> (vode_neqs-1+1,vode_neqs-1+1)<em> [</em><em>real</em><em>,</em><em>out</em><em>]</em></li>
 <li><strong>nrowpd</strong><em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
+<li><strong>rpar</strong> (n_rpar_comps)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em> :: initial guess</li>
 </ul>
 </td>
 </tr>
