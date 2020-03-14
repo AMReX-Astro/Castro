@@ -3126,17 +3126,50 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
+        auto u = S_new.array(mfi);
 
-#pragma gpu box(bx)
-        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                            print_fortran_warnings);
+        Real lsmall_temp = small_temp;
+        Real ldual_energy_eta2 = dual_energy_eta2;
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+            Real Up = u(i,j,k,UMX) * rhoInv;
+            Real Vp = u(i,j,k,UMY) * rhoInv;
+            Real Wp = u(i,j,k,UMZ) * rhoInv;
+            Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
+
+            eos_t eos_state;
+
+            eos_state.rho = u(i,j,k,URHO);
+            eos_state.T   = lsmall_temp;
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+            }
+            for (int n = 0; n < NumAux; ++n) {
+                eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+            }
+
+            eos(eos_input_rt, eos_state);
+
+            Real small_e = eos_state.e;
+
+            // Ensure the internal energy is at least as large as this minimum
+            // from the EOS; the same holds true for the total energy.
+
+            u(i,j,k,UEINT) = amrex::max(u(i,j,k,UEINT), u(i,j,k,URHO) * small_e);
+            u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke));
+
+            // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
+
+            Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke;
+
+            if (rho_eint > ldual_energy_eta2 * u(i,j,k,UEDEN)) {
+                u(i,j,k,UEINT) = rho_eint;
+            }
+        });
+
     }
-
-    // Flush Fortran output
-
-    if (verbose)
-      flush_output();
 
     if (print_update_diagnostics)
     {
