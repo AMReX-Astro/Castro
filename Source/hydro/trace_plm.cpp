@@ -261,7 +261,6 @@ Castro::trace_plm(const Box& bx, const int idir,
           (idir == 1 && j >= vlo[1]) ||
           (idir == 2 && k >= vlo[2])) {
 
-        Real un = q_arr(i,j,k,QUN);
         Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
         qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dq(i,j,k,n);
 #if  PRIM_SPECIES_HAVE_SOURCES
@@ -269,7 +268,6 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
         // Left state
-        un = q_arr(i,j,k,QUN);
         spzero = un >= 0.0_rt ? un*dtdx : 1.0_rt;
         Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dq(i,j,k,n);
 

@@ -39,9 +39,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
-  const int* domain_lo = geom.Domain().loVect();
-  const int* domain_hi = geom.Domain().hiVect();
-
   MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef RADIATION

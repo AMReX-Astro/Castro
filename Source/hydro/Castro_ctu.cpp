@@ -255,8 +255,6 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
   //
 
 
-  Real hdt = 0.5_rt * dt;
-
 #ifdef RADIATION
 #ifndef AMREX_USE_CUDA
   amrex::Error("ppm_type <=0 is not supported in with radiation");
