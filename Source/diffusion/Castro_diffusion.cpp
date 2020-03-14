@@ -18,6 +18,7 @@ Castro::fill_temp_cond(const Box& bx,
   Real lsmall_temp = small_temp;
   Real ldiffuse_cutoff_density = diffuse_cutoff_density;
   Real ldiffuse_cutoff_density_hi = diffuse_cutoff_density_hi;
+  Real ldiffuse_cond_scale_fac = diffuse_cond_scale_fac;
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -46,7 +47,7 @@ Castro::fill_temp_cond(const Box& bx,
     if (eos_state.rho > ldiffuse_cutoff_density) {
       conductivity(eos_state);
 
-      if (eos_state.rho < diffuse_cutoff_density_hi) {
+      if (eos_state.rho < ldiffuse_cutoff_density_hi) {
         Real multiplier = (eos_state.rho - ldiffuse_cutoff_density) /
           (ldiffuse_cutoff_density_hi - ldiffuse_cutoff_density);
         eos_state.conductivity = eos_state.conductivity * multiplier;
@@ -54,7 +55,7 @@ Castro::fill_temp_cond(const Box& bx,
     } else {
       eos_state.conductivity = 0.0_rt;
     }
-    coeff_arr(i,j,k) = diffuse_cond_scale_fac * eos_state.conductivity;
+    coeff_arr(i,j,k) = ldiffuse_cond_scale_fac * eos_state.conductivity;
 
   });
 }
