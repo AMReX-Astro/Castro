@@ -35,6 +35,6 @@
 
     void inertial_to_rotational_velocity(const int i, const int j, const int k,
                                          const amrex::GeometryData& geomdata,
-                                         GpuArray<Real, 3> center,
-                                         GpuArray<Real, 3> omega,
+                                         const Real* center,
+                                         const Real* omega,
                                          const amrex::Real time, amrex::Real* v);
