@@ -5,14 +5,114 @@
 module initial_model_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_constants_module
-  use castro_error_module, only: castro_error
+  use amrex_constants_module, only: ZERO, HALF, ONE, FOUR3RD, M_PI
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar
   use meth_params_module, only: small_temp
-  use probdata_module
+
+  type :: initial_model
+
+     ! Physical characteristics
+
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
+
+     ! Composition
+
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
+
+     ! Model storage
+
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
+
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
+     type (eos_t), allocatable :: state(:)
+
+  end type initial_model
+
+  ! 1D initial models
+
+  type (initial_model), allocatable :: model_P, model_S
+  real(rt), allocatable :: rho_P(:), rho_S(:)
+  real(rt), allocatable :: T_P(:), T_S(:)
+  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
+  real(rt), allocatable :: r_P(:), r_S(:)
+
+  ! For the grid spacing for our model, we'll use 
+  ! 6.25 km. No simulation we do is likely to have a resolution
+  ! higher than that inside the stars (it represents
+  ! three jumps by a factor of four compared to our 
+  ! normal coarse grid resolution). By using 4096
+  ! grid points, the size of the 1D domain will be 2.56e9 cm,
+  ! which is larger than any reasonable mass white dwarf.
+
+  real(rt), allocatable :: initial_model_dx
+  integer,  allocatable :: initial_model_npts
+
+  ! initial_model_mass_tol is tolerance used for getting the total WD mass 
+  ! equal to the desired mass. It can be reasonably small, since there
+  ! will always be a central density value that can give the desired
+  ! WD mass on the grid we use.
+
+  real(rt), allocatable :: initial_model_mass_tol
+
+  ! hse_tol is the tolerance used when iterating over a zone to force
+  ! it into HSE by adjusting the current density (and possibly
+  ! temperature).  hse_tol should be very small (~ 1.e-10).
+
+  real(rt), allocatable :: initial_model_hse_tol
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_P, model_S
+  attributes(managed) :: rho_P, rho_S
+  attributes(managed) :: T_P, T_S
+  attributes(managed) :: xn_P, xn_S
+  attributes(managed) :: r_P, r_S
+  attributes(managed) :: initial_model_dx, initial_model_npts
+  attributes(managed) :: initial_model_mass_tol, initial_model_hse_tol
+#endif
+
+  ! Composition properties of initial models.
+  ! We follow the prescription of Dan et al. 2012 for determining
+  ! the composition of the WDs. In this approach, below a certain 
+  ! mass there are pure He WDs; just above that are hybrid WDs
+  ! with pure CO cores and a He mantle; above that are pure CO WDs
+  ! with slightly more oxygen than carbon; and above that are 
+  ! ONeMg WDs. All masses are in solar masses.
+
+  real(rt), allocatable :: max_he_wd_mass
+  real(rt), allocatable :: max_hybrid_wd_mass
+  real(rt), allocatable :: hybrid_wd_he_shell_mass
+  real(rt), allocatable :: max_co_wd_mass
+  real(rt), allocatable :: co_wd_he_shell_mass
+
+  real(rt), allocatable :: hybrid_wd_c_frac
+  real(rt), allocatable :: hybrid_wd_o_frac
+
+  real(rt), allocatable :: co_wd_c_frac
+  real(rt), allocatable :: co_wd_o_frac
+
+  real(rt), allocatable :: onemg_wd_o_frac
+  real(rt), allocatable :: onemg_wd_ne_frac
+  real(rt), allocatable :: onemg_wd_mg_frac
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: max_he_wd_mass, max_hybrid_wd_mass, hybrid_wd_he_shell_mass
+  attributes(managed) :: max_co_wd_mass, co_wd_he_shell_mass
+  attributes(managed) :: hybrid_wd_c_frac, hybrid_wd_o_frac
+  attributes(managed) :: co_wd_c_frac, co_wd_o_frac
+  attributes(managed) :: onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac
+#endif
 
 contains
 
@@ -117,6 +217,7 @@ contains
   subroutine establish_hse(model, rho, T, xn, r)
 
     use eos_module, only: eos
+    use castro_error_module, only: castro_error
 
     implicit none
 
