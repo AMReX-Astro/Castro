@@ -1500,6 +1500,7 @@ protected:
 
 
 /* problem-specific includes */
+public:
 #include <Problem.H>
 
 };
