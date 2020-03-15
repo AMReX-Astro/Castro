@@ -449,18 +449,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
                 dq.resize(obx, NQ);
                 Elixir elix_dq = dq.elixir();
+                auto dq_arr = dq.array();
 
-#pragma gpu box(obx)
-                ca_mol_plm_reconstruct
-                  (AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                   idir_f,
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(flatn),
-                   BL_TO_FORTRAN_ANYD(dq),
-                   BL_TO_FORTRAN_ANYD(qm),
-                   BL_TO_FORTRAN_ANYD(qp),
-                   AMREX_REAL_ANYD(dx),
-                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+                mol_plm_reconstruct(obx, idir,
+                                    q_arr, flatn_arr,
+                                    dq_arr,
+                                    qm_arr, qp_arr);
 
               } else {
 
