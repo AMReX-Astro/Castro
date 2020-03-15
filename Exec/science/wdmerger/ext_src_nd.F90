@@ -77,9 +77,11 @@
 
                    loc = position(i,j,k) - center
 
+                   mom = new_state(i,j,k,UMX:UMZ)
+
 #ifdef ROTATION
                    if (do_rotation == 1 .and. state_in_rotating_frame == 0) then
-                      vel = rhoInv * new_state(i,j,k,UMX:UMZ)
+                      vel = rhoInv * mom
                       call inertial_to_rotational_velocity([i, j, k], time, vel)
                       mom = new_state(i,j,k,URHO) * vel
                    end if
