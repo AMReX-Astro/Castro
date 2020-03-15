@@ -183,10 +183,6 @@ speed_limit                  Real          2.99792458e10      y
 # 2 = Use average of all adjacent zones for all state variables
 density_reset_method         int           1                  y
 
-# Whether or not to allow the internal energy to be less than the
-# internal energy corresponding to small_temp
-allow_small_energy           int           1                  y
-
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
 
