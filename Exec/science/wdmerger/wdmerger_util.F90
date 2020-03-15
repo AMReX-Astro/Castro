@@ -1,9 +1,302 @@
 module wdmerger_util_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use probdata_module
 
   implicit none
+  
+  ! Initial stellar properties
+  ! Note that the envelope mass is included within the total mass of the star
+
+  real(rt), allocatable :: mass_P, mass_S
+  real(rt), allocatable :: central_density_P, central_density_S
+  real(rt), allocatable :: stellar_temp
+  real(rt), allocatable :: primary_envelope_mass, secondary_envelope_mass
+  real(rt), allocatable :: primary_envelope_comp(:), secondary_envelope_comp(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: mass_P, mass_S
+  attributes(managed) :: central_density_P, central_density_S
+  attributes(managed) :: stellar_temp
+  attributes(managed) :: primary_envelope_mass, secondary_envelope_mass
+  attributes(managed) :: primary_envelope_comp, secondary_envelope_comp
+#endif
+
+
+
+  ! Ambient medium
+
+  real(rt), allocatable :: ambient_density, ambient_temp, ambient_comp(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: ambient_density, ambient_temp, ambient_comp
+#endif
+
+
+
+  ! Smallest allowed velocity on the grid
+
+  real(rt), allocatable :: smallu
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: smallu
+#endif
+
+
+
+  ! Parameters for interpolation from 1D model to 3D model:
+
+  ! Number of sub-grid-scale zones to use
+
+  integer, allocatable :: nsub
+
+  ! Default to interpolation that preserves temperature; otherwise, use pressure
+
+  logical, allocatable :: interp_temp
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: nsub, interp_temp
+#endif
+
+
+
+  ! Method for determining the initial problem setup.
+  !
+  ! 0 = Collision; distance determined by a multiple of the secondary WD radius
+  ! 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
+  ! 5 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
+
+  integer, allocatable :: problem
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: problem
+#endif
+
+
+
+  ! If we're automatically determining the initial distance based on the Roche lobe
+  ! radii for the merger problem, this is the sizing factor we use. Negative means
+  ! that we set the initial distance using the user-selected rotation period.
+
+  real(rt), allocatable :: roche_radius_factor
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: roche_radius_factor
+#endif
+
+
+
+  ! Collision parameters
+
+  ! For a collision, number of (secondary) WD radii to 
+  ! separate the WDs by.
+
+  real(rt), allocatable :: collision_separation
+
+  ! For a collision, the impact parameter measured in
+  ! units of the primary's initial radius.
+
+  real(rt), allocatable :: collision_impact_parameter
+
+  ! For a collision, the initial velocity of the WDs toward
+  ! each other. If this is negative, the velocity will
+  ! be set according to free-fall from an infinite distance.
+
+  real(rt), allocatable :: collision_velocity
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: collision_separation, collision_impact_parameter, collision_velocity
+#endif
+
+
+
+  ! TDE parameters
+
+  ! For a TDE, number of WD tidal radii to separate the WD and BH.
+
+  real(rt), allocatable :: tde_separation
+
+  ! For a TDE, the parameter beta: the ratio of the tidal radius to
+  ! the Schwarzschild radius of the BH.
+
+  real(rt), allocatable :: tde_beta
+
+  ! For a TDE, should we give the star an initial kick of velocity
+  ! corresponding to its parabolic orbit? By default we will, but
+  ! this option exists so we can test for HSE.
+
+  integer, allocatable :: tde_initial_velocity
+
+  real(rt), allocatable :: tde_tidal_radius
+  real(rt), allocatable :: tde_schwarzschild_radius
+  real(rt), allocatable :: tde_pericenter_radius
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: tde_separation, tde_beta, tde_initial_velocity
+  attributes(managed) :: tde_tidal_radius, tde_schwarzschild_radius, tde_pericenter_radius
+#endif
+
+
+
+  ! Binary orbit properties
+
+  real(rt), allocatable :: r_P_initial, r_S_initial, a
+  real(rt), allocatable :: center_P_initial(:), center_S_initial(:)
+  real(rt), allocatable :: orbital_eccentricity, orbital_angle
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: r_P_initial, r_S_initial, a
+  attributes(managed) :: center_P_initial, center_S_initial
+  attributes(managed) :: orbital_eccentricity, orbital_angle
+#endif
+
+
+
+  ! Axis is in orbital plane; we measure angle with respect to this axis. Normally the x axis.
+
+  integer, allocatable :: axis_1
+
+  ! Perpendicular axis in the orbital plane. Normally the y axis.
+
+  integer, allocatable :: axis_2
+
+  ! Perpendicular to both other axes. Normally the z axis and also the rotation axis.
+
+  integer, allocatable :: axis_3
+
+  ! Location of the physical center of the problem, as a fraction of domain size
+
+  real(rt), allocatable :: center_fracx, center_fracy, center_fracz
+
+  ! Bulk system motion
+
+  real(rt), allocatable :: bulk_velx, bulk_vely, bulk_velz
+
+  ! Whether we're doing an initialization or a restart
+
+  integer, allocatable :: init
+
+  ! Are we doing a single star simulation?
+
+  logical, allocatable :: single_star
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: axis_1, axis_2, axis_3
+  attributes(managed) :: center_fracx, center_fracy, center_fracz
+  attributes(managed) :: bulk_velx, bulk_vely, bulk_velz
+  attributes(managed) :: init
+  attributes(managed) :: single_star
+#endif
+
+
+
+  ! Tagging criteria
+
+  integer,  allocatable :: max_stellar_tagging_level
+  integer,  allocatable :: max_temperature_tagging_level
+  integer,  allocatable :: max_center_tagging_level
+  real(rt), allocatable :: stellar_density_threshold
+  real(rt), allocatable :: temperature_tagging_threshold
+  real(rt), allocatable :: center_tagging_radius
+  real(rt), allocatable :: max_tagging_radius
+  real(rt), allocatable :: roche_tagging_factor
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: max_stellar_tagging_level
+  attributes(managed) :: max_temperature_tagging_level
+  attributes(managed) :: max_center_tagging_level
+  attributes(managed) :: stellar_density_threshold
+  attributes(managed) :: temperature_tagging_threshold
+  attributes(managed) :: center_tagging_radius
+  attributes(managed) :: max_tagging_radius
+  attributes(managed) :: roche_tagging_factor
+#endif
+
+
+
+  ! Stores the center of mass location of the stars throughout the run
+
+  real(rt), allocatable :: com_P(:), com_S(:)
+  real(rt), allocatable :: vel_P(:), vel_S(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: com_P, com_S
+  attributes(managed) :: vel_P, vel_S
+#endif
+
+  ! Stores the effective Roche radii
+
+  real(rt), allocatable :: roche_rad_P, roche_rad_S
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: roche_rad_P, roche_rad_S
+#endif
+
+
+
+  ! Relaxation parameters
+
+  real(rt), allocatable :: relaxation_damping_factor
+  real(rt), allocatable :: relaxation_density_cutoff
+  real(rt), allocatable :: relaxation_cutoff_time
+  integer,  allocatable :: relaxation_is_done
+
+  ! Radial damping parameters
+
+  real(rt), allocatable :: radial_damping_factor
+  real(rt), allocatable :: initial_radial_velocity_factor
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: relaxation_damping_factor, relaxation_density_cutoff, relaxation_cutoff_time, relaxation_is_done
+  attributes(managed) :: radial_damping_factor, initial_radial_velocity_factor
+#endif
+
+
+
+  ! Distance (in kpc) used for calculation of the gravitational wave amplitude
+  ! (this wil be calculated along all three coordinate axes).
+
+  real(rt), allocatable :: gw_dist
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: gw_dist
+#endif
+
+
+
+  ! Current value of the dynamical timescale for each star
+
+  real(rt), allocatable :: t_ff_P, t_ff_S
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: t_ff_P, t_ff_S
+#endif
+
+
+
+  ! Global extrema
+
+  real(rt), allocatable :: T_global_max, rho_global_max, ts_te_global_max
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: T_global_max, rho_global_max, ts_te_global_max
+#endif
+
+
+
+  ! Stores whether we assert that the simulation has completed.
+
+  logical, allocatable :: jobIsDone
+  logical, allocatable :: signalJobIsNotDone
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: jobIsDone
+  attributes(managed) :: signalJobIsNotDone
+#endif
+
+  ! Auxiliary data for determining whether the job is done.
+
+  integer, parameter :: num_previous_ener_timesteps = 5
+  real(rt) :: total_ener_array(num_previous_ener_timesteps)
 
 contains
 
@@ -49,6 +342,8 @@ contains
     use castro_error_module, only: castro_error
     use network, only: nspec
     use fundamental_constants_module, only: M_solar
+    use initial_model_module
+    use binary_module
 
     implicit none
 
@@ -456,6 +751,7 @@ contains
     use network, only: network_species_index
     use castro_error_module, only: castro_error
     use amrex_constants_module, only: ZERO, ONE
+    use initial_model_module
 
     implicit none
 
@@ -673,7 +969,7 @@ contains
 
     use meth_params_module, only: rot_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
     use network, only: nspec, naux
-    use initial_model_module, only: initialize_model, establish_hse
+    use initial_model_module
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
@@ -1329,7 +1625,6 @@ contains
     use meth_params_module, only: URHO, NVAR
     use castro_util_module, only: position_to_index
     use reduction_module, only: reduce_add
-    use probdata_module, only: relaxation_density_cutoff
 
     implicit none
 
@@ -1916,8 +2211,8 @@ contains
     use castro_util_module, only: position ! function
     use reduction_module, only: reduce_add
     use prob_params_module, only: dim, dx_level
-    use probdata_module, only: L1
     use amrinfo_module, only: amr_level
+    use binary_module, only: L1
 
     implicit none
 
@@ -2005,7 +2300,6 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use fundamental_constants_module, only: Gconst, c_light, parsec
-    use probdata_module, only: gw_dist, axis_1, axis_2, axis_3
     use prob_params_module, only: dim
 
     implicit none
@@ -2131,8 +2425,6 @@ contains
 
     use amrex_constants_module, only: ZERO
     use castro_error_module, only: castro_error
-    use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
-                               center_fracx, center_fracy, center_fracz
     use prob_params_module, only: center, problo, probhi, dim
 
     implicit none
@@ -2228,8 +2520,6 @@ contains
 
   subroutine set_extrema(T_max, rho_max, ts_te_max) bind(C,name='set_extrema')
 
-    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
-
     implicit none
 
     real(rt), intent(in) :: T_max, rho_max, ts_te_max
@@ -2246,8 +2536,6 @@ contains
 
   subroutine get_extrema(T_max, rho_max, ts_te_max) bind(C,name='get_extrema')
 
-    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
-
     implicit none
 
     real(rt), intent(inout) :: T_max, rho_max, ts_te_max
@@ -2263,8 +2551,6 @@ contains
   ! Returns whether the simulation is done.
 
   subroutine get_job_status(jobDoneStatus) bind(C,name='get_job_status')
-
-    use probdata_module, only: jobIsDone
 
     implicit none
 
@@ -2283,8 +2569,6 @@ contains
   ! Sets whether the simulation is done.
 
   subroutine set_job_status(jobDoneStatus) bind(C,name='set_job_status')
-
-    use probdata_module, only: jobIsDone
 
     implicit none
 
@@ -2305,7 +2589,6 @@ contains
   subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
 
     use amrex_fort_module, only: rt => amrex_real
-    use probdata_module, only: relaxation_cutoff_time
 
     implicit none
 
@@ -2321,8 +2604,6 @@ contains
 
   subroutine get_relaxation_status(relaxation_status) bind(C,name='get_relaxation_status')
 
-    use probdata_module, only: relaxation_is_done
-
     implicit none
 
     integer, intent(inout) :: relaxation_status
@@ -2336,8 +2617,6 @@ contains
   ! Sets whether the relaxation is done.
 
   subroutine set_relaxation_status(relaxation_status) bind(C,name='set_relaxation_status')
-
-    use probdata_module, only: relaxation_is_done
 
     implicit none
 
@@ -2353,8 +2632,6 @@ contains
 
   subroutine get_total_ener_array(ener_array_in) bind(C,name='get_total_ener_array')
 
-    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
-
     implicit none
 
     real(rt), intent(inout) :: ener_array_in(num_previous_ener_timesteps)
@@ -2368,8 +2645,6 @@ contains
   ! Set the total energy array.
 
   subroutine set_total_ener_array(ener_array_in) bind(C,name='set_total_ener_array')
-
-    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
 
     implicit none
 
