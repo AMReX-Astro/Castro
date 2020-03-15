@@ -58,6 +58,7 @@
                      amrex::Array4<amrex::Real> const srcQ);
 
     void ctoprim(const amrex::Box& bx,
+                 const amrex::Real time,
                  amrex::Array4<amrex::Real const> const uin,
 #ifdef RADIATION
                  amrex::Array4<amrex::Real const> const Erin,

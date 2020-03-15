@@ -1,6 +1,7 @@
 
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 
 using namespace amrex;
 
@@ -200,9 +201,10 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
 
 void
 Castro::inertial_to_rotational_velocity(const int i, const int j, const int k,
-                                        const GeometryData& geomdata, const Real* center,
-                                        const Real* omega,
-                                        const Real time, Real& v) {
+                                        const GeometryData& geomdata,
+                                        GpuArray<Real, 3> center,
+                                        GpuArray<Real, 3> omega,
+                                        const Real time, Real* v) {
 
   // Given a velocity vector in the inertial frame, transform it to a
   // velocity vector in the rotating frame.
@@ -211,7 +213,7 @@ Castro::inertial_to_rotational_velocity(const int i, const int j, const int k,
 
   Real loc[3];
 
-  position(i, j, k, geomdata, loc, ccx, ccy, ccz);
+  position(i, j, k, geomdata, loc);
 
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     loc[dir] -= center[dir];

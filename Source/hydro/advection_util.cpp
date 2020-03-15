@@ -16,6 +16,7 @@ using namespace amrex;
 
 void
 Castro::ctoprim(const Box& bx,
+                const Real time,
                 Array4<Real const> const uin,
 #ifdef RADIATION
                 Array4<Real const> const Erin,
@@ -43,6 +44,11 @@ Castro::ctoprim(const Box& bx,
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
+
+#ifdef ROTATION
+  GpuArray<Real, 3> omega;
+  get_omega(time, omega.begin());
+#endif
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {

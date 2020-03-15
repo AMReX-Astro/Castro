@@ -50,6 +50,7 @@ Castro::cons_to_prim(const Real time)
         // This fills both q and qaux.
 
         ctoprim(qbx,
+                time,
                 Sborder_arr,
 #ifdef RADIATION
                 Erborder_arr,
@@ -127,6 +128,7 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
         auto qaux_in_arr = qaux_in.array(mfi);
 
         ctoprim(bx,
+                time,
                 u_arr,
 #ifdef RADIATION
                 Erborder_arr,
@@ -197,6 +199,7 @@ Castro::cons_to_prim_fourth(const Real time)
       auto qaux_bar_arr = qaux_bar.array(mfi);
 
       ctoprim(qbx,
+              time, 
               Sborder_arr,
               q_bar_arr,
               qaux_bar_arr);
@@ -212,6 +215,7 @@ Castro::cons_to_prim_fourth(const Real time)
       auto qaux_arr = qaux.array(mfi);
 
       ctoprim(qbxm1,
+              time,
               U_cc_arr,
               q_arr,
               qaux_arr);
