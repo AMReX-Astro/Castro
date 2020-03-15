@@ -52,7 +52,9 @@ endif
 
 # Location where the source files are coming from.
 
-Blocs := $(CASTRO_HOME)/Exec/science/wdmerger/
-Bpack := $(CASTRO_HOME)/Exec/science/wdmerger/Make.package
+PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/science/wdmerger
+
+Blocs = $(PROBLEM_DIR)
+Bpack = $(PROBLEM_DIR)/Make.package
 
 include $(CASTRO_HOME)/Exec/Make.Castro
