@@ -41,6 +41,9 @@ Castro::ctoprim(const Box& bx,
   int closure = Radiation::closure;
 #endif
 
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
@@ -94,7 +97,10 @@ Castro::ctoprim(const Box& bx,
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
 
-      call inertial_to_rotational_velocity([i, j, k], amr_time, vel);
+      GeometryData geomdata = geom.data();
+
+      inertial_to_rotational_velocity(i, j, k, geomdata, center, omega, time, vel);
+
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
       q_arr(i,j,k,QW) = vel[2];
