@@ -1272,7 +1272,7 @@ contains
   ! Note that we simply return the original velocity if we're
   ! already in the inertial frame.
 
-  function inertial_velocity(loc, vel, time) result (vel_i)
+  function inertial_velocity(loc, vel, time) result(vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_frequency_module, only: get_omega ! function
@@ -1280,7 +1280,7 @@ contains
 
     implicit none
 
-    real(rt) :: loc(3), vel(3), time
+    real(rt), intent(in   ) :: loc(3), vel(3), time
     real(rt) :: omega(3)
 
     real(rt) :: vel_i(3)

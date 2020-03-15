@@ -640,14 +640,8 @@ We compute the primtive variables from the conserved variables.
 
 -  :math:`p,T`: use the EOS.
 
-   First, if castro.allow_negative_energy is 0 (it defaults to
-   1) and :math:`e < 0`, we do the following:
-
-   #. Use the EOS to set :math:`e = e(\rho,T_{\rm small},X_k)`.
-
-   #. If :math:`e < 0`, abort the program with an error message.
-
-   Now, use the EOS to compute :math:`p,T = p,T(\rho,e,X_k)`.
+   First, we use the EOS to ensure :math:`e` is no smaller than :math:`e(\rho,T_{\rm small},X_k)`.
+   Then we use the EOS to compute :math:`p,T = p,T(\rho,e,X_k)`.
 
 We also compute the flattening coefficient, :math:`\chi\in[0,1]`, used in
 the edge state prediction to further limit slopes near strong shocks.
@@ -1150,11 +1144,6 @@ Density Resets
 --------------
 
 Need to document density_reset_method
-
-Energy
-------
-
-Need to document allow_negative_energy and allow_small_energy
 
 .. _app:hydro:flux_limiting:
 
