@@ -105,7 +105,7 @@ Castro::ctoprim(const Box& bx,
 
       GeometryData geomdata = geom.data();
 
-      inertial_to_rotational_velocity(i, j, k, geomdata, center.begin(), omega.begin(), time, vel);
+      inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];

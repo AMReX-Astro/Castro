@@ -15,7 +15,7 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt), intent(in) :: time
+    real(rt), intent(in), value :: time
     real(rt), intent(inout) :: omega(3)
 
     real(rt) :: curr_period
