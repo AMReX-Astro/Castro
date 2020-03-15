@@ -139,7 +139,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#temperature-fixes">Temperature Fixes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#resets">Resets</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#density-resets">Density Resets</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#energy">Energy</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#flux-limiting">Flux Limiting</a></li>
 </ul>
 </li>
@@ -942,13 +941,8 @@ vector</p>
 vector, dividing by <span class="math notranslate nohighlight">\(\rho\)</span></p>
 </li>
 <li><p class="first"><span class="math notranslate nohighlight">\(p,T\)</span>: use the EOS.</p>
-<p>First, if castro.allow_negative_energy is 0 (it defaults to
-1) and <span class="math notranslate nohighlight">\(e &lt; 0\)</span>, we do the following:</p>
-<ol class="arabic simple">
-<li>Use the EOS to set <span class="math notranslate nohighlight">\(e = e(\rho,T_{\rm small},X_k)\)</span>.</li>
-<li>If <span class="math notranslate nohighlight">\(e &lt; 0\)</span>, abort the program with an error message.</li>
-</ol>
-<p>Now, use the EOS to compute <span class="math notranslate nohighlight">\(p,T = p,T(\rho,e,X_k)\)</span>.</p>
+<p>First, we use the EOS to ensure <span class="math notranslate nohighlight">\(e\)</span> is no smaller than <span class="math notranslate nohighlight">\(e(\rho,T_{\rm small},X_k)\)</span>.
+Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T = p,T(\rho,e,X_k)\)</span>.</p>
 </li>
 </ul>
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
@@ -1390,10 +1384,6 @@ from this.</p>
 <div class="section" id="density-resets">
 <h3>Density Resets<a class="headerlink" href="#density-resets" title="Permalink to this headline">¶</a></h3>
 <p>Need to document density_reset_method</p>
-</div>
-<div class="section" id="energy">
-<h3>Energy<a class="headerlink" href="#energy" title="Permalink to this headline">¶</a></h3>
-<p>Need to document allow_negative_energy and allow_small_energy</p>
 </div>
 <div class="section" id="flux-limiting">
 <span id="app-hydro-flux-limiting"></span><h3>Flux Limiting<a class="headerlink" href="#flux-limiting" title="Permalink to this headline">¶</a></h3>
