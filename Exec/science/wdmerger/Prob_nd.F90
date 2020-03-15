@@ -22,7 +22,6 @@
                           dx, problo) bind(C, name='ca_initdata')
 
      use amrex_fort_module, only: rt => amrex_real
-     use probdata_module
      use wdmerger_util_module
      use prob_params_module, only: center, dim
      use eos_type_module, only: eos_t
@@ -32,7 +31,8 @@
      use network, only: nspec
      use amrex_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
-     use initial_model_module, only: interpolate_3d_from_1d
+     use initial_model_module
+     use binary_module
      use ambient_module, only: ambient_state
      use math_module, only: cross_product ! function
      use castro_util_module, only: position ! function
