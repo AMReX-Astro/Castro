@@ -798,10 +798,20 @@ public:
 ///
 /// Reset the internal energy
 ///
-/// @param State    Current state
+/// @param State    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
     void reset_internal_energy (amrex::MultiFab& State, int ng);
+
+
+
+///
+/// Reset the internal energy
+///
+/// @param bx       Box to update
+/// @param u        Current state (Fab)
+///
+    void reset_internal_energy (const amrex::Box& bx, amrex::Array4<Real> const u);
 
 
 
