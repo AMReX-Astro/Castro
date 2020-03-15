@@ -31,13 +31,18 @@ Castro::mol_plm_reconstruct(const Box& bx,
   Real lconst_grav = 0.0_rt;
 #endif
 
+  int lplm_well_balanced = plm_well_balanced;
+
+  for (int n = 0; n < NQ; n++) {
+    // piecewise linear slopes
+    uslope(bx, idir,
+           q_arr, n,
+           flatn_arr, dq);
+  }
+
+
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
-
-   // piecewise linear slopes
-   uslope(bx, idir,
-          q_arr, n,
-          flatn_arr, dq);
 
 
    // this is a loop over zones.  For each slope in the zone, fill the
@@ -46,7 +51,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
    if (idir == 0) {
 
-     if (plm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
 
        // left state at i+1/2 interface
        qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +
@@ -68,7 +73,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 #if AMREX_SPACEDIM >= 2
    } else if (idir == 1) {
 
-     if (plm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
 
        // left state at i+1/2 interface
        qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +
@@ -92,7 +97,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 #if AMREX_SPACEDIM == 3
    } else {
 
-     if (plm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
 
        // left state at i+1/2 interface
        qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +

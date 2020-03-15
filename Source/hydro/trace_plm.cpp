@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -68,11 +69,6 @@ Castro::trace_plm(const Box& bx, const int idir,
 
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
-
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; n++){
-    qpass_map_p[n] = qpass_map[n];
-  }
 
   // Compute left and right traced states
 
@@ -254,7 +250,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n = qpass_map_p[ipassive];
+      int n = qpassmap(ipassive);
 
       // Right state
       if ((idir == 0 && i >= vlo[0]) ||
@@ -266,32 +262,32 @@ Castro::trace_plm(const Box& bx, const int idir,
 #if  PRIM_SPECIES_HAVE_SOURCES
         qp(i,j,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
 #endif
-
-        // Left state
-        spzero = un >= 0.0_rt ? un*dtdx : 1.0_rt;
-        Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dq(i,j,k,n);
-
-        if (idir == 0 && i <= vhi[0]) {
-          qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if  PRIM_SPECIES_HAVE_SOURCES
-          qm(i+1,j,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
-#endif
-
-        } else if (idir == 1 && j <= vhi[1]) {
-          qm(i,j+1,k,n) = q_arr(i,j,k,n) + acmpleft;
-#if  PRIM_SPECIES_HAVE_SOURCES
-          qm(i,j+1,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
-#endif
-
-        } else if (idir == 2 && k <= vhi[2]) {
-          qm(i,j,k+1,n) = q_arr(i,j,k,n) + acmpleft;
-#if  PRIM_SPECIES_HAVE_SOURCES
-          qm(i,j,k+1,n) += 0.5_rt*dt*srcQ(i,j,k,n);
-#endif
-        }
       }
-    }
 
+      // Left state
+      Real spzero = un >= 0.0_rt ? un*dtdx : 1.0_rt;
+      Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dq(i,j,k,n);
+
+      if (idir == 0 && i <= vhi[0]) {
+        qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;
+#if  PRIM_SPECIES_HAVE_SOURCES
+        qm(i+1,j,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
+#endif
+
+      } else if (idir == 1 && j <= vhi[1]) {
+        qm(i,j+1,k,n) = q_arr(i,j,k,n) + acmpleft;
+#if  PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j+1,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
+#endif
+
+      } else if (idir == 2 && k <= vhi[2]) {
+        qm(i,j,k+1,n) = q_arr(i,j,k,n) + acmpleft;
+#if  PRIM_SPECIES_HAVE_SOURCES
+        qm(i,j,k+1,n) += 0.5_rt*dt*srcQ(i,j,k,n);
+#endif
+      }
+
+    }
 
   });
 }
