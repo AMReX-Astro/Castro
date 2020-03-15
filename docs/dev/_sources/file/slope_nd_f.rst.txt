@@ -1,8 +1,0 @@
-slope_nd.F90
-============
-
-slope\_module
--------------
-
-.. f:automodule:: slope_module
-

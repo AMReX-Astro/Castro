@@ -155,8 +155,6 @@
 <li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="slope_nd_f.html">slope_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="trace_plm_nd_f.html">trace_plm_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
@@ -253,7 +251,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/ctu_module/ca_track_grid_losses" title="f/ctu_module/ca_track_grid_losses"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_track_grid_losses()</span></code></a>, <a class="reference internal" href="#f/ctu_module/ctu_plm_states" title="f/ctu_module/ctu_plm_states"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_plm_states()</span></code></a>, <a class="reference internal" href="#f/ctu_module/ctu_rad_consup" title="f/ctu_module/ctu_rad_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_rad_consup()</span></code></a></td>
+<tr class="field-odd field"><th class="field-name">Routines:</th><td class="field-body"><a class="reference internal" href="#f/ctu_module/ca_track_grid_losses" title="f/ctu_module/ca_track_grid_losses"><code class="xref f f-func docutils literal notranslate"><span class="pre">ca_track_grid_losses()</span></code></a>, <a class="reference internal" href="#f/ctu_module/ctu_rad_consup" title="f/ctu_module/ctu_rad_consup"><code class="xref f f-func docutils literal notranslate"><span class="pre">ctu_rad_consup()</span></code></a></td>
 </tr>
 </tbody>
 </table>
@@ -264,74 +262,6 @@
 <li><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</li>
 </ul>
 <p class="rubric">Subroutines and functions</p>
-<dl class="subroutine">
-<dt id="f/ctu_module/ctu_plm_states">
-<em class="property">subroutine  </em><code class="descclassname">ctu_module/</code><code class="descname">ctu_plm_states</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>vlo</em>, <em>vhi</em>, <em>q</em>, <em>qd_lo</em>, <em>qd_hi</em>, <em>flatn</em>, <em>f_lo</em>, <em>f_hi</em>, <em>qaux</em>, <em>qa_lo</em>, <em>qa_hi</em>, <em>srcq</em>, <em>src_lo</em>, <em>src_hi</em>, <em>dq</em>, <em>dq_lo</em>, <em>dq_hi</em>, <em>qxm</em>, <em>qxm_lo</em>, <em>qxm_hi</em>, <em>qxp</em>, <em>qxp_lo</em>, <em>qxp_hi</em>, <em>qym</em>, <em>qym_lo</em>, <em>qym_hi</em>, <em>qyp</em>, <em>qyp_lo</em>, <em>qyp_hi</em>, <em>qzm</em>, <em>qzm_lo</em>, <em>qzm_hi</em>, <em>qzp</em>, <em>qzp_lo</em>, <em>qzp_hi</em>, <em>dx</em>, <em>dt</em>, <em>dloga</em>, <em>dloga_lo</em>, <em>dloga_hi</em>, <em>domlo</em>, <em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ctu_module/ctu_plm_states" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the normal interface states by reconstructing
-the primitive variables using piecewise linear slopes and doing
-characteristic tracing.  We do not apply the transverse terms here.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>vhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>q</strong> (qd_hi(1)-(qd_lo(1))+1,qd_hi(2)-(qd_lo(2))+1,qd_hi(3)-(qd_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qd_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qd_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>flatn</strong> (f_hi(1)-(f_lo(1))+1,f_hi(2)-(f_lo(2))+1,f_hi(3)-(f_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>f_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>f_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qaux</strong> (qa_hi(1)-(qa_lo(1))+1,qa_hi(2)-(qa_lo(2))+1,qa_hi(3)-(qa_lo(3))+1,nqaux)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qa_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>srcq</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nqsrc)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dq</strong> (dq_hi(1)-(dq_lo(1))+1,dq_hi(2)-(dq_lo(2))+1,dq_hi(3)-(dq_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>dq_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dq_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm</strong> (qxm_hi(1)-(qxm_lo(1))+1,qxm_hi(2)-(qxm_lo(2))+1,qxm_hi(3)-(qxm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qxm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp</strong> (qxp_hi(1)-(qxp_lo(1))+1,qxp_hi(2)-(qxp_lo(2))+1,qxp_hi(3)-(qxp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qxp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qxp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym</strong> (qym_hi(1)-(qym_lo(1))+1,qym_hi(2)-(qym_lo(2))+1,qym_hi(3)-(qym_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qym_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qym_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp</strong> (qyp_hi(1)-(qyp_lo(1))+1,qyp_hi(2)-(qyp_lo(2))+1,qyp_hi(3)-(qyp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qyp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qyp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm</strong> (qzm_hi(1)-(qzm_lo(1))+1,qzm_hi(2)-(qzm_lo(2))+1,qzm_hi(3)-(qzm_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qzm_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzm_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp</strong> (qzp_hi(1)-(qzp_lo(1))+1,qzp_hi(2)-(qzp_lo(2))+1,qzp_hi(3)-(qzp_lo(3))+1,nq)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>qzp_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>qzp_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em> :: grid spacing in X, Y, Z direction</li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em> :: time stepsize</li>
-<li><strong>dloga</strong> (dloga_hi(1)-(dloga_lo(1))+1,dloga_hi(2)-(dloga_lo(2))+1,dloga_hi(3)-(dloga_lo(3))+1)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dloga_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dloga_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domlo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>domhi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first"><code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nqsrc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nq()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qtemp()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qreint()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">qgamc()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nqaux()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">use_pslope()</span></code>), <a class="reference internal" href="trace_plm_nd_f.html#f/trace_plm_module" title="f/trace_plm_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">trace_plm_module</span></code></a> (<a class="reference internal" href="trace_plm_nd_f.html#f/trace_plm_module/trace_plm" title="f/trace_plm_module/trace_plm"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_plm()</span></code></a>), <a class="reference internal" href="slope_nd_f.html#f/slope_module" title="f/slope_module"><code class="xref f f-mod docutils literal notranslate"><span class="pre">slope_module</span></code></a> (<a class="reference internal" href="slope_nd_f.html#f/slope_module/uslope" title="f/slope_module/uslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">uslope()</span></code></a>, <a class="reference internal" href="slope_nd_f.html#f/slope_module/pslope" title="f/slope_module/pslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">pslope()</span></code></a>)</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Call to:</th><td class="field-body"><p class="first last"><a class="reference internal" href="Castro_error_nd_f.html#f/castro_error_module/castro_error" title="f/castro_error_module/castro_error"><code class="xref f f-func docutils literal notranslate"><span class="pre">castro_error()</span></code></a>, <a class="reference internal" href="slope_nd_f.html#f/slope_module/uslope" title="f/slope_module/uslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">uslope()</span></code></a>, <a class="reference internal" href="slope_nd_f.html#f/slope_module/pslope" title="f/slope_module/pslope"><code class="xref f f-func docutils literal notranslate"><span class="pre">pslope()</span></code></a>, <a class="reference internal" href="trace_plm_nd_f.html#f/trace_plm_module/trace_plm" title="f/trace_plm_module/trace_plm"><code class="xref f f-func docutils literal notranslate"><span class="pre">trace_plm()</span></code></a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="subroutine">
 <dt id="f/ctu_module/ctu_rad_consup">
 <em class="property">subroutine  </em><code class="descclassname">ctu_module/</code><code class="descname">ctu_rad_consup</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>update</em>, <em>updt_lo</em>, <em>updt_hi</em>, <em>erin</em>, <em>erin_lo</em>, <em>erin_hi</em>, <em>uout</em>, <em>uout_lo</em>, <em>uout_hi</em>, <em>erout</em>, <em>erout_lo</em>, <em>erout_hi</em>, <em>radflux1</em>, <em>radflux1_lo</em>, <em>radflux1_hi</em>, <em>qx</em>, <em>qx_lo</em>, <em>qx_hi</em>, <em>area1</em>, <em>area1_lo</em>, <em>area1_hi</em>, <em>radflux2</em>, <em>radflux2_lo</em>, <em>radflux2_hi</em>, <em>qy</em>, <em>qy_lo</em>, <em>qy_hi</em>, <em>area2</em>, <em>area2_lo</em>, <em>area2_hi</em>, <em>radflux3</em>, <em>radflux3_lo</em>, <em>radflux3_hi</em>, <em>qz</em>, <em>qz_lo</em>, <em>qz_hi</em>, <em>area3</em>, <em>area3_lo</em>, <em>area3_hi</em>, <em>nstep_fsp</em>, <em>vol</em>, <em>vol_lo</em>, <em>vol_hi</em>, <em>dx</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/ctu_module/ctu_rad_consup" title="Permalink to this definition">¶</a></dt>
