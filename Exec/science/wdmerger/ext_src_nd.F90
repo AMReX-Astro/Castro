@@ -10,8 +10,8 @@
        use prob_params_module, only: center
        use amrex_constants_module, only: ZERO, HALF, ONE, TWO
        use castro_util_module, only: position ! function
-       use wdmerger_util_module, only: problem, relaxation_damping_factor, radial_damping_factor, &
-                                       t_ff_P, t_ff_S, axis_1, axis_2, axis_3
+       use probdata_module, only: problem, relaxation_damping_factor, radial_damping_factor, &
+                                  t_ff_P, t_ff_S, axis_1, axis_2, axis_3
        use wdmerger_util_module, only: inertial_velocity ! function
 #ifdef HYBRID_MOMENTUM
        use hybrid_advection_module, only: linear_to_hybrid ! function

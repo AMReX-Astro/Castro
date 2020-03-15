@@ -507,7 +507,7 @@ subroutine derphieffpm_p(phi, phi_lo, phi_hi, ncomp_phi, &
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF
-  use wdmerger_util_module, only: mass_P, com_P
+  use probdata_module, only: mass_P, com_P
   use fundamental_constants_module, only: Gconst
   use prob_params_module, only: problo
 
@@ -562,7 +562,7 @@ subroutine derphieffpm_s(phi, phi_lo, phi_hi, ncomp_phi, &
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF
-  use wdmerger_util_module, only: mass_S, com_S
+  use probdata_module, only: mass_S, com_S
   use fundamental_constants_module, only: Gconst
   use prob_params_module, only: problo
 
@@ -694,7 +694,7 @@ subroutine derprimarymask(mask, mask_lo, mask_hi, ncomp_mask, &
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF, ONE
-  use wdmerger_util_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
+  use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
   use prob_params_module, only: problo
 
@@ -761,7 +761,7 @@ subroutine dersecondarymask(mask, mask_lo, mask_hi, ncomp_mask, &
 
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, HALF, ONE
-  use wdmerger_util_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
+  use probdata_module, only: mass_P, com_P, mass_S, com_S, stellar_density_threshold
   use fundamental_constants_module, only: Gconst
   use prob_params_module, only: problo
 
