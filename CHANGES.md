@@ -1,5 +1,11 @@
 # 20.04
 
+   * All boundary fill interfaces other than hypfill and denfill have
+     been removed. So, we no longer support overriding the boundary
+     conditions for data other than State_Type. Radiation still has
+     its own set of custom boundary conditions that can be accessed
+     through the inputs file, as described in the docs. (#815)
+
    * The conversion of the CTU hydrodynamics code to C++ continues.
      The Riemann solvers were converted to C++ (#801) and the
      hybrid momentum routines (#805).
