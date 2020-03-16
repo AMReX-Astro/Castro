@@ -264,7 +264,7 @@ signalJobIsNotDone              logical               .false.                  n
 # Auxiliary data for determining whether the job is done.
 
 num_previous_ener_timesteps     integer               5                        n
-total_ener_array                real                  0.0e0_rt                 n                     num_previous_ener_timesteps
+total_ener_array                real                  0.0e0_rt                 n                      5
 
 
 
