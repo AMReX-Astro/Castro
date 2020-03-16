@@ -151,7 +151,7 @@ Castro::ctoprim(const Box& bx,
       lams[g] = lam(i,j,k,g);
     }
     Real qs[NQ];
-    for (int n = 0; g < NQ; g++) {
+    for (int n = 0; n < NQ; n++) {
       qs[n] = q_arr(i,j,k,n);
     }
     Real ptot;
@@ -167,10 +167,10 @@ Castro::ctoprim(const Box& bx,
     qaux_arr(i,j,k,QC) = ctot;
     qaux_arr(i,j,k,QGAMC) = gamc_tot;
 
-    q_arr(i,j,k,qreitot) = q_arr(i,j,k,QREINT);
+    q_arr(i,j,k,QREITOT) = q_arr(i,j,k,QREINT);
     for (int g = 0; g < NGROUPS; g++) {
       qaux_arr(i,j,k,QLAMS+g) = lam(i,j,k,g);
-      q_arr(i,j,k,qreitot) += q_arr(i,j,k,QRAD+g);
+      q_arr(i,j,k,QREITOT) += q_arr(i,j,k,QRAD+g);
     }
 
 #else

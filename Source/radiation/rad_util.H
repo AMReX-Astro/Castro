@@ -35,4 +35,5 @@ compute_ptot_ctot(const Real* lam, const Real* q,
 
   ctot = std::sqrt(ctot);
 }
+#endif
 
