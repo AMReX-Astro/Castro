@@ -26,13 +26,6 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const qaux_arr) {
 
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
   Real lsmall_dens = small_dens;
   Real ldual_energy_eta1 = dual_energy_eta1;
 
@@ -122,8 +115,8 @@ Castro::ctoprim(const Box& bx,
 
     // Load passively advected quatities into q
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map_p[ipassive];
-      int iq = qpass_map_p[ipassive];
+      int n  = upassmap(ipassive);
+      int iq = qpassmap(ipassive);
       q_arr(i,j,k,iq) = uin(i,j,k,n) * rhoinv;
     }
 
