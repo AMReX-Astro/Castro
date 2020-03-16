@@ -333,7 +333,7 @@ Castro::wd_update (Real time, Real dt)
       t_ff_s = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_s));
     }
 
-    // Send this updated information back to the Fortran probdata module
+    // Send this updated information back to the Fortran module
 
     set_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
 

@@ -176,9 +176,7 @@ Castro::cons_to_prim_fourth(const Real time)
          &dens_change, verbose);
 
       // and ensure that the internal energy is positive
-      ca_reset_internal_e(AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
-                          BL_TO_FORTRAN_ANYD(U_cc),
-                          print_fortran_warnings);
+      reset_internal_energy(qbxm1, U_cc.array());
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.

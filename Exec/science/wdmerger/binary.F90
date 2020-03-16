@@ -7,6 +7,14 @@ module binary_module
 
   implicit none
 
+  ! Lagrange points
+
+  real(rt), allocatable :: L1(:), L2(:), L3(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: L1, L2, L3
+#endif
+
 contains
 
   ! Given the mass ratio q of two stars (assumed to be q = M_1 / M_2), 
@@ -56,7 +64,6 @@ contains
   subroutine get_lagrange_points(mass_1, mass_2, com_1, com_2) bind(C, name="get_lagrange_points")
 
     use amrex_constants_module, only: ZERO, HALF
-    use probdata_module, only: L1, L2, L3
 
     implicit none
 
