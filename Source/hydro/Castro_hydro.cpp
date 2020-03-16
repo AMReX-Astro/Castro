@@ -37,9 +37,6 @@ Castro::cons_to_prim(const Real time)
 
         Array4<Real> const q_arr = q.array(mfi);
         Array4<Real> const qaux_arr = qaux.array(mfi);
-        Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-        Array4<Real> const src_q_arr = src_q.array(mfi);
-
         Array4<Real> const Sborder_arr = Sborder.array(mfi);
 #ifdef RADIATION
         Array4<Real> const Erborder_arr = Erborder.array(mfi);
@@ -63,6 +60,9 @@ Castro::cons_to_prim(const Real time)
         // expressed as sources for the primitive state.
         if (time_integration_method == CornerTransportUpwind ||
             time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+          Array4<Real> const src_q_arr = src_q.array(mfi);
 
           src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
         }
