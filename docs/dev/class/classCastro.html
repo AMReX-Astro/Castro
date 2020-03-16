@@ -1058,11 +1058,9 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro27apply_source_term_predictorEv">
-<span id="_CPPv3N6Castro27apply_source_term_predictorEv"></span><span id="_CPPv2N6Castro27apply_source_term_predictorEv"></span><span id="Castro::apply_source_term_predictor"></span><span class="target" id="classCastro_1ab1d52945088c7fdbf354e75aa43a8def"></span>void <code class="descname">apply_source_term_predictor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro27apply_source_term_predictorEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Optionally predict the source terms to <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">+</span> <span class="pre">dt/2</span></code>, which is the time-level <code class="docutils literal notranslate"><span class="pre">n+1/2</span></code> value, To do this we use a lagged predictor estimate: <span class="math notranslate nohighlight">\( \frac{dS}{dt_n} = (S_n - S_{n-1}) / dt \)</span>, so <span class="math notranslate nohighlight">\( S_{n+1/2} = S_n + (dt / 2) \frac{dS}{dt_n} \)</span>. We’ll add the <code class="docutils literal notranslate"><span class="pre">S_n</span></code> terms later; now we add the second term. We defer the multiplication by <code class="docutils literal notranslate"><span class="pre">dt</span> <span class="pre">/</span> <span class="pre">2</span></code> to ::initialize_do_advance since for a retry we may not yet know at this point what the advance timestep is.</p>
-<p>Note that since for <code class="docutils literal notranslate"><span class="pre">dS/dt</span></code> we want <span class="math notranslate nohighlight">\( (S^{n+1} - S^{n}) / dt \)</span>, we only need to take twice the new-time source term, since in the predictor-corrector approach, the new-time source term is <span class="math notranslate nohighlight">\( \frac{1}{2} S^{n+1} - \frac{1}{2} S^{n} \)</span>. This is untrue in general for the non-momentum sources, so for safety we’ll only apply it to the momentum sources.</p>
-<p>Note that if the old data doesn’t exist yet (e.g. it is the first step of the simulation) <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> will just return the new data, so this is a valid operation and the result will be zero, so there is no source term prediction in the first step. </p>
+<dt id="_CPPv4N6Castro23create_source_correctorEv">
+<span id="_CPPv3N6Castro23create_source_correctorEv"></span><span id="_CPPv2N6Castro23create_source_correctorEv"></span><span id="Castro::create_source_corrector"></span><span class="target" id="classCastro_1a0439af87960668e22136574728818758"></span>void <code class="descname">create_source_corrector</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro23create_source_correctorEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add any terms needed to correct the source terms. Currently this is a lagged predictor for CTU and the time-centering correction for simplified SDC. </p>
 </dd></dl>
 
 <dl class="function">
@@ -1661,6 +1659,12 @@
 </dd></dl>
 
 <dl class="member">
+<dt id="_CPPv4N6Castro16source_correctorE">
+<span id="_CPPv3N6Castro16source_correctorE"></span><span id="_CPPv2N6Castro16source_correctorE"></span><span id="Castro::source_corrector__amrex::MultiFab"></span><span class="target" id="classCastro_1a249cc04f495247a257894af2532664a4"></span>amrex::MultiFab <code class="descname">source_corrector</code><a class="headerlink" href="#_CPPv4N6Castro16source_correctorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Source term corrector. </p>
+</dd></dl>
+
+<dl class="member">
 <dt id="_CPPv4N6Castro12hydro_sourceE">
 <span id="_CPPv3N6Castro12hydro_sourceE"></span><span id="_CPPv2N6Castro12hydro_sourceE"></span><span id="Castro::hydro_source__amrex::MultiFab"></span><span class="target" id="classCastro_1af30243c89295bf4a464c94d2057dd7ab"></span>amrex::MultiFab <code class="descname">hydro_source</code><a class="headerlink" href="#_CPPv4N6Castro12hydro_sourceE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Source term representing hydrodynamics update - this should just be <span class="math notranslate nohighlight">\(-\nabla\cdot \{F(U)\}\)</span> - no source terms </p>
@@ -1741,22 +1745,6 @@
 </dd></dl>
 
 <dl class="member">
-<dt id="_CPPv4N6Castro19prev_state_old_timeE">
-<span id="_CPPv3N6Castro19prev_state_old_timeE"></span><span id="_CPPv2N6Castro19prev_state_old_timeE"></span><span id="Castro::prev_state_old_time__amrex::Real"></span><span class="target" id="classCastro_1aadd9fb60232b405aff04643606e0cfc8"></span>amrex::Real <code class="descname">prev_state_old_time</code><a class="headerlink" href="#_CPPv4N6Castro19prev_state_old_timeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Save the simulation time of the prev_state. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro19prev_state_new_timeE">
-<span id="_CPPv3N6Castro19prev_state_new_timeE"></span><span id="_CPPv2N6Castro19prev_state_new_timeE"></span><span id="Castro::prev_state_new_time__amrex::Real"></span><span class="target" id="classCastro_1a06fc50f72d34ff5501a50dd9129a7349"></span>amrex::Real <code class="descname">prev_state_new_time</code><a class="headerlink" href="#_CPPv4N6Castro19prev_state_new_timeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro23prev_state_had_old_dataE">
-<span id="_CPPv3N6Castro23prev_state_had_old_dataE"></span><span id="_CPPv2N6Castro23prev_state_had_old_dataE"></span><span id="Castro::prev_state_had_old_data__b"></span><span class="target" id="classCastro_1a22315cc4048ed38c44ef22f85e535d0e"></span>bool <code class="descname">prev_state_had_old_data</code><a class="headerlink" href="#_CPPv4N6Castro23prev_state_had_old_dataE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
 <dt id="_CPPv4N6Castro15keep_prev_stateE">
 <span id="_CPPv3N6Castro15keep_prev_stateE"></span><span id="_CPPv2N6Castro15keep_prev_stateE"></span><span id="Castro::keep_prev_state__b"></span><span class="target" id="classCastro_1a37a61aadfc269b8f1a3dd76225f0d736"></span>bool <code class="descname">keep_prev_state</code><a class="headerlink" href="#_CPPv4N6Castro15keep_prev_stateE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Flag for indicating that we want to save prev_state until the reflux. </p>
@@ -1813,6 +1801,16 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro15lastDtFromRetryE">
 <span id="_CPPv3N6Castro15lastDtFromRetryE"></span><span id="_CPPv2N6Castro15lastDtFromRetryE"></span><span id="Castro::lastDtFromRetry__amrex::Real"></span><span class="target" id="classCastro_1a5d7331e93f676c1f4c3a174b4736e7f9"></span>amrex::Real <code class="descname">lastDtFromRetry</code><a class="headerlink" href="#_CPPv4N6Castro15lastDtFromRetryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro8in_retryE">
+<span id="_CPPv3N6Castro8in_retryE"></span><span id="_CPPv2N6Castro8in_retryE"></span><span id="Castro::in_retry__i"></span><span class="target" id="classCastro_1a88389d83ff0d3140e99715cce9ebfe05"></span>int <code class="descname">in_retry</code><a class="headerlink" href="#_CPPv4N6Castro8in_retryE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro6lastDtE">
+<span id="_CPPv3N6Castro6lastDtE"></span><span id="_CPPv2N6Castro6lastDtE"></span><span id="Castro::lastDt__amrex::Real"></span><span class="target" id="classCastro_1a943be28cd883b32cd4fb906f349fc898"></span>amrex::Real <code class="descname">lastDt</code><a class="headerlink" href="#_CPPv4N6Castro6lastDtE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
