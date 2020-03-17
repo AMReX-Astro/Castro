@@ -369,9 +369,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
                 Arena* old_arena = state[k].getArena();
                 state[k].setArena(The_Pinned_Arena());
 #endif
-
                 *prev_state[k] = state[k];
-
 #ifdef AMREX_USE_GPU
                 state[k].setArena(old_arena);
 #endif
