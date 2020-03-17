@@ -12,6 +12,7 @@ This used the inputs as is (with amr.max_level = 1)
 
 Problem size: 768x768x192
 # GPUs      avg_time        std
+  192    237.196           25.3064
   384       6.30901         0.17731
   768       3.65006         0.0840747
  1536       2.35438         0.119527
