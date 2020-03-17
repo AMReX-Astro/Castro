@@ -20,16 +20,16 @@ contains
     use meth_params_module, only: NVAR, URHO, UTEMP
     use prob_params_module, only: center, probhi, dim, Symmetry, physbc_lo, physbc_hi, &
                                   n_error_buf, ref_ratio, blocking_factor, domlo_level, domhi_level
-    use wdmerger_util_module, only: max_tagging_radius, &
-                                    max_stellar_tagging_level, &
-                                    max_temperature_tagging_level, &
-                                    max_center_tagging_level, &
-                                    roche_tagging_factor, &
-                                    stellar_density_threshold, &
-                                    temperature_tagging_threshold, &
-                                    center_tagging_radius, &
-                                    com_P, com_S, roche_rad_P, roche_rad_S, &
-                                    problem
+    use probdata_module, only: max_tagging_radius, &
+                               max_stellar_tagging_level, &
+                               max_temperature_tagging_level, &
+                               max_center_tagging_level, &
+                               roche_tagging_factor, &
+                               stellar_density_threshold, &
+                               temperature_tagging_threshold, &
+                               center_tagging_radius, &
+                               com_P, com_S, roche_rad_P, roche_rad_S, &
+                               problem
 
     implicit none
 
