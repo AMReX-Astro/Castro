@@ -33,11 +33,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   density_maximum_radius = (Gconst * point_mass / sum(omega**2))**THIRD
 
-  ! Select the polytrope constant so that the maximum density is one.
-
-  K_const = Gconst * point_mass / (TWO * (ONE + polytrope_index) * density_maximum_radius) * &
-            (ONE - density_maximum_radius**2 / (inner_radius * outer_radius))
-
   ! Maximum and minimum vertical extent of the torus is the same as the radial extent
 
   torus_width = HALF * (outer_radius - inner_radius)

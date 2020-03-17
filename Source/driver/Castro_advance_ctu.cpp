@@ -42,6 +42,30 @@ Castro::do_advance_ctu(Real time,
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
+    // Zero out the source term data.
+
+    sources_for_hydro.setVal(0.0, NUM_GROW);
+
+    // Add any correctors to the source term data. This must be done
+    // before the source term data is overwritten below. Note: we do
+    // not create the corrector source if we're currently retrying the
+    // step; we will already have done it, and aside from avoiding
+    // duplicate work, we have already lost the data needed to do this
+    // calculation since we overwrote the data from the previous step.
+
+    if (!in_retry) {
+        create_source_corrector();
+    }
+
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
+        // Add the source term predictor (scaled by dt/2).
+        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        // Time center the sources.
+        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
+    }
+
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
 
@@ -112,9 +136,9 @@ Castro::do_advance_ctu(Real time,
       // in case we have already started with some source
       // terms (e.g. the source term predictor, or the SDC source).
 
-      if (do_hydro) {
-          AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-      }
+     if (do_hydro) {
+         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
+     }
 
     } else {
       old_source.setVal(0.0, NUM_GROW);
@@ -323,22 +347,36 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
             std::cout << std::endl;
         }
 
-        // Restore the original values of the state data.
+        // If we are doing a retry and this is the first attempt
+        // at the advance, make a copy of the state data. This will
+        // be useful to us at the end of the timestep when we need
+        // to restore the original old data.
 
         for (int k = 0; k < num_state_type; k++) {
 
-            if (prev_state[k]->hasOldData())
-                state[k].copyOld(*prev_state[k]);
+            // We want to store the previous state in pinned memory
+            // if we're running on a GPU. This helps us alleviate
+            // pressure on the GPU memory, at the slight cost of
+            // lower bandwidth when we are saving/restoring the state.
+            // Since we're using operator= to copy the StateData,
+            // we'll use a trick where we temporarily change the
+            // the arena used by the main state and then immediately
+            // restore it.
 
-            if (prev_state[k]->hasNewData())
-                state[k].copyNew(*prev_state[k]);
+            if (!prev_state[k]->hasOldData()) {
 
-        }
+#ifdef AMREX_USE_GPU
+                Arena* old_arena = state[k].getArena();
+                state[k].setArena(The_Pinned_Arena());
+#endif
 
-        // Reset the source term predictor.
+                *prev_state[k] = state[k];
 
-        if (do_hydro) {
-            sources_for_hydro.setVal(0.0, NUM_GROW);
+#ifdef AMREX_USE_GPU
+                state[k].setArena(old_arena);
+#endif
+            }
+
         }
 
         // Clear the contribution to the fluxes from this step.
@@ -360,41 +398,26 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
                 rad_fluxes[dir]->setVal(0.0);
 #endif
 
-        if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-
-            // Normally the source term predictor is done before the swap,
-            // but the prev_state data is saved after the initial swap had
-            // been done. So we will temporarily swap the state data back,
-            // and reset the time levels.
-
-            // Note that unlike the initial application of the source term
-            // predictor before the swap, the old data will have already
-            // been allocated when we get to this point. So we want to skip
-            // this step if we didn't have old data initially.
-
-            if (prev_state_had_old_data) {
-
-                swap_state_time_levels(0.0);
-
-                const Real dt_old = prev_state_new_time - prev_state_old_time;
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(prev_state_new_time, dt_old, 0.0);
-
-                apply_source_term_predictor();
-
-                swap_state_time_levels(0.0);
-
-                for (int k = 0; k < num_state_type; k++)
-                    state[k].setTimeLevel(time + dt_subcycle, dt_subcycle, 0.0);
-
-            }
-
-        }
-
         if (track_grid_losses)
             for (int i = 0; i < n_lost; i++)
                 material_lost_through_boundary_temp[i] = 0.0;
+
+        // For simplified SDC, we'll have garbage data if we
+        // attempt to use the lagged source terms (both reacting
+        // and non-reacting) from the last timestep, since that
+        // advance failed and we don't know if we can trust it.
+        // So we zero out both source term correctors.
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            source_corrector.setVal(0.0, source_corrector.nGrow());
+
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            SDC_react_new.setVal(0.0, SDC_react_new.nGrow());
+#endif
+#endif
+        }
 
     }
 
@@ -434,8 +457,6 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
     Real last_dt_subcycle = 1.e200;
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
-
-        sub_iteration += 1;
 
         if (dt_subcycle < dt_cutoff) {
             if (ParallelDescriptor::IOProcessor()) {
@@ -482,25 +503,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Beginning subcycle " << sub_iteration << " starting at time " << subcycle_time
+            std::cout << "  Beginning subcycle " << sub_iteration + 1 << " starting at time " << subcycle_time
                       << " with dt = " << dt_subcycle << std::endl;
             std::cout << "  Estimated number of subcycles remaining: " << num_subcycles_remaining << std::endl << std::endl;
         }
 
-        // Swap the time levels. Only do this after the first iteration,
-        // and when we are not doing a retry (which handles the swap).
+        // Swap the time levels. Only do this after the first iteration;
+        // the first iteration used the swap done in initialize_advance.
+        // After that, the only exception will be if we do a retry.
 
         if (do_swap) {
-
-            // Reset the source term predictor.
-            // This must come before the swap.
-
-            if (do_hydro) {
-                sources_for_hydro.setVal(0.0, NUM_GROW);
-            }
-
-            if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1)
-                apply_source_term_predictor();
 
             swap_state_time_levels(0.0);
 
@@ -511,11 +523,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 #endif
 
         }
+        else {
 
-        // Assume we want to do a swap in the next iteration,
-        // unless the retry tells us otherwise.
+            do_swap = true;
 
-        do_swap = true;
+        }
 
         // Set the relevant time levels.
 
@@ -530,6 +542,16 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             num_sub_iters = sdc_iters;
+
+            // If we're in a retry we want to add one more iteration. This is
+            // because we will have zeroed out the lagged corrector from the
+            // last iteration/timestep and so having another iteration will
+            // approximately compensate for that.
+
+            if (in_retry) {
+                num_sub_iters += 1;
+                amrex::Print() << "Adding an SDC iteration due to the retry." << std::endl << std::endl;
+            }
         }
 
         bool advance_success = true;
@@ -538,7 +560,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 sdc_iteration = n;
-                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
+                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
             }
 
             // We do the hydro advance here, and record whether we completed it.
@@ -548,8 +570,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             advance_success = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
 #ifdef SIMPLIFIED_SDC
-            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 #ifdef REACTIONS
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 if (do_react && advance_success) {
 
                     // Do the ODE integration to capture the reaction source terms.
@@ -572,27 +594,32 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 #endif
 
                 }
-#endif
-
-                if (!advance_success) {
-                    if (use_retry) {
-                        amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
-                    } else {
-                        amrex::Abort("Advance was unsuccessful.");
-                    }
-                    break;
-                }
-
-                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
 #endif
+#endif
+
+            if (in_retry) {
+                in_retry = false;
+            }
+
+            if (!advance_success) {
+                if (use_retry) {
+                    amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
+                } else {
+                    amrex::Abort("Advance was unsuccessful.");
+                }
+                break;
+            }
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
+            }
+
         }
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
-
-        subcycle_time += dt_subcycle;
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
@@ -609,13 +636,30 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
             if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, advance_success)) {
                 do_swap = false;
-                sub_iteration = 0;
-                subcycle_time = time;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;
+                in_retry = true;
+
+                continue;
+            }
+            else {
+                in_retry = false;
             }
 
         }
+
+        subcycle_time += dt_subcycle;
+        sub_iteration += 1;
+
+        // Continually record the last timestep we took on this level
+        // in case we need it later. We only record it if the subcycle
+        // was completed successfully (i.e. we got to this point).
+        // Note: this is different from last_dt_subcycle. This variable
+        // records the actual timestep taken in this subcycle, while
+        // the other one records the timestep as if it had not been
+        // modified by the constraint of matching the final time.
+
+        lastDt = dt_subcycle;
 
     }
 

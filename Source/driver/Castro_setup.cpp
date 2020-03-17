@@ -213,6 +213,17 @@ Castro::variableSetUp ()
   ca_eos_init();
   eos_init();
 
+  // Ensure that Castro's small variables are consistent
+  // with the minimum permitted by the EOS, and vice versa.
+
+  Real new_min_T = std::max(small_temp, EOSData::mintemp);
+  small_temp = new_min_T;
+  EOSData::mintemp = new_min_T;
+
+  Real new_min_rho = std::max(small_dens, EOSData::mindens);
+  small_dens = new_min_rho;
+  EOSData::mindens = new_min_rho;
+
   // some consistency checks on the parameters
 #ifdef REACTIONS
   int abort_on_failure;

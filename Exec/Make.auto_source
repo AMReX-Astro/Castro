@@ -45,7 +45,7 @@ ifeq ($(USE_PROB_PARAMS), TRUE)
 endif
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
-PROB_PARAMETERS := ./_prob_params
+PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
 
 $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi

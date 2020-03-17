@@ -160,12 +160,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 #endif
 #endif
 
-    // Scale the source term predictor by the current timestep.
-
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        sources_for_hydro.mult(0.5 * dt, NUM_GROW);
-    }
-
     // For the hydrodynamics update we need to have NUM_GROW ghost
     // zones available, but the state data does not carry ghost
     // zones. So we use a FillPatch using the state data to give us
@@ -254,6 +248,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     lastDtRetryLimited = 0;
     lastDtFromRetry = 1.e200;
+    in_retry = false;
 
     if (use_post_step_regrid && level > 0) {
 
@@ -326,45 +321,16 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // If we're going to do a retry, or more generally if we're about to
-    // subcycle the advance, save the simulation times of the
-    // previous state data. This must happen before the swap.
-
-    if (use_retry || do_subcycle) {
-
-        prev_state_old_time = get_state_data(State_Type).prevTime();
-        prev_state_new_time = get_state_data(State_Type).curTime();
-
-        prev_state_had_old_data = get_state_data(State_Type).hasOldData();
-
-    }
-
     // This array holds the sum of all source terms that affect the
-    // hydrodynamics.  If we are doing the source term predictor,
-    // we'll also use this after the hydro update to store the sum of
-    // the new-time sources, so that we can compute the time
-    // derivative of the source terms.
+    // hydrodynamics.
 
     sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW);
     sources_for_hydro.setVal(0.0, NUM_GROW);
 
-    // Add the source term predictor.
-    // This must happen before the swap.
+    // This array holds the source term corrector.
 
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        apply_source_term_predictor();
-    }
-
-    // If we're doing simplified SDC, time-center the source term (using the
-    // current iteration's old sources and the last iteration's new
-    // sources). Since the "new-time" sources are just the corrector step
-    // of the predictor-corrector formalism, we want to add the full
-    // value of the "new-time" sources to the old-time sources to get a
-    // time-centered value.
-
-    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        AmrLevel::FillPatch(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-    }
+    source_corrector.define(grids, dmap, NSRC, NUM_GROW);
+    source_corrector.setVal(0.0, NUM_GROW);
 
     // Swap the new data from the last timestep into the old state data.
 
@@ -396,37 +362,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     for (int k = 0; k < num_state_type; ++k)
         prev_state[k].reset(new StateData());
-
-    // Make a copy of the MultiFabs in the old and new state data in case we may do a retry.
-
-    if (use_retry || do_subcycle) {
-
-      // Store the old and new time levels.
-
-      for (int k = 0; k < num_state_type; k++) {
-
-        // We want to store the previous state in pinned memory
-        // if we're running on a GPU. This helps us alleviate
-        // pressure on the GPU memory, at the slight cost of
-        // lower bandwidth when we are saving/restoring the state.
-        // Since we're using operator= to copy the StateData,
-        // we'll use a trick where we temporarily change the
-        // the arena used by the main state and then immediately
-        // restore it.
-
-#ifdef AMREX_USE_GPU
-        Arena* old_arena = state[k].getArena();
-        state[k].setArena(The_Pinned_Arena());
-#endif
-
-        *prev_state[k] = state[k];
-
-#ifdef AMREX_USE_GPU
-        state[k].setArena(old_arena);
-#endif
-      }
-
-    }
 
     // This array holds the hydrodynamics update.
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -567,6 +502,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     lamborder.clear();
 #endif
 
+    source_corrector.clear();
     sources_for_hydro.clear();
 
     if (!keep_prev_state)
