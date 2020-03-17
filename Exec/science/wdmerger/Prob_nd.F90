@@ -22,7 +22,6 @@
                           dx, problo) bind(C, name='ca_initdata')
 
      use amrex_fort_module, only: rt => amrex_real
-     use probdata_module
      use wdmerger_util_module
      use prob_params_module, only: center, dim
      use eos_type_module, only: eos_t
@@ -32,12 +31,17 @@
      use network, only: nspec
      use amrex_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
-     use initial_model_module, only: interpolate_3d_from_1d
+     use initial_model_module, only: model_P, model_S, rho_P, T_P, xn_P, r_P, rho_S, T_S, xn_S, r_S, &
+                                     interpolate_3d_from_1d
      use ambient_module, only: ambient_state
      use math_module, only: cross_product ! function
      use castro_util_module, only: position ! function
      use rotation_frequency_module, only: get_omega ! function
      use wdmerger_util_module, only: inertial_velocity ! function
+     use probdata_module, only: center_P_initial, center_S_initial, mass_P, mass_S, vel_P, vel_S, &
+                                bulk_velx, bulk_vely, bulk_velz, smallu, &
+                                problem, axis_1, axis_2, nsub, &
+                                initial_radial_velocity_factor
 
      implicit none
 
