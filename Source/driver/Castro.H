@@ -836,15 +836,6 @@ public:
 
 
 
-///
-/// Reset the internal energy
-///
-/// @param bx       Box to update
-/// @param u        Current state (Fab)
-///
-    void reset_internal_energy (const amrex::Box& bx, amrex::Array4<Real> const u);
-
-
 
 ///
 /// Compute the current temperature
