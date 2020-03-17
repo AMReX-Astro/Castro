@@ -808,7 +808,7 @@ public:
 ///
 /// Reset the internal energy
 ///
-/// @param State    Current state
+/// @param State    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
     void reset_internal_energy (
@@ -818,6 +818,22 @@ public:
                                 amrex::MultiFab& Bz,
 #endif
                                 amrex::MultiFab& State, int ng);
+
+
+///
+/// Reset the internal energy
+///
+/// @param bx       Box to update
+/// @param u        Current state (Fab)
+///
+    void reset_internal_energy (const amrex::Box& bx,
+#ifdef MHD
+                                amrex::Array<amrex::Real> const Bx,
+                                amrex::Array<amrex::Real> const By,
+                                amrex::Array<amrex::Real> const Bz,
+#endif
+                                amrex::Array4<amrex::Real> const u);
+
 
 
 ///
@@ -837,30 +853,11 @@ public:
 
 
 ///
-/// Optionally predict the source terms to ``t + dt/2``,
-/// which is the time-level ``n+1/2`` value, To do this we use a
-/// lagged predictor estimate: \f$ \frac{dS}{dt_n} = (S_n - S_{n-1}) / dt \f$, so
-/// \f$ S_{n+1/2} = S_n + (dt / 2) \frac{dS}{dt_n} \f$. We'll add the ``S_n``
-/// terms later; now we add the second term. We defer the
-/// multiplication by ``dt / 2`` to ::initialize_do_advance since
-/// for a retry we may not yet know at this point what the
-/// advance timestep is.
+/// Add any terms needed to correct the source terms.
+/// Currently this is a lagged predictor for CTU and the
+/// time-centering correction for simplified SDC.
 ///
-/// Note that since for ``dS/dt`` we want \f$ (S^{n+1} - S^{n}) / dt \f$,
-/// we only need to take twice the new-time source term, since in
-/// the predictor-corrector approach, the new-time source term is
-/// \f$ \frac{1}{2} S^{n+1} - \frac{1}{2} S^{n} \f$. This is
-/// untrue in general for the
-/// non-momentum sources, so for safety we'll only apply it to the
-/// momentum sources.
-///
-/// Note that if the old data doesn't exist yet (e.g. it is
-/// the first step of the simulation) ``FillPatch`` will just
-/// return the new data, so this is a valid operation and
-/// the result will be zero, so there is no source term
-/// prediction in the first step.
-///
-    void apply_source_term_predictor();
+    void create_source_corrector();
 
 
 ///
@@ -1124,6 +1121,12 @@ protected:
 
 
 ///
+/// Source term corrector.
+///
+    amrex::MultiFab source_corrector;
+
+
+///
 /// Source term representing hydrodynamics update - this should just be
 ///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
 ///
@@ -1177,13 +1180,6 @@ protected:
 ///
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
 
-
-///
-/// Save the simulation time of the prev_state.
-///
-    amrex::Real prev_state_old_time;
-    amrex::Real prev_state_new_time;
-    bool prev_state_had_old_data;
 
 
 ///
@@ -1404,7 +1400,9 @@ protected:
 
     int lastDtRetryLimited;
     amrex::Real lastDtFromRetry;
+    int in_retry;
 
+    amrex::Real lastDt;
 
 ///
 /// for keeping track of mass changes from negative density resets

@@ -8,6 +8,11 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
+# Allow a problem setup to define a root location.
+# Otherwise, assume we're building in the current directory.
+
+PROBLEM_DIR ?= ./
+
 # Microphysics is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation

@@ -1,5 +1,10 @@
 # 20.04
 
+   * The parameter castro.allow_small_energy has been removed. The
+     code behavior is now similar to what it would have been with
+     allow_small_energy == 0 (the internal energy can never be
+     smaller than that allowed by small_temp). (#817)
+
    * All boundary fill interfaces other than hypfill and denfill have
      been removed. So, we no longer support overriding the boundary
      conditions for data other than State_Type. Radiation still has
@@ -8,7 +13,12 @@
 
    * The conversion of the CTU hydrodynamics code to C++ continues.
      The Riemann solvers were converted to C++ (#801) and the
-     hybrid momentum routines (#805).
+     hybrid momentum routines (#805), the PLM reconstruction (#814)
+
+   * We've changed how the backup for retries is done.  Presently if
+     use_retry is enabled we make a pre-emptive copy of the StateData
+     right at the beginning of the timestep.  Now we only backup when
+     we detect that a retry is needed (#812)
 
 # 20.03
 
