@@ -429,6 +429,7 @@ protected:
 
 #include "gravity_params.H"
 
+
 #if (BL_SPACEDIM < 3)
 
 ///
@@ -528,6 +529,15 @@ private:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
+
+public:
+
+  inline amrex::Real
+  get_const_grav() {
+    return const_grav;
+  }
+
+
 };
 
 ///
@@ -535,5 +545,6 @@ private:
 /// @brief A physical boundary condition function for grad phi
 ///
 using GradPhiPhysBCFunct = amrex::PhysBCFunctNoOp;
+
 
 #endif

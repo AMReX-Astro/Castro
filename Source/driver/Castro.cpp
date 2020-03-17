@@ -749,6 +749,8 @@ Castro::initMFs()
     lastDtRetryLimited = false;
     lastDtFromRetry = 1.e200;
 
+    lastDt = 1.e200;
+
 }
 
 void
@@ -3104,6 +3106,51 @@ Castro::extern_init ()
 }
 
 void
+Castro::reset_internal_energy(const Box& bx, Array4<Real> const u)
+{
+    Real lsmall_temp = small_temp;
+    Real ldual_energy_eta2 = dual_energy_eta2;
+
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    {
+        Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+        Real Up = u(i,j,k,UMX) * rhoInv;
+        Real Vp = u(i,j,k,UMY) * rhoInv;
+        Real Wp = u(i,j,k,UMZ) * rhoInv;
+        Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
+
+        eos_t eos_state;
+
+        eos_state.rho = u(i,j,k,URHO);
+        eos_state.T   = lsmall_temp;
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+        }
+        for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+        }
+
+        eos(eos_input_rt, eos_state);
+
+        Real small_e = eos_state.e;
+
+        // Ensure the internal energy is at least as large as this minimum
+        // from the EOS; the same holds true for the total energy.
+
+        u(i,j,k,UEINT) = amrex::max(u(i,j,k,UEINT), u(i,j,k,URHO) * small_e);
+        u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke));
+
+        // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
+
+        Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke;
+
+        if (rho_eint > ldual_energy_eta2 * u(i,j,k,UEDEN)) {
+            u(i,j,k,UEINT) = rho_eint;
+        }
+    });
+}
+
+void
 Castro::reset_internal_energy(MultiFab& S_new, int ng)
 {
 
@@ -3126,17 +3173,8 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
-
-#pragma gpu box(bx)
-        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                            print_fortran_warnings);
+        reset_internal_energy(bx, S_new.array(mfi));
     }
-
-    // Flush Fortran output
-
-    if (verbose)
-      flush_output();
 
     if (print_update_diagnostics)
     {
@@ -3344,41 +3382,61 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
 
 void
-Castro::apply_source_term_predictor()
+Castro::create_source_corrector()
 {
 
-    BL_PROFILE("Castro::apply_source_term_predictor()");
+    BL_PROFILE("Castro::create_source_corrector()");
 
-    // Optionally predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term. We defer the
-    // multiplication by dt / 2 to initialize_do_advance since
-    // for a retry we may not yet know at this point what the
-    // advance timestep is.
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
 
-    // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
-    // we only need to take twice the new-time source term, since in
-    // the predictor-corrector approach, the new-time source term is
-    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
-    // non-momentum sources, so for safety we'll only apply it to the
-    // momentum sources.
+        // Optionally predict the source terms to t + dt/2,
+        // which is the time-level n+1/2 value, To do this we use a
+        // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+        // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+        // terms later; now we add the second term. We defer the
+        // multiplication by dt / 2 until the actual advance, since
+        // we may be subcycling and thus not know yet what the
+        // advance timestep is.
 
-    // Note that if the old data doesn't exist yet (e.g. it is
-    // the first step of the simulation) FillPatch will just
-    // return the new data, so this is a valid operation and
-    // the result will be zero, so there is no source term
-    // prediction in the first step.
+        // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+        // we only need to take twice the new-time source term from the
+        // last timestep, since in the predictor-corrector approach,
+        // the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}.
+        // This is untrue in general for the non-momentum sources,
+        // so for safety we'll only apply it to the momentum sources.
 
-    const Real old_time = get_state_data(Source_Type).prevTime();
-    const Real new_time = get_state_data(Source_Type).curTime();
+        // Even though we're calculating this predictor from the last
+        // timestep, we've already done the swap, so the "new" data
+        // from the last timestep is currently residing in the "old"
+        // StateData. (As a corollary, this operation must be done
+        // prior to updating any of the source StateData.) Since the
+        // dt comes from the last timestep, which is no longer equal
+        // to the difference between prevTime and curTime, we rely
+        // on our recording of the last dt from the previous advance.
 
-    const Real dt_old = new_time - old_time;
+        const Real time = get_state_data(Source_Type).prevTime();
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, UMX, 3, UMX);
 
-    sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
+        source_corrector.mult(2.0 / lastDt, NUM_GROW);
+
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        // If we're doing simplified SDC, time-center the source term (using the
+        // current iteration's old sources and the last iteration's new
+        // sources). Since the "new-time" sources are just the corrector step
+        // of the predictor-corrector formalism, we want to add the full
+        // value of the "new-time" sources to the old-time sources to get a
+        // time-centered value. Note that, as above, the "new" data from the
+        // last step is currently residing in the "old" StateData since we
+        // have already done the swap.
+
+        const Real time = get_state_data(Source_Type).prevTime();
+
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, 0, NSRC);
+
+    }
 
 }
 

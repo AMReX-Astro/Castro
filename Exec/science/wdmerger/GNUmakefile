@@ -18,6 +18,10 @@ USE_ROTATION ?= TRUE
 
 GPU_COMPATIBLE_PROBLEM = TRUE
 
+# Opt in to the auto-generated problem parameters.
+
+USE_PROB_PARAMS = TRUE
+
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 
 ifeq ($(DIM), 3)
@@ -48,7 +52,9 @@ endif
 
 # Location where the source files are coming from.
 
-Blocs := $(CASTRO_HOME)/Exec/science/wdmerger/
-Bpack := $(CASTRO_HOME)/Exec/science/wdmerger/Make.package
+PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/science/wdmerger
+
+Blocs = $(PROBLEM_DIR)
+Bpack = $(PROBLEM_DIR)/Make.package
 
 include $(CASTRO_HOME)/Exec/Make.Castro
