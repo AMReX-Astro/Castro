@@ -9,8 +9,6 @@
 #include "Castro_bc_fill_nd.H"
 #include "Castro_generic_fill_F.H"
 #include "Castro_generic_fill.H"
-#include "Castro_source_fill_F.H"
-#include "Castro_source_fill.H"
 #include <Derive_F.H>
 #include "Derive.H"
 #ifdef RADIATION
@@ -112,6 +110,27 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
   bc.setLo(2,norm_vel_bc[lo_bc[2]]);
   bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 #endif
+}
+
+// In some cases we want to replace inflow boundaries with
+// first-order extrapolation boundaries. This is intended to
+// be used for state data that the user is not going to
+// provide inflow boundary conditions for, like gravity
+// and reactions, and it works in conjunction with the
+// generic_fill boundary routine.
+
+static
+void
+replace_inflow_bc (BCRec& bc)
+{
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+        if (bc.lo(dir) == EXT_DIR) {
+            bc.setLo(dir, FOEXTRAP);
+        }
+        if (bc.hi(dir) == EXT_DIR) {
+            bc.setHi(dir, FOEXTRAP);
+        }
+    }
 }
 
 void
@@ -531,23 +550,31 @@ Castro::variableSetUp ()
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_generic_fill));
   set_x_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,BndryFunc(ca_generic_fill));
   set_y_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,BndryFunc(ca_generic_fill));
   set_z_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,BndryFunc(ca_generic_fill));
 #endif
 
 #ifdef ROTATION
   set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,BndryFunc(ca_generic_fill));
   set_x_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,BndryFunc(ca_generic_fill));
   set_y_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,BndryFunc(ca_generic_fill));
   set_z_vel_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
   desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_generic_fill));
 #endif
 
@@ -560,16 +587,18 @@ Castro::variableSetUp ()
     state_type_source_names[i] = name[i] + "_source";
     source_bcs[i] = bcs[i];
 
+    // Replace any instances of inflow boundaries with first-order extrapolation.
+    replace_inflow_bc(source_bcs[i]);
   }
 
-  desc_lst.setComponent(Source_Type, URHO, state_type_source_names, source_bcs,
-                        BndryFunc(ca_source_single_fill,ca_source_multi_fill));
+  desc_lst.setComponent(Source_Type, URHO, state_type_source_names, source_bcs, BndryFunc(ca_generic_fill));
 
 #ifdef REACTIONS
   std::string name_react;
   for (int i=0; i<NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
+      replace_inflow_bc(bc);
       name_react = "omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_generic_fill));
     }
@@ -584,6 +613,7 @@ Castro::variableSetUp ()
           char buf[64];
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
 
           desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_fill));
       }
@@ -598,6 +628,7 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, ngrow, ncomp,
                          interp);
   set_scalar_bc(bc,phys_bc);
+  replace_inflow_bc(bc);
 
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "Radiation::nGroups = " << Radiation::nGroups << std::endl;
@@ -653,6 +684,8 @@ Castro::variableSetUp ()
       sdc_source_names[i] = name[i] + "_sdc_source";
       sdc_source_bcs[i] = bcs[i];
 
+      // Replace any instances of inflow boundaries with first-order extrapolation.
+      replace_inflow_bc(sdc_source_bcs[i]);
     }
 
     desc_lst.setComponent(SDC_Source_Type, URHO, sdc_source_names, sdc_source_bcs,
