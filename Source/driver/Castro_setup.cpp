@@ -527,28 +527,28 @@ Castro::variableSetUp ()
                         URHO,
                         name,
                         bcs,
-                        BndryFunc(ca_denfill,ca_hypfill));
+                        BndryFunc(ca_statefill));
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
-  desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(PhiGrav_Type,0,"phiGrav",bc,BndryFunc(ca_generic_fill));
   set_x_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Gravity_Type,0,"grav_x",bc,BndryFunc(ca_generic_fill));
   set_y_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Gravity_Type,1,"grav_y",bc,BndryFunc(ca_generic_fill));
   set_z_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Gravity_Type,2,"grav_z",bc,BndryFunc(ca_generic_fill));
 #endif
 
 #ifdef ROTATION
   set_scalar_bc(bc,phys_bc);
-  desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,BndryFunc(ca_generic_fill));
   set_x_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,BndryFunc(ca_generic_fill));
   set_y_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,BndryFunc(ca_generic_fill));
   set_z_vel_bc(bc,phys_bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,BndryFunc(ca_generic_fill));
 #endif
 
   // Source term array will use source fill
@@ -571,10 +571,10 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc,phys_bc);
       name_react = "omegadot_" + short_spec_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_generic_single_fill));
+      desc_lst.setComponent(Reactions_Type, i, name_react, bc,BndryFunc(ca_generic_fill));
     }
-  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_generic_single_fill));
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_generic_single_fill));
+  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, BndryFunc(ca_generic_fill));
+  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, BndryFunc(ca_generic_fill));
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -585,7 +585,7 @@ Castro::variableSetUp ()
           sprintf(buf, "sdc_react_source_%d", i);
           set_scalar_bc(bc,phys_bc);
 
-          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_single_fill));
+          desc_lst.setComponent(Simplified_SDC_React_Type,i,std::string(buf),bc,BndryFunc(ca_generic_fill));
       }
   }
 #endif
@@ -607,14 +607,14 @@ Castro::variableSetUp ()
   if (!Radiation::do_multigroup) {
     desc_lst
       .setComponent(Rad_Type, Rad, "rad", bc,
-                    BndryFunc(ca_generic_single_fill));
+                    BndryFunc(ca_generic_fill));
   }
   else {
       for (int i = 0; i < Radiation::nGroups; i++) {
         sprintf(rad_name, "rad%d", i);
         desc_lst
           .setComponent(Rad_Type, i, rad_name, bc,
-                        BndryFunc(ca_generic_single_fill));
+                        BndryFunc(ca_generic_fill));
       }
   }
 #endif
@@ -656,7 +656,7 @@ Castro::variableSetUp ()
     }
 
     desc_lst.setComponent(SDC_Source_Type, URHO, sdc_source_names, sdc_source_bcs,
-                          BndryFunc(ca_generic_single_fill, ca_generic_multi_fill));
+                          BndryFunc(ca_generic_fill));
   }
 #endif
 
