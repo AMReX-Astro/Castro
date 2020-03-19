@@ -504,7 +504,7 @@ contains
     dvode_state % atol(:) = atol(:)
     dvode_state % rtol(:) = rtol(:)
 
-    call dvode(dvode_state, rwork, iwork, ITASK, IOPT, imode)
+    call dvode(dvode_state, rwork, iwork, IOPT, imode)
 
     if (dvode_state % istate < 0) then
        print *, "VODE error, istate = ", dvode_state % istate
