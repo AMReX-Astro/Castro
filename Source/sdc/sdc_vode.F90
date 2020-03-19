@@ -33,12 +33,11 @@ contains
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEINT) = U(nspec_evolve+1)
+    U_full(UFS:UFS-1+nspec) = U(1:nspec)
+    U_full(UEINT) = U(nspec+1)
     U_full(UEDEN) = rpar(irp_evar)
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     ! initialize the temperature -- a better value will be found when we do the EOS
     ! call in single_zone_react_source
@@ -50,11 +49,11 @@ contains
     rpar(irp_temp) = burn_state % T
 
     R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
-    R_react(nspec_evolve+1) = R_full(UEINT)
+    R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
+    R_react(nspec+1) = R_full(UEINT)
 
     ! C comes in through rpar
-    C_react(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
+    C_react(:) = rpar(irp_f_source:irp_f_source-1+nspec+2)
 
     ! create the RHS
     dUdt(:) = R_react(:) + C_react(:)
@@ -87,19 +86,18 @@ contains
     real(rt) :: U_full(nvar),  R_full(nvar)
 
     real(rt) :: denom
-    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
+    real(rt) :: dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
 
     integer :: m
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
-    U_full(UEINT) = U(nspec_evolve+1)
+    U_full(UFS:UFS-1+nspec) = U(1:nspec)
+    U_full(UEINT) = U(nspec+1)
     U_full(UEDEN) = rpar(irp_evar)
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     ! compute the temperature and species derivatives --
     ! maybe this should be done using the burn_state
@@ -125,7 +123,7 @@ contains
     dwdU(0, 0) = ONE
 
     ! the X_k rows
-    do m = 1, nspec_evolve
+    do m = 1, nspec
        dwdU(m,0) = -U(m)/U(0)**2
        dwdU(m,m) = ONE/U(0)
     enddo
@@ -134,14 +132,14 @@ contains
 
     ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     denom = ONE/(eos_state % rho * eos_state % dedT)
-    dwdU(nspec_evolve+1,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
+    dwdU(nspec+1,0) = denom*(sum(eos_state % xn(1:nspec) * eos_xderivs % dedX(1:nspec)) - &
                                     eos_state % rho * eos_state % dedr - eos_state % e)
 
-    do m = 1, nspec_evolve
-       dwdU(nspec_evolve+1,m) = -denom * eos_xderivs % dedX(m)
+    do m = 1, nspec
+       dwdU(nspec+1,m) = -denom * eos_xderivs % dedX(m)
     enddo
 
-    dwdU(nspec_evolve+1, nspec_evolve+1) = denom
+    dwdU(nspec+1, nspec+1) = denom
 
     ! construct the Jacobian -- we can get most of the
     ! terms from the network itself, but we do not rely on

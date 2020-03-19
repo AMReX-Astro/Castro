@@ -27,7 +27,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use network, only : nspec, nspec_evolve
+    use network, only : nspec
 
     implicit none
 
@@ -93,7 +93,7 @@ contains
     ! limit on the number of subintervals.
     use meth_params_module, only : NVAR, URHO, UFS
     use amrex_constants_module, only : ZERO, HALF, ONE
-    use network, only : nspec, nspec_evolve
+    use network, only : nspec
     use extern_probin_module, only : small_x
 
     implicit none
@@ -161,7 +161,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use network, only : nspec, nspec_evolve
+    use network, only : nspec
     use vode_rpar_indices
     use extern_probin_module, only : small_x
 #if INTEGRATOR == 0
@@ -177,27 +177,27 @@ contains
     real(rt), intent(out) :: err_out
     integer, intent(out) :: ierr
 
-    real(rt) :: Jac(0:nspec_evolve+1, 0:nspec_evolve+1)
-    real(rt) :: w(0:nspec_evolve+1)
+    real(rt) :: Jac(0:nspec+1, 0:nspec+1)
+    real(rt) :: w(0:nspec+1)
 
     real(rt) :: rpar(n_rpar_comps)
 
-    integer :: ipvt(nspec_evolve+2)
+    integer :: ipvt(nspec+2)
     integer :: info
 
     logical :: converged
 
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
-    real(rt) :: eps_tot(0:nspec_evolve+1)
+    real(rt) :: eps_tot(0:nspec+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
     !   0               : rho
-    !   1:nspec_evolve  : species
-    !   nspec_evolve+1  : (rho E) or (rho e)
+    !   1:nspec  : species
+    !   nspec+1  : (rho E) or (rho e)
 
-    real(rt) :: U_react(0:nspec_evolve+1), f_source(0:nspec_evolve+1)
-    real(rt) :: dU_react(0:nspec_evolve+1), f(0:nspec_evolve+1), f_rhs(0:nspec_evolve+1)
+    real(rt) :: U_react(0:nspec+1), f_source(0:nspec+1)
+    real(rt) :: dU_react(0:nspec+1), f(0:nspec+1), f_rhs(0:nspec+1)
 
     real(rt) :: err, eta
 
@@ -221,8 +221,8 @@ contains
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
     ! update the non-reacting species
-    U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
+    U_new(UFS+nspec:UFS-1+nspec) = U_old(UFS+nspec:UFS-1+nspec) + &
+         dt_m * C(UFS+nspec:UFS-1+nspec)
 
     ! now only save the subset that participates in the nonlinear
     ! solve -- note: we include the old state in f_source
@@ -235,14 +235,14 @@ contains
     !   f(U) = U - dt R(U) - f_source = 0
 
     f_source(0) = U_old(URHO) + dt_m * C(URHO)
-    f_source(1:nspec_evolve) = U_old(UFS:UFS-1+nspec_evolve) + dt_m * C(UFS:UFS-1+nspec_evolve)
+    f_source(1:nspec) = U_old(UFS:UFS-1+nspec) + dt_m * C(UFS:UFS-1+nspec)
     if (sdc_solve_for_rhoe == 1) then
-       f_source(nspec_evolve+1) = U_old(UEINT) + dt_m * C(UEINT)
+       f_source(nspec+1) = U_old(UEINT) + dt_m * C(UEINT)
     else
-       f_source(nspec_evolve+1) = U_old(UEDEN) + dt_m * C(UEDEN)
+       f_source(nspec+1) = U_old(UEDEN) + dt_m * C(UEDEN)
     endif
 
-    rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = f_source(:)
+    rpar(irp_f_source:irp_f_source-1+nspec+2) = f_source(:)
     rpar(irp_dt) = dt_m
     rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
 
@@ -256,17 +256,14 @@ contains
        rpar(irp_evar) = U_new(UEINT)
     endif
 
-    rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
-         U_new(UFS+nspec_evolve:UFS-1+nspec)
-
     ! store the subset for the nonlinear solve
     ! We use an initial guess if possible
     U_react(0) = U_new(URHO)
-    U_react(1:nspec_evolve) = U_new(UFS:UFS-1+nspec_evolve)
+    U_react(1:nspec) = U_new(UFS:UFS-1+nspec)
     if (sdc_solve_for_rhoe == 1) then
-       U_react(nspec_evolve+1) = U_new(UEINT)
+       U_react(nspec+1) = U_new(UEINT)
     else
-       U_react(nspec_evolve+1) = U_new(UEDEN)
+       U_react(nspec+1) = U_new(UEDEN)
     endif
 
 #if (INTEGRATOR == 0)
@@ -281,7 +278,7 @@ contains
     converged = .false.
     do while (.not. converged .and. iter < max_newton_iter)
 
-       call f_sdc_jac(nspec_evolve+2, U_react, f, Jac, nspec_evolve+2, info, rpar)
+       call f_sdc_jac(nspec+2, U_react, f, Jac, nspec+2, info, rpar)
 
        ! solve the linear system: Jac dU_react = -f
        call dgefa(Jac, ipvt, info)
@@ -303,24 +300,22 @@ contains
        U_react(:) = U_react(:) + dU_react(:)
 
        ! we still need to normalize here
-       ! xn(1:nspec_evolve) = U_react(1:nspec_evolve)/U_react(0)
-       ! xn(nspec_evolve+1:nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))/U_react(0)
+       ! xn(1:nspec) = U_react(1:nspec)/U_react(0)
  
        ! do k = 1, nspec
        !    xn(k) = max(small_x, xn(k))
        ! end do
        ! xn(:) = xn(:)/sum(xn)
 
-       ! U_react(1:nspec_evolve) = U_react(0) * xn(1:nspec_evolve)
-       ! rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = U_react(0) * xn(nspec_evolve+1:nspec)
+       ! U_react(1:nspec) = U_react(0) * xn(1:nspec)
 
        eps_tot(0) = tol_dens * abs(U_react(0)) + sdc_solver_atol
        ! for species, atol is the mass fraction limit, so we multiply by density to get a partial density limit
-       eps_tot(1:nspec_evolve) = tol_spec * abs(U_react(1:nspec_evolve)) + sdc_solver_atol * abs(U_react(0))
-       eps_tot(nspec_evolve+1) = tol_ener * abs(U_react(nspec_evolve+1)) + sdc_solver_atol
+       eps_tot(1:nspec) = tol_spec * abs(U_react(1:nspec)) + sdc_solver_atol * abs(U_react(0))
+       eps_tot(nspec+1) = tol_ener * abs(U_react(nspec+1)) + sdc_solver_atol
 
        ! compute the norm of the weighted error, where the weights are 1/eps_tot
-       err = sqrt(sum((dU_react/eps_tot)**2)/(nspec_evolve+2))
+       err = sqrt(sum((dU_react/eps_tot)**2)/(nspec+2))
 
        if (err < ONE) then
           converged = .true.
@@ -333,10 +328,10 @@ contains
 
     if (.not. converged) then
        !print *, "dens: ", U_react(0), dU_react(0), eps_tot(0), abs(dU_react(0))/eps_tot(0)
-       !do n = 1, nspec_evolve
+       !do n = 1, nspec
        !   print *, "spec: ", n, U_react(n), dU_react(n), eps_tot(n), abs(dU_react(n))/eps_tot(n)
        !end do
-       !print *, "enuc: ", U_react(nspec_evolve+1), dU_react(nspec_evolve+1), eps_tot(nspec_evolve+1), dU_react(nspec_evolve+1)/eps_tot(nspec_evolve+1)
+       !print *, "enuc: ", U_react(nspec+1), dU_react(nspec+1), eps_tot(nspec+1), dU_react(nspec+1)/eps_tot(nspec+1)
        ierr = CONVERGENCE_FAILURE
        return
     endif
@@ -346,12 +341,12 @@ contains
     ! update the full U_new
     ! if we updated total energy, then correct internal, or vice versa
     U_new(URHO) = U_react(0)
-    U_new(UFS:UFS-1+nspec_evolve) = U_react(1:nspec_evolve)
+    U_new(UFS:UFS-1+nspec) = U_react(1:nspec)
     if (sdc_solve_for_rhoe == 1) then
-       U_new(UEINT) = U_react(nspec_evolve+1)
+       U_new(UEINT) = U_react(nspec+1)
        U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
     else
-       U_new(UEDEN) = U_react(nspec_evolve+1)
+       U_new(UEDEN) = U_react(nspec+1)
        U_new(UEINT) = U_new(UEDEN) - HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
     endif
 
@@ -373,7 +368,7 @@ contains
     use amrex_constants_module, only : ZERO, HALF, ONE
     use burn_type_module, only : burn_t
     use react_util_module
-    use network, only : nspec, nspec_evolve
+    use network, only : nspec
     use vode_rpar_indices
     use cuvode_parameters_module
     use cuvode_types_module, only : dvode_t, rwork_t
@@ -396,15 +391,15 @@ contains
 
     real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
-    real(rt) :: rtol(0:nspec_evolve+1), atol(0:nspec_evolve+1)
+    real(rt) :: rtol(0:nspec+1), atol(0:nspec+1)
 
     ! we will do the implicit update of only the terms that have reactive sources
     !
     !   0               : rho
-    !   1:nspec_evolve  : species
-    !   nspec_evolve+1  : (rho E) or (rho e)
+    !   1:nspec  : species
+    !   nspec+1  : (rho E) or (rho e)
 
-    real(rt) :: C_react(0:nspec_evolve+1)
+    real(rt) :: C_react(0:nspec+1)
 
 #if (INTEGRATOR == 0)
 
@@ -418,8 +413,8 @@ contains
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
     ! update the non-reacting species
-    U_new(UFS+nspec_evolve:UFS-1+nspec) = U_old(UFS+nspec_evolve:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec_evolve:UFS-1+nspec)
+    U_new(UFS+nspec:UFS-1+nspec) = U_old(UFS+nspec:UFS-1+nspec) + &
+         dt_m * C(UFS+nspec:UFS-1+nspec)
 
     ! now only save the subset that participates in the nonlinear
     ! solve -- note: we include the old state in f_source
@@ -431,10 +426,10 @@ contains
     !    dU/dt = R(U) + C
     ! so we simply pass in C
     C_react(0) = C(URHO)
-    C_react(1:nspec_evolve) = C(UFS:UFS-1+nspec_evolve)
-    C_react(nspec_evolve+1) = C(UEINT)
+    C_react(1:nspec) = C(UFS:UFS-1+nspec)
+    C_react(nspec+1) = C(UEINT)
 
-    dvode_state % rpar(irp_f_source:irp_f_source-1+nspec_evolve+2) = C_react(:)
+    dvode_state % rpar(irp_f_source:irp_f_source-1+nspec+2) = C_react(:)
     dvode_state % rpar(irp_dt) = dt_m
     dvode_state % rpar(irp_mom:irp_mom-1+3) = U_new(UMX:UMZ)
 
@@ -443,9 +438,6 @@ contains
 
     ! we are always solving for rhoe with the VODE predict
     dvode_state % rpar(irp_evar) = U_new(UEDEN)
-
-    dvode_state % rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve)) = &
-         U_new(UFS+nspec_evolve:UFS-1+nspec)
 
 
     ! store the subset for the nonlinear solve.  We only consider (rho
@@ -457,8 +449,8 @@ contains
     ! as 0-based in our implementation of the RHS routine
 
     dvode_state % y(1) = U_old(URHO)
-    dvode_state % y(2:nspec_evolve+1) = U_old(UFS:UFS-1+nspec_evolve)
-    dvode_state % y(nspec_evolve+2) = U_old(UEINT)
+    dvode_state % y(2:nspec+1) = U_old(UFS:UFS-1+nspec)
+    dvode_state % y(nspec+2) = U_old(UEINT)
 
     dvode_state % istate = 1
 
@@ -489,16 +481,16 @@ contains
 
     ! relative tolerances
     rtol(0) = tol_dens
-    rtol(1:nspec_evolve) = tol_spec
-    rtol(nspec_evolve+1) = tol_ener
+    rtol(1:nspec) = tol_spec
+    rtol(nspec+1) = tol_ener
 
     ! absolute tolerances
     atol(0) = sdc_solver_atol * U_old(URHO)
-    atol(1:nspec_evolve) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
+    atol(1:nspec) = sdc_solver_atol * U_old(URHO)   ! this way, atol is the minimum x
     if (sdc_solve_for_rhoe == 1) then
-       atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEINT)
+       atol(nspec+1) = sdc_solver_atol * U_old(UEINT)
     else
-       atol(nspec_evolve+1) = sdc_solver_atol * U_old(UEDEN)
+       atol(nspec+1) = sdc_solver_atol * U_old(UEDEN)
     endif
 
     dvode_state % atol(:) = atol(:)
@@ -513,8 +505,8 @@ contains
 
     ! update the full U_new
     U_new(URHO) = dvode_state % y(1)
-    U_new(UFS:UFS-1+nspec_evolve) = dvode_state % y(2:nspec_evolve+1)
-    U_new(UEINT) = dvode_state % y(nspec_evolve+2)
+    U_new(UFS:UFS-1+nspec) = dvode_state % y(2:nspec+1)
+    U_new(UEINT) = dvode_state % y(nspec+2)
     U_new(UEDEN) = U_new(UEINT) + HALF*sum(U_new(UMX:UMZ)**2)/U_new(URHO)
 
     ! keep our temperature guess
@@ -530,7 +522,7 @@ contains
     use vode_rpar_indices
     use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
          sdc_solve_for_rhoe
-    use network, only : nspec, nspec_evolve
+    use network, only : nspec
     use burn_type_module
     use react_util_module
     use eos_type_module, only : eos_t, eos_input_re
@@ -558,24 +550,23 @@ contains
     real(rt) :: dt_m
 
     real(rt) :: denom
-    real(rt) :: dRdw(0:nspec_evolve+1, 0:nspec_evolve+1), dwdU(0:nspec_evolve+1, 0:nspec_evolve+1)
+    real(rt) :: dRdw(0:nspec+1, 0:nspec+1), dwdU(0:nspec+1, 0:nspec+1)
     integer :: m, k
     real(rt) :: sum_rhoX
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
     U_full(URHO) = U(0)
-    U_full(UFS:UFS-1+nspec_evolve) = U(1:nspec_evolve)
+    U_full(UFS:UFS-1+nspec) = U(1:nspec)
     if (sdc_solve_for_rhoe == 1) then
-       U_full(UEINT) = U(nspec_evolve+1)
+       U_full(UEINT) = U(nspec+1)
        U_full(UEDEN) = rpar(irp_evar)
     else
-       U_full(UEDEN) = U(nspec_evolve+1)
+       U_full(UEDEN) = U(nspec+1)
        U_full(UEINT) = rpar(irp_evar)
     endif
 
     U_full(UMX:UMZ) = rpar(irp_mom:irp_mom+2)
-    U_full(UFS+nspec_evolve:UFS-1+nspec) = rpar(irp_spec:irp_spec-1+(nspec-nspec_evolve))
 
     ! normalize the species
     do k = 1, nspec
@@ -587,7 +578,7 @@ contains
 
     ! unpack rpar
     dt_m = rpar(irp_dt)
-    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec_evolve+2)
+    f_source(:) = rpar(irp_f_source:irp_f_source-1+nspec+2)
 
     ! compute the temperature and species derivatives --
     ! maybe this should be done using the burn_state
@@ -606,11 +597,11 @@ contains
 
     ! store the subset of R used in the Jacobian
     R_react(0) = R_full(URHO)
-    R_react(1:nspec_evolve) = R_full(UFS:UFS-1+nspec_evolve)
+    R_react(1:nspec) = R_full(UFS:UFS-1+nspec)
     if (sdc_solve_for_rhoe == 1) then
-       R_react(nspec_evolve+1) = R_full(UEINT)
+       R_react(nspec+1) = R_full(UEINT)
     else
-       R_react(nspec_evolve+1) = R_full(UEDEN)
+       R_react(nspec+1) = R_full(UEDEN)
     endif
 
     f(:) = U(:) - dt_m * R_react(:) - f_source(:)
@@ -626,7 +617,7 @@ contains
     dwdU(iwrho, 0) = ONE
 
     ! the X_k rows
-    do m = 1, nspec_evolve
+    do m = 1, nspec
        dwdU(iwfs-1+m,0) = -U(m)/U(0)**2
        dwdU(iwfs-1+m,m) = ONE/U(0)
     enddo
@@ -636,25 +627,25 @@ contains
     ! now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     denom = ONE/(eos_state % rho * eos_state % dedT)
     if (sdc_solve_for_rhoe == 1) then
-       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
+       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec) * eos_xderivs % dedX(1:nspec)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e)
     else
-       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec_evolve) * eos_xderivs % dedX(1:nspec_evolve)) - &
+       dwdU(iwT,0) = denom*(sum(eos_state % xn(1:nspec) * eos_xderivs % dedX(1:nspec)) - &
                                        eos_state % rho * eos_state % dedr - eos_state % e - &
                                        HALF*sum(U_full(UMX:UMZ)**2)/eos_state % rho**2)
     endif
 
-    do m = 1, nspec_evolve
+    do m = 1, nspec
        dwdU(iwT,m) = -denom * eos_xderivs % dedX(m)
     enddo
 
-    dwdU(iwT, nspec_evolve+1) = denom
+    dwdU(iwT, nspec+1) = denom
 
     ! construct the Jacobian -- we can get most of the
     ! terms from the network itself, but we do not rely on
     ! it having derivative wrt density
     Jac(:, :) = ZERO
-    do m = 0, nspec_evolve+1
+    do m = 0, nspec+1
        Jac(m, m) = ONE
     enddo
 
@@ -1189,7 +1180,6 @@ contains
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : ZERO, HALF
     use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
     use react_util_module
 
     implicit none
@@ -1249,7 +1239,6 @@ contains
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : ZERO, HALF, ONE, FIVE
     use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
     use react_util_module
 
     implicit none
@@ -1329,7 +1318,6 @@ contains
     use meth_params_module, only : NVAR
     use amrex_constants_module, only : ZERO, HALF
     use burn_type_module, only : burn_t
-    use network, only : nspec, nspec_evolve
     use react_util_module
 
     implicit none
@@ -1498,7 +1486,6 @@ contains
     use amrex_constants_module, only : ZERO
     use burn_type_module
     use meth_params_module, only : NVAR, NQ, NQAUX
-    use network, only : nspec, nspec_evolve
     use react_util_module
 
 
