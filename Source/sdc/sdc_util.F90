@@ -371,7 +371,7 @@ contains
     use network, only : nspec
     use vode_rpar_indices
     use cuvode_parameters_module
-    use cuvode_types_module, only : dvode_t, rwork_t
+    use cuvode_types_module, only : dvode_t
     use extern_probin_module, only : use_jacobian_caching
     use cuvode_module, only: dvode
 
@@ -384,10 +384,6 @@ contains
     integer, intent(in) :: sdc_iteration
 
     type(dvode_t) :: dvode_state
-    type(rwork_t) :: rwork
-    integer :: iwork(VODE_LIW)
-
-    integer :: imode
 
     real(rt) :: time
     real(rt) :: tol_dens, tol_spec, tol_ener, relax_fac
