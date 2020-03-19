@@ -462,29 +462,20 @@ contains
 
     dvode_state % istate = 1
 
-    iwork(:) = 0
-
-    ! set the maximum number of steps allowed -- the VODE default is 500
-    iwork(6) = 25000
-
-    rwork % CONDOPT = ZERO
-    rwork % YH = ZERO
-    rwork % WM = ZERO
-    rwork % EWT = ZERO
-    rwork % SAVF = ZERO
-    rwork % ACOR = ZERO
+    ! set the maximum number of steps allowed
+    dvode_state % MXSTEP = 25000
 
     dvode_state % T = ZERO
     dvode_state % TOUT = dt_m
 
     if (sdc_use_analytic_jac == 1) then
-       imode = MF_ANALYTIC_JAC_CACHED
+       dvode_state % MF_JAC = MF_ANALYTIC_JAC_CACHED
     else
-       imode = MF_NUMERICAL_JAC_CACHED
+       dvode_state % MF_JAC = MF_NUMERICAL_JAC_CACHED
     endif
 
     if (.not. use_jacobian_caching) then
-       imode = -imode
+       dvode_state % MF_JAC = -dvode_state % MF_JAC
     endif
 
     ! relative tolerances
@@ -504,7 +495,7 @@ contains
     dvode_state % atol(:) = atol(:)
     dvode_state % rtol(:) = rtol(:)
 
-    call dvode(dvode_state, rwork, iwork, imode)
+    call dvode(dvode_state)
 
     if (dvode_state % istate < 0) then
        print *, "VODE error, istate = ", dvode_state % istate
