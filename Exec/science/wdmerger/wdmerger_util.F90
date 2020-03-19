@@ -1,7 +1,6 @@
 module wdmerger_util_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use probdata_module
 
   implicit none
 
@@ -14,25 +13,25 @@ contains
 
     use castro_error_module, only: castro_error
     use prob_params_module, only: dim
+    use probdata_module, only: init
 
     implicit none
 
     integer :: init_in
 
-    allocate(init)
     init = init_in
 
-    ! Read in the namelist to set problem parameters.
+    ! We have already read in the namelist; do some parameter postprocessing.
 
-    call read_namelist
+    call finalize_probdata()
 
     ! Establish binary parameters and create initial models.
 
-    call binary_setup
+    call binary_setup()
 
     ! Set small_pres and small_ener.
 
-    call set_small
+    call set_small()
 
   end subroutine initialize_problem
 
@@ -40,265 +39,29 @@ contains
 
   ! This routine reads in the namelist
 
-  subroutine read_namelist
+  subroutine finalize_probdata ()
 
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, THREE, M_PI, FOUR, SIX, EIGHT
-    use meth_params_module
+    use meth_params_module, only: point_mass, do_rotation, rot_axis
     use prob_params_module, only: dim, coord_type
-    use problem_io_module, only: probin
     use castro_error_module, only: castro_error
     use network, only: nspec
     use fundamental_constants_module, only: M_solar
+    use initial_model_module, only: model_P, model_S
+    use probdata_module, only: mass_P, mass_S, central_density_S, single_star, &
+                               problem, axis_1, axis_2, &
+                               max_he_wd_mass, max_hybrid_wd_mass, max_co_wd_mass, &
+                               hybrid_wd_he_shell_mass, co_wd_he_shell_mass, &
+                               collision_impact_parameter, orbital_angle, orbital_eccentricity, &
+                               tde_beta, tde_separation, &
+                               relaxation_damping_factor, relaxation_is_done
 
     implicit none
 
-    integer :: untin
-
-    namelist /fortin/ &
-       mass_P, mass_S, &
-       central_density_P, central_density_S, &
-       nsub, &
-       roche_radius_factor, &
-       problem, &
-       collision_separation, &
-       collision_impact_parameter, &
-       collision_velocity, &
-       tde_separation, &
-       tde_beta, &
-       tde_initial_velocity, &
-       interp_temp, &
-       relaxation_damping_factor, &
-       relaxation_density_cutoff, &
-       relaxation_cutoff_time, &
-       initial_radial_velocity_factor, &
-       radial_damping_factor, &
-       stellar_temp, &
-       max_he_wd_mass, &
-       max_hybrid_wd_mass, hybrid_wd_he_shell_mass, &
-       max_co_wd_mass, &
-       co_wd_he_shell_mass, &
-       hybrid_wd_c_frac, hybrid_wd_o_frac, &
-       co_wd_c_frac, co_wd_o_frac, &
-       onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac, &
-       orbital_eccentricity, orbital_angle, &
-       axis_1, axis_2, axis_3, &
-       max_stellar_tagging_level, &
-       max_temperature_tagging_level, &
-       max_center_tagging_level, &
-       stellar_density_threshold, &
-       temperature_tagging_threshold, &
-       center_tagging_radius, &
-       max_tagging_radius, &
-       roche_tagging_factor, &
-       bulk_velx, bulk_vely, bulk_velz, &
-       smallu, &
-       center_fracx, center_fracy, center_fracz, &
-       initial_model_dx, &
-       initial_model_npts, &
-       initial_model_mass_tol, &
-       initial_model_hse_tol, &
-       gw_dist
-
     ! Allocate parameters and set defaults.
-
-    allocate(mass_P)
-    allocate(mass_S)
-    allocate(central_density_P)
-    allocate(central_density_S)
-    allocate(stellar_temp)
-    allocate(primary_envelope_mass)
-    allocate(secondary_envelope_mass)
-    allocate(primary_envelope_comp(nspec))
-    allocate(secondary_envelope_comp(nspec))
-
-    mass_P = ONE
-    mass_S = ONE
-    central_density_P = -ONE
-    central_density_S = -ONE
-    stellar_temp = 1.0e7_rt
-
-    allocate(smallu)
-
-    smallu = ZERO
-
-    allocate(nsub)
-    allocate(interp_temp)
-
-    nsub = 1
-    interp_temp = .true.
-
-    allocate(problem)
-
-    problem = 1
-
-    allocate(roche_radius_factor)
-
-    roche_radius_factor = ONE
-
-    allocate(collision_separation)
-    allocate(collision_impact_parameter)
-    allocate(collision_velocity)
-
-    collision_separation = FOUR
-    collision_impact_parameter = ZERO
-    collision_velocity = -ONE
-
-    allocate(tde_separation)
-    allocate(tde_beta)
-    allocate(tde_initial_velocity)
-    allocate(tde_tidal_radius)
-    allocate(tde_schwarzschild_radius)
-    allocate(tde_pericenter_radius)
-
-    tde_separation = EIGHT
-    tde_beta = SIX
-    tde_initial_velocity = 1
-
-    allocate(r_P_initial)
-    allocate(r_S_initial)
-    allocate(a)
-    allocate(center_P_initial(3))
-    allocate(center_S_initial(3))
-    allocate(orbital_eccentricity)
-    allocate(orbital_angle)
-
-    orbital_eccentricity = ZERO
-    orbital_angle = ZERO
-
-    allocate(axis_1)
-    allocate(axis_2)
-    allocate(axis_3)
-    allocate(center_fracx)
-    allocate(center_fracy)
-    allocate(center_fracz)
-    allocate(L1(3))
-    allocate(L2(3))
-    allocate(L3(3))
-    allocate(bulk_velx)
-    allocate(bulk_vely)
-    allocate(bulk_velz)
-    allocate(single_star)
-
-    single_star = .false.
-
-    axis_1 = 1
-    axis_2 = 2
-    axis_3 = 3
-
-    center_fracx = HALF
-    center_fracy = HALF
-    center_fracz = HALF
-
-    bulk_velx = ZERO
-    bulk_vely = ZERO
-    bulk_velz = ZERO
 
     allocate(model_P)
     allocate(model_S)
-    allocate(initial_model_dx)
-    allocate(initial_model_npts)
-    allocate(initial_model_mass_tol)
-    allocate(initial_model_hse_tol)
-
-    initial_model_dx = 6.25e5_rt
-    initial_model_npts = 4096
-    initial_model_mass_tol = 1.e-6_rt
-    initial_model_hse_tol = 1.e-10_rt
-
-    allocate(max_he_wd_mass)
-    allocate(max_hybrid_wd_mass)
-    allocate(hybrid_wd_he_shell_mass)
-    allocate(max_co_wd_mass)
-    allocate(co_wd_he_shell_mass)
-    allocate(hybrid_wd_c_frac)
-    allocate(hybrid_wd_o_frac)
-    allocate(co_wd_c_frac)
-    allocate(co_wd_o_frac)
-    allocate(onemg_wd_o_frac)
-    allocate(onemg_wd_ne_frac)
-    allocate(onemg_wd_mg_frac)
-
-    max_he_wd_mass = 0.45e0_rt
-    max_hybrid_wd_mass = 0.6e0_rt
-    hybrid_wd_he_shell_mass = 0.1e0_rt
-    max_co_wd_mass = 1.05e0_rt
-    co_wd_he_shell_mass = 0.0e0_rt
-
-    hybrid_wd_c_frac = 0.50e0_rt
-    hybrid_wd_o_frac = 0.50e0_rt
-
-    co_wd_c_frac = 0.40e0_rt
-    co_wd_o_frac = 0.60e0_rt
-
-    onemg_wd_o_frac  = 0.60e0_rt
-    onemg_wd_ne_frac = 0.35e0_rt
-    onemg_wd_mg_frac = 0.05e0_rt
-
-    allocate(max_stellar_tagging_level)
-    allocate(max_temperature_tagging_level)
-    allocate(max_center_tagging_level)
-    allocate(stellar_density_threshold)
-    allocate(temperature_tagging_threshold)
-    allocate(center_tagging_radius)
-    allocate(max_tagging_radius)
-    allocate(roche_tagging_factor)
-
-    max_stellar_tagging_level = 20
-    max_temperature_tagging_level = 20
-    max_center_tagging_level = 20
-    stellar_density_threshold = ONE
-    temperature_tagging_threshold = 5.0e8_rt
-    center_tagging_radius = 0.0e0_rt
-    max_tagging_radius = 0.75e0_rt
-    roche_tagging_factor = 2.0e0_rt
-
-    allocate(com_P(3))
-    allocate(com_S(3))
-    allocate(vel_P(3))
-    allocate(vel_S(3))
-
-    allocate(roche_rad_P)
-    allocate(roche_rad_S)
-
-    allocate(relaxation_damping_factor)
-    allocate(relaxation_density_cutoff)
-    allocate(relaxation_cutoff_time)
-    allocate(relaxation_is_done)
-    allocate(radial_damping_factor)
-    allocate(initial_radial_velocity_factor)
-
-    relaxation_damping_factor = -1.0e-1_rt
-    relaxation_density_cutoff = 1.0e3_rt
-    relaxation_cutoff_time = -1.e0_rt
-    relaxation_is_done = 1
-    radial_damping_factor = -1.0e3_rt
-    initial_radial_velocity_factor = -1.0e-3_rt
-
-    allocate(gw_dist)
-
-    gw_dist = 10.0e0_rt
-
-    allocate(t_ff_P)
-    allocate(t_ff_S)
-
-    allocate(T_global_max)
-    allocate(rho_global_max)
-    allocate(ts_te_global_max)
-
-    allocate(jobIsDone)
-    allocate(signalJobIsNotDone)
-
-    jobIsDone = .false.
-    signalJobIsNotDone = .false.
-
-
-
-    ! Read namelist to override the module defaults.
-
-    untin = 9
-    open(untin,file=probin,form='formatted',status='old')
-    read(untin,fortin)
-    close(unit=untin)
 
     ! Convert masses from solar masses to grams.
 
@@ -316,7 +79,7 @@ contains
 
     ! Make sure that the primary mass is really the larger mass
 
-    call ensure_primary_mass_larger
+    call ensure_primary_mass_larger()
 
     ! We enforce that the orbital plane is (z, phi) for two-dimensional problems,
     ! with rotation about z = 0 along the radial axis.
@@ -414,7 +177,7 @@ contains
 
     end if
 
-  end subroutine read_namelist
+  end subroutine finalize_probdata
 
 
 
@@ -456,6 +219,11 @@ contains
     use network, only: network_species_index
     use castro_error_module, only: castro_error
     use amrex_constants_module, only: ZERO, ONE
+    use initial_model_module, only: initial_model
+    use probdata_module, only: max_he_wd_mass, max_hybrid_wd_mass, max_co_wd_mass, &
+                               hybrid_wd_c_frac, hybrid_wd_o_frac, hybrid_wd_he_shell_mass, &
+                               co_wd_c_frac, co_wd_o_frac, co_wd_he_shell_mass, &
+                               onemg_wd_o_frac, onemg_wd_ne_frac, onemg_wd_mg_frac
 
     implicit none
 
@@ -544,9 +312,10 @@ contains
   ! This routine checks to see if the primary mass is actually larger
   ! than the secondary mass, and switches them if not.
 
-  subroutine ensure_primary_mass_larger
+  subroutine ensure_primary_mass_larger ()
 
     use problem_io_module, only: ioproc
+    use probdata_module, only: mass_P, mass_S
 
     implicit none
 
@@ -555,7 +324,7 @@ contains
     ! We want the primary WD to be more massive. If what we're calling
     ! the primary is less massive, switch the stars.
 
-    if ( mass_P < mass_S ) then
+    if (mass_P < mass_S) then
 
       if (ioproc) then
         print *, "Primary mass is less than secondary mass; switching the stars so that the primary is more massive."
@@ -574,6 +343,8 @@ contains
   ! Return the locations of the stellar centers of mass
 
   subroutine get_star_data(P_com, S_com, P_vel, S_vel, P_mass, S_mass, P_t_ff, S_t_ff) bind(C,name='get_star_data')
+
+    use probdata_module, only: mass_P, mass_S, t_ff_P, t_ff_S, com_P, com_S, vel_P, vel_S
 
     implicit none
 
@@ -605,6 +376,7 @@ contains
     use amrex_constants_module, only: TENTH, ZERO
     use prob_params_module, only: center
     use binary_module, only: get_roche_radii
+    use probdata_module, only: mass_P, mass_S, t_ff_P, t_ff_S, com_P, com_S, vel_P, vel_S, roche_rad_P, roche_rad_S
 
     implicit none
 
@@ -673,7 +445,7 @@ contains
 
     use meth_params_module, only: rot_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
     use network, only: nspec, naux
-    use initial_model_module, only: initialize_model, establish_hse
+    use initial_model_module
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
     use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product
@@ -685,6 +457,16 @@ contains
     use eos_module, only: eos
     use fundamental_constants_module, only: Gconst, c_light, AU, M_solar
     use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI
+    use probdata_module, only: center_P_initial, center_S_initial, r_P_initial, r_S_initial, a, orbital_eccentricity, orbital_angle, &
+                               com_P, com_S, mass_P, mass_S, vel_P, vel_S, roche_rad_P, roche_rad_S, central_density_P, central_density_S, &
+                               initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol, &
+                               single_star, axis_1, axis_2, &
+                               stellar_temp, &
+                               collision_separation, collision_velocity, collision_impact_parameter, &
+                               tde_separation, tde_beta, tde_initial_velocity, &
+                               tde_tidal_radius, tde_schwarzschild_radius, tde_pericenter_radius, &
+                               roche_radius_factor, &
+                               init, problem
 
     implicit none
 
@@ -1065,12 +847,13 @@ contains
 
   subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
 
-    use amrex_constants_module
+    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI, FOUR
     use prob_params_module, only: problo, probhi, physbc_lo, Symmetry
     use sponge_module, only: sponge_lower_radius
     use meth_params_module, only: do_sponge
     use fundamental_constants_module, only: Gconst
     use castro_error_module, only: castro_error
+    use probdata_module, only: axis_1
 
     implicit none
 
@@ -1272,7 +1055,7 @@ contains
   ! Note that we simply return the original velocity if we're
   ! already in the inertial frame.
 
-  function inertial_velocity(loc, vel, time) result (vel_i)
+  function inertial_velocity(loc, vel, time) result(vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
     use rotation_frequency_module, only: get_omega ! function
@@ -1280,7 +1063,7 @@ contains
 
     implicit none
 
-    real(rt) :: loc(3), vel(3), time
+    real(rt), intent(in   ) :: loc(3), vel(3), time
     real(rt) :: omega(3)
 
     real(rt) :: vel_i(3)
@@ -1370,6 +1153,8 @@ contains
 
   subroutine set_relaxation_damping_factor(factor) bind(C,name='set_relaxation_damping_factor')
 
+    use probdata_module, only: relaxation_damping_factor
+
     implicit none
 
     real(rt), intent(in), value :: factor
@@ -1381,6 +1166,8 @@ contains
 
 
   subroutine get_axes(axis_1_in, axis_2_in, axis_3_in) bind(C,name='get_axes')
+
+    use probdata_module, only: axis_1, axis_2, axis_3
 
     implicit none
 
@@ -1398,6 +1185,8 @@ contains
 
   subroutine get_single_star(flag) bind(C,name='get_single_star')
 
+    use probdata_module, only: single_star
+
     implicit none
 
     integer, intent(inout) :: flag
@@ -1413,6 +1202,8 @@ contains
   ! Return the problem type.
 
   subroutine get_problem_number(problem_out) bind(C,name='get_problem_number')
+
+    use probdata_module, only: problem
 
     implicit none
 
@@ -1916,8 +1707,8 @@ contains
     use castro_util_module, only: position ! function
     use reduction_module, only: reduce_add
     use prob_params_module, only: dim, dx_level
-    use probdata_module, only: L1
     use amrinfo_module, only: amr_level
+    use probdata_module, only: L1
 
     implicit none
 
@@ -2005,8 +1796,8 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF, ONE, TWO
     use fundamental_constants_module, only: Gconst, c_light, parsec
-    use probdata_module, only: gw_dist, axis_1, axis_2, axis_3
     use prob_params_module, only: dim
+    use probdata_module, only: axis_1, axis_2, axis_3, gw_dist
 
     implicit none
 
@@ -2131,9 +1922,9 @@ contains
 
     use amrex_constants_module, only: ZERO
     use castro_error_module, only: castro_error
-    use probdata_module, only: bulk_velx, bulk_vely, bulk_velz, &
-                               center_fracx, center_fracy, center_fracz
     use prob_params_module, only: center, problo, probhi, dim
+    use probdata_module, only: center_fracx, center_fracy, center_fracz, &
+                               bulk_velx, bulk_vely, bulk_velz
 
     implicit none
 
@@ -2304,8 +2095,9 @@ contains
 
   subroutine get_relaxation_cutoff_time(relaxation_cutoff_time_in) bind(C,name='get_relaxation_cutoff_time')
 
-    use amrex_fort_module, only: rt => amrex_real
     use probdata_module, only: relaxation_cutoff_time
+
+    use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
