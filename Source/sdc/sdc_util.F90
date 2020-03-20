@@ -457,13 +457,15 @@ contains
     dvode_state % TOUT = dt_m
 
     if (sdc_use_analytic_jac == 1) then
-       dvode_state % MF_JAC = MF_ANALYTIC_JAC_CACHED
+       dvode_state % jacobian = 1
     else
-       dvode_state % MF_JAC = MF_NUMERICAL_JAC_CACHED
+       dvode_state % jacobian = 2
     endif
 
-    if (.not. use_jacobian_caching) then
-       dvode_state % MF_JAC = -dvode_state % MF_JAC
+    if (use_jacobian_caching) then
+       dvode_state % JSV = 1
+    else
+       dvode_state % JSV = -1
     endif
 
     ! relative tolerances
