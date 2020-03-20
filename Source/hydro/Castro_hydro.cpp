@@ -71,7 +71,7 @@ Castro::cons_to_prim(const Real time)
             MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
 
             if (do_react)
-                src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
+                src_q[mfi].plus<RunOn::Device>(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
 
         }
 #endif
