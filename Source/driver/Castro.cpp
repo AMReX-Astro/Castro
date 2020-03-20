@@ -957,7 +957,37 @@ Castro::initData ()
        // it is not a requirement that the problem setup defines the
        // temperature, so we do that here _and_ ensure that we are
        // within any small limits
+       computeTemp(S_new, cur_time, S_new.nGrow());
 
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+         {
+           const Box& bx = mfi.tilebox();
+
+           auto S_arr = S_new.array(mfi);
+
+           Real lsmall_temp = small_temp;
+           Real lsmall_dens = small_dens;
+
+           AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+           {
+
+             // if the problem tried to initialize a thermodynamic
+             // state that is at or below small_temp, then we abort.
+             // This is dangerous and we should recommend a smaller
+             // small_temp
+             if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+               amrex::Error("Error: initial data has T <~ small_temp");
+             }
+
+             if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+               amrex::Error("Error: initial data has rho <~ small_dens");
+             }
+
+           });
+         }
 
 #ifdef AMREX_USE_CUDA
 #ifndef GPU_COMPATIBLE_PROBLEM
