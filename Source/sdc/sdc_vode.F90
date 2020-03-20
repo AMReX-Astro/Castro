@@ -32,9 +32,10 @@ contains
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
-    U_full(URHO) = vode_state % y(0)
-    U_full(UFS:UFS-1+nspec_evolve) = vode_state % y(1:nspec_evolve)
-    U_full(UEINT) = vode_state % y(nspec_evolve+1)
+    ! note: vode_state % y(:) is 1-based
+    U_full(URHO) = vode_state % y(1)
+    U_full(UFS:UFS-1+nspec) = vode_state % y(2:nspec+1)
+    U_full(UEINT) = vode_state % y(nspec+2)
     U_full(UEDEN) = vode_state % rpar(irp_evar)
 
     U_full(UMX:UMZ) = vode_state % rpar(irp_mom:irp_mom+2)
@@ -93,9 +94,9 @@ contains
 
     ! we are not solving the momentum equations
     ! create a full state -- we need this for some interfaces
-    U_full(URHO) = vode_state % y(0)
-    U_full(UFS:UFS-1+nspec_evolve) = vode_state % y(1:nspec_evolve)
-    U_full(UEINT) = vode_state % y(nspec_evolve+1)
+    U_full(URHO) = vode_state % y(1)
+    U_full(UFS:UFS-1+nspec_evolve) = vode_state % y(2:nspec+1)
+    U_full(UEINT) = vode_state % y(nspec+2)
     U_full(UEDEN) = vode_state % rpar(irp_evar)
 
     U_full(UMX:UMZ) = vode_state % rpar(irp_mom:irp_mom+2)
@@ -125,8 +126,8 @@ contains
 
     ! the X_k rows
     do m = 1, nspec
-       dwdU(m,0) = -vode_state % y(m)/ vode_state % y(0)**2
-       dwdU(m,m) = ONE/vode_state % y(0)
+       dwdU(m,0) = -vode_state % y(m+1)/ vode_state % y(1)**2
+       dwdU(m,m) = ONE/vode_state % y(1)
     enddo
 
     call composition_derivatives(eos_state, eos_xderivs)
