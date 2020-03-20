@@ -954,6 +954,11 @@ Castro::initData ()
 
        }
 
+       // it is not a requirement that the problem setup defines the
+       // temperature, so we do that here _and_ ensure that we are
+       // within any small limits
+
+
 #ifdef AMREX_USE_CUDA
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
