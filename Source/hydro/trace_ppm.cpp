@@ -145,13 +145,17 @@ Castro::trace_ppm(const Box& bx,
 
 
     Real cc = qaux_arr(i,j,k,QC);
-
-#if AMREX_SPACEDIM < 3
-    Real csq = cc*cc;
-#endif
-
     Real un = q_arr(i,j,k,QUN);
 
+#if AMREX_SPACEDIM < 3
+    Real geom_src_rho = -dloga(i,j,k) * un * q_arr(i,j,k,QRHO);
+    Real geom_src_rhoe = geom_src_rho * (q_arr(i,j,k,QREINT) + q_arr(i,j,k,QPRES)) / q_arr(i,j,k,QRHO);
+    Real geom_src_p = geom_src_rho * cc * cc;
+#else
+    Real geom_src_rho = 0.0_rt;
+    Real geom_src_rhoe = 0.0_rt;
+    Real geom_src_p = 0.0_rt;
+#endif
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
@@ -390,14 +394,14 @@ Castro::trace_ppm(const Box& bx,
 
       // we also add the sources here so they participate in the tracing
       Real dum = un_ref - Im[QUN][0] - hdt*Im_src[QUN][0];
-      Real dptotm = p_ref - Im[QPRES][0] - hdt*Im_src[QPRES][0];
+      Real dptotm = p_ref - Im[QPRES][0] - hdt*(Im_src[QPRES][0] + geom_src_p);
 
-      Real drho = rho_ref - Im[QRHO][1] - hdt*Im_src[QRHO][1];
-      Real dptot = p_ref - Im[QPRES][1] - hdt*Im_src[QPRES][1];
-      Real drhoe_g = rhoe_g_ref - Im[QREINT][1] - hdt*Im_src[QREINT][1];
+      Real drho = rho_ref - Im[QRHO][1] - hdt*(Im_src[QRHO][1] + geom_src_rho);
+      Real dptot = p_ref - Im[QPRES][1] - hdt*(Im_src[QPRES][1] + geom_src_p);
+      Real drhoe_g = rhoe_g_ref - Im[QREINT][1] - hdt*(Im_src[QREINT][1] + geom_src_rhoe);
 
       Real dup = un_ref - Im[QUN][2] - hdt*Im_src[QUN][2];
-      Real dptotp = p_ref - Im[QPRES][2] - hdt*Im_src[QPRES][2];
+      Real dptotp = p_ref - Im[QPRES][2] - hdt*(Im_src[QPRES][2] + geom_src_p);
 
       // {rho, u, p, (rho e)} eigensystem
 
@@ -465,14 +469,14 @@ Castro::trace_ppm(const Box& bx,
       // *p are the jumps carried by u+c
 
       Real dum = un_ref - Ip[QUN][0] - hdt*Ip_src[QUN][0];
-      Real dptotm  = p_ref - Ip[QPRES][0] - hdt*Ip_src[QPRES][0];
+      Real dptotm  = p_ref - Ip[QPRES][0] - hdt*(Ip_src[QPRES][0] + geom_src_p);
 
-      Real drho = rho_ref - Ip[QRHO][1] - hdt*Ip_src[QRHO][1];
-      Real dptot = p_ref - Ip[QPRES][1] - hdt*Ip_src[QPRES][1];
-      Real drhoe_g = rhoe_g_ref - Ip[QREINT][1] - hdt*Ip_src[QREINT][1];
+      Real drho = rho_ref - Ip[QRHO][1] - hdt*(Ip_src[QRHO][1] + geom_src_rho);
+      Real dptot = p_ref - Ip[QPRES][1] - hdt*(Ip_src[QPRES][1] + geom_src_p);
+      Real drhoe_g = rhoe_g_ref - Ip[QREINT][1] - hdt*(Ip_src[QREINT][1] + geom_src_rhoe);
 
       Real dup = un_ref - Ip[QUN][2] - hdt*Ip_src[QUN][2];
-      Real dptotp = p_ref - Ip[QPRES][2] - hdt*Ip_src[QPRES][2];
+      Real dptotp = p_ref - Ip[QPRES][2] - hdt*(Ip_src[QPRES][2] + geom_src_p);
 
       // {rho, u, p, (rho e)} eigensystem
 
@@ -525,33 +529,6 @@ Castro::trace_ppm(const Box& bx,
       }
 
     }
-
-    // geometry source terms
-#if (AMREX_SPACEDIM < 3)
-    // these only apply for x states (idir = 0)
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dt/dx[0]*(cc+std::abs(un));
-      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
-      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
-      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-      Real sourcp = sourcr*csq;
-      Real source = sourcp*((q_arr(i,j,k,QPRES) + q_arr(i,j,k,QREINT))/rho)/csq;
-
-      if (i <= vhi[0]) {
-        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-        qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
-        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
-      }
-
-      if (i >= vlo[0]) {
-        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
-        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
-      }
-    }
-#endif
 
   });
 }
