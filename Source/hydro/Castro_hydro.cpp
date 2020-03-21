@@ -35,26 +35,32 @@ Castro::cons_to_prim(const Real time)
 
         const Box& qbx = mfi.growntilebox(NUM_GROW);
 
+        Array4<Real> const q_arr = q.array(mfi);
+        Array4<Real> const qaux_arr = qaux.array(mfi);
+        Array4<Real> const Sborder_arr = Sborder.array(mfi);
+#ifdef RADIATION
+        Array4<Real> const Erborder_arr = Erborder.array(mfi);
+        Array4<Real> const lamborder_arr = lamborder.array(mfi);
+#endif
+
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#pragma gpu box(qbx)
-        ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+        ctoprim(qbx,
+                time,
+                Sborder_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+                Erborder_arr,
+                lamborder_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]));
+                q_arr,
+                qaux_arr);
 
         // Convert the source terms expressed as sources to the conserved state to those
         // expressed as sources for the primitive state.
         if (time_integration_method == CornerTransportUpwind ||
             time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
-          Array4<Real> const q_arr = q.array(mfi);
-          Array4<Real> const qaux_arr = qaux.array(mfi);
           Array4<Real> const src_arr = sources_for_hydro.array(mfi);
           Array4<Real> const src_q_arr = src_q.array(mfi);
 
@@ -113,15 +119,23 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_ctoprim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(u[mfi]),
+        auto u_arr = u.array(mfi);
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+        auto Erborder_arr = Erborder.array(mfi);
+        auto lamborder_arr = lamborder.array(mfi);
 #endif
-                   BL_TO_FORTRAN_ANYD(q_in[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux_in[mfi]));
+        auto q_in_arr = q_in.array(mfi);
+        auto qaux_in_arr = qaux_in.array(mfi);
+
+        ctoprim(bx,
+                time,
+                u_arr,
+#ifdef RADIATION
+                Erborder_arr,
+                lamborder_arr,
+#endif
+                q_in_arr,
+                qaux_in_arr);
 
     }
 
@@ -180,10 +194,15 @@ Castro::cons_to_prim_fourth(const Real time)
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux_bar[mfi]));
+      auto Sborder_arr = Sborder.array(mfi);
+      auto q_bar_arr = q_bar.array(mfi);
+      auto qaux_bar_arr = qaux_bar.array(mfi);
+
+      ctoprim(qbx,
+              time, 
+              Sborder_arr,
+              q_bar_arr,
+              qaux_bar_arr);
 
       // this is what we should construct the flattening coefficient
       // from
@@ -191,10 +210,15 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_cc to q_cc (we'll store this temporarily in q,
       // qaux).  This will remain valid only on the NUM_GROW-1 ghost
       // cells.
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
-                 BL_TO_FORTRAN_ANYD(U_cc),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
+      auto U_cc_arr = U_cc.array();
+      auto q_arr = q.array(mfi);
+      auto qaux_arr = qaux.array(mfi);
+
+      ctoprim(qbxm1,
+              time,
+              U_cc_arr,
+              q_arr,
+              qaux_arr);
     }
 
 

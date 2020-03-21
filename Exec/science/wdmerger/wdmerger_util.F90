@@ -479,7 +479,7 @@ contains
 
     type(eos_t) :: eos_state
 
-    omega = get_omega(ZERO)
+    call get_omega(ZERO, omega)
 
     ! Safety check: ensure that if we have a symmetric lower boundary, that the
     ! domain center (and thus the stars) are on that boundary.
@@ -981,7 +981,7 @@ contains
   function inertial_rotation(vec, time) result(vec_i)
 
     use amrex_constants_module, only: ZERO
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use meth_params_module, only: do_rotation, rot_period, rot_period_dot
 
     implicit none
@@ -1012,13 +1012,15 @@ contains
     if (do_rotation .eq. 1) then
 
        if (abs(rot_period_dot) > ZERO .and. time > ZERO) then
-          theta = get_omega(ZERO) * (rot_period / rot_period_dot) * &
+          call get_omega(ZERO, omega)
+          theta = omega * (rot_period / rot_period_dot) * &
                   log( abs( (rot_period_dot / rot_period) * time + 1 ) )
        else
-          theta = get_omega(ZERO) * time
+          call get_omega(ZERO, omega)
+          theta = omega * time
        endif
 
-       omega = get_omega(time)
+       call get_omega(time, omega)
 
     else
 
@@ -1058,7 +1060,7 @@ contains
   function inertial_velocity(loc, vel, time) result(vel_i)
 
     use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use math_module, only: cross_product ! function
 
     implicit none
@@ -1070,7 +1072,7 @@ contains
 
     !$gpu
 
-    omega = get_omega(time)
+    call get_omega(time, omega)
 
     vel_i = vel
 
@@ -2009,7 +2011,7 @@ contains
     real(rt), intent(inout) :: omega_in(3)
     real(rt), intent(in   ), value :: time
 
-    omega_in = get_omega(time)
+    call get_omega(time, omega_in)
 
   end subroutine get_omega_vec
 

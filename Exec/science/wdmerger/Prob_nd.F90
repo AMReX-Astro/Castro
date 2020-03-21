@@ -36,7 +36,7 @@
      use ambient_module, only: ambient_state
      use math_module, only: cross_product ! function
      use castro_util_module, only: position ! function
-     use rotation_frequency_module, only: get_omega ! function
+     use rotation_frequency_module, only: get_omega
      use wdmerger_util_module, only: inertial_velocity ! function
      use probdata_module, only: center_P_initial, center_S_initial, mass_P, mass_S, vel_P, vel_S, &
                                 bulk_velx, bulk_vely, bulk_velz, smallu, &
@@ -67,7 +67,7 @@
      ! inside the primary or secondary (in which case interpolate from the respective model)
      ! or if we are in an ambient zone.
 
-     omega = get_omega(time)
+     call get_omega(time, omega)
 
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, pos, mom) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state) &
