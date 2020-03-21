@@ -199,11 +199,12 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
 }
 
 
+AMREX_GPU_HOST_DEVICE 
 void
 Castro::inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                           const GeometryData& geomdata,
-                                          Real* center,
-                                          Real* omega,
+                                          const Real* center,
+                                          const Real* omega,
                                           const Real time, Real* v) {
 
   // Given a velocity vector in the inertial frame, transform it to a

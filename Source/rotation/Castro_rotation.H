@@ -33,8 +33,9 @@
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
 
 
+    AMREX_GPU_HOST_DEVICE
     void inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                            const amrex::GeometryData& geomdata,
-                                           Real* center,
-                                           Real* omega,
+                                           const Real* center,
+                                           const Real* omega,
                                            const amrex::Real time, amrex::Real* v);

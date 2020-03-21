@@ -28,6 +28,8 @@ Castro::ctoprim(const Box& bx,
 
   Real lsmall_dens = small_dens;
   Real ldual_energy_eta1 = dual_energy_eta1;
+  int lstate_in_rotating_frame = state_in_rotating_frame;
+  int ldo_rotation = do_rotation;
 
 #ifdef RADIATION
   int is_comoving = Radiation::comoving;
@@ -90,7 +92,7 @@ Castro::ctoprim(const Box& bx,
     // then subtract off the rotation component here.
 
 #ifdef ROTATION
-    if (do_rotation == 1 && state_in_rotating_frame != 1) {
+    if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
       Real vel[3];
       for (int n = 0; n < 3; n++) {
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
