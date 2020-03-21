@@ -142,7 +142,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // add the source terms 
       qp(i,j,k,QRHO  ) += 0.5_rt*dt*srcQ(i,j,k,QRHO);
-      qp(i,j,k,QRHO  ) = std::max(lsmall_dens, qp(i,j,k,QRHO));
+      qp(i,j,k,QRHO  ) = amrex::max(lsmall_dens, qp(i,j,k,QRHO));
       qp(i,j,k,QUN   ) += 0.5_rt*dt*srcQ(i,j,k,QUN);
       qp(i,j,k,QUT   ) += 0.5_rt*dt*srcQ(i,j,k,QUT);
       qp(i,j,k,QUTT  ) += 0.5_rt*dt*srcQ(i,j,k,QUTT);

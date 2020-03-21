@@ -162,7 +162,7 @@ contains
     use amrex_constants_module
     use math_module, only: cross_product ! function
     use rotation_module, only: rotational_acceleration ! function
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use rotation_frequency_module, only: get_domegadt ! function
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
@@ -253,8 +253,8 @@ contains
     src(:) = ZERO
     snew(:) = ZERO
 
-    omega_old = get_omega(time-dt)
-    omega_new = get_omega(time   )
+    call get_omega(time-dt, omega_old)
+    call get_omega(time, omega_new)
 
     domegadt_old = get_domegadt(time-dt)
     domegadt_new = get_domegadt(time   )

@@ -6,7 +6,7 @@ module rotation_frequency_module
 
 contains
 
-  function get_omega(time) result(omega)
+  subroutine get_omega(time, omega) bind(C, name="get_omega")
 
     use prob_params_module, only: coord_type
     use meth_params_module, only: rot_period, rot_period_dot, rot_axis
@@ -15,10 +15,10 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     implicit none
 
-    real(rt)         :: time
-    real(rt)         :: omega(3)
+    real(rt), intent(in), value :: time
+    real(rt), intent(inout) :: omega(3)
 
-    real(rt)         :: curr_period
+    real(rt) :: curr_period
 
     ! If rot_period is less than zero, that means rotation is disabled, and so we should effectively
     ! shut off the source term by setting omega = 0. Note that by default rot_axis == 3 for Cartesian
@@ -48,7 +48,7 @@ contains
 #endif
     endif
 
-  end function get_omega
+  end subroutine get_omega
 
 
 
@@ -78,7 +78,7 @@ contains
           ! d( ln(period) ) / dt = - d( ln(omega) ) / dt
 
           curr_period = rot_period + rot_period_dot * time
-          curr_omega  = get_omega(time)
+          call get_omega(time, curr_omega)
 
           domegadt = -curr_omega * (rot_period_dot / curr_period)
 

@@ -9,7 +9,9 @@ extern "C"
 #endif
 
   void set_rot_period(const amrex::Real* period);
-    
+
+  void get_omega(const amrex::Real time, amrex::Real* omega);
+
   void ca_fill_rotational_potential
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(phi),

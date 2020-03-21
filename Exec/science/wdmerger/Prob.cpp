@@ -481,7 +481,7 @@ Castro::gwstrain (Real time,
 
     FArrayBox Qtt(bx);
 
-    Qtt.setVal(0.0);
+    Qtt.setVal<RunOn::Device>(0.0);
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
@@ -494,7 +494,7 @@ Castro::gwstrain (Real time,
     {
 #ifdef _OPENMP
 	int tid = omp_get_thread_num();
-	priv_Qtt[tid]->setVal(0.0);
+	priv_Qtt[tid]->setVal<RunOn::Device>(0.0);
 #endif
 	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
