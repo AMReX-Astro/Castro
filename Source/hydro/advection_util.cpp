@@ -28,8 +28,11 @@ Castro::ctoprim(const Box& bx,
 
   Real lsmall_dens = small_dens;
   Real ldual_energy_eta1 = dual_energy_eta1;
+
+#ifdef ROTATION
   int lstate_in_rotating_frame = state_in_rotating_frame;
   int ldo_rotation = do_rotation;
+#endif
 
 #ifdef RADIATION
   int is_comoving = Radiation::comoving;
