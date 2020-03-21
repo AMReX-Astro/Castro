@@ -1325,6 +1325,13 @@ Castro::HLL(const Real* ql, const Real* qr,
             const GpuArray<int, npassive>& qpass_map_p,
             Real* flux_hll) {
 
+  // This is the HLLE solver.  We should apply it to zone averages
+  // (not reconstructed states) at an interface in the presence of
+  // shocks to avoid the odd-even decoupling / carbuncle phenomenon.
+  //
+  // See: Einfeldt, B.  et al. 1991, JCP, 92, 273
+  //      Einfeldt, B. 1988, SIAM J NA, 25, 294
+
 
   constexpr Real small_hll = 1.e-10_rt;
 
@@ -1389,6 +1396,8 @@ Castro::HLL(const Real* ql, const Real* qr,
   Real bd = bp - bm;
 
   if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) return;
+
+  // we'll overwrite the passed in flux with the HLL flux
 
   bd = 1.0_rt/bd;
 

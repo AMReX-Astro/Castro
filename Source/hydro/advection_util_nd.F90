@@ -432,7 +432,6 @@ contains
   end subroutine ca_compute_cfl
 
 
-
   subroutine ca_ctoprim(lo, hi, &
                         uin, uin_lo, uin_hi, &
 #ifdef RADIATION

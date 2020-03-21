@@ -23,7 +23,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   call probdata_init(name, namlen)
 
 #ifdef ROTATION
-  omega = get_omega(ZERO)
+  call get_omega(ZERO, omega)
 #else
   ! Provide a dummy value so that we can compile without rotation.
   omega = [ZERO, ZERO, TWO * M_PI]
@@ -63,7 +63,7 @@ contains
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, &
                                   do_rotation, state_in_rotating_frame
 #ifdef ROTATION
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
 #endif
     use math_module, only: cross_product ! function
     use prob_params_module, only: center
@@ -87,7 +87,7 @@ contains
     !$gpu
 
 #ifdef ROTATION
-    omega = get_omega(ZERO)
+    call get_omega(ZERO, omega)
 #else
     omega = [ZERO, ZERO, TWO * M_PI]
 #endif

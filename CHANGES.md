@@ -13,7 +13,8 @@
 
    * The conversion of the CTU hydrodynamics code to C++ continues.
      The Riemann solvers were converted to C++ (#801) and the
-     hybrid momentum routines (#805), the PLM reconstruction (#814)
+     hybrid momentum routines (#805), the PLM reconstruction (#814),
+     the conversion of primitive to conserved variables (#804)
 
    * We've changed how the backup for retries is done.  Presently if
      use_retry is enabled we make a pre-emptive copy of the StateData
