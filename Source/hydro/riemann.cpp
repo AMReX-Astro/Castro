@@ -116,6 +116,13 @@ Castro::cmpflx_plus_godunov(const Box& bx,
           qr_zone[n] = qp(i,j,k,n);
         }
 
+        // pass in the current flux -- the
+        // HLL solver will overwrite this
+        // if necessary
+        for (int n = 0; n < NUM_STATE; n++) {
+          flx_zone[n] = flx(i,j,k,n);
+        }
+
         HLL(ql_zone, qr_zone, cl, cr,
             idir, coord,
             upass_map_p, qpass_map_p,
