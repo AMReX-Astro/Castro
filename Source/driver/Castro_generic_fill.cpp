@@ -31,7 +31,7 @@ void ca_generic_fill(Box const& bx, FArrayBox& data,
 
 #pragma gpu box(bx)
     generic_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(data), numcomp,
+                 BL_TO_FORTRAN_N_ANYD(data, dcomp), numcomp,
                  AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
                  AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), bc_f);
 
