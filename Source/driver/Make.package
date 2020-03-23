@@ -35,11 +35,6 @@ CEXE_sources += Castro_generic_fill.cpp
 FEXE_headers += Castro_generic_fill_F.H
 ca_F90EXE_sources += generic_fill_nd.F90
 
-CEXE_headers += Castro_source_fill.H
-CEXE_sources += Castro_source_fill.cpp
-FEXE_headers += Castro_source_fill_F.H
-ca_F90EXE_sources += source_fill_nd.F90
-
 ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 ca_F90EXE_sources += Castro_util_nd.F90
