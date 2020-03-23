@@ -6,89 +6,37 @@
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+void ca_generic_fill(Box const& bx, FArrayBox& data,
+                     const int dcomp, const int numcomp,
+                     Geometry const& geom, const Real time,
+                     const Vector<BCRec>& bcr, const int bcomp,
+                     const int scomp)
 {
-#endif
+    // Make a copy of the raw BCRec data in the format
+    // our BC routines can handle (a contiguous array
+    // of integers).
 
-    // Note that these are called with dimension agnostic macros like
-    // AMREX_ZFILL and AMREX_INT_ANYD already, so we should expect that
-    // everything has three entries, not AMREX_SPACEDIM entries.
-    // We still choose to use the macros anyway below, for compatibility
-    // with the GPU pragma script.
+    Vector<int> bcrs(2 * AMREX_SPACEDIM * numcomp);
 
-    void ca_generic_single_fill(Real* adv, const int* adv_lo, const int* adv_hi,
-                                const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                                const Real* time, const int* bc)
-    {
-        int lo[3] = {0};
-        int hi[3] = {0};
-
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            lo[i] = adv_lo[i];
-            hi[i] = adv_hi[i];
-        }
+    for (int n = 0; n < numcomp; ++n)
+        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k)
+            bcrs[2 * AMREX_SPACEDIM * n + k] = bcr[n].vect()[k];
 
 #ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, 1);
-        set_bc_launch_config();
+    int* bc_f = prepare_bc(bcrs.data(), numcomp);
+    set_bc_launch_config();
 #else
-        const int* bc_f = bc;
+    const int* bc_f = bcrs.data();
 #endif
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
 
 #pragma gpu box(bx)
-        generic_single_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
+    generic_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_N_ANYD(data, dcomp), numcomp,
+                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), bc_f);
 
 #ifdef AMREX_USE_CUDA
-        clean_bc_launch_config();
-        clean_bc(bc_f);
+    clean_bc_launch_config();
+    clean_bc(bc_f);
 #endif
-    }
-
-    void ca_generic_multi_fill(Real* adv, const int* adv_lo, const int* adv_hi,
-                               const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                               const Real* time, const int* bc)
-    {
-        int lo[3] = {0};
-        int hi[3] = {0};
-
-        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-            lo[i] = adv_lo[i];
-            hi[i] = adv_hi[i];
-        }
-
-#ifdef AMREX_USE_CUDA
-        int* bc_f = prepare_bc(bc, NUM_STATE);
-        set_bc_launch_config();
-#else
-        const int* bc_f = bc;
-#endif
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-        generic_multi_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                           AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), bc_f);
-
-#ifdef AMREX_USE_CUDA
-        clean_bc_launch_config();
-        clean_bc(bc_f);
-#endif
-    }
-
-#ifdef __cplusplus
 }
-#endif

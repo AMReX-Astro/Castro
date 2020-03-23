@@ -9,100 +9,80 @@
 
 using namespace amrex;
 
+void ca_statefill(Box const& bx, FArrayBox& data,
+                  const int dcomp, const int numcomp,
+                  Geometry const& geom, const Real time,
+                  const Vector<BCRec>& bcr, const int bcomp,
+                  const int scomp)
+{
+    // Make a copy of the raw BCRec data in the format
+    // our BC routines can handle (a contiguous array
+    // of integers).
+
+    Vector<int> bcrs(2 * AMREX_SPACEDIM * numcomp);
+
+    for (int n = 0; n < numcomp; ++n)
+        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k)
+            bcrs[2 * AMREX_SPACEDIM * n + k] = bcr[n].vect()[k];
+
+#ifdef AMREX_USE_CUDA
+    int* bc_f = prepare_bc(bcrs.data(), numcomp);
+    set_bc_launch_config();
+#else
+    const int* bc_f = bcrs.data();
+#endif
+
+    // This routine either comes in with one component or all NUM_STATE.
+
+    if (numcomp == 1) {
+
+#pragma gpu box(bx)
+        denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_N_ANYD(data, dcomp),
+                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+
+    }
+    else {
+
+        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
+
+#pragma gpu box(bx)
+        hypfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_ANYD(data),
+                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+
+    }
+
+#ifdef AMREX_USE_CUDA
+    clean_bc_launch_config();
+#endif
+
+    if (numcomp == 1) {
+
+        ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
+
+    }
+    else {
+
+        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
+
+        ca_ext_fill(bx, data, dcomp, numcomp, geom, time, bc_f);
+
+    }
+
+#ifdef AMREX_USE_CUDA
+    clean_bc(bc_f);
+#endif
+
+  }
+
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-  // Note that these are called with dimension agnostic macros like
-  // AMREX_ZFILL and AMREX_INT_ANYD already, so we should expect that
-  // everything has three entries, not AMREX_SPACEDIM entries.
-  // We still choose to use the macros anyway below, for compatibility
-  // with the GPU pragma script.
-
-  void ca_hypfill(Real* adv, const int* adv_lo, const int* adv_hi,
-                  const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                  const Real* time, const int* bc)
-  {
-    int lo[3] = {0};
-    int hi[3] = {0};
-
-    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-      lo[i] = adv_lo[i];
-      hi[i] = adv_hi[i];
-    }
-
-#ifdef AMREX_USE_CUDA
-    int* bc_f = prepare_bc(bc, NUM_STATE);
-    set_bc_launch_config();
-#else
-    const int* bc_f = bc;
-#endif
-
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-    Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-    hypfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-            adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
-
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
-
-    ca_ext_fill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
-
-#ifdef AMREX_USE_CUDA
-    clean_bc(bc_f);
-#endif
-  }
-
-
-  void ca_denfill(Real* adv, const int* adv_lo, const int* adv_hi,
-                  const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                  const Real* time, const int* bc)
-  {
-    int lo[3] = {0};
-    int hi[3] = {0};
-
-    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-      lo[i] = adv_lo[i];
-      hi[i] = adv_hi[i];
-    }
-
-#ifdef AMREX_USE_CUDA
-    int* bc_f = prepare_bc(bc, 1);
-    set_bc_launch_config();
-#else
-    const int* bc_f = bc;
-#endif
-
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-    Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-    denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-            adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-            AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
-
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
-
-    ca_ext_denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, dx, xlo, time, bc_f);
-
-#ifdef AMREX_USE_CUDA
-    clean_bc(bc_f);
-#endif
-  }
-
 
 #ifdef MHD
   void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
@@ -171,6 +151,7 @@ extern "C"
 
   }
 #endif  
+
 #ifdef __cplusplus
 }
 #endif
