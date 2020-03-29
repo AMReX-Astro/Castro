@@ -64,7 +64,7 @@ amr.check_int       = 5000       # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = hse_64_plt        # root name of plotfile
-amr.plot_per         = 5e-3       # number of timesteps between plotfiles
+amr.plot_per         = 0.025       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
