@@ -136,9 +136,11 @@ Castro::riemanncg(const Box& bx,
     Real pl = ql(i,j,k,QPRES);
     Real rel = ql(i,j,k,QREINT);
     Real gcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
+#ifdef TRUE_SDC
     if (luse_reconstructed_gamma1 == 1) {
       gcl = ql(i,j,k,QGC);
     }
+#endif
 
     // pick left velocities based on direction
     Real ul = ql(i,j,k,iu);
@@ -177,9 +179,11 @@ Castro::riemanncg(const Box& bx,
     Real pr = qr(i,j,k,QPRES);
     Real rer = qr(i,j,k,QREINT);
     Real gcr = qaux_arr(i,j,k,QGAMC);
+#ifdef TRUE_SDC
     if (luse_reconstructed_gamma1 == 1) {
       gcr = qr(i,j,k,QGC);
     }
+#endif
 
     // pick right velocities based on direction
     Real ur = qr(i,j,k,iu);
@@ -762,11 +766,7 @@ Castro::riemannus(const Box& bx,
     }
 
 #ifndef RADIATION
-    if (luse_reconstructed_gamma1 == 1) {
-      gamcl = ql(i,j,k,QGC);
-      gamcr = qr(i,j,k,QGC);
-
-    } else if (compute_gammas == 1) {
+    if (compute_gammas == 1) {
 
       // we come in with a good p, rho, and X on the interfaces
       // -- use this to find the gamma used in the sound speed
@@ -798,6 +798,13 @@ Castro::riemannus(const Box& bx,
       eos(eos_input_rp, eos_state);
 
       gamcr = eos_state.gam1;
+
+#ifdef TRUE_SDC
+    } else if (luse_reconstructed_gamma1 == 1) {
+      gamcl = ql(i,j,k,QGC);
+      gamcr = qr(i,j,k,QGC);
+#endif
+
     }
 #endif
 
@@ -1157,16 +1164,15 @@ Castro::HLLC(const Box& bx,
     Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux_arr(i,j,k,QC), lsmall * qaux_arr(i-sx,j-sy,k-sz,QC)));
     Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
-    Real gamcl;
-    Real gamcr;
+    Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
+    Real gamcr = qaux_arr(i,j,k,QGAMC);
 
+#ifdef TRUE_SDC
     if (luse_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
-    } else {
-      gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
-      gamcr = qaux_arr(i,j,k,QGAMC);
     }
+#endif
 
     Real wsmall = lsmall_dens*csmall;
     Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
