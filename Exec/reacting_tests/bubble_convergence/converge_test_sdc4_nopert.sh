@@ -1,5 +1,7 @@
 #!/bin/bash
 
+### NOTE: build with USE_REACT=FALSE USE_TRUE_SDC=TRUE
+
 EXEC=./Castro2d.gnu.MPI.TRUESDC.ex
 
 RUNPARAMS="
