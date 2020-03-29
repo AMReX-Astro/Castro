@@ -20,7 +20,6 @@ castro.hi_bc       =  0   0
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
-castro.allow_negative_energy = 0
 
 # TIME STEP CONTROL
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt

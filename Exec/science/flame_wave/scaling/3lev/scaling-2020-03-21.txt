@@ -1,0 +1,20 @@
+Scaling on summit using:
+
+OS: /ccs/home/zingale/Microphysics/EOS/helmholtz
+NETWORK: /ccs/home/zingale/Microphysics/networks/iso7
+CONDUCTIVITY: /ccs/home/zingale/Microphysics/conductivity/stellar
+
+Castro       git describe: 20.03-114-gf47b5f502
+AMReX        git describe: 20.03-160-gaf6dae083
+Microphysics git describe: 20.03-64-gbcdd4ab0
+
+This used the inputs with amr.max_level = 2
+
+Problem size: 768x768x192
+# GPUs      avg_time        std
+3072          16.3817       0.223342
+4608          11.8509       0.121777
+6144          13.2242       0.154836
+
+
+

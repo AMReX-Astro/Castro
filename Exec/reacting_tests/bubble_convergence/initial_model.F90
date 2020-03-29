@@ -29,7 +29,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt, eos_input_ps
     use network, only : nspec
-    use meth_params_module, only : const_grav, sdc_order
+    use meth_params_module, only : const_grav, sdc_order, time_integration_method
 
     use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
 
@@ -88,7 +88,7 @@ contains
     p = eos_state % p
 
 
-    if (sdc_order == 4) then
+    if (time_integration_method == 3 .and. sdc_order == 4) then
 
        ! a fourth order accurate method
 

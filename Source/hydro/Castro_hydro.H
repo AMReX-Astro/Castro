@@ -57,6 +57,16 @@
                      amrex::Array4<amrex::Real const> const src,
                      amrex::Array4<amrex::Real> const srcQ);
 
+    void ctoprim(const amrex::Box& bx,
+                 const amrex::Real time,
+                 amrex::Array4<amrex::Real const> const uin,
+#ifdef RADIATION
+                 amrex::Array4<amrex::Real const> const Erin,
+                 amrex::Array4<amrex::Real const> const lam,
+#endif
+                 amrex::Array4<amrex::Real> const q_arr,
+                 amrex::Array4<amrex::Real> const qaux_arr);
+
     void uflatten(const amrex::Box& bx,
                   amrex::Array4<amrex::Real const> const q,
                   amrex::Array4<amrex::Real> const flatn,
