@@ -138,7 +138,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   end do
 
   ! Initial velocities = 0
-  state(:,:,:,UMX:UMZ) = ZERO
+  state(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3),UMX:UMZ) = ZERO
 
   if (do_pert) then
 
