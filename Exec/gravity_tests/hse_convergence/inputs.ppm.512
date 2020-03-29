@@ -7,7 +7,7 @@ geometry.is_periodic = 0       0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
 geometry.prob_hi     = 7.68e6  7.68e6
-amr.n_cell           = 256     256
+amr.n_cell           = 512     512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -28,12 +28,10 @@ castro.do_sponge = 1
 
 castro.small_temp = 1.e6
 
-castro.ppm_type=0
-castro.plm_iorder = 2
-#castro.plm_well_balanced=1
 
-castro.time_integration_method=0
-castro.limit_fourth_order=1
+castro.time_integration_method = 0
+castro.ppm_type=1
+#castro.plm_well_balanced=1
 
 castro.grav_source_type = 2
 
@@ -45,7 +43,7 @@ castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.change_max     = 1.0     # max time step growth
 castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
-castro.fixed_dt = 0.375e-4
+castro.fixed_dt = 1.875e-5
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -62,12 +60,12 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file
-amr.check_int       = 1000       # number of timesteps between checkpoints
+amr.check_int       = 5000       # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file        = bubble_256_plt        # root name of plotfile
-amr.plot_per         = 1e-3       # number of timesteps between plotfiles
+amr.plot_file        = hse_512_plt        # root name of plotfile
+amr.plot_per         = 5e-3       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.256.nopert
+amr.probin_file = probin.512
