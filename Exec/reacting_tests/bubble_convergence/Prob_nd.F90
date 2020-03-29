@@ -88,7 +88,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt) :: dist, x, y, z, height, r
   integer :: i, j, k, n
 
-  real(rt) :: t0
+  real(rt) :: t0, rho_old
 
   type (eos_t) :: eos_state
 
@@ -137,6 +137,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               ! Now add the perturbation
               t0 = state(i,j,k,UTEMP)
 
+              rho_old = state(i,j,k,URHO)
+
               r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2) /  pert_width
 
               !state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
@@ -152,6 +154,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
               state(i,j,k,UEDEN) = state(i,j,k,UEINT)
+
+              ! correct the mass fractions with the new density
+              do n = 1,nspec
+                 state(i,j,k,UFS+n-1) = (state(i,j,k,URHO) / rho_old) * state(i,j,k,UFS+n-1)
+              enddo
+
            end if
 
         end do
