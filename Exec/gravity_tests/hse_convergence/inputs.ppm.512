@@ -59,7 +59,7 @@ amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = chk        # root name of checkpoint file
+amr.check_file      = hse_512_chk        # root name of checkpoint file
 amr.check_int       = 5000       # number of timesteps between checkpoints
 
 # PLOTFILES
