@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -40,7 +40,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="File riemann.H" href="riemann_8H.html" />
-    <link rel="prev" title="hybrid_advection_nd.F90" href="hybrid_advection_nd_f.html" /> 
+    <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -142,14 +142,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro_ctu_nd_f.html">Castro_ctu_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_nd_f.html">Castro_fourth_order_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
 </ul>
@@ -243,12 +237,12 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
 <dt>
-<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct(const Real * s, const Real flatn, Real &amp; sm, Real &amp; sp)</code></dt>
+<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct(const Real * s, const Real flatn, Real &amp; sm, Real &amp; sp)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile(const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real * Ip, Real * Im)</code></dt>
+<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile(const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real * Ip, Real * Im)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -256,27 +250,27 @@
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="member">
 <dt id="_CPPv43im2">
-<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="ppm_8H_1a541226b9ae2d734669d83eb543d95dce"></span><em class="property">constexpr</em> int <code class="descname">im2</code> = 0<a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="ppm_8H_1a541226b9ae2d734669d83eb543d95dce"></span><em class="property">constexpr</em> int <code class="sig-name descname">im2</code> = 0<a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv43im1">
-<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="ppm_8H_1a2850db016736ebdb1cd32845e6deca08"></span><em class="property">constexpr</em> int <code class="descname">im1</code> = 1<a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="ppm_8H_1a2850db016736ebdb1cd32845e6deca08"></span><em class="property">constexpr</em> int <code class="sig-name descname">im1</code> = 1<a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv42i0">
-<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="ppm_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><em class="property">constexpr</em> int <code class="descname">i0</code> = 2<a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="ppm_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><em class="property">constexpr</em> int <code class="sig-name descname">i0</code> = 2<a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv43ip1">
-<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="ppm_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><em class="property">constexpr</em> int <code class="descname">ip1</code> = 3<a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="ppm_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip1</code> = 3<a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
 <dt id="_CPPv43ip2">
-<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="ppm_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><em class="property">constexpr</em> int <code class="descname">ip2</code> = 4<a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="ppm_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip2</code> = 4<a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -293,7 +287,7 @@
         <a href="riemann_8H.html" class="btn btn-neutral float-right" title="File riemann.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hybrid_advection_nd_f.html" class="btn btn-neutral float-left" title="hybrid_advection_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

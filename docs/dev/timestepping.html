@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -226,10 +226,10 @@
 <p>There are two paramters that can define when a simulation ends:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">max_step</span></code>: maximum number of level 0 time steps (integer
-<span class="math notranslate nohighlight">\(\geq 0\)</span>; default: -1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: final simulation time (Real <span class="math notranslate nohighlight">\(\geq 0\)</span>; default:
--1.0)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_step</span></code>: maximum number of level 0 time steps (integer
+<span class="math notranslate nohighlight">\(\geq 0\)</span>; default: -1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: final simulation time (Real <span class="math notranslate nohighlight">\(\geq 0\)</span>; default:
+-1.0)</p></li>
 </ul>
 </div></blockquote>
 <p>To control the number of time steps, you can limit by the maximum
@@ -269,18 +269,18 @@ the code chooses a time step based on the CFL number:</p>
 <p>The following parameters affect the timestep choice:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code>: CFL number (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>;
-default: 0.8)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>: factor by which to shrink the initial
-time step (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>; default: 1.0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>: factor by which the time step can
-grow in subsequent steps (Real <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1.1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.fixed_dt</span></code>: level 0 time step regardless of cfl
-or other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.initial_dt</span></code>: initial level 0 time
-step regardless of other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.dt_cutoff</span></code>: time step below which calculation
-will abort (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 0.0)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.cfl</span></code>: CFL number (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>;
+default: 0.8)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.init_shrink</span></code>: factor by which to shrink the initial
+time step (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span> and <span class="math notranslate nohighlight">\(\leq 1\)</span>; default: 1.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.change_max</span></code>: factor by which the time step can
+grow in subsequent steps (Real <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1.1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.fixed_dt</span></code>: level 0 time step regardless of cfl
+or other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.initial_dt</span></code>: initial level 0 time
+step regardless of other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.dt_cutoff</span></code>: time step below which calculation
+will abort (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 0.0)</p></li>
 </ul>
 </div></blockquote>
 <p>As an example, consider:</p>
@@ -363,17 +363,17 @@ Castro supports a number of different modes for subcycling in time,
 set via <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code>.</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Auto</span></code> (default): the code will run with
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Auto</span></code> (default): the code will run with
 equal refinement in space and time. In other words, if level
 <span class="math notranslate nohighlight">\(n+1\)</span> is a factor of 2 refinement above level <span class="math notranslate nohighlight">\(n\)</span>,
 then <span class="math notranslate nohighlight">\(n+1\)</span> will take 2 steps of half the duration for every
-level <span class="math notranslate nohighlight">\(n\)</span> step.</li>
-<li>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">None</span></code>: the code will not refine in
+level <span class="math notranslate nohighlight">\(n\)</span> step.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">None</span></code>: the code will not refine in
 time. All levels will advance together with a timestep dictated by
 the level with the strictest <span class="math notranslate nohighlight">\(dt\)</span>. Note that this is
-identical to the deprecated command <code class="docutils literal notranslate"><span class="pre">amr.nosub</span> <span class="pre">=</span> <span class="pre">1</span></code>.</li>
-<li>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Manual</span></code>: the code will subcycle
-according to the values supplied by <code class="docutils literal notranslate"><span class="pre">amr.subcycling_iterations</span></code>.</li>
+identical to the deprecated command <code class="docutils literal notranslate"><span class="pre">amr.nosub</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = <code class="docutils literal notranslate"><span class="pre">Manual</span></code>: the code will subcycle
+according to the values supplied by <code class="docutils literal notranslate"><span class="pre">amr.subcycling_iterations</span></code>.</p></li>
 </ul>
 </div></blockquote>
 <p>In the case of <code class="docutils literal notranslate"><span class="pre">amr.subcycling_mode</span></code> = Manual, we subcycle in
@@ -401,8 +401,8 @@ It is enabled by setting:</p>
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The Castro retry mechanism is enabled by default for CTU + Strang
+<p class="admonition-title">Note</p>
+<p>The Castro retry mechanism is enabled by default for CTU + Strang
 and Simplified SDC integration.</p>
 </div>
 <p>The number of subcycles to try in the level is controlled via the
@@ -411,11 +411,9 @@ beyond <code class="docutils literal notranslate"><span class="pre">16</span></c
 <p>A retry can be triggered by a number of conditions:</p>
 <blockquote>
 <div><ul>
-<li><p class="first">Exceeding the CFL condition for a level</p>
-</li>
-<li><p class="first">A negative density is encountered</p>
-</li>
-<li><p class="first">Integration failure in the burner</p>
+<li><p>Exceeding the CFL condition for a level</p></li>
+<li><p>A negative density is encountered</p></li>
+<li><p>Integration failure in the burner</p>
 <p>Note: this requires that the following be set in your <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code>
 namelist:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">retry_burn</span> <span class="o">=</span> <span class="n">F</span>
@@ -427,10 +425,10 @@ abort when the integration fails, but instead to tell the calling
 Castro routine that the integration failed so Castro can handle
 the retry itself.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>The combination of <code class="docutils literal notranslate"><span class="pre">use_retry</span> <span class="pre">=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span> <span class="pre">=</span> <span class="pre">F</span></code>
 is unsafe and not supported.</p>
-<p class="last">For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
+<p>For true SDC, we disable retry and reset <code class="docutils literal notranslate"><span class="pre">abort_on_failure</span></code> to
 always be true, since retry is not supported for that integration.</p>
 </div>
 </li>

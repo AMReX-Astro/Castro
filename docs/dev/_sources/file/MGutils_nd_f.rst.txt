@@ -1,8 +1,0 @@
-MGutils_nd.F90
-==============
-
-mgutils\_2d\_module
--------------------
-
-.. f:automodule:: mgutils_2d_module
-

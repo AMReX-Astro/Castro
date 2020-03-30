@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -244,18 +244,18 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Castro has three radiation solvers:</p>
 <ul class="simple">
-<li>SingleGroupSolver: this solver does not have radiation
+<li><p>SingleGroupSolver: this solver does not have radiation
 pressre. It is pure hydro plus radiation diffusion. This is only
-applicable when the medium is optically thick and the pressure is small.</li>
-<li>SGFLDSolver: this is the gray flux-limited diffusion
+applicable when the medium is optically thick and the pressure is small.</p></li>
+<li><p>SGFLDSolver: this is the gray flux-limited diffusion
 radiation hydrodymamics solver. Here the radiation pressure is
 separate from the gas pressure, and both pressures participate in
-the Riemann solver.</li>
-<li>MGFLDSolver: this is the multigroup flux-limited diffusion
+the Riemann solver.</p></li>
+<li><p>MGFLDSolver: this is the multigroup flux-limited diffusion
 radiation hydrodynamics solver. As with the gray solver, radiation
 pressure contributes to the pressure in the Riemann solver. Here a
 number of energy groups are used to represent the radiation field,
-and the opacity can be frequency-dependent.</li>
+and the opacity can be frequency-dependent.</p></li>
 </ul>
 <p>The gray solver has a comoving frame mode and a mixed frame mode,
 whereas the MG solver uses the comoving frame approach. More details
@@ -354,11 +354,10 @@ directory in the Microphysics/opacity directory, creating the same set of subrou
 that the others have.</p>
 <p>Some notes:</p>
 <ul>
-<li><p class="first">Here, <span class="math notranslate nohighlight">\(\kappa\)</span> has units of <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span>. Some papers or
+<li><p>Here, <span class="math notranslate nohighlight">\(\kappa\)</span> has units of <span class="math notranslate nohighlight">\(\mathrm{cm}^{-1}\)</span>. Some papers or
 texts may instead have an implicit density factor in <span class="math notranslate nohighlight">\(\kappa\)</span>,
-yielding units <span class="math notranslate nohighlight">\(\mathrm{cm}^2~\mathrm{g}^{-1}\)</span>.</p>
-</li>
-<li><p class="first">Castro allows for two temperatures (different radiation and gas
+yielding units <span class="math notranslate nohighlight">\(\mathrm{cm}^2~\mathrm{g}^{-1}\)</span>.</p></li>
+<li><p>Castro allows for two temperatures (different radiation and gas
 temperature, so <span class="math notranslate nohighlight">\(E_\mathrm{r} \ne a T_\mathrm{gas}^4\)</span>).
 Correspondingly, Castro cares about both the Planck mean,
 <span class="math notranslate nohighlight">\(\kappa_P\)</span>, and Rosseland mean, <span class="math notranslate nohighlight">\(\kappa_R\)</span>, opacities—these have
@@ -375,57 +374,57 @@ to be very different.</p>
 <span id="sec-opacpars"></span><h4>Opacity Parameters<a class="headerlink" href="#opacity-parameters" title="Permalink to this headline">¶</a></h4>
 <p>The parameters describing the opacity include:</p>
 <ul>
-<li><p class="first">For the Planck opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
+<li><p>For the Planck opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
 These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.
 <code class="docutils literal notranslate"><span class="pre">const_kappa_p</span></code> must be set positive to be used.</p>
 <ul class="simple">
-<li>const_kappa_p = -1.0</li>
-<li>kappa_p_exp_m = 0.0</li>
-<li>kappa_p_exp_n = 0.0</li>
-<li>kappa_p_exp_p = 0.0</li>
+<li><p>const_kappa_p = -1.0</p></li>
+<li><p>kappa_p_exp_m = 0.0</p></li>
+<li><p>kappa_p_exp_n = 0.0</p></li>
+<li><p>kappa_p_exp_p = 0.0</p></li>
 </ul>
 </li>
-<li><p class="first">For the Rosseland opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
+<li><p>For the Rosseland opacity of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
 These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.
 <code class="docutils literal notranslate"><span class="pre">const_kappa_r</span></code> must be set positive to be used.</p>
 <ul class="simple">
-<li>const_kappa_r = -1.0</li>
-<li>kappa_r_exp_m = 0.0</li>
-<li>kappa_r_exp_n = 0.0</li>
-<li>kappa_r_exp_p = 0.0</li>
+<li><p>const_kappa_r = -1.0</p></li>
+<li><p>kappa_r_exp_m = 0.0</p></li>
+<li><p>kappa_r_exp_n = 0.0</p></li>
+<li><p>kappa_r_exp_p = 0.0</p></li>
 </ul>
 </li>
-<li><p class="first">For the scattering coefficient of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
+<li><p>For the scattering coefficient of the form in <a class="reference internal" href="#equation-eq-kappa">(25)</a>,
 the following parameters set the coefficient and exponents.
 These are set in the <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.</p>
 <ul class="simple">
-<li>const_scatter = 0.0</li>
-<li>scatter_exp_m = 0.0</li>
-<li>scatter_exp_n = 0.0</li>
-<li>scatter_exp_p = 0.0</li>
+<li><p>const_scatter = 0.0</p></li>
+<li><p>scatter_exp_m = 0.0</p></li>
+<li><p>scatter_exp_n = 0.0</p></li>
+<li><p>scatter_exp_p = 0.0</p></li>
 </ul>
 </li>
-<li><p class="first">Since the formula above, <a class="reference internal" href="#equation-eq-kappa">(25)</a>, is non-physical and
+<li><p>Since the formula above, <a class="reference internal" href="#equation-eq-kappa">(25)</a>, is non-physical and
 singular, we must set some floors in practice to prevent
 numerical issues. We have one floor for the opacity, which is
 applied to both the Planck and Rosseland opacities, and we
 also have a temperature floor. These are also set in the
 <code class="docutils literal notranslate"><span class="pre">extern</span></code> namelist in your probin file.</p>
 <ul class="simple">
-<li>kappa_floor = 1.d-50</li>
-<li>rad_temp_floor = 0.0</li>
+<li><p>kappa_floor = 1.d-50</p></li>
+<li><p>rad_temp_floor = 0.0</p></li>
 </ul>
 </li>
-<li><p class="first">radiation.do_kappa_stm_emission = 0</p>
+<li><p>radiation.do_kappa_stm_emission = 0</p>
 <p>If it is 1, correction for stimulated emission is applied to Planck mean as
 follows</p>
 <div class="math notranslate nohighlight">
 \[\kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
     \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].\]</div>
 </li>
-<li><p class="first">radiation.surface_average = 2</p>
+<li><p>radiation.surface_average = 2</p>
 <p>How the averaging of opacity is done from faces to center for
 the radiation solver. 0 is arithmetic averaging, 1
 is harmonic averaging, and 2 is a combination of the two.
@@ -446,15 +445,15 @@ the total opacity is the sum of kappa_p and scattering.</p>
 <p>In this section, we list some radiation related parameters that you
 can set in an inputs file. Here are some important parameters:</p>
 <ul>
-<li><p class="first">radiation.SolverType:</p>
+<li><p>radiation.SolverType:</p>
 <p>Set it to 5 for the gray solver, and 6 for the MG solver.</p>
 </li>
-<li><p class="first">castro.do_hydro</p>
+<li><p>castro.do_hydro</p>
 <p>Usually you want to set it to 1. If it is set to 0,
 hydro will be turned off, and the calculation will only solve
 radiation diffusion equation.</p>
 </li>
-<li><p class="first">castro.do_radiation</p>
+<li><p>castro.do_radiation</p>
 <p>If it is 0, the calculation will be pure hydro.</p>
 </li>
 </ul>
@@ -463,29 +462,29 @@ on the right-hand side of the equal sign.</p>
 <div class="section" id="verbosity-and-i-o">
 <span id="sec-bothpar"></span><h3>Verbosity and I/O<a class="headerlink" href="#verbosity-and-i-o" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">radiation.v = 0</p>
+<li><p>radiation.v = 0</p>
 <p>Verbosity</p>
 </li>
-<li><p class="first">radiation.verbose = 0</p>
+<li><p>radiation.verbose = 0</p>
 <p>Verbosity</p>
 </li>
-<li><p class="first">radiation.plot_lambda = 0</p>
+<li><p>radiation.plot_lambda = 0</p>
 <p>If 1, save flux limiter in plotfiles.</p>
 </li>
-<li><p class="first">radiation.plot_kappa_p = 0</p>
+<li><p>radiation.plot_kappa_p = 0</p>
 <p>If 1, save Planck mean opacity in plotfiles.</p>
 </li>
-<li><p class="first">radiation.plot_kappa_r = 0</p>
+<li><p>radiation.plot_kappa_r = 0</p>
 <p>If 1, save Rosseland mean opacity in plotfiles.</p>
 </li>
-<li><p class="first">radiation.plot_lab_Er = 0</p>
+<li><p>radiation.plot_lab_Er = 0</p>
 <p>If 1, save lab frame radiation energy density in plotfiles.
 This flag is ignored when the mixed-frame gray solver is used.</p>
 </li>
-<li><p class="first">radiation.plot_com_flux = 0</p>
+<li><p>radiation.plot_com_flux = 0</p>
 <p>If 1, save comoving frame radiation flux in plotfiles.</p>
 </li>
-<li><p class="first">radiation.plot_lab_flux = 0</p>
+<li><p>radiation.plot_lab_flux = 0</p>
 <p>If 1, save lab frame radiation flux in plotfiles.</p>
 </li>
 </ul>
@@ -493,28 +492,28 @@ This flag is ignored when the mixed-frame gray solver is used.</p>
 <div class="section" id="flux-limiter-and-closure">
 <span id="sec-fluxlimiter"></span><h3>Flux Limiter and Closure<a class="headerlink" href="#flux-limiter-and-closure" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">radiation.limiter = 2</p>
+<li><p>radiation.limiter = 2</p>
 <p>Possible values are:</p>
 <ul class="simple">
-<li>0: No flux limiter</li>
-<li>2: Approximate limiter of Levermore &amp; Pomraning</li>
-<li>12: Bruenn’s limiter</li>
-<li>22: Larsen’s square root limiter</li>
-<li>32: Minerbo’s limiter</li>
+<li><p>0: No flux limiter</p></li>
+<li><p>2: Approximate limiter of Levermore &amp; Pomraning</p></li>
+<li><p>12: Bruenn’s limiter</p></li>
+<li><p>22: Larsen’s square root limiter</p></li>
+<li><p>32: Minerbo’s limiter</p></li>
 </ul>
 </li>
-<li><p class="first">radiation.closure = 3</p>
+<li><p>radiation.closure = 3</p>
 <p>Possible values are:</p>
 <ul class="simple">
-<li>0: <span class="math notranslate nohighlight">\(f = \lambda\)</span>, where <span class="math notranslate nohighlight">\(f\)</span> is the scalar Eddington factor
-and <span class="math notranslate nohighlight">\(\lambda\)</span> is the flux limiter.</li>
-<li>1: <span class="math notranslate nohighlight">\(f = \frac{1}{3}\)</span></li>
-<li>2: <span class="math notranslate nohighlight">\(f = 1 - 2 \lambda\)</span></li>
-<li>3: <span class="math notranslate nohighlight">\(f = \lambda + (\lambda R)^2\)</span>, where <span class="math notranslate nohighlight">\(R\)</span> is the radiation
-Knudsen number.</li>
-<li>4: <span class="math notranslate nohighlight">\(f = \frac{1}{3} + \frac{2}{3} (\frac{F}{cE})^2\)</span>, where
+<li><p>0: <span class="math notranslate nohighlight">\(f = \lambda\)</span>, where <span class="math notranslate nohighlight">\(f\)</span> is the scalar Eddington factor
+and <span class="math notranslate nohighlight">\(\lambda\)</span> is the flux limiter.</p></li>
+<li><p>1: <span class="math notranslate nohighlight">\(f = \frac{1}{3}\)</span></p></li>
+<li><p>2: <span class="math notranslate nohighlight">\(f = 1 - 2 \lambda\)</span></p></li>
+<li><p>3: <span class="math notranslate nohighlight">\(f = \lambda + (\lambda R)^2\)</span>, where <span class="math notranslate nohighlight">\(R\)</span> is the radiation
+Knudsen number.</p></li>
+<li><p>4: <span class="math notranslate nohighlight">\(f = \frac{1}{3} + \frac{2}{3} (\frac{F}{cE})^2\)</span>, where
 <span class="math notranslate nohighlight">\(F\)</span> is the radiation flux, <span class="math notranslate nohighlight">\(E\)</span> is the radiation energy density,
-and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light.</li>
+and <span class="math notranslate nohighlight">\(c\)</span> is the speed of light.</p></li>
 </ul>
 </li>
 </ul>
@@ -543,11 +542,11 @@ the radiative flux then becomes</p>
 <p>The following parameters are for the radiation boundary in the diffusion
 equation. They do not affect hydrodynamic boundaries.</p>
 <ul>
-<li><p class="first">radiation.lo_bc</p>
+<li><p>radiation.lo_bc</p>
 <p>This sets the action to take at the lower edge of the domain in
 each coordinate direction. Possible values are:</p>
 <ul>
-<li><p class="first">101 <em>Dirichlet</em>:</p>
+<li><p>101 <em>Dirichlet</em>:</p>
 <p>Specify the radiation energy density on the boundary.
 For gray radiation, this could be <span class="math notranslate nohighlight">\(E_r = a T^4\)</span>.</p>
 <p>For multigroup radiation, Castro stores the energy density as
@@ -557,7 +556,7 @@ to set the radiation BCs using the Planck function, you simply
 multiply by the group width—see Exec/radiation_tests/RadSphere/Tools/radbc.f90
 for an example.</p>
 </li>
-<li><p class="first">102 <em>Neumann</em>:</p>
+<li><p>102 <em>Neumann</em>:</p>
 <p>Here, you specify the radiation flux on the boundary. For gray
 radiation, this is the expression given in the gray Castro paper
 (Eq. 7, 8),</p>
@@ -570,42 +569,42 @@ a vacuum (like stellar irradiation), then <span class="math notranslate nohighli
 \[F_r = -c E_r\]</div>
 <p>(see § <a class="reference external" href="#sec:fluxlimiter">4.2</a>) in that case.</p>
 </li>
-<li><p class="first">104 <em>Marshak</em> (vacuum):</p>
+<li><p>104 <em>Marshak</em> (vacuum):</p>
 <p>Here, you specify the incident flux and the outside is a vacuum.
 This differs from the Neumann condition because there is also a
 flux coming from inside, for the net flux across the boundary is
 different than the incident flux.</p>
 </li>
-<li><p class="first">105 <em>Sanchez-Pomraning</em>:</p>
+<li><p>105 <em>Sanchez-Pomraning</em>:</p>
 <p>This is a modified form of the Marshak boundary condition that works with FLD.
 This is like the Marshak condition, but <span class="math notranslate nohighlight">\(\lambda = 1/3\)</span> is not assumed inside
 the boundary (optical thickness).</p>
 </li>
 </ul>
 </li>
-<li><p class="first">radiation.hi_bc</p>
+<li><p>radiation.hi_bc</p>
 <p>See radiation.lo_bc.</p>
 </li>
-<li><p class="first">radiation.lo_bcflag = 0 0 0</p>
+<li><p>radiation.lo_bcflag = 0 0 0</p>
 <p>If it is 0, bcval is used for that dimension, otherwise
 subroutine rbndry in RadBndry_1d.f90 is called to set
 boundary conditions.</p>
 </li>
-<li><p class="first">radiation.hi_bcflag = 0 0 0</p>
+<li><p>radiation.hi_bcflag = 0 0 0</p>
 <p>See radiation.lo_bcflag</p>
 </li>
-<li><p class="first">radiation.lo_bcval = 0.0 0.0 0.0</p>
+<li><p>radiation.lo_bcval = 0.0 0.0 0.0</p>
 <p>The actual value to impose for the boundary condition type set by
 radiation.lo_bc. This parameter is interpreted differently
 depending on the boundary condition:</p>
 <ul class="simple">
-<li>Dirchlet: Dirichlet value of rad energy density</li>
-<li>Neumann: inward flux of rad energy</li>
-<li>Marshak: incident flux</li>
-<li>Sanchez-Pomraning: incident flux</li>
+<li><p>Dirchlet: Dirichlet value of rad energy density</p></li>
+<li><p>Neumann: inward flux of rad energy</p></li>
+<li><p>Marshak: incident flux</p></li>
+<li><p>Sanchez-Pomraning: incident flux</p></li>
 </ul>
 </li>
-<li><p class="first">radiation.hi_bcval = 0.0 0.0 0.0</p>
+<li><p>radiation.hi_bcval = 0.0 0.0 0.0</p>
 <p>See radiation.lo_bcval</p>
 </li>
 </ul>
@@ -618,108 +617,93 @@ iteration embedded inside an outer iteration. In the following, the
 iteration in the gray solver will also be referred as the outer
 iteration for convenience. The parameters for the inner iteration are
 irrelevant to the gray solver.</p>
-<dl class="docutils">
-<dt>radiation.maxiter = 50</dt>
-<dd><div class="first last line-block">
+<dl>
+<dt>radiation.maxiter = 50</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Maximal number of outer iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.miniter = 1</dt>
-<dd><div class="first last line-block">
+<dt>radiation.miniter = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Minimal number of outer iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.reltol = 1.e-6</dt>
-<dd><div class="first last line-block">
+<dt>radiation.reltol = 1.e-6</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Relative tolerance for the outer iteration.</div>
 </div>
 </dd>
-<dt>radiation.abstol = 0.0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.abstol = 0.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Absolute tolerance for the outer iteration.</div>
 </div>
 </dd>
-<dt>radiation.maxInIter = 30</dt>
-<dd><div class="first last line-block">
+<dt>radiation.maxInIter = 30</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Maximal number of inner iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.minInIter = 1</dt>
-<dd><div class="first last line-block">
+<dt>radiation.minInIter = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Minimal number of inner iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.relInTol = 1.e-4</dt>
-<dd><div class="first last line-block">
+<dt>radiation.relInTol = 1.e-4</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Relative tolerance for the inner iteration.</div>
 </div>
 </dd>
-<dt>radiation.absInTol = 0.0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.absInTol = 0.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Absolute tolerance for the inner iteration.</div>
 </div>
 </dd>
-<dt>radiation.convergence_check_type = 0</dt>
-<dd><div class="first line-block">
+<dt>radiation.convergence_check_type = 0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">For the MG solver only. This specifiy the way of checking the
 convergence of an outer iteration. Possible values are</div>
 </div>
-<ul class="last simple">
-<li>0: Check <span class="math notranslate nohighlight">\(T\)</span>, <span class="math notranslate nohighlight">\(Y_e\)</span>, and the residues of the equations for
-<span class="math notranslate nohighlight">\(\rho e\)</span> and <span class="math notranslate nohighlight">\(\rho Y_e\)</span></li>
-<li>1: Check <span class="math notranslate nohighlight">\(\rho e\)</span></li>
-<li>2: Check the residues of the equations for <span class="math notranslate nohighlight">\(\rho e\)</span> and <span class="math notranslate nohighlight">\(\rho Y_e\)</span></li>
-<li>3: Check <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(Y_e\)</span></li>
+<ul class="simple">
+<li><p>0: Check <span class="math notranslate nohighlight">\(T\)</span>, <span class="math notranslate nohighlight">\(Y_e\)</span>, and the residues of the equations for
+<span class="math notranslate nohighlight">\(\rho e\)</span> and <span class="math notranslate nohighlight">\(\rho Y_e\)</span></p></li>
+<li><p>1: Check <span class="math notranslate nohighlight">\(\rho e\)</span></p></li>
+<li><p>2: Check the residues of the equations for <span class="math notranslate nohighlight">\(\rho e\)</span> and <span class="math notranslate nohighlight">\(\rho Y_e\)</span></p></li>
+<li><p>3: Check <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(Y_e\)</span></p></li>
 </ul>
 </dd>
 </dl>
 </div>
 <div class="section" id="parameters-for-gray-solver">
 <span id="sec-graypar"></span><h3>Parameters for Gray Solver<a class="headerlink" href="#parameters-for-gray-solver" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>radiation.comoving = 1</dt>
-<dd><div class="first last line-block">
+<dl>
+<dt>radiation.comoving = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Do we use the comoving frame approach?</div>
 </div>
 </dd>
-<dt>radiation.Er_Lorentz_term = 1</dt>
-<dd><div class="first last line-block">
+<dt>radiation.Er_Lorentz_term = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">If the mixed-frame approach is taken, this parameter decides whether
 Lorentz transformation terms are retained.</div>
 </div>
 </dd>
-<dt>radiation.delta_temp = 1.0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.delta_temp = 1.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">This is used in computing numerical derivativas with respect to <span class="math notranslate nohighlight">\(T\)</span>.
 So it should be a small number compared with <span class="math notranslate nohighlight">\(T\)</span>, but not too small.</div>
 </div>
 </dd>
-<dt>radiation.update_limiter = 1000</dt>
-<dd><div class="first last line-block">
+<dt>radiation.update_limiter = 1000</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Stop updating flux limiter after update_limiter iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.update_planck = 1000</dt>
-<dd><div class="first last line-block">
+<dt>radiation.update_planck = 1000</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Stop updating Planck mean opacity after update_planck iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.update_rosseland = 1000</dt>
-<dd><div class="first last line-block">
+<dt>radiation.update_rosseland = 1000</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Stop updating Rosseland mean opacity after update_rosseland iteration steps.</div>
 </div>
@@ -730,15 +714,13 @@ So it should be a small number compared with <span class="math notranslate nohig
 <h3>Grouping in the MG Solver<a class="headerlink" href="#grouping-in-the-mg-solver" title="Permalink to this headline">¶</a></h3>
 <p>We provide two methods of setting up groups based upon logarithmic
 spacing. In both methods, you must provide:</p>
-<dl class="docutils">
-<dt>radiation.nGroups</dt>
-<dd><div class="first last line-block">
+<dl>
+<dt>radiation.nGroups</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Number of groups.</div>
 </div>
 </dd>
-<dt>radiation.lowestGroupHz</dt>
-<dd><div class="first last line-block">
+<dt>radiation.lowestGroupHz</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Frequency of the lower bound for the first group.</div>
 </div>
@@ -758,33 +740,28 @@ the last group are assumed to be 0 and <span class="math notranslate nohighlight
 </div>
 <div class="section" id="parameters-for-mg-solver">
 <span id="sec-mgpar"></span><h3>Parameters for MG Solver<a class="headerlink" href="#parameters-for-mg-solver" title="Permalink to this headline">¶</a></h3>
-<dl class="docutils">
-<dt>radiation.delta_e_rat_dt_tol = 100.0</dt>
-<dd><div class="first last line-block">
+<dl>
+<dt>radiation.delta_e_rat_dt_tol = 100.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Maximally allowed relative change in <span class="math notranslate nohighlight">\(e\)</span> during one time step.</div>
 </div>
 </dd>
-<dt>radiation.delta_T_rat_dt_tol = 100.0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.delta_T_rat_dt_tol = 100.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Maximally allowed relative change in <span class="math notranslate nohighlight">\(T\)</span> during one time step.</div>
 </div>
 </dd>
-<dt>radiation.delta_Ye_dt_tol = 100.0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.delta_Ye_dt_tol = 100.0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Maximally allowed absolute change in <span class="math notranslate nohighlight">\(Y_e\)</span> during one tim estep.</div>
 </div>
 </dd>
-<dt>radiation.fspace_advection_type = 2</dt>
-<dd><div class="first last line-block">
+<dt>radiation.fspace_advection_type = 2</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Possible value is 1 or 2. The latter is better.</div>
 </div>
 </dd>
-<dt>radiation.integrate_Planck = 1</dt>
-<dd><div class="first last line-block">
+<dt>radiation.integrate_Planck = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">If 1, integrate Planck function for each group. For the first
 group, the lower bound in the integration is assumed to be 0 no
@@ -792,51 +769,44 @@ matter what the grouping is. For the last group, the upper bound in
 the integration is assumed to be <span class="math notranslate nohighlight">\(\infty\)</span>.</div>
 </div>
 </dd>
-<dt>radiation.matter_update_type = 0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.matter_update_type = 0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">How to update matter. 0 is proabaly the best.</div>
 </div>
 </dd>
-<dt>radiation.accelerate = 2</dt>
-<dd><div class="first line-block">
+<dt>radiation.accelerate = 2</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">The inner iteration of the MG solver usually requires an
 acceleration scheme. Choices are</div>
 </div>
-<ul class="last simple">
-<li>0: No acceleration</li>
-<li>1: Local acceleration</li>
-<li>2: Gray acceleration</li>
+<ul class="simple">
+<li><p>0: No acceleration</p></li>
+<li><p>1: Local acceleration</p></li>
+<li><p>2: Gray acceleration</p></li>
 </ul>
 </dd>
-<dt>radiation.skipAccelAllowed = 0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.skipAccelAllowed = 0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">If it is set to 1, skip acceleration if it does not help.</div>
 </div>
 </dd>
-<dt>radiation.n_bisect = 1000</dt>
-<dd><div class="first last line-block">
+<dt>radiation.n_bisect = 1000</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Do bisection for the outer iteration after n_bisec iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.use_dkdT = 1</dt>
-<dd><div class="first last line-block">
+<dt>radiation.use_dkdT = 1</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">If it is 1, <span class="math notranslate nohighlight">\(\frac{\partial \kappa}{\partial T}\)</span> is retained in the
 Jacobi matrix for the outer (Newton) iteration.</div>
 </div>
 </dd>
-<dt>radiation.update_opacity = 1000</dt>
-<dd><div class="first last line-block">
+<dt>radiation.update_opacity = 1000</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Stop updating opacities after update_opacity outer iteration steps.</div>
 </div>
 </dd>
-<dt>radiation.inner_update_limiter = 0</dt>
-<dd><div class="first last line-block">
+<dt>radiation.inner_update_limiter = 0</dt><dd><div class="line-block">
 <div class="line"><br /></div>
 <div class="line">Stop updating flux limiter after inner_update_limiter inner
 iteration steps. If it is 0, the limiter is lagged by one outer
@@ -857,16 +827,16 @@ is best for your problem and computer.</p>
 <p>radsolve.level_solver_flag: the linear solver
 in Hypre to use. The available choices are:</p>
 <ul class="simple">
-<li>0: SMG</li>
-<li>1: PFMG (<span class="math notranslate nohighlight">\(\ge\)</span> 2-d only)</li>
-<li>100: AMG using ParCSR ObjectType</li>
-<li>102: GMRES using ParCSR ObjectType</li>
-<li>103: GMRES using SStruct ObjectType</li>
-<li>104: GMRES using AMG as preconditioner</li>
-<li>109: GMRES using Struct SMG/PFMG as preconditioner</li>
-<li>150: AMG using ParCSR ObjectType</li>
-<li>1002: PCG using ParCSR ObjectType</li>
-<li>1003: PCG using SStruct ObjectType</li>
+<li><p>0: SMG</p></li>
+<li><p>1: PFMG (<span class="math notranslate nohighlight">\(\ge\)</span> 2-d only)</p></li>
+<li><p>100: AMG using ParCSR ObjectType</p></li>
+<li><p>102: GMRES using ParCSR ObjectType</p></li>
+<li><p>103: GMRES using SStruct ObjectType</p></li>
+<li><p>104: GMRES using AMG as preconditioner</p></li>
+<li><p>109: GMRES using Struct SMG/PFMG as preconditioner</p></li>
+<li><p>150: AMG using ParCSR ObjectType</p></li>
+<li><p>1002: PCG using ParCSR ObjectType</p></li>
+<li><p>1003: PCG using SStruct ObjectType</p></li>
 </ul>
 <p>As a general rule, the SMG is the most stable solver, but is usually
 the slowest. The asymmetry in the linear system comes from the

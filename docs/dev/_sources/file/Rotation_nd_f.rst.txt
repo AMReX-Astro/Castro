@@ -1,8 +1,0 @@
-Rotation_nd.F90
-===============
-
-rotation\_module
-----------------
-
-.. f:automodule:: rotation_module
-

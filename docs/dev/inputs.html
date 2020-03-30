@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -219,25 +219,25 @@
             
   <div class="section" id="input-files">
 <h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
-<p>The Castro&nbsp;executable uses two inputs files at runtime to set and
+<p>The Castro executable uses two inputs files at runtime to set and
 alter the behavior of the algorithm and initial conditions:</p>
 <blockquote>
 <div><ul>
-<li><p class="first">The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
+<li><p>The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
 <p>This is used to set AMReX parameters and the control flow in the
 physics solvers in Castro.  Each parameter here has a namespace
 (like <code class="docutils literal notranslate"><span class="pre">amr.optionname</span></code> or <code class="docutils literal notranslate"><span class="pre">castro.optionname</span></code>).  Parameters
 set here are read using the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code> class
 infrastructure.</p>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Because the inputs file is handled by the C++ portion
+<p class="admonition-title">Warning</p>
+<p>Because the inputs file is handled by the C++ portion
 of the code, any quantities you specify in scientific notation,
 must take the form <code class="docutils literal notranslate"><span class="pre">1.e5</span></code> and not <code class="docutils literal notranslate"><span class="pre">1.d5</span></code>—the <code class="docutils literal notranslate"><span class="pre">d</span></code>
 specifier is not recognized.</p>
 </div>
 </li>
-<li><p class="first">The problem / external inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code>:</p>
+<li><p>The problem / external inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code>:</p>
 <p>This is used by the Fortran code that initializes the problem
 setup.  It is read at problem initialization (via a Fortran
 namelist) and the problem-specific quantities are stored in a
@@ -257,8 +257,8 @@ using the <code class="docutils literal notranslate"><span class="pre">amr.probi
 </div>
 <p>for example, has the Fortran code read a file called <code class="docutils literal notranslate"><span class="pre">my_special_probin</span></code>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Additionally, note that in Castro, all quantities are in CGS units.</p>
+<p class="admonition-title">Note</p>
+<p>Additionally, note that in Castro, all quantities are in CGS units.</p>
 </div>
 <div class="section" id="working-with-probin-files">
 <h2>Working with probin Files<a class="headerlink" href="#working-with-probin-files" title="Permalink to this headline">¶</a></h2>
@@ -266,13 +266,13 @@ using the <code class="docutils literal notranslate"><span class="pre">amr.probi
 <code class="docutils literal notranslate"><span class="pre">probin</span></code> file:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> is the main namelist read by the problem’s
-<code class="docutils literal notranslate"><span class="pre">probinit</span></code> subroutine in the <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> file.</li>
-<li><code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> is used to set different microphysics options</li>
-<li><code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> is used to get the parameters (defined in
-<code class="docutils literal notranslate"><span class="pre">tagging_module</span></code>) that affect how we tag for refinement.</li>
-<li><code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> is used to set the parameters for the sponge source
-term that is used to damp velocities.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> is the main namelist read by the problem’s
+<code class="docutils literal notranslate"><span class="pre">probinit</span></code> subroutine in the <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> is used to set different microphysics options</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> is used to get the parameters (defined in
+<code class="docutils literal notranslate"><span class="pre">tagging_module</span></code>) that affect how we tag for refinement.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> is used to set the parameters for the sponge source
+term that is used to damp velocities.</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -284,31 +284,30 @@ term that is used to damp velocities.</li>
 computational domain. The main parameters here are:</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">geometry.prob_lo</span></code>: physical location of low corner of the
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.prob_lo</span></code>: physical location of low corner of the
 domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; must be set)</p>
 <p>Note: a number is needed for each dimension in the problem.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">geometry.prob_hi</span></code>: physical location of high corner of the
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.prob_hi</span></code>: physical location of high corner of the
 domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; must be set)</p>
 <p>Note: a number is needed for each dimension in the problem.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">geometry.coord_sys</span></code>: coordinate system, 0 = Cartesian,
-1 = <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span> (2-d only), 2 = spherical (1-d only) (must be set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">geometry.is_periodic</span></code>: is the domain periodic in this direction?
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.coord_sys</span></code>: coordinate system, 0 = Cartesian,
+1 = <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span> (2-d only), 2 = spherical (1-d only) (must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.is_periodic</span></code>: is the domain periodic in this direction?
 0 if false, 1 if true (default: <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span></code>)</p>
 <p>Note: an integer is needed for each dimension in the problem.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.center</span></code>: physical location of problem center on the
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.center</span></code>: physical location of problem center on the
 domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; default: <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">0.0</span> <span class="pre">0.0</span></code>). The problem
 center is used for gravity, rotation, and some other quantities.
 This is not necessarily the geometric center of the domain—often
 you should choose it to coincide with the center of mass of your
-system. See § <a class="reference internal" href="software.html#soft-prob-params"><span class="std std-ref">prob_params_module</span></a> for more details.</p>
-</li>
+system. See § <a class="reference internal" href="software.html#soft-prob-params"><span class="std std-ref">prob_params_module</span></a> for more details.</p></li>
 </ul>
 <blockquote>
-<div>Note: a number is needed for each dimension in the problem.</div></blockquote>
+<div><p>Note: a number is needed for each dimension in the problem.</p>
+</div></blockquote>
 </div></blockquote>
 <p>As an example, the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geometry</span><span class="o">.</span><span class="n">prob_lo</span> <span class="o">=</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
@@ -330,32 +329,32 @@ between the lower left and upper right corners.</p>
 by BoxLib. The runtime parameters that we use are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code>: boundary type of each low face (must be set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code>: boundary type of each high face (must be set)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code>: boundary type of each low face (must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code>: boundary type of each high face (must be set)</p></li>
 </ul>
 </div></blockquote>
 <p>The valid boundary types are:</p>
-<table border="1" class="docutils align-center" id="id1">
+<table class="docutils align-center" id="id1">
 <caption><span class="caption-number">Table 2 </span><span class="caption-text">boundary condition types</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="59%" />
-<col width="41%" />
+<col style="width: 59%" />
+<col style="width: 41%" />
 </colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>0: Interior / Periodic</td>
-<td>3: Symmetry</td>
+<tbody>
+<tr class="row-odd"><td><p>0: Interior / Periodic</p></td>
+<td><p>3: Symmetry</p></td>
 </tr>
-<tr class="row-even"><td>1: Inflow</td>
-<td>4: Slip Wall</td>
+<tr class="row-even"><td><p>1: Inflow</p></td>
+<td><p>4: Slip Wall</p></td>
 </tr>
-<tr class="row-odd"><td>2: Outflow</td>
-<td>5: No Slip Wall</td>
+<tr class="row-odd"><td><p>2: Outflow</p></td>
+<td><p>5: No Slip Wall</p></td>
 </tr>
 </tbody>
 </table>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> must be consistent
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> must be consistent
 with <code class="docutils literal notranslate"><span class="pre">geometry.is_periodic</span></code>—if the domain is periodic in a
 particular direction then the low and high bc’s must be set to 0
 for that direction.</p>
@@ -379,21 +378,21 @@ coarsest level (level 0) and the number of refinement levels and
 factor of refinement between levels. The relevant parameters are:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code>: number of cells in each direction at the coarsest
-level (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; must be set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>: number of levels of refinement above the
-coarsest level (integer <span class="math notranslate nohighlight">\(\geq 0\)</span>; must be set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code>: ratio of coarse to fine grid spacing
-between subsequent levels (2 or 4; must be set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code>: how often (in terms of number of steps) to
-regrid (integer; must be set)</li>
-<li><code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span></code>: should we regrid immediately after
-restarting? (0 or 1; default: 0)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code>: number of cells in each direction at the coarsest
+level (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>: number of levels of refinement above the
+coarsest level (integer <span class="math notranslate nohighlight">\(\geq 0\)</span>; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code>: ratio of coarse to fine grid spacing
+between subsequent levels (2 or 4; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code>: how often (in terms of number of steps) to
+regrid (integer; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span></code>: should we regrid immediately after
+restarting? (0 or 1; default: 0)</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">if <code class="docutils literal notranslate"><span class="pre">amr.max_level</span> <span class="pre">=</span> <span class="pre">0</span></code> then you do not need to set
+<p class="admonition-title">Note</p>
+<p>if <code class="docutils literal notranslate"><span class="pre">amr.max_level</span> <span class="pre">=</span> <span class="pre">0</span></code> then you do not need to set
 <code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code>.</p>
 </div>
 <p>Some examples:</p>

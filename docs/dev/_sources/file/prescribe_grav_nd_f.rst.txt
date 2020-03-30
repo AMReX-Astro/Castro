@@ -1,8 +1,0 @@
-prescribe_grav_nd.F90
-=====================
-
-prescribe\_grav\_module
------------------------
-
-.. f:automodule:: prescribe_grav_module
-

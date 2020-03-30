@@ -1,8 +1,0 @@
-thermo_nd.F90
-=============
-
-thermo\_sources
----------------
-
-.. f:automodule:: thermo_sources
-

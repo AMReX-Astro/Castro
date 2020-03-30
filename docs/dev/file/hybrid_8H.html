@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hybrid_advection_nd.F90" href="hybrid_advection_nd_f.html" />
-    <link rel="prev" title="fourth_order_nd.F90" href="fourth_order_nd_f.html" /> 
+    <link rel="next" title="File ppm.H" href="ppm_8H.html" />
+    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -142,14 +142,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro_ctu_nd_f.html">Castro_ctu_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_fourth_order_nd_f.html">Castro_fourth_order_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_mol_nd_f.html">Castro_mol_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="advection_util_nd_f.html">advection_util_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="fourth_order_nd_f.html">fourth_order_nd.F90</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_advection_nd_f.html">hybrid_advection_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
 </ul>
@@ -243,22 +237,22 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
 <dt>
-<span class="target" id="hybrid_8H_1af7e449607db842de99bb032c747683f0"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const Real * loc, const Real * linear_mom, Real * hybrid_mom)</code></dt>
+<span class="target" id="hybrid_8H_1af7e449607db842de99bb032c747683f0"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const Real * loc, const Real * linear_mom, Real * hybrid_mom)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="hybrid_8H_1a8c0d6db327cf1ee091f1aadb5d8197bb"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const Real * loc, const Real * hybrid_mom, Real * linear_mom)</code></dt>
+<span class="target" id="hybrid_8H_1a8c0d6db327cf1ee091f1aadb5d8197bb"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const Real * loc, const Real * hybrid_mom, Real * linear_mom)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="hybrid_8H_1aef0d628ebcfee73b9115a9fa71fd9693"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const Real * loc, const Real * linear_source, Real * hybrid_source)</code></dt>
+<span class="target" id="hybrid_8H_1aef0d628ebcfee73b9115a9fa71fd9693"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const Real * loc, const Real * linear_source, Real * hybrid_source)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="hybrid_8H_1a8b295d16965fde625fafeece5ad84c72"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const Real * state, const GeometryData &amp; geomdata, const Real * center, int idir, int i, int j, int k, Real * flux, bool cell_centered = false)</code></dt>
+<span class="target" id="hybrid_8H_1a8b295d16965fde625fafeece5ad84c72"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const Real * state, const GeometryData &amp; geomdata, const Real * center, int idir, int i, int j, int k, Real * flux, bool cell_centered = false)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -266,7 +260,7 @@
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="member">
 <dt>
-<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
+<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="sig-name descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -280,10 +274,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hybrid_advection_nd_f.html" class="btn btn-neutral float-right" title="hybrid_advection_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="ppm_8H.html" class="btn btn-neutral float-right" title="File ppm.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="fourth_order_nd_f.html" class="btn btn-neutral float-left" title="fourth_order_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

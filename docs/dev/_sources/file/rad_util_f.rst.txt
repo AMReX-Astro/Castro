@@ -1,8 +1,0 @@
-rad_util.F90
-============
-
-rad\_util\_module
------------------
-
-.. f:automodule:: rad_util_module
-

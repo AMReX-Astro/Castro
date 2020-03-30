@@ -1,8 +1,0 @@
-scf_relaxation.F90
-==================
-
-scf\_relaxation\_module
------------------------
-
-.. f:automodule:: scf_relaxation_module
-

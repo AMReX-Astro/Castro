@@ -1,8 +1,0 @@
-Tagging_nd.F90
-==============
-
-tagging\_module
----------------
-
-.. f:automodule:: tagging_module
-

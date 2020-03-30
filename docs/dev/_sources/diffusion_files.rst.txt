@@ -6,5 +6,4 @@ Diffusion
 
    file/Castro__diffusion_8H
    file/Diffusion_8H
-   file/Diffusion_nd_f
    

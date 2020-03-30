@@ -1,8 +1,0 @@
-pointmass_nd.F90
-================
-
-pointmass\_module
------------------
-
-.. f:automodule:: pointmass_module
-

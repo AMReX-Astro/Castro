@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Castro_util_nd.F90" href="Castro_util_nd_f.html" />
-    <link rel="prev" title="File Castro_source_fill.H" href="Castro__source__fill_8H.html" /> 
+    <link rel="next" title="File Derive.H" href="Derive_8H.html" />
+    <link rel="prev" title="File Castro_io.H" href="Castro__io_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -141,27 +141,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_error_nd_f.html">Castro_error_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_nd_f.html">Castro_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_util.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Castro_util_nd_f.html">Castro_util_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Derive_nd_f.html">Derive_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="MGutils_nd_f.html">MGutils_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Tagging_nd_f.html">Tagging_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="amrinfo_nd_f.html">amrinfo_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="check_for_nan_nd_f.html">check_for_nan_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generic_fill_nd_f.html">generic_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="interpolate_nd_f.html">interpolate_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="io_nd_f.html">io_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="math_nd_f.html">math_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prob_params_nd_f.html">prob_params_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reduction_nd_f.html">reduction_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="source_fill_nd_f.html">source_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="timestep_nd_f.html">timestep_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
@@ -255,22 +238,22 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
 <dt>
-<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap(int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap(int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p(const int mom_dir, const int flux_dir, const int coord)</code></dt>
+<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p(const int mom_dir, const int flux_dir, const int coord)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="Castro__util_8H_1ae0cf29d6d631bf88579dde0a5f221e32"></span><code class="descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, Real * loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
+<span class="target" id="Castro__util_8H_1ae0cf29d6d631bf88579dde0a5f221e32"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, Real * loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -284,10 +267,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Castro_util_nd_f.html" class="btn btn-neutral float-right" title="Castro_util_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Derive_8H.html" class="btn btn-neutral float-right" title="File Derive.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__source__fill_8H.html" class="btn btn-neutral float-left" title="File Castro_source_fill.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Castro__io_8H.html" class="btn btn-neutral float-left" title="File Castro_io.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

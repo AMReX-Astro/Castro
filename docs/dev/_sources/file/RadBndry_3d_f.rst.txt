@@ -1,8 +1,0 @@
-RadBndry_3d.f90
-===============
-
-rbndry subroutine
------------------
-
-.. f:autosubroutine:: rbndry
-

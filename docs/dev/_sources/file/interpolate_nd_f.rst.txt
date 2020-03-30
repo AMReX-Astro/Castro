@@ -1,8 +1,0 @@
-interpolate_nd.F90
-==================
-
-interpolate\_module
--------------------
-
-.. f:automodule:: interpolate_module
-

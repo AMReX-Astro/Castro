@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -231,24 +231,24 @@ style guidelines.</p>
 <div class="section" id="general">
 <h3>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Indentation should be spaces, not tabs, with 4 spaces preferred.</li>
+<li><p>Indentation should be spaces, not tabs, with 4 spaces preferred.</p></li>
 </ul>
 </div>
 <div class="section" id="c">
 <h3>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">Conditional should appear as:</p>
-<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
+<li><p>Conditional should appear as:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="o">...</span>
+    <span class="p">...</span>
 <span class="p">}</span>
 <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="o">...</span>
+    <span class="p">...</span>
 <span class="p">}</span>
 <span class="k">else</span>
 <span class="p">{</span>
-    <span class="o">...</span>
+    <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -258,76 +258,72 @@ style guidelines.</p>
 <div class="section" id="c-to-fortran">
 <h3>C++ to Fortran<a class="headerlink" href="#c-to-fortran" title="Permalink to this headline">¶</a></h3>
 <ul>
-<li><p class="first">All C to Fortran interfaces should use the ISO C binding.  The
+<li><p>All C to Fortran interfaces should use the ISO C binding.  The
 Fortran subroutine should use</p>
-<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="n">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name)</span>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span>subroutine subroutine_name(args) bind(C, name=&quot;subroutine_name)
 </pre></div>
 </div>
 </li>
-<li><p class="first">Data passed by reference from C++ should use <code class="docutils literal notranslate"><span class="pre">*</span></code> and not <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>.</p>
-</li>
-<li><p class="first">Scalars should be passed by value, using the Fortran <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute.</p>
-</li>
-<li><p class="first">Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
+<li><p>Data passed by reference from C++ should use <code class="docutils literal notranslate"><span class="pre">*</span></code> and not <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>.</p></li>
+<li><p>Scalars should be passed by value, using the Fortran <code class="docutils literal notranslate"><span class="pre">value</span></code> attribute.</p></li>
+<li><p>Fortran routines that are called from C++ should being with <code class="docutils literal notranslate"><span class="pre">ca_</span></code>.
 This is true even if these routines are also called by other
-Fortran.</p>
-</li>
-<li><p class="first">A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
+Fortran.</p></li>
+<li><p>A separate tile <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> should be passed in to each
 subroutine, with the expectation that the Fortran subroutine will
 act exactly over the domain (lo, hi). If you want to include ghost
 zones in the calculation, include them in your box using
-<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</p>
-</li>
+<code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(ng)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="fortran">
 <h3>Fortran<a class="headerlink" href="#fortran" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Put all routines in a module—this ensures that argument lists are
-checked.</li>
-<li>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
-make clear what is being accessed.</li>
-<li>In a module, there should be no “top-level” <code class="docutils literal notranslate"><span class="pre">use</span></code> statements (with
+<li><p>Put all routines in a module—this ensures that argument lists are
+checked.</p></li>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">only</span></code> clause in module <code class="docutils literal notranslate"><span class="pre">use</span></code> statements to explicitly
+make clear what is being accessed.</p></li>
+<li><p>In a module, there should be no “top-level” <code class="docutils literal notranslate"><span class="pre">use</span></code> statements (with
 the exception of getting access to the <code class="docutils literal notranslate"><span class="pre">rt</span></code> type).  Instead each
-function / subroutine in the module  should use what it needs directly.</li>
-<li>New Fortran files should have the .F90 file extension, not the .f90
-file extension, so that they can be preprocessed.</li>
+function / subroutine in the module  should use what it needs directly.</p></li>
+<li><p>New Fortran files should have the .F90 file extension, not the .f90
+file extension, so that they can be preprocessed.</p></li>
 </ul>
 </div>
 <div class="section" id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
 <p>C++ routines should use Doxygen style comments.</p>
 <ul>
-<li><p class="first">C++ functions should be documented in the header file using the style:</p>
-<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">///</span>
-<span class="o">///</span> <span class="n">Description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">function</span>
-<span class="o">///</span>
-<span class="o">///</span> <span class="nd">@param</span> <span class="n">bar</span>       <span class="n">Brief</span> <span class="n">description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">variable</span>
-<span class="o">///</span>
-<span class="n">void</span> <span class="n">foo</span><span class="p">(</span><span class="nb">int</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span> <span class="o">...</span>
+<li><p>C++ functions should be documented in the header file using the style:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">///</span>
+<span class="c1">/// Description of the function</span>
+<span class="c1">///</span>
+<span class="c1">/// @param bar       Brief description of the variable</span>
+<span class="c1">///</span>
+<span class="kt">void</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">bar</span><span class="p">)</span> <span class="p">{</span> <span class="p">...</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Member variables can either be documented using the above style of comment block or
+<li><p>Member variables can either be documented using the above style of comment block or
 with a brief inline description:</p>
-<div class="code c++ highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">var</span><span class="p">;</span> <span class="o">///&lt;</span> <span class="n">Brief</span> <span class="n">description</span> <span class="n">after</span> <span class="n">the</span> <span class="n">variable</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="n">var</span><span class="p">;</span> <span class="c1">///&lt; Brief description after the variable</span>
 </pre></div>
 </div>
 </li>
 </ul>
 <p>Fortran functions should use Sphinx style comments</p>
 <ul>
-<li><p class="first">Fortran functions should be documented by placing a comment block
+<li><p>Fortran functions should be documented by placing a comment block
 immediately after their prototype (i.e. <cite>without</cite> a line in betwen ) using the style:</p>
-<div class="code fortran highlight-default notranslate"><div class="highlight"><pre><span></span>subroutine foo(bar)
-  ! Description of the function
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">foo</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+  <span class="c">! Description of the function</span>
 
-  use some_module
+  <span class="k">use </span><span class="n">some_module</span>
 
-  implicit none
+  <span class="k">implicit none</span>
 
-  integer, intent(inout) :: bar   ! Brief description of bar
-  ...
+<span class="k">  </span><span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">bar</span>   <span class="c">! Brief description of bar</span>
+  <span class="p">...</span>
 </pre></div>
 </div>
 <p>Documentation for modules should be similarly formatted, with the comment block again
@@ -366,20 +362,20 @@ release is tagged.  This needs to be done in coordination with its
 submodule dependencies.  The general procedure is:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Do ‘git pull’ in both master and development branches.  (Use <cite>git
-checkout xxx</cite> to change to branch xxx.</li>
-<li>In master branch, do <cite>git merge development</cite>.  Fix any conflicts
+<li><p>Do ‘git pull’ in both master and development branches.  (Use <cite>git
+checkout xxx</cite> to change to branch xxx.</p></li>
+<li><p>In master branch, do <cite>git merge development</cite>.  Fix any conflicts
 if there are any.  (There should not be any conflicts unless a
 commit is checked into master directly without going through
-development.)</li>
-<li>In master branch, commit new release notes (<code class="docutils literal notranslate"><span class="pre">CHANGES.md</span></code>)
-summarizing changes since last major release.</li>
-<li>Tag the new release: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">-m</span> <span class="pre">&quot;Castro</span> <span class="pre">YY.MM&quot;</span> <span class="pre">YY.MM</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--tags</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">development</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></li>
+development.)</p></li>
+<li><p>In master branch, commit new release notes (<code class="docutils literal notranslate"><span class="pre">CHANGES.md</span></code>)
+summarizing changes since last major release.</p></li>
+<li><p>Tag the new release: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">-m</span> <span class="pre">&quot;Castro</span> <span class="pre">YY.MM&quot;</span> <span class="pre">YY.MM</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">--tags</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">development</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">merge</span> <span class="pre">master</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span></code></p></li>
 </ul>
 </div></blockquote>
 <div class="section" id="interim-updates">

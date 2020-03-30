@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -146,16 +146,9 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_bc_ext_fill_nd.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Prob_nd_f.html">Prob_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Problem_f.html">Problem.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ambient_f.html">ambient.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bc_ext_fill_nd_f.html">bc_ext_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="bc_fill_nd_f.html">bc_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="emissivity_override_f.html">emissivity_override.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="problem_tagging_nd_f.html">problem_tagging_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -244,13 +237,13 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
-<dt id="_CPPv411ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv311ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv211ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a033dcf891bbe7f847120fdce0b3cf1fe"></span>void <code class="descname">ca_ext_fill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_ext_fillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv411ca_ext_fillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi">
+<span id="_CPPv311ca_ext_fillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi"></span><span id="_CPPv211ca_ext_fillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi"></span><span id="ca_ext_fill__amrex::BoxCR.amrex::FArrayBoxR.iC.iC.amrex::GeometryCR.amrex::RealC.iCP"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a88f3c19e57f659735fc2476520107aff"></span>void <code class="sig-name descname">ca_ext_fill</code><span class="sig-paren">(</span>amrex::Box <em class="property">const</em> &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>data</em>, <em class="property">const</em> int <em>dcomp</em>, <em class="property">const</em> int <em>numcomp</em>, amrex::Geometry <em class="property">const</em> &amp;<em>geom</em>, <em class="property">const</em> amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bc_f</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_ext_fillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv414ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi">
-<span id="_CPPv314ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span id="_CPPv214ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a66ae257e0968fc4d1c4ce3a4e4eaaf8e"></span>void <code class="descname">ca_ext_denfill</code><span class="sig-paren">(</span><em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>state<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>dlo</em>, <em class="property">const</em> int *<em>dhi</em>, <em class="property">const</em> amrex::Real *<em>dx</em>, <em class="property">const</em> amrex::Real *<em>glo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> int *<em>bc</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_ext_denfillPKiPKiF18BL_FORT_FAB_ARG_3D5stateEPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv414ca_ext_denfillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi">
+<span id="_CPPv314ca_ext_denfillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi"></span><span id="_CPPv214ca_ext_denfillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi"></span><span id="ca_ext_denfill__amrex::BoxCR.amrex::FArrayBoxR.iC.iC.amrex::GeometryCR.amrex::RealC.iCP"></span><span class="target" id="Castro__bc__ext__fill__nd_8H_1a63215be19c71af0410015e69b2b9288f"></span>void <code class="sig-name descname">ca_ext_denfill</code><span class="sig-paren">(</span>amrex::Box <em class="property">const</em> &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>data</em>, <em class="property">const</em> int <em>dcomp</em>, <em class="property">const</em> int <em>numcomp</em>, amrex::Geometry <em class="property">const</em> &amp;<em>geom</em>, <em class="property">const</em> amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bc_f</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_ext_denfillRKN5amrex3BoxERN5amrex9FArrayBoxEKiKiRKN5amrex8GeometryEKN5amrex4RealEPKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>

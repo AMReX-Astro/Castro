@@ -1,8 +1,0 @@
-Castro_mol_nd.F90
-=================
-
-castro\_mol\_module
--------------------
-
-.. f:automodule:: castro_mol_module
-

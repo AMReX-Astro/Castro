@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -218,7 +218,7 @@
             
   <div class="section" id="adaptive-mesh-refinement">
 <span id="ch-amr"></span><h1>Adaptive Mesh Refinement<a class="headerlink" href="#adaptive-mesh-refinement" title="Permalink to this headline">¶</a></h1>
-<p>Our approach to adaptive refinement in Castro&nbsp;uses a nested hierarchy
+<p>Our approach to adaptive refinement in Castro uses a nested hierarchy
 of logically-rectangular grids with simultaneous refinement of the
 grids in both space and time. The integration algorithm on the grid
 hierarchy is a recursive procedure in which coarse grids are advanced
@@ -237,7 +237,7 @@ of the Adaptive Mesh Refinement Short Course at
 <a class="reference external" href="https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf">https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf</a>.</p>
 <div class="section" id="tagging-for-refinement">
 <span id="sec-tagging"></span><h2>Tagging for Refinement<a class="headerlink" href="#tagging-for-refinement" title="Permalink to this headline">¶</a></h2>
-<p>Castro&nbsp;determines what zones should be tagged for refinement at the
+<p>Castro determines what zones should be tagged for refinement at the
 next regridding step by using a set of built-in routines that test on
 quantities such as the density and pressure and determining whether
 the quantities themselves or their gradients pass a user-specified
@@ -270,29 +270,34 @@ in your probin file. If left unmodified, they
 default to a value that means we will never tag. The complete set of
 parameters that can be controlled this way is the following:</p>
 <ul class="simple">
-<li>density:<ul>
-<li>value: denerr, max_denerr_lev</li>
-<li>gradient: dengrad, max_dengrad_lev</li>
+<li><p>density:</p>
+<ul>
+<li><p>value: denerr, max_denerr_lev</p></li>
+<li><p>gradient: dengrad, max_dengrad_lev</p></li>
 </ul>
 </li>
-<li>temperature:<ul>
-<li>value: temperr, max_temperr_lev</li>
-<li>gradient: tempgrad, max_tempgrad_lev</li>
+<li><p>temperature:</p>
+<ul>
+<li><p>value: temperr, max_temperr_lev</p></li>
+<li><p>gradient: tempgrad, max_tempgrad_lev</p></li>
 </ul>
 </li>
-<li>velocity (magnitude):<ul>
-<li>value: velerr, max_velerr_lev</li>
-<li>gradient: velgrad, max_velgrad_lev</li>
+<li><p>velocity (magnitude):</p>
+<ul>
+<li><p>value: velerr, max_velerr_lev</p></li>
+<li><p>gradient: velgrad, max_velgrad_lev</p></li>
 </ul>
 </li>
-<li>pressure:<ul>
-<li>value: presserr, max_presserr_lev</li>
-<li>gradient: pressgrad, max_pressgrad_lev</li>
+<li><p>pressure:</p>
+<ul>
+<li><p>value: presserr, max_presserr_lev</p></li>
+<li><p>gradient: pressgrad, max_pressgrad_lev</p></li>
 </ul>
 </li>
-<li>radiation energy density:<ul>
-<li>value: raderr, max_raderr_lev</li>
-<li>gradient: radgrad, max_radgrad_lev</li>
+<li><p>radiation energy density:</p>
+<ul>
+<li><p>value: raderr, max_raderr_lev</p></li>
+<li><p>gradient: radgrad, max_radgrad_lev</p></li>
 </ul>
 </li>
 </ul>
@@ -383,7 +388,7 @@ problem_tagging_3d.f90 to our work directory and set it up as follows:</p>
 self-gravity. The gravity component of the algorithm is closely
 related to (but not identical to) that in Miniati and Colella, JCP,
 2007. The content here is largely based on the content in the original
-Castro paper (<a class="reference internal" href="zreferences.html#castro-i" id="id1">[castro_I]</a>). The most significant difference is the
+Castro paper (<a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[6]</a>). The most significant difference is the
 addition of a different strategy for when to employ the synchronization;
 but regardless of whether the original or new strategy is used, the fundamental
 synchronization step is identical.</p>
@@ -411,7 +416,7 @@ the data on coarse cells underlying fine cells is the average of the
 fine cell data above it.)</p>
 <p>The synchronization consists of two parts:</p>
 <ul>
-<li><p class="first">Step 1: Hyperbolic reflux</p>
+<li><p>Step 1: Hyperbolic reflux</p>
 <p>In the hyperbolic reflux step, we update the conserved variables with
 the flux synchronization and adjust the gravitational terms to reflect
 the changes in <span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(\ub\)</span>.</p>
@@ -427,7 +432,7 @@ expressed as a divergence in those geometries. We use a separate
 flux register in the hydro code to store the pressure term in these
 cases.</p>
 </li>
-<li><p class="first">Step 2: Gravitational synchronization</p>
+<li><p>Step 2: Gravitational synchronization</p>
 <p>In this step we correct for the mismatch in normal derivative in
 <span class="math notranslate nohighlight">\(\phi^{c-f}\)</span> at the coarse-fine interface, as well as accounting for
 the changes in source terms for <span class="math notranslate nohighlight">\((\rho \ub)\)</span> and <span class="math notranslate nohighlight">\((\rho E)\)</span> due to the
@@ -453,11 +458,10 @@ We define the update to gravity,</p>
 \[\delta {\bf g}^{c-f} = \nabla (\delta \phi^{c-f})  .\]</div>
 <p>Finally, we need to</p>
 <ul>
-<li><p class="first">add <span class="math notranslate nohighlight">\(\delta \phi^{c-f}\)</span> directly to
+<li><p>add <span class="math notranslate nohighlight">\(\delta \phi^{c-f}\)</span> directly to
 to <span class="math notranslate nohighlight">\(\phi^{c}\)</span> and <span class="math notranslate nohighlight">\(\phi^{f}\)</span> and interpolate <span class="math notranslate nohighlight">\(\delta \phi^{c-f}\)</span> to any finer
-levels and add to the current <span class="math notranslate nohighlight">\(\phi\)</span> at those levels.</p>
-</li>
-<li><p class="first">if level <span class="math notranslate nohighlight">\(c\)</span> is not the coarsest level in the calculation, then we must transmit the
+levels and add to the current <span class="math notranslate nohighlight">\(\phi\)</span> at those levels.</p></li>
+<li><p>if level <span class="math notranslate nohighlight">\(c\)</span> is not the coarsest level in the calculation, then we must transmit the
 effect of this change in <span class="math notranslate nohighlight">\(\phi\)</span> to the coarser levels by updating the flux register between
 level <span class="math notranslate nohighlight">\(c\)</span> and the next coarser level, <span class="math notranslate nohighlight">\(cc.\)</span> In particular, we set</p>
 <div class="math notranslate nohighlight">
@@ -490,7 +494,7 @@ Indeed, an algorithm that did not subcycle, but marched every zone along
 at the same timestep, could do so – and some codes, like FLASH,
 actually do this, where no new-time source terms are computed on any
 level until the hydrodynamic update has been fully completed and the
-coarse-fine mismatches corrected. But in Castro&nbsp;we cannot do this; in
+coarse-fine mismatches corrected. But in Castro we cannot do this; in
 general we assume the ability to subcycle, so the architecture is set up
 to always calculate the new-time source terms on a given level
 immediately after the hydrodynamic update on that level. Hence on the
@@ -526,7 +530,7 @@ we do the AMR synchronization after a fine timestep, we first subtract
 the previously applied new-time source terms to both the coarse and the
 fine level, then do the flux correction and associated gravitational
 sync solve, and then re-compute the new-time source terms on both the
-coarse and the fine level <a class="footnote-reference" href="#id5" id="id2">[1]</a>. In this way, we get almost
+coarse and the fine level <a class="footnote-reference brackets" href="#id5" id="id2">1</a>. In this way, we get almost
 the ideal behavior – if we aren’t subcycling, then we get essentially
 the same state at the end of the fine timestep as we would in a code
 that explicitly had no subcycling. The cost is re-computing the new-time
@@ -537,7 +541,7 @@ re-computing <span class="math notranslate nohighlight">\(\rho \mathbf{g}\)</spa
 <span class="math notranslate nohighlight">\(\mathbf{g}\)</span> itself (say, for self-gravity). If you believe that the
 error in not recomputing the source terms is sufficiently low, or the
 computational cost of computing them too high, you can disable this
-behavior <a class="footnote-reference" href="#id6" id="id3">[2]</a> using the
+behavior <a class="footnote-reference brackets" href="#id6" id="id3">2</a> using the
 code parameter castro.update_sources_after_reflux.</p>
 <p>Note that at present nuclear reactions are not enabled as part of this
 scheme, and at present are not automatically updated after an AMR
@@ -555,7 +559,7 @@ discussion about source terms in <a class="reference external" href="#sec:synchr
 we have a coarse level and one fine level with a refinement ratio of
 two, then for normal subcycling the fine grid takes two timesteps for
 every one timestep taken by the coarse level. The strategy advocated by
-the original Castro&nbsp;paper (and Miniati and Colella) is to only do the
+the original Castro paper (and Miniati and Colella) is to only do the
 AMR synchronization at the actual synchronization time between coarse
 and fine levels, that is, at the end of the second fine timestep.
 Consequently, we actually only update the source terms after that second
@@ -580,7 +584,7 @@ to the flux register and the normal contribution to the flux register
 for just that timestep. This is true because in Castro, we assume that
 the fluxes provided by the hydrodynamic solver are piecewise-constant
 over the timestep, which is all that is needed to be second-order
-accurate in time if the fluxes are time centered <a class="footnote-reference" href="#id7" id="id4">[3]</a>. So it is fair to say
+accurate in time if the fluxes are time centered <a class="footnote-reference brackets" href="#id7" id="id4">3</a>. So it is fair to say
 that halfway through the coarse timestep, half of the coarse flux has
 been advected, and we can mathematically split the flux register into
 two contributions that have equal weighting from the coarse flux. (In
@@ -640,40 +644,33 @@ the flux mismatch until the end of the level 0 timestep.) The
 synchronization no longer needs to be called at the end of any coarser
 level’s timestep because it will already be up to date as a result of
 the synchronizations applied at the end of the fine level timesteps.</p>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>In the absence of a global field like
+<dl class="footnote brackets">
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dd><p>In the absence of a global field like
 the gravitational potential, this would only need to be done on the
 coarse level, as we always assume that the solution on the fine grid is
-correct and average it down to the coarse grid. In Castro&nbsp;we do it by
+correct and average it down to the coarse grid. In Castro we do it by
 default on the fine level too in anticipation of the fact that gravity
 is a common component of many of our production science
 simulations. This could be generalized so that if you aren’t using any
 global force fields, you don’t bother updating the fine level. If this
-is important to the science you want to do, please let the Castro&nbsp;developers know and we can look into it.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>in general it may be desirable for this to be a
+is important to the science you want to do, please let the Castro developers know and we can look into it.</p>
+</dd>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
+<dd><p>in general it may be desirable for this to be a
 source-term specific setting, so that some source terms that are cheap
 or physically important are re-computed after a synchronization can be
 set to update, while others can be disabled. If this is important for
 your science application, please let the developers know, as this would
-be a straightforward extension of the current architecture.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>If this scheme
+be a straightforward extension of the current architecture.</p>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
+<dd><p>If this scheme
 is generalized to higher-order methods, in principle all one would need
 to do is integrate the fluxes until <span class="math notranslate nohighlight">\(\Delta t / 2\)</span>, which is what we are
-doing here for the constant-in-time flux case.</td></tr>
-</tbody>
-</table>
+doing here for the constant-in-time flux case.</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>

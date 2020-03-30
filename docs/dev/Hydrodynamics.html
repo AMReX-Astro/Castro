@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -236,17 +236,16 @@
 <span id="ch-hydro"></span><h1>Hydrodynamics<a class="headerlink" href="#hydrodynamics" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The hydrodynamics scheme in Castro&nbsp;implements an unsplit
+<p>The hydrodynamics scheme in Castro implements an unsplit
 second-order Godunov method. Characteristic tracing is used to
 time-center the input states to the Riemann solver. The same
 hydrodynamics routines are used for pure hydro and radiation
 hydrodynamics.</p>
 <p>Some general notes:</p>
 <ul>
-<li><p class="first">Regardless of the dimensionality, we always carry around all 3
-components of velocity/momentum—this allows for rotation sources easily.</p>
-</li>
-<li><p class="first">When radiation is enabled (via RADIATION), we discuss
+<li><p>Regardless of the dimensionality, we always carry around all 3
+components of velocity/momentum—this allows for rotation sources easily.</p></li>
+<li><p>When radiation is enabled (via RADIATION), we discuss
 the gas and radiation quantities separately. This generally applies
 to the temperature, pressure, internal energy, various adiabatic
 indices, and sound speed. When we refer to the “total” value of
@@ -268,263 +267,263 @@ this as the “gas”.</p>
 <p>Within the Fortran routines that implement the hydrodynamics, there are
 several main data structures that hold the state.</p>
 <ul>
-<li><p class="first">conserved state: these arrays generally begin with <code class="docutils literal notranslate"><span class="pre">u</span></code>,
+<li><p>conserved state: these arrays generally begin with <code class="docutils literal notranslate"><span class="pre">u</span></code>,
 e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
 components for the state data in the array are accessed using
 integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 21</span></a>.</p>
-<span id="table-consints"></span><table border="1" class="docutils" id="id19">
+<span id="table-consints"></span><table class="docutils align-default" id="id19">
 <caption><span class="caption-number">Table 21 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="32%" />
-<col width="32%" />
-<col width="35%" />
+<col style="width: 32%" />
+<col style="width: 32%" />
+<col style="width: 35%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>variable</strong></th>
-<th class="head"><strong>quantity</strong></th>
-<th class="head"><strong>note</strong></th>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
+<th class="head"><p><strong>quantity</strong></p></th>
+<th class="head"><p><strong>note</strong></p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">URHO</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho\)</span></td>
-<td>&#160;</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">URHO</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UMX</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho u\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UMX</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho u\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">UMY</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho v\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UMY</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho v\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UMZ</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho w\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UMZ</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho w\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">UEDEN</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho E\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UEDEN</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho E\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UEINT</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho e\)</span></td>
-<td>this is computed from
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UEINT</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho e\)</span></p></td>
+<td><p>this is computed from
 the other quantities
 using
 <span class="math notranslate nohighlight">\(\rho e = \rho
 E - \rho |\ub|^2
-/ 2\)</span></td>
+/ 2\)</span></p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">UTEMP</span></code></td>
-<td><span class="math notranslate nohighlight">\(T\)</span></td>
-<td>this is computed from
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UTEMP</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
+<td><p>this is computed from
 the other quantities
-using the EOS</td>
+using the EOS</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UFA</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho A_1\)</span></td>
-<td>the first advected
-quantity</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UFA</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho A_1\)</span></p></td>
+<td><p>the first advected
+quantity</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">UFS</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho X_1\)</span></td>
-<td>the first species</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UFS</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho X_1\)</span></p></td>
+<td><p>the first species</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UFX</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho Y_1\)</span></td>
-<td>the first auxiliary
-variable</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UFX</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho Y_1\)</span></p></td>
+<td><p>the first auxiliary
+variable</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">USHK</span></code></td>
-<td>a shock flag</td>
-<td>(used for shock
-detection)</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">USHK</span></code></p></td>
+<td><p>a shock flag</p></td>
+<td><p>(used for shock
+detection)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UMR</span></code></td>
-<td>radial momentum</td>
-<td>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
-is defined)</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UMR</span></code></p></td>
+<td><p>radial momentum</p></td>
+<td><p>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
+is defined)</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">UML</span></code></td>
-<td>angular momentum</td>
-<td>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
-is defined)</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">UML</span></code></p></td>
+<td><p>angular momentum</p></td>
+<td><p>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
+is defined)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">UMP</span></code></td>
-<td>vertical momentum</td>
-<td>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
-is defined)</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UMP</span></code></p></td>
+<td><p>vertical momentum</p></td>
+<td><p>(if <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>
+is defined)</p></td>
 </tr>
 </tbody>
 </table>
 </li>
-<li><p class="first">primitive variable state: these arrays generally simply called
+<li><p>primitive variable state: these arrays generally simply called
 <code class="docutils literal notranslate"><span class="pre">q</span></code>, and has <code class="docutils literal notranslate"><span class="pre">NQ</span></code> components.</p>
 <p>A related quantity is <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code> which is the number of primitive variable
 source terms.  <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code> ≤ <code class="docutils literal notranslate"><span class="pre">NQ</span></code>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is defined, then only the gas/hydro terms are
+<p class="admonition-title">Note</p>
+<p>if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is defined, then only the gas/hydro terms are
 present in <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code>.</p>
 </div>
 <p><a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 22</span></a> gives the names of the primitive variable integer
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
-<span id="table-primlist"></span><table border="1" class="docutils" id="id20">
+<span id="table-primlist"></span><table class="docutils align-default" id="id20">
 <caption><span class="caption-number">Table 22 </span><span class="caption-text">The integer variable keys for accessing the primitive state vector.</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="34%" />
-<col width="33%" />
+<col style="width: 33%" />
+<col style="width: 34%" />
+<col style="width: 33%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>variable</strong></th>
-<th class="head"><strong>quantity</strong></th>
-<th class="head"><strong>note</strong></th>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
+<th class="head"><p><strong>quantity</strong></p></th>
+<th class="head"><p><strong>note</strong></p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QRHO</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho\)</span></td>
-<td>&#160;</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QRHO</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QU</span></code></td>
-<td><span class="math notranslate nohighlight">\(u\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QU</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(u\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QV</span></code></td>
-<td><span class="math notranslate nohighlight">\(v\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QV</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(v\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QW</span></code></td>
-<td><span class="math notranslate nohighlight">\(w\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QW</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(w\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QPRES</span></code></td>
-<td><span class="math notranslate nohighlight">\(p\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QPRES</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(p\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QREINT</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho e\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QREINT</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho e\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QTEMP</span></code></td>
-<td><span class="math notranslate nohighlight">\(T\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QTEMP</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QGAME</span></code></td>
-<td><span class="math notranslate nohighlight">\(p/(\rho e) + 1\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QGAME</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(p/(\rho e) + 1\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QFA</span></code></td>
-<td><span class="math notranslate nohighlight">\(A_1\)</span></td>
-<td>the first advected
-quantity</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QFA</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(A_1\)</span></p></td>
+<td><p>the first advected
+quantity</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QFS</span></code></td>
-<td><span class="math notranslate nohighlight">\(X_1\)</span></td>
-<td>the first species</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QFS</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(X_1\)</span></p></td>
+<td><p>the first species</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QFX</span></code></td>
-<td><span class="math notranslate nohighlight">\(Y_1\)</span></td>
-<td>the first auxiliary
-variable</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QFX</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(Y_1\)</span></p></td>
+<td><p>the first auxiliary
+variable</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QPTOT</span></code></td>
-<td><span class="math notranslate nohighlight">\(p_\mathrm{tot}\)</span></td>
-<td>the total pressure,
-gas + radiation</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QPTOT</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(p_\mathrm{tot}\)</span></p></td>
+<td><p>the total pressure,
+gas + radiation</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QREITOT</span></code></td>
-<td><span class="math notranslate nohighlight">\(e_\mathrm{tot}\)</span></td>
-<td>the total specific
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QREITOT</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(e_\mathrm{tot}\)</span></p></td>
+<td><p>the total specific
 internal energy, gas
-+ radiation</td>
++ radiation</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QRAD</span></code></td>
-<td><span class="math notranslate nohighlight">\(E_r\)</span></td>
-<td>the radiation energy
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QRAD</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(E_r\)</span></p></td>
+<td><p>the radiation energy
 (there are ngroups of
-these)</td>
+these)</p></td>
 </tr>
 </tbody>
 </table>
 </li>
-<li><p class="first">auxiliary primitive variables: these arrays are generally called
+<li><p>auxiliary primitive variables: these arrays are generally called
 qaux. The main difference between these and the regular
 primitive variables is that we do not attempt to do any
 reconstruction on their profiles. There are <code class="docutils literal notranslate"><span class="pre">NQAUX</span></code> quantities, indexed
 by the integer keys listed in <a class="reference internal" href="#table-qauxlist"><span class="std std-numref">Table 23</span></a>.
 Note, unless otherwise specified the quantities without a subscript are “gas”
 only and those with the “tot” subscript are “gas + radiation”.</p>
-<span id="table-qauxlist"></span><table border="1" class="docutils" id="id21">
+<span id="table-qauxlist"></span><table class="docutils align-default" id="id21">
 <caption><span class="caption-number">Table 23 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>variable</strong></th>
-<th class="head"><strong>quantity</strong></th>
-<th class="head"><strong>note</strong></th>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
+<th class="head"><p><strong>quantity</strong></p></th>
+<th class="head"><p><strong>note</strong></p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QGAMC</span></code></td>
-<td><span class="math notranslate nohighlight">\(\gamma_1\)</span></td>
-<td>the first adiabatic
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QGAMC</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma_1\)</span></p></td>
+<td><p>the first adiabatic
 exponent, as returned
-from the EOS</td>
+from the EOS</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QC</span></code></td>
-<td><span class="math notranslate nohighlight">\(c_s\)</span></td>
-<td>the sound speed, as
-returned from the EOS</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QC</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(c_s\)</span></p></td>
+<td><p>the sound speed, as
+returned from the EOS</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QCSML</span></code></td>
-<td>&#160;</td>
-<td>a small sound speed
-used for cutoffs</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QCSML</span></code></p></td>
+<td></td>
+<td><p>a small sound speed
+used for cutoffs</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QDPDR</span></code></td>
-<td><span class="math notranslate nohighlight">\(\partial p/
-\partial \rho |_e\)</span></td>
-<td>computed via the EOS</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDPDR</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\partial p/
+\partial \rho |_e\)</span></p></td>
+<td><p>computed via the EOS</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QDPDE</span></code></td>
-<td><span class="math notranslate nohighlight">\(\partial p/
-\partial e|_\rho\)</span></td>
-<td>computed via the EOS</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDPDE</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\partial p/
+\partial e|_\rho\)</span></p></td>
+<td><p>computed via the EOS</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QGAMCG</span></code></td>
-<td><span class="math notranslate nohighlight">\({\Gamma_1
-}_\mathrm{tot}\)</span></td>
-<td>includes radiation
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QGAMCG</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\Gamma_1
+}_\mathrm{tot}\)</span></p></td>
+<td><p>includes radiation
 components (defined
 only if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code>
-is defined)</td>
+is defined)</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QCG</span></code></td>
-<td><span class="math notranslate nohighlight">\({c_s
-}_\mathrm{tot}\)</span></td>
-<td>total sound speed
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QCG</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({c_s
+}_\mathrm{tot}\)</span></p></td>
+<td><p>total sound speed
 including radiation
 (defined only if
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
-defined)</td>
+defined)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QLAMS</span></code></td>
-<td><span class="math notranslate nohighlight">\(\lambda_f\)</span></td>
-<td>the <code class="docutils literal notranslate"><span class="pre">ngroups</span></code> flux
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QLAMS</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\lambda_f\)</span></p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">ngroups</span></code> flux
 limiters (defined
 only if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code>
-is defined)</td>
+is defined)</p></td>
 </tr>
 </tbody>
 </table>
 </li>
-<li><p class="first">interface variables: these are the time-centered interface states
+<li><p>interface variables: these are the time-centered interface states
 returned by the Riemann solver. They are used to discretize some
 non-conservative terms in the equations. These arrays are generally
 called <code class="docutils literal notranslate"><span class="pre">q1</span></code>, <code class="docutils literal notranslate"><span class="pre">q2</span></code>, and <code class="docutils literal notranslate"><span class="pre">q3</span></code> for the x, y, and z
@@ -532,72 +531,72 @@ interfaces respectively. There are <code class="docutils literal notranslate"><s
 the integer keys defined in <a class="reference internal" href="#table-gdlist"><span class="std std-numref">Table 24</span></a>
 Note, unless otherwise specified the quantities without a subscript are
 “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
-<span id="table-gdlist"></span><table border="1" class="docutils" id="id22">
+<span id="table-gdlist"></span><table class="docutils align-default" id="id22">
 <caption><span class="caption-number">Table 24 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <colgroup>
-<col width="33%" />
-<col width="33%" />
-<col width="33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head"><strong>variable</strong></th>
-<th class="head"><strong>quantity</strong></th>
-<th class="head"><strong>note</strong></th>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>variable</strong></p></th>
+<th class="head"><p><strong>quantity</strong></p></th>
+<th class="head"><p><strong>note</strong></p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QGDRHO</span></code></td>
-<td><span class="math notranslate nohighlight">\(\rho\)</span></td>
-<td>&#160;</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QGDRHO</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QDU</span></code></td>
-<td><span class="math notranslate nohighlight">\(u\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDU</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(u\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QDV</span></code></td>
-<td><span class="math notranslate nohighlight">\(v\)</span></td>
-<td>&#160;</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDV</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(v\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QDW</span></code></td>
-<td><span class="math notranslate nohighlight">\(w\)</span></td>
-<td>&#160;</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDW</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(w\)</span></p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QDPRES</span></code></td>
-<td><span class="math notranslate nohighlight">\(p\)</span></td>
-<td>regardless of whether
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDPRES</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(p\)</span></p></td>
+<td><p>regardless of whether
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
 defined,
 this is always just
-the gas pressure</td>
+the gas pressure</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QDGAME</span></code></td>
-<td><span class="math notranslate nohighlight">\(\gamma_e = p/(
-\rho e) + 1\)</span></td>
-<td>regardless of whether
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDGAME</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gamma_e = p/(
+\rho e) + 1\)</span></p></td>
+<td><p>regardless of whether
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
 defined,
 this is always just
-the gas contribution</td>
+the gas contribution</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">QDLAMS</span></code></td>
-<td><span class="math notranslate nohighlight">\({\lambda_f}\)</span></td>
-<td>the starting index
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDLAMS</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\lambda_f}\)</span></p></td>
+<td><p>the starting index
 for the flux
 limiter—there are
 ngroups components
 (defined only if
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
-defined)</td>
+defined)</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">QDERADS</span></code></td>
-<td><span class="math notranslate nohighlight">\(E_r\)</span></td>
-<td>the starting index
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDERADS</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(E_r\)</span></p></td>
+<td><p>the starting index
 for the radiation
 energy—there are
 ngroups components
 (defined only if
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
-defined)</td>
+defined)</p></td>
 </tr>
 </tbody>
 </table>
@@ -636,25 +635,22 @@ by integer variables into the array—see
 <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 21</span></a>.</p>
 <p>Some notes:</p>
 <ul>
-<li><p class="first">Regardless of the dimensionality of the problem, we always carry
+<li><p>Regardless of the dimensionality of the problem, we always carry
 all 3 components of the velocity. This allows for, e.g., 2.5-d
 rotation (advecting the component of velocity out of the plane in
 axisymmetric coordinates).</p>
 <p>You should always initialize all velocity components to zero, and
 always construct the kinetic energy with all three velocity components.</p>
 </li>
-<li><p class="first">There are <code class="docutils literal notranslate"><span class="pre">NADV</span></code> advected quantities, which range from
+<li><p>There are <code class="docutils literal notranslate"><span class="pre">NADV</span></code> advected quantities, which range from
 <code class="docutils literal notranslate"><span class="pre">UFA:</span> <span class="pre">UFA+nadv-1</span></code>. The advected quantities have no effect at all on
-the rest of the solution but can be useful as tracer quantities.</p>
-</li>
-<li><p class="first">There are <code class="docutils literal notranslate"><span class="pre">NSPEC</span></code> species (defined in the network
-directory), which range from <code class="docutils literal notranslate"><span class="pre">UFS:</span> <span class="pre">UFS+nspec-1</span></code>.</p>
-</li>
-<li><p class="first">There are <code class="docutils literal notranslate"><span class="pre">NAUX</span></code> auxiliary variables, from <code class="docutils literal notranslate"><span class="pre">UFX:UFX+naux-1</span></code>. The
+the rest of the solution but can be useful as tracer quantities.</p></li>
+<li><p>There are <code class="docutils literal notranslate"><span class="pre">NSPEC</span></code> species (defined in the network
+directory), which range from <code class="docutils literal notranslate"><span class="pre">UFS:</span> <span class="pre">UFS+nspec-1</span></code>.</p></li>
+<li><p>There are <code class="docutils literal notranslate"><span class="pre">NAUX</span></code> auxiliary variables, from <code class="docutils literal notranslate"><span class="pre">UFX:UFX+naux-1</span></code>. The
 auxiliary variables are passed into the equation of state routines
 along with the species. An example of an auxiliary variable is the
-electron fraction, <span class="math notranslate nohighlight">\(Y_e\)</span>, in core collapse simulations.</p>
-</li>
+electron fraction, <span class="math notranslate nohighlight">\(Y_e\)</span>, in core collapse simulations.</p></li>
 </ul>
 </div>
 <div class="section" id="source-terms">
@@ -705,7 +701,7 @@ S_{{\rm ext},\rho Y_k}
 </div>
 <div class="section" id="primitive-forms">
 <h2>Primitive Forms<a class="headerlink" href="#primitive-forms" title="Permalink to this headline">¶</a></h2>
-<p>Castro&nbsp;uses the primitive form of the fluid equations, defined in terms of
+<p>Castro uses the primitive form of the fluid equations, defined in terms of
 the state <span class="math notranslate nohighlight">\(\Qb = (\rho, \ub, p, \rho e, A_k, X_k, Y_k)\)</span>, to construct the
 interface states that are input to the Riemann problem.</p>
 <p>The primitive variable equations for density, velocity, and pressure are:</p>
@@ -747,7 +743,7 @@ keys for the different quantities are listed in <a class="reference internal" hr
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. <a class="reference internal" href="zreferences.html#colglaz" id="id1">[colglaz]</a>). Second, it is sometimes the case that the
+see e.g. <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id1">[13]</a>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -759,7 +755,7 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <a class="reference internal" href="zreferences.html#bryan-1995" id="id2">[bryan:1995]</a>, <a class="reference internal" href="zreferences.html#bryan-2014" id="id3">[bryan:2014]</a>, where we switch
+from ENZO <a class="bibtex reference internal" href="zreferences.html#bryan-1995" id="id2">[9]</a>, <a class="bibtex reference internal" href="zreferences.html#bryan-2014" id="id3">[8]</a>, where we switch
 between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
 state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
 <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
@@ -768,17 +764,17 @@ castro.dual_energy_eta3. We then consider the ratio <span class="math notranslat
 the ratio of the internal energy (derived from the total energy) to
 the total energy. These parameters are used as follows:</p>
 <ul class="simple">
-<li><span class="math notranslate nohighlight">\(\eta_1\)</span>: If <span class="math notranslate nohighlight">\(e_T &gt; \eta_1 E\)</span>, then we use <span class="math notranslate nohighlight">\(e_T\)</span> for the purpose
+<li><p><span class="math notranslate nohighlight">\(\eta_1\)</span>: If <span class="math notranslate nohighlight">\(e_T &gt; \eta_1 E\)</span>, then we use <span class="math notranslate nohighlight">\(e_T\)</span> for the purpose
 of calculating the pressure in the hydrodynamics update. Otherwise,
 we use the <span class="math notranslate nohighlight">\(e\)</span> from the internal energy equation in our EOS call to
-get the pressure.</li>
-<li><span class="math notranslate nohighlight">\(\eta_2\)</span>: At the end of each hydro advance, we examine whether
+get the pressure.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\eta_2\)</span>: At the end of each hydro advance, we examine whether
 <span class="math notranslate nohighlight">\(e_T &gt; \eta_2 E\)</span>. If so, we reset <span class="math notranslate nohighlight">\(e\)</span> to be equal to <span class="math notranslate nohighlight">\(e_T\)</span>,
 discarding the results of the internal energy equation. Otherwise,
-we keep <span class="math notranslate nohighlight">\(e\)</span> as it is.</li>
-<li><span class="math notranslate nohighlight">\(\eta_3\)</span>: Similar to <span class="math notranslate nohighlight">\(\eta_1\)</span>, if <span class="math notranslate nohighlight">\(e_T &gt; \eta_3 E\)</span>, we use
+we keep <span class="math notranslate nohighlight">\(e\)</span> as it is.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\eta_3\)</span>: Similar to <span class="math notranslate nohighlight">\(\eta_1\)</span>, if <span class="math notranslate nohighlight">\(e_T &gt; \eta_3 E\)</span>, we use
 <span class="math notranslate nohighlight">\(e_T\)</span> for the purposes of our nuclear reactions, otherwise, we use
-<span class="math notranslate nohighlight">\(e\)</span>.</li>
+<span class="math notranslate nohighlight">\(e\)</span>.</p></li>
 </ul>
 <p>Note that our version of the internal energy equation does not require
 an artificial viscosity, as used in some other hydrodynamics
@@ -890,29 +886,26 @@ h &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; h \\
 <span id="sec-advection-step"></span><h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this headline">¶</a></h2>
 <p>There are four major steps in the hydrodynamics update:</p>
 <ol class="arabic simple">
-<li>Converting to primitive variables</li>
-<li>Construction the edge states</li>
-<li>Solving the Riemann problem</li>
-<li>Doing the conservative update</li>
+<li><p>Converting to primitive variables</p></li>
+<li><p>Construction the edge states</p></li>
+<li><p>Solving the Riemann problem</p></li>
+<li><p>Doing the conservative update</p></li>
 </ol>
 <p id="index-0">Each of these steps has a variety of runtime parameters that
 affect their behavior. Additionally, there are some general
 runtime parameters for hydrodynamics:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span></code>: time-advance the fluid dynamical
-equations (0 or 1; must be set)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.add_ext_src</span></code>: include additional user-specified
-source term (0 or 1; default 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.do_sponge</span></code>: call the sponge routine
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.do_hydro</span></code>: time-advance the fluid dynamical
+equations (0 or 1; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.add_ext_src</span></code>: include additional user-specified
+source term (0 or 1; default 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.do_sponge</span></code>: call the sponge routine
 after the solution update (0 or 1; default: 0)</p>
 <p>See <a class="reference internal" href="sponge.html#sponge-section"><span class="std std-ref">Sponge</span></a> for more details on the sponge.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.normalize_species</span></code>: enforce that <span class="math notranslate nohighlight">\(\sum_i X_i = 1\)</span>
-(0 or 1; default: 0)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.spherical_star</span></code>: this is used to set the boundary
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.normalize_species</span></code>: enforce that <span class="math notranslate nohighlight">\(\sum_i X_i = 1\)</span>
+(0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.spherical_star</span></code>: this is used to set the boundary
 conditions by assuming the star is spherically symmetric in
 the outer regions (0 or 1; default: 0)</p>
 <p>When used, Castro averages the values at a given radius over the
@@ -920,27 +913,24 @@ cells that are inside the domain to define a radial function. This
 function is then used to set the values outside the domain in
 implementing the boundary conditions.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.show_center_of_mass</span></code>: (0 or 1; default: 0)</p>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.show_center_of_mass</span></code>: (0 or 1; default: 0)</p></li>
 </ul>
 <p id="index-1">Several floors are imposed on the thermodynamic quantities to prevet unphysical
 behavior:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>: (Real; default: -1.e20)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.small_temp</span></code>: (Real; default: -1.e20)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.small_pres</span></code>: (Real; default: -1.e20)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.small_dens</span></code>: (Real; default: -1.e20)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.small_temp</span></code>: (Real; default: -1.e20)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.small_pres</span></code>: (Real; default: -1.e20)</p></li>
 </ul>
 <div class="section" id="compute-primitive-variables">
 <span id="sec-compute-primitive-variables"></span><h3>Compute Primitive Variables<a class="headerlink" href="#compute-primitive-variables" title="Permalink to this headline">¶</a></h3>
 <p>We compute the primtive variables from the conserved variables.</p>
 <ul>
-<li><p class="first"><span class="math notranslate nohighlight">\(\rho, \rho e\)</span>: directly copy these from the conserved state
-vector</p>
-</li>
-<li><p class="first"><span class="math notranslate nohighlight">\(\ub, A_k, X_k, Y_k\)</span>: copy these from the conserved state
-vector, dividing by <span class="math notranslate nohighlight">\(\rho\)</span></p>
-</li>
-<li><p class="first"><span class="math notranslate nohighlight">\(p,T\)</span>: use the EOS.</p>
+<li><p><span class="math notranslate nohighlight">\(\rho, \rho e\)</span>: directly copy these from the conserved state
+vector</p></li>
+<li><p><span class="math notranslate nohighlight">\(\ub, A_k, X_k, Y_k\)</span>: copy these from the conserved state
+vector, dividing by <span class="math notranslate nohighlight">\(\rho\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(p,T\)</span>: use the EOS.</p>
 <p>First, we use the EOS to ensure <span class="math notranslate nohighlight">\(e\)</span> is no smaller than <span class="math notranslate nohighlight">\(e(\rho,T_{\rm small},X_k)\)</span>.
 Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T = p,T(\rho,e,X_k)\)</span>.</p>
 </li>
@@ -948,7 +938,7 @@ Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T 
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper <a class="reference internal" href="zreferences.html#ppm" id="id4">[ppm]</a> and the Flash paper <a class="reference internal" href="zreferences.html#flash" id="id5">[flash]</a>.
+PPM paper <a class="bibtex reference internal" href="zreferences.html#ppm" id="id4">[15]</a> and the Flash paper <a class="bibtex reference internal" href="zreferences.html#flash" id="id5">[20]</a>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -957,11 +947,11 @@ flattening coefficient for each spatial direction, and choose the
 minimum value over all directions. As an example, to compute the
 flattening for the x-direction, here are the steps:</p>
 <ol class="arabic">
-<li><p class="first">Define <span class="math notranslate nohighlight">\(\zeta\)</span></p>
+<li><p>Define <span class="math notranslate nohighlight">\(\zeta\)</span></p>
 <div class="math notranslate nohighlight">
 \[\zeta_i = \frac{p_{i+1}-p_{i-1}}{\max\left(p_{\rm small},|p_{i+2}-p_{i-2}|\right)}.\]</div>
 </li>
-<li><p class="first">Define <span class="math notranslate nohighlight">\(\tilde\chi\)</span></p>
+<li><p>Define <span class="math notranslate nohighlight">\(\tilde\chi\)</span></p>
 <div class="math notranslate nohighlight">
 \[\tilde\chi_i = \min\left\{1,\max[0,a(\zeta_i - b)]\right\},\]</div>
 <p>where <span class="math notranslate nohighlight">\(a=10\)</span> and <span class="math notranslate nohighlight">\(b=0.75\)</span> are tunable parameters. We are essentially
@@ -972,7 +962,7 @@ setting <span class="math notranslate nohighlight">\(\tilde\chi_i=a(\zeta_i-b)\)
 \[\frac{p_{i+1}-p_{i-1}}{\min(p_{i+1},p_{i-1})} \le c,\]</div>
 <p>where <span class="math notranslate nohighlight">\(c=1/3\)</span> is a tunable parameter, then set <span class="math notranslate nohighlight">\(\tilde\chi_i=0\)</span>.</p>
 </li>
-<li><p class="first">Define <span class="math notranslate nohighlight">\(\chi\)</span></p>
+<li><p>Define <span class="math notranslate nohighlight">\(\chi\)</span></p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\chi_i =
 \begin{cases}
@@ -983,8 +973,8 @@ setting <span class="math notranslate nohighlight">\(\tilde\chi_i=a(\zeta_i-b)\)
 </ol>
 <p>The following runtime parameters affect the behavior here:</p>
 <ul class="simple">
-<li>castro.use_flattening turns on/off the flattening of parabola
-near shocks (0 or 1; default 1)</li>
+<li><p>castro.use_flattening turns on/off the flattening of parabola
+near shocks (0 or 1; default 1)</p></li>
 </ul>
 </div>
 <div class="section" id="edge-state-prediction">
@@ -992,15 +982,15 @@ near shocks (0 or 1; default 1)</li>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in <a class="reference internal" href="zreferences.html#colella-1990" id="id6">[colella:1990]</a>,
-the classic PPM limiters <a class="reference internal" href="zreferences.html#ppm" id="id7">[ppm]</a>, and the new PPM limiters introduced
-in <a class="reference internal" href="zreferences.html#colellasekora" id="id8">[colellasekora]</a>. The choice of
+linear method that follows the description in <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id6">[12]</a>,
+the classic PPM limiters <a class="bibtex reference internal" href="zreferences.html#ppm" id="id7">[15]</a>, and the new PPM limiters introduced
+in <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id8">[14]</a>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of <a class="reference internal" href="zreferences.html#colellasekora" id="id9">[colellasekora]</a> to eliminate sensitivity due to roundoff error
+of <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id9">[14]</a> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <a class="reference internal" href="zreferences.html#millercolella-2002" id="id10">[millercolella:2002]</a>. We
+described in Miller &amp; Colella (2002) <a class="bibtex reference internal" href="zreferences.html#millercolella-2002" id="id10">[34]</a>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -1017,7 +1007,7 @@ There are four steps to compute these dual-valued edge states (here,
 we use <span class="math notranslate nohighlight">\(s\)</span> to denote an arbitrary scalar from <span class="math notranslate nohighlight">\(\Qb\)</span>, and we write the
 equations in 1D, for simplicity):</p>
 <ul>
-<li><p class="first"><strong>Step 1</strong>: Compute <span class="math notranslate nohighlight">\(s_{i,+}\)</span> and <span class="math notranslate nohighlight">\(s_{i,-}\)</span>, which are spatial
+<li><p><strong>Step 1</strong>: Compute <span class="math notranslate nohighlight">\(s_{i,+}\)</span> and <span class="math notranslate nohighlight">\(s_{i,-}\)</span>, which are spatial
 interpolations of <span class="math notranslate nohighlight">\(s\)</span> to the hi and lo side of the face with special
 limiters, respectively. Begin by interpolating <span class="math notranslate nohighlight">\(s\)</span> to edges using a
 4th-order interpolation in space:</p>
@@ -1027,7 +1017,7 @@ limiters, respectively. Begin by interpolating <span class="math notranslate noh
 <span class="math notranslate nohighlight">\(s_{i+\myhalf}\)</span> a nonlinear combination of approximations to the
 second derivative. The steps are as follows:</p>
 <ol class="arabic">
-<li><p class="first">Define:</p>
+<li><p>Define:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 (D^2s)_{i+\myhalf} &amp;= 3\left(s_{i}-2s_{i+\myhalf}+s_{i+1}\right) \\
@@ -1035,7 +1025,7 @@ second derivative. The steps are as follows:</p>
 (D^2s)_{i+\myhalf,R} &amp;= s_{i}-2s_{i+1}+s_{i+2}
 \end{align}\end{split}\]</div>
 </li>
-<li><p class="first">Define</p>
+<li><p>Define</p>
 <div class="math notranslate nohighlight">
 \[s = \text{sign}\left[(D^2s)_{i+\myhalf}\right],\]</div>
 <div class="math notranslate nohighlight">
@@ -1051,12 +1041,12 @@ algorithm which eliminates sensitivity to roundoff. First we
 need to detect whether a particular cell corresponds to an
 “extremum”. There are two tests.</p>
 <ul>
-<li><p class="first">For the first test, define</p>
+<li><p>For the first test, define</p>
 <div class="math notranslate nohighlight">
 \[\alpha_{i,\pm} = s_{i\pm\myhalf} - s_i.\]</div>
 <p>If <span class="math notranslate nohighlight">\(\alpha_{i,+}\alpha_{i,-} \ge 0\)</span>, then we are at an extremum.</p>
 </li>
-<li><p class="first">We only apply the second test if either
+<li><p>We only apply the second test if either
 <span class="math notranslate nohighlight">\(|\alpha_{i,\pm}| &gt; 2|\alpha_{i,\mp}|\)</span>. If so, we define:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
@@ -1081,7 +1071,7 @@ need to detect whether a particular cell corresponds to an
 <p>Thus concludes the extremum tests. The remaining limiters depend on
 whether we are at an extremum.</p>
 <ul>
-<li><p class="first">If we are at an extremum, we modify <span class="math notranslate nohighlight">\(\alpha_{i,\pm}\)</span>. First, we
+<li><p>If we are at an extremum, we modify <span class="math notranslate nohighlight">\(\alpha_{i,\pm}\)</span>. First, we
 define</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
@@ -1099,7 +1089,7 @@ define</p>
 <div class="math notranslate nohighlight">
 \[\alpha_{i,\pm} = \frac{\alpha_{i,\pm}(D^2s)_{i,\text{lim}}}{\max\left[(D^2s)_{i},1\times 10^{-10}\right]}\]</div>
 </li>
-<li><p class="first">If we are not at an extremum and
+<li><p>If we are not at an extremum and
 <span class="math notranslate nohighlight">\(|\alpha_{i,\pm}| &gt; 2|\alpha_{i,\mp}|\)</span>, then define</p>
 <div class="math notranslate nohighlight">
 \[s = \text{sign}(\alpha_{i,\mp})\]</div>
@@ -1119,7 +1109,7 @@ the following test. If <span class="math notranslate nohighlight">\(s\delta s - 
 </ul>
 <p>Finally, <span class="math notranslate nohighlight">\(s_{i,\pm} = s_i + \alpha_{i,\pm}\)</span>.</p>
 </li>
-<li><p class="first"><strong>Step 2</strong>: Construct a quadratic profile using <span class="math notranslate nohighlight">\(s_{i,-},s_i\)</span>,
+<li><p><strong>Step 2</strong>: Construct a quadratic profile using <span class="math notranslate nohighlight">\(s_{i,-},s_i\)</span>,
 and <span class="math notranslate nohighlight">\(s_{i,+}\)</span>.</p>
 <div class="math notranslate nohighlight" id="equation-quadratic-interp">
 <span class="eqno">(3)<a class="headerlink" href="#equation-quadratic-interp" title="Permalink to this equation">¶</a></span>\[s_i^I(x) = s_{i,-} + \xi\left[s_{i,+} - s_{i,-} + s_{6,i}(1-\xi)\right],\]</div>
@@ -1128,7 +1118,7 @@ and <span class="math notranslate nohighlight">\(s_{i,+}\)</span>.</p>
 <div class="math notranslate nohighlight">
 \[\xi = \frac{x - ih}{h}, ~ 0 \le \xi \le 1.\]</div>
 </li>
-<li><div class="first line-block">
+<li><div class="line-block">
 <div class="line"><strong>Step 3:</strong> Integrate quadratic profiles. We are essentially
 computing the average value swept out by the quadratic profile
 across the face assuming the profile is moving at a speed
@@ -1150,7 +1140,7 @@ across the face assuming the profile is moving at a speed
 \end{align}\end{split}\]</div>
 </div></blockquote>
 </li>
-<li><p class="first"><strong>Step 4:</strong> Obtain 1D edge states by performing a 1D
+<li><p><strong>Step 4:</strong> Obtain 1D edge states by performing a 1D
 extrapolation to get left and right edge states. Note that we
 include an explicit source term contribution.</p>
 <div class="math notranslate nohighlight">
@@ -1169,12 +1159,12 @@ Miller &amp; Colella, except for the details of the Riemann solver,
 which are given below.</p>
 <p id="index-2">For the reconstruction of the interface states, the following apply:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code> : use piecewise linear vs PPM algorithm (0 or 1;
 default: 1).  A value of 1 is the standard piecewise parabolic
-reconstruction.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code> does various attempts to use the
+reconstruction.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_temp_fix</span></code> does various attempts to use the
 temperature in the reconstruction of the interface states.
-See <a class="reference internal" href="#sec-ppm-temp-fix"><span class="std std-ref">Temperature Fixes</span></a> for an explanation of the allowed options.</li>
+See <a class="reference internal" href="#sec-ppm-temp-fix"><span class="std std-ref">Temperature Fixes</span></a> for an explanation of the allowed options.</p></li>
 </ul>
 <p>The interface states are corrected with information from the
 transverse directions to make this a second-order update. These
@@ -1182,35 +1172,35 @@ transverse directions involve separate Riemann solves. Sometimes, the
 update to the interface state from the transverse directions can make
 the state ill-posed. There are several parameters that help fix this:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.transverse_use_eos</span></code> : If this is 1, then we call
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.transverse_use_eos</span></code> : If this is 1, then we call
 the equation of state on the interface, using <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and
 <span class="math notranslate nohighlight">\(X_k\)</span>, to get the interface pressure. This should result in a
-thermodynamically consistent interface state.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.transverse_reset_density</span></code> : If the transverse
+thermodynamically consistent interface state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.transverse_reset_density</span></code> : If the transverse
 corrections result in a negative density on the interface, then we
 reset all of the interface states to their values before the
-transverse corrections.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.transverse_reset_rhoe</span></code> : The transverse updates operate
+transverse corrections.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.transverse_reset_rhoe</span></code> : The transverse updates operate
 on the conserved state. Usually, we construct the interface
 <span class="math notranslate nohighlight">\((\rho e)\)</span> in the transverse update from total energy and the
 kinetic energy, however, if the interface <span class="math notranslate nohighlight">\((rho e)\)</span> is negative,
 and <code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code> = 1, then we explicitly
 discretize an equation for the evolution of <span class="math notranslate nohighlight">\((\rho e)\)</span>, including
-its transverse update.</li>
+its transverse update.</p></li>
 </ul>
 </div>
 <div class="section" id="riemann-problem">
 <h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this headline">¶</a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <a class="reference internal" href="zreferences.html#colglaz" id="id11">[colglaz]</a> (the same solver used
+Colella &amp; Glaz solver <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id11">[13]</a> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
 two-shock approximate solvers, but differ in how they approximate
 the thermodynamics in the “star” region.</p>
 <div class="admonition note" id="index-3">
-<p class="first admonition-title">Note</p>
-<p class="last">These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
+<p class="admonition-title">Note</p>
+<p>These Riemann solvers are for Newtonian hydrodynamics, however, we enforce
 that the interface velocity cannot exceed the speed of light in both the
 Colella &amp; Glaz and Colella, Glaz, &amp; Ferguson solvers.  This excessive speed
 usually is a sign of low density regions and density resets or the flux limiter
@@ -1290,27 +1280,25 @@ described in the original paper.</p>
 <p>For the construction of the fluxes in the Riemann solver, the following
 parameters apply:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.riemann_solver</span></code>: this can be one of the following values:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.riemann_solver</span></code>: this can be one of the following values:</p>
 <ul class="simple">
-<li>0: the Colella, Glaz, &amp; Ferguson solver.</li>
-<li>1: the Colella &amp; Glaz solver</li>
-<li>2: the HLLC solver. Note: this should only be used with Cartesian
+<li><p>0: the Colella, Glaz, &amp; Ferguson solver.</p></li>
+<li><p>1: the Colella &amp; Glaz solver</p></li>
+<li><p>2: the HLLC solver. Note: this should only be used with Cartesian
 geometries because it relies on the pressure term being part of the flux
-in the momentum equation.</li>
+in the momentum equation.</p></li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
-Glaz, &amp; Ferguson manuscript (it also appears in <a class="reference internal" href="zreferences.html#pember-1996" id="id12">[pember:1996]</a>),
-as described in the original Castro paper <a class="reference internal" href="zreferences.html#castro-i" id="id13">[castro_I]</a>.</p>
+Glaz, &amp; Ferguson manuscript (it also appears in <a class="bibtex reference internal" href="zreferences.html#pember-1996" id="id12">[2]</a>),
+as described in the original Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id13">[6]</a>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.cg_maxiter</span></code> : number of iterations for CG algorithm
-(Integer; default: 12)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.cg_tol</span></code> : tolerance for CG solver when solving
-for the “star” state (Real; default: 1.0e-5)</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.cg_blend</span></code> : this controls what happens if the root
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.cg_maxiter</span></code> : number of iterations for CG algorithm
+(Integer; default: 12)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.cg_tol</span></code> : tolerance for CG solver when solving
+for the “star” state (Real; default: 1.0e-5)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.cg_blend</span></code> : this controls what happens if the root
 finding in the CG solver fails. There is a nonlinear equation to find
 the pressure in the <em>star</em> region from the jump conditions for a
 shock (this is the two-shock approximation—the left and right states
@@ -1318,19 +1306,19 @@ are linked to the star region each by a shock). The default root
 finding algorithm is a secant method, but this can sometimes fail.</p>
 <p>The options here are:</p>
 <ul class="simple">
-<li>0 : do nothing. The pressure from each iteration is
-printed and the code aborts with a failure</li>
-<li>1 : revert to the original guess for p-star and carry
+<li><p>0 : do nothing. The pressure from each iteration is
+printed and the code aborts with a failure</p></li>
+<li><p>1 : revert to the original guess for p-star and carry
 through on the remainder of the Riemann solve. This is almost like
-dropping down to the CGF solver. The p-star used is very approximate.</li>
-<li>2 : switch to bisection and do an additional cg_maxiter
+dropping down to the CGF solver. The p-star used is very approximate.</p></li>
+<li><p>2 : switch to bisection and do an additional cg_maxiter
 iterations to find the root. Sometimes this can work where the
-secant method fails.</li>
+secant method fails.</p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.hybrid_riemann</span></code> : switch to an HLL Riemann solver when we are
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.hybrid_riemann</span></code> : switch to an HLL Riemann solver when we are
 in a zone with a shock (0 or 1; default 0)</p>
 <p>This eliminates an odd-even decoupling issue (see the oddeven
 problem). Note, this cannot be used with the HLLC solver.</p>
@@ -1356,11 +1344,10 @@ prediction. The options are controlled by <code class="docutils literal notransl
 which takes values:</p>
 <blockquote>
 <div><ul>
-<li><p class="first">0: the default method—temperature is not considered, and we do
+<li><p>0: the default method—temperature is not considered, and we do
 reconstruction and characteristic tracing on <span class="math notranslate nohighlight">\(\rho, u, p,
-(\rho e)\)</span>.</p>
-</li>
-<li><p class="first">1: do parabolic reconstruction on <span class="math notranslate nohighlight">\(T\)</span>, giving
+(\rho e)\)</span>.</p></li>
+<li><p>1: do parabolic reconstruction on <span class="math notranslate nohighlight">\(T\)</span>, giving
 <span class="math notranslate nohighlight">\(\mathcal{I}_{+}^{(k)}(T_i)\)</span>. We then derive the pressure and
 internal energy (gas portion) via the equation of state as:</p>
 <div class="math notranslate nohighlight">
@@ -1370,12 +1357,11 @@ internal energy (gas portion) via the equation of state as:</p>
     \end{align}\end{split}\]</div>
 <p>The remainder of the hydrodynamics algorithm then proceeds unchanged.</p>
 </li>
-<li><p class="first">2: on entering the Riemann solver, we recompute the thermodynamics
+<li><p>2: on entering the Riemann solver, we recompute the thermodynamics
 on the interfaces to ensure that they are all consistent. This is
 done by taking the interface values of <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>,
 <span class="math notranslate nohighlight">\(X_k\)</span>, and computing the corresponding pressure, <span class="math notranslate nohighlight">\(p\)</span>
-from this.</p>
-</li>
+from this.</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -1390,7 +1376,7 @@ from this.</p>
 <p>Multi-dimensional hydrodynamic simulations often have numerical
 artifacts that result from the sharp density gradients. A somewhat
 common issue, especially at low resolution, is negative densities that
-occur as a result of a hydro update. Castro&nbsp;contains a prescription
+occur as a result of a hydro update. Castro contains a prescription
 for dealing with negative densities, that resets the negative density
 to be similar to nearby zones. Various choices exist for how to do
 this, such as resetting it to the original zone density before the
@@ -1401,7 +1387,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <a class="reference internal" href="zreferences.html#hu-2013" id="id14">[hu:2013]</a>. This
+implements the positivity-preserving method of <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id14">[26]</a>. This
 behavior is controlled by
 castro.limit_fluxes_on_small_dens.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1431,47 +1417,47 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <a class="reference internal" href="zreferences.html#hu-2013" id="id15">[hu:2013]</a>.</p>
+found in <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id15">[26]</a>.</p>
 </div>
 </div>
 <div class="section" id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this headline">¶</a></h2>
-<p>Castro implements the hybrid momentum scheme of <a class="reference internal" href="zreferences.html#byerly-2014" id="id16">[byerly:2014]</a>.
+<p>Castro implements the hybrid momentum scheme of <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id16">[10]</a>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <a class="reference internal" href="zreferences.html#byerly-2014" id="id17">[byerly:2014]</a>.</p>
+source terms appear in this formulation, which are written out in <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id17">[10]</a>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <a class="reference internal" href="zreferences.html#papaloizoupringle" id="id18">[papaloizoupringle]</a>.  The
+originated with <a class="bibtex reference internal" href="zreferences.html#papaloizoupringle" id="id18">[39]</a>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
-<div class="figure" id="id23">
+<div class="figure align-default" id="id23">
 <img alt="rotating torus initial density" src="_images/rotating_torus_00000_density.png" />
 <p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">Initial density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem with
-<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span></p>
+<span class="math notranslate nohighlight">\(64^3\)</span> zones.</span><a class="headerlink" href="#id23" title="Permalink to this image">¶</a></p>
 </div>
 <p>For the standard hydrodynamics algorithm, the torus gets disrupted and
 spreads out into a disk:</p>
-<div class="figure" id="id24">
+<div class="figure align-default" id="id24">
 <img alt="rotating torus normal hydro" src="_images/rotating_torus_00200_density.png" />
 <p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps, using <span class="math notranslate nohighlight">\(64^3\)</span> zones.  Notice that the initial torus
-has become disrupted into a disk.</span></p>
+has become disrupted into a disk.</span><a class="headerlink" href="#id24" title="Permalink to this image">¶</a></p>
 </div>
 <p>The hybrid momentum algorithm is enabled by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_HYBRID_MOMENTUM</span> <span class="o">=</span> <span class="n">TRUE</span>
 </pre></div>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.  With this enabled, we see that the torus remains intact:</p>
-<div class="figure" id="id25">
+<div class="figure align-default" id="id25">
 <img alt="rotating torus with hybrid momentum" src="_images/rotating_torus_hybrid_00200_density.png" />
 <p class="caption"><span class="caption-number">Fig. 5 </span><span class="caption-text">Density (log scale) for the <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem after 200
 timesteps with the hybrid momentum algorithm, using <span class="math notranslate nohighlight">\(64^3\)</span>
 zones.  With this angular-momentum preserving scheme we see that
-the initial torus is largely intact.</span></p>
+the initial torus is largely intact.</span><a class="headerlink" href="#id25" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>

@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -128,7 +128,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Microphysics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#equation-of-state">Equation of State</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#standard-castro-eoses">Standard Castro&nbsp;EOSes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standard-castro-eoses">Standard Castro EOSes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#eos-interfaces-and-parameters">EOS Interfaces and Parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#required-thermodynamics-quantities">Required Thermodynamics Quantities</a></li>
@@ -226,18 +226,18 @@
 <div class="section" id="equation-of-state">
 <h2>Equation of State<a class="headerlink" href="#equation-of-state" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="standard-castro-eoses">
-<h3>Standard Castro&nbsp;EOSes<a class="headerlink" href="#standard-castro-eoses" title="Permalink to this headline">¶</a></h3>
+<h3>Standard Castro EOSes<a class="headerlink" href="#standard-castro-eoses" title="Permalink to this headline">¶</a></h3>
 <p>Castro is written in a modular fashion so that the EOS and network
 burning routines can be supplied by the user. However, for the
 examples presented later we use several EOS and network routines
-that come with the Microphysics&nbsp;distribution.</p>
+that come with the Microphysics distribution.</p>
 <p>Castro relies on routines to calculate the equation of state (EOS)
 of a fluid, as well as a species network to define the components of
 the fluid. The network optionally has the ability to do nuclear burning,
 but for this section its main purpose is in defining the species so that
 the EOS can calculate fluid properties that depend on composition, such
 as electron fraction.</p>
-<p>By default, Castro&nbsp;comes with the <code class="docutils literal notranslate"><span class="pre">gamma_law</span></code>
+<p>By default, Castro comes with the <code class="docutils literal notranslate"><span class="pre">gamma_law</span></code>
 EOS. This represents a gamma law gas, with equation of state:</p>
 <div class="math notranslate nohighlight">
 \[p = (\gamma - 1) \rho e.\]</div>
@@ -280,7 +280,7 @@ e.g. <code class="docutils literal notranslate"><span class="pre">eos_input_re</
 to find the density or temperature that corresponds to the given
 input.</p>
 <p>The eos_state variable is a Fortran derived type (<code class="docutils literal notranslate"><span class="pre">eos_t</span></code>, similar to
-a C&nbsp;struct). It stores a complete set of thermodynamic
+a C struct). It stores a complete set of thermodynamic
 variables. When calling the EOS, you should first fill the variables
 that are the inputs, for example with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">eos_type_module</span>
@@ -307,7 +307,7 @@ density suffices if it’s available, but if not then use <code class="docutils 
 <p>If you are interested in using more realistic and sophisticated equations of
 state, you should download the <a class="reference external" href="https://github.com/starkiller-astro/Microphysics">Microphysics</a>
 repository. This is a collection of microphysics routines that are compatible with the
-BoxLib&nbsp;codes. We refer you to the documentation in that repository for how to set it up
+BoxLib codes. We refer you to the documentation in that repository for how to set it up
 and for information on the equations of state provided. That documentation
 also goes into more detail about the details of the EOS code, in case you are interested in
 how it works (and in case you want to develop your own EOS).</p>
@@ -316,32 +316,32 @@ how it works (and in case you want to develop your own EOS).</p>
 <h3>Required Thermodynamics Quantities<a class="headerlink" href="#required-thermodynamics-quantities" title="Permalink to this headline">¶</a></h3>
 <p>Three input qwuantities are required of any EOS:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(T\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_input_rp</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(P\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(T\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_rp</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(P\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">eos_t</span></code> derived type holds a large number of thermodynamics
 quantities, but not all of these are needed for basic
-Castro&nbsp;operation. The main quantities that any EOS in any mode needs to
+Castro operation. The main quantities that any EOS in any mode needs to
 supply, if they are not input, are:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">T</span></code>: the temperature</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">P</span></code>: total pressure</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">e</span></code>: the specific energy</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">gam1</span></code>: the first adiabatic index,
-<span class="math notranslate nohighlight">\(\Gamma_1 = d\log P / d\log \rho |_s\)</span></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">T</span></code>: the temperature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">P</span></code>: total pressure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">e</span></code>: the specific energy</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">gam1</span></code>: the first adiabatic index,
+<span class="math notranslate nohighlight">\(\Gamma_1 = d\log P / d\log \rho |_s\)</span></p></li>
 </ul>
 <p>Additionally the <code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code> mode also needs to supply:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cs</span></code>: the adiabatic sound speed</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpdr_e</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p/\partial \rho |_e\)</span>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cs</span></code>: the adiabatic sound speed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpdr_e</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p/\partial \rho |_e\)</span>
 — note that the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>
-is held constant here.</li>
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpde</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p / \partial e |_\rho\)</span></li>
+is held constant here.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpde</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p / \partial e |_\rho\)</span></p></li>
 </ul>
 <p>For radiation hydro, the <code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code> model needs to supply:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cv</span></code>: the specific heat capacity.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cv</span></code>: the specific heat capacity.</p></li>
 </ul>
 <p>Other quantities (e.g., entropy) might be needed for the derived
 variables that are optional output into the plotfiles.</p>
@@ -350,13 +350,13 @@ variables that are optional output into the plotfiles.</p>
 <h3>Composition derivatives<a class="headerlink" href="#composition-derivatives" title="Permalink to this headline">¶</a></h3>
 <p id="index-1">A separate type, <code class="docutils literal notranslate"><span class="pre">eos_xderivs_t</span></code> provides access to derivatives with respect to mass fraction.</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dhdX(nspec)</span></code>: the derivative of the
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dhdX(nspec)</span></code>: the derivative of the
 specific enthalpy with respect to mass fraction at constant
 <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(p\)</span>:</p>
 <div class="math notranslate nohighlight">
 \[\xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\]</div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dpdx(nspec)</span></code>: the derivative of the pressure with respect to mass fraction:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dpdx(nspec)</span></code>: the derivative of the pressure with respect to mass fraction:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 p_{X_k} &amp;= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
@@ -369,7 +369,7 @@ p_{X_k} &amp;= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \ba
           \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
 \end{align}\end{split}\]</div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dedx(nspec)</span></code>: the derivative of the specific internal energy with respect to mass fraction:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dedx(nspec)</span></code>: the derivative of the specific internal energy with respect to mass fraction:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 e_{X_k} &amp;= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
@@ -383,7 +383,7 @@ e_{X_k} &amp;= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \
 \end{align}\end{split}\]</div>
 </li>
 </ul>
-<p>(see <a class="reference internal" href="zreferences.html#maestro-iii" id="id1">[maestro:III]</a>, Appendix A).</p>
+<p>(see <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id1">[7]</a>, Appendix A).</p>
 </div>
 </div>
 <div class="section" id="nuclear-network">

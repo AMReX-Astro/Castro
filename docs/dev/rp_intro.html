@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -238,7 +238,7 @@ C++ code and headers at compile time.</p>
 controlled by a different set of runtime parameters. These parameters are defined
 in plain-text files <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> located in the different
 directories that hold the microphysics code. At compile time, a
-script in the AMReX&nbsp;bulid system, <code class="docutils literal notranslate"><span class="pre">findparams.py</span></code>, locates all
+script in the AMReX bulid system, <code class="docutils literal notranslate"><span class="pre">findparams.py</span></code>, locates all
 of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
 parameters into a module named <code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code> (using the
@@ -246,7 +246,7 @@ parameters into a module named <code class="docutils literal notranslate"><span 
 probin file in the <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist.</p>
 <div class="section" id="c-parameter-format">
 <h3>C++ parameter format<a class="headerlink" href="#c-parameter-format" title="Permalink to this headline">¶</a></h3>
-<p>The C&nbsp;parameters take the form of:</p>
+<p>The C parameters take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
 name   type   default   need in Fortran?   ifdef    fortran name    fortran type
 </pre></div>
@@ -254,7 +254,7 @@ name   type   default   need in Fortran?   ifdef    fortran name    fortran type
 <p>Here,</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><cite>name</cite> is the name of the parameter that will be looked for
+<li><p><cite>name</cite> is the name of the parameter that will be looked for
 in the inputs file.</p>
 <p>The name can actually take the form of <code class="docutils literal notranslate"><span class="pre">(a,</span> <span class="pre">b)</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is
 the name to be used in the inputs file where the parameter is set
@@ -262,10 +262,8 @@ and <code class="docutils literal notranslate"><span class="pre">b</span></code>
 recommended to name new parameters with this functionality—this
 was implemented for backwards compatibility.</p>
 </li>
-<li><p class="first"><cite>type</cite> is one of int, Real, or string</p>
-</li>
-<li><p class="first"><cite>default</cite> is the default value of the parameter.</p>
-</li>
+<li><p><cite>type</cite> is one of int, Real, or string</p></li>
+<li><p><cite>default</cite> is the default value of the parameter.</p></li>
 </ul>
 </div></blockquote>
 <p>The next columns are optional, but you need to fill in all of the
@@ -274,15 +272,15 @@ information up to and including any of the optional columns you need
 provide “need in Fortran?” and “ifdef”.</p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>need in Fortran?</cite> is <code class="docutils literal notranslate"><span class="pre">y</span></code> if the runtime parameter should be
-made available in Fortran (through <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>).</li>
-<li><cite>ifdef</cite> provides the name of a preprocessor name that should
+<li><p><cite>need in Fortran?</cite> is <code class="docutils literal notranslate"><span class="pre">y</span></code> if the runtime parameter should be
+made available in Fortran (through <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>).</p></li>
+<li><p><cite>ifdef</cite> provides the name of a preprocessor name that should
 wrap this parameter definition—it will only be compiled in if that
-name is defined to the preprocessor.</li>
-<li><cite>fortran name</cite> is the name that the parameter should use in
-Fortran—by default it will be the same as name.</li>
-<li><cite>fortran type</cite> is the data type of the parameter in Fortran—by
-default it will be the Fortran-equivalent to type.</li>
+name is defined to the preprocessor.</p></li>
+<li><p><cite>fortran name</cite> is the name that the parameter should use in
+Fortran—by default it will be the same as name.</p></li>
+<li><p><cite>fortran type</cite> is the data type of the parameter in Fortran—by
+default it will be the Fortran-equivalent to type.</p></li>
 </ul>
 </div></blockquote>
 <p>Finally, any comment (starting with <code class="docutils literal notranslate"><span class="pre">#</span></code>) immediately before the
@@ -306,7 +304,7 @@ specific implementations to override the general parameter defaults.</p>
 <h2>Removed Runtime Parameters<a class="headerlink" href="#removed-runtime-parameters" title="Permalink to this headline">¶</a></h2>
 <p>The following runtime parameters have been removed for Castro.</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.ppm_flatten_before_integrals</span></code> : this parameter
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_flatten_before_integrals</span></code> : this parameter
 controlled whether we applied the flattening of the parabolic
 profiles before we integrated under their profiles or afterwards.
 The default was switched to flattening before the integration,
@@ -315,7 +313,7 @@ parameter was removed since the variation enabled by this parameter
 was not that great.</p>
 <p>(removed in commit: 9cab697268997714919de16db1ca7e77a95c4f98)</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">castro.ppm_reference</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.ppm_reference_edge_limit</span></code> :
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_reference</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.ppm_reference_edge_limit</span></code> :
 these parameters controlled whether we use the integral under the
 parabola for the fastest wave moving toward the interface for the
 reference state and whether in the case that the wave is moving away

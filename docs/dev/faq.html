@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -220,7 +220,7 @@
 <div class="section" id="compiling">
 <h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>Compiling fails giving me a cryptic message about a module not
+<li><p><em>Compiling fails giving me a cryptic message about a module not
 being found, usually bl_types or bl_error_module, like:</em></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpif90</span> <span class="o">-</span><span class="n">fno</span><span class="o">-</span><span class="nb">range</span><span class="o">-</span><span class="n">check</span> <span class="o">-</span><span class="n">fno</span><span class="o">-</span><span class="n">second</span><span class="o">-</span><span class="n">underscore</span>
  <span class="o">-</span><span class="n">Jo</span><span class="o">/</span><span class="mi">3</span><span class="n">d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">gcc</span><span class="o">.</span><span class="n">gfortran</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">EXE</span> <span class="o">-</span><span class="n">I</span> <span class="n">o</span><span class="o">/</span><span class="mi">3</span><span class="n">d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">gcc</span><span class="o">.</span><span class="n">gfortran</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">EXE</span>
@@ -252,7 +252,7 @@ being found, usually bl_types or bl_error_module, like:</em></p>
 (note: the problem above is not bl_types, that just seems to be
 the way the error manifests itself). The source files are specified
 in the various Make.package files throughout the
-Castro&nbsp;directory hierarchy. make will look through the
+Castro directory hierarchy. make will look through the
 directories in the VPATH_LOCATIONS to find the files.</p>
 <p>There are 2 things you can do to check what’s happening. First, inspect
 the directories in VPATH_LOCATIONS. This can be done via:</p>
@@ -270,7 +270,7 @@ the vpath. Some of these are to be expected (like extern.f90
 and buildInfo.cpp—these are written at compiletime. But any
 other missing files need to be investigated.</p>
 </li>
-<li><p class="first"><em>I’m still having trouble compiling. How can I find out what
+<li><p><em>I’m still having trouble compiling. How can I find out what
 all of the make variables are set to?</em></p>
 <p>Use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">help</span>
@@ -278,15 +278,15 @@ all of the make variables are set to?</em></p>
 </div>
 <p>This will tell you the value of all the compilers and their options.</p>
 </li>
-<li><p class="first"><em>How do I use a system’s BLAS library instead of compiling and
-linking the one that comes with the StarKiller&nbsp;microphysics?</em></p>
+<li><p><em>How do I use a system’s BLAS library instead of compiling and
+linking the one that comes with the StarKiller microphysics?</em></p>
 <p>To use a system’s BLAS library, set the Make variable
 USE_SYSTEM_BLAS to TRUE. This will then look at
 the Make variable BLAS_LIBRARY for the library to link
 (defaults to -lopenblas).</p>
 </li>
-<li><p class="first"><em>How can I check to make sure the function signatures defined
-in C&nbsp;are consistent with their implementations in Fortran?</em></p>
+<li><p><em>How can I check to make sure the function signatures defined
+in C are consistent with their implementations in Fortran?</em></p>
 <p>Use:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">typecheck</span>
 </pre></div>
@@ -298,32 +298,32 @@ in C&nbsp;are consistent with their implementations in Fortran?</em></p>
 <div class="section" id="debugging">
 <h2>Debugging<a class="headerlink" href="#debugging" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>Castro&nbsp;crashes with a floating point exception—how can
+<li><p><em>Castro crashes with a floating point exception—how can
 I get more information?</em></p>
 <p>The best thing to do is to recompile the code with TEST=TRUE
-set in the GNUmakefile. This will have AMReX&nbsp;catch the
-signals raised in both C&nbsp;and Fortran functions. Behind the
+set in the GNUmakefile. This will have AMReX catch the
+signals raised in both C and Fortran functions. Behind the
 scenes, this defines the AMREX_TESTING preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the BLBackTrace::handler()
-function to handle various signals raised in both C&nbsp;and Fortran
+function to handle various signals raised in both C and Fortran
 functions. This is a Linux/UNIX capability. This gives us a chance
 to print out backtrace information. The signals include seg fault,
 floating point exceptions (NaNs, divided by zero and overflow), and
 interruption by the user and system. What signals are handed to
-AMReX&nbsp;are controlled by AMReX(e.g., using interruption by the
+AMReX are controlled by AMReX(e.g., using interruption by the
 user, this was once used to find an MPI deadlock.) It also includes
 the BL_ASSERTION statements if USE_ASSERTION=TRUE or
 DEBUG=TRUE.</p>
-<p>The AMReX&nbsp;parameters that affect the behavior are:</p>
+<p>The AMReX parameters that affect the behavior are:</p>
 <ul class="simple">
-<li>amrex.fpe_trap_invalid</li>
-<li>amrex.fpe_trap_zero</li>
-<li>amrex.fpe_trap_overflow</li>
+<li><p>amrex.fpe_trap_invalid</p></li>
+<li><p>amrex.fpe_trap_zero</p></li>
+<li><p>amrex.fpe_trap_overflow</p></li>
 </ul>
 <p>For further capabilities, defining BACKTRACE=TRUE enables you
 to get more information than the backtrace of the call stack info by
-instrumenting the code. (This is in C&nbsp;code only). Here is an
+instrumenting the code. (This is in C code only). Here is an
 example. You know the line “Real rho = state(cell,0);” is
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
@@ -340,9 +340,9 @@ Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 <p>The “print” prints to a stack of string, not stdout. When it
 hits the segfault, you will only see the last print out.</p>
 </li>
-<li><p class="first"><em>How can I monitor the state in a zone from the C&nbsp;side
+<li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
-<p>Given a MultiFab&nbsp;mf, you can dump out the state as:</p>
+<p>Given a MultiFab mf, you can dump out the state as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
 </pre></div>
 </div>
@@ -352,9 +352,9 @@ this case, we are inspecting zone (10, 20, 30), in the global index
 space. Note that since a multifab exists only on a single level, the
 integer indices here refer to the global index space on that level.</p>
 </li>
-<li><p class="first"><em>What if I want to see all the data in a FArrayBox?</em></p>
+<li><p><em>What if I want to see all the data in a FArrayBox?</em></p>
 <p>You can simply output a FAB to std::cout. Imagine that you
-are in an MFIter&nbsp;loop, with a MultiFab&nbsp;mf:</p>
+are in an MFIter loop, with a MultiFab mf:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S</span> <span class="o">=</span> <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
 <span class="n">std</span><span class="p">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">S</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="p">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
@@ -366,7 +366,7 @@ are in an MFIter&nbsp;loop, with a MultiFab&nbsp;mf:</p>
 <div class="section" id="profiling">
 <h2>Profiling<a class="headerlink" href="#profiling" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>How can I get line-by-line profiling information?</em></p>
+<li><p><em>How can I get line-by-line profiling information?</em></p>
 <p>With the GNU compliers, you can enabling profiling with gprof
 by compiling with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_GPROF</span><span class="o">=</span><span class="n">TRUE</span>
@@ -387,7 +387,7 @@ argument to gprof.</p>
 <div class="section" id="managing-runs">
 <h2>Managing Runs<a class="headerlink" href="#managing-runs" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>How can I force the running code to output, even it the plot or
+<li><p><em>How can I force the running code to output, even it the plot or
 checkpoint interval parameters don’t require it?</em></p>
 <p>Create a file called dump_and_continue, e.g., as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">touch</span> <span class="n">dump_and_continue</span>
@@ -402,8 +402,8 @@ the existence of these files is checked; by default it is 10, so the
 check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you’d like it to check every timestep.</p>
 </li>
-<li><p class="first"><em>How can I output plotfiles in single precision?</em></p>
-<p>The AMReX&nbsp;runtime parameter:</p>
+<li><p><em>How can I output plotfiles in single precision?</em></p>
+<p>The AMReX runtime parameter:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fab</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">NATIVE_32</span>
 </pre></div>
 </div>
@@ -411,7 +411,7 @@ Set that to 1 in your inputs file if you’d like it to check every timestep.</p
 by this and will always be written out in the native precision (the ‘fab.format‘ parameter
 is overridden in the checkpoint code in AMReX).</p>
 </li>
-<li><p class="first"><em>How can I check the compilation parameters of a Castro executable?</em></p>
+<li><p><em>How can I check the compilation parameters of a Castro executable?</em></p>
 <p>The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro</span><span class="o">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">display</span>
 </pre></div>
@@ -422,7 +422,7 @@ is overridden in the checkpoint code in AMReX).</p>
 <div class="section" id="runtime-errors">
 <span id="ch-faq-vis"></span><h2>Runtime Errors<a class="headerlink" href="#runtime-errors" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>When running with retries, Castro requests too many substeps
+<li><p><em>When running with retries, Castro requests too many substeps
 and crashes.</em></p>
 <p>This can occur due to CFL violations or negative densities.  If
 there are density resets, try running with
@@ -434,7 +434,7 @@ limiter to prevent the density from going negative.</p>
 <div class="section" id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><em>When I try to use Amrvis&nbsp;with the Nvidia driver, all I see is
+<li><p><em>When I try to use Amrvis with the Nvidia driver, all I see is
 black—no data. How do I fix this?</em></p>
 <p>You need to edit your xorg.conf file (usually found in /etc/X11/
 to enable the Dac8Bit option. The section will look like:</p>

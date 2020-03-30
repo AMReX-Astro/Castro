@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ext_src_nd.F90 &mdash; Castro 20.03
+  <title>File rad_util.H &mdash; Castro 20.03
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="sponge_nd.F90" href="sponge_nd_f.html" />
-    <link rel="prev" title="File Castro_sources.H" href="Castro__sources_8H.html" /> 
+    <link rel="next" title="Reactions" href="../reactions_files.html" />
+    <link rel="prev" title="File fluxlimiter.H" href="fluxlimiter_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/ext_src_nd_f.html">master</a> | <a href="../file/ext_src_nd_f.html">development</a>
+        Branch: <a href="../../file/rad__util_8H.html">master</a> | <a href="../file/rad__util_8H.html">development</a>
     </div>
 
         </div>
@@ -144,22 +144,24 @@
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fluxlimiter_8H.html">File fluxlimiter.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File rad_util.H</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ext_src_nd.F90</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#ca-ext-src-subroutine">ca_ext_src subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="sponge_nd_f.html">sponge_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="thermo_nd_f.html">thermo_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="update_sponge_params_f.html">update_sponge_params.f90</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -214,15 +216,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
+          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
         
-      <li>ext_src_nd.F90</li>
+      <li>File rad_util.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/ext_src_nd_f.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/rad__util_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -235,54 +237,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="ext-src-nd-f90">
-<h1>ext_src_nd.F90<a class="headerlink" href="#ext-src-nd-f90" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="ca-ext-src-subroutine">
-<h2>ca_ext_src subroutine<a class="headerlink" href="#ca-ext-src-subroutine" title="Permalink to this headline">¶</a></h2>
-<dl class="subroutine">
-<dt id="f/_/ca_ext_src">
-<em class="property">subroutine  </em><code class="descname">ca_ext_src</code><span class="sig-paren">(</span><em>lo</em>, <em>hi</em>, <em>old_state</em>, <em>os_lo</em>, <em>os_hi</em>, <em>new_state</em>, <em>ns_lo</em>, <em>ns_hi</em>, <em>src</em>, <em>src_lo</em>, <em>src_hi</em>, <em>problo</em>, <em>dx</em>, <em>time</em>, <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#f/_/ca_ext_src" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the external sources for all the conservative equations.</p>
-<p>This is called twice in the evolution:</p>
-<p>First, for the predictor, it is called with (old, old) states.</p>
-<p>This is also used in the first pass of the conservative update
-(adding dt * S there).</p>
-<p>Next we correct the source terms in the conservative update to
-:p real time [in,value]: center them.  Here we call ext_src(old, new), and then
-in time_center_source_terms we subtract off 1/2 of the first S
-and add 1/2 of the new S.</p>
-<p>Therefore, to get a properly time-centered source, generally
-speaking, you always want to use the “new” state here.  That
-will be the time n state in the first call and the n+1 in the
-second call.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>old_state</strong> (os_hi(1)-(os_lo(1))+1,os_hi(2)-(os_lo(2))+1,os_hi(3)-(os_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>os_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>os_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>new_state</strong> (ns_hi(1)-(ns_lo(1))+1,ns_hi(2)-(ns_lo(2))+1,ns_hi(3)-(ns_lo(3))+1,nvar)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ns_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>ns_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src</strong> (src_hi(1)-(src_lo(1))+1,src_hi(2)-(src_lo(2))+1,src_hi(3)-(src_lo(3))+1,nsrc)<em> [</em><em>real</em><em>,</em><em>inout</em><em>]</em></li>
-<li><strong>src_lo</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>src_hi</strong> (3)<em> [</em><em>integer</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>problo</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dx</strong> (3)<em> [</em><em>real</em><em>,</em><em>in</em><em>]</em></li>
-<li><strong>dt</strong><em> [</em><em>real</em><em>,</em><em>in,value</em><em>]</em></li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Use :</th><td class="field-body"><p class="first last"><code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_constants_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">zero()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">meth_params_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">nvar()</span></code>, <code class="xref f f-func docutils literal notranslate"><span class="pre">nsrc()</span></code>), <code class="xref f f-mod docutils literal notranslate"><span class="pre">amrex_fort_module</span></code> (<code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code> =&gt; <code class="xref f f-func docutils literal notranslate"><span class="pre">rt()</span></code>)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+  <div class="section" id="file-rad-util-h">
+<h1>File rad_util.H<a class="headerlink" href="#file-rad-util-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt>
+<span class="target" id="rad__util_8H_1aedfe757fb930db4aadd2c253bc55bb4c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_ptot_ctot(const Real * lam, const Real * q, int is_comoving, int limiter, int closure, Real cg, Real &amp; ptot, Real &amp; ctot, Real &amp; gamc_tot)</code></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -295,10 +257,10 @@ second call.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="sponge_nd_f.html" class="btn btn-neutral float-right" title="sponge_nd.F90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../reactions_files.html" class="btn btn-neutral float-right" title="Reactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__sources_8H.html" class="btn btn-neutral float-left" title="File Castro_sources.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fluxlimiter_8H.html" class="btn btn-neutral float-left" title="File fluxlimiter.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

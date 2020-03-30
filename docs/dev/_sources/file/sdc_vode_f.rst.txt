@@ -1,8 +1,0 @@
-sdc_vode.F90
-============
-
-sdc\_vode\_rhs\_module
-----------------------
-
-.. f:automodule:: sdc_vode_rhs_module
-
