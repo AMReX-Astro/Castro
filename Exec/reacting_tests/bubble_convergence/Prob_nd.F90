@@ -152,10 +152,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
               state(i,j,k,URHO) = eos_state%rho
 
-              state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
+              ! correct the mass fractions and energy with the new density 
+              state(i,j,k,UEINT) = (state(i,j,k,URHO) / rho_old) * eos_state % e
               state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
-              ! correct the mass fractions with the new density
               do n = 1,nspec
                  state(i,j,k,UFS+n-1) = (state(i,j,k,URHO) / rho_old) * state(i,j,k,UFS+n-1)
               enddo
