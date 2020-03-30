@@ -56,16 +56,6 @@ Castro::cons_to_prim(const Real time)
                 q_arr,
                 qaux_arr);
 
-        // Convert the source terms expressed as sources to the conserved state to those
-        // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind ||
-            time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-          Array4<Real> const src_q_arr = src_q.array(mfi);
-
-          src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
-        }
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC

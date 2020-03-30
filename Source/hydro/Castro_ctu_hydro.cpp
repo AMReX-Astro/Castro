@@ -168,7 +168,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           q[mfi].prefetchToDevice();
           qaux[mfi].prefetchToDevice();
-          src_q[mfi].prefetchToDevice();
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
@@ -1414,7 +1413,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           q[mfi].prefetchToHost();
           qaux[mfi].prefetchToHost();
-          src_q[mfi].prefetchToHost();
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();
