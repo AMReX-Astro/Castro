@@ -1,23 +1,25 @@
 #!/bin/bash
 
 
+EXEC=./Castro1d.gnu.MPI.ex
+
 ## ppm
 
 ofile=ppm.converge.out
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 >& 64.out
+${EXEC} inputs.ppm.64 >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 >& 128.out
+${EXEC} inputs.ppm.128 >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 >& 256.out
+${EXEC} inputs.ppm.256 >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 >& 512.out
+${EXEC} inputs.ppm.512 >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -30,19 +32,19 @@ RUNPARAMS="
 castro.grav_source_type=4
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -56,19 +58,19 @@ castro.lo_bc=3
 castro.hi_bc=3
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -82,19 +84,19 @@ RUNPARAMS="
 castro.ppm_type=0
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -109,19 +111,19 @@ castro.plm_well_balanced=1
 castro.use_pslope=0
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -137,19 +139,19 @@ castro.lo_bc=3
 castro.hi_bc=3
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -166,19 +168,19 @@ castro.hi_bc=3
 castro.use_pslope=0
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
@@ -196,19 +198,19 @@ castro.plm_well_balanced=1
 castro.use_pslope=0
 """
 
-./Castro1d.gnu.MPI.ex inputs.ppm.64 ${RUNPARAMS} >& 64.out
+${EXEC} inputs.ppm.64 ${RUNPARAMS} >& 64.out
 pfile=`ls -t | grep -i hse_64_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel > ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.128 ${RUNPARAMS} >& 128.out
+${EXEC} inputs.ppm.128 ${RUNPARAMS} >& 128.out
 pfile=`ls -t | grep -i hse_128_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.256 ${RUNPARAMS} >& 256.out
+${EXEC} inputs.ppm.256 ${RUNPARAMS} >& 256.out
 pfile=`ls -t | grep -i hse_256_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
-./Castro1d.gnu.MPI.ex inputs.ppm.512 ${RUNPARAMS} >& 512.out
+${EXEC} inputs.ppm.512 ${RUNPARAMS} >& 512.out
 pfile=`ls -t | grep -i hse_512_plt | head -1` 
 fextrema.gnu.ex -v magvel ${pfile} | grep -i magvel >> ${ofile}
 
