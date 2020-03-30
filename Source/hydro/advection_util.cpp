@@ -142,8 +142,9 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QTEMP) = eos_state.T;
     q_arr(i,j,k,QREINT) = eos_state.e * q_arr(i,j,k,QRHO);
     q_arr(i,j,k,QPRES) = eos_state.p;
+#ifdef TRUE_SDC
     q_arr(i,j,k,QGC) = eos_state.gam1;
-
+#endif
     qaux_arr(i,j,k,QDPDR) = eos_state.dpdr_e;
     qaux_arr(i,j,k,QDPDE) = eos_state.dpde;
 
