@@ -87,6 +87,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
     FArrayBox dq;
     FArrayBox shk;
+    FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
     FArrayBox qym, qyp;
@@ -187,7 +188,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real const> const q_arr = q.array(mfi);
       Array4<Real const> const qaux_arr = qaux.array(mfi);
-      Array4<Real const> const src_q_arr = src_q.array(mfi);
 
       Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
@@ -273,6 +273,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
       }
+
+      // get the primitive variable hydro sources
+      src_q.resize(obx, NQSRC);
+      Elixir elix_src_q = src_q.elixir();
+      fab_size += src_q.nBytes();
+      Array4<Real> const src_q_arr = src_q.array();
+
+      Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+
+      src_to_prim(obx, q_arr, qaux_arr, src_arr, src_q_arr);
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
