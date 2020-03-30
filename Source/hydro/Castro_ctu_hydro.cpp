@@ -275,14 +275,37 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
 
       // get the primitive variable hydro sources
-      src_q.resize(obx, NQSRC);
+
+      const Box& qbx = amrex::grow(bx, NUM_GROW);
+
+      src_q.resize(qbx, NQSRC);
       Elixir elix_src_q = src_q.elixir();
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
       Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-      src_to_prim(obx, q_arr, qaux_arr, src_arr, src_q_arr);
+      src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+
+#ifndef RADIATION
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+        // Add in the reactions source term; only done in simplified SDC.
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+
+            if (do_react)
+              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx, 0, 0, NQSRC);
+
+        }
+#endif
+#endif
+#endif
+
+
+      // work on the interface states
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
