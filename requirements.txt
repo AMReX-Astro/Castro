@@ -2,6 +2,7 @@ Sphinx<2.0
 sphinx_rtd_theme
 breathe<4.13
 sphinxcontrib_bibtex
+sphinxcontrib-websupport<=1.2.0
 numpydoc
 more_itertools
 numpy
