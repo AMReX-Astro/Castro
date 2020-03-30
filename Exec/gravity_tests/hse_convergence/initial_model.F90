@@ -88,7 +88,7 @@ contains
     p = eos_state % p
 
 
-    if (time_integration_method == 3 .and. sdc_order == 4) then
+    if (time_integration_method == 2 .and. sdc_order == 4) then
 
        ! a fourth order accurate method
 
