@@ -52,71 +52,11 @@ Castro::uslope(const Box& bx, const int idir,
     // second-order -- piecewise linear slopes
 
     const int lplm_limiter = plm_limiter;
-    const int lplm_well_balanced = plm_well_balanced;
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
-      if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
-        // we'll only do a second-order pressure slope,
-        // but we'll follow the well-balanced scheme of
-        // Kappeli.  Note at the moment we are assuming
-        // constant gravity.
-
-        Real p0;
-        Real pp1;
-        Real pm1;
-
-        if (idir == 0) {
-          p0 = 0.0_rt;
-          pp1 = q_arr(i+1,j,k,QPRES) - (p0 + 0.5_rt*dx[0]*(q_arr(i,j,k,QRHO) + q_arr(i+1,j,k,QRHO))*lconst_grav);
-          pm1 = q_arr(i-1,j,k,QPRES) - (p0 - 0.5_rt*dx[0]*(q_arr(i,j,k,QRHO) + q_arr(i-1,j,k,QRHO))*lconst_grav);
-
-          if (i == domlo[0] && lo_bc_test) {
-            pm1 = 0.0_rt;  // HSE is perfectly satisfied
-          }
-
-          if (i == domhi[0] && hi_bc_test) {
-            pp1 = 0.0_rt;
-          }
-
-        } else if (idir == 1) {
-          p0 = 0.0_rt;
-          pp1 = q_arr(i,j+1,k,QPRES) - (p0 + 0.5_rt*dx[1]*(q_arr(i,j,k,QRHO) + q_arr(i,j+1,k,QRHO))*lconst_grav);
-          pm1 = q_arr(i,j-1,k,QPRES) - (p0 - 0.5_rt*dx[1]*(q_arr(i,j,k,QRHO) + q_arr(i,j-1,k,QRHO))*lconst_grav);
-
-          if (j == domlo[1] && lo_bc_test) {
-            pm1 = 0.0_rt;  // HSE is perfectly satisfied
-          }
-
-          if (j == domhi[1] && hi_bc_test) {
-            pp1 = 0.0_rt;
-          }
-
-        } else {
-          p0 = 0.0_rt;
-          pp1 = q_arr(i,j,k+1,QPRES) - (p0 + 0.5_rt*dx[2]*(q_arr(i,j,k,QRHO) + q_arr(i,j,k+1,QRHO))*lconst_grav);
-          pm1 = q_arr(i,j,k-1,QPRES) - (p0 - 0.5_rt*dx[2]*(q_arr(i,j,k,QRHO) + q_arr(i,j,k-1,QRHO))*lconst_grav);
-
-          if (k == domlo[2] && lo_bc_test) {
-            pm1 = 0.0_rt;  // HSE is perfectly satisfied
-          }
-
-          if (k == domhi[2] && hi_bc_test) {
-            pp1 = 0.0_rt;
-          }
-        }
-
-        Real dlft = 2.0_rt*(p0 - pm1);
-        Real drgt = 2.0_rt*(pp1 - p0);
-        Real dcen = 0.25_rt * (dlft + drgt);
-        Real dsgn = std::copysign(1.0_rt, dcen);
-        Real slop = amrex::min(std::abs(dlft), std::abs(drgt));
-        Real dlim = dlft*drgt >= 0.0_rt ? slop : 0.0_rt;
-
-        dq(i,j,k,n) = flatn_arr(i,j,k)*dsgn*amrex::min(dlim, std::abs(dcen));
-
-      } else if (lplm_limiter == 1) {
+      if (lplm_limiter == 1) {
         // the 2nd order MC limiter
 
         Real qm1;
@@ -280,6 +220,103 @@ Castro::pslope(const Box& bx, const int idir,
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
+      Real p0;
+      Real pp1;
+      Real pm1;
+      Real pp2;
+      Real pm2;
+
+      Real p0_hse;
+      Real pp1_hse;
+      Real pp2_hse;
+      Real pm1_hse;
+      Real pm2_hse;
+
+      if (idir == 0) {
+
+        p0_hse = q_arr(i,j,k,QPRES);
+
+        pp1_hse = p0_hse + 0.25_rt*dx[0] *
+          (q_arr(i,j,k,QRHO) + q_arr(i+1,j,k,QRHO)) *
+          (src(i,j,k,QU) + src(i+1,j,k,QU));
+        pp2_hse = pp1_hse + 0.25_rt*dx[0] *
+          (q_arr(i+1,j,k,QRHO) + q_arr(i+2,j,k,QRHO)) *
+          (src(i+1,j,k,QU) + src(i+2,j,k,QU));
+
+        pm1_hse = p0_hse - 0.25_rt*dx[0] *
+          (q_arr(i,j,k,QRHO) + q_arr(i-1,j,k,QRHO)) *
+          (src(i,j,k,QU) + src(i-1,j,k,QU));
+        pm2_hse = pm1_hse - 0.25_rt*dx[0] *
+          (q_arr(i-1,j,k,QRHO) + q_arr(i-2,j,k,QRHO)) *
+          (src(i-1,j,k,QU) + src(i-2,j,k,QU));
+
+        p0 = 0.0_rt;
+        pp1 = q_arr(i+1,j,k,QPRES) - pp1_hse;
+        pp2 = q_arr(i+2,j,k,QPRES) - pp2_hse;
+
+        pm1 = q_arr(i-1,j,k,QPRES) - pm1_hse;
+        pm2 = q_arr(i-2,j,k,QPRES) - pm2_hse;
+
+        // if (i == domlo[0] && lo_bc_test) {
+        //   pm1 = 0.0_rt;  // HSE is perfectly satisfied
+        // }
+
+        // if (i == domhi[0] && hi_bc_test) {
+        //   pp1 = 0.0_rt;
+        // }
+
+      } else if (idir == 1) {
+
+        p0_hse = q_arr(i,j,k,QPRES);
+
+        pp1_hse = p0_hse + 0.25_rt*dx[1] *
+          (q_arr(i,j,k,QRHO) + q_arr(i,j+1,k,QRHO)) *
+          (src(i,j,k,QV) + src(i,j+1,k,QV));
+        pp2_hse = pp1_hse + 0.25_rt*dx[1] *
+          (q_arr(i,j+1,k,QRHO) + q_arr(i,j+2,k,QRHO)) *
+          (src(i,j+1,k,QV) + src(i,j+2,k,QV));
+
+        pm1_hse = p0_hse - 0.25_rt*dx[1] *
+          (q_arr(i,j,k,QRHO) + q_arr(i,j-1,k,QRHO)) *
+          (src(i,j,k,QV) + src(i,j-1,k,QV));
+        pm2_hse = pm1_hse - 0.25_rt*dx[1] *
+          (q_arr(i,j-1,k,QRHO) + q_arr(i,j-2,k,QRHO)) *
+          (src(i,j-1,k,QV) + src(i,j-2,k,QV));
+
+        p0 = 0.0_rt;
+        pp1 = q_arr(i,j+1,k,QPRES) - pp1_hse;
+        pp2 = q_arr(i,j+2,k,QPRES) - pp2_hse;
+
+        pm1 = q_arr(i,j-1,k,QPRES) - pm1_hse;
+        pm2 = q_arr(i,j-2,k,QPRES) - pm2_hse;
+
+      } else {
+
+        p0_hse = q_arr(i,j,k,QPRES);
+
+        pp1_hse = p0_hse + 0.25_rt*dx[2] *
+          (q_arr(i,j,k,QRHO) + q_arr(i,j,k+1,QRHO)) *
+          (src(i,j,k,QW) + src(i,j,k+1,QW));
+        pp2_hse = pp1_hse + 0.25_rt*dx[2] *
+          (q_arr(i,j,k+1,QRHO) + q_arr(i,j,k+2,QRHO)) *
+          (src(i,j,k+1,QW) + src(i,j,k+2,QW));
+
+        pm1_hse = p0_hse - 0.25_rt*dx[2] *
+          (q_arr(i,j,k,QRHO) + q_arr(i,j,k-1,QRHO)) *
+          (src(i,j,k,QW) + src(i,j,k-1,QW));
+        pm2_hse = pm1_hse - 0.25_rt*dx[2] *
+          (q_arr(i,j,k-1,QRHO) + q_arr(i,j,k-2,QRHO)) *
+          (src(i,j,k-1,QW) + src(i,j,k-2,QW));
+
+        p0 = 0.0_rt;
+        pp1 = q_arr(i,j,k+1,QPRES) - pp1_hse;
+        pp2 = q_arr(i,j,k+2,QPRES) - pp2_hse;
+
+        pm1 = q_arr(i,j,k-1,QPRES) - pm1_hse;
+        pm2 = q_arr(i,j,k-2,QPRES) - pm2_hse;
+
+      }
+
       // First compute Fromm slopes
 
       // Dp at i+1
@@ -290,50 +327,11 @@ Castro::pslope(const Box& bx, const int idir,
       // then we compute
       //   Dp_{i+1} = min{ 2 |dp_{i+1}|, 2 |dp_{i+2}|, 1/2 |dp_{i+1} + dp_{i+2}|}
       //
-      // for this construction, we take p_{i+1} as the reference
-      // and subtract off the HSE state integrated from this from each zone center
-      //
+      // we use the value above with HSE removed
 
-      Real dlftp1;
-      Real drgtp1;
+      Real dlftp1 = pp1 - p0;
+      Real drgtp1 = pp2 = pp1;
 
-      if (idir == 0) {
-
-        // this is dp_{i+1} = p_{i+1} - p_i, but we subtract off the
-        // HSE state integrated from p_{i+1}
-        dlftp1 = q_arr(i+1,j,k,QPRES) - q_arr(i,j,k,QPRES);
-        dlftp1 += -0.25_rt * (q_arr(i+1,j,k,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i+1,j,k,QU)+src(i,j,k,QU))*dx[0];
-
-        // this is dp{i+2} = p_{i+2} - p_{i+1}, but we subtract off the
-        // HSE state integrated from p_{i+1}
-        drgtp1 = q_arr(i+2,j,k,QPRES) - q_arr(i+1,j,k,QPRES);
-        drgtp1 += -0.25_rt * (q_arr(i+1,j,k,QRHO) + q_arr(i+2,j,k,QRHO)) *
-          (src(i+1,j,k,QU)+src(i+2,j,k,QU))*dx[0];
-
-      } else if (idir == 1) {
-        dlftp1 = q_arr(i,j+1,k,QPRES) - q_arr(i,j,k,QPRES);
-        dlftp1 += -0.25_rt * (q_arr(i,j+1,k,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i,j+1,k,QV)+src(i,j,k,QV))*dx[1];
-
-        drgtp1 = q_arr(i,j+2,k,QPRES) - q_arr(i,j+1,k,QPRES);
-        drgtp1 += -0.25_rt * (q_arr(i,j+1,k,QRHO) + q_arr(i,j+2,k,QRHO)) *
-          (src(i,j+1,k,QV)+src(i,j+2,k,QV))*dx[1];
-
-      } else {
-        dlftp1 = q_arr(i,j,k+1,QPRES) - q_arr(i,j,k,QPRES);
-        dlftp1 += -0.25_rt * (q_arr(i,j,k+1,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i,j,k+1,QW)+src(i,j,k,QW))*dx[2];
-
-        drgtp1 = q_arr(i,j,k+2,QPRES) - q_arr(i,j,k+1,QPRES);
-        drgtp1 += -0.25_rt * (q_arr(i,j,k+1,QRHO) + q_arr(i,j,k+2,QRHO)) *
-          (src(i,j,k+1,QW)+src(i,j,k+2,QW))*dx[2];
-
-      }
-
-      // now we compute the 2nd order MC / Fromm limited slopes at i+1
-      // using dp_{i+1} and dp_{i+2}
-      // we'll call this Dp_{i+1}
       Real dcen = 0.5_rt*(dlftp1 + drgtp1);
       Real dsgn = std::copysign(1.0_rt, dcen);
       Real dlim = dlftp1*drgtp1 >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlftp1), std::abs(drgtp1)) : 0.0_rt;
@@ -347,50 +345,11 @@ Castro::pslope(const Box& bx, const int idir,
       // then we compute
       //   Dp_{i-1} = min{ 2 |dp_{ii1}|, 2 |dp_i|, 1/2 |dp_{i-1} + dp_i|}
       //
-      // for this construction, we take p_{i-1} as the reference
-      // and subtract off the HSE state integrated from this from each zone center
-      //
+      // again use the values with HSE removed
 
-      Real dlftm1;
-      Real drgtm1;
+      Real dlftm1 = pm1 - pm2;
+      Real drgtm1 = p0 - pm1;
 
-      if (idir == 0) {
-
-        // this is dp_{i-1} = p_{i-1} - p_{i-2}, but we subtract off the
-        // HSE state integrated from p_{i-1}
-        dlftm1 = q_arr(i-1,j,k,QPRES) - q_arr(i-2,j,k,QPRES);
-        dlftm1 += -0.25_rt * (q_arr(i-1,j,k,QRHO) + q_arr(i-2,j,k,QRHO)) *
-          (src(i-1,j,k,QU)+src(i-2,j,k,QU))*dx[0];
-
-        // this is dp_i = p_i - p_{i-1}, but we subtract off the HSE state
-        // integrated from p_{i-1}
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i-1,j,k,QPRES);
-        drgtm1 += -0.25_rt * (q_arr(i-1,j,k,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i-1,j,k,QU)+src(i,j,k,QU))*dx[0];
-
-      } else if (idir == 1) {
-        dlftm1 = q_arr(i,j-1,k,QPRES) - q_arr(i,j-2,k,QPRES);
-        dlftm1 += -0.25_rt * (q_arr(i,j-1,k,QRHO) + q_arr(i,j-2,k,QRHO)) *
-          (src(i,j-1,k,QV)+src(i,j-2,k,QV))*dx[1];
-
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j-1,k,QPRES);
-        drgtm1 += -0.25_rt * (q_arr(i,j-1,k,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i,j-1,k,QV)+src(i,j,k,QV))*dx[1];
-
-      } else {
-        dlftm1 = q_arr(i,j,k-1,QPRES) - q_arr(i,j,k-2,QPRES);
-        dlftm1 += -0.25_rt * (q_arr(i,j,k-1,QRHO) + q_arr(i,j,k-2,QRHO)) *
-          (src(i,j,k-1,QW)+src(i,j,k-2,QW))*dx[2];
-
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j,k-1,QPRES);
-        drgtm1 += -0.25_rt * (q_arr(i,j,k-1,QRHO) + q_arr(i,j,k,QRHO)) *
-          (src(i,j,k-1,QW)+src(i,j,k,QW))*dx[2];
-
-      }
-
-      // now we compute the 2nd order MC / Fromm limited slopes at i-1
-      // using dp_{i-1} and dp_i
-      // we'll call this Dp_{i-1}
       dcen = 0.5_rt*(dlftm1 + drgtm1);
       dsgn = std::copysign(1.0_rt, dcen);
       dlim = dlftm1*drgtm1 >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlftm1), std::abs(drgtm1)) : 0.0_rt;
