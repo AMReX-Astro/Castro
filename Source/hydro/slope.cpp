@@ -165,7 +165,7 @@ Castro::uslope(const Box& bx, const int idir,
           qp2 = q_arr(i+2,j,k,n);
 
           // special consideration for reflecting BCs -- see
-          // Saltzmann p. 162 (but note that Saltzmann has a
+          // Saltzman p. 162 (but note that Saltzman has a
           // sign error)
           if (i == domlo[0] && n == QU && lo_bc_test) {
             qm2 = -qp1;
