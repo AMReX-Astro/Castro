@@ -401,8 +401,13 @@ Castro::pslope(const Box& bx, const int idir,
 
       // this uses Dp_{i+1} and Dp_{i-1} computed above as well as
       // dp_{i+1} and dp_i
+
+      // dp_i
       Real dlft = drgtm1;
+
+      // dp_{i+1}
       Real drgt = dlftp1;
+
       dcen = 0.5_rt*(dlft + drgt);
       dsgn = std::copysign(1.0_rt, dcen);
       dlim = dlft*drgt >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlft), std::abs(drgt)) : 0.0_rt;
