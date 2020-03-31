@@ -43,8 +43,6 @@ castro.small_dens = 1.e-5
 
 castro.ppm_type = 1
 
-castro.allow_negative_energy = 0
-
 castro.diffuse_temp = 1
 castro.diffuse_cutoff_density = 1.e-2
 

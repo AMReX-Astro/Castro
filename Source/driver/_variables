@@ -28,7 +28,7 @@
    x-velocity             QU        NQSRC                                   1                 None
    y-velocity             QV        NQSRC                                   1                 None
    z-velocity             QW        NQSRC                                   1                 None
-   gamma_c                QGC       NQSRC                                   1                 None
+   gamma_c                QGC       NQSRC                                   1                 TRUE_SDC
    pressure               QPRES     NQSRC                                   1                 None
    rho-e                  QREINT    NQSRC                                   1                 None
    B-x                    QMAGX     NQSRC                                   1                 MHD

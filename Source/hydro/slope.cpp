@@ -165,7 +165,7 @@ Castro::uslope(const Box& bx, const int idir,
           qp2 = q_arr(i+2,j,k,n);
 
           // special consideration for reflecting BCs -- see
-          // Saltzmann p. 162 (but note that Saltzmann has a
+          // Saltzman p. 162 (but note that Saltzman has a
           // sign error)
           if (i == domlo[0] && n == QU && lo_bc_test) {
             qm2 = -qp1;
@@ -282,7 +282,18 @@ Castro::pslope(const Box& bx, const int idir,
 
       // First compute Fromm slopes
 
-      // df at i+1
+      // Dp at i+1
+
+      // we need dp_{i+1} = p_{i+1} - p_i
+      // and     dp_{i+2} = p_{i+2} - p_{i-1}
+      //
+      // then we compute
+      //   Dp_{i+1} = min{ 2 |dp_{i+1}|, 2 |dp_{i+2}|, 1/2 |dp_{i+1} + dp_{i+2}|}
+      //
+      // for this construction, we take p_{i+1} as the reference
+      // and subtract off the HSE state integrated from this from each zone center
+      //
+
       Real dlftp1;
       Real drgtp1;
 
