@@ -1,3 +1,9 @@
+# 20.05
+
+   * The src_q multifab was removed and instead we convert the
+     conserved state sources to primitive state sources FAB by FAB.
+     This saves a lot of memory at the expense of an EOS call. (#829)
+
 # 20.04
 
    * A potential undefined flux from the HLL solver when using
