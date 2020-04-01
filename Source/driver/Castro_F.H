@@ -12,6 +12,8 @@ extern "C"
 
   void ca_network_finalize();
 
+  void ca_eos_init();
+
   void ca_eos_finalize();
 
   void burner_init();
@@ -129,20 +131,6 @@ extern "C"
      const amrex::Real* dx, const int coord_type, const int idir);
 
 
-#ifdef HYBRID_MOMENTUM
-  void ca_linear_to_hybrid_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_to_linear_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_hydro_source
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources),
-     const amrex::Real mult_factor);
-#endif
-
   void ca_check_initial_species
     (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
 
@@ -159,7 +147,7 @@ extern "C"
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 
-  void ca_compute_temp
+  void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_enforce_consistent_e
@@ -246,37 +234,7 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-
-
   void flush_output();
-
-
-  void ca_summass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumsquared
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumlocmass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
-
-  void ca_sumlocmass2d
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
-
-  void ca_sumlocsquaredmass
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(rho),
-     const BL_FORT_FAB_ARG_3D(vol),
-     amrex::Real* mass, const amrex::Real* dx, int idir);
-
-  void ca_sumproduct
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
-
 
 #ifdef AUX_UPDATE
   void ca_auxupdate

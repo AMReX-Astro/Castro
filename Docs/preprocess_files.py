@@ -104,19 +104,6 @@ def remove_device_routines(filename, filepath):
 
 if __name__ == "__main__":
 
-    excl_files = ['HABEC_1D.F90', 'HABEC_2D.F90', 'HABEC_3D.F90', 'RAD_1D.F90', 'RAD_2D.F90', 'RAD_3D.F90', 'bc_fill_3d.F90',
-                  'problem_tagging_3d.f90',
-                  'bc_ext_fill_3d.F90',
-                  'Prob_1d.f90',
-                  'Prob_3d.f90',
-                  'bc_ext_fill_1d.F90',
-                  'bc_fill_1d.F90',
-                  'bc_ext_fill_2d.F90',
-                  'problem_tagging_1d.f90',
-                  'bc_fill_2d.F90',
-                  'Prob_2d.f90',
-                  'problem_tagging_2d.f90']
-
     # make the output directory if it does not exist
     if not os.path.exists(outdir):
         os.makedirs(outdir)
@@ -129,7 +116,7 @@ if __name__ == "__main__":
         # loop over files in subdirectories and run strip_directives on all
         # C++ header files and Fortran files
         for f in sorted(os.listdir(os.path.join(rootdir, subdir))):
-            if ((f[-2:] == ".H" and f[-4:] != "_F.H") or f[-4:] == ".F90" or f[-4:] == ".f90") and f not in excl_files:
+            if (f[-2:] == ".H" and f[-4:] != "_F.H"):
                 strip_directives(f, os.path.join(rootdir, subdir), outdir)
                 delete_lines(f, outdir)
                 remove_device_routines(f, outdir)

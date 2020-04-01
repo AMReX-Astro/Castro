@@ -216,16 +216,6 @@ public:
 
 
 ///
-/// Returns the volume weighted average of ``mf`` at the given level
-///
-/// @param level    index of AMR level
-/// @param mf       MultiFab to be averaged
-/// @param mask     boolean, should we mask finer levels?
-///
-  amrex::Real computeAvg    (int level, amrex::MultiFab* mf, bool mask=true);
-
-
-///
 /// Compute the difference between level and composite solves
 ///
 /// @param level        level index
@@ -439,6 +429,7 @@ protected:
 
 #include "gravity_params.H"
 
+
 #if (BL_SPACEDIM < 3)
 
 ///
@@ -538,6 +529,15 @@ private:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
+
+public:
+
+  inline amrex::Real
+  get_const_grav() {
+    return const_grav;
+  }
+
+
 };
 
 ///
@@ -545,5 +545,6 @@ private:
 /// @brief A physical boundary condition function for grad phi
 ///
 using GradPhiPhysBCFunct = amrex::PhysBCFunctNoOp;
+
 
 #endif

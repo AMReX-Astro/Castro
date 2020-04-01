@@ -15,8 +15,8 @@ using namespace amrex;
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
-                  Array4<Real const> const q,
-                  Array4<Real const> const qaux,
+                  Array4<Real const> const q_arr,
+                  Array4<Real const> const qaux_arr,
                   Array4<Real const> const srcQ,
                   Array4<Real const> const flatn,
                   Array4<Real> const qm,
@@ -141,16 +141,16 @@ Castro::trace_ppm(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
-    Real rho = q(i,j,k,QRHO);
+    Real rho = q_arr(i,j,k,QRHO);
 
 
-    Real cc = qaux(i,j,k,QC);
+    Real cc = qaux_arr(i,j,k,QC);
 
 #if AMREX_SPACEDIM < 3
     Real csq = cc*cc;
 #endif
 
-    Real un = q(i,j,k,QUN);
+    Real un = q_arr(i,j,k,QUN);
 
 
     // do the parabolic reconstruction and compute the
@@ -168,25 +168,25 @@ Castro::trace_ppm(const Box& bx,
       if (n == QTEMP) continue;
 
       if (idir == 0) {
-        s[im2] = q(i-2,j,k,n);
-        s[im1] = q(i-1,j,k,n);
-        s[i0]  = q(i,j,k,n);
-        s[ip1] = q(i+1,j,k,n);
-        s[ip2] = q(i+2,j,k,n);
+        s[im2] = q_arr(i-2,j,k,n);
+        s[im1] = q_arr(i-1,j,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i+1,j,k,n);
+        s[ip2] = q_arr(i+2,j,k,n);
 
       } else if (idir == 1) {
-        s[im2] = q(i,j-2,k,n);
-        s[im1] = q(i,j-1,k,n);
-        s[i0]  = q(i,j,k,n);
-        s[ip1] = q(i,j+1,k,n);
-        s[ip2] = q(i,j+2,k,n);
+        s[im2] = q_arr(i,j-2,k,n);
+        s[im1] = q_arr(i,j-1,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j+1,k,n);
+        s[ip2] = q_arr(i,j+2,k,n);
 
       } else {
-        s[im2] = q(i,j,k-2,n);
-        s[im1] = q(i,j,k-1,n);
-        s[i0]  = q(i,j,k,n);
-        s[ip1] = q(i,j,k+1,n);
-        s[ip2] = q(i,j,k+2,n);
+        s[im2] = q_arr(i,j,k-2,n);
+        s[im1] = q_arr(i,j,k-1,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j,k+1,n);
+        s[ip2] = q_arr(i,j,k+2,n);
 
       }
 
@@ -201,25 +201,25 @@ Castro::trace_ppm(const Box& bx,
     Real Im_gc[3];
 
     if (idir == 0) {
-        s[im2] = qaux(i-2,j,k,QGAMC);
-        s[im1] = qaux(i-1,j,k,QGAMC);
-        s[i0]  = qaux(i,j,k,QGAMC);
-        s[ip1] = qaux(i+1,j,k,QGAMC);
-        s[ip2] = qaux(i+2,j,k,QGAMC);
+        s[im2] = qaux_arr(i-2,j,k,QGAMC);
+        s[im1] = qaux_arr(i-1,j,k,QGAMC);
+        s[i0]  = qaux_arr(i,j,k,QGAMC);
+        s[ip1] = qaux_arr(i+1,j,k,QGAMC);
+        s[ip2] = qaux_arr(i+2,j,k,QGAMC);
 
     } else if (idir == 1) {
-        s[im2] = qaux(i,j-2,k,QGAMC);
-        s[im1] = qaux(i,j-1,k,QGAMC);
-        s[i0]  = qaux(i,j,k,QGAMC);
-        s[ip1] = qaux(i,j+1,k,QGAMC);
-        s[ip2] = qaux(i,j+2,k,QGAMC);
+        s[im2] = qaux_arr(i,j-2,k,QGAMC);
+        s[im1] = qaux_arr(i,j-1,k,QGAMC);
+        s[i0]  = qaux_arr(i,j,k,QGAMC);
+        s[ip1] = qaux_arr(i,j+1,k,QGAMC);
+        s[ip2] = qaux_arr(i,j+2,k,QGAMC);
 
     } else {
-        s[im2] = qaux(i,j,k-2,QGAMC);
-        s[im1] = qaux(i,j,k-1,QGAMC);
-        s[i0]  = qaux(i,j,k,QGAMC);
-        s[ip1] = qaux(i,j,k+1,QGAMC);
-        s[ip2] = qaux(i,j,k+2,QGAMC);
+        s[im2] = qaux_arr(i,j,k-2,QGAMC);
+        s[im1] = qaux_arr(i,j,k-1,QGAMC);
+        s[i0]  = qaux_arr(i,j,k,QGAMC);
+        s[ip1] = qaux_arr(i,j,k+1,QGAMC);
+        s[ip2] = qaux_arr(i,j,k+2,QGAMC);
 
     }
 
@@ -305,7 +305,7 @@ Castro::trace_ppm(const Box& bx,
 
     // do the passives separately
 
-  // the passive stuff is the same regardless of the tracing
+    // the passive stuff is the same regardless of the tracing
   
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
@@ -474,7 +474,7 @@ Castro::trace_ppm(const Box& bx,
       Real dup = un_ref - Ip[QUN][2] - hdt*Ip_src[QUN][2];
       Real dptotp = p_ref - Ip[QPRES][2] - hdt*Ip_src[QPRES][2];
 
-      // (rho, u, p, (rho e)) eigensystem
+      // {rho, u, p, (rho e)} eigensystem
 
       // These are analogous to the beta's from the original PPM
       // paper (except we work with rho instead of tau).  This is
@@ -535,7 +535,7 @@ Castro::trace_ppm(const Box& bx,
       Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
       Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
       Real sourcp = sourcr*csq;
-      Real source = sourcp*((q(i,j,k,QPRES) + q(i,j,k,QREINT))/rho)/csq;
+      Real source = sourcp*((q_arr(i,j,k,QPRES) + q_arr(i,j,k,QREINT))/rho)/csq;
 
       if (i <= vhi[0]) {
         qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;

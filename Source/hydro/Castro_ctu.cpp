@@ -1,5 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -32,12 +33,11 @@ Castro::consup_hydro(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-
   // For hydro, we will create an update source term that is
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
-  const int flux_has_p = momx_flux_has_p[0];
+  int coord = geom.Coord();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -87,7 +87,7 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (! flux_has_p) {
+      if (!mom_flux_has_p(0, 0, coord)) {
         update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
 #endif
@@ -98,9 +98,9 @@ Castro::consup_hydro(const Box& bx,
 
 void
 Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
-                       Array4<Real const> const q,
+                       Array4<Real const> const q_arr,
                        Array4<Real const> const flatn,
-                       Array4<Real const> const qaux,
+                       Array4<Real const> const qaux_arr,
                        Array4<Real const> const srcQ,
                        Array4<Real> const qxm,
                        Array4<Real> const qxp,
@@ -127,7 +127,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     if (idir == 0) {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qxm, qxp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -138,7 +138,7 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else if (idir == 1) {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qym, qyp,
 #if AMREX_SPACEDIM <= 2
                 dloga,
@@ -150,10 +150,163 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     } else {
       trace_ppm(bx,
                 idir,
-                q, qaux, srcQ, flatn,
+                q_arr, qaux_arr, srcQ, flatn,
                 qzm, qzp,
                 vbx, dt);
 
+#endif
+    }
+  }
+}
+
+
+#ifdef RADIATION
+void
+Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
+                           Array4<Real const> const q_arr,
+                           Array4<Real const> const flatn,
+                           Array4<Real const> const qaux_arr,
+                           Array4<Real const> const srcQ,
+                           Array4<Real> const qxm,
+                           Array4<Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                           Array4<Real> const qym,
+                           Array4<Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                           Array4<Real> const qzm,
+                           Array4<Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                           Array4<Real const> const dloga,
+#endif
+                           const Real dt) {
+
+
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+    if (idir == 0) {
+
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qxm, qxp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qym, qyp,
+#if AMREX_SPACEDIM <= 2
+                    dloga,
+#endif
+                    vbx, dt);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    } else {
+      trace_ppm_rad(bx,
+                    idir,
+                    q_arr, qaux_arr, srcQ, flatn,
+                    qzm, qzp,
+                    vbx, dt);
+
+#endif
+    }
+  }
+}
+#endif
+
+
+void
+Castro::ctu_plm_states(const Box& bx, const Box& vbx,
+                       Array4<Real const> const q_arr,
+                       Array4<Real const> const flatn_arr,
+                       Array4<Real const> const qaux_arr,
+                       Array4<Real const> const srcQ,
+                       Array4<Real> const dq,
+                       Array4<Real> const qxm,
+                       Array4<Real> const qxp,
+#if AMREX_SPACEDIM >= 2
+                       Array4<Real> const qym,
+                       Array4<Real> const qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                       Array4<Real> const qzm,
+                       Array4<Real> const qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                       Array4<Real const> const dloga,
+#endif
+                       const Real dt) {
+
+  // Compute the normal interface states by reconstructing
+  // the primitive variables using piecewise linear slopes and doing
+  // characteristic tracing.  We do not apply the transverse terms here.
+  //
+  // .. todo::
+  //    we can get rid of the the different temporary q Godunov
+  //    state arrays
+  //
+
+
+#ifdef RADIATION
+#ifndef AMREX_USE_CUDA
+  amrex::Error("ppm_type <=0 is not supported in with radiation");
+#endif
+#endif
+
+  // Compute all slopes
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+    for (int n = 0; n < NQ; n++) {
+      if (n == QTEMP)
+        continue;
+
+      uslope(bx, idir,
+             q_arr, n,
+             flatn_arr, dq);
+    }
+
+    if (use_pslope == 1) {
+      pslope(bx, idir,
+             q_arr,
+             flatn_arr, dq, srcQ);
+    }
+
+    // compute the interface states
+
+    if (idir == 0) {
+      trace_plm(bx, 0,
+                q_arr, qaux_arr, dq,
+                qxm, qxp,
+#if AMREX_SPACEDIM < 3
+                dloga,
+#endif
+                srcQ, vbx, dt);
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+      trace_plm(bx, 1,
+                q_arr, qaux_arr, dq,
+                qym, qyp,
+#if AMREX_SPACEDIM < 3
+                dloga,
+#endif
+                srcQ, vbx, dt);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    } else {
+      trace_plm(bx, 2,
+                q_arr, qaux_arr, dq,
+                qzm, qzp,
+                srcQ, vbx, dt);
 #endif
     }
   }

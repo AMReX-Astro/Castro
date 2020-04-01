@@ -88,9 +88,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt) :: dist, x, y, z, height, r
   integer :: i, j, k, n
 
-  real(rt) :: t0
-
-  real(rt) :: temppres(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
+  real(rt) :: t0, rho_old
 
   type (eos_t) :: eos_state
 
@@ -124,8 +122,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            call eos(eos_input_rt, eos_state)
 
-           temppres(i,j,k) = eos_state % p
-
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
@@ -133,54 +129,41 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
            enddo
 
-        end do
-     end do
-  end do
+           ! Initial velocities = 0
+           state(i,j,k,UMX:UMZ) = ZERO
 
-  ! Initial velocities = 0
-  state(:,:,:,UMX:UMZ) = ZERO
+           if (do_pert) then
 
-  if (do_pert) then
-
-     ! Now add the perturbation
-     do k = lo(3), hi(3)
-        z = problo(3) + delta(3)*(dble(k) + HALF)
-
-        do j = lo(2), hi(2)
-           y = problo(2) + delta(2)*(dble(j) + HALF)
-
-           do i = lo(1), hi(1)
-              x = problo(1) + delta(1)*(dble(i) + HALF)
-
+              ! Now add the perturbation
               t0 = state(i,j,k,UTEMP)
 
-              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2) /  pert_width
+              rho_old = state(i,j,k,URHO)
 
+              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2) /  pert_width
 
               !state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
               state(i,j,k,UTEMP) = t0 * (ONE + 0.6_rt * (ONE + tanh(FOUR - r)))
 
-              do n = 1,nspec
-                 state(i,j,k,UFS+n-1) =  state(i,j,k,UFS+n-1) / state(i,j,k,URHO)
-              end do
-
+              ! update the temperature in the EOS state -- leave the pressure unchanged
               eos_state % T = state(i,j,k,UTEMP)
-              eos_state % p = temppres(i,j,k)
-              eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
+              ! now get the new density from this T, p
               call eos(eos_input_tp, eos_state)
 
               state(i,j,k,URHO) = eos_state%rho
 
+              ! correct the mass fractions and energy with the new density 
               state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
               state(i,j,k,UEDEN) = state(i,j,k,UEINT)
 
               do n = 1,nspec
-                 state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
-              end do
+                 state(i,j,k,UFS+n-1) = (state(i,j,k,URHO) / rho_old) * state(i,j,k,UFS+n-1)
+              enddo
 
-           end do
+           end if
+
         end do
      end do
-  end if
+  end do
+
 end subroutine ca_initdata

@@ -189,8 +189,11 @@ Castro::variableCleanUp ()
 
     ca_finalize_meth_params();
 
-    network_finalize();
+    ca_network_finalize();
+
     eos_finalize();
+    ca_eos_finalize();
+
 #ifdef SPONGE
     sponge_finalize();
 #endif
@@ -672,26 +675,6 @@ Castro::initMFs()
         P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
 #endif
 
-    // Keep track of which components of the momentum flux have pressure
-    if (AMREX_SPACEDIM == 1 || (AMREX_SPACEDIM == 2 && Geom().IsRZ())) {
-        momx_flux_has_p[0] = 0;
-    }
-    else {
-        momx_flux_has_p[0] = 1;
-    }
-
-    momx_flux_has_p[1] = 0;
-    momx_flux_has_p[2] = 0;
-
-    momy_flux_has_p[0] = 0;
-    momy_flux_has_p[1] = 1;
-    momy_flux_has_p[2] = 0;
-
-    momz_flux_has_p[0] = 0;
-    momz_flux_has_p[1] = 0;
-    momz_flux_has_p[2] = 1;
-
-
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
         rad_fluxes.resize(BL_SPACEDIM);
@@ -765,6 +748,8 @@ Castro::initMFs()
 
     lastDtRetryLimited = false;
     lastDtFromRetry = 1.e200;
+
+    lastDt = 1.e200;
 
 }
 
@@ -980,14 +965,7 @@ Castro::initData ()
 #ifdef HYBRID_MOMENTUM
        // Generate the initial hybrid momenta based on this user data.
 
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           const Box& box = mfi.validbox();
-           const int* lo  = box.loVect();
-           const int* hi  = box.hiVect();
-
-#pragma gpu box(box)
-           ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S_new[mfi]));
-       }
+       linear_to_hybrid_momentum(S_new, 0);
 #endif
 
        // Verify that the sum of (rho X)_i = rho at every cell
@@ -2895,24 +2873,24 @@ Castro::errorEst (TagBoxArray& tags,
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    Real t = time;
+    Real ltime = time;
 
     // If we are forcing a post-timestep regrid,
     // note that we need to use the new time here,
     // not the old time.
 
     if (post_step_regrid)
-        t = get_state_data(State_Type).curTime();
+        ltime = get_state_data(State_Type).curTime();
 
     // Apply each of the specified tagging functions.
 
     for (int j = 0; j < num_err_list_default; j++) {
-        apply_tagging_func(tags, t, j);
+        apply_tagging_func(tags, ltime, j);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
 
-    apply_problem_tags(tags, t);
+    apply_problem_tags(tags, ltime);
 }
 
 
@@ -3104,24 +3082,6 @@ Castro::amrinfo_finalize()
 }
 
 void
-Castro::network_init ()
-{
-   ca_network_init();
-}
-
-void
-Castro::network_finalize ()
-{
-   ca_network_finalize();
-}
-
-void
-Castro::eos_finalize ()
-{
-   ca_eos_finalize();
-}
-
-void
 Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
@@ -3143,6 +3103,51 @@ Castro::extern_init ()
   // grab them from Fortran to C++
   init_extern_parameters();
 
+}
+
+void
+Castro::reset_internal_energy(const Box& bx, Array4<Real> const u)
+{
+    Real lsmall_temp = small_temp;
+    Real ldual_energy_eta2 = dual_energy_eta2;
+
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    {
+        Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+        Real Up = u(i,j,k,UMX) * rhoInv;
+        Real Vp = u(i,j,k,UMY) * rhoInv;
+        Real Wp = u(i,j,k,UMZ) * rhoInv;
+        Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
+
+        eos_t eos_state;
+
+        eos_state.rho = u(i,j,k,URHO);
+        eos_state.T   = lsmall_temp;
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+        }
+        for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+        }
+
+        eos(eos_input_rt, eos_state);
+
+        Real small_e = eos_state.e;
+
+        // Ensure the internal energy is at least as large as this minimum
+        // from the EOS; the same holds true for the total energy.
+
+        u(i,j,k,UEINT) = amrex::max(u(i,j,k,UEINT), u(i,j,k,URHO) * small_e);
+        u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke));
+
+        // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
+
+        Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke;
+
+        if (rho_eint > ldual_energy_eta2 * u(i,j,k,UEDEN)) {
+            u(i,j,k,UEINT) = rho_eint;
+        }
+    });
 }
 
 void
@@ -3168,17 +3173,8 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
-
-#pragma gpu box(bx)
-        ca_reset_internal_e(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                            print_fortran_warnings);
+        reset_internal_energy(bx, S_new.array(mfi));
     }
-
-    // Flush Fortran output
-
-    if (verbose)
-      flush_output();
 
     if (print_update_diagnostics)
     {
@@ -3286,34 +3282,52 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 #pragma omp parallel
 #endif
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+  {
 
       int num_ghost = ng;
 #ifdef TRUE_SDC
       if (sdc_order == 4) {
-        // only one ghost cell is at cell-centers
-        num_ghost = 1;
+          // only one ghost cell is at cell-centers
+          num_ghost = 1;
       }
 #endif
 
       const Box& bx = mfi.growntilebox(num_ghost);
 
-      // general EOS version
+#ifdef TRUE_SDC
+      FArrayBox& u_fab = (sdc_order == 4) ? Stemp[mfi] : State[mfi];
+#else
+      FArrayBox& u_fab = State[mfi];
+#endif
 
-#ifdef TRUE_SDC
-      if (sdc_order == 4) {
-          // note, this is working on a growntilebox, but we will not have
-          // valid cell-centers in the very last ghost cell
-          ca_compute_temp(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(Stemp[mfi]));
-      } else {
-#endif
+      Array4<Real> const u = u_fab.array();
+
+      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      {
+
+          Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+          eos_t eos_state;
+
+          eos_state.rho = u(i,j,k,URHO);
+          eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
+          eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+          for (int n = 0; n < NumSpec; ++n)
+              eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          for (int n = 0; n < NumAux; ++n)
+              eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+
+          eos(eos_input_re, eos_state);
+
+          u(i,j,k,UTEMP) = eos_state.T;
+
+      });
+
+      if (clamp_ambient_temp == 1) {
 #pragma gpu box(bx)
-          ca_compute_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(State[mfi]));
-#ifdef TRUE_SDC
+          ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        BL_TO_FORTRAN_ANYD(u_fab));
       }
-#endif
 
   }
 
@@ -3368,41 +3382,61 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
 
 void
-Castro::apply_source_term_predictor()
+Castro::create_source_corrector()
 {
 
-    BL_PROFILE("Castro::apply_source_term_predictor()");
+    BL_PROFILE("Castro::create_source_corrector()");
 
-    // Optionally predict the source terms to t + dt/2,
-    // which is the time-level n+1/2 value, To do this we use a
-    // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
-    // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
-    // terms later; now we add the second term. We defer the
-    // multiplication by dt / 2 to initialize_do_advance since
-    // for a retry we may not yet know at this point what the
-    // advance timestep is.
+    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
 
-    // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
-    // we only need to take twice the new-time source term, since in
-    // the predictor-corrector approach, the new-time source term is
-    // 1/2 * S^{n+1} - 1/2 * S^{n}. This is untrue in general for the
-    // non-momentum sources, so for safety we'll only apply it to the
-    // momentum sources.
+        // Optionally predict the source terms to t + dt/2,
+        // which is the time-level n+1/2 value, To do this we use a
+        // lagged predictor estimate: dS/dt_n = (S_n - S_{n-1}) / dt, so
+        // S_{n+1/2} = S_n + (dt / 2) * dS/dt_n. We'll add the S_n
+        // terms later; now we add the second term. We defer the
+        // multiplication by dt / 2 until the actual advance, since
+        // we may be subcycling and thus not know yet what the
+        // advance timestep is.
 
-    // Note that if the old data doesn't exist yet (e.g. it is
-    // the first step of the simulation) FillPatch will just
-    // return the new data, so this is a valid operation and
-    // the result will be zero, so there is no source term
-    // prediction in the first step.
+        // Note that since for dS/dt we want (S^{n+1} - S^{n}) / dt,
+        // we only need to take twice the new-time source term from the
+        // last timestep, since in the predictor-corrector approach,
+        // the new-time source term is 1/2 * S^{n+1} - 1/2 * S^{n}.
+        // This is untrue in general for the non-momentum sources,
+        // so for safety we'll only apply it to the momentum sources.
 
-    const Real old_time = get_state_data(Source_Type).prevTime();
-    const Real new_time = get_state_data(Source_Type).curTime();
+        // Even though we're calculating this predictor from the last
+        // timestep, we've already done the swap, so the "new" data
+        // from the last timestep is currently residing in the "old"
+        // StateData. (As a corollary, this operation must be done
+        // prior to updating any of the source StateData.) Since the
+        // dt comes from the last timestep, which is no longer equal
+        // to the difference between prevTime and curTime, we rely
+        // on our recording of the last dt from the previous advance.
 
-    const Real dt_old = new_time - old_time;
+        const Real time = get_state_data(Source_Type).prevTime();
 
-    AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, new_time, Source_Type, UMX, 3, UMX);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, UMX, 3, UMX);
 
-    sources_for_hydro.mult(2.0 / dt_old, NUM_GROW);
+        source_corrector.mult(2.0 / lastDt, NUM_GROW);
+
+    }
+    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        // If we're doing simplified SDC, time-center the source term (using the
+        // current iteration's old sources and the last iteration's new
+        // sources). Since the "new-time" sources are just the corrector step
+        // of the predictor-corrector formalism, we want to add the full
+        // value of the "new-time" sources to the old-time sources to get a
+        // time-centered value. Note that, as above, the "new" data from the
+        // last step is currently residing in the "old" StateData since we
+        // have already done the swap.
+
+        const Real time = get_state_data(Source_Type).prevTime();
+
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, 0, NSRC);
+
+    }
 
 }
 
@@ -3679,29 +3713,12 @@ Castro::build_fine_mask()
 
     BL_ASSERT(level > 0); // because we are building a mask for the coarser level
 
-    if (!fine_mask.empty()) return fine_mask;
-
-    BoxArray baf = parent->boxArray(level);
-    baf.coarsen(crse_ratio);
-
-    const BoxArray& bac = parent->boxArray(level-1);
-    const DistributionMapping& dmc = parent->DistributionMap(level-1);
-    fine_mask.define(bac,dmc,1,0);
-    fine_mask.setVal(1.0);
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(fine_mask); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = fine_mask[mfi];
-
-        const std::vector< std::pair<int,Box> >& isects = baf.intersections(fab.box());
-
-        for (int ii = 0; ii < isects.size(); ++ii)
-        {
-            fab.setVal(0.0,isects[ii].second,0);
-        }
+    if (fine_mask.empty()) {
+        fine_mask = makeFineMask(parent->boxArray(level-1),
+                                 parent->DistributionMap(level-1),
+                                 parent->boxArray(level), crse_ratio,
+                                 1.0,  // coarse
+                                 0.0); // fine
     }
 
     return fine_mask;
@@ -3753,7 +3770,7 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
 
   int ng = 0;
   if (check_ghost == 1) {
-    ng = state_in.nComp();
+    ng = state_in.nGrow();
   }
 
   if (state_in.contains_nan(URHO,state_in.nComp(),ng,true))

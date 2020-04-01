@@ -1,12 +1,191 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
+#include "fluxlimiter.H"
+#include "rad_util.H"
 #endif
 
+#include "eos.H"
+
 using namespace amrex;
+
+
+void
+Castro::ctoprim(const Box& bx,
+                const Real time,
+                Array4<Real const> const uin,
+#ifdef RADIATION
+                Array4<Real const> const Erin,
+                Array4<Real const> const lam,
+#endif
+                Array4<Real> const q_arr,
+                Array4<Real> const qaux_arr) {
+
+
+  Real lsmall_dens = small_dens;
+  Real ldual_energy_eta1 = dual_energy_eta1;
+
+#ifdef ROTATION
+  int lstate_in_rotating_frame = state_in_rotating_frame;
+  int ldo_rotation = do_rotation;
+#endif
+
+#ifdef RADIATION
+  int is_comoving = Radiation::comoving;
+  int limiter = Radiation::limiter;
+  int closure = Radiation::closure;
+#endif
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+#ifdef ROTATION
+  GpuArray<Real, 3> omega;
+  get_omega(time, omega.begin());
+#endif
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+
+#ifndef AMREX_USE_CUDA
+    if (uin(i,j,k,URHO) <= 0.0_rt) {
+      std::cout << std::endl;
+      std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
+      std::cout << ">>> ... negative density " << uin(i,j,k,URHO) << std::endl;
+      amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
+    } else if (uin(i,j,k,URHO) < lsmall_dens) {
+      std::cout << std::endl;
+      std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
+      std::cout << ">>> ... small density " << uin(i,j,k,URHO) << std::endl;
+      amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
+    }
+#endif
+
+    q_arr(i,j,k,QRHO) = uin(i,j,k,URHO);
+    Real rhoinv = 1.0_rt/q_arr(i,j,k,QRHO);
+
+    q_arr(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv;
+    q_arr(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv;
+    q_arr(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv;
+
+    // Get the internal energy, which we'll use for
+    // determining the pressure.  We use a dual energy
+    // formalism. If (E - K) < eta1 and eta1 is suitably
+    // small, then we risk serious numerical truncation error
+    // in the internal energy.  Therefore we'll use the result
+    // of the separately updated internal energy equation.
+    // Otherwise, we'll set e = E - K.
+
+    Real kineng = 0.5_rt * q_arr(i,j,k,QRHO) * (q_arr(i,j,k,QU)*q_arr(i,j,k,QU) +
+                                                q_arr(i,j,k,QV)*q_arr(i,j,k,QV) +
+                                                q_arr(i,j,k,QW)*q_arr(i,j,k,QW));
+
+    if ((uin(i,j,k,UEDEN) - kineng) > ldual_energy_eta1*uin(i,j,k,UEDEN)) {
+      q_arr(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv;
+    } else {
+      q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
+    }
+
+    // If we're advecting in the rotating reference frame,
+    // then subtract off the rotation component here.
+
+#ifdef ROTATION
+    if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
+      Real vel[3];
+      for (int n = 0; n < 3; n++) {
+        vel[n] = uin(i,j,k,UMX+n) * rhoinv;
+      }
+
+      GeometryData geomdata = geom.data();
+
+      inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel);
+
+      q_arr(i,j,k,QU) = vel[0];
+      q_arr(i,j,k,QV) = vel[1];
+      q_arr(i,j,k,QW) = vel[2];
+    }
+#endif
+
+    q_arr(i,j,k,QTEMP) = uin(i,j,k,UTEMP);
+#ifdef RADIATION
+    for (int g = 0; g < NGROUPS; g++) {
+      q_arr(i,j,k,QRAD+g) = Erin(i,j,k,g);
+    }
+#endif
+
+    // Load passively advected quatities into q
+    for (int ipassive = 0; ipassive < npassive; ipassive++) {
+      int n  = upassmap(ipassive);
+      int iq = qpassmap(ipassive);
+      q_arr(i,j,k,iq) = uin(i,j,k,n) * rhoinv;
+    }
+
+    // get gamc, p, T, c, csml using q state
+    eos_t eos_state;
+    eos_state.T = q_arr(i,j,k,QTEMP);
+    eos_state.rho = q_arr(i,j,k,QRHO);
+    eos_state.e = q_arr(i,j,k,QREINT);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = q_arr(i,j,k,QFX+n);
+    }
+
+    eos(eos_input_re, eos_state);
+
+    q_arr(i,j,k,QTEMP) = eos_state.T;
+    q_arr(i,j,k,QREINT) = eos_state.e * q_arr(i,j,k,QRHO);
+    q_arr(i,j,k,QPRES) = eos_state.p;
+#ifdef TRUE_SDC
+    q_arr(i,j,k,QGC) = eos_state.gam1;
+#endif
+    qaux_arr(i,j,k,QDPDR) = eos_state.dpdr_e;
+    qaux_arr(i,j,k,QDPDE) = eos_state.dpde;
+
+#ifdef RADIATION
+    qaux_arr(i,j,k,QGAMCG) = eos_state.gam1;
+    qaux_arr(i,j,k,QCG) = eos_state.cs;
+
+    Real lams[NGROUPS];
+    for (int g = 0; g < NGROUPS; g++) {
+      lams[g] = lam(i,j,k,g);
+    }
+    Real qs[NQ];
+    for (int n = 0; n < NQ; n++) {
+      qs[n] = q_arr(i,j,k,n);
+    }
+    Real ptot;
+    Real ctot;
+    Real gamc_tot;
+    compute_ptot_ctot(lams, qs,
+                      is_comoving, limiter, closure,
+                      qaux_arr(i,j,k,QCG),
+                      ptot, ctot, gamc_tot);
+
+    q_arr(i,j,k,QPTOT) = ptot;
+
+    qaux_arr(i,j,k,QC) = ctot;
+    qaux_arr(i,j,k,QGAMC) = gamc_tot;
+
+    q_arr(i,j,k,QREITOT) = q_arr(i,j,k,QREINT);
+    for (int g = 0; g < NGROUPS; g++) {
+      qaux_arr(i,j,k,QLAMS+g) = lam(i,j,k,g);
+      q_arr(i,j,k,QREITOT) += q_arr(i,j,k,QRAD+g);
+    }
+
+#else
+    qaux_arr(i,j,k,QGAMC) = eos_state.gam1;
+    qaux_arr(i,j,k,QC) = eos_state.cs;
+#endif
+
+  });
+}
 
 
 void
@@ -38,8 +217,8 @@ Castro::src_to_prim(const Box& bx,
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
       for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-        int n = upass_map[ipassive];
-        int iq = qpass_map[ipassive];
+        int n = upassmap(ipassive);
+        int iq = qpassmap(ipassive);
 
        // we may not be including the ability to have species sources,
        //  so check to make sure that we are < NQSRC
@@ -186,11 +365,11 @@ Castro::shock(const Box& bx,
     e_z = 0.0_rt;
 #endif
 
-    Real d = 1.0_rt / (e_x + e_y + e_z + small);
+    Real denom = 1.0_rt / (e_x + e_y + e_z + small);
 
-    e_x = e_x * d;
-    e_y = e_y * d;
-    e_z = e_z * d;
+    e_x = e_x * denom;
+    e_y = e_y * denom;
+    e_z = e_z * denom;
 
     // project the pressures onto the shock direction
     Real p_pre  = e_x * px_pre + e_y * py_pre + e_z * pz_pre;
@@ -452,7 +631,7 @@ Castro::scale_flux(const Box& bx,
                    Array4<Real const> const qint,
 #endif
                    Array4<Real> const flux,
-                   Array4<Real const> const area,
+                   Array4<Real const> const area_arr,
                    const Real dt) {
 
 #if AMREX_SPACEDIM == 1
@@ -462,11 +641,11 @@ Castro::scale_flux(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
-    flux(i,j,k,n) = dt * flux(i,j,k,n) * area(i,j,k);
+    flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
 #if AMREX_SPACEDIM == 1
     // Correct the momentum flux with the grad p part.
     if (coord_type == 0 && n == UMX) {
-      flux(i,j,k,n) += dt * area(i,j,k) * qint(i,j,k,GDPRES);
+      flux(i,j,k,n) += dt * area_arr(i,j,k) * qint(i,j,k,GDPRES);
     }
 #endif
   });
@@ -477,12 +656,12 @@ Castro::scale_flux(const Box& bx,
 void
 Castro::scale_rad_flux(const Box& bx,
                        Array4<Real> const rflux,
-                       Array4<Real const> area,
+                       Array4<Real const> area_arr,
                        const Real dt) {
 
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
   {
-    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area(i,j,k);
+    rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });
 }
 #endif

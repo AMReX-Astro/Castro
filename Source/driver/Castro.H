@@ -4,6 +4,9 @@
 
 #include <state_indices.H>
 
+constexpr int HISTORY_SIZE=40;
+constexpr int PSTAR_BISECT_FACTOR = 5;
+
 // for backwards compatibility with the old way of naming variables
 // these keys are deprecated and may be removed in the future
 constexpr int Density = URHO;
@@ -25,6 +28,8 @@ constexpr int Shock = USHK;
 #include <AMReX_iMultiFab.H>
 #include <AMReX_ErrorList.H>
 #include <AMReX_FluxRegister.H>
+#include <network.H>
+#include <eos.H>
 
 #ifdef BL_LAZY
 #include <AMReX_Lazy.H>
@@ -793,10 +798,20 @@ public:
 ///
 /// Reset the internal energy
 ///
-/// @param State    Current state
+/// @param State    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
     void reset_internal_energy (amrex::MultiFab& State, int ng);
+
+
+
+///
+/// Reset the internal energy
+///
+/// @param bx       Box to update
+/// @param u        Current state (Fab)
+///
+    void reset_internal_energy (const amrex::Box& bx, amrex::Array4<Real> const u);
 
 
 
@@ -811,30 +826,11 @@ public:
 
 
 ///
-/// Optionally predict the source terms to ``t + dt/2``,
-/// which is the time-level ``n+1/2`` value, To do this we use a
-/// lagged predictor estimate: \f$ \frac{dS}{dt_n} = (S_n - S_{n-1}) / dt \f$, so
-/// \f$ S_{n+1/2} = S_n + (dt / 2) \frac{dS}{dt_n} \f$. We'll add the ``S_n``
-/// terms later; now we add the second term. We defer the
-/// multiplication by ``dt / 2`` to ::initialize_do_advance since
-/// for a retry we may not yet know at this point what the
-/// advance timestep is.
+/// Add any terms needed to correct the source terms.
+/// Currently this is a lagged predictor for CTU and the
+/// time-centering correction for simplified SDC.
 ///
-/// Note that since for ``dS/dt`` we want \f$ (S^{n+1} - S^{n}) / dt \f$,
-/// we only need to take twice the new-time source term, since in
-/// the predictor-corrector approach, the new-time source term is
-/// \f$ \frac{1}{2} S^{n+1} - \frac{1}{2} S^{n} \f$. This is
-/// untrue in general for the
-/// non-momentum sources, so for safety we'll only apply it to the
-/// momentum sources.
-///
-/// Note that if the old data doesn't exist yet (e.g. it is
-/// the first step of the simulation) ``FillPatch`` will just
-/// return the new data, so this is a valid operation and
-/// the result will be zero, so there is no source term
-/// prediction in the first step.
-///
-    void apply_source_term_predictor();
+    void create_source_corrector();
 
 
 ///
@@ -884,60 +880,6 @@ public:
 /// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
 ///
     amrex::Real locWgtSum (const std::string& name, amrex::Real time, int idir, bool local=false);
-
-
-///
-/// Sum weighted by volume multiplied by product of distances from center in two given directions
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param idir1    First direction
-/// @param idir2    Second direction
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real locWgtSum2D (const std::string& name, amrex::Real time, int idir1, int idir2, bool local=false);
-
-
-///
-/// Volume weighted sum of given component of multifab
-///
-/// @param mf       MultiFab to sum
-/// @param comp     Component to sum
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real volWgtSumMF (const amrex::MultiFab& mf, int comp, bool local=false);
-
-
-///
-/// This function is a clone of ::locWgtSum except that it only sums over one half of the domain.
-/// The lower half corresponds to side == 0, and the upper half corresponds to side == 1.
-/// The argument idir (x == 0, y == 1, z == 2) gives the direction to location weight by,
-/// and the argument bdir gives the direction along which to bisect.
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param idir     direction to weight by
-/// @param side     lower half (0) or upper half (1)
-/// @param bdir     Direction along which to bisect
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real locWgtSumOneSide (const std::string& name, amrex::Real time, int idir, int side, int bdir, bool local=false);
-
-
-///
-/// This function is a clone of ::volWgtSum except it computes the result only on half of the domain.
-/// The lower half corresponds to side == 0 and the upper half corresponds to side == 1.
-/// The argument bdir gives the direction along which to bisect.
-///
-/// @note Only designed to work in Cartesian geometries.
-///
-/// @param name     Name of quantity
-/// @param time     current time
-/// @param side     lower half (0) or upper half (1)
-/// @param bdir     Direction along which to bisect
-/// @param local    boolean, is sum local (over each patch) or over entire MultiFab?
-///
-    amrex::Real volWgtSumOneSide (const std::string& name, amrex::Real time, int side, int bdir, bool local=false);
 
 
 ///
@@ -1147,6 +1089,12 @@ protected:
 
 
 ///
+/// Source term corrector.
+///
+    amrex::MultiFab source_corrector;
+
+
+///
 /// Source term representing hydrodynamics update - this should just be
 ///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
 ///
@@ -1177,13 +1125,6 @@ protected:
     amrex::FluxRegister phi_reg;
 #endif
 
-    // Does the momentum flux include the pressure term?
-    // First index is the coordinate direction, second
-    // index is the momentum direction.
-    amrex::GpuArray<int, 3> momx_flux_has_p;
-    amrex::GpuArray<int, 3> momy_flux_has_p;
-    amrex::GpuArray<int, 3> momz_flux_has_p;
-
 ///
 /// Scalings for the flux registers.
 ///
@@ -1207,13 +1148,6 @@ protected:
 ///
     amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
 
-
-///
-/// Save the simulation time of the prev_state.
-///
-    amrex::Real prev_state_old_time;
-    amrex::Real prev_state_new_time;
-    bool prev_state_had_old_data;
 
 
 ///
@@ -1254,16 +1188,7 @@ protected:
     amrex::Real wall_time_start;
 
 
-///
-/// Call extern/networks/.../network.f90::network_init()
-///
     static void extern_init ();
-
-    static void network_init ();
-
-    static void network_finalize ();
-
-    static void eos_finalize ();
 
     static void amrinfo_init();
 
@@ -1354,15 +1279,6 @@ protected:
     void initMFs ();
 
 ///
-/// integrate derived quantities over domain
-///
-/// @param name     Name of quantity to integrate
-/// @param time     current time
-/// @param local
-///
-    amrex::Real sumDerive (const std::string& name, amrex::Real time, bool local=false);
-
-///
 /// Calculates volume weight sums of variables and prints to screen
 ///
     void sum_integrated_quantities ();
@@ -1437,7 +1353,9 @@ protected:
 
     int lastDtRetryLimited;
     amrex::Real lastDtFromRetry;
+    int in_retry;
 
+    amrex::Real lastDt;
 
 ///
 /// for keeping track of mass changes from negative density resets
@@ -1533,6 +1451,7 @@ protected:
 
 
 /* problem-specific includes */
+public:
 #include <Problem.H>
 
 };

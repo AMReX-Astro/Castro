@@ -55,7 +55,15 @@ This setup can also be used just to test HSE convergence.
 
   We can get the maximum velocity as:
   ```
-  fextrema.Linux.gfortran.exe bubble_64_plt00667 | grep -i magvel
-  fextrema.Linux.gfortran.exe bubble_128_plt01334 | grep -i magvel
-  fextrema.Linux.gfortran.exe bubble_256_plt02667 | grep -i magvel
+  fextrema.gnu.ex bubble_64_plt00667 | grep -i magvel
+  fextrema.gnu.ex bubble_128_plt01334 | grep -i magvel
+  fextrema.gnu.ex bubble_256_plt02667 | grep -i magvel
+  ```
 
+  This gives (for max |U|):
+  ```
+   64: 0.018842065993
+  128: 0.0011912049874
+  256: 8.8777896776e-05
+  ```
+  demonstrating nearly 4th order convergence of the HSE state.
