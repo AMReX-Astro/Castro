@@ -274,6 +274,17 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const qm,
                             Array4<Real> const qp) {
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
 
@@ -314,7 +325,9 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
     }
 
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
 
     if (idir == 0) {
       // right state at i-1/2

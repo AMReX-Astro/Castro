@@ -19,19 +19,12 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const int i, const int j, const int k, const int idir,
+                const bool lo_bc_test, const bool hi_bc_test,
+                GpuArray<int, 3> const domlo, GpuArray<int, 3> const domhi,
                 const Real flatn, Real& sm, Real& sp) {
 
   // This routine does the reconstruction of the zone data into a parabola.
 
-  // special care for reflecting BCs
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  bool lo_bc_test = lo_bc[idir] == Symmetry;
-  bool hi_bc_test = hi_bc[idir] == Symmetry;
 
   if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
                      (idir == 1 && j == domlo[1]+1) ||

@@ -137,6 +137,16 @@ Castro::trace_ppm(const Box& bx,
     qpass_map_p[n] = qpass_map[n];
   }
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
   // Trace to left and right edges using upwind PPM
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
@@ -199,7 +209,9 @@ Castro::trace_ppm(const Box& bx,
 
       }
 
-      ppm_reconstruct(s, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir,
+                      lo_bc_test, hi_bc_test, domlo, domhi,
+                      flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -242,7 +254,9 @@ Castro::trace_ppm(const Box& bx,
     }
 
 
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_gc, Im_gc);
 
 
@@ -315,7 +329,9 @@ Castro::trace_ppm(const Box& bx,
 
         }
 
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, i, j, k, idir,
+                        lo_bc_test, hi_bc_test, domlo, domhi,
+                        flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {
