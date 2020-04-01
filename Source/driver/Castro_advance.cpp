@@ -375,9 +375,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
 
-    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      src_q.define(grids, dmap, NQSRC, NUM_GROW);
-    }
 
     if (sdc_order == 4) {
       q_bar.define(grids, dmap, NQ, NUM_GROW);
@@ -484,10 +481,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     q.clear();
     qaux.clear();
-
-    if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      src_q.clear();
-    }
 
     if (sdc_order == 4) {
       q_bar.clear();

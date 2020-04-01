@@ -20,7 +20,6 @@ castro.hi_bc       =  0   0
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0
-castro.allow_negative_energy = 0
 
 # SDC + 4th order
 castro.sdc_order = 4

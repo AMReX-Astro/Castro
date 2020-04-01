@@ -1110,12 +1110,6 @@ protected:
 
 
 ///
-/// The source terms in primitive form.
-///
-    amrex::MultiFab src_q;
-
-
-///
 /// Source terms to the hydrodynamics solve.
 ///
     amrex::MultiFab sources_for_hydro;
