@@ -155,7 +155,7 @@ Castro::trace_ppm(const Box& bx,
 
     // do the parabolic reconstruction and compute the
     // integrals under the characteristic waves
-    Real s[7];
+    Real s[8];
     Real flat = flatn(i,j,k);
     Real sm;
     Real sp;
@@ -168,6 +168,7 @@ Castro::trace_ppm(const Box& bx,
       if (n == QTEMP) continue;
 
       if (idir == 0) {
+        s[im4] = q_arr(i-4,j,k,n);
         s[im3] = q_arr(i-3,j,k,n);
         s[im2] = q_arr(i-2,j,k,n);
         s[im1] = q_arr(i-1,j,k,n);
@@ -177,6 +178,7 @@ Castro::trace_ppm(const Box& bx,
         s[ip3] = q_arr(i+3,j,k,n);
 
       } else if (idir == 1) {
+        s[im4] = q_arr(i,j-4,k,n);
         s[im3] = q_arr(i,j-3,k,n);
         s[im2] = q_arr(i,j-2,k,n);
         s[im1] = q_arr(i,j-1,k,n);
@@ -186,6 +188,7 @@ Castro::trace_ppm(const Box& bx,
         s[ip3] = q_arr(i,j+3,k,n);
 
       } else {
+        s[im4] = q_arr(i,j,k-4,n);
         s[im3] = q_arr(i,j,k-3,n);
         s[im2] = q_arr(i,j,k-2,n);
         s[im1] = q_arr(i,j,k-1,n);
@@ -207,6 +210,7 @@ Castro::trace_ppm(const Box& bx,
     Real Im_gc[3];
 
     if (idir == 0) {
+        s[im4] = qaux_arr(i-4,j,k,QGAMC);
         s[im3] = qaux_arr(i-3,j,k,QGAMC);
         s[im2] = qaux_arr(i-2,j,k,QGAMC);
         s[im1] = qaux_arr(i-1,j,k,QGAMC);
@@ -216,6 +220,7 @@ Castro::trace_ppm(const Box& bx,
         s[ip3] = qaux_arr(i+3,j,k,QGAMC);
 
     } else if (idir == 1) {
+        s[im4] = qaux_arr(i,j-4,k,QGAMC);
         s[im3] = qaux_arr(i,j-3,k,QGAMC);
         s[im2] = qaux_arr(i,j-2,k,QGAMC);
         s[im1] = qaux_arr(i,j-1,k,QGAMC);
@@ -225,6 +230,7 @@ Castro::trace_ppm(const Box& bx,
         s[ip3] = qaux_arr(i,j+3,k,QGAMC);
 
     } else {
+        s[im4] = qaux_arr(i,j,k-4,QGAMC);
         s[im3] = qaux_arr(i,j,k-3,QGAMC);
         s[im2] = qaux_arr(i,j,k-2,QGAMC);
         s[im1] = qaux_arr(i,j,k-1,QGAMC);
@@ -278,6 +284,7 @@ Castro::trace_ppm(const Box& bx,
       if (do_trace) {
 
         if (idir == 0) {
+          s[im4] = srcQ(i-4,j,k,n);
           s[im3] = srcQ(i-3,j,k,n);
           s[im2] = srcQ(i-2,j,k,n);
           s[im1] = srcQ(i-1,j,k,n);
@@ -287,6 +294,7 @@ Castro::trace_ppm(const Box& bx,
           s[ip3] = srcQ(i+3,j,k,n);
 
         } else if (idir == 1) {
+          s[im4] = srcQ(i,j-4,k,n);
           s[im3] = srcQ(i,j-3,k,n);
           s[im2] = srcQ(i,j-2,k,n);
           s[im1] = srcQ(i,j-1,k,n);
@@ -296,6 +304,7 @@ Castro::trace_ppm(const Box& bx,
           s[ip3] = srcQ(i,j+3,k,n);
 
         } else {
+          s[im4] = srcQ(i,j,k-4,n);
           s[im3] = srcQ(i,j,k-3,n);
           s[im2] = srcQ(i,j,k-2,n);
           s[im1] = srcQ(i,j,k-1,n);

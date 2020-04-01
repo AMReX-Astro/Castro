@@ -6,44 +6,91 @@
 
 using namespace amrex;
 
-constexpr int im3 = 0
-constexpr int im2 = 1;
-constexpr int im1 = 2;
-constexpr int i0 = 3;
-constexpr int ip1 = 4;
-constexpr int ip2 = 5;
-constexpr int ip3 = 6;
+constexpr int im4 = 0;
+constexpr int im3 = 1;
+constexpr int im2 = 2;
+constexpr int im1 = 3;
+constexpr int i0 = 4;
+constexpr int ip1 = 5;
+constexpr int ip2 = 6;
+constexpr int ip3 = 7;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
+                const int i, const int j, const int k, const int idir,
                 const Real flatn, Real& sm, Real& sp) {
 
   // This routine does the reconstruction of the zone data into a parabola.
 
-  // Compute van Leer slopes
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
 
-  Real dsl = 2.0_rt * (s[im1] - s[im2]);
-  Real dsr = 2.0_rt * (s[i0] - s[im1]);
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
 
-  Real dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[i0] - s[im2]);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+  if (lo_bc_test && ((idir == 0 && i == domlo[0]+1) ||
+                     (idir == 1 && j == domlo[1]+1) ||
+                     (idir == 2 && k == domlo[2]+1))) {
+
+    // use a stencil for the interface that is one zone from the left
+    // physical boundary, MC Eq. 22
+    sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
+
+  } else if (lo_bc_test && ((idir == 0 && i == domlo[0]) ||
+                            (idir == 1 && j == domlo[1]) ||
+                            (idir == 2 && k == domlo[2]))) {
+
+    // use a stencil for when the interface is on the left physical
+    // boundary, MC Eq. 21
+    sm = (1.0_rt/12.0_rt)*(25.0_rt*s[i0] - 23.0_rt*s[ip1] + 13.0_rt*s[ip2] - 3.0_rt*s[ip3]);
+
+  } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
+                            (idir == 1 && j == domhi[1]) ||
+                            (idir == 2 && j == domhi[2]))) {
+
+    // use a stencil for the interface that is one zone from the right
+    // physical boundary, MC Eq. 22
+    sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
+
+  } else if (hi_bc_test && ((idir == 0 && i == domhi[0]+1) ||
+                            (idir == 1 && j == domhi[1]+1) ||
+                            (idir == 2 && j == domhi[2]+1))) {
+
+    // use a stencil for when the interface is on the right physical
+    // boundary MC Eq. 21
+    sm = (1.0_rt/12.0_rt)*(25.0_rt*s[im1] - 23.0_rt*s[im2] + 13.0_rt*s[im3] - 3.0_rt*s[im4]);
+
+  } else {
+
+    // Compute van Leer slopes
+
+    Real dsl = 2.0_rt * (s[im1] - s[im2]);
+    Real dsr = 2.0_rt * (s[i0] - s[im1]);
+
+    Real dsvl_l = 0.0_rt;
+    if (dsl*dsr > 0.0_rt) {
+      Real dsc = 0.5_rt * (s[i0] - s[im2]);
+      dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+    }
+
+    dsl = 2.0_rt * (s[i0] - s[im1]);
+    dsr = 2.0_rt * (s[ip1] - s[i0]);
+
+    Real dsvl_r = 0.0_rt;
+    if (dsl*dsr > 0.0_rt) {
+      Real dsc = 0.5_rt * (s[ip1] - s[im1]);
+      dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+    }
+
+    // Interpolate s to edges
+
+    sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
   }
-
-  dsl = 2.0_rt * (s[i0] - s[im1]);
-  dsr = 2.0_rt * (s[ip1] - s[i0]);
-
-  Real dsvl_r = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  // Interpolate s to edges
-
-  sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
   // Make sure sedge lies in between adjacent cell-centered values
 
