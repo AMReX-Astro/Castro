@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Radiation &mdash; Castro 20.03
+  <title>Radiation &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="CastroRad_1d.f90" href="file/CastroRad_1d_f.html" />
-    <link rel="prev" title="problem_tagging_nd.F90" href="file/problem_tagging_nd_f.html" /> 
+    <link rel="next" title="File HypreABec.H" href="file/HypreABec_8H.html" />
+    <link rel="prev" title="File Problem_Derives.H" href="file/Problem__Derives_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,6 +52,7 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
           
+
 
           
             <a href="index.html" class="icon icon-home"> Castro
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./radiation_files.html">master</a> | <a href="./dev/radiation_files.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -140,41 +145,16 @@
 <li class="toctree-l2"><a class="reference internal" href="particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="problems_files.html">Problems</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Radiation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/CastroRad_1d_f.html">CastroRad_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/CastroRad_2d_f.html">CastroRad_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/CastroRad_3d_f.html">CastroRad_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/HABEC_nd_f.html">HABEC_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/MGFLD_1d_f.html">MGFLD_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/MGFLD_2d_f.html">MGFLD_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/MGFLD_3d_f.html">MGFLD_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/MGRadBndry_8H.html">File MGRadBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/RadBndry_8H.html">File RadBndry.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadBndry_1d_f.html">RadBndry_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadBndry_2d_f.html">RadBndry_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadBndry_3d_f.html">RadBndry_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadDerive_nd_f.html">RadDerive_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadHydro_nd_f.html">RadHydro_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/RadSolve_8H.html">File RadSolve.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/RadTypes_8H.html">File RadTypes.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Rad_nd_f.html">Rad_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/blackbody_f.html">blackbody.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/filt_prim_1d_f.html">filt_prim_1d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/filt_prim_2d_f.html">filt_prim_2d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/filt_prim_3d_f.html">filt_prim_3d.f90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/filter_f.html">filter.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/fluxlimiter_f.html">fluxlimiter.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/fluxlimiter_8H.html">File fluxlimiter.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/rad_params_f.html">rad_params.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/rad_source_f.html">rad_source.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/rad_util_f.html">rad_util.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/trace_ppm_rad_nd_f.html">trace_ppm_rad_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/rad__util_8H.html">File rad_util.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="reactions_files.html">Reactions</a></li>
@@ -259,173 +239,16 @@
 <h1>Radiation<a class="headerlink" href="#radiation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="file/CastroRad_1d_f.html">CastroRad_1d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-compute-lamborder-subroutine">ca_compute_lamborder subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-get-v-dcf-subroutine">ca_get_v_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-update-dcf-subroutine">ca_update_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-set-dterm-face-subroutine">ca_set_dterm_face subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-face2center-subroutine">ca_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-correct-dterm-subroutine">ca_correct_dterm subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-estdt-rad-subroutine">ca_estdt_rad subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-est-gpr0-subroutine">ca_est_gpr0 subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_1d_f.html#ca-est-gpr2-subroutine">ca_est_gpr2 subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/CastroRad_2d_f.html">CastroRad_2d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-compute-lamborder-subroutine">ca_compute_lamborder subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-get-v-dcf-subroutine">ca_get_v_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-update-dcf-subroutine">ca_update_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-set-dterm-face-subroutine">ca_set_dterm_face subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-face2center-subroutine">ca_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-correct-dterm-subroutine">ca_correct_dterm subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-estdt-rad-subroutine">ca_estdt_rad subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-est-gpr0-subroutine">ca_est_gpr0 subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_2d_f.html#ca-est-gpr2-subroutine">ca_est_gpr2 subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/CastroRad_3d_f.html">CastroRad_3d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-compute-lamborder-subroutine">ca_compute_lamborder subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-get-v-dcf-subroutine">ca_get_v_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-update-dcf-subroutine">ca_update_dcf subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-set-dterm-face-subroutine">ca_set_dterm_face subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-face2center-subroutine">ca_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-correct-dterm-subroutine">ca_correct_dterm subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-estdt-rad-subroutine">ca_estdt_rad subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-est-gpr0-subroutine">ca_est_gpr0 subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/CastroRad_3d_f.html#ca-est-gpr2-subroutine">ca_est_gpr2 subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/HABEC_nd_f.html">HABEC_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/HABEC_nd_f.html#f/habec_nd_module">habec_nd_module</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/HypreABec_8H.html">File HypreABec.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/MGFLD_1d_f.html">MGFLD_1d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_1d_f.html#ca-state-update-subroutine">ca_state_update subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_1d_f.html#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_1d_f.html#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_1d_f.html#ca-spalpha-subroutine">ca_spalpha subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/MGFLD_2d_f.html">MGFLD_2d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_2d_f.html#ca-state-update-subroutine">ca_state_update subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_2d_f.html#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_2d_f.html#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_2d_f.html#ca-spalpha-subroutine">ca_spalpha subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/MGFLD_3d_f.html">MGFLD_3d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_3d_f.html#ca-state-update-subroutine">ca_state_update subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_3d_f.html#ca-ncupdate-matter-subroutine">ca_ncupdate_matter subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_3d_f.html#ca-flux-face2center-subroutine">ca_flux_face2center subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/MGFLD_3d_f.html#ca-spalpha-subroutine">ca_spalpha subroutine</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/MGRadBndry_8H.html">File MGRadBndry.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/NGBndry_8H.html">File NGBndry.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/RadBndry_8H.html">File RadBndry.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadBndry_1d_f.html">RadBndry_1d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadBndry_1d_f.html#rbndry-subroutine">rbndry subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadBndry_2d_f.html">RadBndry_2d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadBndry_2d_f.html#rbndry-subroutine">rbndry subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadBndry_3d_f.html">RadBndry_3d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadBndry_3d_f.html#rbndry-subroutine">rbndry subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadDerive_nd_f.html">RadDerive_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derneut-subroutine">ca_derneut subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derrhoyl-subroutine">ca_derrhoyl subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-deryl-subroutine">ca_deryl subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derynue-subroutine">ca_derynue subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derynuae-subroutine">ca_derynuae subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derertot-subroutine">ca_derertot subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derenue-subroutine">ca_derenue subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadDerive_nd_f.html#ca-derenuae-subroutine">ca_derenuae subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadHydro_nd_f.html">RadHydro_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadHydro_nd_f.html#f/radhydro_nd_module">radhydro_nd_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadPlotvar_1d_f.html">RadPlotvar_1d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_1d_f.html#ca-er-com2lab-subroutine">ca_er_com2lab subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_1d_f.html#ca-compute-fcc-subroutine">ca_compute_fcc subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_1d_f.html#ca-transform-flux-subroutine">ca_transform_flux subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadPlotvar_2d_f.html">RadPlotvar_2d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_2d_f.html#ca-er-com2lab-subroutine">ca_er_com2lab subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_2d_f.html#ca-compute-fcc-subroutine">ca_compute_fcc subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_2d_f.html#ca-transform-flux-subroutine">ca_transform_flux subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/RadPlotvar_3d_f.html">RadPlotvar_3d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_3d_f.html#ca-er-com2lab-subroutine">ca_er_com2lab subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_3d_f.html#ca-compute-fcc-subroutine">ca_compute_fcc subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/RadPlotvar_3d_f.html#ca-transform-flux-subroutine">ca_transform_flux subroutine</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/RadSolve_8H.html">File RadSolve.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/RadTypes_8H.html">File RadTypes.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Rad_nd_f.html">Rad_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#f/rad_nd_module">rad_nd_module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-initradconstants-subroutine">ca_initradconstants subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-initsinglegroup-subroutine">ca_initsinglegroup subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-initgroups-subroutine">ca_initgroups subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-initgroups2-subroutine">ca_initgroups2 subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-initgroups3-subroutine">ca_initgroups3 subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-setgroup-subroutine">ca_setgroup subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Rad_nd_f.html#ca-inelastic-sct-subroutine">ca_inelastic_sct subroutine</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/blackbody_f.html">blackbody.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/blackbody_f.html#f/blackbody_module">blackbody_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/filt_prim_1d_f.html">filt_prim_1d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/filt_prim_1d_f.html#ca-filt-prim-subroutine">ca_filt_prim subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/filt_prim_2d_f.html">filt_prim_2d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/filt_prim_2d_f.html#ca-filt-prim-subroutine">ca_filt_prim subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/filt_prim_3d_f.html">filt_prim_3d.f90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/filt_prim_3d_f.html#ca-filt-prim-subroutine">ca_filt_prim subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/filter_f.html">filter.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/filter_f.html#f/filter_module">filter_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/fluxlimiter_f.html">fluxlimiter.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/fluxlimiter_f.html#f/fluxlimiter_module">fluxlimiter_module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/fluxlimiter_f.html#ca-initfluxlimiter-subroutine">ca_initfluxlimiter subroutine</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/fluxlimiter_8H.html">File fluxlimiter.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/rad_params_f.html">rad_params.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/rad_params_f.html#f/rad_params_module">rad_params_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/rad_source_f.html">rad_source.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/rad_source_f.html#f/rad_source_module">rad_source_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/rad_util_f.html">rad_util.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/rad_util_f.html#f/rad_util_module">rad_util_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/trace_ppm_rad_nd_f.html">trace_ppm_rad_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/trace_ppm_rad_nd_f.html#f/trace_ppm_rad_module">trace_ppm_rad_module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="file/rad__util_8H.html">File rad_util.H</a></li>
 </ul>
 </div>
 </div>
@@ -438,10 +261,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="file/CastroRad_1d_f.html" class="btn btn-neutral float-right" title="CastroRad_1d.f90" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="file/HypreABec_8H.html" class="btn btn-neutral float-right" title="File HypreABec.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/problem_tagging_nd_f.html" class="btn btn-neutral float-left" title="problem_tagging_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="file/Problem__Derives_8H.html" class="btn btn-neutral float-left" title="File Problem_Derives.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -450,7 +273,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -476,7 +299,8 @@
   
   
     
-   
+    
+
 
 </body>
 </html>

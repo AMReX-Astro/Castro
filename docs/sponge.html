@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Sponge &mdash; Castro 20.03
+  <title>Sponge &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./sponge.html">master</a> | <a href="./dev/sponge.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -226,22 +231,22 @@ and then the sponge factor, <span class="math notranslate nohighlight">\(f\)</sp
 <p>The sponge source is then added to the momentum and total energy equations.</p>
 <p>The general sponge parameters are:</p>
 <blockquote>
-<div><table border="1" class="docutils">
+<div><table class="docutils align-default">
 <colgroup>
-<col width="52%" />
-<col width="48%" />
+<col style="width: 52%" />
+<col style="width: 48%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable</p></th>
+<th class="head"><p>runtime parameter</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(f_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_factor</span></code></td>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(f_\mathrm{lower}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_factor</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(f_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_factor</span></code></td>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(f_\mathrm{upper}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_factor</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -249,7 +254,7 @@ and then the sponge factor, <span class="math notranslate nohighlight">\(f\)</sp
 <p>There are three sponges, each controlled by different runtime parameters:</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><strong>radial sponge</strong> : The radial sponge operates beyond some radius
+<li><p><strong>radial sponge</strong> : The radial sponge operates beyond some radius
 (define in terms of the <code class="docutils literal notranslate"><span class="pre">center(:)</span></code> position for the problem).
 It takes the form:</p>
 <div class="math notranslate nohighlight">
@@ -262,29 +267,29 @@ It takes the form:</p>
       \end{array} \right .\end{split}\]</div>
 <p>The parameters controlling the various quantities here are:</p>
 <blockquote>
-<div><table border="1" class="docutils">
+<div><table class="docutils align-default">
 <colgroup>
-<col width="52%" />
-<col width="48%" />
+<col style="width: 52%" />
+<col style="width: 48%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable</p></th>
+<th class="head"><p>runtime parameter</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(r_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code></td>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_\mathrm{lower}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(r_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code></td>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(r_\mathrm{upper}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div></blockquote>
 <p>and <span class="math notranslate nohighlight">\(\Delta r = r_\mathrm{upper} - r_\mathrm{lower}\)</span> .</p>
 </li>
-<li><p class="first"><strong>density sponge</strong> : The density sponge turns on based on density
+<li><p><strong>density sponge</strong> : The density sponge turns on based on density
 thresholds.  At high densities, we usually care about the
 dynamics, so we will want the sponge off, but as the density
 lowers, we gradually turn on the sponge.  It takes the form:</p>
@@ -298,29 +303,29 @@ lowers, we gradually turn on the sponge.  It takes the form:</p>
       \end{array} \right .\end{split}\]</div>
 <p>The parameters controlling the various quantities here are:</p>
 <blockquote>
-<div><table border="1" class="docutils">
+<div><table class="docutils align-default">
 <colgroup>
-<col width="52%" />
-<col width="48%" />
+<col style="width: 52%" />
+<col style="width: 48%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable</p></th>
+<th class="head"><p>runtime parameter</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code></td>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\rho_\mathrm{lower}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code></td>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\rho_\mathrm{upper}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div></blockquote>
 <p>and <span class="math notranslate nohighlight">\(\Delta \rho = \rho_\mathrm{upper} - \rho_\mathrm{lower}\)</span> .</p>
 </li>
-<li><p class="first"><strong>pressure sponge</strong> : The pressure sponge is just like the density sponge,
+<li><p><strong>pressure sponge</strong> : The pressure sponge is just like the density sponge,
 except it is keyed on pressure.  It takes the form:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}f_\mathrm{sponge} = \left \{
@@ -332,22 +337,22 @@ except it is keyed on pressure.  It takes the form:</p>
       \end{array} \right .\end{split}\]</div>
 <p>The parameters controlling the various quantities here are:</p>
 <blockquote>
-<div><table border="1" class="docutils">
+<div><table class="docutils align-default">
 <colgroup>
-<col width="52%" />
-<col width="48%" />
+<col style="width: 52%" />
+<col style="width: 48%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">variable</th>
-<th class="head">runtime parameter</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable</p></th>
+<th class="head"><p>runtime parameter</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(p_\mathrm{lower}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_lower_pressure</span></code></td>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(p_\mathrm{lower}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_pressure</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(p_\mathrm{upper}\)</span></td>
-<td><code class="docutils literal notranslate"><span class="pre">sponge_upper_pressure</span></code></td>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(p_\mathrm{upper}\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_pressure</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -378,7 +383,7 @@ except it is keyed on pressure.  It takes the form:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -404,7 +409,8 @@ except it is keyed on pressure.  It takes the form:</p>
   
   
     
-   
+    
+
 
 </body>
 </html>

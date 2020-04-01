@@ -1,4 +1,0 @@
-Class Diffusion
-===============
-
-.. doxygenclass:: Diffusion

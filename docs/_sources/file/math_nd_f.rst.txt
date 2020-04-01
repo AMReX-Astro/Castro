@@ -1,8 +1,0 @@
-math_nd.F90
-===========
-
-math\_module
-------------
-
-.. f:automodule:: math_module
-

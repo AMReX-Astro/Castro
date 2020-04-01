@@ -1,8 +1,0 @@
-sponge_nd.F90
-=============
-
-sponge\_module
---------------
-
-.. f:automodule:: sponge_module
-

@@ -1,8 +1,0 @@
-hybrid_advection_nd.F90
-=======================
-
-hybrid\_advection\_module
--------------------------
-
-.. f:automodule:: hybrid_advection_module
-

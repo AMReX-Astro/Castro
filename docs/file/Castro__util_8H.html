@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File ppm.H &mdash; Castro 20.04
+  <title>File Castro_util.H &mdash; Castro 20.04
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann.H" href="riemann_8H.html" />
-    <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
+    <link rel="next" title="File Derive.H" href="Derive_8H.html" />
+    <link rel="prev" title="File Castro_io.H" href="Castro__io_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/ppm_8H.html">master</a> | <a href="../dev/file/ppm_8H.html">development</a>
+        Branch: <a href="../file/Castro__util_8H.html">master</a> | <a href="../dev/file/Castro__util_8H.html">development</a>
     </div>
 
         </div>
@@ -139,15 +139,16 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_util.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -210,15 +211,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
         
-      <li>File ppm.H</li>
+      <li>File Castro_util.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/ppm_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__util_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -231,46 +232,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-ppm-h">
-<h1>File ppm.H<a class="headerlink" href="#file-ppm-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-castro-util-h">
+<h1>File Castro_util.H<a class="headerlink" href="#file-castro-util-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="function">
 <dt>
-<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct(const Real * s, const Real flatn, Real &amp; sm, Real &amp; sp)</code></dt>
+<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile(const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real * Ip, Real * Im)</code></dt>
+<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Variables</p>
-<dl class="member">
-<dt id="_CPPv43im2">
-<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="ppm_8H_1a541226b9ae2d734669d83eb543d95dce"></span><em class="property">constexpr</em> int <code class="sig-name descname">im2</code> = 0<a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="function">
+<dt>
+<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p(const int mom_dir, const int flux_dir, const int coord)</code></dt>
 <dd></dd></dl>
 
-<dl class="member">
-<dt id="_CPPv43im1">
-<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="ppm_8H_1a2850db016736ebdb1cd32845e6deca08"></span><em class="property">constexpr</em> int <code class="sig-name descname">im1</code> = 1<a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv42i0">
-<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="ppm_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><em class="property">constexpr</em> int <code class="sig-name descname">i0</code> = 2<a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv43ip1">
-<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="ppm_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip1</code> = 3<a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv43ip2">
-<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="ppm_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip2</code> = 4<a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition">¶</a><br /></dt>
+<dl class="function">
+<dt>
+<span class="target" id="Castro__util_8H_1ae0cf29d6d631bf88579dde0a5f221e32"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, Real * loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -284,10 +267,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="riemann_8H.html" class="btn btn-neutral float-right" title="File riemann.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Derive_8H.html" class="btn btn-neutral float-right" title="File Derive.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Castro__io_8H.html" class="btn btn-neutral float-left" title="File Castro_io.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

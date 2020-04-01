@@ -5,7 +5,4 @@ Rotation
    :maxdepth: 2
 
    file/Castro__rotation_8H
-   file/Rotation_frequency_f
-   file/Rotation_nd_f
-   file/rotation_sources_nd_f
    

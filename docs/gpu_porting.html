@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Offloading a routine to GPU &mdash; Castro 20.03
+  <title>Offloading a routine to GPU &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./gpu_porting.html">master</a> | <a href="./dev/gpu_porting.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -219,20 +224,20 @@ on the GPU. We outline these below.</p>
 <div class="section" id="c">
 <h2>C++<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Make sure that the box <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> are the first two arguments
+<li><p>Make sure that the box <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> are the first two arguments
 and use <code class="docutils literal notranslate"><span class="pre">AMREX_INT_ANYD</span></code> as the macro wrapping <code class="docutils literal notranslate"><span class="pre">bx.loVect()</span></code> and
-<code class="docutils literal notranslate"><span class="pre">bx.hiVect()</span></code></li>
-<li>Likewise, inplace of <code class="docutils literal notranslate"><span class="pre">ZFILL()</span></code>, use <code class="docutils literal notranslate"><span class="pre">AMREX_REAL_ANYD</span></code></li>
-<li>Scalars must be passed by value to Fortran functions (not by
-reference)</li>
-<li>Make sure that you change the variable definitions in the Fortran
+<code class="docutils literal notranslate"><span class="pre">bx.hiVect()</span></code></p></li>
+<li><p>Likewise, inplace of <code class="docutils literal notranslate"><span class="pre">ZFILL()</span></code>, use <code class="docutils literal notranslate"><span class="pre">AMREX_REAL_ANYD</span></code></p></li>
+<li><p>Scalars must be passed by value to Fortran functions (not by
+reference)</p></li>
+<li><p>Make sure that you change the variable definitions in the Fortran
 code to include value so that the Fortran knows the variables are
 being passed by value rather than by reference. If you don’t do
-this, the code is liable to segfault</li>
-<li>FArrayBox functions like <cite>setVal()</cite> and <cite>saxpy()</cite> are not on the
+this, the code is liable to segfault</p></li>
+<li><p>FArrayBox functions like <cite>setVal()</cite> and <cite>saxpy()</cite> are not on the
 GPU, so you should explicitly write out these operations in C++.
-The MultiFab counterparts are on the GPU.</li>
-<li>Use <code class="docutils literal notranslate"><span class="pre">BL_TO_FORTRAN_ANYD()</span></code> to wrap MultiFab arguments (and in the header file wrap with <code class="docutils literal notranslate"><span class="pre">BL_FORT_FAB_ARG_3D</span></code>)</li>
+The MultiFab counterparts are on the GPU.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">BL_TO_FORTRAN_ANYD()</span></code> to wrap MultiFab arguments (and in the header file wrap with <code class="docutils literal notranslate"><span class="pre">BL_FORT_FAB_ARG_3D</span></code>)</p></li>
 </ul>
 <p>To illustrate these modifications, consider the function <code class="docutils literal notranslate"><span class="pre">divu</span></code>. To call the function on the CPU, we would write</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">S_new</span><span class="p">,</span> <span class="n">hydro_tile_size</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="p">{</span>
@@ -263,56 +268,61 @@ The MultiFab counterparts are on the GPU.</li>
 <div class="section" id="fortran">
 <h2>Fortran<a class="headerlink" href="#fortran" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>the routine must only operate on a single zone in <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.<ul>
-<li>even for temporary arrays, you cannot write to an <code class="docutils literal notranslate"><span class="pre">i+1</span></code> zone
+<li><p>the routine must only operate on a single zone in <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.</p>
+<ul>
+<li><p>even for temporary arrays, you cannot write to an <code class="docutils literal notranslate"><span class="pre">i+1</span></code> zone
 (e.g. when doing limiting) – this will cause a race condition.
-If necessary do extra computation to avoid the temporaries</li>
+If necessary do extra computation to avoid the temporaries</p></li>
 </ul>
 </li>
-<li>mark the routine with <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code><ul>
-<li>If you get the error <code class="docutils literal notranslate"><span class="pre">nvlink</span> <span class="pre">error:</span> <span class="pre">Undefined</span> <span class="pre">reference</span> <span class="pre">to</span>
+<li><p>mark the routine with <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code></p>
+<ul>
+<li><p>If you get the error <code class="docutils literal notranslate"><span class="pre">nvlink</span> <span class="pre">error:</span> <span class="pre">Undefined</span> <span class="pre">reference</span> <span class="pre">to</span>
 <span class="pre">'foo_device'</span> <span class="pre">in</span> <span class="pre">'tmp_build_dir/o/3d.pgi.CUDA.EXE/bar.o'</span></code>, then
-you’ve probably forgotten to do this.</li>
+you’ve probably forgotten to do this.</p></li>
 </ul>
 </li>
-<li>If a module defines its own variables, these variables need to be
+<li><p>If a module defines its own variables, these variables need to be
 <code class="docutils literal notranslate"><span class="pre">allocatable</span></code> (even if they are scalars) and marked as
 <code class="docutils literal notranslate"><span class="pre">attributes(managed)</span></code>. Additional routines may be needed to
 allocate these variables before they’re used and deallocate them
-when they’re no longer needed.<ul>
-<li>Examples of this can be seen for the sponge parameters. These are
+when they’re no longer needed.</p>
+<ul>
+<li><p>Examples of this can be seen for the sponge parameters. These are
 marked as <code class="docutils literal notranslate"><span class="pre">allocatable</span></code> and <code class="docutils literal notranslate"><span class="pre">attributes(managed)</span></code> in
 <code class="docutils literal notranslate"><span class="pre">sponge_nd.F90</span></code>, and therefore must be allocated (by
 <code class="docutils literal notranslate"><span class="pre">ca_allocate_sponge_params</span></code>) and deallocated (by
-<code class="docutils literal notranslate"><span class="pre">ca_deallocate_sponge_params</span></code>) at the beginning and end of the</li>
+<code class="docutils literal notranslate"><span class="pre">ca_deallocate_sponge_params</span></code>) at the beginning and end of the</p></li>
 </ul>
 </li>
-<li>Temporary variables must be defined outside of function calls. E.g. if a
+<li><p>Temporary variables must be defined outside of function calls. E.g. if a
 function call contains <code class="docutils literal notranslate"><span class="pre">foo(x(a:b)/y)</span></code>, you need to define a new variable
-<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">x(a:b)/y</span></code> then pass this into the function as <code class="docutils literal notranslate"><span class="pre">foo(z)</span></code>.<ul>
-<li>If you don’t do this, you may see the error <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">reshaping</span> <span class="pre">is</span>
-<span class="pre">not</span> <span class="pre">supported</span> <span class="pre">for</span> <span class="pre">device</span> <span class="pre">subprogram</span> <span class="pre">calls</span></code></li>
+<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">=</span> <span class="pre">x(a:b)/y</span></code> then pass this into the function as <code class="docutils literal notranslate"><span class="pre">foo(z)</span></code>.</p>
+<ul>
+<li><p>If you don’t do this, you may see the error <code class="docutils literal notranslate"><span class="pre">Array</span> <span class="pre">reshaping</span> <span class="pre">is</span>
+<span class="pre">not</span> <span class="pre">supported</span> <span class="pre">for</span> <span class="pre">device</span> <span class="pre">subprogram</span> <span class="pre">calls</span></code></p></li>
 </ul>
 </li>
-<li>If importing a function from another module, make sure to put the
+<li><p>If importing a function from another module, make sure to put the
 import within the function/subroutine, and put <code class="docutils literal notranslate"><span class="pre">!</span> <span class="pre">function</span></code> at the
-end of the line, e.g.</li>
+end of the line, e.g.</p></li>
 </ul>
 <div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">use </span><span class="n">my_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">my_func</span> <span class="c">! function</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li>Individual functions should be imported individually (so not <code class="docutils literal notranslate"><span class="pre">use</span>
+<li><p>Individual functions should be imported individually (so not <code class="docutils literal notranslate"><span class="pre">use</span>
 <span class="pre">my_module,</span> <span class="pre">only:</span> <span class="pre">func1,</span> <span class="pre">func2</span> <span class="pre">!</span> <span class="pre">function</span></code>) and there must be a
-space either side of the <code class="docutils literal notranslate"><span class="pre">!</span></code></li>
-<li>Make sure the fortran file is <code class="docutils literal notranslate"><span class="pre">.F90</span></code> rather than <code class="docutils literal notranslate"><span class="pre">.f90</span></code> (and
+space either side of the <code class="docutils literal notranslate"><span class="pre">!</span></code></p></li>
+<li><p>Make sure the fortran file is <code class="docutils literal notranslate"><span class="pre">.F90</span></code> rather than <code class="docutils literal notranslate"><span class="pre">.f90</span></code> (and
 remember to update the <code class="docutils literal notranslate"><span class="pre">Make.xx</span></code> file to reflect this). If you
 don’t do this you will see the error <code class="docutils literal notranslate"><span class="pre">Label</span> <span class="pre">field</span> <span class="pre">of</span> <span class="pre">continuation</span>
-<span class="pre">line</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">blank</span></code><ul>
-<li>This is required as we use the convention that <code class="docutils literal notranslate"><span class="pre">.F90</span></code> files are
+<span class="pre">line</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">blank</span></code></p>
+<ul>
+<li><p>This is required as we use the convention that <code class="docutils literal notranslate"><span class="pre">.F90</span></code> files are
 processed by the preprocessor, <code class="docutils literal notranslate"><span class="pre">.f90</span></code> files are not. The
 preprocessor will therefore only generate the required device
-function if the file has the correct extension.</li>
+function if the file has the correct extension.</p></li>
 </ul>
 </li>
 </ul>
@@ -352,14 +362,14 @@ subroutine <code class="docutils literal notranslate"><span class="pre">derangmo
 </pre></div>
 </div>
 <ul class="simple">
-<li>Here, we can see that the <code class="docutils literal notranslate"><span class="pre">cross-product</span></code> function from the
+<li><p>Here, we can see that the <code class="docutils literal notranslate"><span class="pre">cross-product</span></code> function from the
 <code class="docutils literal notranslate"><span class="pre">math_module</span></code> is marked as <code class="docutils literal notranslate"><span class="pre">!</span> <span class="pre">function</span></code>, which tells the
-preprocessor to generate a device version of this function.</li>
-<li>The scalars <code class="docutils literal notranslate"><span class="pre">ncomp_L</span></code> and <code class="docutils literal notranslate"><span class="pre">ncomp_u</span></code> are both passed in by value.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code> directive has been inserted after the definition of
+preprocessor to generate a device version of this function.</p></li>
+<li><p>The scalars <code class="docutils literal notranslate"><span class="pre">ncomp_L</span></code> and <code class="docutils literal notranslate"><span class="pre">ncomp_u</span></code> are both passed in by value.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code> directive has been inserted after the definition of
 all the variables passed into the routine and all the local
-variables, but before the main body of the function.</li>
-<li>The routine only operates on values in a single zone of <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.</li>
+variables, but before the main body of the function.</p></li>
+<li><p>The routine only operates on values in a single zone of <code class="docutils literal notranslate"><span class="pre">lo:hi</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="to-check-if-we-launched-a-kernel">
@@ -372,9 +382,9 @@ variables, but before the main body of the function.</li>
 <div class="section" id="how-to-debug">
 <h2>How to debug<a class="headerlink" href="#how-to-debug" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Run under <code class="docutils literal notranslate"><span class="pre">cuda-memcheck</span></code></li>
-<li>Run under <code class="docutils literal notranslate"><span class="pre">cuda-gdb</span></code></li>
-<li>Turn off GPU offloading for some part of the code with</li>
+<li><p>Run under <code class="docutils literal notranslate"><span class="pre">cuda-memcheck</span></code></p></li>
+<li><p>Run under <code class="docutils literal notranslate"><span class="pre">cuda-gdb</span></code></p></li>
+<li><p>Turn off GPU offloading for some part of the code with</p></li>
 </ul>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Gpu</span><span class="o">::</span><span class="n">setLaunchRegion</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
 <span class="p">...</span> <span class="p">;</span>
@@ -382,9 +392,9 @@ variables, but before the main body of the function.</li>
 </pre></div>
 </div>
 <ul class="simple">
-<li>Run with <code class="docutils literal notranslate"><span class="pre">CUDA_LAUNCH_BLOCKING=1</span></code>.  This means that only one
+<li><p>Run with <code class="docutils literal notranslate"><span class="pre">CUDA_LAUNCH_BLOCKING=1</span></code>.  This means that only one
 kernel will run at a time.  This can help identify if there are race
-conditions.</li>
+conditions.</p></li>
 </ul>
 </div>
 </div>
@@ -409,7 +419,7 @@ conditions.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -435,7 +445,8 @@ conditions.</li>
   
   
     
-   
+    
+
 
 </body>
 </html>

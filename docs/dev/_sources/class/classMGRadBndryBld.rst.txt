@@ -1,4 +1,0 @@
-Class MGRadBndryBld
-===================
-
-.. doxygenclass:: MGRadBndryBld

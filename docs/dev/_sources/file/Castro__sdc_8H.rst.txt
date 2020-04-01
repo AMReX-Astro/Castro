@@ -1,4 +1,0 @@
-File Castro_sdc.H
-=================
-
-.. doxygenfile:: Castro_sdc.H

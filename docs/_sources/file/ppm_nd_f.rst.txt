@@ -1,8 +1,0 @@
-ppm_nd.F90
-==========
-
-ppm\_module
------------
-
-.. f:automodule:: ppm_module
-

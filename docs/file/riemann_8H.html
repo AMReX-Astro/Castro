@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File ppm.H &mdash; Castro 20.04
+  <title>File riemann.H &mdash; Castro 20.04
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann.H" href="riemann_8H.html" />
-    <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
+    <link rel="next" title="Particles" href="../particles_files.html" />
+    <link rel="prev" title="File ppm.H" href="ppm_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/ppm_8H.html">master</a> | <a href="../dev/file/ppm_8H.html">development</a>
+        Branch: <a href="../file/riemann_8H.html">master</a> | <a href="../dev/file/riemann_8H.html">development</a>
     </div>
 
         </div>
@@ -144,8 +144,8 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
@@ -212,13 +212,13 @@
         
           <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
         
-      <li>File ppm.H</li>
+      <li>File riemann.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/ppm_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/riemann_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -231,46 +231,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-ppm-h">
-<h1>File ppm.H<a class="headerlink" href="#file-ppm-h" title="Permalink to this headline">¶</a></h1>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
-<dt>
-<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct(const Real * s, const Real flatn, Real &amp; sm, Real &amp; sp)</code></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile(const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real * Ip, Real * Im)</code></dt>
-<dd></dd></dl>
-
-</div>
+  <div class="section" id="file-riemann-h">
+<h1>File riemann.H<a class="headerlink" href="#file-riemann-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="member">
-<dt id="_CPPv43im2">
-<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="ppm_8H_1a541226b9ae2d734669d83eb543d95dce"></span><em class="property">constexpr</em> int <code class="sig-name descname">im2</code> = 0<a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="riemann_8H_1aacaaa15a61f3a5a5ba29f1e1b0ece0ba"></span><code class="sig-name descname">const Real smlp1 = 1.e-10_rt</code></dt>
 <dd></dd></dl>
 
 <dl class="member">
-<dt id="_CPPv43im1">
-<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="ppm_8H_1a2850db016736ebdb1cd32845e6deca08"></span><em class="property">constexpr</em> int <code class="sig-name descname">im1</code> = 1<a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="riemann_8H_1ad49c8f6ceb32df0a69dbff2d7ab214ee"></span><code class="sig-name descname">const Real small = 1.e-8_rt</code></dt>
 <dd></dd></dl>
 
 <dl class="member">
-<dt id="_CPPv42i0">
-<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="ppm_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><em class="property">constexpr</em> int <code class="sig-name descname">i0</code> = 2<a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv43ip1">
-<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="ppm_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip1</code> = 3<a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv43ip2">
-<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="ppm_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip2</code> = 4<a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="riemann_8H_1ab5a4f8f8cadcc9494a5f2f254ce2c916"></span><code class="sig-name descname">const Real smallu = 1.e-12_rt</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -284,10 +261,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="riemann_8H.html" class="btn btn-neutral float-right" title="File riemann.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../particles_files.html" class="btn btn-neutral float-right" title="Particles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="ppm_8H.html" class="btn btn-neutral float-left" title="File ppm.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

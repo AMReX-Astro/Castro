@@ -1,8 +1,0 @@
-edge_util_nd.F90
-================
-
-edge\_util\_module
-------------------
-
-.. f:automodule:: edge_util_module
-

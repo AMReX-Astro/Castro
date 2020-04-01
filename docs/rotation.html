@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Rotation &mdash; Castro 20.03
+  <title>Rotation &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./rotation.html">master</a> | <a href="./dev/rotation.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -235,20 +240,22 @@ default axis of rotation points from <code class="docutils literal notranslate">
 defined in a <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> routine, to the typical “vertical
 direction.” The vertical direction is defined as follows:</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
+<p class="admonition-title">Note</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
 appropriately for you problem.  This can be done either by directly
 setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
 <code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
 </div>
 <ul class="simple">
-<li>2D<ul>
-<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</li>
-<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">1</span></code>, (r,z): along the z-axis</li>
+<li><p>2D</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y): out of the (x,y)-plane along the “z”-axis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">1</span></code>, (r,z): along the z-axis</p></li>
 </ul>
 </li>
-<li>3D<ul>
-<li><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y,z): along the z-axis</li>
+<li><p>3D</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_sys</span> <span class="pre">=</span> <span class="pre">0</span></code>, (x,y,z): along the z-axis</p></li>
 </ul>
 </li>
 </ul>
@@ -256,28 +263,28 @@ setting it in the <code class="docutils literal notranslate"><span class="pre">p
 <code class="docutils literal notranslate"><span class="pre">ca_rotate</span></code> routine found in the <code class="docutils literal notranslate"><span class="pre">Rotate_$(DIM)d.f90</span></code> file.</p>
 <p>The main parameters that affect rotation are:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.do_rotation</span></code> : include rotation as a forcing
-term (0 or 1; default: 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rotational_period</span></code> : period (s) of rotation
-(default: 0.0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rotational_dPdt</span></code> : d(period) / dt for rotation
-(default: 0.0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_centrifugal</span></code> : whether to
-include the centrifugal forcing (default: 1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_coriolis</span></code> : whether to
-include the Coriolis forcing (default: 1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_domegadt</span></code> : whether to
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.do_rotation</span></code> : include rotation as a forcing
+term (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotational_period</span></code> : period (s) of rotation
+(default: 0.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotational_dPdt</span></code> : d(period) / dt for rotation
+(default: 0.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_centrifugal</span></code> : whether to
+include the centrifugal forcing (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_coriolis</span></code> : whether to
+include the Coriolis forcing (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rotation_include_domegadt</span></code> : whether to
 include the forcing from the time derivative of the rotation
-frequency (default: 1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.state_in_rotating_frame</span></code> : whether state
-variables are measured in the rotating frame (default: 1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span></code> : method of updating the
-energy during a rotation update (default: 4)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.implicit_rotation_update</span></code> : for the Coriolis
+frequency (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.state_in_rotating_frame</span></code> : whether state
+variables are measured in the rotating frame (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span></code> : method of updating the
+energy during a rotation update (default: 4)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.implicit_rotation_update</span></code> : for the Coriolis
 term, which mixes momenta in the source term, whether we should
-solve for the update implicitly (default: 1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rot_axis</span></code> : rotation axis (default: 3
-(Cartesian); 2 (cylindrical))</li>
+solve for the update implicitly (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_axis</span></code> : rotation axis (default: 3
+(Cartesian); 2 (cylindrical))</p></li>
 </ul>
 <p>For completeness, we show below a derivation of the source terms that
 appear in the momentum and total energy evolution equations upon
@@ -285,12 +292,12 @@ switching to a rotating reference frame.</p>
 </div>
 <div class="section" id="coordinate-transformation-to-rotating-frame">
 <h2>Coordinate transformation to rotating frame<a class="headerlink" href="#coordinate-transformation-to-rotating-frame" title="Permalink to this headline">¶</a></h2>
-<div class="figure" id="id2">
+<div class="figure align-default" id="id2">
 <img alt="inertial vs. corotating frame" src="_images/tframes.png" />
 <p class="caption"><span class="caption-number">Fig. 6 </span><span class="caption-text">Inertial frame <span class="math notranslate nohighlight">\(C\)</span> and
 non-inertial frame <span class="math notranslate nohighlight">\(\tilde{C}\)</span>. We consider a fluid element
 <span class="math notranslate nohighlight">\(P\)</span>, whose distance in the two frames is related by
-<span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span></p>
+<span class="math notranslate nohighlight">\({\bf r} = \tilde{\bf{r}} + {\bf l}\)</span></span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <p>Consider an inertial reference frame <span class="math notranslate nohighlight">\(C\)</span> and a non-inertial
 reference frame <span class="math notranslate nohighlight">\(\widetilde{C}\)</span> whose origins are separated by
@@ -425,7 +432,7 @@ these values are all analogous to the way that gravity is used to
 update the momentum and energy. For the most part, the differences are
 in how the energy update is done:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">1</span></code> : we use a standard
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">1</span></code> : we use a standard
 predictor-corrector formalism for updating the momentum and
 energy. Specifically, our first update is equal to <span class="math notranslate nohighlight">\(\Delta t \times \mathbf{S}^n\)</span> ,
 where <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> is the value of
@@ -433,8 +440,8 @@ the source terms at the old-time (which is usually called time-level
 <span class="math notranslate nohighlight">\(n\)</span>). At the end of the timestep, we do a corrector step where
 we subtract off <span class="math notranslate nohighlight">\(\Delta t / 2 \times \mathbf{S}^n\)</span> and add on
 <span class="math notranslate nohighlight">\(\Delta t / 2 \times \mathbf{S}^{n+1}\)</span>, so that at the end of
-the timestep the source term is properly time centered.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">2</span></code> : we do something very similar
+the timestep the source term is properly time centered.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">2</span></code> : we do something very similar
 to 1. The major difference is that when evaluating the energy source
 term at the new time (which is equal to
 <span class="math notranslate nohighlight">\(\mathbf{u} \cdot \mathbf{S}^{n+1}_{\rho \mathbf{u}}\)</span>, where the latter is the
@@ -442,8 +449,8 @@ momentum source term evaluated at the new time), we first update the
 momentum, rather than using the value of <span class="math notranslate nohighlight">\(\mathbf{u}\)</span> before
 entering the rotation source terms. This permits a tighter coupling
 between the momentum and energy update and we have seen that it
-usually results in a more accurate evolution.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">3</span></code> : we do the same momentum update as
+usually results in a more accurate evolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">3</span></code> : we do the same momentum update as
 the previous two, but for the energy update, we put all of the work
 into updating the kinetic energy alone. In particular, we explicitly
 ensure that <span class="math notranslate nohighlight">\((rho e)\)</span> maintains the same, and update
@@ -451,10 +458,9 @@ ensure that <span class="math notranslate nohighlight">\((rho e)\)</span> mainta
 kinetic energy to the old internal energy to determine the final
 total gas energy. The physical motivation is that work should be
 done on the velocity, and should not directly update the temperature
-– only indirectly through things like shocks.</li>
-<li><dl class="first docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">4</span></code> <span class="classifier-delimiter">:</span> <span class="classifier">the energy update is done in a</span></dt>
-<dd>“conservative” fashion. The previous methods all evaluate the value
+– only indirectly through things like shocks.</p></li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">castro.rot_source_type</span> <span class="pre">=</span> <span class="pre">4</span></code><span class="classifier">the energy update is done in a</span></dt><dd><p>“conservative” fashion. The previous methods all evaluate the value
 of the source term at the cell center, but this method evaluates
 the change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
@@ -462,7 +468,8 @@ losses at open domain boundaries). Additionally, the velocity
 update is slightly different—for the corrector step, we note that
 there is an implicit coupling between the velocity components, and
 we directly solve this coupled equation, which results in a
-slightly better coupling and a more accurate evolution.</dd>
+slightly better coupling and a more accurate evolution.</p>
+</dd>
 </dl>
 </li>
 </ul>
@@ -471,7 +478,7 @@ This does the update of the Coriolis term in the momentum equation
 implicitly (e.g., the velocity in the Coriolis force for the zone
 depends on the updated momentum). The energy update is unchanged.</p>
 <p>A detailed discussion of these options and some verification
-tests is presented in <a class="reference internal" href="zreferences.html#katz-2016" id="id1">[katz:2016]</a>.</p>
+tests is presented in <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id1">[31]</a>.</p>
 </div>
 </div>
 
@@ -495,7 +502,7 @@ tests is presented in <a class="reference internal" href="zreferences.html#katz-
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -521,7 +528,8 @@ tests is presented in <a class="reference internal" href="zreferences.html#katz-
   
   
     
-   
+    
+
 
 </body>
 </html>

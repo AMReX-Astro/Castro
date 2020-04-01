@@ -1,8 +1,0 @@
-Gravity_2d.F90
-==============
-
-gravity\_2d\_module
--------------------
-
-.. f:automodule:: gravity_2d_module
-

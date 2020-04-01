@@ -1,8 +1,0 @@
-advection_util_nd.F90
-=====================
-
-advection\_util\_module
------------------------
-
-.. f:automodule:: advection_util_module
-

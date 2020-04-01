@@ -1,8 +1,0 @@
-check_for_nan_nd.F90
-====================
-
-nan\_check
-----------
-
-.. f:automodule:: nan_check
-

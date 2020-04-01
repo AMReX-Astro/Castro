@@ -1,8 +1,0 @@
-filt_prim_3d.f90
-================
-
-ca\_filt\_prim subroutine
--------------------------
-
-.. f:autosubroutine:: ca_filt_prim
-

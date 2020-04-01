@@ -191,3 +191,16 @@ accompanied by a Castro change, it is best practice to ensure that
 the PRs in both Microphysics and Castro have been approved, then
 merge the Microphysics PR, then add the update to the Microphysics
 submodule to the Castro PR, then merge. A similar process applies for AMReX.
+
+
+Continuous Integration
+======================
+
+We use Travis CI to run integration tests on the code and to build and deploy the documentation. The current status of these tests on the development branch can be found here:
+
+.. image:: https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development
+   :target: https://travis-ci.com/AMReX-Astro/Castro
+
+Currently, travis runs the `clang static analyzer <https://clang-analyzer.llvm.org/>`_, which finds potential bugs in the code. It also runs a script to convert any tabs in the code into spaces. Both of these are run on pull requests to the Castro GitHub repo, and are run weekly on the development branch. 
+
+The travis build settings can be found in the ``.travis.yml`` file.

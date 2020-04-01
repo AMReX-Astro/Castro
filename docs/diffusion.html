@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Diffusion &mdash; Castro 20.03
+  <title>Diffusion &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./diffusion.html">master</a> | <a href="./dev/diffusion.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -235,7 +240,7 @@ source term. This is time-centered to achieve second-order accuracy
 in time.</p>
 <p>The following parameter affects diffusion:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_temp</span></code>: enable thermal diffusion (0 or 1; default 0)</p></li>
 </ul>
 <p>A pure diffusion problem (with no hydrodynamics) can be run by setting:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">diffuse_temp</span> <span class="o">=</span> <span class="mi">1</span>
@@ -255,9 +260,9 @@ interface for the conductivity is:</p>
 consistent.  The conductivity is filled in <code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">conductivity</span></code>.</p>
 <p id="index-0">There are two conductivity routines provided with Castro by default:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">constant</span></code> : A simple constant thermal conductivity. This can be
+<li><p><code class="docutils literal notranslate"><span class="pre">constant</span></code> : A simple constant thermal conductivity. This can be
 selected by setting:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONDUCTIVITY_DIR</span> <span class="p">:</span><span class="o">=</span> <span class="n">constant</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONDUCTIVITY_DIR</span> <span class="o">:=</span> <span class="n">constant</span>
 </pre></div>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. To set the value of the conductivity (e.g., to
@@ -266,13 +271,13 @@ selected by setting:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">constant_opacity</span></code> : A simple constant opacity. This is
+<li><p><code class="docutils literal notranslate"><span class="pre">constant_opacity</span></code> : A simple constant opacity. This is
 converted to an opacity as:</p>
 <div class="math notranslate nohighlight">
 \[\kth = \frac{16 \sigma_B T^3}{3 \kappa_\mathrm{const} \rho}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\kappa_\mathrm{const}\)</span> is the opacity, with units <span class="math notranslate nohighlight">\(\mathrm{cm^2~g^{-1}}\)</span>.
 This is selected by setting:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONDUCTIVITY_DIR</span> <span class="p">:</span><span class="o">=</span> <span class="n">constant_opacity</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONDUCTIVITY_DIR</span> <span class="o">:=</span> <span class="n">constant_opacity</span>
 </pre></div>
 </div>
 <p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. To set the value of the opacity, e.g., to
@@ -291,8 +296,8 @@ interest is only on the diffusion in the interior, you can use
 the parameters:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.diffuse_cutoff_density_hi</span></code></p></li>
 </ul>
 </div></blockquote>
 <p>to specify a density,
@@ -325,7 +330,7 @@ and does pure diffusion is provided as <code class="docutils literal notranslate
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -351,7 +356,8 @@ and does pure diffusion is provided as <code class="docutils literal notranslate
   
   
     
-   
+    
+
 
 </body>
 </html>

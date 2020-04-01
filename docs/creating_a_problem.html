@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Setting Up Your Own Problem &mdash; Castro 20.03
+  <title>Setting Up Your Own Problem &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./creating_a_problem.html">master</a> | <a href="./dev/creating_a_problem.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -219,21 +224,21 @@ then placed in a sub-directory of the appropriate group (for example,
 of the groups and place in it the following files:</p>
 <blockquote>
 <div><ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
-Castro what options to use and what network and EOS to build.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> : this holds the problem initialization routines</li>
-<li><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
+<li><p><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
+Castro what options to use and what network and EOS to build.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> : this holds the problem initialization routines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
 you problem will read.  These parameters are controlled by the
-<code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
+<code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
 during the build process.  It tells the build system about any
-problem-specific files that need to be compiled.</li>
-<li><code class="docutils literal notranslate"><span class="pre">inputs</span></code> : this is the main inputs file that controls Castro and
-AMReX’s behavior.</li>
-<li><code class="docutils literal notranslate"><span class="pre">probin</span></code> : this is the problem-specific inputs file that
+problem-specific files that need to be compiled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code> : this is the main inputs file that controls Castro and
+AMReX’s behavior.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">probin</span></code> : this is the problem-specific inputs file that
 contains Fortran namelists with problem parameters as well as any
 paramters for external physics (e.g., from the StarKiller
-Microphysics)</li>
+Microphysics)</p></li>
 </ul>
 </div></blockquote>
 <p>The best way to get started writing a new problem is to copy an
@@ -247,27 +252,27 @@ This has the form:</p>
 </div>
 <p>Here:</p>
 <ul class="simple">
-<li><cite>name</cite> is the name of the variable to put into <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code></li>
-<li><cite>datatype</cite> is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">logical</span></code>.</li>
-<li><cite>default</cite> is the default value of the runtime parameter.  It may be
-overridden at runtime by reading from the namelist.</li>
-<li><cite>namelist</cite> indicates if the variable should be in the namelist and
+<li><p><cite>name</cite> is the name of the variable to put into <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code></p></li>
+<li><p><cite>datatype</cite> is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">logical</span></code>.</p></li>
+<li><p><cite>default</cite> is the default value of the runtime parameter.  It may be
+overridden at runtime by reading from the namelist.</p></li>
+<li><p><cite>namelist</cite> indicates if the variable should be in the namelist and
 controlled at runtime.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if
 you want the parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in
 the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file at runtime.  If it is empty or marked with
 <code class="docutils literal notranslate"><span class="pre">n</span></code>, then the variable will still be put into the
-<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will not be initialized via the namelist.</li>
-<li><cite>size</cite> is for arrays, and gives their size.  It can be any integer
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will not be initialized via the namelist.</p></li>
+<li><p><cite>size</cite> is for arrays, and gives their size.  It can be any integer
 or variable that is known to the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a
 variable from a different module to specify the size (for example,
 <code class="docutils literal notranslate"><span class="pre">nspec</span></code> from <code class="docutils literal notranslate"><span class="pre">network</span></code>), then you express the size as a tuple:
 <code class="docutils literal notranslate"><span class="pre">(nspec,</span> <span class="pre">network)</span></code> and the appropriate use statement will be
-added.</li>
+added.</p></li>
 </ul>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> needs to have <code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> needs to have <code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to
 tell the build system to parse <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> and write the
 <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
 </div>
@@ -277,7 +282,7 @@ tell the build system to parse <code class="docutils literal notranslate"><span 
 <h2><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code><a class="headerlink" href="#prob-nd-f90" title="Permalink to this headline">¶</a></h2>
 <p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
 <p>This routine is primarily responsible for reading in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
 file (by defining the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist) and doing any one-time
 initialization for the problem (like reading in an
@@ -287,8 +292,8 @@ initial model through the <code class="docutils literal notranslate"><span class
 by calling <code class="docutils literal notranslate"><span class="pre">probdata_init()</span></code>.  The parameters will then be defined in
 <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in <code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
+<p class="admonition-title">Note</p>
+<p>many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
 from <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> here.  This is used to note the
 center of the problem (which does not necessarily need to be
 the center of the domain, e.g., for axisymmetric problems).
@@ -300,23 +305,19 @@ angular momentum).</p>
 as well as the physical values of the domain’s lower-left corner
 (<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>).</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code>:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code>:</p>
 <p>This routine will initialize the state data for a single grid.
 The inputs to this routine are:</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">level</span></code>: the level of refinement of the grid we are filling</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">lo()</span></code>, <code class="docutils literal notranslate"><span class="pre">hi()</span></code>: the integer indices of the box’s
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: the level of refinement of the grid we are filling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lo()</span></code>, <code class="docutils literal notranslate"><span class="pre">hi()</span></code>: the integer indices of the box’s
 <em>valid data region</em> lower left and upper right corners. These
 integers refer to a global index space for the level and
-identify where in the computational domain the box lives.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">nscal</span></code>: the number of scalar quantities—this is not typically
-used in Castro.</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">state()</span></code>: the main state array. This is dimensioned as:</p>
+identify where in the computational domain the box lives.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nscal</span></code>: the number of scalar quantities—this is not typically
+used in Castro.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state()</span></code>: the main state array. This is dimensioned as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">NVAR</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -327,15 +328,13 @@ spatial dimensions of the array come in through the arguments
 meth_params_module (e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>) to refer to specific
 quantities</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: this is an array containing the zone width (<span class="math notranslate nohighlight">\(\Delta x\)</span>)
+<li><p><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: this is an array containing the zone width (<span class="math notranslate nohighlight">\(\Delta x\)</span>)
 in each coordinate direction: <code class="docutils literal notranslate"><span class="pre">delta(1)</span></code> = <span class="math notranslate nohighlight">\(\Delta x\)</span>,
-<code class="docutils literal notranslate"><span class="pre">delta(2)</span></code> = <span class="math notranslate nohighlight">\(\Delta y\)</span>, …</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">xhi()</span></code>: these are the physical coordinates of the
+<code class="docutils literal notranslate"><span class="pre">delta(2)</span></code> = <span class="math notranslate nohighlight">\(\Delta y\)</span>, …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">xhi()</span></code>: these are the physical coordinates of the
 lower left and upper right corners of the <em>valid region</em>
 of the box.  These should not be used, and will be removed in a future
-version of Castro.</p>
-</li>
+version of Castro.</p></li>
 </ul>
 </li>
 </ul>
@@ -395,7 +394,7 @@ an example of this.</p>
 <p>The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.</p>
 <ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Problem.f90</span></code> :</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem.f90</span></code> :</p>
 <p>This provides two routines, <code class="docutils literal notranslate"><span class="pre">problem_checkpoint</span></code> and
 <code class="docutils literal notranslate"><span class="pre">problem_restart</span></code> that can be used to add information to the
 checkpoint files and read it in upon restart. This is useful for
@@ -406,7 +405,7 @@ runtime diagnostics.</p>
 <p>The name of the checkpoint directory is passed in as an argument.
 <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code> provides the C++ interfaces for these routines.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">problem_tagging_?d.F90</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_tagging_?d.F90</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code></p>
 <p>This implements problem-specific tagging for refinement, through a
 subroutine <code class="docutils literal notranslate"><span class="pre">set_problem_tags</span></code>. The full hydrodynamic state
 (State_Type) is passed in, and the problem can mark zones for
@@ -415,14 +414,14 @@ set. An example is provided by the <code class="docutils literal notranslate"><s
 problem which refines a rectangular region (fuel layer) based on
 a density parameter and the H mass fraction.</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Problem_Derive_F.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem_Derive_F.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code></p>
 <p>Together, these provide a mechanism to create derived quantities
 that can be stored in the plotfile. <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>
 provides the C++ code that defines these new plot variables. It
 does this by adding them to the <code class="docutils literal notranslate"><span class="pre">derive_lst</span></code>—a list of
 derived variables that Castro knows about. When adding new
 variables, a descriptive name, Fortran routine that does the
-deriving, and component of <code class="docutils literal notranslate"><span class="pre">StateData</span></code>&nbsp;are specified.</p>
+deriving, and component of <code class="docutils literal notranslate"><span class="pre">StateData</span></code> are specified.</p>
 <p>The Fortran routine that does the deriving is put in the
 problem-specific <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code> (and a prototype for
 C++ is put in <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>). A example is provided by
@@ -430,7 +429,7 @@ the <code class="docutils literal notranslate"><span class="pre">reacting_bubble
 quantities (perturbations against a background one-dimensional
 model, in this case).</p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">Prob.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code></p>
 <p>These files provide problem-specific routines for computing global
 diagnostic information through the sum_integrated_quantities
 functionality that is part of the <code class="docutils literal notranslate"><span class="pre">Castro</span></code> class.</p>
@@ -462,7 +461,7 @@ the grid.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -488,7 +487,8 @@ the grid.</p>
   
   
     
-   
+    
+
 
 </body>
 </html>

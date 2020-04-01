@@ -1,7 +1,0 @@
-Scf
-===
-
-.. toctree::
-   :maxdepth: 2
-
-   

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Preface &mdash; Castro 20.03
+  <title>Preface &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./Preface.html">master</a> | <a href="./dev/Preface.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -219,31 +224,31 @@ AMReX library.</p>
 <p>The core algorithms in Castro are described in a series of papers:</p>
 <blockquote>
 <div><ul class="simple">
-<li><em>CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics
+<li><p><em>CASTRO: A New Compressible Astrophysical Solver. I. Hydrodynamics
 and Self-gravity</em>, A. S. Almgren, V. E. Beckner, J. B. Bell,
 M. S. Day, L. H. Howell, C. C. Joggerst, M. J. Lijewski,
 A. Nonaka, M. Singer, &amp; M. Zingale, 2010, ApJ, 715, 1221
-<a class="reference external" href="http://dx.doi.org/10.1088/0004-637X/715/2/1221">http://dx.doi.org/10.1088/0004-637X/715/2/1221</a></li>
-<li><em>CASTRO: A New Compressible Astrophysical Solver. II. Gray
+<a class="reference external" href="http://dx.doi.org/10.1088/0004-637X/715/2/1221">http://dx.doi.org/10.1088/0004-637X/715/2/1221</a></p></li>
+<li><p><em>CASTRO: A New Compressible Astrophysical Solver. II. Gray
 Radiation
 Hydrodynamics</em>, W. Zhang, L. Howell, A. Almgren, A. Burrows,
 &amp; J. Bell, 2011, ApJS, 196, 20
-<a class="reference external" href="http://dx.doi.org/10.1088/0067-0049/196/2/20">http://dx.doi.org/10.1088/0067-0049/196/2/20</a></li>
-<li><em>CASTRO: A New Compressible Astrophysical Solver. III. Multigroup
+<a class="reference external" href="http://dx.doi.org/10.1088/0067-0049/196/2/20">http://dx.doi.org/10.1088/0067-0049/196/2/20</a></p></li>
+<li><p><em>CASTRO: A New Compressible Astrophysical Solver. III. Multigroup
 Radiation
 Hydrodynamics</em>, W. Zhang, L. Howell, A. Almgren, A. Burrows, J. Dolence,
 &amp; J. Bell, 2013, ApJS, 204, 7
-<a class="reference external" href="http://dx.doi.org/10.1088/0067-0049/204/1/7">http://dx.doi.org/10.1088/0067-0049/204/1/7</a></li>
+<a class="reference external" href="http://dx.doi.org/10.1088/0067-0049/204/1/7">http://dx.doi.org/10.1088/0067-0049/204/1/7</a></p></li>
 </ul>
 </div></blockquote>
 <p>Improvements to the gravity solver and rotation were described in:</p>
 <blockquote>
 <div><ul class="simple">
-<li><em>Double White Dwarf Mergers on Adaptive Meshes I. Methodology and
+<li><p><em>Double White Dwarf Mergers on Adaptive Meshes I. Methodology and
 Code
 Verification</em>, M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty,
 A. S. Almgren, W. Zhang 2016, ApJ, 819, 94.
-<a class="reference external" href="http://dx.doi.org/10.3847/0004-637X/819/2/94">http://dx.doi.org/10.3847/0004-637X/819/2/94</a></li>
+<a class="reference external" href="http://dx.doi.org/10.3847/0004-637X/819/2/94">http://dx.doi.org/10.3847/0004-637X/819/2/94</a></p></li>
 </ul>
 </div></blockquote>
 <p>The development of AMReX library is led by the
@@ -256,19 +261,19 @@ is described in the <a class="reference external" href="https://github.com/AMReX
 Current Castro core developers are:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Ann Almgren</li>
-<li>Maria G. Barrios Sazo</li>
-<li>John Bell</li>
-<li>Vince Beckner</li>
-<li>Marc Day</li>
-<li>Alice Harpole</li>
-<li>Max Katz</li>
-<li>Mike Lijewski</li>
-<li>Chris Malone</li>
-<li>Andy Nonaka</li>
-<li>Don Willcox</li>
-<li>Weiqun Zhang</li>
-<li>Michael Zingale</li>
+<li><p>Ann Almgren</p></li>
+<li><p>Maria G. Barrios Sazo</p></li>
+<li><p>John Bell</p></li>
+<li><p>Vince Beckner</p></li>
+<li><p>Marc Day</p></li>
+<li><p>Alice Harpole</p></li>
+<li><p>Max Katz</p></li>
+<li><p>Mike Lijewski</p></li>
+<li><p>Chris Malone</p></li>
+<li><p>Andy Nonaka</p></li>
+<li><p>Don Willcox</p></li>
+<li><p>Weiqun Zhang</p></li>
+<li><p>Michael Zingale</p></li>
 </ul>
 </div></blockquote>
 <p>All Castro development takes place on the project’s github
@@ -316,7 +321,7 @@ developer(s) for co-authorship on any science paper that results.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -342,7 +347,8 @@ developer(s) for co-authorship on any science paper that results.</p>
   
   
     
-   
+    
+
 
 </body>
 </html>

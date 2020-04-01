@@ -1,9 +1,0 @@
-Diffusion
-=========
-
-.. toctree::
-   :maxdepth: 2
-
-   file/Castro__diffusion_8H
-   file/Diffusion_8H
-   

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Checkpoint Embiggener &mdash; Castro 20.03
+  <title>Checkpoint Embiggener &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./ConvertCheckpoint.html">master</a> | <a href="./dev/ConvertCheckpoint.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -250,11 +255,10 @@ might have contained:</p>
 and cover that new larger domain with a level that is a factor of 2
 coarser than the existing level 0 grids.</p>
 <ol class="arabic">
-<li><p class="first">First, set <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span></code> in the GNUmakefile, and type <code class="docutils literal notranslate"><span class="pre">make</span></code> in the
+<li><p>First, set <code class="docutils literal notranslate"><span class="pre">DIM</span> <span class="pre">=</span></code> in the GNUmakefile, and type <code class="docutils literal notranslate"><span class="pre">make</span></code> in the
 <code class="docutils literal notranslate"><span class="pre">Util/ConvertCheckpoint/</span></code> directory.  This will
-make an executable from the <code class="docutils literal notranslate"><span class="pre">Embiggen.cpp</span></code> code.</p>
-</li>
-<li><p class="first">Run the embiggening code as follows:</p>
+make an executable from the <code class="docutils literal notranslate"><span class="pre">Embiggen.cpp</span></code> code.</p></li>
+<li><p>Run the embiggening code as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Embiggen2d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">Intel</span><span class="o">.</span><span class="n">ex</span> <span class="n">checkin</span><span class="o">=</span><span class="n">chk00100</span> <span class="n">checkout</span><span class="o">=</span><span class="n">newchk00050</span> <span class="n">ref_ratio</span><span class="o">=</span><span class="mi">2</span> <span class="n">grown_factor</span><span class="o">=</span><span class="mi">8</span> <span class="n">star_at_center</span><span class="o">=</span><span class="mi">0</span>
 </pre></div>
 </div>
@@ -267,8 +271,8 @@ factor of <code class="docutils literal notranslate"><span class="pre">ref_ratio
 factor of <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> (in this case, 8) larger than the previous
 domain.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> must be 2 or 4, because those are the only
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> must be 2 or 4, because those are the only
 acceptable values in Castro.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> can be any reasonable integer; but it’s only been
@@ -294,37 +298,37 @@ Your inputs file should now contain lines like:</p>
 <p>Important:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Unlike earlier, you may now set <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> to be at most one
+<li><p>Unlike earlier, you may now set <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> to be at most one
 greater than before, but you need not set it that high. For
 example, you could set <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> the same as before and you
 would lose data at the finest refinement level. You may not set
 <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> = 0, however, because we have no data at the new
 level 0 until we average down from the new level 1 after the
-restart.</li>
-<li>You must set <code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code> = (<code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> / <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>)
+restart.</p></li>
+<li><p>You must set <code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code> = (<code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> / <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>)
 <span class="math notranslate nohighlight">\(\times\)</span> (the previous value of <code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code>). In this case
-<code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code> = (8/2)*D = 4D.</li>
-<li>You must set <code class="docutils literal notranslate"><span class="pre">amr.prob_hi</span></code> to be a factor of <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code>
-greater than the previous value of <code class="docutils literal notranslate"><span class="pre">amr.prob_hi</span></code>.</li>
-<li>You must insert the value of <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> used in the Embiggen
+<code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code> = (8/2)*D = 4D.</p></li>
+<li><p>You must set <code class="docutils literal notranslate"><span class="pre">amr.prob_hi</span></code> to be a factor of <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code>
+greater than the previous value of <code class="docutils literal notranslate"><span class="pre">amr.prob_hi</span></code>.</p></li>
+<li><p>You must insert the value of <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> used in the Embiggen
 call as the first value in the list of <code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code>, since
 that will now be the refinement ratio between the new level 0 and
-the new level 1.</li>
-<li>You must set <code class="docutils literal notranslate"><span class="pre">castro.grown_factor</span></code> in your inputs file equal to
+the new level 1.</p></li>
+<li><p>You must set <code class="docutils literal notranslate"><span class="pre">castro.grown_factor</span></code> in your inputs file equal to
 the value of <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> you used when you called Embiggen*ex
-so that Castro knows how big the original domain was.</li>
-<li>Note that if you have run 100 steps at the original level 0, that
+so that Castro knows how big the original domain was.</p></li>
+<li><p>Note that if you have run 100 steps at the original level 0, that
 would be equivalent to 50 steps at the new level 0 because you
 coarsened by a factor of 2.  Thus once you re-start from the new
 checkpoint directory, the next step will be 51, not 101. Make sure
-to keep track of your plotfiles accordingly.</li>
-<li>Don’t forget to adjust <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code> and comparable variables
+to keep track of your plotfiles accordingly.</p></li>
+<li><p>Don’t forget to adjust <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code> and comparable variables
 to control the number of fine levels you now want. If you want to
 have 6 levels of refinement after restart, then make sure
 <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code>, etc, are set high enough. If you only want to have
 5 levels of refinement (where the new level 5 would now be a factor
 of <code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> coarser than the previous level 5), make sure to
-adjust <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code> accordingly as well.</li>
+adjust <code class="docutils literal notranslate"><span class="pre">max_denerr_lev</span></code> accordingly as well.</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -346,8 +350,8 @@ the existing level 0 grids.</p>
 </div>
 <p>Note that</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> must still be 2 or 4</li>
-<li><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> can only be 2 or 3 in this case.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code> must still be 2 or 4</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> can only be 2 or 3 in this case.</p></li>
 </ul>
 </div>
 <div class="section" id="restarting-from-a-grown-checkpoint-file-1">
@@ -393,7 +397,7 @@ we consider the original inputs file to look like:</p>
 </pre></div>
 </div>
 <p>Some results:</p>
-<div class="figure" id="id3">
+<div class="figure align-default" id="id3">
 <img alt="_images/corner.png" src="_images/corner.png" />
 <p class="caption"><span class="caption-number">Fig. 9 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
 coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 0 and
@@ -401,9 +405,9 @@ coarsened and grown. This case uses <code class="docutils literal notranslate"><
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
 grids are shown in white, the level 1 grids in red, the level 2
 grids in yellow, and in the grown figures, the level 3 grids are in
-pink.</span></p>
+pink.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
-<div class="figure" id="id4">
+<div class="figure align-default" id="id4">
 <img alt="_images/center.png" src="_images/center.png" />
 <p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">Data from checkpoint file before and after the domain has been
 coarsened and grown. This case uses <code class="docutils literal notranslate"><span class="pre">star_at_center</span></code> = 1 and
@@ -411,7 +415,7 @@ coarsened and grown. This case uses <code class="docutils literal notranslate"><
 2, the second has <code class="docutils literal notranslate"><span class="pre">grown_factor</span></code> = 3. In all figures the level 0
 grids are shown in white, the level 1 grids in red, the level 2
 grids in yellow, and in the grown figures, the level 3 grids are in
-pink.</span></p>
+pink.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>
@@ -437,7 +441,7 @@ pink.</span></p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -463,7 +467,8 @@ pink.</span></p>
   
   
     
-   
+    
+
 
 </body>
 </html>

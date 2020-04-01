@@ -1,8 +1,0 @@
-rotation_sources_nd.F90
-=======================
-
-rotation\_sources\_module
--------------------------
-
-.. f:automodule:: rotation_sources_module
-

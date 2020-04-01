@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Spectral Deferred Corrections &mdash; Castro 20.03
+  <title>Spectral Deferred Corrections &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./sdc.html">master</a> | <a href="./dev/sdc.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -208,43 +213,44 @@
 iteratively improving the convergence of the solution.  This is the
 basis of the 4th order accurate Castro solver.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Here we are referring to the full SDC time integration scheme
+<p class="admonition-title">Note</p>
+<p>Here we are referring to the full SDC time integration scheme
 (<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>), not the simplified-SDC solver.</p>
 </div>
 <p>The options that describe the quadrature and iterations are:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> : the desired spatial and temporal order.  2 and 4 are supported.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code> : the quadrature scheme used for the
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_order</span></code> : the desired spatial and temporal order.  2 and 4 are supported.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_quadrature</span></code> : the quadrature scheme used for the
 time-integration.  This determines the number and location of the
 temporal nodes.  Supported values are 0 for Gauss-Lobatto and 1 for
-Radau IIA.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.sdc_extra</span></code> : the number of extra iterations to take.  By
+Radau IIA.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.sdc_extra</span></code> : the number of extra iterations to take.  By
 default the number of iterations used is equal to the value of
-<code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</li>
+<code class="docutils literal notranslate"><span class="pre">sdc_order</span></code>.</p></li>
 </ul>
 <p>The options that affect the nonlinear solve are:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
-the reaction system.  Values are:<ul>
-<li>1 : pure Newton iteration (we subdivide the time interval if
-needed to get the Newton method to converge).</li>
-<li>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</li>
-<li>3 : use VODE for the first iteration and then Newton for the
-subsequent iterations.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver</span></code> : the method we use to do the nonlinear solution of
+the reaction system.  Values are:</p>
+<ul>
+<li><p>1 : pure Newton iteration (we subdivide the time interval if
+needed to get the Newton method to converge).</p></li>
+<li><p>2 : use VODE to solve the nonlinear system by expressing it as an ODE system.</p></li>
+<li><p>3 : use VODE for the first iteration and then Newton for the
+subsequent iterations.</p></li>
 </ul>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code> : the relative error on the density in solving the nonlinear system.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code> : the relative error on the partial densities, <span class="math notranslate nohighlight">\((\rho X_k)\)</span>
-in the nonlinear solve.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code> : the relative error of the energy in the nonlinear solve.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code> : the absolute error in the mass fractions during the nonlinear solve.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code> : the factor by which to relax the
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_dens</span></code> : the relative error on the density in solving the nonlinear system.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_spec</span></code> : the relative error on the partial densities, <span class="math notranslate nohighlight">\((\rho X_k)\)</span>
+in the nonlinear solve.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_tol_ener</span></code> : the relative error of the energy in the nonlinear solve.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_atol</span></code> : the absolute error in the mass fractions during the nonlinear solve.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solver_relax_factor</span></code> : the factor by which to relax the
 tolerances (i.e. increase them) for earlier iterations.  We reach
-the desired tolerances on the final iteration.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code> : whether we solve the system in terms of <span class="math notranslate nohighlight">\((\rho e)\)</span> or <span class="math notranslate nohighlight">\((\rho E)\)</span>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code> : whether we use the analytic Jacobian for
-the reaction part of the system or compute it numerically.</li>
+the desired tolerances on the final iteration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_solve_for_rhoe</span></code> : whether we solve the system in terms of <span class="math notranslate nohighlight">\((\rho e)\)</span> or <span class="math notranslate nohighlight">\((\rho E)\)</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc_use_analytic_jac</span></code> : whether we use the analytic Jacobian for
+the reaction part of the system or compute it numerically.</p></li>
 </ul>
 </div>
 
@@ -268,7 +274,7 @@ the reaction part of the system or compute it numerically.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -294,7 +300,8 @@ the reaction part of the system or compute it numerically.</li>
   
   
     
-   
+    
+
 
 </body>
 </html>

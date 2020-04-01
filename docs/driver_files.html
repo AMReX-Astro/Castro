@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Driver &mdash; Castro 20.03
+  <title>Driver &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -40,7 +40,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="File Castro.H" href="file/Castro_8H.html" />
-    <link rel="prev" title="Diffusion_nd.F90" href="file/Diffusion_nd_f.html" /> 
+    <link rel="prev" title="File Diffusion.H" href="file/Diffusion_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,6 +52,7 @@
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
           
+
 
           
             <a href="index.html" class="icon icon-home"> Castro
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./driver_files.html">master</a> | <a href="./dev/driver_files.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -136,27 +141,10 @@
 <li class="toctree-l2"><a class="reference internal" href="diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Driver</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_error_nd_f.html">Castro_error_nd.F90</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Castro__io_8H.html">File Castro_io.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_nd_f.html">Castro_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro_util_nd_f.html">Castro_util_nd.F90</a></li>
+<li class="toctree-l3"><a class="reference internal" href="file/Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="file/Derive_8H.html">File Derive.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Derive_nd_f.html">Derive_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/MGutils_nd_f.html">MGutils_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/Tagging_nd_f.html">Tagging_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/amrinfo_nd_f.html">amrinfo_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/check_for_nan_nd_f.html">check_for_nan_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/generic_fill_nd_f.html">generic_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/interpolate_nd_f.html">interpolate_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/io_nd_f.html">io_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/math_nd_f.html">math_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/prob_params_nd_f.html">prob_params_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/reduction_nd_f.html">reduction_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/source_fill_nd_f.html">source_fill_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/sums_nd_f.html">sums_nd.F90</a></li>
-<li class="toctree-l3"><a class="reference internal" href="file/timestep_nd_f.html">timestep_nd.F90</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="gravity_files.html">Gravity</a></li>
@@ -247,100 +235,10 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro_8H.html">File Castro.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro_error_nd_f.html">Castro_error_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_error_nd_f.html#f/castro_error_module">castro_error_module</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/Castro__io_8H.html">File Castro_io.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro_nd_f.html">Castro_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-network-init-subroutine">ca_network_init subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-network-finalize-subroutine">ca_network_finalize subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-eos-finalize-subroutine">ca_eos_finalize subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-extern-init-subroutine">ca_extern_init subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-get-abort-on-failure-subroutine">ca_get_abort_on_failure subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-set-abort-on-failure-subroutine">ca_set_abort_on_failure subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-amrinfo-init-subroutine">ca_amrinfo_init subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-amrinfo-finalize-subroutine">ca_amrinfo_finalize subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-set-amr-info-subroutine">ca_set_amr_info subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-get-method-params-subroutine">ca_get_method_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#allocate-outflow-data-subroutine">allocate_outflow_data subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#set-old-outflow-data-subroutine">set_old_outflow_data subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#set-new-outflow-data-subroutine">set_new_outflow_data subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#swap-outflow-data-subroutine">swap_outflow_data subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-set-method-params-subroutine">ca_set_method_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-set-problem-params-subroutine">ca_set_problem_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-set-grid-info-subroutine">ca_set_grid_info subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-get-tagging-params-subroutine">ca_get_tagging_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-get-sponge-params-subroutine">ca_get_sponge_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-allocate-sponge-params-subroutine">ca_allocate_sponge_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-deallocate-sponge-params-subroutine">ca_deallocate_sponge_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#ca-get-ambient-params-subroutine">ca_get_ambient_params subroutine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_nd_f.html#set-pointmass-subroutine">set_pointmass subroutine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro__source__fill_8H.html">File Castro_source_fill.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro_util_nd_f.html">Castro_util_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Castro_util_nd_f.html#f/castro_util_module">castro_util_module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="file/Castro__util_8H.html">File Castro_util.H</a></li>
 <li class="toctree-l1"><a class="reference internal" href="file/Derive_8H.html">File Derive.H</a></li>
-<li class="toctree-l1"><a class="reference internal" href="file/Derive_nd_f.html">Derive_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Derive_nd_f.html#f/derive_module">derive_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/MGutils_nd_f.html">MGutils_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/MGutils_nd_f.html#f/mgutils_2d_module">mgutils_2d_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/Tagging_nd_f.html">Tagging_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/Tagging_nd_f.html#f/tagging_module">tagging_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/amrinfo_nd_f.html">amrinfo_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/amrinfo_nd_f.html#f/amrinfo_module">amrinfo_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/check_for_nan_nd_f.html">check_for_nan_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/check_for_nan_nd_f.html#f/nan_check">nan_check</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/generic_fill_nd_f.html">generic_fill_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/generic_fill_nd_f.html#f/generic_fill_module">generic_fill_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/interpolate_nd_f.html">interpolate_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/interpolate_nd_f.html#f/interpolate_module">interpolate_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/io_nd_f.html">io_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/io_nd_f.html#f/io_module">io_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/math_nd_f.html">math_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/math_nd_f.html#f/math_module">math_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/prob_params_nd_f.html">prob_params_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/prob_params_nd_f.html#f/prob_params_module">prob_params_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/reduction_nd_f.html">reduction_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/reduction_nd_f.html#f/reduction_module">reduction_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/source_fill_nd_f.html">source_fill_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/source_fill_nd_f.html#f/source_fill_module">source_fill_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/sums_nd_f.html">sums_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/sums_nd_f.html#f/castro_sums_module">castro_sums_module</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="file/timestep_nd_f.html">timestep_nd.F90</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="file/timestep_nd_f.html#f/timestep_module">timestep_module</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
@@ -356,7 +254,7 @@
         <a href="file/Castro_8H.html" class="btn btn-neutral float-right" title="File Castro.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/Diffusion_nd_f.html" class="btn btn-neutral float-left" title="Diffusion_nd.F90" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="file/Diffusion_8H.html" class="btn btn-neutral float-left" title="File Diffusion.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -365,7 +263,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -391,7 +289,8 @@
   
   
     
-   
+    
+
 
 </body>
 </html>

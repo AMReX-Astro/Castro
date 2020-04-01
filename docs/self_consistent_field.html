@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Self-Consistent Field Initialization &mdash; Castro 20.03
+  <title>Self-Consistent Field Initialization &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./self_consistent_field.html">master</a> | <a href="./dev/self_consistent_field.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -215,15 +220,15 @@
 equilibrium rotating (or non-rotating) initial configurations. It can
 generate single or multiple star systems. The SCF method was originally
 developed in the 1960s, but it was a variant proposed by Hachisu in 1986
-(<a class="reference internal" href="zreferences.html#hachisu-1986a" id="id1">[hachisu:1986a]</a><a class="reference internal" href="zreferences.html#hachisu-1986b" id="id2">[hachisu:1986b]</a>) that ended up becoming the
+(<a class="bibtex reference internal" href="zreferences.html#hachisu-1986a" id="id1">[23]</a><a class="bibtex reference internal" href="zreferences.html#hachisu-1986b" id="id2">[24]</a>) that ended up becoming the
 most popular technique. The SCF method was originally developed
 for rapidly rotating single stars, but was soon extended to apply
 to rotating binary systems, and it has been applied to construct
 initial conditions by several groups studying binary white dwarf
 or neutron star systems using several types of rotation laws
-(<a class="reference internal" href="zreferences.html#newtohline-1997" id="id3">[newtohline:1997]</a><a class="reference internal" href="zreferences.html#swc-2000" id="id4">[swc:2000]</a><a class="reference internal" href="zreferences.html#motl-2002" id="id5">[motl:2002]</a><a class="reference internal" href="zreferences.html#dsouza-2006" id="id6">[dsouza:2006]</a><a class="reference internal" href="zreferences.html#motl-2007" id="id7">[motl:2007]</a><a class="reference internal" href="zreferences.html#even-2009" id="id8">[even:2009]</a><a class="reference internal" href="zreferences.html#kadam-2018" id="id9">[kadam:2018]</a><a class="reference internal" href="zreferences.html#yoshida-2018" id="id10">[yoshida:2018]</a>).
+(<a class="bibtex reference internal" href="zreferences.html#newtohline-1997" id="id3">[37]</a><a class="bibtex reference internal" href="zreferences.html#swc-2000" id="id4">[43]</a><a class="bibtex reference internal" href="zreferences.html#motl-2002" id="id5">[36]</a><a class="bibtex reference internal" href="zreferences.html#dsouza-2006" id="id6">[17]</a><a class="bibtex reference internal" href="zreferences.html#motl-2007" id="id7">[35]</a><a class="bibtex reference internal" href="zreferences.html#even-2009" id="id8">[19]</a><a class="bibtex reference internal" href="zreferences.html#kadam-2018" id="id9">[28]</a><a class="bibtex reference internal" href="zreferences.html#yoshida-2018" id="id10">[44]</a>).
 It has also been used for constructing toroidal configurations
-(<a class="reference internal" href="zreferences.html#kim-2016" id="id11">[kim:2016]</a>).
+(<a class="bibtex reference internal" href="zreferences.html#kim-2016" id="id11">[32]</a>).
 The technique assumes a uniform temperature and composition (more generally,
 a barotropic equation of state), self-gravitation represented by the
 Poisson equation, and a well-defined rotation law (often rigid-body rotation).
@@ -240,10 +245,10 @@ integral form of the Euler equations (essentially, it solves the Bernoulli
 equation from classical fluid dynamics), other approaches have been used
 in the literature. Usually these directly solve the coupled Poisson and
 Bernoulli equations rather than relying on indirect iterative coupling
-between them. See, for example, <a class="reference internal" href="zreferences.html#eriguchi-1985" id="id12">[eriguchi:1985]</a><a class="reference internal" href="zreferences.html#fujisawa-2015" id="id13">[fujisawa:2015]</a> and
-<a class="reference internal" href="zreferences.html#clement-1974" id="id14">[clement:1974]</a><a class="reference internal" href="zreferences.html#aksenov-1994" id="id15">[aksenov:1994]</a>. These alternative methods are generally
+between them. See, for example, <a class="bibtex reference internal" href="zreferences.html#eriguchi-1985" id="id12">[18]</a><a class="bibtex reference internal" href="zreferences.html#fujisawa-2015" id="id13">[21]</a> and
+<a class="bibtex reference internal" href="zreferences.html#clement-1974" id="id14">[11]</a><a class="bibtex reference internal" href="zreferences.html#aksenov-1994" id="id15">[5]</a>. These alternative methods are generally
 more powerful and promise faster convergence, but are also more difficult
-to implement. See also <a class="reference internal" href="zreferences.html#jackson-2005" id="id16">[jackson:2005]</a> for yet another approach.</p>
+to implement. See also <a class="bibtex reference internal" href="zreferences.html#jackson-2005" id="id16">[27]</a> for yet another approach.</p>
 </div>
 <div class="section" id="usage-and-code-parameters">
 <h2>Usage and Code Parameters<a class="headerlink" href="#usage-and-code-parameters" title="Permalink to this headline">¶</a></h2>
@@ -259,10 +264,10 @@ and composition will be retained for the final equilibrium configuration.</p>
 <p>Several code parameters are available for controlling problem initialization
 with SCF:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.scf_maximum_density</span></code>: the target maximum density on the domain</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.scf_equatorial_radius</span></code>: the target equatorial radius of the star</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.scf_polar_radius</span></code>: the target polar radius of the star</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.scf_relax_tol</span></code>: tolerance required for SCF convergence</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_maximum_density</span></code>: the target maximum density on the domain</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_equatorial_radius</span></code>: the target equatorial radius of the star</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_polar_radius</span></code>: the target polar radius of the star</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_relax_tol</span></code>: tolerance required for SCF convergence</p></li>
 </ul>
 <p>The first three options are required and must be set. One limitation of this
 method is that (to our knowledge) there is no known way to specify more natural
@@ -346,7 +351,7 @@ changes its density by more than a factor of <code class="docutils literal notra
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -372,7 +377,8 @@ changes its density by more than a factor of <code class="docutils literal notra
   
   
     
-   
+    
+
 
 </body>
 </html>

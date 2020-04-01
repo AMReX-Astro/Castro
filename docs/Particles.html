@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tracer particles &mdash; Castro 20.03
+  <title>Tracer particles &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./Particles.html">master</a> | <a href="./dev/Particles.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -226,7 +231,7 @@ the evolution of the fluid at any given position and time.</p>
 <p>CASTRO provides a tracer particle scheme with useful options. In this
 scheme, particles are advanced using the midpoint method either with
 the cell-centered velocities or the face-centered velocities
-(Marker-And-Cell method) <a class="footnote-reference" href="#id2" id="id1">[1]</a>. The number and the initial positions of
+(Marker-And-Cell method) <a class="footnote-reference brackets" href="#id2" id="id1">1</a>. The number and the initial positions of
 particles are flexibly determined according to the purpose of a given
 model.</p>
 <div class="section" id="initializing-the-particles">
@@ -295,18 +300,18 @@ the columns in the output file are,</p>
 <p>The first two integers correspond to the particle index and the
 processor number.  One should use the two numbers in order to identify
 a particle and extract its history (i.e., the trajectory in <a class="reference internal" href="#fig-particletrajectory"><span class="std std-numref">Fig. 8</span></a>.</p>
-<div class="figure" id="id3">
+<div class="figure align-default" id="id3">
 <img alt="_images/fluid_motion.png" src="_images/fluid_motion.png" />
-<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">A model atmosphere with the arrows showing the direction of the fluid motion.</span></p>
+<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">A model atmosphere with the arrows showing the direction of the fluid motion.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
-<div class="figure" id="id4">
+<div class="figure align-default" id="id4">
 <span id="fig-particletrajectory"></span><img alt="_images/tracer_trajectory.png" src="_images/tracer_trajectory.png" />
 <p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">The trajectories of 500 particles following the fluid motion on the
 atmosphere. The particles are initially positioned at five
 different heights, <span class="math notranslate nohighlight">\(y=13000\mathrm{~km},~11000\mathrm{~km},~
 8000\mathrm{~km},~ 6000\mathrm{~km}, ~38000\mathrm{~km}\)</span> (100
 particles at each height).  The solid lines represent the
-trajectories of the particles.</span></p>
+trajectories of the particles.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 <p>One can also add the last two columns <span class="math notranslate nohighlight">\([\rho ~~ T]\)</span>, i.e., the
 local density and local temperature of fluid at the position of each
@@ -332,15 +337,14 @@ directories <code class="docutils literal notranslate"><span class="pre">pltXXXX
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particles</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 </div>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>One can simplify interpolation with the cell-centered
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>One can simplify interpolation with the cell-centered
 velocity. However, this can lead to decoupling of the pressure and
 the velocity components, possibly resulting in instability. This
-can be avoided with the face-centered velocity</td></tr>
-</tbody>
-</table>
+can be avoided with the face-centered velocity</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>
@@ -365,7 +369,7 @@ can be avoided with the face-centered velocity</td></tr>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -391,7 +395,8 @@ can be avoided with the face-centered velocity</td></tr>
   
   
     
-   
+    
+
 
 </body>
 </html>

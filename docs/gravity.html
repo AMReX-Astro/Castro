@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Gravity &mdash; Castro 20.03
+  <title>Gravity &mdash; Castro 20.04
  documentation</title>
   
 
@@ -22,11 +22,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -53,6 +53,7 @@
         <div class="wy-side-nav-search" >
           
 
+
           
             <a href="index.html" class="icon icon-home"> Castro
           
@@ -67,7 +68,7 @@
             
             
               <div class="version">
-                20.03
+                20.04
 
               </div>
             
@@ -83,6 +84,10 @@
 </div>
 
           
+    <div class="branch">
+        Branch: <a href="./gravity.html">master</a> | <a href="./dev/gravity.html">development</a>
+    </div>
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
@@ -250,8 +255,8 @@ controlled by setting <code class="docutils literal notranslate"><span class="pr
 file. If both of these are set then the user is required to specify
 the gravity type in the inputs file or the program will abort.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
+<p class="admonition-title">Note</p>
+<p>make sure you have set the <code class="docutils literal notranslate"><span class="pre">center()</span></code> variable
 appropriately for you problem.  This can be done either by directly
 setting it in the <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> or via the
 <code class="docutils literal notranslate"><span class="pre">castro.center</span></code> runtime parameter.</p>
@@ -268,36 +273,33 @@ used in the Laplacian understands the coarse-fine interface and is
 different than the stencil used in the interior.</p>
 <p>There are two types of solves that we discuss with AMR:</p>
 <ul class="simple">
-<li><em>composite solve</em> : This is a multilevel solve, starting at
+<li><p><em>composite solve</em> : This is a multilevel solve, starting at
 a coarse level (usually level 0) and solving for the potential on
-all levels up to the finest level.</li>
-<li><em>level solve</em> : This solves for the potential only on
+all levels up to the finest level.</p></li>
+<li><p><em>level solve</em> : This solves for the potential only on
 a particular level. Finer levels are ignored. At coarse-fine
 interfaces, the data from the coarse levels acts as Dirichlet
-boundary conditions for the current-level-solve.</li>
+boundary conditions for the current-level-solve.</p></li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <a class="reference internal" href="zreferences.html#castro-i" id="id1">[castro_I]</a>. Briefly:</p>
+the discussion in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[6]</a>. Briefly:</p>
 <ul>
-<li><p class="first">At the beginning of a simulation, we do a multilevel composite
+<li><p>At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
 <p>We also do a multilevel composite solve after each regrid.</p>
 </li>
-<li><p class="first">The old-time gravity on the coarse level is defined based on
+<li><p>The old-time gravity on the coarse level is defined based on
 this composite solve, but we also do a level solve on the coarse
 level, and use it to determine the difference between the composite
-solve and the level solve, and store that in a MultiFab.</p>
-</li>
-<li><p class="first">After the hydro advance on the coarse level, we do another level
+solve and the level solve, and store that in a MultiFab.</p></li>
+<li><p>After the hydro advance on the coarse level, we do another level
 solve, and use the (level solve - compositive solve) as a lagged
 predictor of how much we need to add back to that level solve to get
 an effective new-time value for phi on the coarse level, and that’s
-what defines the phi used for the new-time gravity</p>
-</li>
-<li><p class="first">Then we do the fine grid timestep(s), each using the same
-strategy</p>
-</li>
-<li><p class="first">At an AMR synchronization step across levels (see Section
+what defines the phi used for the new-time gravity</p></li>
+<li><p>Then we do the fine grid timestep(s), each using the same
+strategy</p></li>
+<li><p>At an AMR synchronization step across levels (see Section
 <a class="reference internal" href="AMR.html#sec-amr-synchronization"><span class="std std-ref">Synchronization Algorithm</span></a> for a
 description of when these synchronizations occur), if we’re
 choosing to synchronize the gravitational field across levels
@@ -320,36 +322,36 @@ all time.</p>
 <div class="section" id="controls">
 <h3>Controls<a class="headerlink" href="#controls" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>For the full Poisson solver
+<li><p>For the full Poisson solver
 (<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>), the behavior
 of the full Poisson solve / multigrid solver is controlled by
-<code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> and <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code>.</li>
-<li>For isolated boundary conditions, and when
+<code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> and <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code>.</p></li>
+<li><p>For isolated boundary conditions, and when
 <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type``=</span>&#160; <span class="pre">``PoissonGrav</span></code>, the parameters
 <code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code> and
 <code class="docutils literal notranslate"><span class="pre">gravity.direct_sum_bcs</span></code> control the accuracy of
 the Dirichlet boundary conditions. These are described in
-Section <a class="reference external" href="#sec-poisson-3d-bcs">2.3.2</a>.</li>
-<li>For <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>, in 1D we must have <code class="docutils literal notranslate"><span class="pre">coord_sys</span></code> = 2, and in
-2D we must have <code class="docutils literal notranslate"><span class="pre">coord_sys</span></code> = 1.</li>
+Section <a class="reference external" href="#sec-poisson-3d-bcs">2.3.2</a>.</p></li>
+<li><p>For <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>, in 1D we must have <code class="docutils literal notranslate"><span class="pre">coord_sys</span></code> = 2, and in
+2D we must have <code class="docutils literal notranslate"><span class="pre">coord_sys</span></code> = 1.</p></li>
 </ul>
 <p>The following parameters apply to gravity
 solves:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> : how should we calculate gravity?
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> : how should we calculate gravity?
 Can be <code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, <code class="docutils literal notranslate"><span class="pre">MonopoleGrav</span></code>, or
-<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.const_grav</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
-<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, set the value of constant gravity (default: 0.0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> : <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
-<code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, do we perform the “sync solve”? (0 or 1; default: 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> : if gravity.gravity_type
+<code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.const_grav</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
+<code class="docutils literal notranslate"><span class="pre">ConstantGrav</span></code>, set the value of constant gravity (default: 0.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> : <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
+<code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, do we perform the “sync solve”? (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> : if gravity.gravity_type
 = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, whether to perform a composite solve (0 or 1;
-default: 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.max_solve_level</span></code> : maximum level to solve
+default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.max_solve_level</span></code> : maximum level to solve
 for <span class="math notranslate nohighlight">\(\phi\)</span> and <span class="math notranslate nohighlight">\(\mathbf{g}\)</span>; above this level, interpolate from
-below (default: <code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code>-1)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.abs_tol</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>,
+below (default: <code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code>-1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.abs_tol</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>,
 this is the absolute tolerance for the Poisson solve. You can
 specify a single value for this tolerance (or do nothing, and get a
 reasonable default value), and then the absolute tolerance used by
@@ -360,28 +362,28 @@ tolerance is multiplied by (<code class="docutils literal notranslate"><span cla
 for the change in the absolute scale of the Laplacian operator. You
 can also specify an array of values for <code class="docutils literal notranslate"><span class="pre">abs_tol</span></code>, one for each
 possible level in the simulation, and then the scaling by
-(<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>):sup:<cite>2</cite> is not applied.</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.rel_tol</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>,
+(<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>):sup:<cite>2</cite> is not applied.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.rel_tol</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>,
 this is the relative tolerance for the Poisson solve. By default it
 is zero. You can specify a single value for this tolerance and it
 will apply on every level, or you can specify an array of values
 for <code class="docutils literal notranslate"><span class="pre">rel_tol</span></code>, one for each possible level in the
-simulation. This replaces the old parameter <code class="docutils literal notranslate"><span class="pre">gravity.ml_tol</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
+simulation. This replaces the old parameter <code class="docutils literal notranslate"><span class="pre">gravity.ml_tol</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
 <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, this is the max <span class="math notranslate nohighlight">\(\ell\)</span> value to use for
-multipole BCs (must be <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.direct_sum_bcs</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
-<code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, evaluate BCs using exact sum (0 or 1; default: 0)</li>
-<li><code class="docutils literal notranslate"><span class="pre">gravity.drdxfac</span></code> : ratio of dr for monopole gravity
-binning to grid resolution</li>
+multipole BCs (must be <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.direct_sum_bcs</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> =
+<code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, evaluate BCs using exact sum (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.drdxfac</span></code> : ratio of dr for monopole gravity
+binning to grid resolution</p></li>
 </ul>
 <p>The follow parameters affect the coupling of hydro and gravity:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> : turn on/off gravity</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.moving_center</span></code> : do we recompute the center
-used for the multipole gravity solver each step?</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.point_mass</span></code> : point mass at the center of the star
-(must be <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 0.0)</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.do_grav</span></code> : turn on/off gravity</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.moving_center</span></code> : do we recompute the center
+used for the multipole gravity solver each step?</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.point_mass</span></code> : point mass at the center of the star
+(must be <span class="math notranslate nohighlight">\(\geq 0\)</span>; default: 0.0)</p></li>
 </ul>
 <p>Note that in the following, <code class="docutils literal notranslate"><span class="pre">MAX_LEV</span></code> is a hard-coded parameter
 in <code class="docutils literal notranslate"><span class="pre">Source/Gravity.cpp</span></code> which is currently set to 15. It
@@ -415,7 +417,7 @@ in spherical shells, defining an enclosed mass and uses this
 to compute the gravitational potential and acceleration in a
 spherically-symmetric fashion.</p>
 <ul>
-<li><p class="first">In 1D spherical coordinates we compute</p>
+<li><p>In 1D spherical coordinates we compute</p>
 <div class="math notranslate nohighlight">
 \[g(r) = -\frac{G M_{\rm enclosed}}{ r^2}\]</div>
 <p>where <span class="math notranslate nohighlight">\(M_{\rm enclosed}\)</span> is calculated from the density at
@@ -431,7 +433,7 @@ data at that level so there is no need to interpolate between points
 when mapping the 1D radial profile of <span class="math notranslate nohighlight">\(g\)</span> back onto the original
 grid.</p>
 </li>
-<li><p class="first">In 2D or 3D we compute a 1D radial average of density and use
+<li><p>In 2D or 3D we compute a 1D radial average of density and use
 this to compute gravity as a one-dimensional integral, then
 interpolate the gravity vector back onto the Cartesian grid
 cells. At the coarsest level we define the extent of the 1D arrays
@@ -463,8 +465,8 @@ creates <span class="math notranslate nohighlight">\(g\)</span> is done at the f
 <code class="docutils literal notranslate"><span class="pre">probinit</span></code> and the radius is computed as the distance from that
 center.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">there is an additional correction at the corners in
+<p class="admonition-title">Note</p>
+<p>there is an additional correction at the corners in
 <code class="docutils literal notranslate"><span class="pre">make_radial_grav</span></code> that accounts for the volume in a shell
 that is not part of the grid.</p>
 </div>
@@ -499,9 +501,9 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <a class="reference internal" href="zreferences.html#katz-2016" id="id2">[katz:2016]</a>.</p>
+is <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id2">[31]</a>.</p>
 <ul>
-<li><p class="first"><strong>Multipole Expansion</strong></p>
+<li><p><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
 of the boundary conditions. According to, for example, Jackson’s
 <em>Classical Electrodynamics</em> (with the corresponding change to
@@ -561,7 +563,7 @@ generate the Legendre polynomials is not numerically stable for
 arbitrary <span class="math notranslate nohighlight">\(l\)</span> (because the polynomials get very large, for
 large enough <span class="math notranslate nohighlight">\(l\)</span>).</p>
 </li>
-<li><p class="first"><strong>Direct Sum</strong></p>
+<li><p><strong>Direct Sum</strong></p>
 <p>Up to truncation error caused by the discretization itself, the
 boundary values for the potential can be computed exactly by a direct
 sum over all cells in the grid. Suppose I consider some ghost cell
@@ -596,7 +598,7 @@ setting <code class="docutils literal notranslate"><span class="pre">gravity.dir
 </div>
 <div class="section" id="prescribedgrav">
 <h3><code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code><a class="headerlink" href="#prescribedgrav" title="Permalink to this headline">¶</a></h3>
-<p>With PrescribedGrav <a class="footnote-reference" href="#id8" id="id3">[1]</a>, gravity can be defined as a function that is
+<p>With PrescribedGrav <a class="footnote-reference brackets" href="#id8" id="id3">1</a>, gravity can be defined as a function that is
 specified by the user. The option is allowed in 2D and 3D. To define
 the gravity vector, copy <code class="docutils literal notranslate"><span class="pre">prescribe_grav_nd.f90</span></code> from
 <code class="docutils literal notranslate"><span class="pre">Source/gravity/</span></code> to your run directory. The makefile system will
@@ -616,8 +618,8 @@ option works by adding the gravitational acceleration of the point
 mass onto the acceleration from whatever other gravity type is under
 in the simulation.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">the point mass have a mass &lt; 0</p>
+<p class="admonition-title">Note</p>
+<p>the point mass have a mass &lt; 0</p>
 </div>
 <p>A useful option is <code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code>. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -632,14 +634,14 @@ back to the grid). This calculation is done in
 <div class="section" id="gr-correction">
 <h2>GR correction<a class="headerlink" href="#gr-correction" title="Permalink to this headline">¶</a></h2>
 <p>In the cases of compact objects or very massive stars, the general
-relativity (GR) effect starts to play a role <a class="footnote-reference" href="#id9" id="id4">[2]</a>. First, we consider
+relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id9" id="id4">2</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<a class="reference internal" href="zreferences.html#grbk1" id="id5">[grbk1]</a>. For detailed physics, please refer to
-<a class="reference internal" href="zreferences.html#grbk2" id="id6">[grbk2]</a>. For describing very strong gravitational
+<a class="bibtex reference internal" href="zreferences.html#grbk1" id="id5">[33]</a>. For detailed physics, please refer to
+<a class="bibtex reference internal" href="zreferences.html#grbk2" id="id6">[45]</a>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -725,7 +727,7 @@ really makes a difference. So <a class="reference internal" href="#equation-tov2
 the hydrodynamics system. The main parameter here is
 <code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code>.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 1 : we use a standard
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 1 : we use a standard
 predictor-corrector formalism for updating the momentum and
 energy. Specifically, our first update is equal to <span class="math notranslate nohighlight">\(\Delta t
 \times \mathbf{S}^n\)</span> , where <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> is the value of
@@ -733,8 +735,8 @@ the source terms at the old-time (which is usually called time-level
 <span class="math notranslate nohighlight">\(n\)</span>). At the end of the timestep, we do a corrector step where
 we subtract off <span class="math notranslate nohighlight">\(\Delta t / 2 \times \mathbf{S}^n\)</span> and add on
 <span class="math notranslate nohighlight">\(\Delta t / 2 \times \mathbf{S}^{n+1}\)</span>, so that at the end of
-the timestep the source term is properly time centered.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 2 : we do something very similar
+the timestep the source term is properly time centered.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 2 : we do something very similar
 to 1. The major difference is that when evaluating the energy source
 term at the new time (which is equal to <span class="math notranslate nohighlight">\(\mathbf{u} \cdot
 \mathbf{S}^{n+1}_{\rho \mathbf{u}}\)</span>, where the latter is the
@@ -742,8 +744,8 @@ momentum source term evaluated at the new time), we first update the
 momentum, rather than using the value of <span class="math notranslate nohighlight">\(\mathbf{u}\)</span> before
 entering the gravity source terms. This permits a tighter coupling
 between the momentum and energy update and we have seen that it
-usually results in a more accurate evolution.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 3 : we do the same momentum update as
+usually results in a more accurate evolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 3 : we do the same momentum update as
 the previous two, but for the energy update, we put all of the work
 into updating the kinetic energy alone. In particular, we explicitly
 ensure that <span class="math notranslate nohighlight">\((\rho e)\)</span> remains the same, and update
@@ -751,31 +753,27 @@ ensure that <span class="math notranslate nohighlight">\((\rho e)\)</span> remai
 energy to the old internal energy to determine the final total gas
 energy. The physical motivation is that work should be done on the
 velocity, and should not directly update the temperature—only
-indirectly through things like shocks.</li>
-<li><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 4 : the energy update is done in a
+indirectly through things like shocks.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.grav_source_type</span></code> = 4 : the energy update is done in a
 “conservative” fashion. The previous methods all evaluate the value
 of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<a class="reference internal" href="zreferences.html#katzthesis" id="id7">[katzthesis]</a> for some more details.</li>
+<a class="bibtex reference internal" href="zreferences.html#katzthesis" id="id7">[30]</a> for some more details.</p></li>
 </ul>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[1]</a></td><td>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
+<dl class="footnote brackets">
+<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
+<dd><p>Note: The <code class="docutils literal notranslate"><span class="pre">PrescribedGrav</span></code>
 option and text here were contributed by Jan Frederik Engels of
-University of Gottingen.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[2]</a></td><td>Note: The GR
+University of Gottingen.</p>
+</dd>
+<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id4">2</a></span></dt>
+<dd><p>Note: The GR
 code and text here were contributed by Ken Chen of Univ. of
-Minnesota.</td></tr>
-</tbody>
-</table>
+Minnesota.</p>
+</dd>
+</dl>
 </div>
 </div>
 
@@ -799,7 +797,7 @@ Minnesota.</td></tr>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Castro development tem
+        &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
@@ -825,7 +823,8 @@ Minnesota.</td></tr>
   
   
     
-   
+    
+
 
 </body>
 </html>

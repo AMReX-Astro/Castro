@@ -366,32 +366,7 @@ See Krumholz et al. 2007 for some discussion on this.
 Boundary Conditions
 -------------------
 
-Castro needs to know about the boundary conditions for both
-the hydrodynamics and radiation portions of the evolution.
-
-Hydrodynamics Evolution
-~~~~~~~~~~~~~~~~~~~~~~~
-
-For the hydrodynamics portion of the solve, the boundary conditions
-for the normal hydrodynamic state values will be set by the problem’s
-hypfill routine (which typically just calls filcc to handle
-the usual hydrodynamics boundary types: outflow, symmetry, etc.).
-
-A corresponding radfill routine needs to be written to fill the
-ghost cells for the radiation energy density during the hydrodynamics
-evolution. Again, this usually will just default to calling
-filcc.
-
-Note: if any of the hydrodynamic boundary conditions types are set
-to Inflow, then you will need to ensure that the radfill
-routine explicitly handles the boundary condition implementation
-for the radiation energy density in that case—the filcc
-routine will not do a hydrodynamic Inflow boundary.
-
-Radiation Evolution
-~~~~~~~~~~~~~~~~~~~
-
-The following parameters are for radiation boundary in the diffusion
+The following parameters are for the radiation boundary in the diffusion
 equation. They do not affect hydrodynamic boundaries.
 
 -  radiation.lo_bc
@@ -399,7 +374,7 @@ equation. They do not affect hydrodynamic boundaries.
    This sets the action to take at the lower edge of the domain in
    each coordinate direction. Possible values are:
 
-   -  101 *Dirchlet*:
+   -  101 *Dirichlet*:
 
       Specify the radiation energy density on the boundary.
       For gray radiation, this could be :math:`E_r = a T^4`.
