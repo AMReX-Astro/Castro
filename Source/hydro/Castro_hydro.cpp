@@ -56,33 +56,6 @@ Castro::cons_to_prim(const Real time)
                 q_arr,
                 qaux_arr);
 
-        // Convert the source terms expressed as sources to the conserved state to those
-        // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind ||
-            time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-          Array4<Real> const src_q_arr = src_q.array(mfi);
-
-          src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
-        }
-
-#ifndef RADIATION
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-        // Add in the reactions source term; only done in simplified SDC.
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
-
-            if (do_react)
-                src_q[mfi].plus<RunOn::Device>(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
-
-        }
-#endif
-#endif
-#endif
     }
 
 }

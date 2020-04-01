@@ -87,6 +87,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
     FArrayBox dq;
     FArrayBox shk;
+    FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
     FArrayBox qym, qyp;
@@ -168,7 +169,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           q[mfi].prefetchToDevice();
           qaux[mfi].prefetchToDevice();
-          src_q[mfi].prefetchToDevice();
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
@@ -188,7 +188,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real const> const q_arr = q.array(mfi);
       Array4<Real const> const qaux_arr = qaux.array(mfi);
-      Array4<Real const> const src_q_arr = src_q.array(mfi);
 
       Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
@@ -274,6 +273,39 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       else {
         AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
       }
+
+      // get the primitive variable hydro sources
+
+      const Box& qbx = amrex::grow(bx, NUM_GROW);
+
+      src_q.resize(qbx, NQSRC);
+      Elixir elix_src_q = src_q.elixir();
+      fab_size += src_q.nBytes();
+      Array4<Real> const src_q_arr = src_q.array();
+
+      Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+
+      src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+
+#ifndef RADIATION
+#ifdef SIMPLIFIED_SDC
+#ifdef REACTIONS
+        // Add in the reactions source term; only done in simplified SDC.
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+
+            if (do_react)
+              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx, 0, 0, NQSRC);
+
+        }
+#endif
+#endif
+#endif
+
+
+      // work on the interface states
 
       qxm.resize(obx, NQ);
       Elixir elix_qxm = qxm.elixir();
@@ -1414,7 +1446,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           q[mfi].prefetchToHost();
           qaux[mfi].prefetchToHost();
-          src_q[mfi].prefetchToHost();
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();
