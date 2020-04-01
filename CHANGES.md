@@ -1,9 +1,15 @@
 # 20.04
 
+   * A potential undefined flux from the HLL solver when using
+     hybrid_riemann has been fixed (#823)
+
    * The parameter castro.allow_small_energy has been removed. The
      code behavior is now similar to what it would have been with
      allow_small_energy == 0 (the internal energy can never be
      smaller than that allowed by small_temp). (#817)
+
+   * The BC interfaces have been merged and converted to a new FAB
+     interface as part of the port to C++. (#819)
 
    * All boundary fill interfaces other than hypfill and denfill have
      been removed. So, we no longer support overriding the boundary
