@@ -277,31 +277,37 @@ Castro::mol_ppm_reconstruct(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
 
-    Real s[5];
+    Real s[7];
     Real flat = flatn_arr(i,j,k);
     Real sm;
     Real sp;
 
     if (idir == 0) {
+      s[im3] = q_arr(i-3,j,k,n);
       s[im2] = q_arr(i-2,j,k,n);
       s[im1] = q_arr(i-1,j,k,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i+1,j,k,n);
       s[ip2] = q_arr(i+2,j,k,n);
+      s[ip3] = q_arr(i+3,j,k,n);
 
     } else if (idir == 1) {
+      s[im3] = q_arr(i,j-3,k,n);
       s[im2] = q_arr(i,j-2,k,n);
       s[im1] = q_arr(i,j-1,k,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i,j+1,k,n);
       s[ip2] = q_arr(i,j+2,k,n);
+      s[ip3] = q_arr(i,j+3,k,n);
 
     } else {
+      s[im3] = q_arr(i,j,k-3,n);
       s[im2] = q_arr(i,j,k-2,n);
       s[im1] = q_arr(i,j,k-1,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i,j,k+1,n);
       s[ip2] = q_arr(i,j,k+2,n);
+      s[ip3] = q_arr(i,j,k+3,n);
 
     }
 

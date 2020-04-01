@@ -6,11 +6,13 @@
 
 using namespace amrex;
 
-constexpr int im2 = 0;
-constexpr int im1 = 1;
-constexpr int i0 = 2;
-constexpr int ip1 = 3;
-constexpr int ip2 = 4;
+constexpr int im3 = 0
+constexpr int im2 = 1;
+constexpr int im1 = 2;
+constexpr int i0 = 3;
+constexpr int ip1 = 4;
+constexpr int ip2 = 5;
+constexpr int ip3 = 6;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
