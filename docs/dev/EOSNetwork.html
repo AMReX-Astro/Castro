@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Microphysics &mdash; Castro 20.04
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spectral Deferred Corrections" href="sdc.html" />
+    <link rel="prev" title="Tracer particles" href="Particles.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.04
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../EOSNetwork.html">master</a> | <a href="./EOSNetwork.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Microphysics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#equation-of-state">Equation of State</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#standard-castro-eoses">Standard Castro EOSes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#eos-interfaces-and-parameters">EOS Interfaces and Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#required-thermodynamics-quantities">Required Thermodynamics Quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#composition-derivatives">Composition derivatives</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#nuclear-network">Nuclear Network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#controlling-burning">Controlling burning</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Microphysics</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/EOSNetwork.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="microphysics">
+<h1>Microphysics<a class="headerlink" href="#microphysics" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="equation-of-state">
+<h2>Equation of State<a class="headerlink" href="#equation-of-state" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="standard-castro-eoses">
+<h3>Standard Castro EOSes<a class="headerlink" href="#standard-castro-eoses" title="Permalink to this headline">¶</a></h3>
+<p>Castro is written in a modular fashion so that the EOS and network
+burning routines can be supplied by the user. However, for the
+examples presented later we use several EOS and network routines
+that come with the Microphysics distribution.</p>
+<p>Castro relies on routines to calculate the equation of state (EOS)
+of a fluid, as well as a species network to define the components of
+the fluid. The network optionally has the ability to do nuclear burning,
+but for this section its main purpose is in defining the species so that
+the EOS can calculate fluid properties that depend on composition, such
+as electron fraction.</p>
+<p>By default, Castro comes with the <code class="docutils literal notranslate"><span class="pre">gamma_law</span></code>
+EOS. This represents a gamma law gas, with equation of state:</p>
+<div class="math notranslate nohighlight">
+\[p = (\gamma - 1) \rho e.\]</div>
+<p>The gas is currently assumed to be monatomic and ideal. (Only a
+restricted set of thermodynamic variables are actually calculated,
+the minimum necessary for the hydrodynamics. A fuller set of
+thermodynamic variables, for example the entropy from the
+Sackur-Tetrode equation, are calculated in the <code class="docutils literal notranslate"><span class="pre">gamma_law_general</span></code>
+EOS inside the Microphysics repository.)</p>
+</div>
+<div class="section" id="runtime-parameters">
+<h3>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h3>
+<p>When inverting the EOS (e.g. by calling <cite>eos_input_re</cite>), an initial guess for
+the temperature is required. This guess is provided by the runtime parameter
+<cite>castro.T_guess</cite>, and should be set to a sensible value for each problem
+(it will vary depending on which EOS is used).</p>
+</div>
+<div class="section" id="eos-interfaces-and-parameters">
+<h3>EOS Interfaces and Parameters<a class="headerlink" href="#eos-interfaces-and-parameters" title="Permalink to this headline">¶</a></h3>
+<p id="index-0">Each EOS should have two main routines by which it interfaces to the
+rest of Castro. At the beginning of the simulation, <code class="docutils literal notranslate"><span class="pre">eos_init</span></code>
+will perform any initialization steps and save EOS variables (mainly
+<code class="docutils literal notranslate"><span class="pre">smallt</span></code>, the temperature floor, and <code class="docutils literal notranslate"><span class="pre">smalld</span></code>, the
+density floor). Then, whenever you want to call the EOS, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">call</span> <span class="n">eos</span> <span class="p">(</span><span class="n">eos_input</span><span class="p">,</span> <span class="n">eos_state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first argument specifies the inputs to the EOS. The options
+that are currently available are stored in
+<code class="docutils literal notranslate"><span class="pre">EOS/eos_data.F90</span></code>, and are always a combination of two
+thermodynamic quantities. For example, <code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code> means
+that we call the EOS with <span class="math notranslate nohighlight">\(\rho\)</span> (density) and <span class="math notranslate nohighlight">\(T\)</span> (temperature)
+and we expect the EOS to return the associated thermodynamic
+quantities such as internal energy <span class="math notranslate nohighlight">\(e\)</span> and entropy <span class="math notranslate nohighlight">\(s\)</span>.</p>
+<p>We note that for real (non-analytic) equations of state
+in which <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(T\)</span> and species are the independent variables, such
+as the Helmholtz EOS, <code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code> directly calls the EOS
+and obtains the other thermodynamic variables. But for other inputs,
+e.g. <code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>, a Newton-Raphson iteration is performed
+to find the density or temperature that corresponds to the given
+input.</p>
+<p>The eos_state variable is a Fortran derived type (<code class="docutils literal notranslate"><span class="pre">eos_t</span></code>, similar to
+a C struct). It stores a complete set of thermodynamic
+variables. When calling the EOS, you should first fill the variables
+that are the inputs, for example with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">eos_type_module</span>
+<span class="o">...</span>
+<span class="nb">type</span> <span class="p">(</span><span class="n">eos_t</span><span class="p">)</span> <span class="p">::</span> <span class="n">eos_state</span>
+<span class="o">...</span>
+<span class="n">eos_state</span> <span class="o">%</span> <span class="n">rho</span> <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+<span class="n">eos_state</span> <span class="o">%</span> <span class="n">T</span>   <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UTEMP</span><span class="p">)</span>
+<span class="n">eos_state</span> <span class="o">%</span> <span class="n">e</span>   <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UEINT</span><span class="p">)</span> <span class="o">/</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+<span class="n">eos_state</span> <span class="o">%</span> <span class="n">xn</span>  <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UFS</span><span class="p">:</span><span class="n">UFS</span><span class="o">+</span><span class="n">nspec</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+<span class="n">eos_state</span> <span class="o">%</span> <span class="n">aux</span> <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UFX</span><span class="p">:</span><span class="n">UFX</span><span class="o">+</span><span class="n">naux</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Whenever the <code class="docutils literal notranslate"><span class="pre">eos_state</span></code> type is initialized, the thermodynamic
+state variables are filled with unphysical numbers. If you do not
+input the correct arguments to match your input quantities, the EOS
+will call an error. This means that it is good practice to fill the
+quantities that will be iterated over with an initial guess. Indeed,
+this initial guess is typically required for equations of state that
+iterate over this variable, as the values they are initialized with
+will likely not converge. Usually a prior value of the temperature or
+density suffices if it’s available, but if not then use <code class="docutils literal notranslate"><span class="pre">T_guess</span></code> or
+<code class="docutils literal notranslate"><span class="pre">small_dens</span></code>.</p>
+<p>If you are interested in using more realistic and sophisticated equations of
+state, you should download the <a class="reference external" href="https://github.com/starkiller-astro/Microphysics">Microphysics</a>
+repository. This is a collection of microphysics routines that are compatible with the
+BoxLib codes. We refer you to the documentation in that repository for how to set it up
+and for information on the equations of state provided. That documentation
+also goes into more detail about the details of the EOS code, in case you are interested in
+how it works (and in case you want to develop your own EOS).</p>
+</div>
+<div class="section" id="required-thermodynamics-quantities">
+<h3>Required Thermodynamics Quantities<a class="headerlink" href="#required-thermodynamics-quantities" title="Permalink to this headline">¶</a></h3>
+<p>Three input qwuantities are required of any EOS:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(T\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_input_rp</span></code>: <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(P\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are input</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">eos_t</span></code> derived type holds a large number of thermodynamics
+quantities, but not all of these are needed for basic
+Castro operation. The main quantities that any EOS in any mode needs to
+supply, if they are not input, are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">T</span></code>: the temperature</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">P</span></code>: total pressure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">e</span></code>: the specific energy</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">gam1</span></code>: the first adiabatic index,
+<span class="math notranslate nohighlight">\(\Gamma_1 = d\log P / d\log \rho |_s\)</span></p></li>
+</ul>
+<p>Additionally the <code class="docutils literal notranslate"><span class="pre">eos_input_re</span></code> mode also needs to supply:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cs</span></code>: the adiabatic sound speed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpdr_e</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p/\partial \rho |_e\)</span>
+— note that the specific internal energy, <span class="math notranslate nohighlight">\(e\)</span>
+is held constant here.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">dpde</span></code>: the derivative, <span class="math notranslate nohighlight">\(\partial p / \partial e |_\rho\)</span></p></li>
+</ul>
+<p>For radiation hydro, the <code class="docutils literal notranslate"><span class="pre">eos_input_rt</span></code> model needs to supply:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_state</span> <span class="pre">%</span> <span class="pre">cv</span></code>: the specific heat capacity.</p></li>
+</ul>
+<p>Other quantities (e.g., entropy) might be needed for the derived
+variables that are optional output into the plotfiles.</p>
+</div>
+<div class="section" id="composition-derivatives">
+<h3>Composition derivatives<a class="headerlink" href="#composition-derivatives" title="Permalink to this headline">¶</a></h3>
+<p id="index-1">A separate type, <code class="docutils literal notranslate"><span class="pre">eos_xderivs_t</span></code> provides access to derivatives with respect to mass fraction.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dhdX(nspec)</span></code>: the derivative of the
+specific enthalpy with respect to mass fraction at constant
+<span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(p\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\xi_k = e_{X_k} + \frac{1}{p_\rho} \left (\frac{p}{\rho^2} - e_\rho \right ) p_{X_k}\]</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dpdx(nspec)</span></code>: the derivative of the pressure with respect to mass fraction:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+p_{X_k} &amp;= \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+          \frac{\partial \bar{A}}{\partial X_k} +
+          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+          \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+        &amp;= -\frac{\bar{A}^2}{A_k}
+          \left .\frac{\partial p}{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+          \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z} \right )
+          \left . \frac{\partial p}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+\end{align}\end{split}\]</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eos_xderivs</span> <span class="pre">%</span> <span class="pre">dedx(nspec)</span></code>: the derivative of the specific internal energy with respect to mass fraction:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+e_{X_k} &amp;= \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}}
+        \frac{\partial \bar{A}}{\partial X_k} +
+        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+        \frac{\partial \bar{Z}}{\partial X_k} \nonumber \\
+        &amp;= -\frac{\bar{A}^2}{A_k}
+        \left . \frac{\partial e }{\partial \bar{A}} \right |_{\rho, T, \bar{Z}} +
+        \frac{\bar{A}}{A_k} \left (Z_k - \bar{Z}\right )
+        \left .\frac{\partial e}{\partial \bar{Z}} \right |_{\rho, T, \bar{A}}
+\end{align}\end{split}\]</div>
+</li>
+</ul>
+<p>(see <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id1">[7]</a>, Appendix A).</p>
+</div>
+</div>
+<div class="section" id="nuclear-network">
+<h2>Nuclear Network<a class="headerlink" href="#nuclear-network" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">The nuclear network serves two purposes: it defines the fluid components used
+in both the equation of state and the hydrodynamics, and it evolves those
+components through a nuclear burning step. Castro comes with a <code class="docutils literal notranslate"><span class="pre">general_null</span></code>
+network (which lives in the <code class="docutils literal notranslate"><span class="pre">networks/</span></code> directory). This is a bare interface for a
+nuclear reaction network. No reactions are enabled, and no auxiliary variables
+are accepted.  It contains several sets of isotopes; for example,
+<code class="docutils literal notranslate"><span class="pre">networks/general_null/triple_alpha_plus_o.net</span></code> would describe the
+isotopes needed to represent the triple-<span class="math notranslate nohighlight">\(\alpha\)</span> reaction converting
+helium into carbon, as well as oxygen and iron.</p>
+<p>The main interface file, <code class="docutils literal notranslate"><span class="pre">network.f90</span></code>, is a wrapper function. The
+actual network details are defined in <code class="docutils literal notranslate"><span class="pre">actual_network.f90</span></code>, a
+file which is automatically generated in your work directory when you compile.
+It supplies the number and names of species and auxiliary variables, as
+well as other initializing data, such as their mass numbers, proton numbers,
+and the binding energies.</p>
+<p>The burning front-end interface, <code class="docutils literal notranslate"><span class="pre">networks/burner.f90</span></code>, accepts a different
+derived type called the <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> type. Like the <code class="docutils literal notranslate"><span class="pre">eos_t</span></code>, it has entries
+for the basic thermodynamic quantities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">burn_type_module</span>
+<span class="o">...</span>
+<span class="nb">type</span> <span class="p">(</span><span class="n">burn_t</span><span class="p">)</span> <span class="p">::</span> <span class="n">burn_state</span>
+<span class="o">...</span>
+<span class="n">burn_state</span> <span class="o">%</span> <span class="n">rho</span> <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+<span class="n">burn_state</span> <span class="o">%</span> <span class="n">T</span>   <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UTEMP</span><span class="p">)</span>
+<span class="n">burn_state</span> <span class="o">%</span> <span class="n">e</span>   <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UEINT</span><span class="p">)</span> <span class="o">/</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+<span class="n">burn_state</span> <span class="o">%</span> <span class="n">xn</span>  <span class="o">=</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">UFS</span><span class="p">:</span><span class="n">UFS</span><span class="o">+</span><span class="n">nspec</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It takes in an input <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> and returns an output <code class="docutils literal notranslate"><span class="pre">burn_t</span></code> after
+the burning has completed. The nuclear energy release can be computed by
+taking the difference of <code class="docutils literal notranslate"><span class="pre">burn_state_out</span> <span class="pre">%</span> <span class="pre">e</span></code> and
+<code class="docutils literal notranslate"><span class="pre">burn_state_in</span> <span class="pre">%</span> <span class="pre">e</span></code>. The species change can be computed analogously.
+In normal operation in Castro  the integration occurs over a time interval
+of <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, where <span class="math notranslate nohighlight">\(\Delta t\)</span> is the hydrodynamics timestep.</p>
+<p>If you are interested in using actual nuclear burning networks,
+you should download the <a class="reference external" href="https://github.com/starkiller-astro/Microphysics">Microphysics</a>
+repository. This is a collection of microphysics routines that are compatible with the
+AMReX Astro codes. We refer you to the documentation in that repository for how to set it up
+and for information on the networks provided. That documentation
+also goes into more detail about the details of the network code, in case you are interested in
+how it works (and in case you want to develop your own network).</p>
+<div class="section" id="controlling-burning">
+<h3>Controlling burning<a class="headerlink" href="#controlling-burning" title="Permalink to this headline">¶</a></h3>
+<p>There are a number of reactions-related parameters that can be set at runtime
+in the inputs file. Reactions are enabled by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_react</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>(Note: turning reactions off for problems where they’re not required can help improve
+the efficiency).</p>
+<p>It is possible to set the maximum and minimum temperature and density for allowing
+reactions to occur in a zone using the parameters <code class="docutils literal notranslate"><span class="pre">castro.react_T_min</span></code>,
+<code class="docutils literal notranslate"><span class="pre">castro.react_T_max</span></code>, <code class="docutils literal notranslate"><span class="pre">castro.react_rho_min</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.react_rho_max</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sdc.html" class="btn btn-neutral float-right" title="Spectral Deferred Corrections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Particles.html" class="btn btn-neutral float-left" title="Tracer particles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

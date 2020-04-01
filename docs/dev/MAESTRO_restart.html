@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Restarting from Maestro &mdash; Castro 20.04
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Verification" href="Verification.html" />
+    <link rel="prev" title="Self-Consistent Field Initialization" href="self_consistent_field.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.04
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../MAESTRO_restart.html">master</a> | <a href="./MAESTRO_restart.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Restarting from Maestro</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#maestro-plotfile-requirements">MAESTRO Plotfile Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#list-of-parameters">List of Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#examples-of-usage">Examples of Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#new-subroutines-in-prob-xd-f90">New Subroutines in Prob_Xd.f90</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-notes">Additional Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#multilevel-restart">Multilevel Restart</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Restarting from Maestro</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/MAESTRO_restart.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="restarting-from-maestro">
+<h1>Restarting from Maestro<a class="headerlink" href="#restarting-from-maestro" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>We can now initialize a Castro simulation using data from a Maestro plotfile. This should not be thought of as a restart mode, but rather
+a new simulation with a special initialization. In order to use this
+feature, you must make sure the Maestro plotfile has the proper
+variables, add some new parameters to your inputs file, and add a few
+subroutines to Prob_Xd.f90. You need to build a special executable
+with “USE_MAESTRO_INIT=TRUE”, which will add “.MAESTRO” to the
+executable string. For multilevel problems, there are a few extra
+steps relating to the fact that you have to supply a grids file
+consistent with the Maestro grid structure.</p>
+</div>
+<div class="section" id="maestro-plotfile-requirements">
+<h2>MAESTRO Plotfile Requirements<a class="headerlink" href="#maestro-plotfile-requirements" title="Permalink to this headline">¶</a></h2>
+<p>The Maestro plotfile needs to have the following variables:</p>
+<ul class="simple">
+<li><p>“x_vel”, “y_vel”, (and “z_vel”, depending on
+dimensionality of the problem)</p></li>
+<li><p>“density” (<strong>castro.MAESTRO_init_type</strong> = 1 and 2 only)</p></li>
+<li><p>Optional species (such as “X(C12)”) - there is an option to
+not read any species from the Maestro plotfile. In this case, you
+must make sure your code manually defines the species cell-by-cell
+in the initial Castro data</p></li>
+<li><p>“tfromp”</p></li>
+<li><p>“pi” (<strong>castro.MAESTRO_init_type</strong> = 2, 3, and 4 only)</p></li>
+<li><p>“entropy” (<strong>castro.MAESTRO_init_type</strong> = 4 only)</p></li>
+</ul>
+<p>Also, model_cc_XXXXX needs to list variables in the following order,
+which is the default order found in MAESTRO/Source/base_io.f90: r,
+base_r, rho0, p0, gamma1bar, rhoh0, div_coeff, psi, tempbar,
+etarho_cc, tempbar_init.</p>
+</div>
+<div class="section" id="list-of-parameters">
+<h2>List of Parameters<a class="headerlink" href="#list-of-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Here are the additional parameters you must add to your inputs file.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 21%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>Definition</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>castro.MAESTRO_plotfile</strong></p></td>
+<td><p>name of the
+Maestro plotfile</p></td>
+<td><p>std::string</p></td>
+<td><p>must be set</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>castro.MAESTRO_modelfile</strong></p></td>
+<td><p>name of the
+Maestro model_cc
+file</p></td>
+<td><p>std::string</p></td>
+<td><p>must be set</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>castro.MAESTRO_npts_model</strong></p></td>
+<td><p>number of
+points in the
+Maestro model_cc
+file</p></td>
+<td><p>int</p></td>
+<td><p>must be set</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>castro.MAESTRO_first_species</strong></p></td>
+<td><p>name of the
+first species</p></td>
+<td><p>std::string</p></td>
+<td><p>must be set or
+else nothing
+will be read in</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>castro.MAESTRO_nspec</strong></p></td>
+<td><p>number of
+species in the
+Maestro plotfile</p></td>
+<td><p>std::string</p></td>
+<td><p>NumSpec in
+Castro</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>castro.MAESTRO_cutoff_density</strong></p></td>
+<td><p>controls how we
+overwrite data
+at the edge of
+the star</p></td>
+<td><p>Real</p></td>
+<td><p>must be set</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>castro.MAESTRO_init_type</strong></p></td>
+<td><p>determines how
+we initialize
+the
+Castro state</p></td>
+<td><p>int</p></td>
+<td><p>must be set</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>castro.MAESTRO_spherical</strong></p></td>
+<td><p>specifies
+planar or
+spherical
+problem</p></td>
+<td><p>int</p></td>
+<td><p>must be set</p></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="examples-of-usage">
+<h3>Examples of Usage<a class="headerlink" href="#examples-of-usage" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p><strong>castro.MAESTRO_plotfile</strong> = “wd_384_6.25e8K_norotate_plt120578”</p></li>
+<li><p><strong>castro.MAESTRO_modelfile</strong> = “./wd_384_6.25e8K_norotate_plt120578/model_cc_120578”</p></li>
+<li><div class="line-block">
+<div class="line"><strong>castro.MAESTRO_npts_model</strong> = 1663</div>
+<div class="line">This is the number of
+points in <strong>castro.MAESTRO_modelfile</strong>. Note that this is not
+the same thing as “npts_model”, which is the number of points in
+the initial model file used for standard simulations where we do not
+initialize from a Maestro plotfile.</div>
+</div>
+</li>
+<li><p><strong>castro.MAESTRO_first_species</strong> = “X(C12)” If you do not
+specify this, no species will be read in. You can always manually
+specify or overwrite the species cell-by-cell later.</p></li>
+<li><div class="line-block">
+<div class="line"><strong>castro.MAESTRO_nspec</strong> = 3</div>
+<div class="line">If you do not specify this, it
+will default to the number of species in the Castro network,
+“NumSpec”. We have this here because sometimes Maestro and Castro will use different networks with different number of species.</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><strong>castro.MAESTRO_cutoff_density</strong> = 1.e6</div>
+<div class="line">The code will use
+this density to figure out the radial coordinate, r_model_start,
+which is the last radial coordinate before rho0 falls below
+<strong>castro.MAESTRO_cutoff_density</strong>. It is possible to set
+<strong>castro.MAESTRO_cutoff_density</strong> to a tiny value, such that rho0
+never falls below this value, in which case we set r_model_start
+to <span class="math notranslate nohighlight">\(\infty\)</span>. In INITDATA_MAKEMODEL, we create a new 1D model
+integrating outward starting from r_model_start. Then, in
+INITDATA_OVERWRITE, we overwrite newly initialized Castro data in
+any cell that maps into a radial coordinate greater than
+r_model_start by interpolating from the new 1D model.</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line"><strong>castro.MAESTRO_init_type</strong> = 2</div>
+<div class="line">Castro will read in data
+from the Maestro plotfile, and then call the EOS to make sure that
+<span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, <span class="math notranslate nohighlight">\(T\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span> are consistent. The inputs to the EOS
+are based on the value of <strong>castro.MAESTRO_init_type</strong>:</div>
+</div>
+<ol class="arabic simple">
+<li><p><span class="math notranslate nohighlight">\(e = e(\rho,T,X_k)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(e,T = e,T(\rho,p_0+\pi,X_k)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\rho,e = \rho,e(p_0+\pi,T,X_k)\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\rho,T,e = \rho,T,e(p_0+\pi,s,X_k)\)</span></p></li>
+</ol>
+</li>
+<li><div class="line-block">
+<div class="line"><strong>castro.MAESTRO_spherical</strong> = 1</div>
+<div class="line">0 = planar; 1 = spherical.</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="new-subroutines-in-prob-xd-f90">
+<h2>New Subroutines in Prob_Xd.f90<a class="headerlink" href="#new-subroutines-in-prob-xd-f90" title="Permalink to this headline">¶</a></h2>
+<p>There are three routines that need to be added to your local copy of
+Prob_Xd.f90. See Castro/Exec/wdconvect/Prob_3d.f90 for
+a standard spherical Maestro initialization.</p>
+<ol class="arabic">
+<li><div class="line-block">
+<div class="line">INITDATA_MAESTRO</div>
+<div class="line">This fills in the Castro state by taking
+the Maestro data, calling the EOS, and making the proper variables
+conserved quantities. Specifically, we need a thermodynamically
+consistent <span class="math notranslate nohighlight">\(\rho\)</span>, <span class="math notranslate nohighlight">\(T\)</span>, <span class="math notranslate nohighlight">\(e\)</span>, and <span class="math notranslate nohighlight">\(X_k\)</span>, and then algebraically
+compute <span class="math notranslate nohighlight">\(\rho{\bf u}\)</span>, <span class="math notranslate nohighlight">\(\rho e\)</span>, <span class="math notranslate nohighlight">\(\rho E\)</span>, and <span class="math notranslate nohighlight">\(\rho X_k\)</span>,</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">INITDATA_MAKEMODEL</div>
+<div class="line">This creates a user-defined 1D initial model starting from r_model_start.</div>
+</div>
+</li>
+<li><div class="line-block">
+<div class="line">INITDATA_OVERWRITE</div>
+<div class="line">This overwrites the initialized Castro data using the new 1D initial model for all cells that map into
+radial coordinates greater than r_model_start.</div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="additional-notes">
+<h2>Additional Notes<a class="headerlink" href="#additional-notes" title="Permalink to this headline">¶</a></h2>
+<p>Note that for both single-level and multilevel Maestro to Castro initialization, the Castro base grid structure does not have to match
+the Maestro base grid structure, as long as the problem domain is the
+same. For example, if the coarsest level in a Maestro plotfile
+contains <span class="math notranslate nohighlight">\(64^3\)</span> cells divided into 8-<span class="math notranslate nohighlight">\(32^3\)</span> grids, it is ok to use a
+Castro base grid structure with 1-<span class="math notranslate nohighlight">\(64^3\)</span> grid, 64-<span class="math notranslate nohighlight">\(16^3\)</span> grids, or
+anything else you can imagine - the grids don’t even have to be the
+same size. As is normally the case, the Castro base grid structure is
+created based on the parameters in the Castro inputs file, such as
+<strong>amr.max_grid_size</strong>, <strong>amr.blocking_factor</strong>, etc.</p>
+<div class="section" id="multilevel-restart">
+<h3>Multilevel Restart<a class="headerlink" href="#multilevel-restart" title="Permalink to this headline">¶</a></h3>
+<p>When initialing from a multilevel Maestro plotfile, there are some
+extra steps. First, you need to create a Castro-compatible grids file
+from the Maestro plotfile. This can be done with the
+BoxLib/Tools/Postprocessing/F_Src/fboxinfo.f90 utility. Compile
+and run this using the “<code class="docutils literal notranslate"><span class="pre">–</span></code>castro” option, e.g.,
+“fboxinfo.Linux.gfortran.exe <code class="docutils literal notranslate"><span class="pre">–</span></code>castro pltxxxxx <code class="docutils literal notranslate"><span class="pre">|</span></code>
+tee gr0.maestro”, to generate the Castro-compatible grids file. Note
+that the base grid structure is still controlled by
+<strong>amr.max_grid_size</strong>, <strong>amr.blocking_factor</strong>, etc., since in C BoxLib, the grids file only indicates the refined grid structure,
+whereas in Fortran BoxLib the grids file contains the base grid and
+refined grid structures.</p>
+<p>Now, when you initialize the Castro simulation, you need to specify
+the grid file using <strong>amr.regrid_file = “gr0_3d.128_2levels”</strong>,
+for example. You can happily run this now, but note that the
+regridding algorithm will never be called (since Castro thinks it’s
+started a new simulation from scratch with a grids file, thus
+disabling the regridding). If you wish for the grid structure to be
+changed, you must do a traditional Castro restart from the
+Castro-generated checkpoint file (you can still use the same
+“.MAESTRO” executable or an executable built with
+USE_MAESTRO_INIT=FALSE), making sure that you <strong>do not</strong> specity
+<strong>amr.regrid_file</strong> (or else the grids will stay fixed). You are
+free to specify <strong>amr.regrid_on_restart</strong>,
+<strong>amr.compute_new_dt_on_regrid</strong>, and
+<strong>amr.plotfile_on_restart</strong>.</p>
+<p>Sometimes a Maestro plotfile will only have 1 or 2 total levels, but
+you ultimately want to run a Castro simulation with many more levels
+of refinement. My recommended strategy is the following:</p>
+<ol class="arabic simple">
+<li><p>Initialize a Castro simulation from the Maestro plotfile
+while preserving the exact same grid structure and run for 10 time
+steps.</p></li>
+<li><p>Do a traditional Castro restart from chk00010, but do not
+increase <strong>amr.max_level</strong>, and run for 10 more time steps. This
+allows a new grid structure with the same effective resolution as
+before settle in using the C BoxLib regridding algorithm.</p></li>
+<li><p>Do a traditional Castro restart from chk00020, but increase
+<strong>amr.max_level</strong> by 1, and run for 10 time steps.</p></li>
+<li><p>Repeat the procedure from the previous step (using the most
+updated checkpoint of course) as many times as desired.</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Verification.html" class="btn btn-neutral float-right" title="Verification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="self_consistent_field.html" class="btn btn-neutral float-left" title="Self-Consistent Field Initialization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

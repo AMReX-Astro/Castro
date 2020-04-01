@@ -1,0 +1,4 @@
+Class NGBndryBld
+================
+
+.. doxygenclass:: NGBndryBld

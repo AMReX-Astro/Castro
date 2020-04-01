@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Runtime Parameters &mdash; Castro 20.04
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="namespace: castro" href="runtime_parameters.html" />
+    <link rel="prev" title="Input Files" href="inputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.04
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../rp_intro.html">master</a> | <a href="./rp_intro.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Runtime Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction-to-runtime-parameters">Introduction to Runtime Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#c-parameter-format">C++ parameter format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#microphysics-extern-parameter-format">Microphysics/extern parameter format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#removed-runtime-parameters">Removed Runtime Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters-by-namespace">Parameters by Namespace</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html">namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html#namespace-diffusion">namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html#namespace-gravity">namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html#namespace-particles">namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html#namespace-radiation">namespace: <code class="docutils literal notranslate"><span class="pre">radiation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="runtime_parameters.html#namespace-radsolve">namespace: <code class="docutils literal notranslate"><span class="pre">radsolve</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Runtime Parameters</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/rp_intro.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="runtime-parameters">
+<h1>Runtime Parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction-to-runtime-parameters">
+<h2>Introduction to Runtime Parameters<a class="headerlink" href="#introduction-to-runtime-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Castro has 2 sets of runtime parameters—those controlled by
+C++ and those controlled by Fortran. The C++ parameters are set
+in the inputs file and managed by the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code>
+class. For Castro-specific parameters, we list the runtime
+parameters in a file <code class="docutils literal notranslate"><span class="pre">_cpp_parameters</span></code> and generate the
+C++ code and headers at compile time.</p>
+<p>The behavior of the network, EOS, and other microphysics routines are
+controlled by a different set of runtime parameters. These parameters are defined
+in plain-text files <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> located in the different
+directories that hold the microphysics code. At compile time, a
+script in the AMReX bulid system, <code class="docutils literal notranslate"><span class="pre">findparams.py</span></code>, locates all
+of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files that are needed for the given choice
+of network, integrator, and EOS, and assembles all of the runtime
+parameters into a module named <code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code> (using the
+<code class="docutils literal notranslate"><span class="pre">write_probin.py</span></code> script). The parameters are set in your
+probin file in the <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist.</p>
+<div class="section" id="c-parameter-format">
+<h3>C++ parameter format<a class="headerlink" href="#c-parameter-format" title="Permalink to this headline">¶</a></h3>
+<p>The C parameters take the form of:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
+name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+</pre></div>
+</div>
+<p>Here,</p>
+<blockquote>
+<div><ul>
+<li><p><cite>name</cite> is the name of the parameter that will be looked for
+in the inputs file.</p>
+<p>The name can actually take the form of <code class="docutils literal notranslate"><span class="pre">(a,</span> <span class="pre">b)</span></code>, where <code class="docutils literal notranslate"><span class="pre">a</span></code> is
+the name to be used in the inputs file where the parameter is set
+and <code class="docutils literal notranslate"><span class="pre">b</span></code> is the name used within the Castro C++ class.  It is not
+recommended to name new parameters with this functionality—this
+was implemented for backwards compatibility.</p>
+</li>
+<li><p><cite>type</cite> is one of int, Real, or string</p></li>
+<li><p><cite>default</cite> is the default value of the parameter.</p></li>
+</ul>
+</div></blockquote>
+<p>The next columns are optional, but you need to fill in all of the
+information up to and including any of the optional columns you need
+(e.g., if you are going to provide the fortran name, you also need to
+provide “need in Fortran?” and “ifdef”.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>need in Fortran?</cite> is <code class="docutils literal notranslate"><span class="pre">y</span></code> if the runtime parameter should be
+made available in Fortran (through <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>).</p></li>
+<li><p><cite>ifdef</cite> provides the name of a preprocessor name that should
+wrap this parameter definition—it will only be compiled in if that
+name is defined to the preprocessor.</p></li>
+<li><p><cite>fortran name</cite> is the name that the parameter should use in
+Fortran—by default it will be the same as name.</p></li>
+<li><p><cite>fortran type</cite> is the data type of the parameter in Fortran—by
+default it will be the Fortran-equivalent to type.</p></li>
+</ul>
+</div></blockquote>
+<p>Finally, any comment (starting with <code class="docutils literal notranslate"><span class="pre">#</span></code>) immediately before the
+parameter definition will be used to generate the documentation
+describing the parameters.</p>
+</div>
+<div class="section" id="microphysics-extern-parameter-format">
+<h3>Microphysics/extern parameter format<a class="headerlink" href="#microphysics-extern-parameter-format" title="Permalink to this headline">¶</a></h3>
+<p>The microphysics/extern parameter definitions take the form of:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># comment describing the parameter</span>
+<span class="n">name</span>              <span class="n">data</span><span class="o">-</span><span class="nb">type</span>       <span class="n">default</span><span class="o">-</span><span class="n">value</span>      <span class="n">priority</span>
+</pre></div>
+</div>
+<p>Here, the <cite>priority</cite> is simply an integer. When two directories
+define the same parameter, but with different defaults, the version of
+the parameter with the highest priority takes precedence. This allows
+specific implementations to override the general parameter defaults.</p>
+</div>
+</div>
+<div class="section" id="removed-runtime-parameters">
+<h2>Removed Runtime Parameters<a class="headerlink" href="#removed-runtime-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The following runtime parameters have been removed for Castro.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_flatten_before_integrals</span></code> : this parameter
+controlled whether we applied the flattening of the parabolic
+profiles before we integrated under their profiles or afterwards.
+The default was switched to flattening before the integration,
+which is more consistent with the original PPM methodology. This
+parameter was removed since the variation enabled by this parameter
+was not that great.</p>
+<p>(removed in commit: 9cab697268997714919de16db1ca7e77a95c4f98)</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.ppm_reference</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.ppm_reference_edge_limit</span></code> :
+these parameters controlled whether we use the integral under the
+parabola for the fastest wave moving toward the interface for the
+reference state and whether in the case that the wave is moving away
+from the interface we use the cell-center value or the limit of the
+parabola on the interface.  These were removed because there is
+little reason to not use the reference state.</p>
+<blockquote>
+<div><p>(removed in commit: 213f4ffc53463141084551c7be4b37a2720229aa)</p>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="parameters-by-namespace">
+<h2>Parameters by Namespace<a class="headerlink" href="#parameters-by-namespace" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html">namespace: <code class="docutils literal notranslate"><span class="pre">castro</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html#namespace-diffusion">namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html#namespace-gravity">namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html#namespace-particles">namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html#namespace-radiation">namespace: <code class="docutils literal notranslate"><span class="pre">radiation</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="runtime_parameters.html#namespace-radsolve">namespace: <code class="docutils literal notranslate"><span class="pre">radsolve</span></code></a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="runtime_parameters.html" class="btn btn-neutral float-right" title="namespace: castro" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="inputs.html" class="btn btn-neutral float-left" title="Input Files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

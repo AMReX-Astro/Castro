@@ -1,0 +1,628 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_sources.H &mdash; Castro 20.04
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Class list" href="../classlist.html" />
+    <link rel="prev" title="Sources" href="../sources_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.04
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Castro__sources_8H.html">master</a> | <a href="../file/Castro__sources_8H.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_sources.H</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
+        
+      <li>File Castro_sources.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__sources_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-sources-h">
+<h1>File Castro_sources.H<a class="headerlink" href="#file-castro-sources-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="function">
+<dt id="_CPPv411source_flagi">
+<span id="_CPPv311source_flagi"></span><span id="_CPPv211source_flagi"></span><span id="source_flag__i"></span><span class="target" id="Castro__sources_8H_1a949be2532cbcfdfc6aa351f783b78e02"></span>bool <code class="sig-name descname">source_flag</code><span class="sig-paren">(</span>int <em>src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411source_flagi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns true if flag corresponding to source type <code class="docutils literal notranslate"><span class="pre">src</span></code> is set.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code>: integer, index corresponding to source type </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv413apply_sourcesv">
+<span id="_CPPv313apply_sourcesv"></span><span id="_CPPv213apply_sourcesv"></span><span id="apply_sources"></span><span class="target" id="Castro__sources_8H_1a6b35216cff08ed3e9babe02ba12c5eb5"></span>bool <code class="sig-name descname">apply_sources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413apply_sourcesv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns whether any sources are actually applied. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro24get_output_at_completionEv">
+<span id="_CPPv3N6Castro24get_output_at_completionEv"></span><span id="_CPPv2N6Castro24get_output_at_completionEv"></span><span id="Castro::get_output_at_completion"></span><span class="target" id="Castro__sources_8H_1adf9a6fb4b0529b4478881fa9607c648f"></span>int <code class="sig-name descname">get_output_at_completion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro24get_output_at_completionEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414do_old_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">
+<span id="_CPPv314do_old_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="_CPPv214do_old_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="do_old_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.b.i.i"></span><span class="target" id="Castro__sources_8H_1a64ced9dc2a573fd002af9452c7cd4528"></span>void <code class="sig-name descname">do_old_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, bool <em>apply_to_state</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414do_old_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct source terms at old time</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">apply_to_state</span></code>: whether to apply the source to state_new </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv420construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv320construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv220construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="construct_old_source__i.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="Castro__sources_8H_1a31a349a59967fce6468d590a88726e75"></span>void <code class="sig-name descname">construct_old_source</code><span class="sig-paren">(</span>int <em>src</em>, amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420construct_old_sourceiRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct the old-time source</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code>: integer corresponding to source type to construct </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414do_new_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii">
+<span id="_CPPv314do_new_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="_CPPv214do_new_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii"></span><span id="do_new_sources__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.b.i.i"></span><span class="target" id="Castro__sources_8H_1a294f58cb30bd32c605654542ecf01b21"></span>void <code class="sig-name descname">do_new_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, bool <em>apply_to_state</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414do_new_sourcesRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEbii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct new time sources</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">apply_to_state</span></code>: whether to apply the source to state_new </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv420construct_new_sourceiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii">
+<span id="_CPPv320construct_new_sourceiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv220construct_new_sourceiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="construct_new_source__i.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="Castro__sources_8H_1a0029ee8ac90eb0b60c48b06dcee4ea39"></span>void <code class="sig-name descname">construct_new_source</code><span class="sig-paren">(</span>int <em>src</em>, amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em> = -1, int <em>amr_ncycle</em> = -1<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420construct_new_sourceiRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct the new-time sources.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code>: Integer corresponding to type of source to construct </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: t he timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv422evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb">
+<span id="_CPPv322evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb"></span><span id="_CPPv222evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb"></span><span id="evaluate_source_change__amrex::MultiFabR.amrex::Real.b"></span><span class="target" id="Castro__sources_8H_1a19537e185b19e665a62d9865b4de750b"></span>amrex::Vector&lt;amrex::Real&gt; <code class="sig-name descname">evaluate_source_change</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>update</em>, amrex::Real <em>dt</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Evaluate diagnostics quantities describing the effect of an update on the state. The optional parameter local determines whether we want to do this calculation globally over all processes or locally just on this processor. The latter is useful if you are evaluating the contribution from multiple source changes at once and want to amortize the cost of the parallel reductions. Note that the resultant output is volume-weighted.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: MultiFab containing source </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, do we want to do this calculation globally over all processes or locally just on this processor? </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv419print_source_changeN5amrex6VectorIN5amrex4RealEEE">
+<span id="_CPPv319print_source_changeN5amrex6VectorIN5amrex4RealEEE"></span><span id="_CPPv219print_source_changeN5amrex6VectorIN5amrex4RealEEE"></span><span id="print_source_change__amrex::Vector:amrex::Real:"></span><span class="target" id="Castro__sources_8H_1ad4f57d6f40e6e45104c5975c20b6e94e"></span>void <code class="sig-name descname">print_source_change</code><span class="sig-paren">(</span>amrex::Vector&lt;amrex::Real&gt; <em>update</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419print_source_changeN5amrex6VectorIN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Print the change due to a given source term update. We assume here that the input array is lined up with the <code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> components of <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> because we are interested in printing changes to energy, mass, etc.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: Real Vector of changes </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv424print_all_source_changesN5amrex4RealEb">
+<span id="_CPPv324print_all_source_changesN5amrex4RealEb"></span><span id="_CPPv224print_all_source_changesN5amrex4RealEb"></span><span id="print_all_source_changes__amrex::Real.b"></span><span class="target" id="Castro__sources_8H_1a1c7e545e720d9ead560bf96417ca0c75"></span>void <code class="sig-name descname">print_all_source_changes</code><span class="sig-paren">(</span>amrex::Real <em>dt</em>, bool <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424print_all_source_changesN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>For the old-time or new-time sources update, evaluate the change in the state for all source terms, then print the results.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: boolean, do we get the new or old state data? </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv414sum_of_sourcesRN5amrex8MultiFabE">
+<span id="_CPPv314sum_of_sourcesRN5amrex8MultiFabE"></span><span id="_CPPv214sum_of_sourcesRN5amrex8MultiFabE"></span><span id="sum_of_sources__amrex::MultiFabR"></span><span class="target" id="Castro__sources_8H_1ad602aa97b7a58d447e8783be01f771d4"></span>void <code class="sig-name descname">sum_of_sources</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414sum_of_sourcesRN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Obtain the sum of all source terms.</p>
+<p>this computes advective_source + 1/2 (old source + new source)</p>
+<p><p>the time-centering is accomplished since new source is defined to be 1/2 (new source - old source) generally.</p>
+<dl class="simple">
+<dt><strong>Note</strong></dt><dd><p>the advective source is defined as <span class="math notranslate nohighlight">\(-\nabla\cdot F\)</span></p>
+</dd>
+</dl>
+</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab of source terms to be summed </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv424time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
+<span id="_CPPv324time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv224time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="time_center_source_terms__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a6972b73dc7cc976008ccf52b208ac4e6"></span>void <code class="sig-name descname">time_center_source_terms</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>src_old</em>, amrex::MultiFab &amp;<em>src_new</em>, amrex::Real <em>dt</em> = 1.0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424time_center_source_termsRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Center source terms in time, storing in <code class="docutils literal notranslate"><span class="pre">S_new</span></code></p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: MultiFab to store centered sources in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_old</span></code>: Old source term </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src_new</span></code>: New source term </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv427construct_old_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv327construct_old_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv227construct_old_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_sponge_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a2762d07ed1d426ee2056343c451ee5b1"></span>void <code class="sig-name descname">construct_old_sponge_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427construct_old_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct sponge source terms at old timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv427construct_new_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv327construct_new_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv227construct_new_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_sponge_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a81bf65fafe87bdb1896ac8e74fd87ac9"></span>void <code class="sig-name descname">construct_new_sponge_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427construct_new_sponge_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct sponge source terms at new timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv411sponge_initv">
+<span id="_CPPv311sponge_initv"></span><span id="_CPPv211sponge_initv"></span><span id="sponge_init"></span><span class="target" id="Castro__sources_8H_1af0ca913be13d65af5b97cf3b257712bd"></span><em class="property">static</em> void <code class="sig-name descname">sponge_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411sponge_initv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Allocate sponge parameters </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv415sponge_finalizev">
+<span id="_CPPv315sponge_finalizev"></span><span id="_CPPv215sponge_finalizev"></span><span id="sponge_finalize"></span><span class="target" id="Castro__sources_8H_1a65c1d9420f7973022ad47c3901a19539"></span><em class="property">static</em> void <code class="sig-name descname">sponge_finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415sponge_finalizev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Deallocate sponge parameters </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv424construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv324construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv224construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_ext_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1adc8195021a2200a62f0a00f97910966f"></span>void <code class="sig-name descname">construct_old_ext_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create external source terms at old timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv424construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv324construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv224construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_ext_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a6844fb2d1ef5245458e02e18b799a8f7"></span>void <code class="sig-name descname">construct_new_ext_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create external source terms at new timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv415fill_ext_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
+<span id="_CPPv315fill_ext_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv215fill_ext_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="fill_ext_source__amrex::Real.amrex::Real.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__sources_8H_1a5c4fa3dca46a29f8d4920d838bf38108"></span>void <code class="sig-name descname">fill_ext_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>S_old</em>, amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>ext_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415fill_ext_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> with external sources</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: MultiFab to save sources to </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv427construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv327construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv227construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_thermo_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a5dcae7335ec3e749e81906ccba8a2363"></span>void <code class="sig-name descname">construct_old_thermo_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427construct_old_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct thermal sources at old timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv427construct_new_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv327construct_new_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv227construct_new_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_thermo_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a246594601e5eb262b7dbdad96a125625"></span>void <code class="sig-name descname">construct_new_thermo_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427construct_new_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct thermal sources at new timestep</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save sources to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv418fill_thermo_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
+<span id="_CPPv318fill_thermo_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv218fill_thermo_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="fill_thermo_source__amrex::Real.amrex::Real.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__sources_8H_1a8cbf467d32ce3596cfbb3350770c319e"></span>void <code class="sig-name descname">fill_thermo_source</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, amrex::MultiFab &amp;<em>S_old</em>, amrex::MultiFab &amp;<em>S_new</em>, amrex::MultiFab &amp;<em>ext_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv418fill_thermo_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> with thermal sources</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S_old</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: New state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: MultiFab to fill with sources </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv421get_react_source_primRN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv321get_react_source_primRN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv221get_react_source_primRN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="get_react_source_prim__amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a41cdcd4ea53dd569ba5451e8bda7b3af"></span>void <code class="sig-name descname">get_react_source_prim</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421get_react_source_primRN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Obtain the effective source term due to reactions on the primitive variables</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source term to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../classlist.html" class="btn btn-neutral float-right" title="Class list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../sources_files.html" class="btn btn-neutral float-left" title="Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

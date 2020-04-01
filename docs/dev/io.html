@@ -1,0 +1,987 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Outputting &mdash; Castro 20.04
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Regridding" href="regridding.html" />
+    <link rel="prev" title="Setting Up Your Own Problem" href="creating_a_problem.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.04
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../io.html">master</a> | <a href="./io.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Outputting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#restart-capability">Restart Capability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotfile-outputting">Plotfile Outputting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controlling-whats-in-the-plotfile">Controlling What’s in the PlotFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotfile-variables">Plotfile Variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#native-variables">Native variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#derived-variables">Derived variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#problem-specific-plotfile-variables">problem-specific plotfile variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#screen-output">Screen Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parallel-i-o">Parallel I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Outputting</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/io.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="outputting">
+<span id="ch-io"></span><h1>Outputting<a class="headerlink" href="#outputting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="restart-capability">
+<h2>Restart Capability<a class="headerlink" href="#restart-capability" title="Permalink to this headline">¶</a></h2>
+<p>Castro has a standard sort of checkpointing and restarting capability.
+In the inputs file, the following options control the generation of
+checkpoint files (which are really directories):</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.check_file</span></code>: prefix for restart files (text;
+default: chk)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code>: how often (by level 0 time steps) to
+write restart files (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>: how often (by simulation time) to
+write restart files (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: -1.0)</p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> will write a checkpoint at the first
+timestep whose ending time is past an integer multiple of this
+interval.  In particular, the timestep is not modified to match
+this interval, so you won’t get a checkpoint at exactly the time
+you requested.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.restart</span></code>: name of the file (directory) from which to
+restart (Text; not used if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code>: should we write
+checkpoint files? (0 or 1; default: 1)</p>
+<p>If you are doing a scaling study then set
+<code class="docutils literal notranslate"><span class="pre">amr.checkpoint_files_output</span></code> = 0 so you can test scaling of the
+algorithm without I/O.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code>: how parallel is the writing of
+the checkpoint files? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
+<p>See the chapter <a class="reference internal" href="#ch-io"><span class="std std-ref">Outputting</span></a> for more details on parallel I/O and the
+<code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code> parameter.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>: should we write a
+checkpoint immediately after restarting? (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.grown_factor</span></code>: factor by which domain has been
+grown (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 1)</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can specify both <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code>,
+if you so desire; the code will print a warning in case you did
+this unintentionally. It will work as you would expect – you will
+get checkpoints at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_int</span></code> timesteps
+and at integer multiples of <code class="docutils literal notranslate"><span class="pre">amr.check_per</span></code> simulation time
+intervals.</p>
+<p><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>
+require amr.regrid_on_restart to be in effect.</p>
+</div>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">check_int</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>means that restart files (really directories) starting with the prefix
+“chk_run” will be generated every 10 level-0 time steps. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00010</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chk_run00020</span></code>, etc.</p>
+<p>If instead you specify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">check_file</span> <span class="o">=</span> <span class="n">chk_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">check_per</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>then restart files (really directories) starting with the prefix
+“chk_run” will be generated every 0.1 units of
+simulation time. The directory names will be <code class="docutils literal notranslate"><span class="pre">chk_run00000</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chk_run00043</span></code>, <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after
+43 level-0 steps, <span class="math notranslate nohighlight">\(t = 0.2\)</span> after 61 level-0 steps, etc.</p>
+<p>To restart from <code class="docutils literal notranslate"><span class="pre">chk_run00061</span></code>, for example, then set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">restart</span> <span class="o">=</span> <span class="n">chk_run00061</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plotfile-outputting">
+<span id="sec-plotfiles"></span><h2>Plotfile Outputting<a class="headerlink" href="#plotfile-outputting" title="Permalink to this headline">¶</a></h2>
+<p>Castro has two levels of plotfiles, <cite>regular</cite> plotfiles and <cite>small</cite>
+plotfiles.  The idea behind this distinction is that we can output a
+small number of variables very frequently in the small plotfiles and
+output a large number (or all variables) less frequently.  This helps
+keep the data sizes down while allowing for fine-grained temporal
+analysis of important quantities.</p>
+<p id="index-0">A few general controls determines whether we want to output plotfiles and when:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code> : this is set to 1 to output plotfiles</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plotfile_on_restart</span></code> : set this to 1 to dump out a plotfile
+immediately when we restart.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.write_plotfile_with_checkpoint</span></code> : always output a plotfile
+when we dump a checkpoint file.</p></li>
+</ul>
+</div></blockquote>
+<p id="index-1">The frequency of outputting and naming of regular plotfiles is
+controlled by:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_file</span></code> : this is the base name for the plotfile,
+e.g. <code class="docutils literal notranslate"><span class="pre">plt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code> : this is the amount of simulation time between
+plotfile output</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code> will write a plotfile at the first
+timestep whose ending time is past an integer multiple of this
+interval.  In particular, the timestep is not modified to match
+this interval, so you won’t get a checkpoint at exactly the time
+you requested.</p>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code> this is the number of timesteps between plotfiles.
+Set this to -1 to rely on the simulation-time-based outputting.</p></li>
+</ul>
+</div></blockquote>
+<p id="index-2">Similarly, the frequency of outputting and naming of small plotfiles
+is controlled by:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.small_plot_file</span></code> : this is the base name for the small plotfile,
+e.g. <code class="docutils literal notranslate"><span class="pre">smallplt</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.small_plot_per</span></code> : this is the amount of simulation time between
+small plotfile output</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.small_plot_int</span></code> this is the number of timesteps between small plotfiles.
+Set this to -1 to rely on the simulation-time-based outputting.</p></li>
+</ul>
+</div></blockquote>
+<p>Additional output options control how the I/O is done:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code>: how parallel is the writing of the
+plotfiles? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
+<p>See the Software Section for more details on parallel I/O and the
+<code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code> parameter.</p>
+</li>
+</ul>
+</div></blockquote>
+<p>All the options for <code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code> are kept in
+<code class="docutils literal notranslate"><span class="pre">derive_lst</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code>. Feel free to look at
+it and see what’s there.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can specify both <code class="docutils literal notranslate"><span class="pre">amr.plot_int</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.plot_per</span></code>,
+if you so desire; the code will print a warning in case you did
+this unintentionally. It will work as you would expect – you will
+get plotfiles at integer multiples of amr.plot_int timesteps and at
+integer multiples of amr.plot_per simulation time intervals.</p>
+</div>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_int</span> <span class="o">=</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>means that plot files (really directories) starting with the prefix
+“plt_run” will be generated every 10 level-0 time steps. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00010</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plt_run00020</span></code>, etc.</p>
+<p>If instead you specify:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_file</span> <span class="o">=</span> <span class="n">plt_run</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">plot_per</span> <span class="o">=</span> <span class="mf">0.5</span>
+</pre></div>
+</div>
+<p>then restart files (really directories) starting with the prefix
+“plt_run” will be generated every 0.1 units of simulation time. The
+directory names will be <code class="docutils literal notranslate"><span class="pre">plt_run00000</span></code>, <code class="docutils literal notranslate"><span class="pre">plt_run00043</span></code>,
+<code class="docutils literal notranslate"><span class="pre">plt_run00061</span></code>, etc, where <span class="math notranslate nohighlight">\(t = 0.1\)</span> after 43 level-0 steps, <span class="math notranslate nohighlight">\(t =
+0.2\)</span> after 61 level-0 steps, etc.</p>
+</div>
+<div class="section" id="controlling-whats-in-the-plotfile">
+<h2>Controlling What’s in the PlotFile<a class="headerlink" href="#controlling-whats-in-the-plotfile" title="Permalink to this headline">¶</a></h2>
+<p id="index-3">There are a few options that can be set at runtime to control what
+variables appear in the regular plotfile.</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_vars</span></code>: this controls which of the main
+state variables appear in the plotfile. The default is for all of
+them to be stored. But you can specify a subset by name, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">plot_vars</span> <span class="o">=</span> <span class="n">density</span>
+</pre></div>
+</div>
+<p>to only store that subset.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.derive_plot_vars</span></code>: this controls which of the derived
+variables to be stored in the plotfile. Derived variables are
+created only when the plotfile is being created, using the
+infrastructure provided by AMReX to register variables and the
+associated Fortran routine to do the deriving (<code class="docutils literal notranslate"><span class="pre">Derive_nd.F90</span></code>).</p>
+<p>By default, no derived variables are stored. You can store all
+derived variables that Castro knows about by doing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">derive_plot_vars</span> <span class="o">=</span> <span class="n">ALL</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<blockquote>
+<div><p>or a subset by explicitly listing them, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">derive_plot_vars</span> <span class="o">=</span> <span class="n">entropy</span> <span class="n">pressure</span>
+</pre></div>
+</div>
+<p>To not output any derived variable,s this is set to <code class="docutils literal notranslate"><span class="pre">NONE</span></code>.</p>
+</div></blockquote>
+</div></blockquote>
+<p id="index-4">For small plotfiles, the controls that lists the variables is:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.small_plot_vars</span></code> : this is a list of which variables
+to include in the small plotfile.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.derive_small_plot_vars</span></code> : this is a list of which derived
+variables to include in the small plotfile.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="plotfile-variables">
+<h2>Plotfile Variables<a class="headerlink" href="#plotfile-variables" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="native-variables">
+<h3>Native variables<a class="headerlink" href="#native-variables" title="Permalink to this headline">¶</a></h3>
+<p>These variables come directly from the <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, either the
+<code class="docutils literal notranslate"><span class="pre">State_Type</span></code> (for the hydrodynamic variables), <code class="docutils literal notranslate"><span class="pre">Reactions_Type</span></code>
+(for the nuclear energy generation quantities). <code class="docutils literal notranslate"><span class="pre">PhiGrav_Type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Gravity_Type</span></code> (for the gravity quantities), <code class="docutils literal notranslate"><span class="pre">PhiRot_Type</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Rotation_Type</span></code> (for the rotation quantities) and <code class="docutils literal notranslate"><span class="pre">Rad_Type</span></code> (for
+radiation quantities).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 41%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable name</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">density</span></code></p></td>
+<td><p>Mass density, <span class="math notranslate nohighlight">\(\rho\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(\gcc\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xmom</span></code></p></td>
+<td><p>x-momentum, <span class="math notranslate nohighlight">\((\rho u)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ymom</span></code></p></td>
+<td><p>y-momentum, <span class="math notranslate nohighlight">\((\rho v)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zmom</span></code></p></td>
+<td><p>z-momentum, <span class="math notranslate nohighlight">\((\rho w)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rho_E</span></code></p></td>
+<td><p>Total energy density</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rho_e</span></code></p></td>
+<td><p>Internal energy density</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Temp</span></code></p></td>
+<td><p>Temperature</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm K}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rho_X</span></code>
+(where X is any of the species
+defined in the network)</p></td>
+<td><p>Mass density of species X</p></td>
+<td><p><span class="math notranslate nohighlight">\(\gcc\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">omegadot_X</span></code>
+(where X is any of the species
+defined in the network)</p></td>
+<td><p>Creation rate of species X
+<span class="math notranslate nohighlight">\(\omegadot_k = DX_k/Dt\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate / gram</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rho_enuc</span></code></p></td>
+<td><p>Nuclear energy generation rate density</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiGrav</span></code></p></td>
+<td><p>Gravitational potential</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grav_x</span></code>, <code class="docutils literal notranslate"><span class="pre">grav_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">grav_z</span></code></p></td>
+<td><p>Gravitational acceleration</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiRot</span></code></p></td>
+<td><p>Effective centrifugal potential</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rot_x</span></code>. <code class="docutils literal notranslate"><span class="pre">rot_y</span></code>, <code class="docutils literal notranslate"><span class="pre">rot_z</span></code></p></td>
+<td><p>Rotational acceleration</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rmom</span></code></p></td>
+<td><p>Radial momentum (defined for
+<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lmom</span></code></p></td>
+<td><p>Angular momentum (<span class="math notranslate nohighlight">\(\theta\)</span>; defined for
+<code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pmom</span></code></p></td>
+<td><p>z-momentum (defined for <code class="docutils literal notranslate"><span class="pre">HYBRID_MOMENTUM</span></code>)</p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Shock</span></code></p></td>
+<td><p>Shock flag (= 1 if a zone has a shock;
+defined for <code class="docutils literal notranslate"><span class="pre">SHOCK</span></code>)</p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>, <code class="docutils literal notranslate"><span class="pre">rad0</span></code>, <code class="docutils literal notranslate"><span class="pre">rad1</span></code>,
+…</p></td>
+<td><p>Radiation energy density
+(for multigroup radiation, each group has its
+own variable)</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="derived-variables">
+<h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this headline">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 33%" />
+<col style="width: 19%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable name</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>derive routine</p></th>
+<th class="head"><p>units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">angular_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">angular_momentum_z</span></code></p></td>
+<td><p>Angular momentum / volume in the x, y, or z dir
+computed as <span class="math notranslate nohighlight">\([(\rho \ub) \times {\bf r}]_n\)</span>
+where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the distance from
+<code class="docutils literal notranslate"><span class="pre">center</span></code> and <span class="math notranslate nohighlight">\(n\)</span> is either x, y, or z</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derangmomx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
+<td><p>Thermal diffusion coefficient,
+<span class="math notranslate nohighlight">\(\kth/(\rho c_v)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdiffcoeff</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm^2~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">diff_term</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla\cdot(\kth\nabla T)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdiffterm</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">divu</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\nabla \cdot \ub\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derdivu</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">eint_e</span></code></p></td>
+<td><p>Specific internal energy computed from the
+conserved <span class="math notranslate nohighlight">\((\rho e)\)</span> state variable as
+<span class="math notranslate nohighlight">\(e = (\rho e)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dereint2</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">eint_E</span></code></p></td>
+<td><p>Specific internal energy computed from the
+total energy and momentum conserved state as
+<span class="math notranslate nohighlight">\(e=[(\rho E)-\frac{1}{2}(\rho \ub^2)]/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dereint1</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entropy</span></code></p></td>
+<td><p>Specific entropy, <span class="math notranslate nohighlight">\(s\)</span>, computed as
+<span class="math notranslate nohighlight">\(s = s(\rho, e, X_k)\)</span>, where <cite>e</cite> is
+computed from <span class="math notranslate nohighlight">\((\rho e)\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derentropy</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~g^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Ertot</span></code></p></td>
+<td><p>Total radiation energy density
+(for multigroup radiation problems)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derertot</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Frcomx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frcomy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frcomz</span></code></p></td>
+<td><p>Comoving radiation flux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Frlabx</span></code>, <code class="docutils literal notranslate"><span class="pre">Frlaby</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Frlabz</span></code></p></td>
+<td><p>Lab-frame radiation flux</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Radiation.cpp</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Gamma_1</span></code></p></td>
+<td><p>Adiabatic index,
+<span class="math notranslate nohighlight">\(d\log p/d\log \rho|_s\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dergamma1</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">kineng</span></code></p></td>
+<td><p>Kinetic energy density,
+<span class="math notranslate nohighlight">\(K = \frac{1}{2} |(\rho \ub)|^2\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derkineng</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-3}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lambda</span></code></p></td>
+<td><p>Radiation flux limiter</p></td>
+<td></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">logden</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\log_{10} \rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derlogten</span></code></p></td>
+<td><p>dimensionless, assuming <span class="math notranslate nohighlight">\(\rho\)</span>
+is in CGS</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MachNumber</span></code></p></td>
+<td><p>Fluid Mach number, <span class="math notranslate nohighlight">\(|\ub|/c_s\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermachnumber</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">maggrav</span></code></p></td>
+<td><p>Gravitational acceleration magnitude</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermaggrav</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm cm~s^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">magmom</span></code></p></td>
+<td><p>Momentum density magnitude,
+<span class="math notranslate nohighlight">\(|\rho \ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagmom</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-2}~s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">magvel</span></code></p></td>
+<td><p>Velocity magnitude, <span class="math notranslate nohighlight">\(|\ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">magvort</span></code></p></td>
+<td><p>Vorticity magnitude, <span class="math notranslate nohighlight">\(|\nabla\times\ub|\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dermagvort</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm s^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pressure</span></code></p></td>
+<td><p>Total pressure, including ions, electrons,
+and radiation (for non radhydro problems)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derpres</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm dyn~cm^{-2}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">radvel</span></code></p></td>
+<td><p>Radial velocity (measured with respect to
+<cite>center</cite>),
+<span class="math notranslate nohighlight">\((xu + yv + zw)/r\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
+<td><p>Sound speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dersoundspeed</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
+<td><p>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dercond</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-1}~s^{-1}~K^{-1}}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
+<td></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derenuctimescale</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
+<td><p>(only for 1D) x-velocity <span class="math notranslate nohighlight">\(-\)</span> sound
+speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deruminusc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
+<td><p>(only for 1D) x-velocity + sound speed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deruplusc</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
+<td><p>Mass fraction of species q
+<span class="math notranslate nohighlight">\(X_k = (\rho X_k)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derspec</span></code></p></td>
+<td><p>–</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">y_velocity</span></code>,
+<code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></p></td>
+<td><p>Fluid velocity,
+<span class="math notranslate nohighlight">\(\ub = (\rho \ub)/\rho\)</span></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dervel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="problem-specific-plotfile-variables">
+<h3>problem-specific plotfile variables<a class="headerlink" href="#problem-specific-plotfile-variables" title="Permalink to this headline">¶</a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 41%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>variable name</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">analytic</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pi</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pioverp0</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">primarymask</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">secondarymask</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Terror</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Texact</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_angular_momentum_z</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">inertial_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_momentum_z</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">inertial_radial_momentum_z</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phiEff</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">phiEffPM_P</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">phiEffPM_S</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tpert</span></code></p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="screen-output">
+<h2>Screen Output<a class="headerlink" href="#screen-output" title="Permalink to this headline">¶</a></h2>
+<p>There are several options that set how much output is written to the
+screen as Castro runs:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Amr.cpp</span></code> (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Castro.cpp</span></code> (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Gravity.cpp</span></code> (0 or 1; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diffusion.v</span></code>: verbosity of <code class="docutils literal notranslate"><span class="pre">Diffusion.cpp</span></code> (0 or 1;
+default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mg.v</span></code>: verbosity of multigrid solver (for gravity) (allow
+values: 0, 1, 2, 3, 4; default: 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.grid_log</span></code>: name of the file to which the grids are
+written (text; not used if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.run_log</span></code>: name of the file to which certain output is
+written (text; not used if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.run_log_terse</span></code>: name of the file to which certain
+(terser) output is written (text; not used if not set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.sum_interval</span></code>: if <span class="math notranslate nohighlight">\(&gt; 0\)</span>, how often (in level-0 time
+steps) to compute and print integral quantities (Integer; default: -1)</p>
+<p>The integral quantities include total mass, momentum and energy in
+the domain every <code class="docutils literal notranslate"><span class="pre">castro.sum_interval</span></code> level-0 steps.  The print
+statements have the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TIME</span><span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">MASS</span><span class="o">=</span> <span class="mf">1.792410279e+34</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<blockquote>
+<div><p>for example. If this line is commented out then
+it will not compute and print these quanitities.</p>
+</div></blockquote>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code>: allows the user to set a special
+flag based on user-specified criteria (0 or 1; default: 1)</p>
+<p><code class="docutils literal notranslate"><span class="pre">castro.do_special_tagging</span></code> = 1 can be used, for example, to
+calculate the bounce time in a core collapse simulation; the
+bounce time is defined as the first time at which the maximum
+density in the domain exceeds a user-specified value. This time
+can then be printed into a special file as a useful diagnostic.</p>
+</li>
+</ul>
+</div></blockquote>
+<p>As an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">grid_log</span> <span class="o">=</span> <span class="n">grdlog</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">run_log</span> <span class="o">=</span> <span class="n">runlog</span>
+</pre></div>
+</div>
+<p>Every time the code regrids it prints a list of grids at all relevant
+levels. Here the code will write these grids lists into the file
+<code class="docutils literal notranslate"><span class="pre">grdlog</span></code>. Additionally, every time step the code prints certain
+statements to the screen (if <code class="docutils literal notranslate"><span class="pre">amr.v</span></code> = 1), such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">STEP</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mf">1.91717746</span> <span class="n">DT</span> <span class="o">=</span> <span class="mf">1.91717746</span>
+<span class="n">PLOTFILE</span><span class="p">:</span> <span class="n">file</span> <span class="o">=</span> <span class="n">plt00001</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">run_log</span></code> option will output these statements into
+<em>runlog</em> as well.</p>
+<p>Terser output can be obtained via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">run_log_terse</span> <span class="o">=</span> <span class="n">runlogterse</span>
+</pre></div>
+</div>
+<p>This file, <code class="docutils literal notranslate"><span class="pre">runlogterse</span></code> differs from <code class="docutils literal notranslate"><span class="pre">runlog</span></code>, in that it
+only contains lines of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">10</span>  <span class="mf">0.2</span>  <span class="mf">0.005</span>
+</pre></div>
+</div>
+<p>in which “10” is the number of steps taken, “0.2” is the
+simulation time, and “0.005” is the level-0 time step. This file
+can be plotted very easily to monitor the time step.</p>
+</div>
+<div class="section" id="parallel-i-o">
+<h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this headline">¶</a></h2>
+<p>Both checkpoint files and plotfiles are really directories containing
+subdirectories: one subdirectory for each level of the AMR hierarchy.
+The fundamental data structure we read/write to disk is a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>,
+which is made up of multiple FAB’s, one FAB per grid. Multiple
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s may be written to each directory in a checkpoint file.
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s of course are shared across CPUs; a single <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> may be
+shared across thousands of CPUs. Each CPU writes the part of the
+<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that it owns to disk, but they don’t each write to their own
+distinct file. Instead each MultiFab is written to a runtime
+configurable number of files <span class="math notranslate nohighlight">\(N\)</span> (<span class="math notranslate nohighlight">\(N\)</span> can be set in the inputs file as the
+parameter <code class="docutils literal notranslate"><span class="pre">amr.checkpoint_nfiles</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.plot_nfiles</span></code>; the
+default is 64). That is to say, each <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> is written to disk
+across at most <span class="math notranslate nohighlight">\(N\)</span> files, plus a small amount of data that gets written
+to a header file describing how the file is laid out in those <span class="math notranslate nohighlight">\(N\)</span> files.</p>
+<p>What happens is <span class="math notranslate nohighlight">\(N\)</span> CPUs each opens a unique one of the <span class="math notranslate nohighlight">\(N\)</span> files into
+which the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> is being written, seeks to the end, and writes
+their data. The other CPUs are waiting at a barrier for those <span class="math notranslate nohighlight">\(N\)</span>
+writing CPUs to finish. This repeats for another <span class="math notranslate nohighlight">\(N\)</span> CPUs until all the
+data in the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> is written to disk. All CPUs then pass some data
+to CPU 0 which writes a header file describing how the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> is
+laid out on disk.</p>
+<p>We also read <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> from disk in a “chunky” manner, opening only <span class="math notranslate nohighlight">\(N\)</span>
+files for reading at a time. The number <span class="math notranslate nohighlight">\(N\)</span>, when the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s were
+written, does not have to match the number <span class="math notranslate nohighlight">\(N\)</span> when the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s are
+being read from disk. Nor does the number of CPUs running while
+reading in the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> need to match the number of CPUs running when
+the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> was written to disk.</p>
+<p>Think of the number <span class="math notranslate nohighlight">\(N\)</span> as the number of independent I/O pathways in
+your underlying parallel filesystem. Of course a “real” parallel
+filesytem should be able to handle any reasonable value of <span class="math notranslate nohighlight">\(N\)</span>. The
+value -1 forces <span class="math notranslate nohighlight">\(N\)</span> to the number of CPUs on which you’re
+running, which means that each CPU writes to a unique file, which can
+create a very large number of files, which can lead to inode issues.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="regridding.html" class="btn btn-neutral float-right" title="Regridding" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="creating_a_problem.html" class="btn btn-neutral float-left" title="Setting Up Your Own Problem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>
