@@ -207,6 +207,13 @@ Castro::pslope(const Box& bx, const int idir,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+
   if (plm_iorder == 1) {
 
     // first order -- piecewise constant slopes
@@ -257,13 +264,15 @@ Castro::pslope(const Box& bx, const int idir,
         pm1 = q_arr(i-1,j,k,QPRES) - pm1_hse;
         pm2 = q_arr(i-2,j,k,QPRES) - pm2_hse;
 
-        // if (i == domlo[0] && lo_bc_test) {
-        //   pm1 = 0.0_rt;  // HSE is perfectly satisfied
-        // }
+        if (i == domlo[0] && lo_bc_test) {
+          pm1 = 0.0_rt;  // HSE is perfectly satisfied
+          pm2 = 0.0_rt;
+        }
 
-        // if (i == domhi[0] && hi_bc_test) {
-        //   pp1 = 0.0_rt;
-        // }
+        if (i == domhi[0] && hi_bc_test) {
+          pp1 = 0.0_rt;
+          pp2 = 0.0_rt;
+        }
 
       } else if (idir == 1) {
 
