@@ -47,7 +47,7 @@ ppm_reconstruct(const Real* s,
 
   } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
                             (idir == 1 && j == domhi[1]) ||
-                            (idir == 2 && j == domhi[2]))) {
+                            (idir == 2 && k == domhi[2]))) {
 
     // use a stencil for when the current zone is on the right physical boundary
     // then the left interface is one zone away from the physical boundary
@@ -99,7 +99,7 @@ ppm_reconstruct(const Real* s,
 
   } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
                             (idir == 1 && j == domhi[1]) ||
-                            (idir == 2 && j == domhi[2]))) {
+                            (idir == 2 && k == domhi[2]))) {
 
     // use a stencil for when the current zone is on the right physical boundary
     // then the right interface is on the physical boundary
