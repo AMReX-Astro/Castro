@@ -19,17 +19,12 @@ Castro::mol_plm_reconstruct(const Box& bx,
                             const int idir,
                             Array4<Real const> const q_arr,
                             Array4<Real const> const flatn_arr,
+                            Array4<Real const> const src_q_arr,
                             Array4<Real> const dq,
                             Array4<Real> const qm,
                             Array4<Real> const qp) {
 
   const auto dx = geom.CellSizeArray();
-
-#ifdef GRAVITY
-  Real lconst_grav =  gravity->get_const_grav();
-#else
-  Real lconst_grav = 0.0_rt;
-#endif
 
   for (int n = 0; n < NQ; n++) {
     // piecewise linear slopes
@@ -38,6 +33,11 @@ Castro::mol_plm_reconstruct(const Box& bx,
            flatn_arr, dq);
   }
 
+  if (use_pslope == 1) {
+    pslope(bx, idir,
+           q_arr,
+           flatn_arr, dq, src_q_arr);
+  }
 
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
