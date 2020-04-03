@@ -959,8 +959,11 @@ Castro::initData ()
        // within any small limits
        computeTemp(S_new, cur_time, S_new.nGrow());
 
+       int init_failed_rho = 0;
+       int init_failed_T = 0;
+
 #ifdef _OPENMP
-#pragma omp parallel
+#pragma omp parallel reduction(+:init_failed_rho,init_failed_T)
 #endif
        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
          {
@@ -971,6 +974,9 @@ Castro::initData ()
            Real lsmall_temp = small_temp;
            Real lsmall_dens = small_dens;
 
+           int* init_failed_rho_d = AMREX_MFITER_REDUCE_SUM(&init_failed_rho);
+           int* init_failed_T_d = AMREX_MFITER_REDUCE_SUM(&init_failed_T);
+
            AMREX_PARALLEL_FOR_3D(bx, i, j, k,
            {
 
@@ -979,15 +985,24 @@ Castro::initData ()
              // This is dangerous and we should recommend a smaller
              // small_temp
              if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
-               amrex::Error("Error: initial data has T <~ small_temp");
+               *init_failed_T_d += 1;
              }
 
              if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
-               amrex::Error("Error: initial data has rho <~ small_dens");
+               *init_failed_rho_d += 1;
              }
 
            });
+
          }
+
+       if (init_failed_rho != 0.0) {
+         amrex::Error("Error: initial data has rho <~ small_dens");
+       }
+
+       if (init_failed_T != 0.0) {
+         amrex::Error("Error: initial data has T <~ small_temp");
+       }
 
 #ifdef AMREX_USE_CUDA
 #ifndef GPU_COMPATIBLE_PROBLEM
