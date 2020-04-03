@@ -195,6 +195,75 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
+    if (use_pslope) {
+
+      Real rr[5];
+      Real gg[5];
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,QPRES);
+        s[im1] = q_arr(i-1,j,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i+1,j,k,QPRES);
+        s[ip2] = q_arr(i+2,j,k,QPRES);
+
+        rr[im2] = q_arr(i-2,j,k,QRHO);
+        rr[im1] = q_arr(i-1,j,k,QRHO);
+        rr[i0]  = q_arr(i,j,k,QRHO);
+        rr[ip1] = q_arr(i+1,j,k,QRHO);
+        rr[ip2] = q_arr(i+2,j,k,QRHO);
+
+        gg[im2] = srcQ(i-2,j,k,QU);
+        gg[im1] = srcQ(i-1,j,k,QU);
+        gg[i0]  = srcQ(i,j,k,QU);
+        gg[ip1] = srcQ(i+1,j,k,QU);
+        gg[ip2] = srcQ(i+2,j,k,QU);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,QPRES);
+        s[im1] = q_arr(i,j-1,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j+1,k,QPRES);
+        s[ip2] = q_arr(i,j+2,k,QPRES);
+
+        rr[im2] = q_arr(i,j-2,k,QRHO);
+        rr[im1] = q_arr(i,j-1,k,QRHO);
+        rr[i0]  = q_arr(i,j,k,QRHO);
+        rr[ip1] = q_arr(i,j+1,k,QRHO);
+        rr[ip2] = q_arr(i,j+2,k,QRHO);
+
+        gg[im2] = q_arr(i,j-2,k,QV);
+        gg[im1] = q_arr(i,j-1,k,QV);
+        gg[i0]  = q_arr(i,j,k,QV);
+        gg[ip1] = q_arr(i,j+1,k,QV);
+        gg[ip2] = q_arr(i,j+2,k,QV);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,QPRES);
+        s[im1] = q_arr(i,j,k-1,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j,k+1,QPRES);
+        s[ip2] = q_arr(i,j,k+2,QPRES);
+
+        rr[im2] = q_arr(i,j,k-2,QRHO);
+        rr[im1] = q_arr(i,j,k-1,QRHO);
+        rr[i0]  = q_arr(i,j,k,QRHO);
+        rr[ip1] = q_arr(i,j,k+1,QRHO);
+        rr[ip2] = q_arr(i,j,k+2,QRHO);
+
+        gg[im2] = q_arr(i,j,k-2,QW);
+        gg[im1] = q_arr(i,j,k-1,QW);
+        gg[i0]  = q_arr(i,j,k,QW);
+        gg[ip1] = q_arr(i,j,k+1,QW);
+        gg[ip2] = q_arr(i,j,k+2,QW);
+
+      }
+
+      ppm_reconstruct_pslope(s, rr, gg, dx[idir], flat, sm, sp);
+      ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[QPRES], Im[QPRES]);
+
+    }
+
     // gamma_c
 
     Real Ip_gc[3];

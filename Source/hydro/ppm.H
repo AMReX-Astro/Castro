@@ -104,7 +104,7 @@ ppm_reconstruct(const Real* s,
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
-                       const Real& dx,
+                       const Real dx,
                        const Real flatn, Real& pm, Real& pp) {
 
   // This routine does the reconstruction of the zone data into a parabola.
