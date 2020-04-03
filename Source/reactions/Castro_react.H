@@ -1,4 +1,3 @@
-
 ///
 /// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
 ///
