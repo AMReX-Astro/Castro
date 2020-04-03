@@ -1,5 +1,10 @@
 # 20.05
 
+   * We now check if the problem setup initialized the density or
+     temperature to a value near small_dens or small_temp and abort.
+     If this happens, the recourse is to adjust small_dens and
+     small_temp to a meaningful value for your problem.  (#822)
+
    * The src_q multifab was removed and instead we convert the
      conserved state sources to primitive state sources FAB by FAB.
      This saves a lot of memory at the expense of an EOS call. (#829)
