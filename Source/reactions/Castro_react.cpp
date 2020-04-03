@@ -310,6 +310,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
         Real* burn_failed_d = AMREX_MFITER_REDUCE_SUM(&burn_failed);
 
+        Real lreact_T_min = Castro::react_T_min;
+        Real lreact_T_max = Castro::react_T_max;
+        Real lreact_rho_min = Castro::react_rho_min;
+        Real lreact_rho_max = Castro::react_rho_max;
+
         AMREX_PARALLEL_FOR_3D(bx, i, j, k,
         {
 
@@ -357,7 +362,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
             // Don't burn if we're outside of the relevant (rho, T) range.
 
-            if (!okay_to_burn_type(burn_state)) {
+            if (burn_state.T < lreact_T_min || burn_state.T > lreact_T_max ||
+                burn_state.rho < lreact_rho_min || burn_state.rho > lreact_rho_max) {
                 do_burn = false;
             }
 

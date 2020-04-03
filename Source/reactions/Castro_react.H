@@ -1,24 +1,5 @@
 
 ///
-/// Indicate whether this zone should be burned.
-///
-/// @param state zone state
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    bool okay_to_burn_type(const burn_t& burn_state) {
-
-        bool burn_flag = true;
-
-        if (burn_state.T < react_T_min || burn_state.T > react_T_max ||
-            burn_state.rho < react_rho_min || burn_state.rho > react_rho_max) {
-            burn_flag = false;
-        }
-
-        return burn_flag;
-
-    }
-
-///
 /// React state through a single reaction timestep, saving reaction source terms to ``reactions`` MultiFab. This is the CTU version.
 ///
 /// @param state        Current state
