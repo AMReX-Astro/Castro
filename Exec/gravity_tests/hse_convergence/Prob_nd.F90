@@ -88,7 +88,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt) :: dist, x, y, z, height, r
   integer :: i, j, k, n
 
-  real(rt) :: t0, rho_old
+  real(rt) :: t0
 
   type (eos_t) :: eos_state
 
@@ -131,36 +131,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            ! Initial velocities = 0
            state(i,j,k,UMX:UMZ) = ZERO
-
-           if (do_pert) then
-
-              ! Now add the perturbation
-              t0 = state(i,j,k,UTEMP)
-
-              rho_old = state(i,j,k,URHO)
-
-              r = sqrt((x-center(1))**2 + (y-center(2))**2 + (z-center(3))**2) /  pert_width
-
-              !state(i,j,k,UTEMP) = t0 * (ONE + 1.5_rt * exp(-(r/pert_width)**2))
-              state(i,j,k,UTEMP) = t0 * (ONE + 0.6_rt * (ONE + tanh(FOUR - r)))
-
-              ! update the temperature in the EOS state -- leave the pressure unchanged
-              eos_state % T = state(i,j,k,UTEMP)
-
-              ! now get the new density from this T, p
-              call eos(eos_input_tp, eos_state)
-
-              state(i,j,k,URHO) = eos_state%rho
-
-              ! correct the mass fractions and energy with the new density 
-              state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-              state(i,j,k,UEDEN) = state(i,j,k,UEINT)
-
-              do n = 1,nspec
-                 state(i,j,k,UFS+n-1) = (state(i,j,k,URHO) / rho_old) * state(i,j,k,UFS+n-1)
-              enddo
-
-           end if
 
         end do
      end do

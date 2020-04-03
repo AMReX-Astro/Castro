@@ -142,10 +142,9 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QTEMP) = eos_state.T;
     q_arr(i,j,k,QREINT) = eos_state.e * q_arr(i,j,k,QRHO);
     q_arr(i,j,k,QPRES) = eos_state.p;
+#ifdef TRUE_SDC
     q_arr(i,j,k,QGC) = eos_state.gam1;
-
-    qaux_arr(i,j,k,QDPDR) = eos_state.dpdr_e;
-    qaux_arr(i,j,k,QDPDE) = eos_state.dpde;
+#endif
 
 #ifdef RADIATION
     qaux_arr(i,j,k,QGAMCG) = eos_state.gam1;
@@ -184,49 +183,6 @@ Castro::ctoprim(const Box& bx,
 #endif
 
   });
-}
-
-
-void
-Castro::src_to_prim(const Box& bx,
-                    Array4<Real const> const q_arr,
-                    Array4<Real const> const qaux_arr,
-                    Array4<Real const> const src,
-                    Array4<Real> const srcQ)
-{
-
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
-  {
-
-
-      for (int n = 0; n < NQSRC; ++n) {
-        srcQ(i,j,k,n) = 0.0_rt;
-      }
-
-      Real rhoinv = 1.0_rt / q_arr(i,j,k,QRHO);
-
-      srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
-      srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QV) = (src(i,j,k,UMY) - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QW) = (src(i,j,k,UMZ) - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
-      srcQ(i,j,k,QREINT) = src(i,j,k,UEINT);
-      srcQ(i,j,k,QPRES ) = qaux_arr(i,j,k,QDPDE) *
-        (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) *
-        rhoinv + qaux_arr(i,j,k,QDPDR)*srcQ(i,j,k,QRHO);
-
-#ifdef PRIM_SPECIES_HAVE_SOURCES
-      for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-        int n = upassmap(ipassive);
-        int iq = qpassmap(ipassive);
-
-       // we may not be including the ability to have species sources,
-       //  so check to make sure that we are < NQSRC
-        srcQ(i,j,k,iq) = (src(i,j,k,n) - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
-          q_arr(i,j,k,QRHO);
-      }
-#endif
-  });
-
 }
 
 

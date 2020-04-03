@@ -165,7 +165,7 @@ Castro::uslope(const Box& bx, const int idir,
           qp2 = q_arr(i+2,j,k,n);
 
           // special consideration for reflecting BCs -- see
-          // Saltzmann p. 162 (but note that Saltzmann has a
+          // Saltzman p. 162 (but note that Saltzman has a
           // sign error)
           if (i == domlo[0] && n == QU && lo_bc_test) {
             qm2 = -qp1;
@@ -282,92 +282,132 @@ Castro::pslope(const Box& bx, const int idir,
 
       // First compute Fromm slopes
 
-      // df at i+1
+      // Dp at i+1
+
+      // we need dp_{i+1} = p_{i+1} - p_i
+      // and     dp_{i+2} = p_{i+2} - p_{i-1}
+      //
+      // then we compute
+      //   Dp_{i+1} = min{ 2 |dp_{i+1}|, 2 |dp_{i+2}|, 1/2 |dp_{i+1} + dp_{i+2}|}
+      //
+      // for this construction, we take p_{i+1} as the reference
+      // and subtract off the HSE state integrated from this from each zone center
+      //
+
       Real dlftp1;
       Real drgtp1;
 
       if (idir == 0) {
-        dlftp1 = q_arr(i+1,j,k,QPRES) - q_arr(i,j,k,QPRES);
-        drgtp1 = q_arr(i+2,j,k,QPRES) - q_arr(i+1,j,k,QPRES);
 
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
+        // this is dp_{i+1} = p_{i+1} - p_i, but we subtract off the
+        // HSE state integrated from p_{i+1}
+        dlftp1 = q_arr(i+1,j,k,QPRES) - q_arr(i,j,k,QPRES);
         dlftp1 += -0.25_rt * (q_arr(i+1,j,k,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i+1,j,k,QU)+src(i,j,k,QU))*dx[0];
+
+        // this is dp{i+2} = p_{i+2} - p_{i+1}, but we subtract off the
+        // HSE state integrated from p_{i+1}
+        drgtp1 = q_arr(i+2,j,k,QPRES) - q_arr(i+1,j,k,QPRES);
         drgtp1 += -0.25_rt * (q_arr(i+1,j,k,QRHO) + q_arr(i+2,j,k,QRHO)) *
           (src(i+1,j,k,QU)+src(i+2,j,k,QU))*dx[0];
 
       } else if (idir == 1) {
         dlftp1 = q_arr(i,j+1,k,QPRES) - q_arr(i,j,k,QPRES);
-        drgtp1 = q_arr(i,j+2,k,QPRES) - q_arr(i,j+1,k,QPRES);
-
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
         dlftp1 += -0.25_rt * (q_arr(i,j+1,k,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i,j+1,k,QV)+src(i,j,k,QV))*dx[1];
+
+        drgtp1 = q_arr(i,j+2,k,QPRES) - q_arr(i,j+1,k,QPRES);
         drgtp1 += -0.25_rt * (q_arr(i,j+1,k,QRHO) + q_arr(i,j+2,k,QRHO)) *
           (src(i,j+1,k,QV)+src(i,j+2,k,QV))*dx[1];
 
       } else {
         dlftp1 = q_arr(i,j,k+1,QPRES) - q_arr(i,j,k,QPRES);
-        drgtp1 = q_arr(i,j,k+2,QPRES) - q_arr(i,j,k+1,QPRES);
-
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
         dlftp1 += -0.25_rt * (q_arr(i,j,k+1,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i,j,k+1,QW)+src(i,j,k,QW))*dx[2];
+
+        drgtp1 = q_arr(i,j,k+2,QPRES) - q_arr(i,j,k+1,QPRES);
         drgtp1 += -0.25_rt * (q_arr(i,j,k+1,QRHO) + q_arr(i,j,k+2,QRHO)) *
           (src(i,j,k+1,QW)+src(i,j,k+2,QW))*dx[2];
 
       }
 
-
+      // now we compute the 2nd order MC / Fromm limited slopes at i+1
+      // using dp_{i+1} and dp_{i+2}
+      // we'll call this Dp_{i+1}
       Real dcen = 0.5_rt*(dlftp1 + drgtp1);
       Real dsgn = std::copysign(1.0_rt, dcen);
       Real dlim = dlftp1*drgtp1 >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlftp1), std::abs(drgtp1)) : 0.0_rt;
       Real dfp1 = dsgn*amrex::min(dlim, std::abs(dcen));
 
-      // df at i-1
+      // Dp at i-1
+
+      // we need dp_{i-1} = p_{i-1} - p_{i-2}
+      // and     dp_i = p_i - p_{i-1}
+      //
+      // then we compute
+      //   Dp_{i-1} = min{ 2 |dp_{ii1}|, 2 |dp_i|, 1/2 |dp_{i-1} + dp_i|}
+      //
+      // for this construction, we take p_{i-1} as the reference
+      // and subtract off the HSE state integrated from this from each zone center
+      //
+
       Real dlftm1;
       Real drgtm1;
 
       if (idir == 0) {
-        dlftm1 = q_arr(i-1,j,k,QPRES) - q_arr(i-2,j,k,QPRES);
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i-1,j,k,QPRES);
 
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
+        // this is dp_{i-1} = p_{i-1} - p_{i-2}, but we subtract off the
+        // HSE state integrated from p_{i-1}
+        dlftm1 = q_arr(i-1,j,k,QPRES) - q_arr(i-2,j,k,QPRES);
         dlftm1 += -0.25_rt * (q_arr(i-1,j,k,QRHO) + q_arr(i-2,j,k,QRHO)) *
           (src(i-1,j,k,QU)+src(i-2,j,k,QU))*dx[0];
+
+        // this is dp_i = p_i - p_{i-1}, but we subtract off the HSE state
+        // integrated from p_{i-1}
+        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i-1,j,k,QPRES);
         drgtm1 += -0.25_rt * (q_arr(i-1,j,k,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i-1,j,k,QU)+src(i,j,k,QU))*dx[0];
 
       } else if (idir == 1) {
         dlftm1 = q_arr(i,j-1,k,QPRES) - q_arr(i,j-2,k,QPRES);
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j-1,k,QPRES);
-
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
         dlftm1 += -0.25_rt * (q_arr(i,j-1,k,QRHO) + q_arr(i,j-2,k,QRHO)) *
           (src(i,j-1,k,QV)+src(i,j-2,k,QV))*dx[1];
+
+        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j-1,k,QPRES);
         drgtm1 += -0.25_rt * (q_arr(i,j-1,k,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i,j-1,k,QV)+src(i,j,k,QV))*dx[1];
 
       } else {
         dlftm1 = q_arr(i,j,k-1,QPRES) - q_arr(i,j,k-2,QPRES);
-        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j,k-1,QPRES);
-
-        // Subtract off (rho * acceleration) so as not to limit that part of the slope
         dlftm1 += -0.25_rt * (q_arr(i,j,k-1,QRHO) + q_arr(i,j,k-2,QRHO)) *
           (src(i,j,k-1,QW)+src(i,j,k-2,QW))*dx[2];
+
+        drgtm1 = q_arr(i,j,k,QPRES) - q_arr(i,j,k-1,QPRES);
         drgtm1 += -0.25_rt * (q_arr(i,j,k-1,QRHO) + q_arr(i,j,k,QRHO)) *
           (src(i,j,k-1,QW)+src(i,j,k,QW))*dx[2];
 
       }
 
+      // now we compute the 2nd order MC / Fromm limited slopes at i-1
+      // using dp_{i-1} and dp_i
+      // we'll call this Dp_{i-1}
       dcen = 0.5_rt*(dlftm1 + drgtm1);
       dsgn = std::copysign(1.0_rt, dcen);
       dlim = dlftm1*drgtm1 >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlftm1), std::abs(drgtm1)) : 0.0_rt;
+
       Real dfm1 = dsgn*amrex::min(dlim, std::abs(dcen));
 
       // Now limited fourth order slopes at i
+
+      // this uses Dp_{i+1} and Dp_{i-1} computed above as well as
+      // dp_{i+1} and dp_i
+
+      // dp_i
       Real dlft = drgtm1;
+
+      // dp_{i+1}
       Real drgt = dlftp1;
+
       dcen = 0.5_rt*(dlft + drgt);
       dsgn = std::copysign(1.0_rt, dcen);
       dlim = dlft*drgt >= 0.0_rt ? 2.0_rt * amrex::min(std::abs(dlft), std::abs(drgt)) : 0.0_rt;

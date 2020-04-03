@@ -56,9 +56,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'numpydoc',
               'sphinx.ext.githubpages',
-              'breathe',
-              'sphinxfortran.fortran_domain',
-              'sphinxfortran.fortran_autodoc']
+              'breathe']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -235,9 +233,3 @@ breathe_default_members = ('members', 'undoc-members', 'protected-members',
 breathe_doxygen_config_options = {'EXTRACT_ALL': 'YES',
                                   'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
                                   }
-
-# -- Options for sphinx-fortran -----------------------------------------
-
-fortran_src = [os.path.abspath('preprocessed_files')]
-
-fortran_ext = ['f90', 'F90']
