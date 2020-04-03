@@ -103,6 +103,110 @@ ppm_reconstruct(const Real* s,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
+ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
+                       const Real& dx,
+                       const Real flatn, Real& pm, Real& pp) {
+
+  // This routine does the reconstruction of the zone data into a parabola.
+
+  // first integrate HSE outward from zone i and subtract it off from
+  // the neighboring zones.
+  Real p0 = 0.0_rt;
+  Real pp1 = p[ip1] - (p0 + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]));
+  Real pp2 = p[ip2] - (p0 + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1])
+                          + 0.25_rt * dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]));
+  Real pm1 = p[im1] - (p0 - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]));
+  Real pm2 = p[im2] - (p0 - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1])
+                          - 0.25_rt * dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]));
+
+  // Compute van Leer slopes
+
+  Real dsl = 2.0_rt * (pm1 - pm2);
+  Real dsr = 2.0_rt * (p0 - pm1);
+
+  Real dsvl_l = 0.0_rt;
+  if (dsl*dsr > 0.0_rt) {
+    Real dsc = 0.5_rt * (p0 - pm2);
+    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+  }
+
+  dsl = 2.0_rt * (p0 - pm1);
+  dsr = 2.0_rt * (pp1 - p0);
+
+  Real dsvl_r = 0.0_rt;
+  if (dsl*dsr > 0.0_rt) {
+    Real dsc = 0.5_rt * (pp1 - pm1);
+    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
+  }
+
+  // Interpolate s to edges
+
+  pm = 0.5_rt * (p0 + pm1) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+  // Make sure sedge lies in between adjacent cell-centered values
+
+  pm = amrex::max(pm, amrex::min(p0, pm1));
+  pm = amrex::min(pm, amrex::max(p0, pm1));
+
+
+  // Compute van Leer slopes
+
+  dsl = 2.0_rt * (p0 - pm1);
+  dsr = 2.0_rt * (pp1 - p0);
+
+  dsvl_l = 0.0_rt;
+  if (dsl*dsr > 0.0_rt) {
+    Real dsc = 0.5_rt * (pp1 - pm1);
+    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+  }
+
+  dsl = 2.0_rt * (pp1 - p0);
+  dsr = 2.0_rt * (pp2 - pp1);
+
+  dsvl_r = 0.0_rt;
+  if (dsl*dsr > 0.0_rt) {
+    Real dsc = 0.5_rt * (pp2 - p0);
+    dsvl_r = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
+  }
+
+  // Interpolate s to edges
+
+  pp = 0.5_rt * (pp1 + p0) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+  // Make sure sedge lies in between adjacent cell-centered values
+
+  pp = amrex::max(pp, amrex::min(pp1, p0));
+  pp = amrex::min(pp, amrex::max(pp1, p0));
+
+
+  // Flatten the parabola
+
+  pm = flatn * pm + (1.0_rt - flatn) * p0;
+  pp = flatn * pp + (1.0_rt - flatn) * p0;
+
+  // Modify using quadratic limiters -- note this version of the limiting comes
+  // from Colella and Sekora (2008), not the original PPM paper.
+
+  if ((pp - p0) * (p0 - pm) <= 0.0_rt) {
+    pp = p0;
+    pm = p0;
+
+  } else if (std::abs(pp - p0) >= 2.0_rt * std::abs(pm - p0)) {
+    pp = 3.0_rt * p0 - 2.0_rt * pm;
+
+  } else if (std::abs(pm - p0) >= 2.0_rt * std::abs(pp - p0)) {
+    pm = 3.0_rt * p0 - 2.0_rt * pp;
+  }
+
+  // now correct the state to have the HSE contribution
+  pm += p[i0] - 0.5_rt * dx * rho[i0] * src[i0];
+  pp += p[i0] + 0.5_rt * dx * rho[i0] * src[i0];
+
+}
+
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
 ppm_int_profile(const Real sm, const Real sp, const Real sc,
                 const Real u, const Real c, const Real dtdx,
                 Real* Ip, Real* Im) {
