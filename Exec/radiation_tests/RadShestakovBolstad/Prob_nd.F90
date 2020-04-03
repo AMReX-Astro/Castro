@@ -96,9 +96,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UEINT) = rhoe_0
               state(i,j,k,UTEMP) = Tcgs
            else
-              state(i,j,k,UEDEN) = 0.e0_rt
-              state(i,j,k,UEINT) = 0.e0_rt
-              state(i,j,k,UTEMP) = 0.e0_rt
+              state(i,j,k,UEDEN) = 1.e-99_rt
+              state(i,j,k,UEINT) = 1.e-99_rt
+              state(i,j,k,UTEMP) = 0.e0_rt  ! this will get set after init
            end if
 
         end do
