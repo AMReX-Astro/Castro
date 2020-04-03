@@ -985,11 +985,19 @@ Castro::initData ()
              // This is dangerous and we should recommend a smaller
              // small_temp
              if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_T_d, 1);
+#else
                *init_failed_T_d += 1;
+#endif
              }
 
              if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_rho_d, 1);
+#else
                *init_failed_rho_d += 1;
+#endif
              }
 
            });
