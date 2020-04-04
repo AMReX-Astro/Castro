@@ -11,7 +11,7 @@ echo "starting..."
 
 export OMP_NUM_THREADS=1
 
-export CASTRO_EXEC=./Castro2d.intel.haswell.MPI.ex
+export CASTRO_EXEC=./Castro2d.intel.haswell.MPI.TRUESDC.ex
 
 # Cori Haswell has 2 Intel "Haswell" processors each with 16 cores.
 # number of nodes = # of MPI * number of threads / 32 (cores / node)
