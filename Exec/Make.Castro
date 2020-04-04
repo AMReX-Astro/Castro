@@ -172,6 +172,10 @@ ifeq ($(USE_REACT), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
   endif
+
+  ifeq ($(USE_CXX_REACTIONS), TRUE)
+    DEFINES += -DCXX_REACTIONS
+  endif
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)

@@ -303,6 +303,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
         const Box& bx = mfi.growntilebox(ngrow);
 
+#ifdef CXX_REACTIONS
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto mask = m.array(mfi);
@@ -433,7 +434,20 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
             }
 
         });
-        
+
+#else
+
+#pragma gpu box(bx)
+        ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                       BL_TO_FORTRAN_ANYD(s[mfi]),
+                       BL_TO_FORTRAN_ANYD(r[mfi]),
+                       BL_TO_FORTRAN_ANYD(w[mfi]),
+                       BL_TO_FORTRAN_ANYD(m[mfi]),
+                       time, dt_react, strang_half,
+                       AMREX_MFITER_REDUCE_SUM(&burn_failed));
+
+#endif
+
     }
 
     if (burn_failed != 0.0) burn_success = 0;
