@@ -1,5 +1,9 @@
 # 20.05
 
+   * The plm_well_balanced option was removed -- this functionality
+     essentially replicated use_pslope, and use_pslope is higher order
+     and supports non-constant gravity.
+
    * We now check if the problem setup initialized the density or
      temperature to a value near small_dens or small_temp and abort.
      If this happens, the recourse is to adjust small_dens and
