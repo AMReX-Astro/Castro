@@ -140,6 +140,7 @@
                              const int idir,
                              amrex::Array4<amrex::Real const> const q_arr,
                              amrex::Array4<amrex::Real const> const flatn_arr,
+                             amrex::Array4<amrex::Real const> const src_q_arr,
                              amrex::Array4<amrex::Real> const dq,
                              amrex::Array4<amrex::Real> const qm,
                              amrex::Array4<amrex::Real> const qp);

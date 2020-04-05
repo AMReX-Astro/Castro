@@ -9,6 +9,12 @@
      conserved state sources to primitive state sources FAB by FAB.
      This saves a lot of memory at the expense of an EOS call. (#829)
 
+   * The plm_well_balanced option was removed.  It was essentially the
+     same as use_pslope except it was lower order and only worked with
+     constant gravity.  use_pslope now works with both CTU+PLM and
+     SDC2+PLM.  A new test problem, hse_convergence, was added to look
+     at the behavior of the different reconstruction methods with HSE.
+
 # 20.04
 
    * A potential undefined flux from the HLL solver when using

@@ -104,10 +104,6 @@ plm_iorder                   int           2                  y
 # 1 = 2nd order MC, 2 = 4th order MC
 plm_limiter                  int           2                  y
 
-# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
-# pressure
-plm_well_balanced            int           0                  y
-
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
@@ -166,7 +162,8 @@ dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?
+# from the pressure before limiting?  This is a well-balanced method that
+# does well with HSE
 use_pslope                   int           1                  y
 
 # if we are using pslope, below what density to we turn off the well-balanced
