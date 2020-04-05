@@ -233,38 +233,57 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const qm,
                             Array4<Real> const qp) {
 
+  // special care for reflecting BCs
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  bool lo_bc_test = lo_bc[idir] == Symmetry;
+  bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
 
-    Real s[5];
+    Real s[7];
     Real flat = flatn_arr(i,j,k);
     Real sm;
     Real sp;
 
     if (idir == 0) {
+      s[im3] = q_arr(i-3,j,k,n);
       s[im2] = q_arr(i-2,j,k,n);
       s[im1] = q_arr(i-1,j,k,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i+1,j,k,n);
       s[ip2] = q_arr(i+2,j,k,n);
+      s[ip3] = q_arr(i+3,j,k,n);
 
     } else if (idir == 1) {
+      s[im3] = q_arr(i,j-3,k,n);
       s[im2] = q_arr(i,j-2,k,n);
       s[im1] = q_arr(i,j-1,k,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i,j+1,k,n);
       s[ip2] = q_arr(i,j+2,k,n);
+      s[ip3] = q_arr(i,j+3,k,n);
 
     } else {
+      s[im3] = q_arr(i,j,k-3,n);
       s[im2] = q_arr(i,j,k-2,n);
       s[im1] = q_arr(i,j,k-1,n);
       s[i0]  = q_arr(i,j,k,n);
       s[ip1] = q_arr(i,j,k+1,n);
       s[ip2] = q_arr(i,j,k+2,n);
+      s[ip3] = q_arr(i,j,k+3,n);
 
     }
 
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
 
     if (idir == 0) {
       // right state at i-1/2
