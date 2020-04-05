@@ -5,7 +5,6 @@
 #include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
-#include <Castro_generic_fill_F.H>
 
 using namespace amrex;
 
@@ -27,37 +26,24 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);
-    set_bc_launch_config();
 #else
     const int* bc_f = bcrs.data();
 #endif
 
-    // This routine either comes in with one component or all NUM_STATE.
-
-    if (numcomp == 1) {
-
-#pragma gpu box(bx)
-        denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_N_ANYD(data, dcomp),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
+    if (Gpu::inLaunchRegion()) {
+        GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(castro_generic_fill_func);
+        gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
     }
     else {
-
-        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
-
-#pragma gpu box(bx)
-        hypfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_ANYD(data),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
+        CpuBndryFuncFab cpu_bndry_func(nullptr);
+        cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
     }
 
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
+#pragma gpu box(bx)
+    ambient_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(data),
+                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                 numcomp, bc_f);
 
     if (numcomp == 1) {
 

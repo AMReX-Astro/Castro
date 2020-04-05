@@ -8,19 +8,11 @@ extern "C"
 {
 #endif
     
-  void hypfill
+  void ambient_fill
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-
-  void denfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
+     int numcomp, const int* bc);
 
   inline void ca_nullfill
     (BL_FORT_FAB_ARG_3D(state),
