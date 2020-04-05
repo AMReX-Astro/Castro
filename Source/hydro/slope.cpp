@@ -267,6 +267,8 @@ Castro::pslope(const Box& bx, const int idir,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
+  Real lpslope_cutoff_density = pslope_cutoff_density;
+
   if (plm_iorder == 1) {
 
     // first order -- piecewise constant slopes
@@ -279,6 +281,10 @@ Castro::pslope(const Box& bx, const int idir,
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
+
+      if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
+        continue;
+      }
 
       // First compute Fromm slopes
 
