@@ -339,7 +339,7 @@ Castro::pslope(const Box& bx, const int idir,
       // we use the value above with HSE removed
 
       Real dlftp1 = pp1 - p0;
-      Real drgtp1 = pp2 = pp1;
+      Real drgtp1 = pp2 - pp1;
 
       Real dcen = 0.5_rt*(dlftp1 + drgtp1);
       Real dsgn = std::copysign(1.0_rt, dcen);
