@@ -396,7 +396,11 @@ Castro::variableSetUp ()
       source_ng = NUM_GROW;
   }
   else if (time_integration_method == SpectralDeferredCorrections) {
+    if (sdc_order == 2 && use_pslope) {
+      source_ng = NUM_GROW;
+    } else {
       source_ng = 1;
+    }
   }
   else {
       amrex::Error("Unknown time_integration_method");
