@@ -131,7 +131,8 @@ Castro::trace_ppm(const Box& bx,
 
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
-  Real luse_pslope = use_pslope;
+  int luse_pslope = use_pslope;
+  Real lpslope_cutoff_density = pslope_cutoff_density;
 
   GpuArray<int, npassive> qpass_map_p;
   for (int n = 0; n < npassive; n++){
@@ -196,7 +197,7 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
-    if (luse_pslope) {
+    if (luse_pslope && q_arr(i,j,k,QRHO) > lpslope_cutoff_density) {
 
       Real rr[5];
       Real gg[5];
