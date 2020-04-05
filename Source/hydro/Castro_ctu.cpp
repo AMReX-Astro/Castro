@@ -447,6 +447,147 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 srcQ, vbx, dt);
 #endif
     }
+
+    // special care for reflecting BCs
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+
+    const auto domlo = geom.Domain().loVect3d();
+    const auto domhi = geom.Domain().hiVect3d();
+
+    bool lo_bc_test = lo_bc[idir] == Symmetry;
+    bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+    // we have to do this after the loops above, since here we will
+    // consider interfaces, not zones
+
+    if (idir == 0) {
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (i == domlo[0]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QU) {
+                qxm(i,j,k,QU) = -qxp(i,j,k,QU);
+              } else {
+                qxm(i,j,k,n) = qxp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (i == domhi[0]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QU) {
+                qxp(i,j,k,QU) = -qxm(i,j,k,QU);
+              } else {
+                qxp(i,j,k,n) = qxm(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (j == domlo[1]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QV) {
+                qym(i,j,k,QV) = -qyp(i,j,k,QV);
+              } else {
+                qym(i,j,k,n) = -qyp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (j == domhi[1]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QV) {
+                qyp(i,j,k,QV) = -qym(i,j,k,QV);
+              } else {
+                qyp(i,j,k,n) = qym(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+#endif
+#if AMREX_SPACEDIM == 3
+    } else {
+
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (k == domlo[2]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QW) {
+                qzm(i,j,k,QW) = -qzp(i,j,k,QW);
+              } else {
+                qzm(i,j,k,n) = qzp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (k == domhi[2]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QW) {
+                qzp(i,j,k,QW) = -qzm(i,j,k,QW);
+              } else {
+                qzp(i,j,k,n) = qzm(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+#endif
+
+    }
   }
 }
 

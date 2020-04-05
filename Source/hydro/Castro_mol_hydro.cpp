@@ -53,6 +53,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     FArrayBox flatn;
     FArrayBox cond;
     FArrayBox dq;
+    FArrayBox src_q;
     FArrayBox shk;
     FArrayBox qm, qp;
     FArrayBox div;
@@ -451,8 +452,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 Elixir elix_dq = dq.elixir();
                 auto dq_arr = dq.array();
 
+                // for well-balancing, we need to primitive variable
+                // source terms
+                const Box& qbx = amrex::grow(bx, NUM_GROW);
+                src_q.resize(qbx, NQSRC);
+                Elixir elix_src_q = src_q.elixir();
+                Array4<Real> const src_q_arr = src_q.array();
+
+                Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+
+                src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+
                 mol_plm_reconstruct(obx, idir,
-                                    q_arr, flatn_arr,
+                                    q_arr, flatn_arr, src_q_arr,
                                     dq_arr,
                                     qm_arr, qp_arr);
 

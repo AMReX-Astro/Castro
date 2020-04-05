@@ -19,19 +19,12 @@ Castro::mol_plm_reconstruct(const Box& bx,
                             const int idir,
                             Array4<Real const> const q_arr,
                             Array4<Real const> const flatn_arr,
+                            Array4<Real const> const src_q_arr,
                             Array4<Real> const dq,
                             Array4<Real> const qm,
                             Array4<Real> const qp) {
 
   const auto dx = geom.CellSizeArray();
-
-#ifdef GRAVITY
-  Real lconst_grav =  gravity->get_const_grav();
-#else
-  Real lconst_grav = 0.0_rt;
-#endif
-
-  int lplm_well_balanced = plm_well_balanced;
 
   for (int n = 0; n < NQ; n++) {
     // piecewise linear slopes
@@ -40,6 +33,11 @@ Castro::mol_plm_reconstruct(const Box& bx,
            flatn_arr, dq);
   }
 
+  if (use_pslope == 1) {
+    pslope(bx, idir,
+           q_arr,
+           flatn_arr, dq, src_q_arr);
+  }
 
   AMREX_PARALLEL_FOR_4D(bx, NQ, i, j, k, n,
   {
@@ -51,71 +49,32 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
    if (idir == 0) {
 
-     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     // left state at i+1/2 interface
+     qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-       // left state at i+1/2 interface
-       qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +
-         0.5_rt*dx[0]*q_arr(i,j,k,QRHO)*lconst_grav;
+     // right state at i-1/2 interface
+     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 
-       // right state at i-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n) -
-         0.5_rt*dx[0]*q_arr(i,j,k,QRHO)*lconst_grav;
-
-     } else {
-       // left state at i+1/2 interface
-       qm(i+1,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
-
-       // right state at i-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
-
-     }
 
 #if AMREX_SPACEDIM >= 2
    } else if (idir == 1) {
 
-     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     // left state at j+1/2 interface
+     qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-       // left state at i+1/2 interface
-       qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +
-         0.5_rt*dx[1]*q_arr(i,j,k,QRHO)*lconst_grav;
-
-       // right state at i-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n) -
-         0.5_rt*dx[1]*q_arr(i,j,k,QRHO)*lconst_grav;
-
-     } else {
-
-       // left state at j+1/2 interface
-       qm(i,j+1,k,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
-
-       // right state at j-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
-
-     }
+     // right state at j-1/2 interface
+     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 #endif
 
 #if AMREX_SPACEDIM == 3
    } else {
 
-     if (lplm_well_balanced == 1 && n == QPRES && idir == AMREX_SPACEDIM-1) {
+     // left state at k+1/2 interface
+     qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
 
-       // left state at i+1/2 interface
-       qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n) +
-         0.5_rt*dx[2]*q_arr(i,j,k,QRHO)*lconst_grav;
+     // right state at k-1/2 interface
+     qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
 
-       // right state at i-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n) -
-         0.5_rt*dx[2]*q_arr(i,j,k,QRHO)*lconst_grav;
-
-     } else {
-
-       // left state at k+1/2 interface
-       qm(i,j,k+1,n) = q_arr(i,j,k,n) + 0.5_rt*dq(i,j,k,n);
-
-       // right state at k-1/2 interface
-       qp(i,j,k,n) = q_arr(i,j,k,n) - 0.5_rt*dq(i,j,k,n);
-
-     }
 #endif
    }
 

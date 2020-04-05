@@ -1,8 +1,19 @@
 # 20.05
 
+   * We now check if the problem setup initialized the density or
+     temperature to a value near small_dens or small_temp and abort.
+     If this happens, the recourse is to adjust small_dens and
+     small_temp to a meaningful value for your problem.  (#822)
+
    * The src_q multifab was removed and instead we convert the
      conserved state sources to primitive state sources FAB by FAB.
      This saves a lot of memory at the expense of an EOS call. (#829)
+
+   * The plm_well_balanced option was removed.  It was essentially the
+     same as use_pslope except it was lower order and only worked with
+     constant gravity.  use_pslope now works with both CTU+PLM and
+     SDC2+PLM.  A new test problem, hse_convergence, was added to look
+     at the behavior of the different reconstruction methods with HSE.
 
 # 20.04
 
