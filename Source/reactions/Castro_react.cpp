@@ -309,7 +309,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
         auto mask = m.array(mfi);
         auto weights = w.array(mfi);
 
-        Real* burn_failed_d = AMREX_MFITER_REDUCE_SUM(&burn_failed);
+        Real* const burn_failed_d = AMREX_MFITER_REDUCE_SUM(&burn_failed);
 
         Real lreact_T_min = Castro::react_T_min;
         Real lreact_T_max = Castro::react_T_max;
@@ -372,19 +372,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
                 burner(burn_state, dt_react);
             }
 
-            // If we were unsuccessful, update the failure flag.
-
-            Real failed_tmp = 0.0_rt;
+            // If we were unsuccessful, update the failure count.
 
             if (!burn_state.success) {
-                failed_tmp = 1.0_rt;
+                Gpu::Atomic::Add(burn_failed_d, 1.0);
             }
-
-#ifdef AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(burn_failed_d, failed_tmp);
-#else
-            burn_failed_d += failed_temp;
-#endif
 
             if (do_burn) {
 
