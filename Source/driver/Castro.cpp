@@ -2793,17 +2793,17 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 
         AMREX_PARALLEL_FOR_3D(bx, i, j, k,
         {
-            Real xn_sum = 0.0_rt;
+            Real rhoX_sum = 0.0_rt;
 
             for (int n = 0; n < NumSpec; ++n) {
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
-                xn_sum += u(i,j,k,UFS+n);
+                rhoX_sum += u(i,j,k,UFS+n);
             }
 
-            Real xn_sum_inv = 1.0_rt / xn_sum;
+            Real fac = u(i,j,k,URHO) / rhoX_sum;
 
             for (int n = 0; n < NumSpec; ++n) {
-                u(i,j,k,UFS+n) *= xn_sum_inv;
+                u(i,j,k,UFS+n) *= fac;
             }
         });
     }
