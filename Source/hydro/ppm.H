@@ -143,18 +143,41 @@ ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
 
   bool left_is_hse = false;
 
-  if (lo_bc_test && ((idx == domlo[idir]) || (idx == domlo[idir]+1) || (idx == domhi[idir]))) {
+  if (lo_bc_test && (idx == domlo[idir])) {
 
-    // we are computing p_{i-1/2} and one or more of the zones in the
-    // cubic interpolant will be ghost zones, so we use the HSE
-    // reconstruction to find the initial interface value
+    // we are computing p_{domlo-1/2} and two zones are to the left of
+    // the interface are ghost zones.
+    left_is_hse = true;
+
+    pm2 = 0.0_rt;     // perfect HSE
+    pm1 = 0.0_rt;     // perfect HSE
+    p0 = p0_hse;
+    pp1 = pp1_hse;
+    pp2 = pp2_hse;
+
+  } else if (lo_bc_test && (idx == domlo[idir]+1)) {
+
+    // we are computing p_{domlo+1/2} and one zone in the cubic
+    // interpolant is to the left of the domain boundary.
+    left_is_hse = true;
+
+    pm2 = 0.0_rt;
+    pm1 = pm1_hse;
+    p0 = p0_hse;
+    pp1 = pp1_hse;
+    pp2 = pp2_hse;
+
+  } else if (hi_bc_test && (idx == domhi[idir])) {
+
+    // we are computing p_{domhi-1/2} and one zone in the cubic
+    // interpolant is to the right of the domain boundary.
     left_is_hse = true;
 
     pm2 = pm2_hse;
     pm1 = pm1_hse;
     p0 = p0_hse;
     pp1 = pp1_hse;
-    pp2 = pp2_hse;
+    pp2 = 0.0_rt;
 
   } else {
 
@@ -205,18 +228,41 @@ ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
 
   bool right_is_hse = false;
 
-  if (hi_bc_test && ((idx == domlo[idir]) || (idx == domhi[idir]-1) || (idx == domhi[idir]))) {
+  if (lo_bc_test && (idx == domlo[idir])) {
 
-    // we are computing p_{i+1/2} and one or more of the zones in the
-    // cubic interpolant will be ghost zones, so we use the HSE
-    // reconstruction to find the initial interface value
+    // we are computing p_{domlo+1/2} and one of the zones in the
+    // cubic interpolant will be ghost zones
+    right_is_hse = true;
+
+    pm2 = 0.0_rt;
+    pm1 = pm1_hse;
+    p0 = p0_hse;
+    pp1 = pp1_hse;
+    pp2 = pp2_hse;
+
+  } else if (hi_bc_test && (idx == domhi[idir]-1)) {
+
+    // we are computing p_{domhi-1/2} and one zone in the cubic
+    // interpolant is a ghost zone.
     right_is_hse = true;
 
     pm2 = pm2_hse;
     pm1 = pm1_hse;
     p0 = p0_hse;
     pp1 = pp1_hse;
-    pp2 = pp2_hse;
+    pp2 = 0.0_rt;
+
+  } else if (hi_bc_test && (idx == domhi[idir])) {
+
+    // we are computing p_{domhi+1/2} and two zones in the cubic
+    // interpolant are ghost cells
+    right_is_hse = true;
+
+    pm2 = pm2_hse;
+    pm1 = pm1_hse;
+    p0 = p0_hse;
+    pp1 = 0.0_rt;
+    pp2 = 0.0_rt;
 
   } else {
 
