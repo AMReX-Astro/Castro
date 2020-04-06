@@ -117,12 +117,12 @@ ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
   // first integrate HSE outward from zone i and subtract it off from
   // the neighboring zones.
   Real p0_hse = 0.0_rt;
-  Real pp1_hse = p[ip1] - (p0_hse + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]));
-  Real pp2_hse = p[ip2] - (p0_hse + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1])
-                                  + 0.25_rt * dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]));
-  Real pm1_hse = p[im1] - (p0_hse - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]));
-  Real pm2_hse = p[im2] - (p0_hse - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1])
-                                  - 0.25_rt * dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]));
+  Real pp1_hse = p[ip1] - (p[i0] + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]));
+  Real pp2_hse = p[ip2] - (p[i0] + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1])
+                                 + 0.25_rt * dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]));
+  Real pm1_hse = p[im1] - (p[i0] - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]));
+  Real pm2_hse = p[im2] - (p[i0] - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1])
+                                 - 0.25_rt * dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]));
 
   Real p0;
   Real pp1;
@@ -308,7 +308,8 @@ ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
     pp += p[i0] + 0.5_rt * dx * rho[i0] * src[i0];
   }
 
-  // Flatten the parabola
+  // Flatten the parabola -- now we need the original state here
+  p0 = p[i0];
 
   pm = flatn * pm + (1.0_rt - flatn) * p0;
   pp = flatn * pp + (1.0_rt - flatn) * p0;
