@@ -461,6 +461,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (i == domlo[0]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qxp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxp(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qxp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxp(i,j,k,QREINT) = qxp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QU) {
                 qxm(i,j,k,QU) = -qxp(i,j,k,QU);
@@ -468,6 +484,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 qxm(i,j,k,n) = qxp(i,j,k,n);
               }
             }
+
           }
         });
 
@@ -481,6 +498,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (i == domhi[0]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qxm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxm(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qxm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxm(i,j,k,QREINT) = qxm(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QU) {
                 qxp(i,j,k,QU) = -qxm(i,j,k,QU);
@@ -503,6 +536,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (j == domlo[1]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qyp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qyp(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qyp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qyp(i,j,k,QREINT) = qyp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QV) {
                 qym(i,j,k,QV) = -qyp(i,j,k,QV);
@@ -523,6 +572,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (j == domhi[1]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qym(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qym(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qym(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qym(i,j,k,QREINT) = qym(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QV) {
                 qyp(i,j,k,QV) = -qym(i,j,k,QV);
@@ -546,6 +611,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (k == domlo[2]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qzp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzp(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qzp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzp(i,j,k,QREINT) = qzp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QW) {
                 qzm(i,j,k,QW) = -qzp(i,j,k,QW);
@@ -566,6 +647,22 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (k == domhi[2]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qzm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzm(i,j,k,QPRES);
+            for (int n = 0; n < nspec; n++) {
+              eos_state.xn[n] = qzm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzm(i,j,k,QREINT) = qzm(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QW) {
                 qzp(i,j,k,QW) = -qzm(i,j,k,QW);
