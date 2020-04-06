@@ -7,6 +7,8 @@
 #include "Radiation.H"
 #endif
 
+#include "eos.H"
+
 using namespace amrex;
 
 void
@@ -450,6 +452,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
     bool lo_bc_test = lo_bc[idir] == Symmetry;
     bool hi_bc_test = hi_bc[idir] == Symmetry;
 
+    Real lT_guess = T_guess;
+
     // we have to do this after the loops above, since here we will
     // consider interfaces, not zones
 
@@ -468,7 +472,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxp(i,j,k,QFS+n);
             }
 
@@ -497,7 +501,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxp(i,j,k,QFS+n);
             }
 
@@ -509,7 +513,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxm(i,j,k,QFS+n);
             }
 
@@ -537,7 +541,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxm(i,j,k,QFS+n);
             }
 
@@ -566,7 +570,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxp(i,j,k,QFS+n);
             }
 
@@ -578,7 +582,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qxm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qxm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qxm(i,j,k,QFS+n);
             }
 
@@ -609,7 +613,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qyp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qyp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qyp(i,j,k,QFS+n);
             }
 
@@ -638,7 +642,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qyp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qyp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qyp(i,j,k,QFS+n);
             }
 
@@ -650,7 +654,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qym(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qym(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qym(i,j,k,QFS+n);
             }
 
@@ -679,7 +683,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qym(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qym(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qym(i,j,k,QFS+n);
             }
 
@@ -708,7 +712,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qyp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qyp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qyp(i,j,k,QFS+n);
             }
 
@@ -720,7 +724,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qym(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qym(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qym(i,j,k,QFS+n);
             }
 
@@ -752,7 +756,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzp(i,j,k,QFS+n);
             }
 
@@ -781,7 +785,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzp(i,j,k,QFS+n);
             }
 
@@ -793,7 +797,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzm(i,j,k,QFS+n);
             }
 
@@ -822,7 +826,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzm(i,j,k,QFS+n);
             }
 
@@ -851,7 +855,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzp(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzp(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzp(i,j,k,QFS+n);
             }
 
@@ -863,7 +867,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
             eos_state.rho = qzm(i,j,k,QRHO);
             eos_state.T = lT_guess;
             eos_state.p = qzm(i,j,k,QPRES);
-            for (int n = 0; n < nspec; n++) {
+            for (int n = 0; n < NumSpec; n++) {
               eos_state.xn[n] = qzm(i,j,k,QFS+n);
             }
 
