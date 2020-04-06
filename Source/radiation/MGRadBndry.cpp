@@ -228,7 +228,7 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
               p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
             if (p_bcflag == 0) {
               for(int igroup = 0; igroup < ngroups; igroup++) {
-                bndry[face][bi].setVal(value_nu[igroup], igroup);
+                  bndry[face][bi].setVal<RunOn::Host>(value_nu[igroup], igroup);
               }
             }
             else {
@@ -274,7 +274,7 @@ void MGRadBndry::setHomogValues(const BCRec& bc, IntVect& ratio)
     Orientation face(fi());
     for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
       FArrayBox& bnd_fab = bndry[face][bi];
-      bnd_fab.setVal(0.);
+      bnd_fab.setVal<RunOn::Host>(0.);
     }
   }
 }

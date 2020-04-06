@@ -254,7 +254,7 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
     
-      spa[mfi].setVal(1.e210,reg,0);
+      spa[mfi].setVal<RunOn::Host>(1.e210,reg,0);
     
       bool nexttoboundary=false;
       for (int idim=0; idim<BL_SPACEDIM; idim++) {
