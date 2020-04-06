@@ -1,0 +1,45 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 100
+stop_time = 1.0e-2
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic =  0      0      0
+geometry.coord_sys   =  0
+geometry.prob_lo     =  0      0      0
+geometry.prob_hi     =  1.0e9  1.0e9  1.0e9
+amr.n_cell           =  128    128    128
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  2   2   2
+castro.hi_bc       =  2   2   2
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.ppm_type = 1
+
+# TIME STEP CONTROL
+castro.dt_cutoff      = 5.e-20
+castro.cfl            = 0.5
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1
+castro.v              = 1
+amr.v                 = 1
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0
+amr.ref_ratio       = 2
+amr.regrid_int      = 2
+amr.blocking_factor = 16
+amr.max_grid_size   = 32
+
+# CHECKPOINT FILES
+amr.checkpoint_files_output = 0
+amr.plot_files_output = 0
+
+# PROBIN FILENAME
+amr.probin_file = probin

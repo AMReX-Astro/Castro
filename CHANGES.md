@@ -1,9 +1,32 @@
+# 20.05
+
+   * We now check if the problem setup initialized the density or
+     temperature to a value near small_dens or small_temp and abort.
+     If this happens, the recourse is to adjust small_dens and
+     small_temp to a meaningful value for your problem.  (#822)
+
+   * The src_q multifab was removed and instead we convert the
+     conserved state sources to primitive state sources FAB by FAB.
+     This saves a lot of memory at the expense of an EOS call. (#829)
+
+   * The plm_well_balanced option was removed.  It was essentially the
+     same as use_pslope except it was lower order and only worked with
+     constant gravity.  use_pslope now works with both CTU+PLM and
+     SDC2+PLM.  A new test problem, hse_convergence, was added to look
+     at the behavior of the different reconstruction methods with HSE.
+
 # 20.04
+
+   * A potential undefined flux from the HLL solver when using
+     hybrid_riemann has been fixed (#823)
 
    * The parameter castro.allow_small_energy has been removed. The
      code behavior is now similar to what it would have been with
      allow_small_energy == 0 (the internal energy can never be
      smaller than that allowed by small_temp). (#817)
+
+   * The BC interfaces have been merged and converted to a new FAB
+     interface as part of the port to C++. (#819)
 
    * All boundary fill interfaces other than hypfill and denfill have
      been removed. So, we no longer support overriding the boundary

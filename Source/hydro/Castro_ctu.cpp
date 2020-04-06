@@ -309,5 +309,204 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                 srcQ, vbx, dt);
 #endif
     }
+
+    // special care for reflecting BCs
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+
+    const auto domlo = geom.Domain().loVect3d();
+    const auto domhi = geom.Domain().hiVect3d();
+
+    bool lo_bc_test = lo_bc[idir] == Symmetry;
+    bool hi_bc_test = hi_bc[idir] == Symmetry;
+
+    // we have to do this after the loops above, since here we will
+    // consider interfaces, not zones
+
+    if (idir == 0) {
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (i == domlo[0]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QU) {
+                qxm(i,j,k,QU) = -qxp(i,j,k,QU);
+              } else {
+                qxm(i,j,k,n) = qxp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (i == domhi[0]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QU) {
+                qxp(i,j,k,QU) = -qxm(i,j,k,QU);
+              } else {
+                qxp(i,j,k,n) = qxm(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+#if AMREX_SPACEDIM >= 2
+    } else if (idir == 1) {
+
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (j == domlo[1]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QV) {
+                qym(i,j,k,QV) = -qyp(i,j,k,QV);
+              } else {
+                qym(i,j,k,n) = -qyp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (j == domhi[1]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QV) {
+                qyp(i,j,k,QV) = -qym(i,j,k,QV);
+              } else {
+                qyp(i,j,k,n) = qym(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+#endif
+#if AMREX_SPACEDIM == 3
+    } else {
+
+      if (lo_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the left state at domlo(0) if needed -- it is outside the domain
+          if (k == domlo[2]) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QW) {
+                qzm(i,j,k,QW) = -qzp(i,j,k,QW);
+              } else {
+                qzm(i,j,k,n) = qzp(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+
+
+      if (hi_bc_test) {
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+          // reset the right state at domhi(0)+1 if needed -- it is outside the domain
+          if (k == domhi[2]+1) {
+            for (int n = 0; n < NQ; n++) {
+              if (n == QW) {
+                qzp(i,j,k,QW) = -qzm(i,j,k,QW);
+              } else {
+                qzp(i,j,k,n) = qzm(i,j,k,n);
+              }
+            }
+          }
+        });
+
+      }
+#endif
+
+    }
   }
+}
+
+
+void
+Castro::src_to_prim(const Box& bx,
+                    Array4<Real const> const q_arr,
+                    Array4<Real const> const qaux_arr,
+                    Array4<Real const> const src,
+                    Array4<Real> const srcQ)
+{
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+
+      for (int n = 0; n < NQSRC; ++n) {
+        srcQ(i,j,k,n) = 0.0_rt;
+      }
+
+      Real rhoinv = 1.0_rt / q_arr(i,j,k,QRHO);
+
+      // get the needed derivatives
+      eos_t eos_state;
+      eos_state.T = q_arr(i,j,k,QTEMP);
+      eos_state.rho = q_arr(i,j,k,QRHO);
+      eos_state.e = q_arr(i,j,k,QREINT) * rhoinv;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = q_arr(i,j,k,QFX+n);
+      }
+
+      eos(eos_input_re, eos_state);
+
+
+      srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
+      srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QV) = (src(i,j,k,UMY) - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QW) = (src(i,j,k,UMZ) - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
+      srcQ(i,j,k,QREINT) = src(i,j,k,UEINT);
+      srcQ(i,j,k,QPRES ) = eos_state.dpde *
+        (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
+        rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+        int n = upassmap(ipassive);
+        int iq = qpassmap(ipassive);
+
+       // we may not be including the ability to have species sources,
+       //  so check to make sure that we are < NQSRC
+        srcQ(i,j,k,iq) = (src(i,j,k,n) - q_arr(i,j,k,iq) * srcQ(i,j,k,QRHO) ) /
+          q_arr(i,j,k,QRHO);
+      }
+#endif
+  });
+
 }

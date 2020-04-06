@@ -56,33 +56,6 @@ Castro::cons_to_prim(const Real time)
                 q_arr,
                 qaux_arr);
 
-        // Convert the source terms expressed as sources to the conserved state to those
-        // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind ||
-            time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-          Array4<Real> const src_q_arr = src_q.array(mfi);
-
-          src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
-        }
-
-#ifndef RADIATION
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-        // Add in the reactions source term; only done in simplified SDC.
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
-
-            if (do_react)
-                src_q[mfi].plus<RunOn::Device>(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
-
-        }
-#endif
-#endif
-#endif
     }
 
 }
@@ -272,9 +245,11 @@ Castro::check_for_cfl_violation(const Real dt)
 
     Real courno = -1.0e+200;
 
-    const Real *dx = geom.CellSize();
+    auto dx = geom.CellSizeArray();
 
     MultiFab& S_new = get_new_data(State_Type);
+
+    int ltime_integration_method = time_integration_method;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:courno)
@@ -283,11 +258,119 @@ Castro::check_for_cfl_violation(const Real dt)
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       dt, AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MAX(&courno), print_fortran_warnings);
+        Real* courno_d = AMREX_MFITER_REDUCE_MAX(&courno);
+
+        auto qaux_arr = qaux.array(mfi);
+        auto q_arr = q.array(mfi);
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+
+            // Compute running max of Courant number over grids
+
+            Real dtdx = dt / dx[0];
+
+            Real dtdy = 0.0_rt;
+            if (AMREX_SPACEDIM >= 2) {
+                dtdy = dt / dx[1];
+            }
+
+            Real dtdz = 0.0_rt;
+            if (AMREX_SPACEDIM == 3) {
+                dtdx = dt / dx[2];
+            }
+
+            Real courx = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QU))) * dtdx;
+            Real coury = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QV))) * dtdy;
+            Real courz = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QW))) * dtdz;
+
+            if (ltime_integration_method == 0) {
+
+                // CTU integration constraint
+
+                Real courmx = *courno_d;
+                Real courmy = *courno_d;
+                Real courmz = *courno_d;
+
+                courmx = amrex::max(courmx, courx);
+                courmy = amrex::max(courmy, coury);
+                courmz = amrex::max(courmz, courz);
+
+#if AMREX_DEVICE_COMPILE
+                Gpu::deviceReduceMax(courno_d, amrex::max(courmx, courmy, courmz));
+#else
+                *courno_d = amrex::max(*courno_d, courmx, courmy, courmz);
+#endif
+
+#ifndef AMREX_USE_CUDA
+                if (verbose == 1) {
+
+                    if (courx > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (u+c) * dt / dx > 1 " << courx << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... u = " << q_arr(i,j,k,QU) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
+                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                    }
+
+                    if (coury > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (v+c) * dt / dx > 1 " << coury << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... v = " << q_arr(i,j,k,QV) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
+                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                    }
+
+                    if (courz > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (w+c) * dt / dx > 1 " << courz << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... w = " << q_arr(i,j,k,QW) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
+                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                    }
+
+                }
+#endif
+            }
+            else {
+
+                // method-of-lines constraint
+                Real courtmp = courx;
+                if (AMREX_SPACEDIM >= 2) {
+                    courtmp += coury;
+                }
+                if (AMREX_SPACEDIM == 3) {
+                    courtmp += courz;
+                }
+
+#ifndef AMREX_USE_CUDA
+                if (verbose == 1) {
+
+                    // note: it might not be 1 for all RK integrators
+                    if (courtmp > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... u = " << q_arr(i,j,k,QU) << " v = " << q_arr(i,j,k,QV)
+                                  << " w = " << q_arr(i,j,k,QW) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
+                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                    }
+
+                }
+#endif
+
+#if AMREX_DEVICE_COMPILE
+                Gpu::deviceReduceMax(courno_d, courtmp);
+#else
+                *courno_d = amrex::max(*courno_d, courtmp);
+#endif
+
+            }
+
+        });
 
     }
 

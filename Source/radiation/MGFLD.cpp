@@ -470,13 +470,13 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
 #endif
       for (MFIter mfi(msk); mfi.isValid(); ++mfi) 
       {
-          msk[mfi].setVal(1.0);
+          msk[mfi].setVal<RunOn::Device>(1.0);
 
           // Now mask off finer level also:
           if (level < parent->finestLevel()) {
               std::vector< std::pair<int,Box> > isects = baf.intersections(mfi.validbox());
               for (int ii = 0; ii < isects.size(); ii++) {
-                  msk[mfi].setVal(0.0, isects[ii].second, 0);
+                  msk[mfi].setVal<RunOn::Device>(0.0, isects[ii].second, 0);
               }
           } 
       }
@@ -536,7 +536,8 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                  BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
                  delta_t, ptc_tau);
 
-            temp_new[mfi].copy(rhoe_new[mfi],bx);
+            temp_new[mfi].copy<RunOn::Device>(rhoe_new[mfi],bx);
+            Gpu::synchronize();
 
 #pragma gpu box(bx) sync
             ca_compute_temp_given_rhoe

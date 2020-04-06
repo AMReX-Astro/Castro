@@ -968,226 +968,6 @@ public:
 #include <Castro_sdc.H>
 #endif
 
-#ifdef AMREX_PARTICLES
-    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
-#endif
-
-    static amrex::Vector<std::string> source_names;
-
-    static amrex::Vector<int> upass_map;
-    static amrex::Vector<int> qpass_map;
-
-///
-/// This MultiFab is on the coarser level.  This is useful for the coarser level
-///     to mask out the finer level.  We only build this when it is needed.
-///     This coarse MultiFab has to live on the fine level because it must be updated
-///     even when only the fine level changes.
-///
-    amrex::MultiFab fine_mask;
-    amrex::MultiFab& build_fine_mask();
-
-
-///
-/// A record of how many cells we have advanced throughout the simulation.
-///     This is saved as a real because we will be storing the number of zones
-///     advanced as a ratio with the number of zones on the coarse grid (to
-///     help prevent the number from getting too large), and that may be a
-///     non-integer number.
-///
-    static amrex::Real num_zones_advanced;
-
-#ifdef AMREX_USE_CUDA
-///
-/// Minimum CUDA threadblock size for BC fills.
-///
-    static int numBCThreadsMin[3];
-
-    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
-#endif
-
-protected:
-
-
-///
-/// Build a mask that ghost cells overlapping with interior cells in the same multifab
-///     are set to 0, whereas others are set to 1.
-///
-    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
-
-///
-/// @param ng number of ghost cells
-///
-    amrex::iMultiFab& build_interior_boundary_mask (int ng);
-
-#ifdef GRAVITY
-    int get_numpts();
-
-
-///
-/// Difference between composite and level solve for phi.
-///
-    amrex::MultiFab comp_minus_level_phi;
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
-#endif
-
-
-///
-/// A state array with ghost zones.
-///
-    amrex::MultiFab Sborder;
-
-#ifdef RADIATION
-    amrex::MultiFab Erborder;
-    amrex::MultiFab lamborder;
-
-    std::unique_ptr<RadSolve> rad_solver;
-#endif
-
-
-///
-/// A state array for the some reaction stuff with SDC
-///
-    amrex::MultiFab Sburn;
-
-
-///
-/// The primitive variable state array.
-///
-    amrex::MultiFab q;
-
-
-///
-/// we need a second version when doing fourth order
-///
-    amrex::MultiFab q_bar;
-
-
-///
-/// for diffusion in fourth order we need the cell-center temperature
-//
-#ifdef DIFFUSION
-    amrex::MultiFab T_cc;
-#endif
-
-///
-/// The auxiliary primitive variable state array.
-///
-    amrex::MultiFab qaux;
-    amrex::MultiFab qaux_bar;
-
-
-///
-/// The source terms in primitive form.
-///
-    amrex::MultiFab src_q;
-
-
-///
-/// Source terms to the hydrodynamics solve.
-///
-    amrex::MultiFab sources_for_hydro;
-
-
-///
-/// Source term corrector.
-///
-    amrex::MultiFab source_corrector;
-
-
-///
-/// Source term representing hydrodynamics update - this should just be
-///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
-///
-    amrex::MultiFab hydro_source;
-
-
-///
-/// Hydrodynamic (and radiation) fluxes.
-///
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
-    amrex::MultiFab         P_radial;
-#endif
-#ifdef RADIATION
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
-#endif
-
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
-
-    amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
-    amrex::FluxRegister pres_reg;
-#endif
-#ifdef RADIATION
-    amrex::FluxRegister rad_flux_reg;
-#endif
-#ifdef GRAVITY
-    amrex::FluxRegister phi_reg;
-#endif
-
-///
-/// Scalings for the flux registers.
-///
-    amrex::Real flux_crse_scale;
-    amrex::Real flux_fine_scale;
-
-#if (BL_SPACEDIM <= 2)
-    amrex::Real pres_crse_scale;
-    amrex::Real pres_fine_scale;
-#endif
-
-
-///
-/// Did we trigger a CFL violation?
-///
-    int cfl_violation;
-
-
-///
-/// State data to hold if we want to do a retry.
-///
-    amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
-
-
-
-///
-/// Flag for indicating that we want to save prev_state until the reflux.
-///
-    bool keep_prev_state;
-
-
-#ifdef TRUE_SDC
-    //
-    // Storage for the SDC time integration
-
-    // this is the new iterations solution at the time nodes
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
-
-    // this is the old value of the advective update at the
-    // nodes of the time integration
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
-
-    // this is the new value of the advective update at the
-    // nodes of the time integration
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
-
-    // this is the old value of the reaction source at the
-    // nodes of the time integration
-#ifdef REACTIONS
-    amrex::Vector<std::unique_ptr<amrex::MultiFab> > R_old;
-#endif
-
-    static int SDC_NODES;
-    static amrex::Vector<amrex::Real> dt_sdc;
-    static amrex::Vector<amrex::Real> node_weights;
-#endif
-
-///
-/// Wall time that we started the timestep
-///
-    amrex::Real wall_time_start;
-
-
     static void extern_init ();
 
     static void amrinfo_init();
@@ -1316,6 +1096,220 @@ protected:
         return false;
 #endif
     }
+
+#ifdef AMREX_PARTICLES
+    static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
+#endif
+
+    static amrex::Vector<std::string> source_names;
+
+    static amrex::Vector<int> upass_map;
+    static amrex::Vector<int> qpass_map;
+
+///
+/// This MultiFab is on the coarser level.  This is useful for the coarser level
+///     to mask out the finer level.  We only build this when it is needed.
+///     This coarse MultiFab has to live on the fine level because it must be updated
+///     even when only the fine level changes.
+///
+    amrex::MultiFab fine_mask;
+    amrex::MultiFab& build_fine_mask();
+
+
+///
+/// A record of how many cells we have advanced throughout the simulation.
+///     This is saved as a real because we will be storing the number of zones
+///     advanced as a ratio with the number of zones on the coarse grid (to
+///     help prevent the number from getting too large), and that may be a
+///     non-integer number.
+///
+    static amrex::Real num_zones_advanced;
+
+#ifdef AMREX_USE_CUDA
+///
+/// Minimum CUDA threadblock size for BC fills.
+///
+    static int numBCThreadsMin[3];
+
+    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
+#endif
+
+protected:
+
+
+///
+/// Build a mask that ghost cells overlapping with interior cells in the same multifab
+///     are set to 0, whereas others are set to 1.
+///
+    amrex::Vector<std::unique_ptr<amrex::iMultiFab> > ib_mask;
+
+///
+/// @param ng number of ghost cells
+///
+    amrex::iMultiFab& build_interior_boundary_mask (int ng);
+
+#ifdef GRAVITY
+    int get_numpts();
+
+
+///
+/// Difference between composite and level solve for phi.
+///
+    amrex::MultiFab comp_minus_level_phi;
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > comp_minus_level_grad_phi;
+#endif
+
+
+///
+/// A state array with ghost zones.
+///
+    amrex::MultiFab Sborder;
+
+#ifdef RADIATION
+    amrex::MultiFab Erborder;
+    amrex::MultiFab lamborder;
+
+    std::unique_ptr<RadSolve> rad_solver;
+#endif
+
+
+///
+/// A state array for the some reaction stuff with SDC
+///
+    amrex::MultiFab Sburn;
+
+
+///
+/// The primitive variable state array.
+///
+    amrex::MultiFab q;
+
+
+///
+/// we need a second version when doing fourth order
+///
+    amrex::MultiFab q_bar;
+
+
+///
+/// for diffusion in fourth order we need the cell-center temperature
+//
+#ifdef DIFFUSION
+    amrex::MultiFab T_cc;
+#endif
+
+///
+/// The auxiliary primitive variable state array.
+///
+    amrex::MultiFab qaux;
+    amrex::MultiFab qaux_bar;
+
+
+///
+/// Source terms to the hydrodynamics solve.
+///
+    amrex::MultiFab sources_for_hydro;
+
+
+///
+/// Source term corrector.
+///
+    amrex::MultiFab source_corrector;
+
+
+///
+/// Source term representing hydrodynamics update - this should just be
+///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
+///
+    amrex::MultiFab hydro_source;
+
+
+///
+/// Hydrodynamic (and radiation) fluxes.
+///
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
+#if (BL_SPACEDIM <= 2)
+    amrex::MultiFab         P_radial;
+#endif
+#ifdef RADIATION
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > rad_fluxes;
+#endif
+
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
+
+    amrex::FluxRegister flux_reg;
+#if (BL_SPACEDIM <= 2)
+    amrex::FluxRegister pres_reg;
+#endif
+#ifdef RADIATION
+    amrex::FluxRegister rad_flux_reg;
+#endif
+#ifdef GRAVITY
+    amrex::FluxRegister phi_reg;
+#endif
+
+///
+/// Scalings for the flux registers.
+///
+    amrex::Real flux_crse_scale;
+    amrex::Real flux_fine_scale;
+
+#if (BL_SPACEDIM <= 2)
+    amrex::Real pres_crse_scale;
+    amrex::Real pres_fine_scale;
+#endif
+
+
+///
+/// Did we trigger a CFL violation?
+///
+    int cfl_violation;
+
+
+///
+/// State data to hold if we want to do a retry.
+///
+    amrex::Vector<std::unique_ptr<amrex::StateData> > prev_state;
+
+
+
+///
+/// Flag for indicating that we want to save prev_state until the reflux.
+///
+    bool keep_prev_state;
+
+
+#ifdef TRUE_SDC
+    //
+    // Storage for the SDC time integration
+
+    // this is the new iterations solution at the time nodes
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > k_new;
+
+    // this is the old value of the advective update at the
+    // nodes of the time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_old;
+
+    // this is the new value of the advective update at the
+    // nodes of the time integration
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > A_new;
+
+    // this is the old value of the reaction source at the
+    // nodes of the time integration
+#ifdef REACTIONS
+    amrex::Vector<std::unique_ptr<amrex::MultiFab> > R_old;
+#endif
+
+    static int SDC_NODES;
+    static amrex::Vector<amrex::Real> dt_sdc;
+    static amrex::Vector<amrex::Real> node_weights;
+#endif
+
+///
+/// Wall time that we started the timestep
+///
+    amrex::Real wall_time_start;
+
 
 ///
 /// The data.

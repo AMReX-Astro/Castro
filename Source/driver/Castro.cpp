@@ -954,6 +954,64 @@ Castro::initData ()
 
        }
 
+       // it is not a requirement that the problem setup defines the
+       // temperature, so we do that here _and_ ensure that we are
+       // within any small limits
+       computeTemp(S_new, cur_time, S_new.nGrow());
+
+       int init_failed_rho = 0;
+       int init_failed_T = 0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:init_failed_rho,init_failed_T)
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+         {
+           const Box& bx = mfi.tilebox();
+
+           auto S_arr = S_new.array(mfi);
+
+           Real lsmall_temp = small_temp;
+           Real lsmall_dens = small_dens;
+
+           int* init_failed_rho_d = AMREX_MFITER_REDUCE_SUM(&init_failed_rho);
+           int* init_failed_T_d = AMREX_MFITER_REDUCE_SUM(&init_failed_T);
+
+           AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+           {
+
+             // if the problem tried to initialize a thermodynamic
+             // state that is at or below small_temp, then we abort.
+             // This is dangerous and we should recommend a smaller
+             // small_temp
+             if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_T_d, 1);
+#else
+               *init_failed_T_d += 1;
+#endif
+             }
+
+             if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_rho_d, 1);
+#else
+               *init_failed_rho_d += 1;
+#endif
+             }
+
+           });
+
+         }
+
+       if (init_failed_rho != 0.0) {
+         amrex::Error("Error: initial data has rho <~ small_dens");
+       }
+
+       if (init_failed_T != 0.0) {
+         amrex::Error("Error: initial data has T <~ small_temp");
+       }
+
 #ifdef AMREX_USE_CUDA
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -2717,19 +2775,37 @@ Castro::avgDown ()
 void
 Castro::normalize_species (MultiFab& S_new, int ng)
 {
-
     BL_PROFILE("Castro::normalize_species()");
+
+    Real lsmall_x = small_x;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.growntilebox(ng);
+        const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-       ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
+        auto u = S_new.array(mfi);
+
+        // Ensure the species mass fractions are between small_x and 1,
+        // then normalize them so that they sum to 1.
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real rhoX_sum = 0.0_rt;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
+                rhoX_sum += u(i,j,k,UFS+n);
+            }
+
+            Real fac = u(i,j,k,URHO) / rhoX_sum;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) *= fac;
+            }
+        });
     }
 }
 

@@ -137,13 +137,17 @@ Castro::do_advance_sdc (Real time,
 
         // note: we don't need a FillPatch on the sources, since they
         // are only used in the valid box in the conservative flux
-        // update construction
-
+        // update construction.  The only exception is if we are doing
+        // the well-balanced method in the reconstruction of the
+        // pressure.
+        if (sdc_order == 2 && use_pslope == 1) {
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+        }
 #endif
 
         // store the result in sources_for_hydro -- this is what will
         // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, 0);
+        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, sources_for_hydro.nGrow());
 
       } else {
         sources_for_hydro.setVal(0.0, 0);
