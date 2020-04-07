@@ -8,12 +8,6 @@ extern "C"
 {
 #endif
 
-  void ca_compute_cfl(const int* lo, const int* hi,
-                      const BL_FORT_FAB_ARG_ANYD(q),
-                      const BL_FORT_FAB_ARG_ANYD(qaux),
-                      const amrex::Real dt, const amrex::Real* dx,
-                      amrex::Real* courno, const int verbose);
-
 #ifdef RADIATION
   void ctu_rad_consup
     (const int* lo, const int* hi,
@@ -204,53 +198,6 @@ extern "C"
      const amrex::Real* dx, const int idir, const int is_avg);
 
 #ifndef AMREX_USE_CUDA
-  void ca_sdc_update_advection_o2_lobatto
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     const int* m_start);
-
-  void ca_sdc_update_advection_o2_radau
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     BL_FORT_FAB_ARG_3D(A_2_old),
-     const int* m_start);
-
-  void ca_sdc_update_advection_o4_lobatto
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     BL_FORT_FAB_ARG_3D(A_2_old),
-     const int* m_start);
-
-  void ca_sdc_update_advection_o4_radau
-    (const int* lo, const int* hi,
-     const amrex::Real* dt_m,
-     const amrex::Real* dt,
-     const BL_FORT_FAB_ARG_3D(k_m),
-     BL_FORT_FAB_ARG_3D(k_n),
-     BL_FORT_FAB_ARG_3D(A_m),
-     BL_FORT_FAB_ARG_3D(A_0_old),
-     BL_FORT_FAB_ARG_3D(A_1_old),
-     BL_FORT_FAB_ARG_3D(A_2_old),
-     BL_FORT_FAB_ARG_3D(A_3_old),
-     const int* m_start);
 
 #ifdef REACTIONS
   void ca_sdc_compute_C2_lobatto

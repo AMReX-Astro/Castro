@@ -326,10 +326,14 @@ Castro::do_advance_sdc (Real time,
       // pass in the reaction source and state at centers, including one ghost cell
       // and derive everything that is needed including 1 ghost cell
       R_center.resize(obx, R_new.nComp());
-      ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
-                              BL_TO_FORTRAN_3D(Sburn[mfi]),
-                              BL_TO_FORTRAN_3D(U_center),
-                              BL_TO_FORTRAN_3D(R_center));
+      Array4<const Real> const Sburn_arr = Sburn.array(mfi);
+      Array4<const Real> const U_center_arr = U_center.array();
+      Array4<Real> const R_center_arr = R_center.array();
+      // we don't worry about the difference between centers and averages
+      ca_store_reaction_state(obx,
+                              Sburn_arr,
+                              U_center_arr,
+                              R_center_arr);
 
       // convert R_new from centers to averages in place
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -342,11 +346,14 @@ Castro::do_advance_sdc (Real time,
 
     } else {
 
+      Array4<const Real> const R_old_arr = R_old[SDC_NODES-1]->array(mfi);
+      Array4<const Real> const S_new_arr = S_new.array(mfi);
+      Array4<Real> const R_new_arr = R_new.array(mfi);
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
-                              BL_TO_FORTRAN_3D(S_new[mfi]),
-                              BL_TO_FORTRAN_3D(R_new[mfi]));
+      ca_store_reaction_state(bx,
+                              R_old_arr,
+                              S_new_arr,
+                              R_new_arr);
     }
 
   }
