@@ -986,7 +986,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE">
-<span id="_CPPv3N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE"></span><span id="_CPPv2N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE"></span><span id="Castro::reset_internal_energy__amrex::BoxCR.amrex::Array4:Real:C"></span><span class="target" id="classCastro_1aedd4c9a1e88f65ed1903104e599e2327"></span>void <code class="sig-name descname">reset_internal_energy</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::Array4&lt;Real&gt; <em class="property">const</em> <em>u</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE"></span><span id="_CPPv2N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE"></span><span id="Castro::reset_internal_energy__amrex::BoxCR.amrex::Array4:Real:C"></span><span class="target" id="classCastro_1aedd4c9a1e88f65ed1903104e599e2327"></span>void <code class="sig-name descname">reset_internal_energy</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::Array4&lt;Real&gt;<em class="property">const</em>  <em>u</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4I4RealEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Reset the internal energy</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -1182,133 +1182,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro15build_fine_maskEv">
-<span id="_CPPv3N6Castro15build_fine_maskEv"></span><span id="_CPPv2N6Castro15build_fine_maskEv"></span><span id="Castro::build_fine_mask"></span><span class="target" id="classCastro_1ad7c4cfb1156d8c9defcb0f39728468fa"></span>amrex::MultiFab &amp;<code class="sig-name descname">build_fine_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro15build_fine_maskEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv4N6Castro9fine_maskE">
-<span id="_CPPv3N6Castro9fine_maskE"></span><span id="_CPPv2N6Castro9fine_maskE"></span><span id="Castro::fine_mask__amrex::MultiFab"></span><span class="target" id="classCastro_1a386b951c020c334b0e85591f0c919257"></span>amrex::MultiFab <code class="sig-name descname">fine_mask</code><a class="headerlink" href="#_CPPv4N6Castro9fine_maskE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This MultiFab is on the coarser level. This is useful for the coarser level to mask out the finer level. We only build this when it is needed. This coarse MultiFab has to live on the fine level because it must be updated even when only the fine level changes. </p>
-</dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
-<dl class="function">
-<dt id="_CPPv4N6Castro14writeBuildInfoEv">
-<span id="_CPPv3N6Castro14writeBuildInfoEv"></span><span id="_CPPv2N6Castro14writeBuildInfoEv"></span><span id="Castro::writeBuildInfo"></span><span class="target" id="classCastro_1a01a5a8719b8a08d0a462ccecd1dafbe4"></span><em class="property">static</em> void <code class="sig-name descname">writeBuildInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14writeBuildInfoEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Dump build info </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro13variableSetUpEv">
-<span id="_CPPv3N6Castro13variableSetUpEv"></span><span id="_CPPv2N6Castro13variableSetUpEv"></span><span id="Castro::variableSetUp"></span><span class="target" id="classCastro_1af1fb86fccd0c9ef1892f3d3d56571332"></span><em class="property">static</em> void <code class="sig-name descname">variableSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro13variableSetUpEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Define data descriptors.</p>
-<p>::variableSetUp is called in the constructor of Amr.cpp, so it should get called every time we start or restart a job </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro10ErrorSetUpEv">
-<span id="_CPPv3N6Castro10ErrorSetUpEv"></span><span id="_CPPv2N6Castro10ErrorSetUpEv"></span><span id="Castro::ErrorSetUp"></span><span class="target" id="classCastro_1a2ff2ce7b6c5f23bdc98579b965831fbc"></span><em class="property">static</em> void <code class="sig-name descname">ErrorSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10ErrorSetUpEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Define tagging functions. </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro15variableCleanUpEv">
-<span id="_CPPv3N6Castro15variableCleanUpEv"></span><span id="_CPPv2N6Castro15variableCleanUpEv"></span><span id="Castro::variableCleanUp"></span><span class="target" id="classCastro_1a2e1f20b769f4d92a2290050f176592fb"></span><em class="property">static</em> void <code class="sig-name descname">variableCleanUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro15variableCleanUpEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Cleanup data descriptors at end of run.</p>
-<p>::variableSetUp is in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code> <code class="docutils literal notranslate"><span class="pre">variableCleanUp</span></code> is called once at the end of a simulation </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro20read_particle_paramsEv">
-<span id="_CPPv3N6Castro20read_particle_paramsEv"></span><span id="_CPPv2N6Castro20read_particle_paramsEv"></span><span id="Castro::read_particle_params"></span><span class="target" id="classCastro_1a97e96ec55650c0d51ae108658914238a"></span><em class="property">static</em> void <code class="sig-name descname">read_particle_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro20read_particle_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Read particle-related inputs </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE">
-<span id="_CPPv3N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="_CPPv2N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="Castro::problem_post_simulation__amrex::Vector:std::unique_ptr:AmrLevel::R"></span><span class="target" id="classCastro_1a844ccb0a8d774190e1d247f53266ab68"></span><em class="property">static</em> void <code class="sig-name descname">problem_post_simulation</code><span class="sig-paren">(</span>amrex::Vector&lt;std::unique_ptr&lt;AmrLevel&gt;&gt; &amp;<em>amr_level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Do work at the end of the simulation - before the last outputs</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_level</span></code>: </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro7numGrowEv">
-<span id="_CPPv3N6Castro7numGrowEv"></span><span id="_CPPv2N6Castro7numGrowEv"></span><span id="Castro::numGrow"></span><span class="target" id="classCastro_1aa6d17f00770f7411ba77271ba2e564b4"></span>int <code class="sig-name descname">numGrow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro7numGrowEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11theTracerPCEv">
-<span id="_CPPv3N6Castro11theTracerPCEv"></span><span id="_CPPv2N6Castro11theTracerPCEv"></span><span id="Castro::theTracerPC"></span><span class="target" id="classCastro_1abd88ee4a3cb9cace54cfbe692c6e7f94"></span><em class="property">static</em> amrex::AmrTracerParticleContainer *<code class="sig-name descname">theTracerPC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11theTracerPCEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt>
-<span class="target" id="classCastro_1a01f599073a5e24c90775f310f76a2d05"></span><code class="sig-name descname">static int Castro::numBCThreadsMin(3)</code></dt>
-<dd><p>Minimum CUDA threadblock size for BC fills. </p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro12minBCThreadsEi">
-<span id="_CPPv3N6Castro12minBCThreadsEi"></span><span id="_CPPv2N6Castro12minBCThreadsEi"></span><span id="Castro::minBCThreads__i"></span><span class="target" id="classCastro_1a40ef8d943b0be650fa6293c41be5d533"></span><em class="property">static</em> int <code class="sig-name descname">minBCThreads</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12minBCThreadsEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Static Attributes</p>
-<dl class="member">
-<dt id="_CPPv4N6Castro12source_namesE">
-<span id="_CPPv3N6Castro12source_namesE"></span><span id="_CPPv2N6Castro12source_namesE"></span><span id="Castro::source_names__amrex::Vector:ss:"></span><span class="target" id="classCastro_1aca16615af1adc9a64e11c8e693e30e8f"></span>amrex::Vector&lt;std::string&gt; <code class="sig-name descname">source_names</code><a class="headerlink" href="#_CPPv4N6Castro12source_namesE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro9upass_mapE">
-<span id="_CPPv3N6Castro9upass_mapE"></span><span id="_CPPv2N6Castro9upass_mapE"></span><span id="Castro::upass_map__amrex::Vector:i:"></span><span class="target" id="classCastro_1adfa8b5b190ec65d6741c666fa77ff931"></span>amrex::Vector&lt;int&gt; <code class="sig-name descname">upass_map</code><a class="headerlink" href="#_CPPv4N6Castro9upass_mapE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro9qpass_mapE">
-<span id="_CPPv3N6Castro9qpass_mapE"></span><span id="_CPPv2N6Castro9qpass_mapE"></span><span id="Castro::qpass_map__amrex::Vector:i:"></span><span class="target" id="classCastro_1af91ad53b1d2b59e2f085decb46a641bd"></span>amrex::Vector&lt;int&gt; <code class="sig-name descname">qpass_map</code><a class="headerlink" href="#_CPPv4N6Castro9qpass_mapE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro18num_zones_advancedE">
-<span id="_CPPv3N6Castro18num_zones_advancedE"></span><span id="_CPPv2N6Castro18num_zones_advancedE"></span><span id="Castro::num_zones_advanced__amrex::Real"></span><span class="target" id="classCastro_1ad09d050c7a2b17af5a4312d530f23330"></span>amrex::Real <code class="sig-name descname">num_zones_advanced</code><a class="headerlink" href="#_CPPv4N6Castro18num_zones_advancedE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>A record of how many cells we have advanced throughout the simulation. This is saved as a real because we will be storing the number of zones advanced as a ratio with the number of zones on the coarse grid (to help prevent the number from getting too large), and that may be a non-integer number. </p>
-</dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Functions</p>
-<dl class="function">
-<dt id="_CPPv4N6Castro28build_interior_boundary_maskEi">
-<span id="_CPPv3N6Castro28build_interior_boundary_maskEi"></span><span id="_CPPv2N6Castro28build_interior_boundary_maskEi"></span><span id="Castro::build_interior_boundary_mask__i"></span><span class="target" id="classCastro_1a58b219ed9ca0b406f8387bf4e1b8f112"></span>amrex::iMultiFab &amp;<code class="sig-name descname">build_interior_boundary_mask</code><span class="sig-paren">(</span>int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro28build_interior_boundary_maskEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro10get_numptsEv">
-<span id="_CPPv3N6Castro10get_numptsEv"></span><span id="_CPPv2N6Castro10get_numptsEv"></span><span id="Castro::get_numpts"></span><span class="target" id="classCastro_1a55c20db37c44864c40061b091056b436"></span>int <code class="sig-name descname">get_numpts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10get_numptsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="_CPPv4N6Castro8getLevelEi">
 <span id="_CPPv3N6Castro8getLevelEi"></span><span id="_CPPv2N6Castro8getLevelEi"></span><span id="Castro::getLevel__i"></span><span class="target" id="classCastro_1a817d0ad40f1d77c97a5ab3f5ff1fe28e"></span><a class="reference internal" href="#_CPPv46Castro" title="Castro">Castro</a> &amp;<code class="sig-name descname">getLevel</code><span class="sig-paren">(</span>int <em>lev</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro8getLevelEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="simple">
@@ -1486,23 +1359,170 @@
 </dd></dl>
 
 <dl class="function">
-<dt>
-<span class="target" id="classCastro_1a7b2146affb38f88ecf55d69da8333e43"></span><code class="sig-name descname">amrex::MultiFab Castro::area(3)</code></dt>
+<dt id="_CPPv4N6Castro15build_fine_maskEv">
+<span id="_CPPv3N6Castro15build_fine_maskEv"></span><span id="_CPPv2N6Castro15build_fine_maskEv"></span><span id="Castro::build_fine_mask"></span><span class="target" id="classCastro_1ad7c4cfb1156d8c9defcb0f39728468fa"></span>amrex::MultiFab &amp;<code class="sig-name descname">build_fine_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro15build_fine_maskEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv4N6Castro9fine_maskE">
+<span id="_CPPv3N6Castro9fine_maskE"></span><span id="_CPPv2N6Castro9fine_maskE"></span><span id="Castro::fine_mask__amrex::MultiFab"></span><span class="target" id="classCastro_1a386b951c020c334b0e85591f0c919257"></span>amrex::MultiFab <code class="sig-name descname">fine_mask</code><a class="headerlink" href="#_CPPv4N6Castro9fine_maskE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This MultiFab is on the coarser level. This is useful for the coarser level to mask out the finer level. We only build this when it is needed. This coarse MultiFab has to live on the fine level because it must be updated even when only the fine level changes. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Functions</p>
+<dl class="function">
+<dt id="_CPPv4N6Castro14writeBuildInfoEv">
+<span id="_CPPv3N6Castro14writeBuildInfoEv"></span><span id="_CPPv2N6Castro14writeBuildInfoEv"></span><span id="Castro::writeBuildInfo"></span><span class="target" id="classCastro_1a01a5a8719b8a08d0a462ccecd1dafbe4"></span><em class="property">static</em> void <code class="sig-name descname">writeBuildInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14writeBuildInfoEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Dump build info </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro13variableSetUpEv">
+<span id="_CPPv3N6Castro13variableSetUpEv"></span><span id="_CPPv2N6Castro13variableSetUpEv"></span><span id="Castro::variableSetUp"></span><span class="target" id="classCastro_1af1fb86fccd0c9ef1892f3d3d56571332"></span><em class="property">static</em> void <code class="sig-name descname">variableSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro13variableSetUpEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Define data descriptors.</p>
+<p>::variableSetUp is called in the constructor of Amr.cpp, so it should get called every time we start or restart a job </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro10ErrorSetUpEv">
+<span id="_CPPv3N6Castro10ErrorSetUpEv"></span><span id="_CPPv2N6Castro10ErrorSetUpEv"></span><span id="Castro::ErrorSetUp"></span><span class="target" id="classCastro_1a2ff2ce7b6c5f23bdc98579b965831fbc"></span><em class="property">static</em> void <code class="sig-name descname">ErrorSetUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10ErrorSetUpEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Define tagging functions. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro15variableCleanUpEv">
+<span id="_CPPv3N6Castro15variableCleanUpEv"></span><span id="_CPPv2N6Castro15variableCleanUpEv"></span><span id="Castro::variableCleanUp"></span><span class="target" id="classCastro_1a2e1f20b769f4d92a2290050f176592fb"></span><em class="property">static</em> void <code class="sig-name descname">variableCleanUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro15variableCleanUpEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Cleanup data descriptors at end of run.</p>
+<p>::variableSetUp is in <code class="docutils literal notranslate"><span class="pre">Castro_setup.cpp</span></code> <code class="docutils literal notranslate"><span class="pre">variableCleanUp</span></code> is called once at the end of a simulation </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro20read_particle_paramsEv">
+<span id="_CPPv3N6Castro20read_particle_paramsEv"></span><span id="_CPPv2N6Castro20read_particle_paramsEv"></span><span id="Castro::read_particle_params"></span><span class="target" id="classCastro_1a97e96ec55650c0d51ae108658914238a"></span><em class="property">static</em> void <code class="sig-name descname">read_particle_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro20read_particle_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Read particle-related inputs </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE">
+<span id="_CPPv3N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="_CPPv2N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="Castro::problem_post_simulation__amrex::Vector:std::unique_ptr:AmrLevel::R"></span><span class="target" id="classCastro_1a844ccb0a8d774190e1d247f53266ab68"></span><em class="property">static</em> void <code class="sig-name descname">problem_post_simulation</code><span class="sig-paren">(</span>amrex::Vector&lt;std::unique_ptr&lt;AmrLevel&gt;&gt; &amp;<em>amr_level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Do work at the end of the simulation - before the last outputs</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amr_level</span></code>: </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro7numGrowEv">
+<span id="_CPPv3N6Castro7numGrowEv"></span><span id="_CPPv2N6Castro7numGrowEv"></span><span id="Castro::numGrow"></span><span class="target" id="classCastro_1aa6d17f00770f7411ba77271ba2e564b4"></span>int <code class="sig-name descname">numGrow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro7numGrowEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro11extern_initEv">
+<span id="_CPPv3N6Castro11extern_initEv"></span><span id="_CPPv2N6Castro11extern_initEv"></span><span id="Castro::extern_init"></span><span class="target" id="classCastro_1a54ac4dc9481c19c1e3ac9a17486728d7"></span><em class="property">static</em> void <code class="sig-name descname">extern_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11extern_initEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro12amrinfo_initEv">
+<span id="_CPPv3N6Castro12amrinfo_initEv"></span><span id="_CPPv2N6Castro12amrinfo_initEv"></span><span id="Castro::amrinfo_init"></span><span class="target" id="classCastro_1a5e5ae460a0c0207f1b346a8819b00217"></span><em class="property">static</em> void <code class="sig-name descname">amrinfo_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12amrinfo_initEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro16amrinfo_finalizeEv">
+<span id="_CPPv3N6Castro16amrinfo_finalizeEv"></span><span id="_CPPv2N6Castro16amrinfo_finalizeEv"></span><span id="Castro::amrinfo_finalize"></span><span class="target" id="classCastro_1ab93ea9e17c5a6a1137c1d0f46bfe9751"></span><em class="property">static</em> void <code class="sig-name descname">amrinfo_finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro16amrinfo_finalizeEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro11read_paramsEv">
+<span id="_CPPv3N6Castro11read_paramsEv"></span><span id="_CPPv2N6Castro11read_paramsEv"></span><span id="Castro::read_params"></span><span class="target" id="classCastro_1a34311775f04511064a8020d36e32407b"></span><em class="property">static</em> void <code class="sig-name descname">read_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11read_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro11theTracerPCEv">
+<span id="_CPPv3N6Castro11theTracerPCEv"></span><span id="_CPPv2N6Castro11theTracerPCEv"></span><span id="Castro::theTracerPC"></span><span class="target" id="classCastro_1abd88ee4a3cb9cace54cfbe692c6e7f94"></span><em class="property">static</em> amrex::AmrTracerParticleContainer *<code class="sig-name descname">theTracerPC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11theTracerPCEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt>
-<span class="target" id="classCastro_1a4e1556a32449cd5576c5c373f58c1350"></span><code class="sig-name descname">amrex::MultiFab Castro::dLogArea(1)</code></dt>
+<span class="target" id="classCastro_1a01f599073a5e24c90775f310f76a2d05"></span><code class="sig-name descname">static int Castro::numBCThreadsMin(\3\)</code></dt>
+<dd><p>Minimum CUDA threadblock size for BC fills. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro12minBCThreadsEi">
+<span id="_CPPv3N6Castro12minBCThreadsEi"></span><span id="_CPPv2N6Castro12minBCThreadsEi"></span><span id="Castro::minBCThreads__i"></span><span class="target" id="classCastro_1a40ef8d943b0be650fa6293c41be5d533"></span><em class="property">static</em> int <code class="sig-name descname">minBCThreads</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12minBCThreadsEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Static Attributes</p>
+<dl class="member">
+<dt id="_CPPv4N6Castro12source_namesE">
+<span id="_CPPv3N6Castro12source_namesE"></span><span id="_CPPv2N6Castro12source_namesE"></span><span id="Castro::source_names__amrex::Vector:ss:"></span><span class="target" id="classCastro_1aca16615af1adc9a64e11c8e693e30e8f"></span>amrex::Vector&lt;std::string&gt; <code class="sig-name descname">source_names</code><a class="headerlink" href="#_CPPv4N6Castro12source_namesE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro9upass_mapE">
+<span id="_CPPv3N6Castro9upass_mapE"></span><span id="_CPPv2N6Castro9upass_mapE"></span><span id="Castro::upass_map__amrex::Vector:i:"></span><span class="target" id="classCastro_1adfa8b5b190ec65d6741c666fa77ff931"></span>amrex::Vector&lt;int&gt; <code class="sig-name descname">upass_map</code><a class="headerlink" href="#_CPPv4N6Castro9upass_mapE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro9qpass_mapE">
+<span id="_CPPv3N6Castro9qpass_mapE"></span><span id="_CPPv2N6Castro9qpass_mapE"></span><span id="Castro::qpass_map__amrex::Vector:i:"></span><span class="target" id="classCastro_1af91ad53b1d2b59e2f085decb46a641bd"></span>amrex::Vector&lt;int&gt; <code class="sig-name descname">qpass_map</code><a class="headerlink" href="#_CPPv4N6Castro9qpass_mapE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N6Castro18num_zones_advancedE">
+<span id="_CPPv3N6Castro18num_zones_advancedE"></span><span id="_CPPv2N6Castro18num_zones_advancedE"></span><span id="Castro::num_zones_advanced__amrex::Real"></span><span class="target" id="classCastro_1ad09d050c7a2b17af5a4312d530f23330"></span>amrex::Real <code class="sig-name descname">num_zones_advanced</code><a class="headerlink" href="#_CPPv4N6Castro18num_zones_advancedE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>A record of how many cells we have advanced throughout the simulation. This is saved as a real because we will be storing the number of zones advanced as a ratio with the number of zones on the coarse grid (to help prevent the number from getting too large), and that may be a non-integer number. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Protected Functions</p>
+<dl class="function">
+<dt id="_CPPv4N6Castro28build_interior_boundary_maskEi">
+<span id="_CPPv3N6Castro28build_interior_boundary_maskEi"></span><span id="_CPPv2N6Castro28build_interior_boundary_maskEi"></span><span id="Castro::build_interior_boundary_mask__i"></span><span class="target" id="classCastro_1a58b219ed9ca0b406f8387bf4e1b8f112"></span>amrex::iMultiFab &amp;<code class="sig-name descname">build_interior_boundary_mask</code><span class="sig-paren">(</span>int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro28build_interior_boundary_maskEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv4N6Castro10get_numptsEv">
+<span id="_CPPv3N6Castro10get_numptsEv"></span><span id="_CPPv2N6Castro10get_numptsEv"></span><span id="Castro::get_numpts"></span><span class="target" id="classCastro_1a55c20db37c44864c40061b091056b436"></span>int <code class="sig-name descname">get_numpts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10get_numptsEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost">
-<span id="_CPPv3N6Castro41material_lost_through_boundary_cumulativeE6n_lost"></span><span id="_CPPv2N6Castro41material_lost_through_boundary_cumulativeE6n_lost"></span><span id="Castro::material_lost_through_boundary_cumulative__n_lost"></span><span class="target" id="classCastro_1aa25af2330c4023e1e88d4c43d59036f2"></span>amrex::Real <code class="sig-name descname">material_lost_through_boundary_cumulative</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N6Castro6n_lostE" title="Castro::n_lost">n_lost</a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro41material_lost_through_boundary_cumulativeE6n_lost" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="classCastro_1a7b2146affb38f88ecf55d69da8333e43"></span><code class="sig-name descname">amrex::MultiFab Castro::area(\3\)</code></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost">
-<span id="_CPPv3N6Castro35material_lost_through_boundary_tempE6n_lost"></span><span id="_CPPv2N6Castro35material_lost_through_boundary_tempE6n_lost"></span><span id="Castro::material_lost_through_boundary_temp__n_lost"></span><span class="target" id="classCastro_1af18cb55a67616bcb8aeb58dd922daece"></span>amrex::Real <code class="sig-name descname">material_lost_through_boundary_temp</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N6Castro6n_lostE" title="Castro::n_lost">n_lost</a><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro35material_lost_through_boundary_tempE6n_lost" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="classCastro_1a4e1556a32449cd5576c5c373f58c1350"></span><code class="sig-name descname">amrex::MultiFab Castro::dLogArea(\1\)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="classCastro_1aa25af2330c4023e1e88d4c43d59036f2"></span><code class="sig-name descname">amrex::Real Castro::material_lost_through_boundary_cumulative(\n_lost\)</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<span class="target" id="classCastro_1af18cb55a67616bcb8aeb58dd922daece"></span><code class="sig-name descname">amrex::Real Castro::material_lost_through_boundary_temp(\n_lost\)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -1596,7 +1616,7 @@
 <dl class="member">
 <dt id="_CPPv4N6Castro12hydro_sourceE">
 <span id="_CPPv3N6Castro12hydro_sourceE"></span><span id="_CPPv2N6Castro12hydro_sourceE"></span><span id="Castro::hydro_source__amrex::MultiFab"></span><span class="target" id="classCastro_1af30243c89295bf4a464c94d2057dd7ab"></span>amrex::MultiFab <code class="sig-name descname">hydro_source</code><a class="headerlink" href="#_CPPv4N6Castro12hydro_sourceE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Source term representing hydrodynamics update - this should just be <span class="math notranslate nohighlight">\(-\nabla\cdot \{F(U)\}\)</span> - no source terms </p>
+<dd><p>Source term representing hydrodynamics update - this should just be <span class="math notranslate nohighlight">\(\)</span> - no source terms </p>
 </dd></dl>
 
 <dl class="member">
@@ -1787,26 +1807,6 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Protected Static Functions</p>
-<dl class="function">
-<dt id="_CPPv4N6Castro11extern_initEv">
-<span id="_CPPv3N6Castro11extern_initEv"></span><span id="_CPPv2N6Castro11extern_initEv"></span><span id="Castro::extern_init"></span><span class="target" id="classCastro_1a54ac4dc9481c19c1e3ac9a17486728d7"></span><em class="property">static</em> void <code class="sig-name descname">extern_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11extern_initEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro12amrinfo_initEv">
-<span id="_CPPv3N6Castro12amrinfo_initEv"></span><span id="_CPPv2N6Castro12amrinfo_initEv"></span><span id="Castro::amrinfo_init"></span><span class="target" id="classCastro_1a5e5ae460a0c0207f1b346a8819b00217"></span><em class="property">static</em> void <code class="sig-name descname">amrinfo_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12amrinfo_initEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro16amrinfo_finalizeEv">
-<span id="_CPPv3N6Castro16amrinfo_finalizeEv"></span><span id="_CPPv2N6Castro16amrinfo_finalizeEv"></span><span id="Castro::amrinfo_finalize"></span><span class="target" id="classCastro_1ab93ea9e17c5a6a1137c1d0f46bfe9751"></span><em class="property">static</em> void <code class="sig-name descname">amrinfo_finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro16amrinfo_finalizeEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv4N6Castro11read_paramsEv">
-<span id="_CPPv3N6Castro11read_paramsEv"></span><span id="_CPPv2N6Castro11read_paramsEv"></span><span id="Castro::read_params"></span><span class="target" id="classCastro_1a34311775f04511064a8020d36e32407b"></span><em class="property">static</em> void <code class="sig-name descname">read_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11read_paramsEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
 <dl class="function">
 <dt id="_CPPv4N6Castro10getCPUTimeEv">
 <span id="_CPPv3N6Castro10getCPUTimeEv"></span><span id="_CPPv2N6Castro10getCPUTimeEv"></span><span id="Castro::getCPUTime"></span><span class="target" id="classCastro_1afc37a4e7b07a69b0561aa19dd7ae430e"></span><em class="property">static</em> amrex::Real <code class="sig-name descname">getCPUTime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10getCPUTimeEv" title="Permalink to this definition">¶</a><br /></dt>
