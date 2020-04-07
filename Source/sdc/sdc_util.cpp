@@ -4,13 +4,13 @@
 using namespace amrex;
 
 void
-Castro::ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
-                                           amrex::Real dt_m, amrex::Real dt,
-                                           amrex::Array4<const amrex::Real> const& k_m,
-                                           amrex::Array4<amrex::Real> const& k_n,
-                                           amrex::Array4<const amrex::Real> const& A_m,
-                                           amrex::Array4<const amrex::Real> const& A_0_old,
-                                           amrex::Array4<const amrex::Real> const& A_1_old,
+Castro::ca_sdc_update_advection_o2_lobatto(const Box& bx,
+                                           Real dt_m, Real dt,
+                                           Array4<const Real> const& k_m,
+                                           Array4<Real> const& k_n,
+                                           Array4<const Real> const& A_m,
+                                           Array4<const Real> const& A_0_old,
+                                           Array4<const Real> const& A_1_old,
                                            int m_start)
 {
     // update k_m to k_n via advection -- this is a second-order accurate update
@@ -29,14 +29,14 @@ Castro::ca_sdc_update_advection_o2_lobatto(const amrex::Box& bx,
 
 
 void
-Castro::ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
-                                         amrex::Real dt_m, amrex::Real dt,
-                                         amrex::Array4<const amrex::Real> const& k_m,
-                                         amrex::Array4<amrex::Real> const& k_n,
-                                         amrex::Array4<const amrex::Real> const& A_m,
-                                         amrex::Array4<const amrex::Real> const& A_0_old,
-                                         amrex::Array4<const amrex::Real> const& A_1_old,
-                                         amrex::Array4<const amrex::Real> const& A_2_old,
+Castro::ca_sdc_update_advection_o2_radau(const Box& bx,
+                                         Real dt_m, Real dt,
+                                         Array4<const Real> const& k_m,
+                                         Array4<Real> const& k_n,
+                                         Array4<const Real> const& A_m,
+                                         Array4<const Real> const& A_0_old,
+                                         Array4<const Real> const& A_1_old,
+                                         Array4<const Real> const& A_2_old,
                                          int m_start)
 {
     // update k_m to k_n via advection -- this is a second-order accurate update
@@ -68,14 +68,14 @@ Castro::ca_sdc_update_advection_o2_radau(const amrex::Box& bx,
 }
 
 void
-Castro::ca_sdc_update_advection_o4_lobatto(const amrex::Box& bx,
-                                           amrex::Real dt_m, amrex::Real dt,
-                                           amrex::Array4<const amrex::Real> const& k_m,
-                                           amrex::Array4<amrex::Real> const& k_n,
-                                           amrex::Array4<const amrex::Real> const& A_m,
-                                           amrex::Array4<const amrex::Real> const& A_0_old,
-                                           amrex::Array4<const amrex::Real> const& A_1_old,
-                                           amrex::Array4<const amrex::Real> const& A_2_old,
+Castro::ca_sdc_update_advection_o4_lobatto(const Box& bx,
+                                           Real dt_m, Real dt,
+                                           Array4<const Real> const& k_m,
+                                           Array4<Real> const& k_n,
+                                           Array4<const Real> const& A_m,
+                                           Array4<const Real> const& A_0_old,
+                                           Array4<const Real> const& A_1_old,
+                                           Array4<const Real> const& A_2_old,
                                            int m_start)
 {
     // update k_m to k_n via advection -- this is a fourth order accurate update
@@ -110,15 +110,15 @@ Castro::ca_sdc_update_advection_o4_lobatto(const amrex::Box& bx,
 }
 
 void
-Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
-                                         amrex::Real dt_m, amrex::Real dt,
-                                         amrex::Array4<const amrex::Real> const& k_m,
-                                         amrex::Array4<amrex::Real> const& k_n,
-                                         amrex::Array4<const amrex::Real> const& A_m,
-                                         amrex::Array4<const amrex::Real> const& A_0_old,
-                                         amrex::Array4<const amrex::Real> const& A_1_old,
-                                         amrex::Array4<const amrex::Real> const& A_2_old,
-                                         amrex::Array4<const amrex::Real> const& A_3_old,
+Castro::ca_sdc_update_advection_o4_radau(const Box& bx,
+                                         Real dt_m, Real dt,
+                                         Array4<const Real> const& k_m,
+                                         Array4<Real> const& k_n,
+                                         Array4<const Real> const& A_m,
+                                         Array4<const Real> const& A_0_old,
+                                         Array4<const Real> const& A_1_old,
+                                         Array4<const Real> const& A_2_old,
+                                         Array4<const Real> const& A_3_old,
                                          int m_start)
 {
     // update k_m to k_n via advection -- this is a fourth-order accurate update
@@ -169,14 +169,14 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
 
 #ifdef REACTIONS
 void
-Castro::ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
-                                  amrex::Real dt_m, amrex::Real dt,
-                                  amrex::Array4<const amrex::Real> const& A_m,
-                                  amrex::Array4<const amrex::Real> const& A_0_old,
-                                  amrex::Array4<const amrex::Real> const& A_1_old,
-                                  amrex::Array4<const amrex::Real> const& R_0_old,
-                                  amrex::Array4<const amrex::Real> const& R_1_old,
-                                  amrex::Array4<amrex::Real> const& C,
+Castro::ca_sdc_compute_C2_lobatto(const Box& bx,
+                                  Real dt_m, Real dt,
+                                  Array4<const Real> const& A_m,
+                                  Array4<const Real> const& A_0_old,
+                                  Array4<const Real> const& A_1_old,
+                                  Array4<const Real> const& R_0_old,
+                                  Array4<const Real> const& R_1_old,
+                                  Array4<Real> const& C,
                                   int m_start)
 {
     // compute the source term C for the 2nd order Lobatto update
@@ -196,16 +196,16 @@ Castro::ca_sdc_compute_C2_lobatto(const amrex::Box& bx,
 } // end ca_sdc_compute_C2_lobatto
 
 void
-Castro::ca_sdc_compute_C2_radau(const amrex::Box& bx,
-                                amrex::Real dt_m, amrex::Real dt,
-                                amrex::Array4<const amrex::Real> const& A_m,
-                                amrex::Array4<const amrex::Real> const& A_0_old,
-                                amrex::Array4<const amrex::Real> const& A_1_old,
-                                amrex::Array4<const amrex::Real> const& A_2_old,
-                                amrex::Array4<const amrex::Real> const& R_0_old,
-                                amrex::Array4<const amrex::Real> const& R_1_old,
-                                amrex::Array4<const amrex::Real> const& R_2_old,
-                                amrex::Array4<amrex::Real> const& C,
+Castro::ca_sdc_compute_C2_radau(const Box& bx,
+                                Real dt_m, Real dt,
+                                Array4<const Real> const& A_m,
+                                Array4<const Real> const& A_0_old,
+                                Array4<const Real> const& A_1_old,
+                                Array4<const Real> const& A_2_old,
+                                Array4<const Real> const& R_0_old,
+                                Array4<const Real> const& R_1_old,
+                                Array4<const Real> const& R_2_old,
+                                Array4<Real> const& C,
                                 int m_start)
 {
     // compute the source term C for the 2nd order Radau update
@@ -240,16 +240,16 @@ Castro::ca_sdc_compute_C2_radau(const amrex::Box& bx,
 } // end ca_sdc_compute_C2_radau
 
 void
-Castro::ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
-                                  amrex::Real dt_m, amrex::Real dt,
-                                  amrex::Array4<const amrex::Real> const& A_m,
-                                  amrex::Array4<const amrex::Real> const& A_0_old,
-                                  amrex::Array4<const amrex::Real> const& A_1_old,
-                                  amrex::Array4<const amrex::Real> const& A_2_old,
-                                  amrex::Array4<const amrex::Real> const& R_0_old,
-                                  amrex::Array4<const amrex::Real> const& R_1_old,
-                                  amrex::Array4<const amrex::Real> const& R_2_old,
-                                  amrex::Array4<amrex::Real> const& C,
+Castro::ca_sdc_compute_C4_lobatto(const Box& bx,
+                                  Real dt_m, Real dt,
+                                  Array4<const Real> const& A_m,
+                                  Array4<const Real> const& A_0_old,
+                                  Array4<const Real> const& A_1_old,
+                                  Array4<const Real> const& A_2_old,
+                                  Array4<const Real> const& R_0_old,
+                                  Array4<const Real> const& R_1_old,
+                                  Array4<const Real> const& R_2_old,
+                                  Array4<Real> const& C,
                                   int m_start)
 {
     // compute the 'C' term for the 4th-order solve with reactions
@@ -291,18 +291,18 @@ Castro::ca_sdc_compute_C4_lobatto(const amrex::Box& bx,
 
 
 void
-Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
-                                amrex::Real dt_m, amrex::Real dt,
-                                amrex::Array4<const amrex::Real> const& A_m,
-                                amrex::Array4<const amrex::Real> const& A_0_old,
-                                amrex::Array4<const amrex::Real> const& A_1_old,
-                                amrex::Array4<const amrex::Real> const& A_2_old,
-                                amrex::Array4<const amrex::Real> const& A_3_old,
-                                amrex::Array4<const amrex::Real> const& R_0_old,
-                                amrex::Array4<const amrex::Real> const& R_1_old,
-                                amrex::Array4<const amrex::Real> const& R_2_old,
-                                amrex::Array4<const amrex::Real> const& R_3_old,
-                                amrex::Array4<amrex::Real> const& C,
+Castro::ca_sdc_compute_C4_radau(const Box& bx,
+                                Real dt_m, Real dt,
+                                Array4<const Real> const& A_m,
+                                Array4<const Real> const& A_0_old,
+                                Array4<const Real> const& A_1_old,
+                                Array4<const Real> const& A_2_old,
+                                Array4<const Real> const& A_3_old,
+                                Array4<const Real> const& R_0_old,
+                                Array4<const Real> const& R_1_old,
+                                Array4<const Real> const& R_2_old,
+                                Array4<const Real> const& R_3_old,
+                                Array4<Real> const& C,
                                 int m_start)
 {
     // compute the 'C' term for the 4th-order solve with reactions
@@ -356,11 +356,11 @@ Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
 } //  end ca_sdc_compute_C4_radau
 
 void
-Castro::ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
-                                   amrex::Array4<const amrex::Real> const& U_old,
-                                   amrex::Array4<amrex::Real> const& U_new,
-                                   amrex::Array4<const amrex::Real> const& C,
-                                   amrex::Array4<const amrex::Real> const& R_new)
+Castro::ca_sdc_conservative_update(const Box& bx, Real const dt_m,
+                                   Array4<const Real> const& U_old,
+                                   Array4<Real> const& U_new,
+                                   Array4<const Real> const& C,
+                                   Array4<const Real> const& R_new)
 {
     // given <U>_old, <R>_new, and <C>, compute <U>_new
 
@@ -373,13 +373,13 @@ Castro::ca_sdc_conservative_update(const amrex::Box& bx, amrex::Real const dt_m,
 #endif
 
 
-void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
-                                          amrex::Array4<const amrex::Real> const& U_old,
-                                          amrex::Array4<const amrex::Real> const& U_new,
-                                          amrex::Array4<const amrex::Real> const& A_old,
-                                          amrex::Array4<const amrex::Real> const& R_old,
-                                          amrex::Array4<amrex::Real> const& U_guess,
-                                          amrex::Real const dt_m, int const sdc_iteration)
+void Castro::ca_sdc_compute_initial_guess(const Box& bx,
+                                          Array4<const Real> const& U_old,
+                                          Array4<const Real> const& U_new,
+                                          Array4<const Real> const& A_old,
+                                          Array4<const Real> const& R_old,
+                                          Array4<Real> const& U_guess,
+                                          Real const dt_m, int const sdc_iteration)
 {
     // compute the initial guess for the Newton solve
     // Here dt_m is the timestep to update from time node m to m+1
@@ -403,10 +403,10 @@ void Castro::ca_sdc_compute_initial_guess(const amrex::Box& bx,
 
 
 #ifdef REACTIONS
-void Castro::ca_store_reaction_state(const amrex::Box& bx,
-                                     amrex::Array4<const amrex::Real> const& R_old,
-                                     amrex::Array4<const amrex::Real> const& state,
-                                     amrex::Array4<amrex::Real> const& R_store)
+void Castro::ca_store_reaction_state(const Box& bx,
+                                     Array4<const Real> const& R_old,
+                                     Array4<const Real> const& state,
+                                     Array4<Real> const& R_store)
 {
     // copy the data from the last node's reactive source to the state data
 

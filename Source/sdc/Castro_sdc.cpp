@@ -47,15 +47,15 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
         {
 
             const Box& bx = mfi.tilebox();
-            amrex::Array4<amrex::Real> const& C_source_arr=C_source.array(mfi);
+            Array4<Real> const& C_source_arr=C_source.array(mfi);
 
-            amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
-            amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
-            amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
-            amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_0_arr=(R_old[0])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_1_arr=(R_old[1])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_2_arr=(R_old[2])->array(mfi);
+            Array4<const Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+            Array4<const Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+            Array4<const Real> const& A_old_1_arr=(A_old[1])->array(mfi);
+            Array4<const Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+            Array4<const Real> const& R_old_0_arr=(R_old[0])->array(mfi);
+            Array4<const Real> const& R_old_1_arr=(R_old[1])->array(mfi);
+            Array4<const Real> const& R_old_2_arr=(R_old[2])->array(mfi);
             if (sdc_quadrature == 0)
             {
 
@@ -67,8 +67,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             else
             {
 
-                amrex::Array4<const amrex::Real> const& A_old_3_arr=(A_old[3])->array(mfi);
-                amrex::Array4<const amrex::Real> const& R_old_3_arr=(R_old[3])->array(mfi);
+                Array4<const Real> const& A_old_3_arr=(A_old[3])->array(mfi);
+                Array4<const Real> const& R_old_3_arr=(R_old[3])->array(mfi);
 
                 ca_sdc_compute_C4_radau(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr,
                                         A_old_2_arr,
@@ -95,13 +95,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             const Box& bx = mfi.tilebox();
 
-            amrex::Array4<const amrex::Real> const& k_new_m_start_arr=
+            Array4<const Real> const& k_new_m_start_arr=
                 (k_new[m_start])->array(mfi);
-            amrex::Array4<const amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(
+            Array4<const Real> const& k_new_m_end_arr=(k_new[m_end])->array(
                                                                         mfi);
-            amrex::Array4<const amrex::Real> const& A_old_arr=(A_old[m_start])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_arr=(R_old[m_start])->array(mfi);
-            amrex::Array4<amrex::Real> const& S_new_arr=S_new.array(mfi);
+            Array4<const Real> const& A_old_arr=(A_old[m_start])->array(mfi);
+            Array4<const Real> const& R_old_arr=(R_old[m_start])->array(mfi);
+            Array4<Real> const& S_new_arr=S_new.array(mfi);
 
             ca_sdc_compute_initial_guess(bx, k_new_m_start_arr, k_new_m_end_arr,
                                          A_old_arr, R_old_arr, S_new_arr,
@@ -144,13 +144,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // on whether we are Lobatto or Radau
             C2.resize(bx, NUM_STATE);
             Elixir elix_C2 = C2.elixir();
-            amrex::Array4<amrex::Real> const& C2_arr=C2.array();
+            Array4<Real> const& C2_arr=C2.array();
 
-            amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
-            amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
-            amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_0_arr=(R_old[0])->array(mfi);
-            amrex::Array4<const amrex::Real> const& R_old_1_arr=(R_old[1])->array(mfi);
+            Array4<const Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+            Array4<const Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+            Array4<const Real> const& A_old_1_arr=(A_old[1])->array(mfi);
+            Array4<const Real> const& R_old_0_arr=(R_old[0])->array(mfi);
+            Array4<const Real> const& R_old_1_arr=(R_old[1])->array(mfi);
 
             if (sdc_quadrature == 0)
             {
@@ -162,8 +162,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             else
             {
 
-                amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
-                amrex::Array4<const amrex::Real> const& R_old_2_arr=(R_old[2])->array(mfi);
+                Array4<const Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+                Array4<const Real> const& R_old_2_arr=(R_old[2])->array(mfi);
                 ca_sdc_compute_C2_radau(bx, dt_m, dt, A_new_arr, A_old_0_arr, A_old_1_arr,
                                         A_old_2_arr,
                                         R_old_0_arr, R_old_1_arr, R_old_2_arr, C2_arr, m_start);
@@ -185,10 +185,10 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // fourth order SDC reaction update -- we need to respect the
             // difference between cell-centers and averages
 
-            amrex::Array4<const amrex::Real> const& k_new_m_start_arr=
+            Array4<const Real> const& k_new_m_start_arr=
                 (k_new[m_start])->array(mfi);
-            amrex::Array4<amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
-            amrex::Array4<const amrex::Real> const& C_source_arr=C_source.array(mfi);
+            Array4<Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
+            Array4<const Real> const& C_source_arr=C_source.array(mfi);
 
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
@@ -230,7 +230,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
             Elixir elix_R_new = R_new.elixir();
-            amrex::Array4<const amrex::Real> const& R_new_arr=R_new.array();
+            Array4<const Real> const& R_new_arr=R_new.array();
 
             ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
                                    BL_TO_FORTRAN_3D(U_new_center),
@@ -247,12 +247,12 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
         }
 #else
-        amrex::Array4<const amrex::Real> const& k_new_m_start_arr=
+        Array4<const Real> const& k_new_m_start_arr=
             (k_new[m_start])->array(mfi);
-        amrex::Array4<amrex::Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
-        amrex::Array4<const amrex::Real> const& A_new_arr=(A_new[m_start])->array(mfi);
-        amrex::Array4<const amrex::Real> const& A_old_0_arr=(A_old[0])->array(mfi);
-        amrex::Array4<const amrex::Real> const& A_old_1_arr=(A_old[1])->array(mfi);
+        Array4<Real> const& k_new_m_end_arr=(k_new[m_end])->array(mfi);
+        Array4<const Real> const& A_new_arr=(A_new[m_start])->array(mfi);
+        Array4<const Real> const& A_old_0_arr=(A_old[0])->array(mfi);
+        Array4<const Real> const& A_old_1_arr=(A_old[1])->array(mfi);
         // pure advection
         if (sdc_order == 2)
         {
@@ -267,7 +267,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             }
             else
             {
-                amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+                Array4<const Real> const& A_old_2_arr=(A_old[2])->array(mfi);
                 ca_sdc_update_advection_o2_radau(bx, dt_m, dt, k_new_m_start_arr,
                                                  k_new_m_end_arr,
                                                  A_new_arr, A_old_0_arr, A_old_1_arr, A_old_2_arr,
@@ -278,7 +278,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
         }
         else
         {
-            amrex::Array4<const amrex::Real> const& A_old_2_arr=(A_old[2])->array(mfi);
+            Array4<const Real> const& A_old_2_arr=(A_old[2])->array(mfi);
             if (sdc_quadrature == 0)
             {
                 ca_sdc_update_advection_o4_lobatto(bx, dt_m, dt, k_new_m_start_arr,
@@ -289,7 +289,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             }
             else
             {
-                amrex::Array4<const amrex::Real> const& A_old_3_arr=(A_old[3])->array(mfi);
+                Array4<const Real> const& A_old_3_arr=(A_old[3])->array(mfi);
                 ca_sdc_update_advection_o4_radau(bx, dt_m, dt, k_new_m_start_arr,
                                                  k_new_m_end_arr,
                                                  A_new_arr, A_old_0_arr, A_old_1_arr, A_old_2_arr,
@@ -306,8 +306,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
 #ifdef REACTIONS
 void
-Castro::construct_old_react_source(amrex::MultiFab& U_state,
-                                   amrex::MultiFab& R_source,
+Castro::construct_old_react_source(MultiFab& U_state,
+                                   MultiFab& R_source,
                                    const bool input_is_average)
 {
 
