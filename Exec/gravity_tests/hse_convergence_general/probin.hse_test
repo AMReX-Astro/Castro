@@ -12,7 +12,7 @@
   T_hi = 2.d8
   T_lo   = 8.d6
 
-  H_star = 2000.d0
+  H_star = 1700.d0
   atm_delta  = 50.0
 
   fuel1_name = "helium-4"
