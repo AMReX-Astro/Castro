@@ -134,9 +134,9 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_0_old(i,j,k,n)) +
-                dt/1800.0_rt * ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*A_1_old(i,j,k,n) +
-                                (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,n) +
-                                (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                dt/1800.0_rt * ((-35.0_rt*std::sqrt(6.0_rt) + 440.0_rt)*A_1_old(i,j,k,n) +
+                                (-169.0_rt*std::sqrt(6.0_rt) + 296.0_rt)*A_2_old(i,j,k,n) +
+                                (-16.0_rt + 24.0_rt*std::sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else if (m_start == 1)
@@ -145,9 +145,9 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_1_old(i,j,k,n)) +
-                dt/150.0_rt * ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,n) +
-                               (12.0_rt + 17.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
-                               (-4.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                dt/150.0_rt * ((-12.0_rt + 17.0_rt*std::sqrt(6.0_rt))*A_1_old(i,j,k,n) +
+                               (12.0_rt + 17.0_rt*std::sqrt(6.0_rt))*A_2_old(i,j,k,n) +
+                               (-4.0_rt*std::sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else if (m_start == 2)
@@ -156,9 +156,9 @@ Castro::ca_sdc_update_advection_o4_radau(const amrex::Box& bx,
         {
             k_n(i,j,k,n) = k_m(i,j,k,n) +
                 dt_m * (A_m(i,j,k,n) - A_2_old(i,j,k,n)) +
-                dt/600.0_rt * ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*A_1_old(i,j,k,n) +
-                               (120.0_rt + 5.0_rt*sqrt(6.0_rt))*A_2_old(i,j,k,n) +
-                               (72.0_rt + 8.0_rt*sqrt(6.0_rt))*A_3_old(i,j,k,n));
+                dt/600.0_rt * ((168.0_rt - 73.0_rt*std::sqrt(6.0_rt))*A_1_old(i,j,k,n) +
+                               (120.0_rt + 5.0_rt*std::sqrt(6.0_rt))*A_2_old(i,j,k,n) +
+                               (72.0_rt + 8.0_rt*std::sqrt(6.0_rt))*A_3_old(i,j,k,n));
         });
     }
     else
@@ -316,9 +316,9 @@ Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
         AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
             Real integral = (dt/dt_m) * (1.0_rt/1800.0_rt) *
-                ((-35.0_rt*sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                 (-169.0_rt*sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                 (-16.0_rt + 24.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+                ((-35.0_rt*std::sqrt(6.0_rt) + 440.0_rt)*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (-169.0_rt*std::sqrt(6.0_rt) + 296.0_rt)*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (-16.0_rt + 24.0_rt*std::sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
             C(i,j,k,n) = (A_m(i,j,k,n) - A_0_old(i,j,k,n)) - R_1_old(i,j,k,n) + integral;
         });
@@ -329,9 +329,9 @@ Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
         AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
             Real integral = (dt/dt_m) * (1.0_rt/150.0_rt) *
-                ((-12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                 (12.0_rt + 17.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                 (-4.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+                ((-12.0_rt + 17.0_rt*std::sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (12.0_rt + 17.0_rt*std::sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (-4.0_rt*std::sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
             C(i,j,k,n) = (A_m(i,j,k,n) - A_1_old(i,j,k,n)) - R_2_old(i,j,k,n) + integral;
         });
@@ -342,9 +342,9 @@ Castro::ca_sdc_compute_C4_radau(const amrex::Box& bx,
         AMREX_PARALLEL_FOR_4D(bx, C.nComp(), i, j, k, n,
         {
             Real integral = (dt/dt_m) * (1.0_rt/600.0_rt) *
-                ((168.0_rt - 73.0_rt*sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
-                 (120.0_rt + 5.0_rt*sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
-                 (72.0_rt + 8.0_rt*sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
+                ((168.0_rt - 73.0_rt*std::sqrt(6.0_rt))*(A_1_old(i,j,k,n) + R_1_old(i,j,k,n)) +
+                 (120.0_rt + 5.0_rt*std::sqrt(6.0_rt))*(A_2_old(i,j,k,n) + R_2_old(i,j,k,n)) +
+                 (72.0_rt + 8.0_rt*std::sqrt(6.0_rt))*(A_3_old(i,j,k,n) + R_3_old(i,j,k,n)));
 
             C(i,j,k,n) = (A_m(i,j,k,n) - A_2_old(i,j,k,n)) - R_3_old(i,j,k,n) + integral;
         });
@@ -412,17 +412,16 @@ void Castro::ca_store_reaction_state(const amrex::Box& bx,
 
     // for R_store we use the indices defined in Castro_setup.cpp for
     // Reactions_Type
-    int nspec = R_store.nComp()-2;
 
-    AMREX_PARALLEL_FOR_4D(bx, nspec, i, j, k, n,
+    AMREX_PARALLEL_FOR_4D(bx, NumSpec, i, j, k, n,
     {
         R_store(i,j,k,n) = R_old(i,j,k,UFS+n)/state(i,j,k,URHO);
     });
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
-        R_store(i,j,k,nspec+1-1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO);
-        R_store(i,j,k,nspec+2-1) = R_old(i,j,k,UEDEN);
+        R_store(i,j,k,NumSpec+1-1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO);
+        R_store(i,j,k,NumSpec+2-1) = R_old(i,j,k,UEDEN);
     });
 }
 
