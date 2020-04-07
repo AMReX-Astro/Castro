@@ -12,7 +12,6 @@ ca_f90EXE_sources += ct_upwind.f90
 ca_f90EXE_sources += electric.f90
 ca_f90EXE_sources += hlld.f90
 #ca_f90EXE_sources += hll.f90
-ca_f90EXE_sources += mhd_normalize_species_3d.f90
 ca_f90EXE_sources += mhd_plm_3d.f90
 #ca_f90EXE_sources += mhd_trace_ppm_3d.f90
 ca_f90EXE_sources += mhd_sound_speed.f90
