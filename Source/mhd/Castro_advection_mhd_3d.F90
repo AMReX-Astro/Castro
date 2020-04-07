@@ -345,14 +345,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   deallocate(flxx,flxy,flxz)
   deallocate(Extemp,Eytemp,Eztemp)
 
-  ! Enforce the density >= small_dens.  Make sure we do this immediately after consup.
-!  call enforce_minimum_density(uin, uin_lo, uin_hi, &
-!                               uout,uout_lo, uout_hi, &
-!                               bxout, bxout_lo, bxout_hi, &
-!                               byout, byout_lo, byout_hi, &
-!                               bzout, bzout_lo, bzout_hi, &
-!                               lo,hi,print_fortran_warnings)
-
 
 
 end subroutine ca_advance_mhd

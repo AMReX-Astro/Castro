@@ -5,7 +5,6 @@ FEXE_headers += Castro_mhd_F.H
 
 CEXE_sources += Castro_mhd.cpp
 
-ca_F90EXE_sources += mhd_util.F90
 ca_F90EXE_sources += Castro_advection_mhd_3d.F90
 ca_F90EXE_sources += flatten_mhd.F90
 ca_f90EXE_sources += ct_upwind.f90
