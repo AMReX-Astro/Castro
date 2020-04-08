@@ -580,26 +580,22 @@ extern "C"
 
     }
 
-    void ca_derkineng(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* delta, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
+    void ca_derkineng (const Box& bx, FArrayBox& kinengfab, int dcomp, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
         Box bx(ilo, ihi);
+		auto const dat = datfab.array();
+		auto const kineng = kinengfab.array();
 
-#pragma gpu box(bx)
-        derkineng(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta));
+		amrex::ParallelFor(bx,
+		[=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+		{
+		    kineng(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * ( dat(i,j,k,1)*dat(i,j,k,1) + 
+														dat(i,j,k,2)*dat(i,j,k,2) + 
+														dat(i,j,k,3)*dat(i,j,k,3) )
+		});
 
     }
 
