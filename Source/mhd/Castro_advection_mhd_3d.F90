@@ -249,7 +249,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
               flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
               lo ,hi ,dx ,dy ,dz ,dt)
  
-  !maybe this will help?
   bxout = 0.0
   byout = 0.0
   bzout = 0.0
@@ -466,9 +465,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               ! A critical region since we usually can't write from threads.
               !
               print *,'   '
-              print *,'>>> Error: Nyx_advection_3d::ctoprim ',i,j,k
+              print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
               print *,'>>> ... negative density ',uin(i,j,k,URHO)
-              call amrex_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim")
            end if
 
            rhoInv = ONE/uin(i,j,k,URHO)
@@ -507,28 +506,22 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      do j = loq(2), hiq(2)
         do i = loq(1), hiq(1)
 
-           ! If necessary, reset the energy using small_temp
+           ! If necessary, reset the energy using small_temp ?
+           ! should we use the dual energy formalism like in the regular hydro?
+
            if (q(i,j,k,QREINT) .lt. ZERO) then
-
-              !                 HACK HACK HACK 
-              !                 call nyx_eos_given_RT(q(i,j,k,QREINT),q(i,j,k,QPRES),q(i,j,k,QRHO), &
-              !                                       small_temp,diag_eos(i,j,k,NE_COMP),a_old)
-
-              if (q(i,j,k,QREINT) .lt. ZERO) then
                  !
                  ! A critical region since we usually can't write from threads.
                  !
                  print *,'   '
-                 print *,'>>> Error: Nyx_advection_3d::ctoprim ',i,j,k
-                 print *,'>>> ... new e from eos_given_RT call is negative ',q(i,j,k,QREINT)
+                 print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
+                 print *,'>>> ... e is negative ',q(i,j,k,QREINT)
                  print *,'    '
-                 call amrex_error("Error:: Nyx_advection_3d.f90 :: ctoprim")
-              end if
+                 call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim")
            end if
 
            ! Define the magneto-accoustic speed from the EOS
            ! Note: QREINT is currently just "e"
-
 
 
            eos_state % rho = q(i,j,k,QRHO)
@@ -537,26 +530,6 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
            
            call eos(eos_input_re, eos_state)
-
-
-           cad = q(i,j,k,QMAGX)!(q(i,j,k,QMAGX)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
-                                   q(i,j,k,QFS:QFS+nspec-1))
-
-           cad = q(i,j,k,QMAGY)!(q(i,j,k,QMAGY)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
-                                   q(i,j,k,QFS:QFS+nspec-1))
-
-           cad = q(i,j,k,QMAGZ)!(q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
-           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,k,QRHO), q(i,j,k,QREINT), eos_state % T, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad, &
-                                   q(i,j,k,QFS:QFS+nspec-1))
-
-
-           ! Convert "e" back to "rho e"
-           q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
 
            ! Set csmal based on small_pres and small_dens 
@@ -570,7 +543,28 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            !for the src 
            qaux(i,j,k,QDPDR) = eos_state % dpdr_e
            qaux(i,j,k,QDPDE) = eos_state % dpde
+ 
+ 
+           ! Convert "e" back to "rho e"
+           q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
+
+             
+           !sound speed for ideal mhd
+           cad = q(i,j,k,QMAGX)
+           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
+                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+
+           cad = q(i,j,k,QMAGY)
+           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
+                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+
+           cad = q(i,j,k,QMAGZ)
+           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
+                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
            
+          
+           ! Do we need gam1 and cs in q ? 
+            
         end do
      end do
   end do
@@ -596,7 +590,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
              srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
              srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
                                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoInv + &
-                                  qaux(i,j,k,QDPDR) * srcQ(i,j,k,QRHO)  
+                                  qaux(i,j,k,QDPDR) * srcQ(i,j,k,QRHO)
+  
+  ! add ifdef PRIM_SPECIES_HAVE_SOURCES
 
   !            if (UFS .gt. 0) then
   !               do ispec = 1,nspec+naux
@@ -646,7 +642,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... Internal e          ',q(i,j,k,QREINT)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in x-dir in ctoprim")
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: CFL violation in x-dir in ctoprim")
            end if
 
            if (coury .gt. ONE) then
@@ -660,7 +656,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... B                   ',q(i,j,k,QMAGX:QMAGZ)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in y-dir in ctoprim")
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: CFL violation in y-dir in ctoprim")
            end if
 
            if (courz .gt. ONE) then
@@ -674,7 +670,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
               print *,'>>> ... B                   ',q(i,j,k,QMAGX:QMAGZ)
               print *,'>>> ... pressure            ',q(i,j,k,QPRES)
               print *,'>>> ... density             ',q(i,j,k,QRHO)
-              call amrex_error("Error:: Nyx_advection_3d.f90 :: CFL violation in z-dir in ctoprim")
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: CFL violation in z-dir in ctoprim")
            end if
 
         enddo

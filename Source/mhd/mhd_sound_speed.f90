@@ -1,34 +1,21 @@
 !======= Sound speed calc for ideal MHD ================
-  subroutine eos_soundspeed_mhd(c, rho, e, temp, bx, by, bz, bd, compo)
+  subroutine eos_soundspeed_mhd(c, rho, P, gam1, bx, by, bz, bd)
 
      use amrex_fort_module, only : rt => amrex_real
      use meth_params_module
-     use eos_module, only : eos
-     use eos_type_module, only : eos_t, eos_input_rt
-     use network, only: nspec
+   
 
      implicit none
      ! In/out variables
-     real(rt), intent(in   ) :: rho, e, temp, bx , by, bz, bd !density, internal energy, magnetic fields, directional mag field
-     real(rt), intent(in   ) :: compo(nspec)
+     real(rt), intent(in   ) :: rho, P, gam1, bx , by, bz, bd !gas P, gam1, magnetic fields, directional mag field
+    
      real(rt), intent(  out) :: c
 
-     !Gas Pressure
-     real(rt) :: P
+
      !Sound Speed, Alfven Speed
      real(rt) :: as, ca, cad
 
-     type(eos_t) :: eos_state
-
-     eos_state % rho = rho
-     eos_state % e   = e
-     eos_state % T   = temp
-     eos_state % xn  = compo
-     
-     call eos(eos_input_rt, eos_state)
-  
-     P = eos_state % p
-     as = eos_state % gam1 * P/rho
+     as = gam1 * P/rho
      ca = (bx**2 + by**2 + bz**2)/rho
      cad = bd**2/rho
      !Fast Magneto-Sonic Wave

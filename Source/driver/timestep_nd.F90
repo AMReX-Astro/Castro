@@ -183,16 +183,16 @@ contains
 
              if (e .gt. 0.d0) then
                 cad = bcx
-                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),e, eos_state % T, &
-                                        bcx,bcy,bcz,cad, spec) 
+                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
+                                        bcx,bcy,bcz,cad) 
                 
                 cad = bcy
-                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),e, eos_state % T, &
-                                        bcx,bcy,bcz,cad, spec)
+                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
+                                        bcx,bcy,bcz,cad)
 
                 cad = bcz
-                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),e, eos_state % T, &
-                                        bcx,bcy,bcz,cad, spec)
+                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
+                                        bcx,bcy,bcz,cad)
              else
                 cx = 0.0d0
                 cy = 0.0d0
