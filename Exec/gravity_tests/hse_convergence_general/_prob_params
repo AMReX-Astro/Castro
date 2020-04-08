@@ -1,0 +1,62 @@
+
+dtemp                   real              3.81e8_rt                 y
+
+x_half_max              real              1.2e5_rt                  y
+
+x_half_width            real              3.6e4_rt                  y
+
+X_min                   real              1.e-4_rt                  y
+
+cutoff_density          real              500.e0_rt                 y
+
+dx_model                real              10.0_rt                   y
+
+T_hi                    real              5.e8_rt                   y
+
+T_star                  real              1.e8_rt                   y
+
+T_lo                    real              5.e7_rt                   y
+
+dens_base               real              2.e6_rt                   y
+
+H_star                  real              500.e0_rt                 y
+
+atm_delta               real              25.e0_rt                  y
+
+fuel1_name              character         "helium-4"                y
+
+fuel2_name              character         ""                        y
+
+fuel3_name              character         ""                        y
+
+fuel4_name              character         ""                        y
+
+ash1_name               character         "iron-56"                 y
+
+ash2_name               character         ""                        y
+
+ash3_name               character         ""                        y
+
+fuel1_frac              real              1.0_rt                    y
+
+fuel2_frac              real              0.0_rt                    y
+
+fuel3_frac              real              0.0_rt                    y
+
+fuel4_frac              real              0.0_rt                    y
+
+ash1_frac               real              1.0_rt                    y
+
+ash2_frac               real              0.0_rt                    y
+
+ash3_frac               real              0.0_rt                    y
+
+low_density_cutoff      real              1.e-4_rt                  y
+
+smallx                  real              1.e-10_rt                 y
+
+x_refine_distance       real              1.e30_rt                  y
+
+max_hse_tagging_level   integer           2                         y
+
+max_base_tagging_level  integer           1                         y

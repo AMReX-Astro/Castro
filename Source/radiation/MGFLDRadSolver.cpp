@@ -57,7 +57,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       MultiFab& S_lag = castro->get_old_data(State_Type);
       for (FillPatchIterator fpi(*castro,S_lag,ngrow,oldtime,State_Type,
                                  0,S_lag.nComp()); fpi.isValid(); ++fpi) {
-        S_lag[fpi].copy(fpi());
+          S_lag[fpi].copy<RunOn::Device>(fpi());
       }
 
       MultiFab kpr_lag(grids,dmap,nGroups,1);
@@ -116,12 +116,12 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
       const Box &gbx = mfi.growntilebox(1);
       const Box &bx  = mfi.tilebox();
 
-      rho[mfi].copy(S_new[mfi],gbx, URHO, gbx,0,1);
+      rho[mfi].copy<RunOn::Device>(S_new[mfi],gbx, URHO, gbx,0,1);
 
-      rhoe_new[mfi].copy(S_new[mfi], bx, UEINT, bx,0,1);
-      rhoe_old[mfi].copy(rhoe_new[mfi], bx);
+      rhoe_new[mfi].copy<RunOn::Device>(S_new[mfi], bx, UEINT, bx,0,1);
+      rhoe_old[mfi].copy<RunOn::Device>(rhoe_new[mfi], bx);
 
-      temp_new[mfi].copy(S_new[mfi],gbx, UTEMP, gbx,0,1);
+      temp_new[mfi].copy<RunOn::Device>(S_new[mfi],gbx, UTEMP, gbx,0,1);
     
   }
 

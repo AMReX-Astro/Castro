@@ -205,10 +205,10 @@ void HypreExtMultiABec::loadMatrix()
       const Box &reg = grids[level][i];
 
       matfab.resize(reg,size);
-      matfab.setVal(0.0);
       Real* mat = matfab.dataPtr();
-
       Elixir mat_elix = matfab.elixir();
+
+      matfab.setVal<RunOn::Device>(0.0);
 
       // build matrix interior
 
@@ -818,7 +818,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(rhs[mfi]);
+      f->copy<RunOn::Host>(rhs[mfi]);
     }
     Real* vec = f->dataPtr();
 
