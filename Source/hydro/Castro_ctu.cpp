@@ -136,6 +136,8 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
     bool lo_bc_test = lo_bc[idir] == Symmetry;
     bool hi_bc_test = hi_bc[idir] == Symmetry;
 
+    Real lT_guess = T_guess;
+
     if (idir == 0) {
       trace_ppm(bx,
                 idir,
@@ -156,6 +158,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (i == domlo[0]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qxp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxp(i,j,k,QREINT) = qxp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QU) {
                 qxm(i,j,k,QU) = -qxp(i,j,k,QU);
@@ -163,6 +181,39 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qxm(i,j,k,n) = qxp(i,j,k,n);
               }
             }
+
+          } else if (i == domlo[0]+1) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qxp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxp(i,j,k,QREINT) = qxp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qxm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxm(i,j,k,QREINT) = qxm(i,j,k,QRHO) * eos_state.e;
+
           }
         });
 
@@ -175,6 +226,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (i == domhi[0]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qxm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxm(i,j,k,QREINT) = qxm(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QU) {
                 qxp(i,j,k,QU) = -qxm(i,j,k,QU);
@@ -182,6 +249,39 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qxp(i,j,k,n) = qxm(i,j,k,n);
               }
             }
+
+          } else if (i == domhi[0]) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qxp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxp(i,j,k,QREINT) = qxp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qxm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qxm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qxm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qxm(i,j,k,QREINT) = qxm(i,j,k,QRHO) * eos_state.e;
+
           }
         });
 
@@ -205,6 +305,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (j == domlo[1]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qyp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qyp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qyp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qyp(i,j,k,QREINT) = qyp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QV) {
                 qym(i,j,k,QV) = -qyp(i,j,k,QV);
@@ -212,6 +328,39 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qym(i,j,k,n) = qyp(i,j,k,n);
               }
             }
+
+          } else if (j == domlo[1]+1) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qyp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qyp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qyp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qyp(i,j,k,QREINT) = qyp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qym(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qym(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qym(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qym(i,j,k,QREINT) = qym(i,j,k,QRHO) * eos_state.e;
+
           }
         });
 
@@ -224,6 +373,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (j == domhi[1]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qym(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qym(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qym(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qym(i,j,k,QREINT) = qym(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QV) {
                 qyp(i,j,k,QV) = -qym(i,j,k,QV);
@@ -231,7 +396,41 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qyp(i,j,k,n) = qym(i,j,k,n);
               }
             }
+
+          } else if (j == domhi[1]) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qyp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qyp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qyp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qyp(i,j,k,QREINT) = qyp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qym(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qym(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qym(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qym(i,j,k,QREINT) = qym(i,j,k,QRHO) * eos_state.e;
+
           }
+
         });
 
       }
@@ -254,6 +453,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
           if (k == domlo[2]) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qzp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzp(i,j,k,QREINT) = qzp(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QW) {
                 qzm(i,j,k,QW) = -qzp(i,j,k,QW);
@@ -261,6 +476,39 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qzm(i,j,k,n) = qzp(i,j,k,n);
               }
             }
+
+          } else if (k == domlo[2]+1) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qzp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzp(i,j,k,QREINT) = qzp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qzm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzm(i,j,k,QREINT) = qzm(i,j,k,QRHO) * eos_state.e;
+
           }
         });
 
@@ -273,6 +521,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
           if (k == domhi[2]+1) {
+
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            eos_state.rho = qzm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzm(i,j,k,QREINT) = qzm(i,j,k,QRHO) * eos_state.e;
+
+            // now enforce reflect at this interface
             for (int n = 0; n < NQ; n++) {
               if (n == QW) {
                 qzp(i,j,k,QW) = -qzm(i,j,k,QW);
@@ -280,6 +544,39 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
                 qzp(i,j,k,n) = qzm(i,j,k,n);
               }
             }
+
+          } else if (k == domhi[2]) {
+
+            // because we did HSE reconstruction and this interface
+            // see ghost cells in the cubic interpolant, we need to
+            // fix up the thermodynamics of this interface as well
+            // we need to make (rho e) consistent with the EOS
+            eos_t eos_state;
+
+            // right state
+            eos_state.rho = qzp(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzp(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzp(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzp(i,j,k,QREINT) = qzp(i,j,k,QRHO) * eos_state.e;
+
+            // left state
+            eos_state.rho = qzm(i,j,k,QRHO);
+            eos_state.T = lT_guess;
+            eos_state.p = qzm(i,j,k,QPRES);
+            for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qzm(i,j,k,QFS+n);
+            }
+
+            eos(eos_input_rp, eos_state);
+
+            qzm(i,j,k,QREINT) = qzm(i,j,k,QRHO) * eos_state.e;
+
           }
         });
 
