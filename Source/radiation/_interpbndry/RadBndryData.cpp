@@ -86,10 +86,10 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
             }
             masks[face][k].reset(new Mask(face_box));
             Mask *m = masks[face][k].get();
-            m->setVal(outside_domain,0);
+            m->setVal<RunOn::Host>(outside_domain,0);
             Box dbox(geom.Domain());
             dbox &= face_box;
-            m->setVal(not_covered,dbox,0);
+            m->setVal<RunOn::Host>(not_covered,dbox,0);
             // now have to set as not_covered the periodic translates as well
             if( geom.isAnyPeriodic() ){
               Box dombox(geom.Domain());
@@ -100,7 +100,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
                 m->shift(iv);
                 Box target(dombox);
                 target &= m->box();
-                if (target.ok()) m->setVal(not_covered,target,0);
+                if (target.ok()) m->setVal<RunOn::Host>(not_covered,target,0);
                 m->shift(-iv);
               }
             }
@@ -108,7 +108,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
             for (int g = 0; g < len; g++) {
                 Box ovlp(grids[g]);
                 ovlp &= face_box;
-                if (ovlp.ok()) m->setVal(covered,ovlp,0);
+                if (ovlp.ok()) m->setVal<RunOn::Host>(covered,ovlp,0);
             }
             // handle special cases if is periodic
             if( geom.isAnyPeriodic() && 
@@ -121,7 +121,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
                 for( int g=0; g<len; g++){
                   Box ovlp(grids[g]);
                   ovlp &= m->box();
-                  if( ovlp.ok() ) m->setVal(covered,ovlp,0);
+                  if( ovlp.ok() ) m->setVal<RunOn::Host>(covered,ovlp,0);
                 }
                 m->shift(-iv);
               }
