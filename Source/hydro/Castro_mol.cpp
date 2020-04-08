@@ -148,7 +148,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
            if (n == QV) {
              qm(i,j,k,QV) = -qp(i,j,k,QV);
            } else {
-             qm(i,j,k,n) = -qp(i,j,k,n);
+             qm(i,j,k,n) = qp(i,j,k,n);
            }
          }
        }
