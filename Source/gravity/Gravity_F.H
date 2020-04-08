@@ -7,8 +7,6 @@ extern "C"
 {
 #endif
 
-  void get_grav_const(amrex::Real* Gconst);
-
   void ca_test_residual
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG(rhs),

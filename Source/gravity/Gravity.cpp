@@ -18,6 +18,7 @@
 #define MAX_LEV 30
 
 #include "gravity_defaults.H"
+#include "fundamental_constants.H"
 
 using namespace amrex;
 
@@ -236,9 +237,6 @@ Gravity::read_params ()
 
         if (pp.contains("sl_tol"))
             amrex::Warning("The gravity parameter sl_tol is no longer used.");
-
-        Real Gconst;
-        get_grav_const(&Gconst);
         Ggravity = 4.0 * M_PI * Gconst;
         if (verbose > 1 && ParallelDescriptor::IOProcessor())
         {
@@ -673,27 +671,16 @@ Gravity::GetCrsePhi(int level,
     Real alpha = (time - t_old)/(t_new - t_old);
     Real omalpha = 1.0 - alpha;
 
+    MultiFab const& phi_old = LevelData[level-1]->get_old_data(PhiGrav_Type);
+    MultiFab const& phi_new = LevelData[level-1]->get_new_data(PhiGrav_Type);
+
     phi_crse.clear();
     phi_crse.define(grids[level-1], dmap[level-1], 1, 1); // BUT NOTE we don't trust phi's ghost cells.
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    {
-        FArrayBox PhiCrseTemp;
-        for (MFIter mfi(phi_crse, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
-            const Box& gtbx = mfi.growntilebox();
 
-            PhiCrseTemp.resize(gtbx,1);
-
-            PhiCrseTemp.copy(LevelData[level-1]->get_old_data(PhiGrav_Type)[mfi]);
-            PhiCrseTemp.mult(omalpha);
-
-            phi_crse[mfi].copy(LevelData[level-1]->get_new_data(PhiGrav_Type)[mfi], gtbx);
-            phi_crse[mfi].mult(alpha, gtbx);
-            phi_crse[mfi].plus(PhiCrseTemp);
-        }
-    }
+    MultiFab::LinComb(phi_crse,
+                      alpha  , phi_new, 0,
+                      omalpha, phi_old, 0,
+                      0, 1, 1);
 
     const Geometry& geom = parent->Geom(level-1);
     phi_crse.FillBoundary(geom.periodicity());
@@ -2247,53 +2234,6 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     }
 
 }
-
-#if (BL_SPACEDIM == 3)
-Real
-Gravity::computeAvg (int level, MultiFab* mf, bool mask)
-{
-    BL_PROFILE("Gravity::computeAvg()");
-
-    Real        sum     = 0.0;
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx       = geom.CellSize();
-
-    BL_ASSERT(mf != 0);
-
-    if (level < parent->finestLevel() && mask)
-    {
-        Castro* fine_level = dynamic_cast<Castro*>(&(parent->getLevel(level+1)));
-        const MultiFab& mask = fine_level->build_fine_mask();
-        MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
-#endif
-    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        FArrayBox& fab = (*mf)[mfi];
-
-        Real s;
-        const Box& box  = mfi.tilebox();
-        const int* lo   = box.loVect();
-        const int* hi   = box.hiVect();
-
-        //
-        // Note that this routine will do a volume weighted sum of
-        // whatever quantity is passed in, not strictly the "mass".
-        //
-        ca_summass(ARLIM_3D(lo),ARLIM_3D(hi),BL_TO_FORTRAN_ANYD(fab),
-                   dx,BL_TO_FORTRAN_ANYD((*volume[level])[mfi]),&s);
-        sum += s;
-    }
-
-    ParallelDescriptor::ReduceRealSum(sum);
-
-    return sum;
-}
-#endif
 
 void
 Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)

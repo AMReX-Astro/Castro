@@ -104,10 +104,6 @@ plm_iorder                   int           2                  y
 # 1 = 2nd order MC, 2 = 4th order MC
 plm_limiter                  int           2                  y
 
-# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
-# pressure
-plm_well_balanced            int           0                  y
-
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
@@ -166,7 +162,8 @@ dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?
+# from the pressure before limiting?  This is a well-balanced method that
+# does well with HSE
 use_pslope                   int           1                  y
 
 # Should we limit the density fluxes so that we do not create small densities?
@@ -182,10 +179,6 @@ speed_limit                  Real          2.99792458e10      y
 # 1 = Reset to characteristics of adjacent zone with largest density
 # 2 = Use average of all adjacent zones for all state variables
 density_reset_method         int           1                  y
-
-# Whether or not to allow the internal energy to be less than the
-# internal energy corresponding to small_temp
-allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
@@ -205,22 +198,22 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        ""                 y
+xl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        ""                 y
+xr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        ""                 y
+yl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        ""                 y
+yr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        ""                 y
+zl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        ""                 y
+zr_ext_bc_type               string        "fillme"           y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -551,7 +544,7 @@ show_center_of_mass          int           0
 
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
-job_name                     string        ""
+job_name                     string        "Castro"
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1

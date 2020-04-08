@@ -9,13 +9,17 @@
        use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, NSRC
        use prob_params_module, only: center
        use amrex_constants_module, only: ZERO, HALF, ONE, TWO
+       use castro_util_module, only: position ! function
        use probdata_module, only: problem, relaxation_damping_factor, radial_damping_factor, &
                                   t_ff_P, t_ff_S, axis_1, axis_2, axis_3
-       use castro_util_module, only: position ! function
        use wdmerger_util_module, only: inertial_velocity ! function
 #ifdef HYBRID_MOMENTUM
        use hybrid_advection_module, only: linear_to_hybrid ! function
        use meth_params_module, only: UMR, UMP
+#endif
+#ifdef ROTATION
+       use meth_params_module, only: do_rotation, state_in_rotating_frame
+       use rotation_module, only: inertial_to_rotational_velocity
 #endif
 
        implicit none
@@ -36,7 +40,7 @@
        real(rt) :: dynamical_timescale, damping_factor
        real(rt) :: loc(3), R_prp, sinTheta, cosTheta, v_rad, Sr(3)
        integer  :: i, j, k
-       real(rt) :: new_mom(3), old_mom(3), rhoInv
+       real(rt) :: vel(3), mom(3), rhoInv
 
        !$gpu
 
@@ -73,9 +77,17 @@
 
                    loc = position(i,j,k) - center
 
-                   new_mom = new_state(i,j,k,UMX:UMZ)
+                   mom = new_state(i,j,k,UMX:UMZ)
 
-                   Sr = new_mom * damping_factor
+#ifdef ROTATION
+                   if (do_rotation == 1 .and. state_in_rotating_frame == 0) then
+                      vel = rhoInv * mom
+                      call inertial_to_rotational_velocity([i, j, k], time, vel)
+                      mom = new_state(i,j,k,URHO) * vel
+                   end if
+#endif
+
+                   Sr = mom * damping_factor
 
                    src(i,j,k,UMX:UMZ) = src(i,j,k,UMX:UMZ) + Sr
 
@@ -85,7 +97,7 @@
 
                    ! Do the same thing for the kinetic energy update.
 
-                   src(i,j,k,UEDEN) = src(i,j,k,UEDEN) + dot_product(rhoInv * new_mom, Sr)
+                   src(i,j,k,UEDEN) = src(i,j,k,UEDEN) + dot_product(rhoInv * mom, Sr)
 
                 enddo
              enddo
@@ -120,9 +132,11 @@
                    cosTheta = loc(axis_1) / R_prp
                    sinTheta = loc(axis_2) / R_prp
 
-                   old_mom = new_state(i,j,k,UMX:UMZ)
-                   old_mom = inertial_velocity(loc, old_mom, time)
-                   v_rad   = cosTheta * old_mom(UMX + axis_1 - 1) + sinTheta * old_mom(UMX + axis_2 - 1)
+                   mom = new_state(i,j,k,UMX:UMZ)
+                   vel = rhoInv * mom
+                   vel = inertial_velocity(loc, vel, time)
+
+                   v_rad = cosTheta * vel(axis_1) + sinTheta * vel(axis_2)
 
                    ! What we want to do is insert a negative radial drift acceleration. If continued
                    ! for long enough, it will eventually drive coalescence of the binary. The
@@ -135,8 +149,8 @@
                    ! and |v_phi| is the magnitude of the azimuthal velocity, then
                    ! radial_damping_factor should be much greater than unity.
 
-                   Sr(axis_1) = cosTheta * abs(v_rad) * damping_factor
-                   Sr(axis_2) = sinTheta * abs(v_rad) * damping_factor
+                   Sr(axis_1) = cosTheta * (new_state(i,j,k,URHO) * abs(v_rad)) * damping_factor
+                   Sr(axis_2) = sinTheta * (new_state(i,j,k,URHO) * abs(v_rad)) * damping_factor
                    Sr(axis_3) = ZERO
 
                    src(i,j,k,UMX:UMZ) = src(i,j,k,UMX:UMZ) + Sr
@@ -147,7 +161,7 @@
 
                    ! The kinetic energy source term is v . Sr:
 
-                   src(i,j,k,UEDEN) = src(i,j,k,UEDEN) + dot_product(rhoInv * old_mom, Sr)
+                   src(i,j,k,UEDEN) = src(i,j,k,UEDEN) + dot_product(rhoInv * mom, Sr)
 
                 enddo
              enddo

@@ -3,14 +3,12 @@ dist: bionic
 matrix:
   include:
     - name: "deploy docs"
+      if: branch = development OR branch = master
       language: python
       python:
         - "3.7-dev"
       before_install:
         - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
-      #  - pwd
-      #  - cd ~/; git clone https://github.com/amrex-codes/amrex
-      #  - cd ~/; git clone https://github.com/amrex-codes/regression_testing
       addons:
         apt:
             packages:
@@ -27,15 +25,7 @@ matrix:
       script:
         - ls -l
         - pwd
-      # after_success:
         - ./deploy_docs.sh
-      # deploy:
-      #   provider: pages
-      #   skip-cleanup: true
-      #   github-token: $GITHUB_TOKEN
-      #   keep-history: true
-      #   on:
-      #     branch: master
 
     - name: "clang static analysis"
       if: type = pull_request OR type = api OR type = cron
@@ -45,12 +35,8 @@ matrix:
       before_install:
         - cd ~/; git clone https://github.com/amrex-codes/amrex
         - cd ~/amrex; git checkout development
-        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
-        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
         - cd ~/; git clone https://github.com/starkiller-astro/Microphysics.git
         - cd ~/Microphysics; git checkout development
-        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'echo "#endif" >> "{}"' \;
-        # - find . -type f -regex ".*\(\.f90\|\.F90\|\.cpp\|\.H\)" -exec bash -c 'sed -i "1s/^/#ifndef __clang_analyzer__\n/" {}' \;
         - cd $TRAVIS_BUILD_DIR
       addons:
         apt:

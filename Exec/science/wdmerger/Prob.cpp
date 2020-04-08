@@ -323,10 +323,6 @@ Castro::wd_update (Real time, Real dt)
 
     // Free-fall timescale ~ 1 / sqrt(G * rho_avg}
 
-    Real Gconst;
-
-    get_grav_const(&Gconst);
-
     if (mass_p > 0.0 && vol_p[2] > 0.0) {
       rho_avg_p = mass_p / vol_p[2];
       t_ff_p = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_p));
@@ -337,7 +333,7 @@ Castro::wd_update (Real time, Real dt)
       t_ff_s = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_s));
     }
 
-    // Send this updated information back to the Fortran probdata module
+    // Send this updated information back to the Fortran module
 
     set_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
 
@@ -485,7 +481,7 @@ Castro::gwstrain (Real time,
 
     FArrayBox Qtt(bx);
 
-    Qtt.setVal(0.0);
+    Qtt.setVal<RunOn::Device>(0.0);
 
 #ifdef _OPENMP
     int nthreads = omp_get_max_threads();
@@ -498,7 +494,7 @@ Castro::gwstrain (Real time,
     {
 #ifdef _OPENMP
 	int tid = omp_get_thread_num();
-	priv_Qtt[tid]->setVal(0.0);
+	priv_Qtt[tid]->setVal<RunOn::Device>(0.0);
 #endif
 	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 

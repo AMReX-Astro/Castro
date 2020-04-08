@@ -167,7 +167,7 @@ castro.limit_fluxes_on_small_dens = 0
 ############################################################################################
 
 # Minimum allowable temperature (K)
-castro.small_temp = 1.0e7
+castro.small_temp = 1.0e5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5

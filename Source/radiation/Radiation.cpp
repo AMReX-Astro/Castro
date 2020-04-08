@@ -53,6 +53,8 @@ int Radiation::filter_lambda_S = 0;
 int Radiation::filter_prim_int = 0;
 int Radiation::filter_prim_T = 4;
 int Radiation::filter_prim_S = 0;
+int Radiation::limiter = -1;
+int Radiation::closure = -1;
 
 // These physical constants get their values in the Radiation constructor:
 Real Radiation::convert_MeV_erg = 0.0;
@@ -1955,7 +1957,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             c_v.resize(reg);
             get_c_v(c_v, temp, S[mfi], reg);
 
-            S[mfi].copy(temp,reg,0,reg,UTEMP,1);
+            S[mfi].copy<RunOn::Device>(temp,reg,0,reg,UTEMP,1);
+            Gpu::synchronize();
 
 #pragma gpu box(reg) sync
             ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -1971,7 +1974,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               igroup, igroup, 1, 0.0);
 
             kp2.resize(reg);
-            S[mfi].plus(dT, UTEMP, 1);
+            S[mfi].plus<RunOn::Device>(dT, UTEMP, 1);
+            Gpu::synchronize();
 
 #pragma gpu box(reg) sync
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -1979,7 +1983,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               BL_TO_FORTRAN_ANYD(S[mfi]),
                               igroup, igroup, 1, 0.0);
 
-            S[mfi].plus(-dT, UTEMP, 1);
+            S[mfi].plus<RunOn::Device>(-dT, UTEMP, 1);
+            Gpu::synchronize();
 
             ca_get_v_dcf(reg.loVect(), reg.hiVect(),
                          BL_TO_FORTRAN(Er[mfi]),
@@ -2064,7 +2069,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
           const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
 
           for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal(1.0, isects[ii].second, 0);
+              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
           }
       }
   }

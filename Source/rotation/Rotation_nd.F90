@@ -18,7 +18,7 @@ contains
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
     use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -48,13 +48,11 @@ contains
        loc = position(idx(1),idx(2),idx(3)) - center
     endif
 
-    omega = get_omega(time)
+    call get_omega(time, omega)
 
     v = v - cross_product(omega, loc)
 
   end subroutine inertial_to_rotational_velocity
-
-
 
   function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
     ! Given a position and velocity, calculate
@@ -67,7 +65,7 @@ contains
     use amrex_constants_module, only: ZERO, TWO
     use meth_params_module, only: state_in_rotating_frame
     use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use rotation_frequency_module, only: get_domegadt ! function
 
     use amrex_fort_module, only : rt => amrex_real
@@ -83,7 +81,7 @@ contains
 
     !$gpu
 
-    omega = get_omega(time)
+    call get_omega(time, omega)
 
     if (state_in_rotating_frame .eq. 1) then
 
@@ -185,7 +183,7 @@ contains
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
     use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
@@ -199,7 +197,7 @@ contains
 
     if (state_in_rotating_frame .eq. 1) then
 
-       omega = get_omega(time)
+       call get_omega(time, omega)
 
        phi = ZERO
 
@@ -326,7 +324,7 @@ contains
 
     use amrex_constants_module, only: HALF
     use prob_params_module, only: problo, center
-    use rotation_frequency_module, only: get_omega ! function
+    use rotation_frequency_module, only: get_omega
 
     implicit none
 
@@ -341,7 +339,7 @@ contains
 
     !$gpu
 
-    omega = get_omega(time)
+    call get_omega(time, omega)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)

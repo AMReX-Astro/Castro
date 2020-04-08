@@ -176,238 +176,24 @@ contains
   end subroutine ca_recompute_energetics
 
 
-  subroutine ca_reset_internal_e(lo, hi, &
-                                 u, u_lo, u_hi, &
-                                 verbose) bind(c,name='ca_reset_internal_e')
 
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rt
-    use network, only: nspec, naux
-    use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, &
-         UTEMP, small_temp, allow_small_energy, &
-         dual_energy_eta2
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use amrex_fort_module, only : rt => amrex_real
+  subroutine ca_clamp_temp(lo, hi, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
 
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    integer, intent(in), value :: verbose
-
-    ! Local variables
-    integer  :: i,j,k
-    real(rt) :: Up, Vp, Wp, ke, rho_eint, eden, small_e, eint_new, rhoInv
-
-    type (eos_t) :: eos_state
-
-    !$gpu
-
-    ! Reset internal energy
-
-    ! First, check if the internal energy variable is
-    ! smaller than the internal energy computed via
-    ! a call to the EOS using the small temperature.
-    ! If so, reset it using the current temperature,
-    ! assuming it is at least as large as small_temp.
-
-    if (allow_small_energy .eq. 0) then
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rhoInv = ONE / u(i,j,k,URHO)
-                Up = u(i,j,k,UMX) * rhoInv
-                Vp = u(i,j,k,UMY) * rhoInv
-                Wp = u(i,j,k,UMZ) * rhoInv
-                ke = HALF * (Up**2 + Vp**2 + Wp**2)
-                eden = u(i,j,k,UEDEN) * rhoInv
-
-                eos_state % rho = u(i,j,k,URHO)
-                eos_state % T   = small_temp
-                eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                call eos(eos_input_rt, eos_state)
-
-                small_e = eos_state % e
-
-                ! If E < small_e, reset it so that it's equal to internal + kinetic.
-
-                if (eden < small_e) then
-
-                   if (u(i,j,k,UEINT) * rhoInv < small_e) then
-
-                      eos_state % T = max(u(i,j,k,UTEMP), small_temp)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
-
-                   endif
-
-                   u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
-
-                else
-
-                   rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-
-                   ! Reset (e from e) if it's greater than eta * E.
-
-                   if (rho_eint .gt. ZERO .and. rho_eint / u(i,j,k,UEDEN) .gt. dual_energy_eta2) then
-
-                      u(i,j,k,UEINT) = rho_eint
-
-                   endif
-
-                   if (u(i,j,k,UEINT) * rhoInv < small_e) then
-
-                      eos_state % T = max(u(i,j,k,UTEMP), small_temp)
-
-                      call eos(eos_input_rt, eos_state)
-
-                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
-                      u(i,j,k,UTEMP) = eos_state % T
-
-                   endif
-
-                endif
-
-             enddo
-          enddo
-       enddo
-
-    else
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rhoInv = ONE/u(i,j,k,URHO)
-                Up = u(i,j,k,UMX) * rhoInv
-                Vp = u(i,j,k,UMY) * rhoInv
-                Wp = u(i,j,k,UMZ) * rhoInv
-                ke = HALF * (Up**2 + Vp**2 + Wp**2)
-
-                if (u(i,j,k,UEDEN) < ZERO) then
-
-                   if (u(i,j,k,UEINT) < ZERO) then
-
-                      eos_state % rho   = u(i,j,k,URHO)
-                      eos_state % T     = small_temp
-                      eos_state % xn(:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                      eos_state % aux(1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                      call eos(eos_input_rt, eos_state)
-
-                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eos_state % e
-
-                   endif
-
-                   u(i,j,k,UEDEN) = u(i,j,k,UEINT) + u(i,j,k,URHO) * ke
-
-                else
-
-                   rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke
-
-                   ! Reset (e from e) if it's greater than eta * E.
-                   if (rho_eint .gt. ZERO .and. rho_eint .gt. dual_energy_eta2 * u(i,j,k,UEDEN) ) then
-
-                      u(i,j,k,UEINT) = rho_eint
-
-                      ! If not resetting and little e is negative ...
-                   else if (u(i,j,k,UEINT) .le. ZERO) then
-
-                      eos_state % rho   = u(i,j,k,URHO)
-                      eos_state % T     = small_temp
-                      eos_state % xn(:) = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                      eos_state % aux(1:naux) = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-                      call eos(eos_input_rt, eos_state)
-
-                      eint_new = eos_state % e
-
-#ifndef AMREX_USE_CUDA
-                      if (verbose .gt. 0) then
-                         print *,'   '
-                         print *,'>>> Warning: Castro_util.F90::reset_internal_energy  ',i,j,k
-                         print *,'>>> ... resetting neg. e from EOS using small_temp'
-                         print *,'>>> ... from ',u(i,j,k,UEINT)/u(i,j,k,URHO),' to ', eint_new
-                         print *,'    '
-                      end if
-#endif
-
-                      u(i,j,k,UEINT) = u(i,j,k,URHO) * eint_new
-                      u(i,j,k,UTEMP) = eos_state % T
-
-                   endif
-
-                end if
-             enddo
-          enddo
-       enddo
-
-    endif
-
-  end subroutine ca_reset_internal_e
-
-
-  subroutine ca_compute_temp(lo,hi,state,s_lo,s_hi) bind(c,name='ca_compute_temp')
-
-    use network, only: nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, UFS, UFX, &
-                                  clamp_ambient_temp, ambient_safety_factor
+    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
     use ambient_module, only: ambient_state
-    use amrex_constants_module, only: ZERO, HALF, ONE
-#ifndef AMREX_USE_CUDA
-    use castro_error_module, only: castro_error
-#endif
+    use amrex_constants_module, only: HALF, ONE
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer , intent(in   ) :: lo(3),hi(3)
-    integer , intent(in   ) :: s_lo(3),s_hi(3)
+    integer , intent(in   ) :: lo(3), hi(3)
+    integer , intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    integer  :: i,j,k
+    integer  :: i, j, k
     real(rt) :: rhoInv
 
-    type (eos_t) :: eos_state
-
     !$gpu
-
-    ! First check the inputs for validity.
-
-#ifndef AMREX_USE_CUDA
-    do k = lo(3),hi(3)
-       do j = lo(2),hi(2)
-          do i = lo(1),hi(1)
-
-             if (state(i,j,k,URHO) <= ZERO) then
-                print *,'   '
-                print *,'>>> Error: Castro_util.F90::ca_compute_temp ',i,j,k
-                print *,'>>> ... negative density ',state(i,j,k,URHO)
-                print *,'    '
-                call castro_error("Error:: compute_temp_nd.f90")
-             end if
-
-             if (state(i,j,k,UEINT) <= ZERO) then
-                print *,'   '
-                print *,'>>> Warning: Castro_util.F90::ca_compute_temp ',i,j,k
-                print *,'>>> ... negative (rho e) ',state(i,j,k,UEINT)
-                print *,'   '
-                call castro_error("Error:: compute_temp_nd.f90")
-             end if
-
-          enddo
-       enddo
-    enddo
-#endif
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -415,29 +201,17 @@ contains
 
              rhoInv = ONE / state(i,j,k,URHO)
 
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = state(i,j,k,UTEMP) ! Initial guess for the EOS
-             eos_state % e   = state(i,j,k,UEINT) * rhoInv
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             call eos(eos_input_re, eos_state)
-
-             state(i,j,k,UTEMP) = eos_state % T
-
-             if (clamp_ambient_temp == 1) then
-                if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-                   state(i,j,k,UTEMP) = ambient_state(UTEMP)
-                   state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-                   state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-                end if
+             if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+                state(i,j,k,UTEMP) = ambient_state(UTEMP)
+                state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+                state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
              end if
 
           enddo
        enddo
     enddo
 
-  end subroutine ca_compute_temp
+  end subroutine ca_clamp_temp
 
 
 

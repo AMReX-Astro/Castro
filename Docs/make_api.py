@@ -163,19 +163,6 @@ if __name__ == "__main__":
 
                         subdir_output_data += """file/{}
    """.format(rst_name)
-                    elif f[-4:] == ".F90" or f[-4:] == ".f90":
-
-                        # NOTE: I've had to declare some exceptions here as
-                        # for some reason sphinx does not like these files
-                        if subdir == 'problems' and (f[-6:-4] == '1d' or f[-6:-4] == '2d' or f[-6:-4] == '3d'):
-                            continue
-
-                        if f not in ['HABEC_1D.F90', 'HABEC_2D.F90', 'HABEC_3D.F90', 'RAD_1D.F90', 'RAD_2D.F90', 'RAD_3D.F90']:
-
-                            fortran_apidoc(f, os.path.join(rootdir, subdir))
-
-                            subdir_output_data += """file/{}
-   """.format(f[:-4] + "_f")
 
                 subdir_file.write(subdir_output_data)
 

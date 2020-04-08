@@ -34,22 +34,6 @@ contains
   ! ::
 
 
-  subroutine get_grav_const(Gconst_out) bind(C, name="get_grav_const")
-    ! Returns the gravitational constant, G
-    !
-    ! .. note::
-    !    Binds to C function ``get_grav_const``
-
-    use fundamental_constants_module, only: Gconst
-
-    real(rt), intent(inout) :: Gconst_out
-
-    Gconst_out = Gconst
-
-  end subroutine get_grav_const
-
-
-
   subroutine ca_compute_radial_mass(lo, hi, &
                                     dx, dr, &
                                     state, s_lo, s_hi, &

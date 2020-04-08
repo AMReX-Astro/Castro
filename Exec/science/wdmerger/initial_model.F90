@@ -5,14 +5,57 @@
 module initial_model_module
 
   use amrex_fort_module, only: rt => amrex_real
-  use amrex_constants_module
-  use castro_error_module, only: castro_error
+  use amrex_constants_module, only: ZERO, HALF, ONE, FOUR3RD, M_PI
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar
   use meth_params_module, only: small_temp
-  use probdata_module
+
+  type :: initial_model
+
+     ! Physical characteristics
+
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
+
+     ! Composition
+
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
+
+     ! Model storage
+
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
+
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
+     type (eos_t), allocatable :: state(:)
+
+  end type initial_model
+
+  ! 1D initial models
+
+  type (initial_model), allocatable :: model_P, model_S
+  real(rt), allocatable :: rho_P(:), rho_S(:)
+  real(rt), allocatable :: T_P(:), T_S(:)
+  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
+  real(rt), allocatable :: r_P(:), r_S(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_P, model_S
+  attributes(managed) :: rho_P, rho_S
+  attributes(managed) :: T_P, T_S
+  attributes(managed) :: xn_P, xn_S
+  attributes(managed) :: r_P, r_S
+#endif
+
 
 contains
 
@@ -117,6 +160,7 @@ contains
   subroutine establish_hse(model, rho, T, xn, r)
 
     use eos_module, only: eos
+    use castro_error_module, only: castro_error
 
     implicit none
 
