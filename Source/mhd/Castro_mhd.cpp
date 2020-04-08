@@ -41,7 +41,7 @@ Castro::just_the_mhd(Real time, Real dt)
 #pragma omp parallel reduction(+:mass:courno)
 #endif
     { 
-        FArrayBox flux[BL_SPACEDIM], u_gdnv[BL_SPACEDIM], E[BL_SPACEDIM];
+        FArrayBox flux[BL_SPACEDIM], E[BL_SPACEDIM];
 
 
         int priv_nstep_fsp = -1;
@@ -77,8 +77,7 @@ Castro::just_the_mhd(Real time, Real dt)
               const Box& bxtmp = amrex::surroundingNodes(bx,i);
               flux[i].resize(bxtmp,NUM_STATE);
               E[i].resize(bxtmp,NUM_STATE);
-              u_gdnv[i].resize(amrex::grow(bxtmp, 1), 1);
-              u_gdnv[i].setVal(1.e200);
+              
            }
 
 
@@ -92,9 +91,6 @@ Castro::just_the_mhd(Real time, Real dt)
              BL_TO_FORTRAN_3D(Bxout),
              BL_TO_FORTRAN_3D(Byout),
              BL_TO_FORTRAN_3D(Bzout),
-             BL_TO_FORTRAN_3D(u_gdnv[0]),
-             BL_TO_FORTRAN_3D(u_gdnv[1]),
-             BL_TO_FORTRAN_3D(u_gdnv[2]),
              BL_TO_FORTRAN_3D(sources_for_hydro[mfi]),
              dx, &dt,
              D_DECL(BL_TO_FORTRAN_3D(flux[0]),

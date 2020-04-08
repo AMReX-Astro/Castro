@@ -12,9 +12,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
                           bxout, bxout_lo, bxout_hi, &
                           byout, byout_lo, byout_hi, &
                           bzout, bzout_lo, bzout_hi, &
-                          ugdnvx, ugdnvx_lo, ugdnvx_hi, &
-                          ugdnvy, ugdnvy_lo, ugdnvy_hi, &
-                          ugdnvz, ugdnvz_lo, ugdnvz_hi, &
                           src, src_lo, src_hi, &
                           delta, dt, &
                           flux1, flux1_lo, flux1_hi, &
@@ -50,9 +47,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   integer , intent(in   ) :: bxout_lo(3), bxout_hi(3)
   integer , intent(in   ) :: byout_lo(3), byout_hi(3)
   integer , intent(in   ) :: bzout_lo(3), bzout_hi(3)
-  integer , intent(in   ) :: ugdnvx_lo(3), ugdnvx_hi(3)
-  integer , intent(in   ) :: ugdnvy_lo(3), ugdnvy_hi(3)
-  integer , intent(in   ) :: ugdnvz_lo(3), ugdnvz_hi(3)
   integer , intent(in   ) :: src_lo(3), src_hi(3)
   integer , intent(in   ) :: flux1_lo(3), flux1_hi(3)
   integer , intent(in   ) :: flux2_lo(3), flux2_hi(3)
@@ -71,10 +65,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   real(rt), intent(inout) :: bxout(bxout_lo(1):bxout_hi(1), bxout_lo(2):bxout_hi(2), bxout_lo(3):bxout_hi(3))
   real(rt), intent(inout) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
   real(rt), intent(inout) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
-
-  real(rt), intent(in   ) :: ugdnvx(ugdnvx_lo(1):ugdnvx_hi(1), ugdnvx_lo(2):ugdnvx_hi(2), ugdnvx_lo(3):ugdnvx_hi(3))
-  real(rt), intent(in   ) :: ugdnvy(ugdnvy_lo(1):ugdnvy_hi(1), ugdnvy_lo(2):ugdnvy_hi(2), ugdnvy_lo(3):ugdnvy_hi(3))
-  real(rt), intent(in   ) :: ugdnvz(ugdnvz_lo(1):ugdnvz_hi(1), ugdnvz_lo(2):ugdnvz_hi(2), ugdnvz_lo(3):ugdnvz_hi(3))
 
   real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NVAR)
 
