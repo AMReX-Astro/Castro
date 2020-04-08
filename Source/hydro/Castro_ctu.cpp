@@ -626,7 +626,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
               if (n == QV) {
                 qym(i,j,k,QV) = -qyp(i,j,k,QV);
               } else {
-                qym(i,j,k,n) = -qyp(i,j,k,n);
+                qym(i,j,k,n) = qyp(i,j,k,n);
               }
             }
 
