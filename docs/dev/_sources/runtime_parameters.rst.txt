@@ -179,22 +179,22 @@ namespace: ``castro``
 |                                        | reconstructed profiles to be flat, resulting in a       |               |
 |                                        | first-order method                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | ""            |
+| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | ""            |
+| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | ""            |
+| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | ""            |
+| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | ""            |
+| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | ""            |
+| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hse_zero_vels``                      | if we are doing HSE boundary conditions, do we zero the | 0             |
@@ -552,7 +552,7 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
+| ``job_name``                           | a string describing the simulation that will be copied  | "Castro"      |
 |                                        | into the plotfile's ``job_info`` file                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
