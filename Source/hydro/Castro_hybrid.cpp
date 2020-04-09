@@ -96,9 +96,10 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
         auto u = state.array(mfi);
         auto src = sources.array(mfi);
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            Real loc[3];
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
@@ -140,21 +141,22 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 
         // Convert linear momentum to hybrid momentum.
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            Real loc[3];
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
                 loc[dir] -= center[dir];
 
-            Real linear_mom[3];
+            GpuArray<Real, 3> linear_mom;
 
             for (int dir = 0; dir < 3; ++dir)
                 linear_mom[dir] = u(i,j,k,UMX+dir);
 
-            Real hybrid_mom[3];
+            GpuArray<Real, 3> hybrid_mom;
 
             linear_to_hybrid(loc, linear_mom, hybrid_mom);
 
@@ -188,21 +190,22 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 
         // Convert hybrid momentum to linear momentum.
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            Real loc[3];
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
                 loc[dir] -= center[dir];
 
-            Real hybrid_mom[3];
+            GpuArray<Real, 3> hybrid_mom;
 
             for (int dir = 0; dir < 3; ++dir)
                 hybrid_mom[dir] = u(i,j,k,UMR+dir);
 
-            Real linear_mom[3];
+            GpuArray<Real, 3> linear_mom;
 
             hybrid_to_linear(loc, hybrid_mom, linear_mom);
 
