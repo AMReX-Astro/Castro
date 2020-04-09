@@ -244,11 +244,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     Real dt_sub = 1.e200;
 
-    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef REACTIONS
-    MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
 #endif
 
@@ -257,6 +255,8 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     bool do_retry = false;
 
     // By default, we don't do a retry unless the criteria are violated.
+
+    Real check_timestep_failure = 0.0_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
@@ -267,14 +267,12 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
 #pragma gpu box(bx)
         ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
 #ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_old[mfi]),
                           BL_TO_FORTRAN_ANYD(R_new[mfi]),
 #endif
                           AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_MIN(&dt_sub));
+                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
 
     }
 
@@ -307,6 +305,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
         do_retry = true;
 
     if (!advance_success)
+        do_retry = true;
+
+    if (check_timestep_failure > 0.0_rt)
         do_retry = true;
 
     if (do_retry) {

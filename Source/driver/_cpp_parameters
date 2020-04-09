@@ -301,7 +301,7 @@ init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase from one step to
 # the next.
-change_max                   Real          1.1
+change_max                   Real          1.1                y
 
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
