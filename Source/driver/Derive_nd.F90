@@ -1199,45 +1199,6 @@ contains
 
 
 
-  subroutine derkineng(kineng,k_lo,k_hi,nk, &
-                          dat,d_lo,d_hi,nc, &
-                          lo,hi,domlo,domhi,delta) bind(C, name="derkineng")
-    !
-    ! This routine will derive kinetic energy = 1/2 rho (u^2 + v^2 + w^2)
-    !
-
-    use amrex_constants_module, only : HALF
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    integer, intent(in), value :: nk, nc
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: k_lo(3), k_hi(3)
-    integer, intent(in) :: d_lo(3), d_hi(3)
-    integer, intent(in) :: domlo(3), domhi(3)
-    real(rt), intent(in) :: delta(3)
-    real(rt), intent(inout) :: kineng(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),nk)
-    real(rt), intent(in) ::    dat(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),nc)
-
-    integer          :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             kineng(i,j,k,1) = HALF / dat(i,j,k,1) * ( dat(i,j,k,2)**2 + &
-                  dat(i,j,k,3)**2 + &
-                  dat(i,j,k,4)**2 )
-          end do
-       end do
-    end do
-
-  end subroutine derkineng
-
-
-
 #ifdef DIFFUSION
   subroutine dercond(lo, hi, &
                      cond, u_lo, u_hi, nd, &
