@@ -45,6 +45,11 @@ ppm_reconstruct(const Real* s,
     // zone away from the boundary, MC Eq. 22
     sm  = (1.0_rt/12.0_rt)*(3.0_rt*s[im1] + 13.0_rt*s[i0] - 5.0_rt*s[ip1] + s[ip2]);
 
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+    sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+
   } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
                             (idir == 1 && j == domhi[1]) ||
                             (idir == 2 && k == domhi[2]))) {
@@ -52,6 +57,11 @@ ppm_reconstruct(const Real* s,
     // use a stencil for when the current zone is on the right physical boundary
     // then the left interface is one zone away from the physical boundary
     sm = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[im1] - 5.0_rt*s[im2] + s[im3]);
+
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+    sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
   } else {
 
@@ -78,12 +88,13 @@ ppm_reconstruct(const Real* s,
     // Interpolate s to edges
 
     sm = 0.5_rt * (s[i0] + s[im1]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
+
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
+    sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
+
   }
-
-  // Make sure sedge lies in between adjacent cell-centered values
-
-  sm = amrex::max(sm, amrex::min(s[i0], s[im1]));
-  sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
 
   // now we compute s_{i+1/2} -- the right interface value for zone i
@@ -96,6 +107,11 @@ ppm_reconstruct(const Real* s,
     // boundary.  Then the right interface is one zone away from the
     // physical boundary,
     sp = (1.0_rt/12.0_rt)*(3.0_rt*s[i0] + 13.0_rt*s[ip1] - 5.0_rt*s[ip2] + s[ip3]);
+
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+    sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
 
   } else if (hi_bc_test && ((idir == 0 && i == domhi[0]) ||
                             (idir == 1 && j == domhi[1]) ||
@@ -113,6 +129,11 @@ ppm_reconstruct(const Real* s,
     // the right physical boundary, and then the right interface is one
     // zone away from the boundary
     sp  = (1.0_rt/12.0_rt)*(3.0_rt*s[ip1] + 13.0_rt*s[i0] - 5.0_rt*s[im1] + s[im2]);
+
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+    sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
 
   } else {
 
@@ -140,12 +161,13 @@ ppm_reconstruct(const Real* s,
 
     sp = 0.5_rt * (s[ip1] + s[i0]) - (1.0_rt/6.0_rt) * (dsvl_r - dsvl_l);
 
+    // Make sure sedge lies in between adjacent cell-centered values
+
+    sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
+    sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
+
   }
 
-  // Make sure sedge lies in between adjacent cell-centered values
-
-  sp = amrex::max(sp, amrex::min(s[ip1], s[i0]));
-  sp = amrex::min(sp, amrex::max(s[ip1], s[i0]));
 
 
   // Flatten the parabola
