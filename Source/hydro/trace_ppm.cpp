@@ -208,7 +208,9 @@ Castro::trace_ppm(const Box& bx,
 
       }
 
-      ppm_reconstruct(s, flat, sm, sp);
+      ppm_reconstruct(s, i, j, k, idir,
+                      lo_bc_test, hi_bc_test, domlo, domhi,
+                      flat, sm, sp);
       ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip[n], Im[n]);
 
     }
@@ -321,7 +323,9 @@ Castro::trace_ppm(const Box& bx,
     }
 
 
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_gc, Im_gc);
 
 
@@ -391,7 +395,9 @@ Castro::trace_ppm(const Box& bx,
 
         }
 
-        ppm_reconstruct(s, flat, sm, sp);
+        ppm_reconstruct(s, i, j, k, idir,
+                        lo_bc_test, hi_bc_test, domlo, domhi,
+                        flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src[n], Im_src[n]);
 
       } else {

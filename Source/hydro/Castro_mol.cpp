@@ -281,7 +281,9 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
     }
 
-    ppm_reconstruct(s, flat, sm, sp);
+    ppm_reconstruct(s, i, j, k, idir,
+                    lo_bc_test, hi_bc_test, domlo, domhi,
+                    flat, sm, sp);
 
     if (idir == 0) {
       // right state at i-1/2
