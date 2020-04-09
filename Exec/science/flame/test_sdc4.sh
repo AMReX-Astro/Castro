@@ -4,7 +4,7 @@
 set -x
 
 DIM=1
-EXEC=./Castro${DIM}d.gnu.MPI.ex
+EXEC=./Castro${DIM}d.gnu.MPI.TRUESDC.ex
 
 RUNPARAMS="
 castro.sdc_order=4

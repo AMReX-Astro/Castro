@@ -1,0 +1,20 @@
+&fortin
+
+  r_init = 1.25d8
+  p_ambient = 1.d21
+  exp_energy = 1.d52
+  dens_ambient = 1.d4
+  nsub = 10
+
+/
+
+&tagging
+
+  dengrad_rel = 0.25
+  max_dengrad_rel_lev = 20
+
+/
+
+&extern
+
+/

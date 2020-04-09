@@ -1605,7 +1605,7 @@ Castro::computeNewDt (int                   finest_level,
             // Note that if we are just about exactly on a multiple of plot_per,
             // then we need to be careful to avoid floating point issues.
 
-            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon()) {
+            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon() * cur_time) {
                 newPlotDt = plot_per + (plot_per - dtMod);
             }
             else {
@@ -1645,7 +1645,7 @@ Castro::computeNewDt (int                   finest_level,
 
             Real newSmallPlotDt;
 
-            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon()) {
+            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon() * cur_time) {
                 newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
             }
             else {
@@ -2775,19 +2775,37 @@ Castro::avgDown ()
 void
 Castro::normalize_species (MultiFab& S_new, int ng)
 {
-
     BL_PROFILE("Castro::normalize_species()");
+
+    Real lsmall_x = small_x;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.growntilebox(ng);
+        const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-       ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
+        auto u = S_new.array(mfi);
+
+        // Ensure the species mass fractions are between small_x and 1,
+        // then normalize them so that they sum to 1.
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real rhoX_sum = 0.0_rt;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
+                rhoX_sum += u(i,j,k,UFS+n);
+            }
+
+            Real fac = u(i,j,k,URHO) / rhoX_sum;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) *= fac;
+            }
+        });
     }
 }
 
