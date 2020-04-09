@@ -360,7 +360,6 @@ contains
                                dx, dt, failed) &
                                bind(C, name="ca_check_timestep")
     ! Check whether the last timestep violated any of our stability criteria.
-    ! If so, suggest a new timestep which would not.
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
@@ -423,12 +422,11 @@ contains
              ! CFL hydrodynamic stability criterion
 
              ! If the timestep created a velocity v and sound speed at the new time
-             ! such that (v+c) * dt / dx > change_max * CFL, suggest a new timestep
-             ! such that (v+c) * dt / dx <= change_max * CFL, where CFL is the user's
+             ! such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
              ! chosen timestep constraint and change_max is the factor that determines
-             ! how much the timestep can change during an advance. Note that this only
-             ! prevents the timestep from shrinking too much, whereas in estdt change_max
-             ! prevents the timestep from growing too much.
+             ! how much the timestep can change during an advance, consider the advance
+             ! to have failed. This prevents the timestep from shrinking too much, whereas
+             ! in estdt change_max prevents the timestep from growing too much.
 
              if (do_hydro .eq. 1) then
 
