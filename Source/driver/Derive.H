@@ -1,6 +1,8 @@
 #ifndef _Derive_H_
 #define _Derive_H_
 #include <AMReX_BLFort.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_Geometry.H>
 
 #ifdef __cplusplus
 extern "C"

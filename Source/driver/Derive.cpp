@@ -581,11 +581,10 @@ extern "C"
     }
 
     void ca_derkineng (const Box& bx, FArrayBox& kinengfab, int dcomp, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+        	           const FArrayBox& datfab, const Geometry& /*geomdata*/,
+        	           Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        Box bx(ilo, ihi);
 		auto const dat = datfab.array();
 		auto const kineng = kinengfab.array();
 
@@ -594,7 +593,7 @@ extern "C"
 		{
 		    kineng(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * ( dat(i,j,k,1)*dat(i,j,k,1) + 
 														dat(i,j,k,2)*dat(i,j,k,2) + 
-														dat(i,j,k,3)*dat(i,j,k,3) )
+														dat(i,j,k,3)*dat(i,j,k,3) );
 		});
 
     }
