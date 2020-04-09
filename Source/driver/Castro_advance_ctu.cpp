@@ -276,6 +276,8 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
+    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
+
     if (retry_neg_dens_factor > 0.0) {
 
         // Negative density criterion
