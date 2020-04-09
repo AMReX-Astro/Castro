@@ -34,7 +34,6 @@ castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
 
 castro.ppm_type = 1
-castro.ppm_reference_eigenvectors = 1
 castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav
