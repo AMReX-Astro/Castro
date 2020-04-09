@@ -166,6 +166,10 @@ dual_energy_eta2             Real          1.0e-4             y
 # does well with HSE
 use_pslope                   int           1                  y
 
+# if we are using pslope, below what density to we turn off the well-balanced
+# reconstruction?
+pslope_cutoff_density        Real          -1.e20             y
+
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
