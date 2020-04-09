@@ -737,120 +737,117 @@ void Castro::check_to_stop(Real time, bool dump) {
 
     if (use_stopping_criterion) {
 
-      if (problem == 0) {
-
-          // Note that we don't want to use the following in 1D
-          // since we're not simulating gravitationally bound systems.
+        // Note that we don't want to use the following in 1D
+        // since we're not simulating gravitationally bound systems.
 
 #if BL_SPACEDIM > 1
-          if (use_energy_stopping_criterion) {
+        if (use_energy_stopping_criterion) {
 
-              // For the collision problem, we know we are done when the total energy
-              // is positive (indicating that we have become unbound due to nuclear
-              // energy release) and when it is decreasing in magnitude (indicating
-              // all of the excitement is done and fluid is now just streaming off
-              // the grid). We don't need to be super accurate for this, so let's check
-              // on the coarse grid only. It is possible that a collision could not
-              // generate enough energy to become unbound, so possibly this criterion
-              // should be expanded in the future to cover that case.
+            // For the collision problem, we know we are done when the total energy
+            // is positive (indicating that we have become unbound due to nuclear
+            // energy release) and when it is decreasing in magnitude (indicating
+            // all of the excitement is done and fluid is now just streaming off
+            // the grid). We don't need to be super accurate for this, so let's check
+            // on the coarse grid only. It is possible that a collision could not
+            // generate enough energy to become unbound, so possibly this criterion
+            // should be expanded in the future to cover that case.
 
-              Real rho_E = 0.0;
-              Real rho_phi = 0.0;
+            Real rho_E = 0.0;
+            Real rho_phi = 0.0;
 
-              // Note that we'll define the total energy using only
-              // gas energy + gravitational. Rotation is never on
-              // for the collision problem so we can ignore it.
+            // Note that we'll define the total energy using only
+            // gas energy + gravitational. Rotation is never on
+            // for the collision problem so we can ignore it.
 
-              Real E_tot = 0.0;
+            Real E_tot = 0.0;
 
-              Real curTime   = state[State_Type].curTime();
+            Real curTime   = state[State_Type].curTime();
 
-              bool local_flag = true;
-              bool fine_mask = false;
+            bool local_flag = true;
+            bool fine_mask = false;
 
-              rho_E += volWgtSum("rho_E", curTime,  local_flag, fine_mask);
+            rho_E += volWgtSum("rho_E", curTime,  local_flag, fine_mask);
 
 #ifdef GRAVITY
-              if (do_grav) {
-                  rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
-              }
+            if (do_grav) {
+                rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
+            }
 #endif
 
-              E_tot = rho_E + 0.5 * rho_phi;
+            E_tot = rho_E + 0.5 * rho_phi;
 
-              amrex::ParallelDescriptor::ReduceRealSum(E_tot);
+            amrex::ParallelDescriptor::ReduceRealSum(E_tot);
 
-              // Put this on the end of the energy array.
+            // Put this on the end of the energy array.
 
-              for (int i = num_previous_ener_timesteps - 1; i > 0; --i)
-                  total_ener_array[i] = total_ener_array[i - 1];
+            for (int i = num_previous_ener_timesteps - 1; i > 0; --i)
+                total_ener_array[i] = total_ener_array[i - 1];
 
-              total_ener_array[0] = E_tot;
+            total_ener_array[0] = E_tot;
 
-              // Send the data to Fortran.
+            // Send the data to Fortran.
 
-              set_total_ener_array(total_ener_array);
+            set_total_ener_array(total_ener_array);
 
-              bool stop_flag = false;
+            bool stop_flag = false;
 
-              int i = 0;
+            int i = 0;
 
-              // Check if energy is positive and has been decreasing for at least the last few steps.
+            // Check if energy is positive and has been decreasing for at least the last few steps.
 
-              while (i < num_previous_ener_timesteps - 1) {
+            while (i < num_previous_ener_timesteps - 1) {
 
-                  if (total_ener_array[i] < 0.0)
-                      break;
-                  else if (total_ener_array[i] > total_ener_array[i + 1])
-                      break;
+                if (total_ener_array[i] < 0.0)
+                    break;
+                else if (total_ener_array[i] > total_ener_array[i + 1])
+                    break;
 
-                  ++i;
+                ++i;
 
-              }
+            }
 
-              if (i == num_previous_ener_timesteps - 1)
-                  stop_flag = true;
+            if (i == num_previous_ener_timesteps - 1)
+                stop_flag = true;
 
-              if (stop_flag) {
+            if (stop_flag) {
 
-                  jobDoneStatus = 1;
+                jobDoneStatus = 1;
 
-                  set_job_status(&jobDoneStatus);
+                set_job_status(&jobDoneStatus);
 
-                  amrex::Print() << std::endl 
-                                 << "Ending simulation because total energy is positive and decreasing." 
-                                 << std::endl;
+                amrex::Print() << std::endl 
+                               << "Ending simulation because total energy is positive and decreasing." 
+                               << std::endl;
 
-              }
+            }
 
-          }
+        }
 #endif
 
-          if (ts_te_curr_max >= ts_te_stopping_criterion) {
+        if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
-              jobDoneStatus = 1;
+            jobDoneStatus = 1;
 
-              set_job_status(&jobDoneStatus);
+            set_job_status(&jobDoneStatus);
 
-              amrex::Print() << std::endl
-                             << "Ending simulation because we are above the threshold for unstable burning."
-                             << std::endl;
+            amrex::Print() << std::endl
+                           << "Ending simulation because we are above the threshold for unstable burning."
+                           << std::endl;
 
-          }
+        }
 
-          if (T_curr_max >= T_stopping_criterion) {
+        if (T_curr_max >= T_stopping_criterion) {
 
-              jobDoneStatus = 1;
+            jobDoneStatus = 1;
 
-              set_job_status(&jobDoneStatus);
+            set_job_status(&jobDoneStatus);
 
-              amrex::Print() << std::endl
-                             << "Ending simulation because we are above the temperature threshold."
-                             << std::endl;
+            amrex::Print() << std::endl
+                           << "Ending simulation because we are above the temperature threshold."
+                           << std::endl;
 
-          }
+        }
 
-      }
 
     }
 
