@@ -12,7 +12,9 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
-     int numcomp, const int* bc);
+     const amrex::Real* problo,
+     const amrex::Real* dx,
+     Real time, const int* bc);
 
   inline void ca_nullfill
     (BL_FORT_FAB_ARG_3D(state),

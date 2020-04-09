@@ -43,7 +43,8 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     ambient_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                  BL_TO_FORTRAN_ANYD(data),
                  AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                 numcomp, bc_f);
+                 AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(geom.CellSize()),
+                 time, bc_f);
 
     if (numcomp == 1) {
 
