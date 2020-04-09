@@ -299,8 +299,8 @@ cfl                          Real          0.8                y
 # the timestep estimators
 init_shrink                  Real          1.0
 
-# the maximum factor by which the timestep can increase from one step to
-# the next.
+# the maximum factor by which the timestep can increase or decrease from
+# one step to the next
 change_max                   Real          1.1                y
 
 # enforce that the AMR plot interval must be hit exactly
