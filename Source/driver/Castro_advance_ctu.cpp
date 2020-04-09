@@ -431,12 +431,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
-        if (dt_subcycle < dt_cutoff) {
+        // Determine whether we're below the cutoff timestep. Note that
+        // dt_cutoff is set for level 0, so we need to scale this appropriately
+        // depending on our level of refinement.
+
+        Real cutoff_dt = dt_cutoff;
+        for (int lev = 0; lev < level; ++lev) {
+            cutoff_dt /= parent->MaxRefRatio(lev);
+        }
+
+        if (dt_subcycle < cutoff_dt) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
                           << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                          << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+                          << "  castro.dt_cutoff, scaled to the current level (" << cutoff_dt << "). Aborting." << std::endl;
             }
             amrex::Abort("Error: subcycled timesteps too short.");
         }
