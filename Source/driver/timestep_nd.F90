@@ -151,6 +151,8 @@ contains
     real(rt)         :: e, cx, cy, cz, bcx, bcy, bcz, cad
     integer          :: i, j, k
 
+    real(rt)         :: as, ca
+
     type (eos_t) :: eos_state
 
     !
@@ -181,18 +183,19 @@ contains
              e  = u(i,j,k,UEINT)*rhoInv
              spec = u(i,j,k,UFS:UFS+nspec-1)*rhoInv
 
-             if (e .gt. 0.d0) then
-                cad = bcx
-                call eos_soundspeed_mhd(cx,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
-                                        bcx,bcy,bcz,cad) 
-                
-                cad = bcy
-                call eos_soundspeed_mhd(cy,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
-                                        bcx,bcy,bcz,cad)
+             as = eos_state % gam1 * eos_state % p / u(i,j,k,URHO)
+             ca = (bcx**2+bcy**2+bcz**2) / u(i,j,k,URHO)
 
-                cad = bcz
-                call eos_soundspeed_mhd(cz,u(i,j,k,URHO),eos_state % p, eos_state % gam1, &
-                                        bcx,bcy,bcz,cad)
+             if (e .gt. 0.d0) then
+                cad = bcx**2/u(i,j,k,URHO)
+                call eos_soundspeed_mhd(cx, as, ca, cad) 
+                
+                cad = bcy**2/u(i,j,k,URHO)
+                call eos_soundspeed_mhd(cy, as, ca, cad) 
+                                        
+                cad = bcz**2/u(i,j,k,URHO)
+                call eos_soundspeed_mhd(cz, as, ca, cad)
+                                       
              else
                 cx = 0.0d0
                 cy = 0.0d0

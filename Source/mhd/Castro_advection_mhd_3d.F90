@@ -417,6 +417,9 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: a_half, a_dot, rhoInv
   real(rt) :: dtdxaold, dtdyaold, dtdzaold, small_pres_over_dens
 
+  !for the soundspeed
+  real(rt) :: as, ca
+
   type(eos_t) :: eos_state
 
 
@@ -550,17 +553,17 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
 
              
            !sound speed for ideal mhd
-           cad = q(i,j,k,QMAGX)
-           call eos_soundspeed_mhd(cx(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+           as = eos_state % gam1 * q(i,j,k,QPRES)/q(i,j,k,QRHO) 
+           ca = (q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
 
-           cad = q(i,j,k,QMAGY)
-           call eos_soundspeed_mhd(cy(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+           cad = q(i,j,k,QMAGX)**2/q(i,j,k,QRHO)
+           call eos_soundspeed_mhd(cx(i,j,k), as, ca, cad)
 
-           cad = q(i,j,k,QMAGZ)
-           call eos_soundspeed_mhd(cz(i,j,k), q(i,j,j,QRHO), q(i,j,k,QPRES), eos_state % gam1, &
-                                   q(i,j,k,QMAGX), q(i,j,k,QMAGY), q(i,j,k,QMAGZ), cad)
+           cad = q(i,j,k,QMAGY)**2/q(i,j,k,QRHO)
+           call eos_soundspeed_mhd(cy(i,j,k), as, ca, cad)
+
+           cad = q(i,j,k,QMAGZ)**2/q(i,j,k,QRHO)
+           call eos_soundspeed_mhd(cz(i,j,k), as, ca, cad)
            
           
            ! Do we need gam1 and cs in q ? 
