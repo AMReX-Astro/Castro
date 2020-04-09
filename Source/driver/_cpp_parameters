@@ -198,22 +198,22 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        ""                 y
+xl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        ""                 y
+xr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        ""                 y
+yl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        ""                 y
+yr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        ""                 y
+zl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        ""                 y
+zr_ext_bc_type               string        "fillme"           y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -549,7 +549,7 @@ show_center_of_mass          int           0
 
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
-job_name                     string        ""
+job_name                     string        "Castro"
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1
