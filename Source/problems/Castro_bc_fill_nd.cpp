@@ -26,6 +26,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);
+    set_bc_launch_config();
 #else
     const int* bc_f = bcrs.data();
 #endif
@@ -39,12 +40,32 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
     }
 
+    // This routine either comes in with one component or all NUM_STATE.
+
+    if (numcomp == 1) {
+
 #pragma gpu box(bx)
-    ambient_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(data),
-                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                 AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(geom.CellSize()),
-                 time, bc_f);
+        denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_N_ANYD(data, dcomp),
+                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+
+    }
+    else {
+
+        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
+
+#pragma gpu box(bx)
+        hypfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_ANYD(data),
+                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+
+    }
+
+#ifdef AMREX_USE_CUDA
+    clean_bc_launch_config();
+#endif
 
     if (numcomp == 1) {
 

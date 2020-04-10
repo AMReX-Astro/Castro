@@ -14,27 +14,4 @@ module ambient_module
   attributes(managed) :: ambient_state
 #endif
 
-contains
-
-  ! This routine returns the ambient state.
-  ! This file is designed so that it can be overriden
-  ! by specific problems that modify this routines with
-  ! logic specific to that problem for ambient states
-  ! that depend on position and/or time.
-
-  subroutine get_ambient_state(ambient_state_out, loc, time)
-
-    use state_indices_module, only: NVAR
-
-    implicit none
-
-    real(rt), intent(inout) :: ambient_state_out(NVAR)
-    real(rt), intent(in   ) :: loc(3), time
-
-    !$gpu
-
-    ambient_state_out(:) = ambient_state(:)
-
-  end subroutine get_ambient_state
-
 end module ambient_module
