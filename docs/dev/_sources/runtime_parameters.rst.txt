@@ -280,7 +280,7 @@ namespace: ``castro``
 |                                        | that requested by the timestep estimators               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
-|                                        | from one step to the next.                              |               |
+|                                        | or decrease from one step to the next                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
