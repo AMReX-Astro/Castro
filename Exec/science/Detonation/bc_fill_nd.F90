@@ -70,8 +70,7 @@ contains
 
     use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: HALF
-    use meth_params_module, only: NVAR
-    use probdata_module, only: fill_ambient_bc
+    use meth_params_module, only: NVAR, fill_ambient_bc
     use prob_params_module, only : problo
 
     implicit none
@@ -102,7 +101,7 @@ contains
     ! which have bc == 0, or for reflecting boundaries, which have
     ! bc == -1 or bc == 1.
 
-    if (fill_ambient_bc) then
+    if (fill_ambient_bc == 1) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
