@@ -24,7 +24,7 @@ contains
 
   subroutine get_ambient_state(ambient_state_out, loc, time)
 
-    use state_sizes_module, only: NVAR
+    use state_indices_module, only: NVAR
 
     implicit none
 
