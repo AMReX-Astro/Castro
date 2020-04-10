@@ -316,7 +316,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
         Real lreact_rho_min = Castro::react_rho_min;
         Real lreact_rho_max = Castro::react_rho_max;
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
             burn_t burn_state;
