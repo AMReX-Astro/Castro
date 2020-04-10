@@ -247,8 +247,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
-    Real dt_sub = 1.e200;
-
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef REACTIONS
@@ -264,7 +262,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     Real check_timestep_failure = 0.0_rt;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:dt_sub)
+#pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
@@ -283,33 +281,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     ParallelDescriptor::ReduceRealSum(check_timestep_failure);
 
-    if (retry_neg_dens_factor > 0.0) {
-
-        // Negative density criterion
-        // Reset so that the desired maximum fractional change in density
-        // is not larger than retry_neg_dens_factor.
-
-        ParallelDescriptor::ReduceRealMin(frac_change);
-
-        if (frac_change < 0.0)
-            dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
-
-    }
-
-    ParallelDescriptor::ReduceRealMin(dt_sub);
-
-    // Do the retry if the suggested timestep is smaller than the actual one.
-    // A user-specified tolerance parameter can be used here to prevent
-    // retries that are caused by small differences. Note that we are going
-    // to intentionally ignore the actual suggested subcycle, and just go with
-    // retry_subcycle_factor * the current timestep. The reason is that shrinking
-    // the timestep by that factor will substantially change the evolution, and it
-    // could be enough to get the simulation to become sane again. If this is the
-    // case, we end up saving a lot of timesteps relative to the potentially very
-    // small timestep recommended by the above limiters.
-
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle))
-        do_retry = true;
+    // Retry if any advance failure occurred.
 
     if (!advance_success)
         do_retry = true;
