@@ -1,7 +1,7 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, fill_ambient_bc, &
+                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
