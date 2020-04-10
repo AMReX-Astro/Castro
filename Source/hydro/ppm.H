@@ -112,11 +112,11 @@ ppm_reconstruct_pslope(const Real* p, const Real* rho, const Real* src,
   // first integrate HSE outward from zone i and subtract it off from
   // the neighboring zones.
   Real p0 = 0.0_rt;
-  Real pp1 = p[ip1] - (p0 + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]));
-  Real pp2 = p[ip2] - (p0 + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1])
+  Real pp1 = p[ip1] - (p[i0] + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1]));
+  Real pp2 = p[ip2] - (p[i0] + 0.25_rt * dx * (rho[i0] + rho[ip1]) * (src[i0] + src[ip1])
                           + 0.25_rt * dx * (rho[ip1] + rho[ip2]) * (src[ip1] + src[ip2]));
-  Real pm1 = p[im1] - (p0 - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]));
-  Real pm2 = p[im2] - (p0 - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1])
+  Real pm1 = p[im1] - (p[i0] - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1]));
+  Real pm2 = p[im2] - (p[i0] - 0.25_rt * dx * (rho[i0] + rho[im1]) * (src[i0] + src[im1])
                           - 0.25_rt * dx * (rho[im1] + rho[im2]) * (src[im1] + src[im2]));
 
   // Compute van Leer slopes
