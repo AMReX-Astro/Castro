@@ -254,7 +254,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_tolerance, castro.retry_neg_dens_factor, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -293,18 +293,6 @@ namespace: ``castro``
 |                                        | will suggest a new timestep that satisfies the          |               |
 |                                        | criteria, and we will do subcycled timesteps on the     |               |
 |                                        | same level until we reach the original target time.     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
-|                                        | The timestep suggested by the retry will be multiplied  |               |
-|                                        | by (1 + this factor) before comparing the actual        |               |
-|                                        | timestep to it. If set to some number slightly larger   |               |
-|                                        | than zero, then this prevents retries that are caused   |               |
-|                                        | by small numerical differences.                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
-|                                        | changes in density if a retry is triggered by a         |               |
-|                                        | negative density. If this is set to a negative number   |               |
-|                                        | then it will disable retries using this criterion.      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
 |                                        | current timestep by when trying again.                  |               |

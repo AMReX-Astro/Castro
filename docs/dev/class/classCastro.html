@@ -1246,9 +1246,8 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">
-<span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a10ef3bc30b3c84c0c6d7d33b8052a80d"></span>amrex::Real <code class="sig-name descname">enforce_min_density</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1ada94cae9a4f263ae1f0f6695d8578a4b"></span>void <code class="sig-name descname">enforce_min_density</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>This routine sets the density in <code class="docutils literal notranslate"><span class="pre">state</span></code> to be larger than the density floor. Note that it will operate everywhere on <code class="docutils literal notranslate"><span class="pre">state</span></code>, including ghost zones.</p>
-<p>The return value is the the negative fractional change in the state that has the largest magnitude. If there is no reference state, this is meaningless.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
@@ -1261,8 +1260,8 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi">
-<span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::clean_state__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a5a82c395d7e9df56c59e0b65543674f5"></span>amrex::Real <code class="sig-name descname">clean_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible. The return value is the same as the return value of ::enforce_min_density.</p>
+<span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::clean_state__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a28d01d007b9f52d43c4c4f697f07e34d"></span>void <code class="sig-name descname">clean_state</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11clean_stateERN5amrex8MultiFabEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </p></li>
@@ -1875,12 +1874,6 @@
 <dt id="_CPPv4N6Castro24lastDtBeforePlotLimitingE">
 <span id="_CPPv3N6Castro24lastDtBeforePlotLimitingE"></span><span id="_CPPv2N6Castro24lastDtBeforePlotLimitingE"></span><span id="Castro::lastDtBeforePlotLimiting__amrex::Real"></span><span class="target" id="classCastro_1a12581f946964d26a720e1bfb1868f39a"></span>amrex::Real <code class="sig-name descname">lastDtBeforePlotLimiting</code><a class="headerlink" href="#_CPPv4N6Castro24lastDtBeforePlotLimitingE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv4N6Castro11frac_changeE">
-<span id="_CPPv3N6Castro11frac_changeE"></span><span id="_CPPv2N6Castro11frac_changeE"></span><span id="Castro::frac_change__amrex::Real"></span><span class="target" id="classCastro_1a3426cd9ab5dae1f65b0a93b1574cde60"></span>amrex::Real <code class="sig-name descname">frac_change</code><a class="headerlink" href="#_CPPv4N6Castro11frac_changeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>for keeping track of mass changes from negative density resets </p>
-</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv4N6Castro6n_lostE">

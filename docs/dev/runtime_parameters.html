@@ -689,22 +689,6 @@ criteria, and we will do subcycled timesteps on the
 same level until we reach the original target time.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></p></td>
-<td><p>Tolerance to use when evaluating whether to do a retry.
-The timestep suggested by the retry will be multiplied
-by (1 + this factor) before comparing the actual
-timestep to it. If set to some number slightly larger
-than zero, then this prevents retries that are caused
-by small numerical differences.</p></td>
-<td><p>0.02</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></p></td>
-<td><p>If we’re doing retries, set the target threshold for
-changes in density if a retry is triggered by a
-negative density. If this is set to a negative number
-then it will disable retries using this criterion.</p></td>
-<td><p>1.e-1</p></td>
-</tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
 <td><p>When performing a retry, the factor to multiply the
 current timestep by when trying again.</p></td>
