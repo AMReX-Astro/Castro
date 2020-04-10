@@ -1,5 +1,11 @@
 # 20.05
 
+   * We now always issue a timestep retry if the density after an
+     advance is negative (or less than small_dens). The parameter
+     castro.retry_neg_dens_factor is removed. The parameter
+     castro.retry_tolerance is also removed as it no longer has
+     any effect. (#796)
+
    * The timestep control parameter castro.change_max now also will
      prevent the timestep by shrinking too much in one timestep
      (previously it would only prevent it from growing too much).
@@ -51,10 +57,6 @@
      we detect that a retry is needed (#812)
 
 # 20.03
-
-   * We now always issue a timestep retry if the density after an
-     advance is negative (or less than small_dens). The parameter
-     castro.retry_neg_dens_factor is removed. (#796)
 
    * We now depend on the fundamental constants from Microphysics
      instead of keep our own copy in Castro (#787)

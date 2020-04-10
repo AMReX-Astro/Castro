@@ -316,13 +316,6 @@ small_plot_per_is_exact      int           0
 # we reach the original target time.
 use_retry                    int           1
 
-# Tolerance to use when evaluating whether to do a retry.
-# The timestep suggested by the retry will be multiplied by
-# (1 + this factor) before comparing the actual timestep to it.
-# If set to some number slightly larger than zero, then this
-# prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.02
-
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
