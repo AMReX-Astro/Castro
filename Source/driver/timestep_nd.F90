@@ -352,20 +352,18 @@ contains
 #endif
 
 
-  subroutine ca_check_timestep(lo, hi, s_old, so_lo, so_hi, &
-       s_new, sn_lo, sn_hi, &
+  subroutine ca_check_timestep(lo, hi, &
+                               state, s_lo, s_hi, &
 #ifdef REACTIONS
-       r_old, ro_lo, ro_hi, &
-       r_new, rn_lo, rn_hi, &
+                               reactions, r_lo, r_hi, &
 #endif
-       dx, dt_old, dt_new) &
-       bind(C, name="ca_check_timestep")
+                               dx, dt, failed) &
+                               bind(C, name="ca_check_timestep")
     ! Check whether the last timestep violated any of our stability criteria.
-    ! If so, suggest a new timestep which would not.
 
     use amrex_constants_module, only: HALF, ONE
     use meth_params_module, only: NVAR, URHO, UTEMP, UEINT, UFS, UFX, UMX, UMZ, &
-         cfl, do_hydro
+                                  cfl, do_hydro, change_max
 #ifdef REACTIONS
     use meth_params_module, only: dtnuc_e, dtnuc_X, dtnuc_X_threshold, do_react
     use extern_probin_module, only: small_x
@@ -375,40 +373,37 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_input_re, eos_t
     use amrex_fort_module, only : rt => amrex_real
-    use reduction_module, only: reduce_min
+    use reduction_module, only: reduce_add
 
     implicit none
 
     integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: so_lo(3), so_hi(3)
-    integer, intent(in) :: sn_lo(3), sn_hi(3)
+    integer, intent(in) :: s_lo(3), s_hi(3)
 #ifdef REACTIONS
-    integer, intent(in) :: ro_lo(3), ro_hi(3)
-    integer, intent(in) :: rn_lo(3), rn_hi(3)
+    integer, intent(in) :: r_lo(3), r_hi(3)
 #endif
-    real(rt), intent(in) :: s_old(so_lo(1):so_hi(1),so_lo(2):so_hi(2),so_lo(3):so_hi(3),NVAR)
-    real(rt), intent(in) :: s_new(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 #ifdef REACTIONS
-    real(rt), intent(in) :: r_old(ro_lo(1):ro_hi(1),ro_lo(2):ro_hi(2),ro_lo(3):ro_hi(3),nspec+2)
-    real(rt), intent(in) :: r_new(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt), intent(in) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
 #endif
     real(rt), intent(in) :: dx(3)
-    real(rt), intent(in), value :: dt_old
-    real(rt), intent(inout) :: dt_new
+    real(rt), intent(in), value :: dt
+    real(rt), intent(inout) :: failed
 
-    integer          :: i, j, k
-    integer          :: n
-    real(rt)         :: rhooinv, rhoninv
+    integer  :: i, j, k, n
+    real(rt) :: rhoinv
 #ifdef REACTIONS
-    real(rt)         :: X_old(nspec), X_new(nspec), X_avg(nspec), X_dot(nspec)
-    real(rt)         :: e_old, e_new, e_avg, e_dot
-    real(rt)         :: tau_X, tau_e
+    real(rt) :: X(nspec), X_dot(nspec)
+    real(rt) :: e, e_dot
+    real(rt) :: tau_X, tau_e
 #endif
-    real(rt)         :: tau_CFL
-    real(rt)         :: dt_tmp
+    real(rt) :: tau_CFL
+    real(rt) :: dt_tmp
 
-    real(rt)         :: v(3), c
-    type (eos_t)     :: eos_state
+    real(rt) :: v(3), c
+    type (eos_t) :: eos_state
+
+    real(rt) :: zone_failed
 
     real(rt), parameter :: derivative_floor = 1.e-50_rt
 
@@ -418,43 +413,38 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhooinv = ONE / s_old(i,j,k,URHO)
-             rhoninv = ONE / s_new(i,j,k,URHO)
+             zone_failed = 0.0_rt
+
+             dt_tmp = dt
+
+             rhoinv = ONE / state(i,j,k,URHO)
 
              ! CFL hydrodynamic stability criterion
 
-             ! If the timestep violated (v+c) * dt / dx > CFL,
-             ! suggest a new timestep such that (v+c) * dt / dx <= CFL,
-             ! where CFL is the user's chosen timestep constraint.
-             ! Note that this means that we'll suggest a retry even
-             ! for very small violations of the CFL criterion, which
-             ! we may not want. That is why the retry_tolerance parameter
-             ! exists when we're checking whether to do a retry: if it
-             ! is non-zero, then small violations will be tolerated.
-
-             ! This check does not enforce a CFL constraint on the
-             ! new velocity; it is only a restraint on what the initial
-             ! timestep at the old-time should have been.
+             ! If the timestep created a velocity v and sound speed at the new time
+             ! such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
+             ! chosen timestep constraint and change_max is the factor that determines
+             ! how much the timestep can change during an advance, consider the advance
+             ! to have failed. This prevents the timestep from shrinking too much, whereas
+             ! in estdt change_max prevents the timestep from growing too much.
 
              if (do_hydro .eq. 1) then
 
-                eos_state % rho = s_old(i,j,k,URHO )
-                eos_state % T   = s_old(i,j,k,UTEMP)
-                eos_state % e   = s_old(i,j,k,UEINT) * rhooinv
-                eos_state % xn  = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
-                eos_state % aux = s_old(i,j,k,UFX:UFX+naux-1) * rhooinv
+                eos_state % rho = state(i,j,k,URHO )
+                eos_state % T   = state(i,j,k,UTEMP)
+                eos_state % e   = state(i,j,k,UEINT) * rhoinv
+                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoinv
+                eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoinv
 
                 call eos(eos_input_re, eos_state)
 
-                v = abs(s_old(i,j,k,UMX:UMZ)) * rhooinv
+                v = abs(state(i,j,k,UMX:UMZ)) * rhoinv
 
                 c = eos_state % cs
 
                 tau_CFL = minval(dx(1:dim) / (c + v(1:dim)))
 
                 dt_tmp = cfl * tau_CFL
-
-                call reduce_min(dt_new, dt_tmp)
 
              endif
 
@@ -464,47 +454,36 @@ contains
 
              if (do_react .eq. 1) then
 
-                X_old = s_old(i,j,k,UFS:UFS+nspec-1) * rhooinv
-                X_new = s_new(i,j,k,UFS:UFS+nspec-1) * rhoninv
-                X_avg = max(small_x, HALF * (X_old + X_new))
-                X_dot = HALF * (r_old(i,j,k,1:nspec) + r_new(i,j,k,1:nspec))
+                X = max(small_x, state(i,j,k,UFS:UFS+nspec-1) * rhoinv)
+                X_dot = reactions(i,j,k,1:nspec)
 
                 do n = 1, nspec
-                   if (X_avg(n) .ge. dtnuc_X_threshold) then
+                   if (X(n) .ge. dtnuc_X_threshold) then
                       X_dot(n) = max(abs(X_dot(n)), derivative_floor)
                    else
                       X_dot(n) = derivative_floor
                    end if
                 end do
 
-                tau_X = minval( X_avg / X_dot )
+                tau_X = minval(X / X_dot)
 
-                e_old = s_old(i,j,k,UEINT) * rhooinv
-                e_new = s_new(i,j,k,UEINT) * rhoninv
-                e_avg = HALF * (e_old + e_new)
-                e_dot = HALF * (r_old(i,j,k,nspec+1) + r_new(i,j,k,nspec+1))
+                e = state(i,j,k,UEINT) * rhoinv
+                e_dot = reactions(i,j,k,nspec+1)
 
                 e_dot = max(abs(e_dot), derivative_floor)
-                tau_e = e_avg / e_dot
+                tau_e = e / e_dot
 
-                dt_tmp = dt_old
-
-                if (dt_old > dtnuc_e * tau_e) then
-
-                   dt_tmp = min(dt_tmp, dtnuc_e * tau_e)
-
-                endif
-
-                if (dt_old > dtnuc_X * tau_X) then
-
-                   dt_tmp = min(dt_tmp, dtnuc_X * tau_X)
-
-                endif
-
-                call reduce_min(dt_new, dt_tmp)
+                dt_tmp = min(dt_tmp, dtnuc_e * tau_e)
+                dt_tmp = min(dt_tmp, dtnuc_X * tau_X)
 
              endif
 #endif
+
+             if (change_max * dt_tmp < dt) then
+                zone_failed = 1.0_rt
+             end if
+
+             call reduce_add(failed, zone_failed)
 
           enddo
        enddo

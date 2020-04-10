@@ -85,7 +85,8 @@ Castro::compute_flux_q(const Box& bx,
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real u_adv = qint(i,j,k,iu);
@@ -158,7 +159,7 @@ Castro::compute_flux_q(const Box& bx,
 
 #ifdef HYBRID_MOMENTUM
     // the hybrid routine uses the Godunov indices, not the full NQ state
-    Real qgdnv_zone[NGDNV];
+    GpuArray<Real, NGDNV> qgdnv_zone;
     qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
     qgdnv_zone[GDU] = qint(i,j,k,QU);
     qgdnv_zone[GDV] = qint(i,j,k,QV);
@@ -166,17 +167,17 @@ Castro::compute_flux_q(const Box& bx,
     qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
 #ifdef RADIATION
     for (int g = 0; g < NGROUPS; g++) {
-      qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
-      qgdnv_zone(GDERADS+g] = qint(i,j,k,QRAD+g);
+        qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
+        qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
     }
 #endif
-    Real F_zone[NUM_STATE];
+    GpuArray<Real, NUM_STATE> F_zone;
     for (int n = 0; n < NUM_STATE; n++) {
-      F_zone[n] = F(i,j,k,n);
+        F_zone[n] = F(i,j,k,n);
     }
-    compute_hybrid_flux(qgdnv_zone, geomdata, center.begin(), idir, i, j, k, F_zone);
+    compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F_zone);
     for (int n = 0; n < NUM_STATE; n++) {
-      F(i,j,k,n) = F_zone[n];
+        F(i,j,k,n) = F_zone[n];
     }
 #endif
   });
