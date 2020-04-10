@@ -67,9 +67,6 @@ amr.compute_new_dt_on_regrid = 1
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
 
-# Disable retries based on negative density resets
-castro.retry_neg_dens_factor = -1.0
-
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################
@@ -170,7 +167,7 @@ castro.limit_fluxes_on_small_dens = 0
 ############################################################################################
 
 # Minimum allowable temperature (K)
-castro.small_temp = 1.0e7
+castro.small_temp = 1.0e5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5

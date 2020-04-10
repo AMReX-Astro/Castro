@@ -14,3 +14,4 @@ mpiexec -n 8 ${EXEC} inputs_2d.64 ${RUNPARAMS} castro.do_react=0 amr.probin_file
 mpiexec -n 8 ${EXEC} inputs_2d.128 ${RUNPARAMS} castro.do_react=0 amr.probin_file=probin.128.nopert >& 128.out
 mpiexec -n 16 ${EXEC} inputs_2d.256 ${RUNPARAMS} castro.do_react=0 amr.probin_file=probin.256.nopert >& 256.out
 
+

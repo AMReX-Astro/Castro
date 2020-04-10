@@ -1,6 +1,7 @@
 #include "Castro.H"
 #include "Castro_util.H"
 #include "Castro_F.H"
+#include "Castro_hydro.H"
 #include "Castro_hydro_F.H"
 
 #ifdef RADIATION
@@ -161,7 +162,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       bool oversubscribed = false;
 
 #ifdef AMREX_USE_CUDA
-      if (Gpu::Device::freeMemAvailable() < 0.05 * Gpu::Device::totalGlobalMem()) {
+      if (Gpu::Device::freeMemAvailable() < 0.005 * Gpu::Device::totalGlobalMem()) {
           oversubscribed = true;
       }
 #endif
@@ -1164,29 +1165,25 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
           if (limit_fluxes_on_small_dens == 1) {
-#pragma gpu box(nbx)
               limit_hydro_fluxes_on_small_dens
-                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                   idir_f,
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
-                   BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                   dt, AMREX_REAL_ANYD(dx));
+                  (nbx, idir,
+                   Sborder.array(mfi),
+                   q.array(mfi),
+                   volume.array(mfi),
+                   flux[idir].array(),
+                   area[idir].array(mfi),
+                   dt);
           }
 
           if (limit_fluxes_on_large_vel == 1) {
-#pragma gpu box(nbx)
               limit_hydro_fluxes_on_large_vel
-                  (AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                   idir_f,
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(volume[mfi]),
-                   BL_TO_FORTRAN_ANYD(flux[idir]),
-                   BL_TO_FORTRAN_ANYD(area[idir][mfi]),
-                   dt, AMREX_REAL_ANYD(dx));
+                  (nbx, idir,
+                   Sborder.array(mfi),
+                   q.array(mfi),
+                   volume.array(mfi),
+                   flux[idir].array(),
+                   area[idir].array(mfi),
+                   dt);
           }
 
           normalize_species_fluxes(nbx, flux_arr);
@@ -1226,23 +1223,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #ifdef HYBRID_MOMENTUM
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
-    {
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
 
-        Real loc[3];
+          GpuArray<Real, 3> loc;
 
-        position(i, j, k, geomdata, loc);
+          position(i, j, k, geomdata, loc);
 
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-            loc[dir] -= center[dir];
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+              loc[dir] -= center[dir];
 
-        Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
-        Real RInv = 1.0_rt / R;
+          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+          Real RInv = 1.0_rt / R;
 
-        update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
-                                                         (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
+          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
+                                                           (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
 
-    });
+      });
 #endif
 
 #ifdef RADIATION

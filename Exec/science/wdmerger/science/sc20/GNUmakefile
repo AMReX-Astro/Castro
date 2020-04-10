@@ -1,0 +1,8 @@
+DIM = 3
+USE_MPI = TRUE
+USE_OMP = FALSE
+USE_CUDA = TRUE
+COMP = PGI
+NETWORK_DIR = iso7
+
+include ../../GNUmakefile

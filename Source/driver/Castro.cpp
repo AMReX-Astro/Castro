@@ -63,9 +63,6 @@ int          Castro::NUM_GROW      = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
-Real         Castro::frac_change   = 1.e200;
-
-
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
@@ -954,6 +951,64 @@ Castro::initData ()
 
        }
 
+       // it is not a requirement that the problem setup defines the
+       // temperature, so we do that here _and_ ensure that we are
+       // within any small limits
+       computeTemp(S_new, cur_time, S_new.nGrow());
+
+       int init_failed_rho = 0;
+       int init_failed_T = 0;
+
+#ifdef _OPENMP
+#pragma omp parallel reduction(+:init_failed_rho,init_failed_T)
+#endif
+       for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+         {
+           const Box& bx = mfi.tilebox();
+
+           auto S_arr = S_new.array(mfi);
+
+           Real lsmall_temp = small_temp;
+           Real lsmall_dens = small_dens;
+
+           int* init_failed_rho_d = AMREX_MFITER_REDUCE_SUM(&init_failed_rho);
+           int* init_failed_T_d = AMREX_MFITER_REDUCE_SUM(&init_failed_T);
+
+           AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+           {
+
+             // if the problem tried to initialize a thermodynamic
+             // state that is at or below small_temp, then we abort.
+             // This is dangerous and we should recommend a smaller
+             // small_temp
+             if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_T_d, 1);
+#else
+               *init_failed_T_d += 1;
+#endif
+             }
+
+             if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+#if AMREX_DEVICE_COMPILE
+               Gpu::deviceReduceSum(init_failed_rho_d, 1);
+#else
+               *init_failed_rho_d += 1;
+#endif
+             }
+
+           });
+
+         }
+
+       if (init_failed_rho != 0.0) {
+         amrex::Error("Error: initial data has rho <~ small_dens");
+       }
+
+       if (init_failed_T != 0.0) {
+         amrex::Error("Error: initial data has T <~ small_temp");
+       }
+
 #ifdef AMREX_USE_CUDA
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
@@ -1547,7 +1602,7 @@ Castro::computeNewDt (int                   finest_level,
             // Note that if we are just about exactly on a multiple of plot_per,
             // then we need to be careful to avoid floating point issues.
 
-            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon()) {
+            if (std::abs(dtMod - plot_per) <= std::numeric_limits<Real>::epsilon() * cur_time) {
                 newPlotDt = plot_per + (plot_per - dtMod);
             }
             else {
@@ -1587,7 +1642,7 @@ Castro::computeNewDt (int                   finest_level,
 
             Real newSmallPlotDt;
 
-            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon()) {
+            if (std::abs(dtMod - small_plot_per) <= std::numeric_limits<Real>::epsilon() * cur_time) {
                 newSmallPlotDt = small_plot_per + (small_plot_per - dtMod);
             }
             else {
@@ -2717,19 +2772,37 @@ Castro::avgDown ()
 void
 Castro::normalize_species (MultiFab& S_new, int ng)
 {
-
     BL_PROFILE("Castro::normalize_species()");
+
+    Real lsmall_x = small_x;
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.growntilebox(ng);
+        const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-       ca_normalize_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                            BL_TO_FORTRAN_ANYD(S_new[mfi]));
+        auto u = S_new.array(mfi);
+
+        // Ensure the species mass fractions are between small_x and 1,
+        // then normalize them so that they sum to 1.
+
+        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        {
+            Real rhoX_sum = 0.0_rt;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
+                rhoX_sum += u(i,j,k,UFS+n);
+            }
+
+            Real fac = u(i,j,k,URHO) / rhoX_sum;
+
+            for (int n = 0; n < NumSpec; ++n) {
+                u(i,j,k,UFS+n) *= fac;
+            }
+        });
     }
 }
 
@@ -2753,7 +2826,7 @@ Castro::enforce_consistent_e (MultiFab& S)
     }
 }
 
-Real
+void
 Castro::enforce_min_density (MultiFab& state_in, int ng)
 {
 
@@ -2762,8 +2835,6 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
     // This routine sets the density in state_in to be larger than the
     // density floor.  Note that it will operate everywhere on state_in,
     // including ghost zones.
-
-    Real dens_change = 1.e0;
 
     MultiFab reset_source;
 
@@ -2779,7 +2850,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
     }
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:dens_change)
+#pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
@@ -2789,7 +2860,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         ca_enforce_minimum_density
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(state_in[mfi]),
-             AMREX_MFITER_REDUCE_MIN(&dens_change), verbose);
+             verbose);
 
     }
 
@@ -2821,8 +2892,6 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 #endif
 
     }
-
-    return dens_change;
 
 }
 
@@ -3787,17 +3856,16 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
 }
 
 // Given State_Type state data, perform a number of cleaning steps to make
-// sure the data is sensible. The return value is the same as the return
-// value of enforce_min_density.
+// sure the data is sensible.
 
-Real
+void
 Castro::clean_state(MultiFab& state_in, Real time, int ng) {
 
     BL_PROFILE("Castro::clean_state()");
 
     // Enforce a minimum density.
 
-    Real frac_change = enforce_min_density(state_in, ng);
+    enforce_min_density(state_in, ng);
 
     // Ensure all species are normalized.
 
@@ -3815,7 +3883,5 @@ Castro::clean_state(MultiFab& state_in, Real time, int ng) {
     // the internal energy for consistency with the total energy).
 
     computeTemp(state_in, time, ng);
-
-    return frac_change;
 
 }

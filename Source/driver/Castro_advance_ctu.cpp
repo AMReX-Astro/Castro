@@ -153,11 +153,16 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
+
+      // Check for small/negative densities.
+      // If we detect one, return immediately.
+      if (S_new.min(URHO) < small_dens)
+          return false;
     }
 
 
     // Sync up state after old sources and hydro source.
-    frac_change = clean_state(S_new, cur_time, 0);
+    clean_state(S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -242,13 +247,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
-    Real dt_sub = 1.e200;
-
-    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef REACTIONS
-    MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
 #endif
 
@@ -258,8 +259,10 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     // By default, we don't do a retry unless the criteria are violated.
 
+    Real check_timestep_failure = 0.0_rt;
+
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:dt_sub)
+#pragma omp parallel
 #endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
@@ -267,46 +270,23 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
 #pragma gpu box(bx)
         ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
 #ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_old[mfi]),
                           BL_TO_FORTRAN_ANYD(R_new[mfi]),
 #endif
                           AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_MIN(&dt_sub));
+                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
 
     }
 
-    if (retry_neg_dens_factor > 0.0) {
+    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
 
-        // Negative density criterion
-        // Reset so that the desired maximum fractional change in density
-        // is not larger than retry_neg_dens_factor.
-
-        ParallelDescriptor::ReduceRealMin(frac_change);
-
-        if (frac_change < 0.0)
-            dt_sub = std::min(dt_sub, dt * -(retry_neg_dens_factor / frac_change));
-
-    }
-
-    ParallelDescriptor::ReduceRealMin(dt_sub);
-
-    // Do the retry if the suggested timestep is smaller than the actual one.
-    // A user-specified tolerance parameter can be used here to prevent
-    // retries that are caused by small differences. Note that we are going
-    // to intentionally ignore the actual suggested subcycle, and just go with
-    // retry_subcycle_factor * the current timestep. The reason is that shrinking
-    // the timestep by that factor will substantially change the evolution, and it
-    // could be enough to get the simulation to become sane again. If this is the
-    // case, we end up saving a lot of timesteps relative to the potentially very
-    // small timestep recommended by the above limiters.
-
-    if (dt_sub * (1.0 + retry_tolerance) < std::min(dt, dt_subcycle))
-        do_retry = true;
+    // Retry if any advance failure occurred.
 
     if (!advance_success)
+        do_retry = true;
+
+    if (check_timestep_failure > 0.0_rt)
         do_retry = true;
 
     if (do_retry) {
@@ -431,12 +411,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
-        if (dt_subcycle < dt_cutoff) {
+        // Determine whether we're below the cutoff timestep. Note that
+        // dt_cutoff is set for level 0, so we need to scale this appropriately
+        // depending on our level of refinement.
+
+        Real cutoff_dt = dt_cutoff;
+        for (int lev = 0; lev < level; ++lev) {
+            cutoff_dt /= parent->MaxRefRatio(lev);
+        }
+
+        if (dt_subcycle < cutoff_dt) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
                           << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                          << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+                          << "  castro.dt_cutoff, scaled to the current level (" << cutoff_dt << "). Aborting." << std::endl;
             }
             amrex::Abort("Error: subcycled timesteps too short.");
         }

@@ -212,7 +212,7 @@ Castro::inertial_to_rotational_velocity_c(const int i, const int j, const int k,
 
   // Note: this version assumes all cell-centers
 
-  Real loc[3];
+  GpuArray<Real, 3> loc;
 
   position(i, j, k, geomdata, loc);
 

@@ -260,7 +260,7 @@ void RadBndry::setHomogValues(const BCRec& bc, IntVect& ratio)
     Orientation face(fi());
     for (FabSetIter bi(bndry[face]); bi.isValid(); ++bi) {
       FArrayBox& bnd_fab = bndry[face][bi];
-      bnd_fab.setVal(0.0);
+      bnd_fab.setVal<RunOn::Host>(0.0);
     }
   }
 }
