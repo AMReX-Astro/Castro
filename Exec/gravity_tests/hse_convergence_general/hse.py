@@ -23,11 +23,11 @@ def doit(outfile="hse.png"):
 
         ax.plot(ray["x"][isrt], ray["magvel"][isrt], label=l)
 
-    fig.legend(frameon=False)
+    ax.legend(frameon=False)
     ax.set_yscale("log")
     fig.tight_layout()
 
-    fig.savefig("hse.png")
+    fig.savefig(outfile)
 
 if __name__ == "__main__":
 
@@ -35,4 +35,4 @@ if __name__ == "__main__":
     p.add_argument("outfile", type=str, nargs="?", default="hse.png")
     args = p.parse_args()
 
-    doit(args.outfile)
+    doit(outfile=args.outfile)

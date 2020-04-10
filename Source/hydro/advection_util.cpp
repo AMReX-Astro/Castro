@@ -3,6 +3,10 @@
 #include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
+#endif
+
 #ifdef RADIATION
 #include "Radiation.H"
 #include "fluxlimiter.H"
@@ -621,3 +625,492 @@ Castro::scale_rad_flux(const Box& bx,
 }
 #endif
 
+
+
+AMREX_GPU_HOST_DEVICE
+void
+Castro::dflux(const GpuArray<Real, NUM_STATE>& u,
+              const GpuArray<Real, NQ>& q,
+              int dir, int coord,
+              const GeometryData& geomdata,
+              const GpuArray<Real, 3>& center,
+              const GpuArray<int, 3>& idx,
+              GpuArray<Real, NUM_STATE>& flux)
+{
+    // Given a conservative state and its corresponding primitive state, calculate the
+    // corresponding flux in a given direction.
+
+    // Set everything to zero; this default matters because some
+    // quantities like temperature are not updated through fluxes.
+
+    for (int n = 0; n < NUM_STATE; ++n) {
+        flux[n] = 0.0_rt;
+    }
+
+    // Determine the advection speed based on the flux direction.
+
+    Real v_adv = q[QU + dir];
+
+    // Core quantities (density, momentum, energy).
+
+    flux[URHO] = u[URHO] * v_adv;
+    flux[UMX] = u[UMX] * v_adv;
+    flux[UMY] = u[UMY] * v_adv;
+    flux[UMZ] = u[UMZ] * v_adv;
+    flux[UEDEN] = (u[UEDEN] + q[QPRES]) * v_adv;
+    flux[UEINT] = u[UEINT] * v_adv;
+
+    // Optionally include the pressure term in the momentum flux.
+    // It is optional because for some geometries we cannot write
+    // the pressure term in a conservative form.
+
+    if (mom_flux_has_p(dir, dir, coord)) {
+        flux[UMX + dir] = flux[UMX + dir] + q[QPRES];
+    }
+
+    // Hybrid flux.
+
+#ifdef HYBRID_MOMENTUM
+    // Create a temporary edge-based q for this routine.
+    GpuArray<Real, NGDNV> qgdnv;
+    for (int n = 0; n < NGDNV; ++n) {
+        qgdnv[n] = 0.0_rt;
+    }
+    qgdnv[GDRHO] = q[QRHO];
+    qgdnv[GDU] = q[QU];
+    qgdnv[GDV] = q[QV];
+    qgdnv[GDW] = q[QW];
+    qgdnv[GDPRES] = q[QPRES];
+    bool cell_centered = true;
+    compute_hybrid_flux(qgdnv, geomdata, center, dir,
+                        idx[0], idx[1], idx[2],
+                        flux, cell_centered);
+#endif
+
+    // Passively advected quantities.
+
+    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
+
+        int n = upassmap(ipassive);
+        flux[n] = u[n] * v_adv;
+
+    }
+
+}
+
+
+
+void
+Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
+                                         int idir,
+                                         Array4<Real const> const& u,
+                                         Array4<Real const> const& q,
+                                         Array4<Real const> const& vol,
+                                         Array4<Real> const& flux,
+                                         Array4<Real const> const& area,
+                                         Real dt)
+{
+
+    // The following algorithm comes from Hu, Adams, and Shu (2013), JCP, 242, 169,
+    // "Positivity-preserving method for high-order conservative schemes solving
+    // compressible Euler equations." It has been modified to enforce not only positivity
+    // but also the stronger requirement that rho > small_dens. We do not limit on pressure
+    // (or, similarly, internal energy) because those cases are easily fixed by calls to
+    // reset_internal_energy that enforce a thermodynamic floor. The density limiter, by
+    // contrast, is very important because calls to enforce_minimum_density can yield
+    // hydrodynamic states that are inconsistent (there is no clear strategy for what to do
+    // when a density is negative).
+
+    const Real density_floor_tolerance = 1.1_rt;
+
+    // The density floor is the small density, modified by a small factor.
+    // In practice numerical error can cause the density that is created
+    // by this flux limiter to be slightly lower than the target density,
+    // so we set the target to be slightly larger than the real density floor
+    // to avoid density resets.
+
+    Real density_floor = small_dens * density_floor_tolerance;
+
+    const Real* dx = geom.CellSize();
+
+    Real dtdx = dt / dx[idir];
+    Real lcfl = cfl;
+    Real alpha = 1.0_rt / AMREX_SPACEDIM;
+
+    auto coord = geom.Coord();
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+
+        // Grab the states on either side of the interface we are working with,
+        // depending on which dimension we're currently calling this with.
+
+        GpuArray<Real, NUM_STATE> uR;
+        for (int n = 0; n < NUM_STATE; ++n) {
+            uR[n] = u(i,j,k,n);
+        }
+
+        GpuArray<Real, NQ> qR;
+        for (int n = 0; n < NQ; ++n) {
+            qR[n] = q(i,j,k,n);
+        }
+
+        Real volR = vol(i,j,k);
+
+        GpuArray<int, 3> idxR = {i,j,k};
+
+        GpuArray<Real, NUM_STATE> uL;
+        GpuArray<Real, NQ> qL;
+        Real volL;
+        GpuArray<int, 3> idxL;
+
+        if (idir == 0) {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i-1,j,k,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i-1,j,k,n);
+            }
+
+            volL = vol(i-1,j,k);
+
+            idxL = {i-1,j,k};
+
+        }
+        else if (idir == 1) {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i,j-1,k,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i,j-1,k,n);
+            }
+
+            volL = vol(i,j-1,k);
+
+            idxL = {i,j-1,k};
+
+        }
+        else {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i,j,k-1,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i,j,k-1,n);
+            }
+
+            volL = vol(i,j,k-1);
+
+            idxL = {i,j,k-1};
+
+        }
+
+        // If an adjacent zone has a floor-violating density, set the flux to zero and move on.
+        // At that point, the only thing to do is wait for a reset at a later point.
+
+        if (uR[URHO] < density_floor || uL[URHO] < density_floor) {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                flux(i,j,k,n) = 0.0_rt;
+            }
+
+            return;
+        }
+
+        // Construct cell-centered fluxes.
+
+        GpuArray<Real, NUM_STATE> fluxL;
+        dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+
+        GpuArray<Real, NUM_STATE> fluxR;
+        dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+
+        // Construct the Lax-Friedrichs flux on the interface (Equation 12).
+        // Note that we are using the information from Equation 9 to obtain the
+        // effective maximum wave speed, (|u| + c)_max = CFL / lambda where
+        // lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
+        // freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
+
+        GpuArray<Real, NUM_STATE> fluxLF;
+        for (int n = 0; n < NUM_STATE; ++n) {
+            fluxLF[n] = 0.5_rt * (fluxL[n] + fluxR[n] + (lcfl / dtdx / alpha) * (uL[n] - uR[n]));
+        }
+
+        // Coefficients of fluxes on either side of the interface.
+
+        Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
+        Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+
+        // Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
+        // If we would violate the floor, then we need to limit the flux. Since the
+        // flux adds to the density on one side and subtracts from the other, the floor
+        // can only be violated in at most one direction, so we'll do an if-else test
+        // below. This means that we can simplify the approach of Hu et al. -- whereas
+        // they constructed two thetas for each interface (corresponding to either side)
+        // we can complete the operation in one step with a single theta.
+
+        Real drhoL = flux_coefL * flux(i,j,k,URHO);
+        Real rhoL = uL[URHO] - drhoL;
+
+        Real drhoR = flux_coefR * flux(i,j,k,URHO);
+        Real rhoR = uR[URHO] + drhoR;
+
+        Real theta = 1.0_rt;
+
+        if (rhoL < density_floor) {
+
+            // Obtain the final density corresponding to the LF flux.
+
+            Real drhoLF = flux_coefL * fluxLF[URHO];
+            Real rhoLF = uL[URHO] - drhoLF;
+
+            // Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
+
+            theta = (density_floor - rhoLF) / (rhoL - rhoLF);
+
+            // Limit theta to the valid range (this will deal with roundoff issues).
+
+            theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+
+        }
+        else if (rhoR < density_floor) {
+
+            Real drhoLF = flux_coefR * fluxLF[URHO];
+            Real rhoLF = uR[URHO] + drhoLF;
+
+            theta = (density_floor - rhoLF) / (rhoR - rhoLF);
+
+            theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+
+        }
+
+        // Assemble the limited flux (Equation 16).
+
+        for (int n = 0; n < NUM_STATE; ++n) {
+            flux(i,j,k,n) = (1.0_rt - theta) * fluxLF[n] + theta * flux(i,j,k,n);
+        }
+
+        // Zero out fluxes for quantities that don't advect.
+
+        flux(i,j,k,UTEMP) = 0.0_rt;
+#ifdef SHOCK_VAR
+        flux(i,j,k,USHK) = 0.0_rt;
+#endif
+
+        // Now, apply our requirement that the final flux cannot violate the density floor.
+
+        drhoR = flux_coefR * flux(i,j,k,URHO);
+        drhoL = flux_coefL * flux(i,j,k,URHO);
+
+        if (uR[URHO] + drhoR < density_floor) {
+            for (int n = 0; n < NUM_STATE; ++n) {
+                flux(i,j,k,n) = flux(i,j,k,n) * std::abs((density_floor - uR[URHO]) / drhoR);
+            }
+        }
+        else if (uL[URHO] - drhoL < density_floor) {
+            for (int n = 0; n < NUM_STATE; ++n) {
+                flux(i,j,k,n) = flux(i,j,k,n) * std::abs((density_floor - uL[URHO]) / drhoL);
+            }
+        }
+
+    });
+
+}
+
+
+
+void
+Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
+                                        int idir,
+                                        Array4<Real const> const& u,
+                                        Array4<Real const> const& q,
+                                        Array4<Real const> const& vol,
+                                        Array4<Real> const& flux,
+                                        Array4<Real const> const& area,
+                                        Real dt)
+{
+
+    // This limiter is similar to the density-based limiter above, but limits
+    // on velocities that are too large instead. The comments are minimal since
+    // the algorithm is effectively the same.
+
+    const Real* dx = geom.CellSize();
+
+    Real dtdx = dt / dx[idir];
+    Real lcfl = cfl;
+    Real alpha = 1.0_rt / AMREX_SPACEDIM;
+
+    auto coord = geom.Coord();
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
+    Real lspeed_limit = speed_limit;
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+        GpuArray<Real, NUM_STATE> uR;
+        for (int n = 0; n < NUM_STATE; ++n) {
+            uR[n] = u(i,j,k,n);
+        }
+
+        GpuArray<Real, NQ> qR;
+        for (int n = 0; n < NQ; ++n) {
+            qR[n] = q(i,j,k,n);
+        }
+
+        Real volR = vol(i,j,k);
+
+        GpuArray<int, 3> idxR = {i,j,k};
+
+        GpuArray<Real, NUM_STATE> uL;
+        GpuArray<Real, NQ> qL;
+        Real volL;
+        GpuArray<int, 3> idxL;
+
+        if (idir == 0) {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i-1,j,k,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i-1,j,k,n);
+            }
+
+            volL = vol(i-1,j,k);
+
+            idxL = {i-1,j,k};
+
+        }
+        else if (idir == 1) {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i,j-1,k,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i,j-1,k,n);
+            }
+
+            volL = vol(i,j-1,k);
+
+            idxL = {i,j-1,k};
+
+        }
+        else {
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                uL[n] = u(i,j,k-1,n);
+            }
+
+            for (int n = 0; n < NQ; ++n) {
+                qL[n] = q(i,j,k-1,n);
+            }
+
+            volL = vol(i,j,k-1);
+
+            idxL = {i,j,k-1};
+
+        }
+
+        // Construct cell-centered fluxes.
+
+         GpuArray<Real, NUM_STATE> fluxL;
+         dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+
+         GpuArray<Real, NUM_STATE> fluxR;
+         dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+
+         // Construct the Lax-Friedrichs flux on the interface.
+
+         GpuArray<Real, NUM_STATE> fluxLF;
+         for (int n = 0; n < NUM_STATE; ++n) {
+             fluxLF[n] = 0.5_rt * (fluxL[n] + fluxR[n] + (lcfl / dtdx / alpha) * (uL[n] - uR[n]));
+         }
+
+         // Coefficients of fluxes on either side of the interface.
+
+         Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
+         Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+
+         Real theta = 1.0_rt;
+
+         // Loop over all three momenta, and choose the strictest
+         // limiter among them.
+
+         for (int n = 0; n < 3; ++n) {
+
+             int UMOM = UMX + n;
+
+             // Obtain the one-sided update to the momentum.
+
+             Real drhouL = flux_coefL * flux(i,j,k,UMOM);
+             Real rhouL = std::abs(uL[UMOM] - drhouL);
+
+             Real drhoL = flux_coefL * flux(i,j,k,URHO);
+             Real rhoL = uL[URHO] - drhoL;
+
+             Real drhouR = flux_coefR * flux(i,j,k,UMOM);
+             Real rhouR = std::abs(uR[UMOM] + drhouR);
+
+             Real drhoR = flux_coefR * flux(i,j,k,URHO);
+             Real rhoR = uR[URHO] + drhoR;
+
+             if (std::abs(rhouL) > rhoL * lspeed_limit) {
+
+                 // Obtain the final density corresponding to the LF flux.
+
+                 Real drhouLF = flux_coefL * fluxLF[UMOM];
+                 Real rhouLF = std::abs(uL[UMOM] - drhouLF);
+
+                 // Solve for theta from (1 - theta) * rhouLF + theta * rhou = rhoL * speed_limit.
+
+                 theta = std::abs(rhoL * lspeed_limit - rhouLF) / std::abs(rhouL - rhouLF);
+
+                 // Limit theta to the valid range (this will deal with roundoff issues).
+
+                 theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+
+             }
+             else if (std::abs(rhouR) > rhoR * lspeed_limit) {
+
+                 Real drhouLF = flux_coefR * fluxLF[UMOM];
+                 Real rhouLF = std::abs(uR[UMOM] + drhouLF);
+
+                 theta = std::abs(rhoR * lspeed_limit - rhouLF) / std::abs(rhouR - rhouLF);
+
+                 theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+
+             }
+
+         }
+
+         // Assemble the limited flux (Equation 16).
+
+         for (int n = 0; n < NUM_STATE; ++n) {
+             flux(i,j,k,n) = (1.0_rt - theta) * fluxLF[n] + theta * flux(i,j,k,n);
+         }
+
+         // Zero out fluxes for quantities that don't advect.
+
+         flux(i,j,k,UTEMP) = 0.0_rt;
+#ifdef SHOCK_VAR
+         flux(i,j,k,USHK) = 0.0_rt;
+#endif
+
+    });
+
+}

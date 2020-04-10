@@ -186,8 +186,7 @@ done
 
 RUNPARAMS="
 castro.time_integration_method=0
-castro.ppm_type=1
-castro.ppm_reference_eigenvectors=1"
+castro.ppm_type=1"
 
 for c in ${CFL}
 do
