@@ -15,8 +15,6 @@
 
   vel = 2.0d8
 
-  fill_ambient_bc = T
-
   grav_acceleration = 1.1d8
 /
 

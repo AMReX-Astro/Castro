@@ -20,9 +20,6 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS
-#ifdef GRAVITY
-    use meth_params_module, only: gravity_type_int, const_grav
-#endif
     use network, only: nspec
     use prob_params_module, only: problo, probhi
     use probdata_module
@@ -32,7 +29,7 @@ contains
     real(rt), intent(inout) :: ambient_state_out(NVAR)
     real(rt), intent(in   ) :: loc(3), time
 
-    real(rt) :: c_T, vel_g
+    real(rt) :: c_T
 
     !$gpu
 
@@ -44,21 +41,11 @@ contains
     if (loc(1) < c_T) then
        ambient_state_out(UTEMP) = T_l
        ambient_state_out(UEINT) = ambient_state_out(URHO) * ambient_e_l
-       ambient_state_out(UMX) = ambient_state_out(URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          ambient_state_out(UMX) = ambient_state_out(UMX) + ambient_state_out(URHO) * const_grav * time
-       end if
-#endif
+       ambient_state_out(UMX  ) = ambient_state_out(URHO) * (vel + grav_acceleration * time)
     else
        ambient_state_out(UTEMP) = T_r
        ambient_state_out(UEINT) = ambient_state_out(URHO) * ambient_e_r
-       ambient_state_out(UMX) = -ambient_state_out(URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          ambient_state_out(UMX) = ambient_state_out(UMX) + ambient_state_out(URHO) * const_grav * time
-       end if
-#endif
+       ambient_state_out(UMX  ) = -ambient_state_out(URHO) * (vel + grav_acceleration * time)
     end if
 
     ambient_state_out(UMY:UMZ) = ZERO
