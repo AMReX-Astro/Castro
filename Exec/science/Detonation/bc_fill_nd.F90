@@ -14,9 +14,6 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS
-#ifdef GRAVITY
-    use meth_params_module, only: gravity_type_int, const_grav
-#endif
     use network, only: nspec
     use prob_params_module, only: problo, probhi
     use probdata_module
@@ -30,8 +27,6 @@ contains
 
     real(rt) :: c_T
 
-    real(rt) :: vel_g
-
     !$gpu
 
     c_T = problo(1) + center_T * (probhi(1) - problo(1))
@@ -42,21 +37,11 @@ contains
     if (x < c_T) then
        state(i,j,k,UTEMP) = T_l
        state(i,j,k,UEINT) = state(i,j,k,URHO) * ambient_e_l
-       state(i,j,k,UMX) = state(i,j,k,URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * const_grav * time
-       end if
-#endif
+       state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel + grav_acceleration * time)
     else
        state(i,j,k,UTEMP) = T_r
        state(i,j,k,UEINT) = state(i,j,k,URHO) * ambient_e_r
-       state(i,j,k,UMX) = -state(i,j,k,URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * const_grav * time
-       end if
-#endif
+       state(i,j,k,UMX  ) = -state(i,j,k,URHO) * (vel + grav_acceleration * time)
     end if
 
     state(i,j,k,UMY:UMZ) = ZERO
