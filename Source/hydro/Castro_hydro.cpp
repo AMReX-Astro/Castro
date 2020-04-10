@@ -156,11 +156,10 @@ Castro::cons_to_prim_fourth(const Real time)
                           AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
 
       // enforce the minimum density on the new cell-centered state
-      Real dens_change = 1.e0;
       ca_enforce_minimum_density
         (AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
          BL_TO_FORTRAN_ANYD(U_cc),
-         &dens_change, verbose);
+         verbose);
 
       // and ensure that the internal energy is positive
       reset_internal_energy(qbxm1, U_cc.array());
