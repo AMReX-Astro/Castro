@@ -436,9 +436,37 @@
                  const GpuArray<int, npassive>& upass_map_p,
                  amrex::Real* F);
 
-
+    AMREX_GPU_HOST_DEVICE
+    void
+    dflux(const GpuArray<Real, NUM_STATE>& u,
+          const GpuArray<Real, NQ>& q,
+          int dir, int coord,
+          const GeometryData& geomdata,
+          const GpuArray<Real, 3>& center,
+          const GpuArray<int, 3>& idx,
+          GpuArray<Real, NUM_STATE>& flux);
 
     void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const flux);
+
+    void
+    limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
+                                     int idir,
+                                     amrex::Array4<amrex::Real const> const& u,
+                                     amrex::Array4<amrex::Real const> const& q,
+                                     amrex::Array4<amrex::Real const> const& vol,
+                                     amrex::Array4<amrex::Real> const& flux,
+                                     amrex::Array4<amrex::Real const> const& area,
+                                     amrex::Real dt);
+
+    void
+    limit_hydro_fluxes_on_large_vel(const amrex::Box& bx,
+                                    int idir,
+                                    amrex::Array4<amrex::Real const> const& u,
+                                    amrex::Array4<amrex::Real const> const& q,
+                                    amrex::Array4<amrex::Real const> const& vol,
+                                    amrex::Array4<amrex::Real> const& flux,
+                                    amrex::Array4<amrex::Real const> const& area,
+                                    amrex::Real dt);
 
     void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1

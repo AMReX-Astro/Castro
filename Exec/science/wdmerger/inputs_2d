@@ -268,6 +268,9 @@ castro.sum_interval = 1
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
 
+# Name the job
+castro.job_name = wdmerger
+
 # Whether or not to output plotfiles
 amr.plot_files_output = 1
 

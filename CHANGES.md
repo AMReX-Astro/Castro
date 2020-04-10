@@ -1,5 +1,11 @@
 # 20.05
 
+   * The timestep control parameter castro.change_max now also will
+     prevent the timestep by shrinking too much in one timestep
+     (previously it would only prevent it from growing too much).
+     If change_max is violated in a timestep we will do a retry
+     to take more graceful steps. (#844)
+
    * We now check if the problem setup initialized the density or
      temperature to a value near small_dens or small_temp and abort.
      If this happens, the recourse is to adjust small_dens and

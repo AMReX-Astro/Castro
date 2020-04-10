@@ -511,95 +511,174 @@ extern "C"
 
     }
 
-    void ca_derangmomx(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                       const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                       const int* lo, const int* hi,
-                       const int* domain_lo, const int* domain_hi,
-                       const Real* delta, const Real* xlo,
-                       const Real* time, const Real* dt, const int* bcrec, 
-                       const int* level, const int* grid_no)
+    void ca_derangmomx (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+                        const FArrayBox& datfab, const Geometry& geomdata,
+                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+        int idir = 0;
+        auto dx     = geomdata.CellSizeArray();
+        auto problo = geomdata.ProbLoArray();
+        // center calculated like advection_utils.cpp
+        GpuArray<Real, 3> center;
+        ca_get_center(center.begin());
+        auto const dat = datfab.array();
+        auto const L = Lfab.array();
 
-        Box bx(ilo, ihi);
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            Real loc[3];
 
-#pragma gpu box(bx)
-        derangmomx(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta));
+            //loc calculated like sum_utils.cpp
+            //This might be equivalent and more modular: position(i, j, k, geomdata, loc);
+            loc[0] = problo[0] + (0.5_rt + i) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (0.5_rt + j) * dx[1];
+#else
+            loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (0.5_rt + k) * dx[2];
+#else
+            loc[2] = 0.0_rt;
+#endif
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                loc[dir] -= center[dir];
+            }
+
+            // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity_c
+            if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
+                L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
+            }
+            else if (idir == 1) { // cross_product(loc, mom): ang_mom(2)->y)
+                L(i,j,k,0) = loc[2] * dat(i,j,k,1) - loc[0] * dat(i,j,k,3);
+            }
+            else { // cross_product(loc, mom): ang_mom(3)->z)
+                L(i,j,k,0) = loc[0] * dat(i,j,k,2) - loc[1] * dat(i,j,k,1);
+            }
+
+        });
 
     }
 
-    void ca_derangmomy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                       const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                       const int* lo, const int* hi,
-                       const int* domain_lo, const int* domain_hi,
-                       const Real* delta, const Real* xlo,
-                       const Real* time, const Real* dt, const int* bcrec, 
-                       const int* level, const int* grid_no)
+    void ca_derangmomy (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+                        const FArrayBox& datfab, const Geometry& geomdata,
+                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+        int idir = 1;
+        auto dx     = geomdata.CellSizeArray();
+        auto problo = geomdata.ProbLoArray();
+        GpuArray<Real, 3> center;
+        ca_get_center(center.begin());
+        auto const dat = datfab.array();
+        auto const L = Lfab.array();
 
-        Box bx(ilo, ihi);
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            Real loc[3];
 
-#pragma gpu box(bx)
-        derangmomy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta));
+            loc[0] = problo[0] + (0.5_rt + i) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (0.5_rt + j) * dx[1];
+#else
+            loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (0.5_rt + k) * dx[2];
+#else
+            loc[2] = 0.0_rt;
+#endif
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                loc[dir] -= center[dir];
+            }
+
+            if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
+                L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
+            }
+            else if (idir == 1) { // cross_product(loc, mom): ang_mom(2)->y)
+                L(i,j,k,0) = loc[2] * dat(i,j,k,1) - loc[0] * dat(i,j,k,3);
+            }
+            else { // cross_product(loc, mom): ang_mom(3)->z)
+                L(i,j,k,0) = loc[0] * dat(i,j,k,2) - loc[1] * dat(i,j,k,1);
+            }
+
+        });
 
     }
 
-    void ca_derangmomz(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                       const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                       const int* lo, const int* hi,
-                       const int* domain_lo, const int* domain_hi,
-                       const Real* delta, const Real* xlo,
-                       const Real* time, const Real* dt, const int* bcrec, 
-                       const int* level, const int* grid_no)
+    void ca_derangmomz (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+                        const FArrayBox& datfab, const Geometry& geomdata,
+                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+        int idir = 2;
+        auto dx     = geomdata.CellSizeArray();
+        auto problo = geomdata.ProbLoArray();
+        GpuArray<Real, 3> center;
+        ca_get_center(center.begin());
+        auto const dat = datfab.array();
+        auto const L = Lfab.array();
 
-        Box bx(ilo, ihi);
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            Real loc[3];
 
-#pragma gpu box(bx)
-        derangmomz(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                   data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                   AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                   AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                   AMREX_REAL_ANYD(delta));
+            loc[0] = problo[0] + (0.5_rt + i) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (0.5_rt + j) * dx[1];
+#else
+            loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (0.5_rt + k) * dx[2];
+#else
+            loc[2] = 0.0_rt;
+#endif
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+                loc[dir] -= center[dir];
+            }
+
+            if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
+                L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
+            }
+            else if (idir == 1) { // cross_product(loc, mom): ang_mom(2)->y)
+                L(i,j,k,0) = loc[2] * dat(i,j,k,1) - loc[0] * dat(i,j,k,3);
+            }
+            else { // cross_product(loc, mom): ang_mom(3)->z)
+                L(i,j,k,0) = loc[0] * dat(i,j,k,2) - loc[1] * dat(i,j,k,1);
+            }
+
+        });
 
     }
 
-    void ca_derkineng(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* delta, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
+    void ca_derkineng (const Box& bx, FArrayBox& kinengfab, int dcomp, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+        auto const dat = datfab.array();
+        auto const kineng = kinengfab.array();
 
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-        derkineng(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta));
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+            kineng(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * ( dat(i,j,k,1)*dat(i,j,k,1) +
+                                                        dat(i,j,k,2)*dat(i,j,k,2) +
+                                                        dat(i,j,k,3)*dat(i,j,k,3) );
+        });
 
     }
 

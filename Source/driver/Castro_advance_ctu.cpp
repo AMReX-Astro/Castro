@@ -244,11 +244,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     Real dt_sub = 1.e200;
 
-    MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef REACTIONS
-    MultiFab& R_old = get_old_data(Reactions_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
 #endif
 
@@ -257,6 +255,8 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
     bool do_retry = false;
 
     // By default, we don't do a retry unless the criteria are violated.
+
+    Real check_timestep_failure = 0.0_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:dt_sub)
@@ -267,16 +267,16 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
 #pragma gpu box(bx)
         ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_old[mfi]),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
 #ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_old[mfi]),
                           BL_TO_FORTRAN_ANYD(R_new[mfi]),
 #endif
                           AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_MIN(&dt_sub));
+                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
 
     }
+
+    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
 
     if (retry_neg_dens_factor > 0.0) {
 
@@ -307,6 +307,9 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
         do_retry = true;
 
     if (!advance_success)
+        do_retry = true;
+
+    if (check_timestep_failure > 0.0_rt)
         do_retry = true;
 
     if (do_retry) {
@@ -431,12 +434,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
-        if (dt_subcycle < dt_cutoff) {
+        // Determine whether we're below the cutoff timestep. Note that
+        // dt_cutoff is set for level 0, so we need to scale this appropriately
+        // depending on our level of refinement.
+
+        Real cutoff_dt = dt_cutoff;
+        for (int lev = 0; lev < level; ++lev) {
+            cutoff_dt /= parent->MaxRefRatio(lev);
+        }
+
+        if (dt_subcycle < cutoff_dt) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
                           << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                          << "  castro.dt_cutoff = " << dt_cutoff << ". Aborting." << std::endl;
+                          << "  castro.dt_cutoff, scaled to the current level (" << cutoff_dt << "). Aborting." << std::endl;
             }
             amrex::Abort("Error: subcycled timesteps too short.");
         }
