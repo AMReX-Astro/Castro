@@ -202,6 +202,7 @@ main (int   argc,
     // This MUST follow the above delete as ~Amr() may dump files to disk.
     //
     const int IOProc = ParallelDescriptor::IOProcessorNumber();
+    const int nprocs = ParallelDescriptor::NProcs();
 
     double dRunTime3 = ParallelDescriptor::second();
 
@@ -220,6 +221,7 @@ main (int   argc,
 
         std::cout << "\n";
         std::cout << "  Average number of zones advanced per microsecond: " << std::fixed << std::setprecision(3) << fom << "\n";
+        std::cout << "  Average number of zones advanced per microsecond per rank: " << std::fixed << std::setprecision(3) << fom / nprocs << "\n";
         std::cout << "\n";
     }
 

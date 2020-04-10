@@ -121,10 +121,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 {
     BL_PROFILE("Castro::initialize_do_advance()");
 
-    // Reset the change from density resets
-
-    frac_change = 1.e0;
-
     // Reset the CFL violation flag.
 
     cfl_violation = 0;

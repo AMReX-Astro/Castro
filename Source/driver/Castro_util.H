@@ -69,7 +69,7 @@ bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void position(int i, int j, int k,
-              GeometryData const& geomdata, Real* loc,
+              GeometryData const& geomdata, GpuArray<Real, 3>& loc,
               bool ccx = true, bool ccy = true, bool ccz = true)
 {
     // Given 3D indices (i,j,k), return the cell-centered spatial position.

@@ -995,6 +995,139 @@ public:
 #include <Castro_sdc.H>
 #endif
 
+    static void extern_init ();
+
+    static void amrinfo_init();
+
+    static void amrinfo_finalize();
+
+    static void read_params ();
+
+
+///
+/// @param lev
+///
+    Castro& getLevel (int lev);
+
+    void FluxRegCrseInit();
+    void FluxRegFineAdd();
+
+
+///
+/// Do refluxing
+///
+/// @param crse_level
+/// @param fine_level
+///
+    void reflux (int crse_level, int fine_level);
+
+
+///
+/// Normalize species fractions so they sum to 1
+///
+/// @param S_new    State
+/// @param ng       number of ghost cells
+///
+    void normalize_species (amrex::MultiFab& S_new, int ng);
+
+
+///
+/// Enforces
+/// \f[
+/// \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2)
+/// \f]
+///
+/// @param S  State
+///
+    void enforce_consistent_e (
+#ifdef MHD
+                               amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
+#endif
+                               amrex::MultiFab& S);
+
+///
+/// This routine sets the density in ``state`` to be larger than the density floor.
+/// Note that it will operate everywhere on ``state``, including ghost zones.
+///
+/// @param state        state
+/// @param ng           number of ghost cells
+///
+    void enforce_min_density (amrex::MultiFab& state, int ng);
+
+///
+/// Given ``State_Type`` state data, perform a number of cleaning steps to make
+/// sure the data is sensible.
+///
+/// @param state    State data
+/// @param time     current time
+/// @param ng       number of ghost cells
+///
+    void clean_state (
+#ifdef MHD
+                      amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
+#endif
+                      amrex::MultiFab& state, amrex::Real time, int ng);
+
+///
+/// Average new state from ``level+1`` down to ``level``
+///
+    void avgDown ();
+
+
+///
+/// Average given component of new state from ``level+1`` down to ``level``
+///
+/// @param state_indx   Index of state to average down
+///
+    void avgDown (int state_indx);
+
+    void buildMetrics ();
+
+
+///
+/// Initialize the MultiFabs and flux registers that live as class members.
+///
+    void initMFs ();
+
+///
+/// Calculates volume weight sums of variables and prints to screen
+///
+    void sum_integrated_quantities ();
+
+    void write_info ();
+
+#ifdef GRAVITY
+
+///
+/// Find the position of the "center" by interpolating from data at cell centers
+///
+/// @param S        Current state
+/// @param time     current time
+///
+    void define_new_center (amrex::MultiFab& S, amrex::Real time);
+    void write_center ();
+
+///
+/// @param time     current time
+/// @param dt       timestep
+///
+    void pointmass_update(amrex::Real time, amrex::Real dt);
+#endif
+
+    void stopJob ();
+
+///
+/// Returns true if we're on the GPU and the total
+/// memory on this level oversubscribes GPU memory.
+///
+    bool oversubscribing() {
+#ifdef AMREX_USE_GPU
+        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
+#else
+        return false;
+#endif
+    }
+
 #ifdef AMREX_PARTICLES
     static amrex::AmrTracerParticleContainer* theTracerPC () { return TracerPC; }
 #endif
@@ -1215,150 +1348,6 @@ protected:
     amrex::Real wall_time_start;
 
 
-    static void extern_init ();
-
-    static void amrinfo_init();
-
-    static void amrinfo_finalize();
-
-    static void read_params ();
-
-
-///
-/// @param lev
-///
-    Castro& getLevel (int lev);
-
-    void FluxRegCrseInit();
-    void FluxRegFineAdd();
-
-
-///
-/// Do refluxing
-///
-/// @param crse_level
-/// @param fine_level
-///
-    void reflux (int crse_level, int fine_level);
-
-
-///
-/// Normalize species fractions so they sum to 1
-///
-/// @param S_new    State
-/// @param ng       number of ghost cells
-///
-    void normalize_species (amrex::MultiFab& S_new, int ng);
-
-
-///
-/// Enforces
-/// \f[
-/// \rho E = \rho e + \frac{1}{2} \rho (u^2 + v^2 + w^2)
-/// \f]
-///
-/// @param S  State
-///
-   void enforce_consistent_e (
-#ifdef MHD
-                               amrex::MultiFab& Bx,
-                               amrex::MultiFab& By,
-                               amrex::MultiFab& Bz,
-#endif
-                               amrex:: MultiFab& S);
-
-
-///
-/// This routine sets the density in ``state`` to be larger than the density floor.
-/// Note that it will operate everywhere on ``state``, including ghost zones.
-///
-/// The return value is the the negative fractional change in the state that has the
-/// largest magnitude. If there is no reference state, this is meaningless.
-///
-/// @param state        state
-/// @param ng           number of ghost cells
-///
-   amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
-
-///
-/// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of ::enforce_min_density.
-///
-/// @param state    State data
-/// @param time     current time
-/// @param ng       number of ghost cells
-///
-  
-    amrex::Real clean_state (
-#ifdef MHD
-                              amrex::MultiFab& Bx,
-                              amrex::MultiFab& By,
-                              amrex::MultiFab& Bz,
-#endif
-                              amrex::MultiFab& state, amrex::Real time, int ng);
-
-
-///
-/// Average new state from ``level+1`` down to ``level``
-///
-    void avgDown ();
-
-
-///
-/// Average given component of new state from ``level+1`` down to ``level``
-///
-/// @param state_indx   Index of state to average down
-///
-    void avgDown (int state_indx);
-
-    void buildMetrics ();
-
-
-///
-/// Initialize the MultiFabs and flux registers that live as class members.
-///
-    void initMFs ();
-
-///
-/// Calculates volume weight sums of variables and prints to screen
-///
-    void sum_integrated_quantities ();
-
-    void write_info ();
-
-#ifdef GRAVITY
-
-///
-/// Find the position of the "center" by interpolating from data at cell centers
-///
-/// @param S        Current state
-/// @param time     current time
-///
-    void define_new_center (amrex::MultiFab& S, amrex::Real time);
-    void write_center ();
-
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    void pointmass_update(amrex::Real time, amrex::Real dt);
-#endif
-
-    void stopJob ();
-
-///
-/// Returns true if we're on the GPU and the total
-/// memory on this level oversubscribes GPU memory.
-///
-    bool oversubscribing() {
-#ifdef AMREX_USE_GPU
-        return (amrex::MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level)) >= amrex::Gpu::Device::totalGlobalMem());
-#else
-        return false;
-#endif
-    }
-
 ///
 /// The data.
 ///
@@ -1398,11 +1387,6 @@ protected:
     int in_retry;
 
     amrex::Real lastDt;
-
-///
-/// for keeping track of mass changes from negative density resets
-///
-    static amrex::Real      frac_change;
 
 ///
 /// For keeping track of fluid quantities lost at physical grid boundaries.

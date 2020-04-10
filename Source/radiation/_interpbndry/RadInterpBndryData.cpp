@@ -58,7 +58,7 @@ void
 RadInterpBndryData::setBndryValues(Real bv)
 {
   for (OrientationIter fi; fi; ++fi) {
-    bndry[fi()].setVal(bv);
+      bndry[fi()].setVal(bv);
   }
 }
 
@@ -86,7 +86,7 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
             if (bx[face] == geom.Domain()[face]) {
                   // physical bndry, copy from grid
                 FArrayBox& bnd_fab = bndry[face][mfi];
-                bnd_fab.copy(mf[mfi],mf_start,bnd_start,num_comp);
+                bnd_fab.copy<RunOn::Host>(mf[mfi],mf_start,bnd_start,num_comp);
             }
         }
     }
@@ -181,7 +181,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                   // physical bndry, copy from ghost region of
                   // corresponding grid
                 FArrayBox& bnd_fab = bndry[face][mfi];
-                bnd_fab.copy(fine_grd,f_start,bnd_start,num_comp);
+                bnd_fab.copy<RunOn::Host>(fine_grd,f_start,bnd_start,num_comp);
             }
         }
     }

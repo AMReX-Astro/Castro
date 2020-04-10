@@ -110,10 +110,6 @@ plm_iorder                   int           2                  y
 # 1 = 2nd order MC, 2 = 4th order MC
 plm_limiter                  int           2                  y
 
-# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
-# pressure
-plm_well_balanced            int           0                  y
-
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
 hybrid_riemann               int           0                  y
@@ -172,7 +168,8 @@ dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?
+# from the pressure before limiting?  This is a well-balanced method that
+# does well with HSE
 use_pslope                   int           1                  y
 
 # Should we limit the density fluxes so that we do not create small densities?
@@ -207,22 +204,22 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        ""                 y
+xl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        ""                 y
+xr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        ""                 y
+yl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        ""                 y
+yr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        ""                 y
+zl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        ""                 y
+zr_ext_bc_type               string        "fillme"           y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -308,9 +305,9 @@ cfl                          Real          0.8                y
 # the timestep estimators
 init_shrink                  Real          1.0
 
-# the maximum factor by which the timestep can increase from one step to
-# the next.
-change_max                   Real          1.1
+# the maximum factor by which the timestep can increase or decrease from
+# one step to the next
+change_max                   Real          1.1                y
 
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
@@ -324,18 +321,6 @@ small_plot_per_is_exact      int           0
 # criteria, and we will do subcycled timesteps on the same level until
 # we reach the original target time.
 use_retry                    int           1
-
-# Tolerance to use when evaluating whether to do a retry.
-# The timestep suggested by the retry will be multiplied by
-# (1 + this factor) before comparing the actual timestep to it.
-# If set to some number slightly larger than zero, then this
-# prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.02
-
-# If we're doing retries, set the target threshold for changes in density
-# if a retry is triggered by a negative density. If this is set to a negative
-# number then it will disable retries using this criterion.
-retry_neg_dens_factor        Real          1.e-1
 
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.
@@ -558,7 +543,7 @@ show_center_of_mass          int           0
 
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
-job_name                     string        ""
+job_name                     string        "Castro"
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1

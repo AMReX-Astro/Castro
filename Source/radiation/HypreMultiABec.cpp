@@ -304,7 +304,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
         }
         msk[ori][i][j].reset(new Mask(mask_box));
 
-        msk[ori][i][j]->setVal(RadBndryData::outside_domain);
+        msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::outside_domain);
 
         // If we had the Geometry, we would have the problem domain
         // and would not have to loop over coarse grids below.  Also,
@@ -313,15 +313,15 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
 
         for (int k = 0; k < cgrids.size(); k++) {
           if (cgrids[k].intersects(mask_box)) {
-              msk[ori][i][j]->setVal(RadBndryData::not_covered,
-                                     (cgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::not_covered,
+                                                  (cgrids[k] & mask_box), 0);
           }
         }
 
         for (int k = 0; k < fgrids.size(); k++) {
           if (fgrids[k].intersects(mask_box)) {
-              msk[ori][i][j]->setVal(RadBndryData::covered,
-                                       (fgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::covered,
+                                                  (fgrids[k] & mask_box), 0);
           }
         }
 
@@ -361,7 +361,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc)
         aux[ori][i][j].reset(new AuxVarBox(other.aux[ori][i][j]->box()));
 
         msk[ori][i][j].reset(new Mask(other.msk[ori][i][j]->box()));
-        msk[ori][i][j]->copy(*other.msk[ori][i][j]);
+        msk[ori][i][j]->copy<RunOn::Host>(*other.msk[ori][i][j]);
       }
     }
   }
@@ -407,7 +407,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
         }
         msk[ori][i][j].reset(new Mask(mask_box));
 
-        msk[ori][i][j]->setVal(RadBndryData::outside_domain);
+        msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::outside_domain);
 
         // If we had the Geometry, we would have the problem domain
         // and would not have to loop over coarse grids below.  Also,
@@ -416,15 +416,15 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
 
         for (int k = 0; k < cgrids.size(); k++) {
           if (cgrids[k].intersects(mask_box)) {
-            msk[ori][i][j]->setVal(RadBndryData::not_covered,
-                                   (cgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::not_covered,
+                                                  (cgrids[k] & mask_box), 0);
           }
         }
 
         for (int k = 0; k < fgrids.size(); k++) {
           if (fgrids[k].intersects(mask_box)) {
-            msk[ori][i][j]->setVal(RadBndryData::covered,
-                                   (fgrids[k] & mask_box), 0);
+              msk[ori][i][j]->setVal<RunOn::Host>(RadBndryData::covered,
+                                                  (fgrids[k] & mask_box), 0);
           }
         }
 
@@ -590,7 +590,7 @@ void HypreMultiABec::vectorGetBoxValues(HYPRE_SStructVector x,
   BL_ASSERT(f.box() == reg);
   Real* vec = f.dataPtr(fcomp);
   if (sgr.size() > 0) {
-    f.setVal(0.0, fcomp);
+    f.setVal<RunOn::Host>(0.0, fcomp);
     FArrayBox svecfab;
     for (int j = 0; j < sgr.size(); j++) {
       const Box& sreg = sgr[j];
@@ -1754,7 +1754,7 @@ void HypreMultiABec::loadLevelVectors(int level,
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(dest[mfi], icomp, 0, 1);
+      f->copy<RunOn::Device>(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
     Elixir f_elix = fnew.elixir();
@@ -1763,7 +1763,7 @@ void HypreMultiABec::loadLevelVectors(int level,
 
     vectorSetBoxValues(x, part, reg, subgrids[level][i], vec);
 
-    f->copy(rhs[mfi], 0, fcomp, 1);
+    f->copy<RunOn::Device>(rhs[mfi], 0, fcomp, 1);
 
     // add b.c.'s to rhs
 
@@ -1846,7 +1846,7 @@ void HypreMultiABec::loadLevelVectorX(int level,
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(dest[mfi], icomp, 0, 1);
+      f->copy<RunOn::Device>(dest[mfi], icomp, 0, 1);
       fcomp = 0;
     }
     Elixir f_elix = fnew.elixir();
@@ -1875,7 +1875,7 @@ void HypreMultiABec::loadLevelVectorB(int level,
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(rhs[mfi]);
+      f->copy<RunOn::Device>(rhs[mfi]);
     }
     Elixir f_elix = fnew.elixir();
 
@@ -3009,7 +3009,7 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
     vectorGetBoxValues(x, part, reg, subgrids[level][i], *f, fcomp);
 
     if (dest.nGrow() != 0) {
-      dest[mfi].copy(*f, 0, icomp, 1);
+        dest[mfi].copy<RunOn::Device>(*f, 0, icomp, 1);
     }
   }
 }

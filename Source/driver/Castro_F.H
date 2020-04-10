@@ -137,7 +137,7 @@ extern "C"
   void ca_enforce_minimum_density
     (const int* lo, const int* hi,
      const amrex::Real* state, const int* s_lo, const int* s_hi,
-     amrex::Real* frac_change, const int verbose);
+     const int verbose);
 
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
@@ -212,13 +212,11 @@ extern "C"
 
   void ca_check_timestep
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
-     const BL_FORT_FAB_ARG_3D(state_new),
+     const BL_FORT_FAB_ARG_3D(state),
 #ifdef REACTIONS
-     const BL_FORT_FAB_ARG_3D(reactions_old),
-     const BL_FORT_FAB_ARG_3D(reactions_new),
+     const BL_FORT_FAB_ARG_3D(reactions),
 #endif
-     const amrex::Real* dx, const amrex::Real dt_old, amrex::Real* dt);
+     const amrex::Real* dx, const amrex::Real dt, amrex::Real* failed);
 
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,

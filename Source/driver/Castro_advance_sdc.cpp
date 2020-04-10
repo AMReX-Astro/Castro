@@ -138,13 +138,17 @@ Castro::do_advance_sdc (Real time,
 
         // note: we don't need a FillPatch on the sources, since they
         // are only used in the valid box in the conservative flux
-        // update construction
-
+        // update construction.  The only exception is if we are doing
+        // the well-balanced method in the reconstruction of the
+        // pressure.
+        if (sdc_order == 2 && use_pslope == 1) {
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+        }
 #endif
 
         // store the result in sources_for_hydro -- this is what will
         // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, 0);
+        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, sources_for_hydro.nGrow());
 
       } else {
         sources_for_hydro.setVal(0.0, 0);
@@ -323,10 +327,14 @@ Castro::do_advance_sdc (Real time,
       // pass in the reaction source and state at centers, including one ghost cell
       // and derive everything that is needed including 1 ghost cell
       R_center.resize(obx, R_new.nComp());
-      ca_store_reaction_state(BL_TO_FORTRAN_BOX(obx),
-                              BL_TO_FORTRAN_3D(Sburn[mfi]),
-                              BL_TO_FORTRAN_3D(U_center),
-                              BL_TO_FORTRAN_3D(R_center));
+      Array4<const Real> const Sburn_arr = Sburn.array(mfi);
+      Array4<const Real> const U_center_arr = U_center.array();
+      Array4<Real> const R_center_arr = R_center.array();
+      // we don't worry about the difference between centers and averages
+      ca_store_reaction_state(obx,
+                              Sburn_arr,
+                              U_center_arr,
+                              R_center_arr);
 
       // convert R_new from centers to averages in place
       ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
@@ -339,11 +347,14 @@ Castro::do_advance_sdc (Real time,
 
     } else {
 
+      Array4<const Real> const R_old_arr = R_old[SDC_NODES-1]->array(mfi);
+      Array4<const Real> const S_new_arr = S_new.array(mfi);
+      Array4<Real> const R_new_arr = R_new.array(mfi);
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_3D((*R_old[SDC_NODES-1])[mfi]),
-                              BL_TO_FORTRAN_3D(S_new[mfi]),
-                              BL_TO_FORTRAN_3D(R_new[mfi]));
+      ca_store_reaction_state(bx,
+                              R_old_arr,
+                              S_new_arr,
+                              R_new_arr);
     }
 
   }
