@@ -32,8 +32,6 @@ contains
 
     !$gpu
 
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
-
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -80,8 +78,6 @@ contains
     integer :: i, j, k
 
     !$gpu
-
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
