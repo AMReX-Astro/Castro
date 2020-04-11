@@ -1,5 +1,13 @@
 # 20.05
 
+   * AMReX provides CpuBndryFuncFab and GpuBndryFuncFab which are very
+     similar to what generic_fill and hypfill did. The AMReX
+     implementations are now used. We still have a hypfill and denfill
+     function, so that existing problems are not broken, but the main
+     one in Source/ no longer calls amrex_filcc (it only has the
+     ambient code now). The problems that do override bc_fill_nd.F90
+     are thus no longer required to call amrex_filcc. (#837)
+
    * We now always issue a timestep retry if the density after an
      advance is negative (or less than small_dens). The parameter
      castro.retry_neg_dens_factor is removed. The parameter
