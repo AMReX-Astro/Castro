@@ -63,9 +63,6 @@ int          Castro::NUM_GROW      = -1;
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
 
-Real         Castro::frac_change   = 1.e200;
-
-
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
@@ -2829,7 +2826,7 @@ Castro::enforce_consistent_e (MultiFab& S)
     }
 }
 
-Real
+void
 Castro::enforce_min_density (MultiFab& state_in, int ng)
 {
 
@@ -2838,8 +2835,6 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
     // This routine sets the density in state_in to be larger than the
     // density floor.  Note that it will operate everywhere on state_in,
     // including ghost zones.
-
-    Real dens_change = 1.e0;
 
     MultiFab reset_source;
 
@@ -2855,7 +2850,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
     }
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:dens_change)
+#pragma omp parallel
 #endif
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
@@ -2865,7 +2860,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         ca_enforce_minimum_density
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
              BL_TO_FORTRAN_ANYD(state_in[mfi]),
-             AMREX_MFITER_REDUCE_MIN(&dens_change), verbose);
+             verbose);
 
     }
 
@@ -2897,8 +2892,6 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 #endif
 
     }
-
-    return dens_change;
 
 }
 
@@ -3863,17 +3856,16 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
 }
 
 // Given State_Type state data, perform a number of cleaning steps to make
-// sure the data is sensible. The return value is the same as the return
-// value of enforce_min_density.
+// sure the data is sensible.
 
-Real
+void
 Castro::clean_state(MultiFab& state_in, Real time, int ng) {
 
     BL_PROFILE("Castro::clean_state()");
 
     // Enforce a minimum density.
 
-    Real frac_change = enforce_min_density(state_in, ng);
+    enforce_min_density(state_in, ng);
 
     // Ensure all species are normalized.
 
@@ -3891,7 +3883,5 @@ Castro::clean_state(MultiFab& state_in, Real time, int ng) {
     // the internal energy for consistency with the total energy).
 
     computeTemp(state_in, time, ng);
-
-    return frac_change;
 
 }

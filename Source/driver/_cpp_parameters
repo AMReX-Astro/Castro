@@ -166,6 +166,10 @@ dual_energy_eta2             Real          1.0e-4             y
 # does well with HSE
 use_pslope                   int           1                  y
 
+# if we are using pslope, below what density to we turn off the well-balanced
+# reconstruction?
+pslope_cutoff_density        Real          -1.e20             y
+
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
 
@@ -315,18 +319,6 @@ small_plot_per_is_exact      int           0
 # criteria, and we will do subcycled timesteps on the same level until
 # we reach the original target time.
 use_retry                    int           1
-
-# Tolerance to use when evaluating whether to do a retry.
-# The timestep suggested by the retry will be multiplied by
-# (1 + this factor) before comparing the actual timestep to it.
-# If set to some number slightly larger than zero, then this
-# prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.02
-
-# If we're doing retries, set the target threshold for changes in density
-# if a retry is triggered by a negative density. If this is set to a negative
-# number then it will disable retries using this criterion.
-retry_neg_dens_factor        Real          1.e-1
 
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.

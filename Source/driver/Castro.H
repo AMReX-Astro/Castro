@@ -1018,24 +1018,20 @@ public:
 /// This routine sets the density in ``state`` to be larger than the density floor.
 /// Note that it will operate everywhere on ``state``, including ghost zones.
 ///
-/// The return value is the the negative fractional change in the state that has the
-/// largest magnitude. If there is no reference state, this is meaningless.
-///
 /// @param state        state
 /// @param ng           number of ghost cells
 ///
-    amrex::Real enforce_min_density (amrex::MultiFab& state, int ng);
+    void enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
-/// sure the data is sensible. The return value is the same as the return
-/// value of ::enforce_min_density.
+/// sure the data is sensible.
 ///
 /// @param state    State data
 /// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    amrex::Real clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
+    void clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``
@@ -1350,11 +1346,6 @@ protected:
     int in_retry;
 
     amrex::Real lastDt;
-
-///
-/// for keeping track of mass changes from negative density resets
-///
-    static amrex::Real      frac_change;
 
 ///
 /// For keeping track of fluid quantities lost at physical grid boundaries.

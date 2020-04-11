@@ -8,7 +8,7 @@ contains
 
   subroutine ca_enforce_minimum_density(lo, hi, &
                                         state, s_lo, s_hi, &
-                                        frac_change, verbose) bind(c,name='ca_enforce_minimum_density')
+                                        verbose) bind(c,name='ca_enforce_minimum_density')
 
     use network, only: nspec, naux
     use meth_params_module, only: NVAR, URHO, small_dens, density_reset_method
@@ -24,7 +24,6 @@ contains
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: frac_change
     integer,  intent(in   ), value :: verbose
 
     ! Local variables
@@ -34,7 +33,6 @@ contains
     real(rt) :: max_dens, old_rho
     real(rt) :: uold(NVAR), unew(NVAR)
     integer  :: num_positive_zones
-    real(rt) :: frac_change_tmp
 
     !$gpu
 
@@ -43,8 +41,6 @@ contains
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
-
-             frac_change_tmp = 1.0_rt
 
              if (state(i,j,k,URHO) .eq. ZERO) then
 
@@ -160,17 +156,7 @@ contains
 #endif
                 endif
 
-                ! Store the maximum (negative) fractional change in the density from this reset.
-
-                if (old_rho < ZERO) then
-                   frac_change_tmp = 1.0_rt
-                else
-                   frac_change_tmp = (state(i,j,k,URHO) - old_rho) / old_rho
-                end if
-
              end if
-
-             call reduce_min(frac_change, frac_change_tmp)
 
           end do
        end do
