@@ -290,6 +290,35 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
     w.setVal(1.0);
 
+    MultiFab burnOnCpu(grids, dmap, 1, ngrow);
+
+    // Determine on a zone-by-zone basis whether the burn should
+    // happen on the CPU or the GPU. The general heuristic should
+    // be that we always burn on the GPU except for every hard cases
+    // where we expect the GPU to be worse because a few zones requires
+    // many integrator steps while everything else does not.
+
+    for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.growntilebox(ngrow);
+
+        auto U = s.array(mfi);
+        auto burnOnCpu_arr = burnOnCpu.array(mfi);
+
+        Real lburn_on_cpu_temp_threshold = burn_on_cpu_temp_threshold;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (U(i,j,k,UTEMP) > lburn_on_cpu_temp_threshold) {
+                burnOnCpu_arr(i,j,k) = 1.0_rt;
+            }
+            else {
+                burnOnCpu_arr(i,j,k) = 0.0_rt;
+            }
+        });
+    }
+
     // Start off assuming a successful burn.
 
     int burn_success = 1;
@@ -309,6 +338,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
         auto mask = m.array(mfi);
         auto weights = w.array(mfi);
 
+        auto burnOnCpu_arr = burnOnCpu.array(mfi);
+
         Real* const burn_failed_d = AMREX_MFITER_REDUCE_SUM(&burn_failed);
 
         Real lreact_T_min = Castro::react_T_min;
@@ -316,15 +347,25 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
         Real lreact_rho_min = Castro::react_rho_min;
         Real lreact_rho_max = Castro::react_rho_max;
 
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        auto f = [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
             burn_t burn_state;
 
             // Initialize some data for later.
 
+#if AMREX_DEVICE_COMPILE
             bool do_burn = true;
+            if (burnOnCpu_arr(i,j,k) == 1.0_rt) {
+                do_burn = false;
+            }
+#else
+            bool do_burn = false;
+            if (burnOnCpu_arr(i,j,k) == 1.0_rt) {
+                do_burn = true;
+            }
+#endif
+
             burn_state.success = true;
 
             // Don't burn on zones that we are intentionally masking out.
@@ -426,7 +467,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
             }
 
-        });
+        };
+
+        amrex::ParallelFor(bx, f);
+        amrex::LoopConcurrentOnCpu(bx, f);
 
 #else
 

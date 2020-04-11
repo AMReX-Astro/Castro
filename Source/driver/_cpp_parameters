@@ -372,6 +372,9 @@ disable_shock_burning        int           0                  y
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
 
+# above this threshold, do the burn on the CPU if we're in a GPU build
+burn_on_cpu_temp_threshold  Real           1.e200             y
+
 #-----------------------------------------------------------------------------
 # category: diffusion
 #-----------------------------------------------------------------------------
