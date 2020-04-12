@@ -14,7 +14,7 @@ module bc_ext_fill_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE, EXT_INTERP
+                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE
   use prob_params_module, only: dim
 
   implicit none
@@ -226,55 +226,9 @@ contains
              end do
           end do
 
-       elseif (xl_ext == EXT_INTERP) then
-
-          imin = adv_lo(1)
-          imax = domlo(1)-1
-#ifdef AMREX_USE_CUDA
-          if (hi(1) /= imax) then
-             imax = imin - 1
-          end if
-#endif
-          do i = imax, imin, -1
-             x = problo(1) + delta(1)*(dble(i)+HALF)
-
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-
-                   call interpolate_sub(dens_zone, x, idens_model)
-                   call interpolate_sub(temp_zone, x, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), x, ispec_model-1+q)
-                   enddo
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMX) = min(ZERO, adv(domlo(1),j,k,UMX))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMY) = ZERO
-                   adv(i,j,k,UMZ) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        endif  ! xl_ext check
-
 
     endif
 
@@ -440,55 +394,8 @@ contains
              end do
           end do
 
-       elseif (xr_ext == EXT_INTERP) then
-          ! interpolate thermodynamics from initial model
-
-          imin = domhi(1)+1
-          imax = adv_hi(1)
-#ifdef AMREX_USE_CUDA
-          if (lo(1) /= imin) then
-             imin = imax + 1
-          end if
-#endif
-          do i = imin, imax
-             x = problo(1) + delta(1)*(dble(i) + HALF)
-
-             do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-
-                   call interpolate_sub(dens_zone, x, idens_model)
-                   call interpolate_sub(temp_zone, x, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), x, ispec_model-1+q)
-                   end do
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMX) = max(ZERO, adv(domhi(1),j,k,UMX))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMY) = ZERO
-                   adv(i,j,k,UMZ) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        end if  ! xr_ext check
 
     endif
@@ -661,53 +568,8 @@ contains
              end do
           end do
 
-       elseif (yl_ext == EXT_INTERP) then
-
-          jmin = adv_lo(2)
-          jmax = domlo(2)-1
-#ifdef AMREX_USE_CUDA
-          if (hi(2) /= jmax) then
-             jmax = jmin - 1
-          end if
-#endif
-          do j = jmax, jmin, -1
-             y = problo(2) + delta(2)*(dble(j)+HALF)
-
-             do k = lo(3), hi(3)
-                do i = lo(1), hi(1)
-
-                   call interpolate_sub(dens_zone, y, idens_model)
-                   call interpolate_sub(temp_zone, y, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), y, ispec_model-1+q)
-                   enddo
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMY) = min(ZERO, adv(i,domlo(2),k,UMY))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMZ) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        endif  ! yl_ext check
 
 
@@ -876,56 +738,8 @@ contains
              end do
           end do
 
-
-       elseif (yr_ext == EXT_INTERP) then
-          ! interpolate thermodynamics from initial model
-
-          jmin = domhi(2)+1
-          jmax = adv_hi(2)
-#ifdef AMREX_USE_CUDA
-          if (lo(2) /= jmin) then
-             jmin = jmax + 1
-          end if
-#endif
-          do j = jmin, jmax
-             y = problo(2) + delta(2)*(dble(j) + HALF)
-
-             do k = lo(3), hi(3)
-                do i = lo(1), hi(1)
-
-                   call interpolate_sub(dens_zone, y, idens_model)
-                   call interpolate_sub(temp_zone, y, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), y, ispec_model-1+q)
-                   enddo
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMY) = max(ZERO, adv(i,domhi(2),k,UMY))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMZ) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        end if  ! yr_ext check
 
     endif
@@ -1097,54 +911,8 @@ contains
              end do
           end do
 
-       elseif (zl_ext == EXT_INTERP) then
-
-          kmin = adv_lo(3)
-          kmax = domlo(3) - 1
-#ifdef AMREX_USE_CUDA
-          if (hi(3) /= kmax) then
-             kmax = kmin - 1
-          end if
-#endif
-          do k = kmax, kmin, -1
-             z = problo(3) + delta(3)*(dble(k)+HALF)
-
-             do j = lo(2), hi(2)
-                do i = lo(1), hi(1)
-
-                   call interpolate_sub(dens_zone, z, idens_model)
-                   call interpolate_sub(temp_zone, z, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), z, ispec_model-1+q)
-                   enddo
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMY) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        endif  ! zl_ext check
 
 
@@ -1158,56 +926,8 @@ contains
           call castro_error("ERROR: HSE boundaries not implemented for +Z")
 #endif
 
-       elseif (zr_ext == EXT_INTERP) then
-          ! interpolate thermodynamics from initial model
-
-          kmin = domhi(3) + 1
-          kmax = adv_hi(3)
-#ifdef AMREX_USE_CUDA
-          if (lo(3) /= kmin) then
-             kmin = kmax + 1
-          end if
-#endif
-          do k = kmin, kmax
-             z = problo(3) + delta(3)*(dble(k) + HALF)
-
-             do j = lo(2),hi(2)
-                do i = lo(1), hi(1)
-
-                   call interpolate_sub(dens_zone, z, idens_model)
-                   call interpolate_sub(temp_zone, z, itemp_model)
-
-                   do q = 1, nspec
-                      call interpolate_sub(X_zone(q), z, ispec_model-1+q)
-                   enddo
-
-
-                   ! extrap normal momentum
-                   adv(i,j,k,UMZ) = max(ZERO, adv(i,j,domhi(3),UMZ))
-
-                   ! zero transverse momentum
-                   adv(i,j,k,UMX) = ZERO
-                   adv(i,j,k,UMY) = ZERO
-
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
-
-                   call eos(eos_input_rt, eos_state)
-
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
-
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
-
-                end do
-             end do
-          end do
+       else
+          call castro_error("invalid BC option")
        end if  ! zr_ext check
 
     end if
