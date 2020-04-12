@@ -438,6 +438,24 @@
 
 </div>
 <dl class="class">
+<dt id="_CPPv414advance_status">
+<span id="_CPPv314advance_status"></span><span id="_CPPv214advance_status"></span><span id="advance_status"></span><span class="target" id="structadvance__status"></span><em class="property">struct </em><code class="sig-name descname">advance_status</code><a class="headerlink" href="#_CPPv414advance_status" title="Permalink to this definition">¶</a><br /></dt>
+<dd><em>#include &lt;Castro.H&gt;</em><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv4N14advance_status7successE">
+<span id="_CPPv3N14advance_status7successE"></span><span id="_CPPv2N14advance_status7successE"></span><span id="advance_status::success__b"></span><span class="target" id="structadvance__status_1aedea7fb9ba43be7f263170ea636eeac6"></span>bool <code class="sig-name descname">success</code><a class="headerlink" href="#_CPPv4N14advance_status7successE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv4N14advance_status6reasonE">
+<span id="_CPPv3N14advance_status6reasonE"></span><span id="_CPPv2N14advance_status6reasonE"></span><span id="advance_status::reason__ss"></span><span class="target" id="structadvance__status_1a8e1c132d0bf41ab455fd21c16efbc910"></span>std::string <code class="sig-name descname">reason</code><a class="headerlink" href="#_CPPv4N14advance_status6reasonE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="class">
 <dt id="_CPPv46Castro">
 <span id="_CPPv36Castro"></span><span id="_CPPv26Castro"></span><span id="Castro"></span><span class="target" id="classCastro"></span><em class="property">class </em><code class="sig-name descname">Castro</code> : <em class="property">public</em> AmrLevel<br /></dt>
 <dd><em>#include &lt;Castro.H&gt;</em><p><code class="docutils literal notranslate"><span class="pre">AmrLevel</span></code>-derived class for hyperbolic conservation equations for stellar media </p>
@@ -781,7 +799,7 @@
 
 <dl class="function">
 <dt id="_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a6283b1259ed271875ca90cfaef2069c0"></span>bool <code class="sig-name descname">do_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a0474502cda51d5050707315365243901"></span><a class="reference internal" href="#_CPPv414advance_status" title="advance_status">advance_status</a> <code class="sig-name descname">do_advance_ctu</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -801,8 +819,8 @@
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib">
-<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEiib"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i.b"></span><span class="target" id="classCastro_1ac186bc2ab09893196225dedce27b51e5"></span>bool <code class="sig-name descname">retry_advance_ctu</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em>, bool <em>advance_success</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status">
+<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i.advance_status"></span><span class="target" id="classCastro_1a6f55e31535399f787fcae2e8c053cf11"></span>bool <code class="sig-name descname">retry_advance_ctu</code><span class="sig-paren">(</span>amrex::Real &amp;<em>time</em>, amrex::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em>, <a class="reference internal" href="#_CPPv414advance_status" title="advance_status">advance_status</a> <em>status</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated. This is used only for the CTU advance.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -810,7 +828,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">advance_success</span></code>: was the advance successful? </p></li>
+<li><p><code class="docutils literal notranslate"><a class="reference internal" href="#structadvance__status"><span class="std std-ref"><span class="pre">advance_status</span></span></a></code>: was the advance successful? </p></li>
 </ul>
 </dd>
 </dl>
