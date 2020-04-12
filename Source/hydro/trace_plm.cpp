@@ -223,32 +223,6 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     }
 
-#if (AMREX_SPACEDIM < 3)
-    // geometry source terms -- these only apply to the x-states
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dtdx*(cc + abs(un));
-      Real eta = (1.0_rt-courn)/(cc*dt*abs(dloga(i,j,k)));
-      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
-      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-      Real sourcp = sourcr*csq;
-      Real source = sourcp*enth;
-
-      if (i <= vhi[0]) {
-        qm(i+1,j,k,QRHO) += sourcr;
-        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-        qm(i+1,j,k,QPRES) += sourcp;
-        qm(i+1,j,k,QREINT) += source;
-      }
-
-      if (i >= vlo[0]) {
-        qp(i,j,k,QRHO) += sourcr;
-        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-        qp(i,j,k,QPRES) += sourcp;
-        qp(i,j,k,QREINT) += source;
-      }
-    }
-#endif
-
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n = qpassmap(ipassive);
 

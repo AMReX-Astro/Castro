@@ -642,55 +642,5 @@ Castro::trace_ppm_rad(const Box& bx,
 
     }
 
-    // geometry source terms
-
-#if (AMREX_SPACEDIM < 3)
-    // these only apply for x states (idir = 0)
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dt/dx[0]*(cc+std::abs(un));
-      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
-      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
-      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-      Real sourcp = sourcr*cgassq;
-      Real source = sourcp*h_g;
-      Real sourcer[NGROUPS];
-      for (int g = 0; g < NGROUPS; g++) {
-        sourcer[g] = -0.5_rt*dt*dlogatmp*un*(lam0[g] + 1.0_rt)*er[g];
-      }
-
-      if (i <= vhi[0]) {
-        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-        qm(i+1,j,k,QPRES ) = qm(i+1,j,k,QPRES ) + sourcp;
-        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
-        for (int g = 0; g < NGROUPS; g++) {
-          qm(i+1,j,k,QRAD+g) += sourcer[g];
-        }
-        qm(i+1,j,k,QPTOT) = qm(i+1,j,k,QPTOT) + sourcp;
-        qm(i+1,j,k,QREITOT) = qm(i+1,j,k,QREINT); 
-        for (int g = 0; g < NGROUPS; g++) {
-          qm(i+1,j,k,QPTOT) += lamm[g]*sourcer[g];
-          qm(i+1,j,k,QREITOT) += qm(i+1,j,k,QRAD+g);
-          }
-      }
-
-      if (i >= vlo[0]) {
-        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
-        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
-        for (int g = 0; g < NGROUPS; g++) {
-          qp(i,j,k,QRAD+g) += sourcer[g];
-        }
-        qp(i,j,k,QPTOT) = qp(i,j,k,QPTOT) + sourcp;
-        qp(i,j,k,QREITOT) = qp(i,j,k,QREINT);
-        for (int g = 0; g < NGROUPS; g++) {
-          qp(i,j,k,QPTOT) += lamp[g]*sourcer[g];
-          qp(i,j,k,QREITOT) += qp(i,j,k,QRAD+g);
-        }
-      }
-    }
-#endif
-
   });
 }

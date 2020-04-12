@@ -526,33 +526,6 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
-    // geometry source terms
-#if (AMREX_SPACEDIM < 3)
-    // these only apply for x states (idir = 0)
-    if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dt/dx[0]*(cc+std::abs(un));
-      Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
-      Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
-      Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
-      Real sourcp = sourcr*csq;
-      Real source = sourcp*((q_arr(i,j,k,QPRES) + q_arr(i,j,k,QREINT))/rho)/csq;
-
-      if (i <= vhi[0]) {
-        qm(i+1,j,k,QRHO) = qm(i+1,j,k,QRHO) + sourcr;
-        qm(i+1,j,k,QRHO) = amrex::max(qm(i+1,j,k,QRHO), lsmall_dens);
-        qm(i+1,j,k,QPRES) = qm(i+1,j,k,QPRES) + sourcp;
-        qm(i+1,j,k,QREINT) = qm(i+1,j,k,QREINT) + source;
-      }
-
-      if (i >= vlo[0]) {
-        qp(i,j,k,QRHO) = qp(i,j,k,QRHO) + sourcr;
-        qp(i,j,k,QRHO) = amrex::max(qp(i,j,k,QRHO), lsmall_dens);
-        qp(i,j,k,QPRES) = qp(i,j,k,QPRES) + sourcp;
-        qp(i,j,k,QREINT) = qp(i,j,k,QREINT) + source;
-      }
-    }
-#endif
-
   });
 }
 
