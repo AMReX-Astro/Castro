@@ -14,9 +14,10 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only: fill_ambient_bc
+    use meth_params_module, only: fill_ambient_bc, ambient_fill_dir, ambient_outflow_vel, UMX, UMY, UMZ, UEDEN, URHO, UEINT
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
+    use amrex_constants_module, only: ZERO, HALF
 
     implicit none
 
@@ -29,25 +30,90 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
+    logical :: ambient_x_lo, ambient_y_lo, ambient_z_lo
+    logical :: ambient_x_hi, ambient_y_hi, ambient_z_hi
 
     !$gpu
+
+    ambient_x_lo = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap)
+    ambient_x_hi = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap)
+
+#if AMREX_SPACEDIM >= 2
+    ambient_y_lo = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)
+    ambient_y_hi = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ambient_z_lo = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)
+    ambient_z_hi = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap)
+#endif
 
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap))  &
-                    .or. (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap))  &
+                if (ambient_x_lo .and. i < domlo(1) .or. &
+                    ambient_x_hi .and. i > domhi(1) &
 #if AMREX_SPACEDIM >= 2
-                    .or. (j < domlo(2) .and. (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)) &
-                    .or. (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_y_lo .and. j < domlo(2) .or. &
+                    ambient_y_hi .and. j > domhi(2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                    .or. (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) &
-                    .or. (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_z_lo .and. k < domlo(3) .or. &
+                    ambient_z_hi .and. k > domhi(3) &
 #endif
                     ) then
                    adv(i,j,k,:) = ambient_state(:)
+
+                   if (ambient_outflow_vel == 1) then
+
+                      ! extrapolate the normal velocity only if it is outgoing
+                      if (i < domlo(1)) then
+                         adv(i,j,k,UMX) = min(ZERO, adv(domlo(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (i > domhi(1)) then
+                         adv(i,j,k,UMX) = max(ZERO, adv(domhi(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j < domlo(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = min(ZERO, adv(i,domlo(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j > domhi(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = max(ZERO, adv(i,domhi(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (k < domlo(3)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
+
+                      else
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = max(ZERO, adv(i,j,domhi(3),UMZ))
+
+                      end if
+
+                      ! now make the energy consistent
+                      adv(i,j,k,UEDEN) = adv(i,j,k,UEINT) + &
+                           HALF*sum(adv(i,j,k,UMX:UMZ)**2)/adv(i,j,k,URHO)
+
+                   end if
+
                 end if
              end do
           end do
@@ -61,7 +127,7 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only: fill_ambient_bc, URHO
+    use meth_params_module, only: fill_ambient_bc, URHO, ambient_fill_dir
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
@@ -77,23 +143,47 @@ contains
 
     integer :: i, j, k
 
+    logical :: ambient_x_lo, ambient_y_lo, ambient_z_lo
+    logical :: ambient_x_hi, ambient_y_hi, ambient_z_hi
+
     !$gpu
+
+    ambient_x_lo = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)
+    ambient_x_hi = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)
+
+#if AMREX_SPACEDIM >= 2
+    ambient_y_lo = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)
+    ambient_y_hi = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ambient_z_lo = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)
+    ambient_z_hi = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap)
+#endif
 
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) &
-                    .or. (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)) &
+                if (ambient_x_lo .and. i < domlo(1) .or. &
+                    ambient_x_hi .and. i > domhi(1) &
 #if AMREX_SPACEDIM >= 2
-                    .or. (j < domlo(2) .and. (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)) &
-                    .or. (j > domhi(2) .and. (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_y_lo .and. j < domlo(2) .or. &
+                    ambient_y_hi .and. j > domhi(2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                    .or. (k < domlo(3) .and. (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)) &
-                    .or. (k > domhi(3) .and. (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_z_lo .and. k < domlo(3) .or. &
+                    ambient_z_hi .and. k > domhi(3) &
 #endif
-                   ) then
+                    ) then
                    adv(i,j,k) = ambient_state(URHO)
                 end if
              end do
