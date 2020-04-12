@@ -552,6 +552,17 @@ treat the velocity? reflect? or outflow?</p></td>
 <td><p>fills physical domain boundaries with the ambient state</p></td>
 <td><p>0</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ambient_fill_dir</span></code></p></td>
+<td><p>which direction do we do ambient BCs?  -1 = all, 0 = x,
+1 = y, 2 = z</p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ambient_outflow_vel</span></code></p></td>
+<td><p>in the ambient region, do we do a basic outflow in the
+normal direction of the velocity (with a min/max to
+ensure it is outgoing)</p></td>
+<td><p>0</p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clamp_ambient_temp</span></code></p></td>
 <td><p>clamps the ambient material to the ambient temperature</p></td>
 <td><p>0</p></td>
