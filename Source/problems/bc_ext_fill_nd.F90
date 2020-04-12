@@ -76,20 +76,13 @@ contains
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(domlo(1),j,k,URHO)
 
-                ! sometimes, we might be working in a corner
-                ! where the ghost cells above us have not yet
-                ! been initialized.  In that case, take the info
-                ! from the initial model
                 if (dens_above == ZERO) then
-                   x = problo(1) + delta(1)*(dble(domlo(1)) + HALF)
-
-                   call interpolate_sub(dens_above, x, idens_model)
-                   call interpolate_sub(temp_above, x, itemp_model)
-
-                   do m = 1, nspec
-                      call interpolate_sub(X_zone(m), x, ispec_model-1+m)
-                   end do
-
+                   ! sometimes, we might be working in a corner where
+                   ! the ghost cells above us have not yet been
+                   ! initialized.  We'll skip these corner cells and
+                   ! they should be filled in the pass in the other
+                   ! directions.
+                   cycle
                 else
                    temp_above = adv(domlo(1),j,k,UTEMP)
                    X_zone(:) = adv(domlo(1),j,k,UFS:UFS-1+nspec)/dens_above
@@ -128,7 +121,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, x, itemp_model)
+                      temp_zone = 2*adv(i+1,j,k,UTEMP) - adv(i+2,j,k,UTEMP)
                    else
                       temp_zone = temp_above
                    endif
@@ -297,20 +290,13 @@ contains
                 ! Make sure that our starting state is well-defined
                 dens_below = adv(domhi(1),j,k,URHO)
 
-                ! sometimes, we might be working in a corner
-                ! where the ghost cells above us have not yet
-                ! been initialized.  In that case, take the info
-                ! from the initial model
                 if (dens_below == ZERO) then
-                   x = problo(1) + delta(1)*(dble(domhi(1)) + HALF)
-
-                   call interpolate_sub(dens_below, x, idens_model)
-                   call interpolate_sub(temp_below, x, itemp_model)
-
-                   do m = 1, nspec
-                      call interpolate_sub(X_zone(m), x, ispec_model-1+m)
-                   end do
-
+                   ! sometimes, we might be working in a corner where
+                   ! the ghost cells above us have not yet been
+                   ! initialized.  We'll skip these corner cells and
+                   ! they should be filled in the pass in the other
+                   ! directions
+                   cycle
                 else
                    temp_below = adv(domhi(1),j,k,UTEMP)
                    X_zone(:) = adv(domhi(1),j,k,UFS:UFS-1+nspec)/dens_below
@@ -349,7 +335,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, x, itemp_model)
+                      temp_zone = 2*adv(i-1,j,k,UTEMP) - adv(i-2,j,k,UTEMP)
                    else
                       temp_zone = temp_below
                    endif
@@ -524,20 +510,13 @@ contains
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(i,domlo(2),k,URHO)
 
-                ! sometimes, we might be working in a corner
-                ! where the ghost cells above us have not yet
-                ! been initialized.  In that case, take the info
-                ! from the initial model
                 if (dens_above == ZERO) then
-                   y = problo(2) + delta(2)*(dble(domlo(2)) + HALF)
-
-                   call interpolate_sub(dens_above, y,idens_model)
-                   call interpolate_sub(temp_above, y, itemp_model)
-
-                   do m = 1, nspec
-                      call interpolate_sub(X_zone(m), y, ispec_model-1+m)
-                   enddo
-
+                   ! sometimes, we might be working in a corner where
+                   ! the ghost cells above us have not yet been
+                   ! initialized.  We'll skip these corner cells and
+                   ! they should be filled in the pass in the other
+                   ! directions.
+                   cycle
                 else
                    temp_above = adv(i,domlo(2),k,UTEMP)
                    X_zone(:) = adv(i,domlo(2),k,UFS:UFS-1+nspec)/dens_above
@@ -576,7 +555,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, y, itemp_model)
+                      temp_zone = 2*adv(i,j+1,k,UTEMP) - adv(i,j+2,k,UTEMP)
                    else
                       temp_zone = temp_above
                    endif
@@ -747,20 +726,13 @@ contains
                 ! Make sure that our starting state is well-defined
                 dens_below = adv(i,domhi(2),k,URHO)
 
-                ! sometimes, we might be working in a corner
-                ! where the ghost cells above us have not yet
-                ! been initialized.  In that case, take the info
-                ! from the initial model
                 if (dens_below == ZERO) then
-                   y = problo(2) + delta(2)*(dble(domhi(2)) + HALF)
-
-                   call interpolate_sub(dens_below, y, idens_model)
-                   call interpolate_sub(temp_below, y, itemp_model)
-
-                   do m = 1, nspec
-                      call interpolate_sub(X_zone(m), y, ispec_model-1+m)
-                   end do
-
+                   ! sometimes, we might be working in a corner where
+                   ! the ghost cells above us have not yet been
+                   ! initialized.  We'll skip these corner cells and
+                   ! they should be filled in the pass in the other
+                   ! directions.
+                   cycle
                 else
                    temp_below = adv(i,domhi(2),k,UTEMP)
                    X_zone(:) = adv(i,domhi(2),k,UFS:UFS-1+nspec)/dens_below
@@ -799,7 +771,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, y, itemp_model)
+                      temp_zone = 2*adv(i,j-1,k,UTEMP) - adv(i,j-2,k,UTEMP)
                    else
                       temp_zone = temp_below
                    endif
@@ -976,20 +948,13 @@ contains
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(i,j,domlo(3),URHO)
 
-                ! sometimes, we might be working in a corner
-                ! where the ghost cells above us have not yet
-                ! been initialized.  In that case, take the info
-                ! from the initial model
                 if (dens_above == ZERO) then
-                   z = problo(3) + delta(3)*(dble(domlo(3)) + HALF)
-
-                   call interpolate_sub(dens_above, z, idens_model)
-                   call interpolate_sub(temp_above, z, itemp_model)
-
-                   do m = 1, nspec
-                      call interpolate_sub(X_zone(m), z, ispec_model-1+m)
-                   enddo
-
+                   ! sometimes, we might be working in a corner where
+                   ! the ghost cells above us have not yet been
+                   ! initialized.  We'll skip these corner cells and
+                   ! they should be filled in the pass in the other
+                   ! directions.
+                   cycle
                 else
                    temp_above = adv(i,j,domlo(3),UTEMP)
                    X_zone(:) = adv(i,j,domlo(3),UFS:UFS-1+nspec)/dens_above
@@ -1026,7 +991,7 @@ contains
 
                    ! temperature and species held constant in BCs
                    if (hse_interp_temp == 1) then
-                      call interpolate_sub(temp_zone, z, itemp_model)
+                      temp_zone = 2*adv(i,j,k+1,UTEMP) - adv(i,j,k+2,UTEMP)
                    else
                       temp_zone = temp_above
                    endif
