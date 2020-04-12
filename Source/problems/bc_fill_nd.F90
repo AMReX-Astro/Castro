@@ -14,9 +14,10 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only: fill_ambient_bc, ambient_fill_dir
+    use meth_params_module, only: fill_ambient_bc, ambient_fill_dir, ambient_outflow_vel, UMX, UMY, UMZ, UEDEN, URHO, UEINT
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
+    use amrex_constants_module, only: ZERO, HALF
 
     implicit none
 
@@ -71,6 +72,48 @@ contains
 #endif
                     ) then
                    adv(i,j,k,:) = ambient_state(:)
+
+                   if (ambient_outflow_vel == 1) then
+
+                      ! extrapolate the normal velocity only if it is outgoing
+                      if (i < domlo(1)) then
+                         adv(i,j,k,UMX) = min(ZERO, adv(domlo(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (i > domhi(1)) then
+                         adv(i,j,k,UMX) = max(ZERO, adv(domhi(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j < domlo(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = min(ZERO, adv(i,domlo(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j > domhi(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = max(ZERO, adv(i,domhi(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (k < domlo(3)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
+
+                      else
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = max(ZERO, adv(i,j,domhi(3),UMZ))
+
+                      end if
+
+                      ! now make the energy consistent
+                      adv(i,j,k,UEDEN) = adv(i,j,k,UEINT) + &
+                           HALF*sum(adv(i,j,k,UMX:UMZ)**2)/adv(i,j,k,URHO)
+
+                   end if
+
                 end if
              end do
           end do
