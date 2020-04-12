@@ -233,6 +233,9 @@ hse_reflect_vels             int           0                  y
 # fills physical domain boundaries with the ambient state
 fill_ambient_bc              int           0                  y
 
+# which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = y, 2 = z
+ambient_fill_dir             int           -1                 y
+
 # clamps the ambient material to the ambient temperature
 clamp_ambient_temp           int           0                  y
 
