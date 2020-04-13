@@ -56,6 +56,7 @@ endif
 
 ifdef NEED_MGUTIL
   CEXE_sources += MGutils.cpp
+  CEXE_headers += MGutils.H
 endif
 
 ca_F90EXE_sources += prob_params_nd.F90
