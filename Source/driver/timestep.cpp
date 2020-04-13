@@ -47,7 +47,10 @@ Castro::estdt_cfl(const Box& bx,
 
 #ifdef ROTATION
     if (do_rotation == 1 && state_in_rotating_frame != 1) {
-      Real vel[3] = {ux, uy, uz};
+      Real vel[3];
+      vel[0] = ux;
+      vel[1] = uy;
+      vel[2] = uz;
 
       GeometryData geomdata = geom.data();
 
