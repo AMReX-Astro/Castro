@@ -572,22 +572,40 @@ implicit none
 
         real(rt)                          :: u, v, w
         integer                           :: i ,j ,k
-        
+        integer                 :: di, dj, dk    
 
         uL(:,:,:,:,dir,dir2) = um(:,:,:,:,dir)
         uR(:,:,:,:,dir,dir2) = up(:,:,:,:,dir)
 
+    
+    di = 0
+    dj = 0
+    dk = 0
+  
+    if ( ((dir.eq.1) .and. (dir2.eq.1)) .or. ((dir.eq.3) .and. (dir2.eq.2)) ) then
+       dj = 1
+    endif
+    
+    if ( ((dir.eq.1) .and. (dir2.eq.2)) .or. ((dir.eq.2) .and. (dir2.eq.2)) ) then
+       dk = 1
+    endif
 
+    if ( ((dir.eq.2) .and. (dir2.eq.1)) .or. ((dir.eq.3) .and. (dir2.eq.1)) ) then
+       di = 1
+    endif
+    
+    
+ 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
         !Left Corrected States
-             uL(i,j,k,URHO,dir,dir2) = um(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,URHO) - flxd2(i,j,k,URHO))
-             uL(i,j,k,UMX,dir,dir2) = um(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMX) - flxd2(i,j,k,UMX))
-             uL(i,j,k,UMY,dir,dir2) = um(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMY) - flxd2(i,j,k,UMY))
-             uL(i,j,k,UMZ,dir,dir2) = um(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMZ) - flxd2(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,dir,dir2) = um(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UEDEN) - flxd2(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,dir,dir2) = um(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UFS:UFS+nspec-1) &  
+             uL(i,j,k,URHO,dir,dir2) = um(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,URHO) - flxd2(i,j,k,URHO))
+             uL(i,j,k,UMX,dir,dir2) = um(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMX) - flxd2(i,j,k,UMX))
+             uL(i,j,k,UMY,dir,dir2) = um(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMY) - flxd2(i,j,k,UMY))
+             uL(i,j,k,UMZ,dir,dir2) = um(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMZ) - flxd2(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,dir,dir2) = um(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UEDEN) - flxd2(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,dir,dir2) = um(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UFS:UFS+nspec-1) &  
                                              - flxd2(i,j,k,UFS:UFS+nspec-1))
 
              
@@ -598,12 +616,12 @@ implicit none
                         
 
         !Right Corrected States
-             uR(i,j,k,URHO,dir,dir2) = up(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,URHO) - flxd2(i,j,k,URHO))
-             uR(i,j,k,UMX,dir,dir2) = up(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMX) - flxd2(i,j,k,UMX))
-             uR(i,j,k,UMY,dir,dir2) = up(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMY) - flxd2(i,j,k,UMY))
-             uR(i,j,k,UMZ,dir,dir2) = up(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMZ) - flxd2(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,dir,dir2) = up(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UEDEN) - flxd2(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,dir,dir2) = up(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,dir,dir2) = up(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,URHO) - flxd2(i,j,k,URHO))
+             uR(i,j,k,UMX,dir,dir2) = up(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMX) - flxd2(i,j,k,UMX))
+             uR(i,j,k,UMY,dir,dir2) = up(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMY) - flxd2(i,j,k,UMY))
+             uR(i,j,k,UMZ,dir,dir2) = up(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMZ) - flxd2(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,dir,dir2) = up(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UEDEN) - flxd2(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,dir,dir2) = up(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UFS:UFS+nspec-1) & 
                                              - flxd2(i,j,k,UFS:UFS+nspec-1))
 
                                              
