@@ -160,11 +160,6 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
 
-  void ca_estdt
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
-
 #ifdef DIFFUSION
   void ca_estdt_temp_diffusion
     (const int* lo, const int* hi,

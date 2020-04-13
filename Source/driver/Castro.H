@@ -574,6 +574,15 @@ public:
 ///
     amrex::Real estTimeStep (amrex::Real dt_old);
 
+
+///
+/// Compute the CFL timestep
+///
+    void estdt_cfl(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real const> const u,
+                   amrex::Real time, amrex::Real* dt);
+
+
 ///
 /// Compute initial time step.
 ///

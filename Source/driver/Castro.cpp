@@ -1290,7 +1290,7 @@ Castro::estTimeStep (Real dt_old)
     Real estdt = max_dt;
 
     const MultiFab& stateMF = get_new_data(State_Type);
-
+    Real time = state[State_Type].curTime();
     const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
@@ -1341,7 +1341,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
+#pragma omp parallel
 #endif
             {
                 Real dt = max_dt / cfl;
@@ -1350,11 +1350,8 @@ Castro::estTimeStep (Real dt_old)
                 {
                     const Box& box = mfi.tilebox();
 
-#pragma gpu box(box)
-                    ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                             BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                             AMREX_REAL_ANYD(dx),
-                             AMREX_MFITER_REDUCE_MIN(&dt));
+                    estdt_cfl(box, stateMF.array(mfi), time,
+                              AMREX_MFITER_REDUCE_MIN(&dt));
                 }
                 estdt_hydro = std::min(estdt_hydro, dt);
             }
