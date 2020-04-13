@@ -1394,10 +1394,7 @@ Castro::estTimeStep (Real dt_old)
             {
                 const Box& box = mfi.tilebox();
 
-#pragma gpu box(box)
-                ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
+                estdt_temp_diffusion(box, stateMF.array(mfi), AMREX_MFITER_REDUCE_MIN(&dt));
             }
             estdt_diffusion = std::min(estdt_diffusion, dt);
         }

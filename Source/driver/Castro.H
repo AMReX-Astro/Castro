@@ -582,6 +582,12 @@ public:
                    amrex::Array4<amrex::Real const> const u,
                    amrex::Real time, amrex::Real* dt);
 
+///
+/// Diffusion-limited timestep
+///
+    void estdt_temp_diffusion(const Box& bx,
+                              Array4<Real const> ustate,
+                              Real* dt);
 
 ///
 /// Compute initial time step.

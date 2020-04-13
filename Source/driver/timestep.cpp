@@ -1,6 +1,10 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+#ifdef DIFFUSION
+#include "conductivity.H"
+#endif
+
 using namespace amrex;
 
 void
@@ -102,3 +106,68 @@ Castro::estdt_cfl(const Box& bx,
   });
 
 }
+
+
+#ifdef DIFFUSION
+void
+Castro::estdt_temp_diffusion(const Box& bx,
+                             Array4<Real const> ustate,
+                             Real* dt)
+{
+
+  // Diffusion-limited timestep
+  //
+  // dt < 0.5 dx**2 / D
+  // where D = k/(rho c_v), and k is the conductivity
+
+  const auto dx = geom.CellSizeArray();
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    if (ustate(i,j,k,URHO) > diffuse_cutoff_density) {
+
+      Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
+
+      // we need cv
+      eos_t eos_state;
+      eos_state.rho = ustate(i,j,k,URHO);
+      eos_state.T = ustate(i,j,k,UTEMP);
+      eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
+      }
+
+      eos(eos_input_re, eos_state);
+
+      // we also need the conductivity
+      conductivity(eos_state);
+
+      // maybe we should check (and take action) on negative cv here?
+      Real D = eos_state.conductivity * rho_inv / eos_state.cv;
+
+      Real dt1 = 0.5_rt * dx[0]*dx[0] / D;
+
+      Real dt2;
+#if AMREX_SPACEDIM >= 2
+      dt2 = 0.5_rt * dx[1]*dx[1] / D;
+#else
+      dt2 = dt1;
+#endif
+
+      Real dt3;
+#if AMREX_SPACEDIM >= 3
+      dt3 = 0.5_rt * dx[2]*dx[2] / D;
+#else
+      dt3 = dt1;
+#endif
+
+      Gpu::Atomic::Min(dt, amrex::min(dt1, dt2, dt3));
+
+    }
+  });
+}
+#endif
