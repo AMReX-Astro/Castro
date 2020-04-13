@@ -1,102 +1,61 @@
-module MGutils_2D_module
-
-  use castro_error_module, only: castro_error
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  public
-
-contains
-
-  subroutine ca_apply_metric(lo, hi, &
-                             xlo, xhi, &
+void
+Castro::apply_metric(const Box& bx,
+                     const Box& xbx,
 #if AMREX_SPACEDIM >= 2
-                             ylo, yhi, &
+                     const Box& ybx,
 #endif
-                             rhs, rlo, rhi, &
-                             ecx, ecxlo, ecxhi, &
+                     Array4<Real> const rhs, const Box& rbx,
+                     Array4<Real> const ecx,
 #if AMREX_SPACEDIM >= 2
-                             ecy, ecylo, ecyhi, &
+                     Array4<Real> const ecy
 #endif
-                             dx, coord_type) &
-                             bind(C, name="ca_apply_metric")
+                     )
+{
 
-    use amrex_fort_module, only: rt => amrex_real
 
-    implicit none
 
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: xlo(3), xhi(3)
-#if AMREX_SPACEDIM >= 2
-    integer,  intent(in   ) :: ylo(3), yhi(3)
-#endif
-    integer,  intent(in   ) :: rlo(3), rhi(3)
-    integer,  intent(in   ) :: ecxlo(3), ecxhi(3)
-#if AMREX_SPACEDIM >= 2
-    integer,  intent(in   ) :: ecylo(3), ecyhi(3)
-#endif
-    real(rt), intent(inout) :: rhs(rlo(1):rhi(1),rlo(2):rhi(2),rlo(3):rhi(3))
-    real(rt), intent(inout) :: ecx(ecxlo(1):ecxhi(1),ecxlo(2):ecxhi(2),ecxlo(3):ecxhi(3))
-#if AMREX_SPACEDIM >= 2
-    real(rt), intent(inout) :: ecy(ecylo(1):ecyhi(1),ecylo(2):ecyhi(2),ecylo(3):ecyhi(3))
-#endif
-    real(rt), intent(in   ) :: dx(3)
-    integer,  intent(in   ), value :: coord_type
+  int coord_type = geom.Coord();
 
-    real(rt) :: r
-    integer  :: i, j, k
+  // r-z
+  if (coord_type == 1) {
 
-    !$gpu
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    {
 
-    ! r-z
-    if (coord_type == 1) then
+     IntVect idx(D_DECL(i, j, k));
 
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
+     // at centers
+     if (rbx.contains(idx)) {
+       Real r = (static_cast<Real>(i) + 0.5_rt) * dx[0];
+       rhs(i,j,k) *= r;
+     }
 
-                ! At centers
-                if (i .ge. rlo(1) .and. i .le. rhi(1) .and. &
-                    j .ge. rlo(2) .and. j .le. rhi(2) .and. &
-                    k .ge. rlo(3) .and. k .le. rhi(3)) then
-                   r = (dble(i) + 0.5e0_rt) * dx(1)
-                   rhs(i,j,k) = rhs(i,j,k) * r
-                end if
-
-                ! On x-edges
-                if (i .ge. xlo(1) .and. i .le. xhi(1) .and. &
-                    j .ge. xlo(2) .and. j .le. xhi(2) .and. &
-                    k .ge. xlo(3) .and. k .le. xhi(3)) then
-                   r = dble(i) * dx(1)
-                   ecx(i,j,k) = ecx(i,j,k) * r
-                end if
+     // On x-edges
+     if (xbx.contains(idx)) {
+       Real r = static_cast<Real>(i) * dx[0];
+       ecx(i,j,k) *= r;
+     }
 
 #if AMREX_SPACEDIM >= 2
-                ! On y-edges
-                if (i .ge. ylo(1) .and. i .le. yhi(1) .and. &
-                    j .ge. ylo(2) .and. j .le. yhi(2) .and. &
-                    k .ge. ylo(3) .and. k .le. yhi(3)) then
-                   r = (dble(i) + 0.5e0_rt) * dx(1)
-                   ecy(i,j,k) = ecy(i,j,k) * r
-                end if
+     // On y-edges
+     if (ybx.contains(idx)) {
+       Real r = (static_cast<Real>(i) + 0.5_rt) * dx[0];
+       ecy(i,j,k) *= r;
+     }
 #endif
 
-             end do
-          end do
-       end do
+    });
 
 #ifndef AMREX_USE_CUDA
-    else
+  } else {
 
-       print *,'Bogus coord_type in apply_metric ' ,coord_type
-       call castro_error("Error:: MGutils_2d.f90 :: ca_apply_metric")
+    amrex::Print() << "Bogus coord_type in apply_metric " << coord_type << std::endl;
+
+    amrex::Error("Error:: MGutils.cpp :: ca_apply_metric");
 #endif
 
-    end if
-
-  end subroutine ca_apply_metric
-
+  }
+}
 
 
   subroutine ca_weight_cc(lo, hi, &
