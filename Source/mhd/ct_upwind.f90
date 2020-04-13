@@ -586,7 +586,7 @@ implicit none
              uL(i,j,k,UMX,dir,dir2) = um(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMX) - flxd2(i,j,k,UMX))
              uL(i,j,k,UMY,dir,dir2) = um(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMY) - flxd2(i,j,k,UMY))
              uL(i,j,k,UMZ,dir,dir2) = um(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UMZ) - flxd2(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,dir,dir2) = um(i,j,k,UEDEN,1) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UEDEN) - flxd2(i,j,k,UEDEN))
+             uL(i,j,k,UEDEN,dir,dir2) = um(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UEDEN) - flxd2(i,j,k,UEDEN))
              uL(i,j,k,UFS:UFS+nspec-1,dir,dir2) = um(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i,j+1,k,UFS:UFS+nspec-1) &  
                                              - flxd2(i,j,k,UFS:UFS+nspec-1))
 
