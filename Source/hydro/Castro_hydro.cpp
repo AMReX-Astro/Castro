@@ -295,11 +295,7 @@ Castro::check_for_cfl_violation(const Real dt)
                 courmy = amrex::max(courmy, coury);
                 courmz = amrex::max(courmz, courz);
 
-#if AMREX_DEVICE_COMPILE
-                Gpu::deviceReduceMax(courno_d, amrex::max(courmx, courmy, courmz));
-#else
-                *courno_d = amrex::max(*courno_d, courmx, courmy, courmz);
-#endif
+                Gpu::Atomic::Max(courno_d, amrex::max(courmx, courmy, courmz));
 
 #ifndef AMREX_USE_CUDA
                 if (verbose == 1) {
@@ -361,11 +357,7 @@ Castro::check_for_cfl_violation(const Real dt)
                 }
 #endif
 
-#if AMREX_DEVICE_COMPILE
-                Gpu::deviceReduceMax(courno_d, courtmp);
-#else
-                *courno_d = amrex::max(*courno_d, courtmp);
-#endif
+                Gpu::Atomic::Max(courno_d, courtmp);
 
             }
 
