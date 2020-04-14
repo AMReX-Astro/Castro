@@ -55,7 +55,8 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifdef NEED_MGUTIL
-  ca_F90EXE_sources += MGutils_nd.F90
+  CEXE_sources += MGutils.cpp
+  CEXE_headers += MGutils.H
 endif
 
 ca_F90EXE_sources += prob_params_nd.F90
