@@ -175,9 +175,9 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     mlabec.setLevelBC(0, &Temperature);
 
     mlabec.setScalars(0.0, -1.0);
-    mlabec.setBCoeffs(0, {AMREX_D_DECL(temp_cond_coef[0].get(),
-                                       temp_cond_coef[1].get(),
-                                       temp_cond_coef[2].get())});
+    mlabec.setBCoeffs(0, Array<MultiFab const*, AMREX_SPACEDIM>{AMREX_D_DECL(temp_cond_coef[0].get(),
+                                                                             temp_cond_coef[1].get(),
+                                                                             temp_cond_coef[2].get())});
 
     MLMG mlmg(mlabec);
     mlmg.setVerbose(verbose);
