@@ -27,7 +27,13 @@ amr.n_cell           = 384     576
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
-castro.yl_ext_bc_type = "interp"
+castro.yl_ext_bc_type = "hse"
+castro.hse_interp_temp = 1
+castro.hse_reflect_vels = 1
+
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
