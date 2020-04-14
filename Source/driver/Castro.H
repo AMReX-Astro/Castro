@@ -127,6 +127,14 @@ constexpr int dg2 = 1;
 #endif
 
 
+// Struct that returns information about
+// why an advance failed.
+
+struct advance_status {
+    bool success;
+    std::string reason;
+};
+
 ///
 /// @class Castro
 ///
@@ -438,10 +446,10 @@ public:
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    bool do_advance_ctu(amrex::Real time,
-                        amrex::Real dt,
-                        int  amr_iteration,
-                        int  amr_ncycle);
+    advance_status do_advance_ctu(amrex::Real time,
+                                  amrex::Real dt,
+                                  int  amr_iteration,
+                                  int  amr_ncycle);
 
 
 #ifndef AMREX_USE_CUDA
@@ -464,9 +472,9 @@ public:
 ///                    final time of the coarser level below it.  This
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
-/// @param advance_success  was the advance successful?
+/// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, bool advance_success);
+    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, advance_status status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.

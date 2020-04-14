@@ -12,7 +12,7 @@
 
 using namespace amrex;
 
-bool
+advance_status
 Castro::do_advance_ctu(Real time,
                        Real dt,
                        int  amr_iteration,
@@ -25,6 +25,10 @@ Castro::do_advance_ctu(Real time,
     // SDC), hydro, and the source terms.
 
     BL_PROFILE("Castro::do_advance_ctu()");
+
+    advance_status status;
+    status.success = true;
+    status.reason = "";
 
     const Real prev_time = state[State_Type].prevTime();
     const Real  cur_time = state[State_Type].curTime();
@@ -103,8 +107,11 @@ Castro::do_advance_ctu(Real time,
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
-        if (!burn_success)
-            return false;
+        if (!burn_success) {
+            status.success = false;
+            status.reason = "first Strang burn unsuccessful";
+            return status;
+        }
 
     }
 #endif
@@ -159,8 +166,11 @@ Castro::do_advance_ctu(Real time,
       check_for_cfl_violation(dt);
 
       // If we detect one, return immediately.
-      if (cfl_violation)
-          return false;
+      if (cfl_violation) {
+          status.success = false;
+          status.reason = "CFL violation";
+          return status;
+      }
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
@@ -170,8 +180,19 @@ Castro::do_advance_ctu(Real time,
 
       // Check for small/negative densities.
       // If we detect one, return immediately.
-      if (S_new.min(URHO) < small_dens)
-          return false;
+
+      Real minimum_density = S_new.min(URHO);
+
+      if (minimum_density < 0.0_rt) {
+          status.success = false;
+          status.reason = "negative density";
+          return status;
+      }
+      else if (minimum_density < small_dens) {
+          status.success = false;
+          status.reason = "small density";
+          return status;
+      }
     }
 
 
@@ -254,39 +275,24 @@ Castro::do_advance_ctu(Real time,
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
-        if (!burn_success)
-            return false;
+        if (!burn_success) {
+            status.success = false;
+            status.reason = "second Strang burn unsuccessful";
+            return status;
+        }
 
     }
 #endif
 
-    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    // Check if this timestep violated our stability criteria.
 
-    return true;
-}
-
-
-
-
-
-bool
-Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, bool advance_success)
-{
-    BL_PROFILE("Castro::retry_advance_ctu()");
-
-    MultiFab& S_new = get_new_data(State_Type);
+    Real check_timestep_failure = 0.0_rt;
 
 #ifdef REACTIONS
     MultiFab& R_new = get_new_data(Reactions_Type);
 #endif
 
     const Real* dx = geom.CellSize();
-
-    bool do_retry = false;
-
-    // By default, we don't do a retry unless the criteria are violated.
-
-    Real check_timestep_failure = 0.0_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -308,12 +314,30 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     ParallelDescriptor::ReduceRealSum(check_timestep_failure);
 
-    // Retry if any advance failure occurred.
+    if (check_timestep_failure > 0.0_rt) {
+        status.success = false;
+        status.reason = "timestep validity check failed";
+    }
 
-    if (!advance_success)
-        do_retry = true;
+    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
 
-    if (check_timestep_failure > 0.0_rt)
+    return status;
+}
+
+
+
+
+
+bool
+Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
+{
+    BL_PROFILE("Castro::retry_advance_ctu()");
+
+    MultiFab& S_new = get_new_data(State_Type);
+
+    bool do_retry = false;
+
+    if (!status.success)
         do_retry = true;
 
     if (do_retry) {
@@ -541,7 +565,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             }
         }
 
-        bool advance_success = true;
+        advance_status status;
 
         for (int n = 0; n < num_sub_iters; ++n) {
 
@@ -554,16 +578,21 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // If we are doing simplified SDC, there is no point in doing the burn
             // or the subsequent SDC iterations if the advance was incomplete.
 
-            advance_success = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
+            status = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-                if (do_react && advance_success) {
+                if (do_react && status.success) {
 
                     // Do the ODE integration to capture the reaction source terms.
 
-                    advance_success = react_state(subcycle_time, dt_subcycle);
+                    bool burn_success = react_state(subcycle_time, dt_subcycle);
+
+                    if (!burn_success) {
+                        status.success = false;
+                        status.reason = "burn unsuccessful";
+                    }
 
                     MultiFab& S_new = get_new_data(State_Type);
 
@@ -589,9 +618,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
                 in_retry = false;
             }
 
-            if (!advance_success) {
+            if (!status.success) {
                 if (use_retry) {
-                    amrex::Print() << "Advance was unsuccessful; proceeding to a retry." << std::endl << std::endl;
+                    amrex::Print() << "Advance was unsuccessful with reason: " << status.reason << "; proceeding to a retry." << std::endl << std::endl;
                 } else {
                     amrex::Abort("Advance was unsuccessful.");
                 }
@@ -621,7 +650,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, advance_success)) {
+            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, status)) {
                 do_swap = false;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;

@@ -5,7 +5,6 @@
 #include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
-#include <Castro_generic_fill_F.H>
 
 using namespace amrex;
 
@@ -31,6 +30,15 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 #else
     const int* bc_f = bcrs.data();
 #endif
+
+    if (Gpu::inLaunchRegion()) {
+        GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(castro_generic_fill_func);
+        gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    }
+    else {
+        CpuBndryFuncFab cpu_bndry_func(nullptr);
+        cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    }
 
     // This routine either comes in with one component or all NUM_STATE.
 

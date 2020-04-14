@@ -49,11 +49,7 @@ Castro::volWgtSum (const std::string& name,
 
         AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab(i,j,k) * vol(i,j,k);
-#endif
+            Gpu::Atomic::Add(sum_d, fab(i,j,k) * vol(i,j,k));
         });
     }
 
@@ -101,11 +97,7 @@ Castro::volWgtSquaredSum (const std::string& name,
 
         AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab(i,j,k) * fab(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab(i,j,k) * fab(i,j,k) * vol(i,j,k);
-#endif
+            Gpu::Atomic::Add(sum_d, fab(i,j,k) * fab(i,j,k) * vol(i,j,k));
         });
     }
 
@@ -184,11 +176,7 @@ Castro::locWgtSum (const std::string& name,
                 ds = fab(i,j,k) * loc[2];
             }
 
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, ds);
-#else
-            *sum_d += ds;
-#endif
+            Gpu::Atomic::Add(sum_d, ds);
         });
     }
 
@@ -235,11 +223,7 @@ Castro::volProductSum (const std::string& name1,
 
         AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k);
-#endif
+            Gpu::Atomic::Add(sum_d, fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k));
         });
     }
 
@@ -316,11 +300,7 @@ Castro::locSquaredSum (const std::string& name,
                 ds = fab(i,j,k) * (loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
             }
 
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, ds);
-#else
-            *sum_d += ds;
-#endif
+            Gpu::Atomic::Add(sum_d, ds);
         });
     }
 
