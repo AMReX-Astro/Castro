@@ -225,9 +225,10 @@ contains
                 end do
              end do
           end do
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        endif  ! xl_ext check
 
     endif
@@ -393,9 +394,10 @@ contains
                 end do
              end do
           end do
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        end if  ! xr_ext check
 
     endif
@@ -567,9 +569,10 @@ contains
                 end do
              end do
           end do
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        endif  ! yl_ext check
 
 
@@ -737,9 +740,10 @@ contains
                 end do
              end do
           end do
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        end if  ! yr_ext check
 
     endif
@@ -910,9 +914,10 @@ contains
                 end do
              end do
           end do
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        endif  ! zl_ext check
 
 
@@ -925,9 +930,10 @@ contains
 #ifndef AMREX_USE_CUDA
           call castro_error("ERROR: HSE boundaries not implemented for +Z")
 #endif
-
+#ifndef AMREX_USE_CUDA
        else
           call castro_error("invalid BC option")
+#endif
        end if  ! zr_ext check
 
     end if
