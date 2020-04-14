@@ -26,8 +26,12 @@
   relaxation_density_cutoff = -1.0d3
   relaxation_cutoff_time = -1.0d2
 
-  max_stellar_tagging_level = 20
-  stellar_density_threshold = 1.0d0
+  max_stellar_tagging_level = 0
+
+  max_center_tagging_level = 0
+
+  max_temperature_tagging_level = 20
+  temperature_tagging_threshold = 1.0d9
 
 /
 
@@ -94,5 +98,7 @@
   ! following option will have no effect.
 
   use_tables = T
+
+  ode_max_steps = 10000
 
 /
