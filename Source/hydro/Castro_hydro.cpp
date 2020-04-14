@@ -276,7 +276,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
             Real dtdz = 0.0_rt;
             if (AMREX_SPACEDIM == 3) {
-                dtdx = dt / dx[2];
+                dtdz = dt / dx[2];
             }
 
             Real courx = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QU))) * dtdx;
