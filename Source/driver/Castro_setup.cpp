@@ -206,6 +206,9 @@ Castro::variableSetUp ()
 
   // Initialize the network
   ca_network_init();
+#ifdef CXX_REACTIONS
+  network_init();
+#endif
 
   // Initialize the EOS
   ca_eos_init();
