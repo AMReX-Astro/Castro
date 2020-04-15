@@ -4,6 +4,7 @@
 #include "Castro_F.H"
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
+#include <MGutils.H>
 
 #define MAX_LEV 15
 
@@ -89,10 +90,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(cc[mfi]),
-                     AMREX_REAL_ANYD(dx), coord_type);
+        do_weight_cc(bx, cc.array(mfi), dx, coord_type);
     }
 }
 
@@ -108,10 +106,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(cc[mfi]),
-                       AMREX_REAL_ANYD(dx), coord_type);
+        do_unweight_cc(bx, cc.array(mfi), dx, coord_type);
     }
 }
 #endif

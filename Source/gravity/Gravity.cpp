@@ -20,6 +20,8 @@
 #include "gravity_defaults.H"
 #include "fundamental_constants.H"
 
+#include "MGutils.H"
+
 using namespace amrex;
 
 #ifdef AMREX_DEBUG
@@ -133,11 +135,15 @@ Gravity::read_params ()
 
         int nlevs = parent->maxLevel() + 1;
 
-        // Allow run-time input of solver tolerance. If the user provides no value, set a reasonable default
-        // value on the coarse level, and then increase it by ref_ratio**2 as the levels get finer to account
-        // for the change in the absolute scale of the Laplacian. If the user provides one value, use that
-        // on the coarse level, and increase it the same way for the fine levels. If the user provides more than
-        // one value, we expect them to provide one for every level, and we do not apply the ref_ratio effect.
+        // Allow run-time input of solver tolerance. If the user
+        // provides no value, set a reasonable default value on the
+        // coarse level, and then increase it by ref_ratio**2 as the
+        // levels get finer to account for the change in the absolute
+        // scale of the Laplacian. If the user provides one value, use
+        // that on the coarse level, and increase it the same way for
+        // the fine levels. If the user provides more than one value,
+        // we expect them to provide one for every level, and we do
+        // not apply the ref_ratio effect.
 
         int n_abs_tol = pp.countval("abs_tol");
 
@@ -181,14 +187,18 @@ Gravity::read_params ()
 
         }
 
-        // For the relative tolerance, we can again accept a single scalar (same for all levels)
-        // or one for all levels. The default value is zero, so that we only use the absolute tolerance.
-        // The multigrid always chooses the looser of the two criteria in determining whether the solve
-        // has converged.
+        // For the relative tolerance, we can again accept a single
+        // scalar (same for all levels) or one for all levels. The
+        // default value is zero, so that we only use the absolute
+        // tolerance.  The multigrid always chooses the looser of the
+        // two criteria in determining whether the solve has
+        // converged.
 
-        // Note that the parameter rel_tol used to be known as ml_tol, so if we detect that the user has
-        // set ml_tol but not rel_tol, we'll accept that for specifying the relative tolerance. ml_tol
-        // is now considered deprecated and will be removed in a future release.
+        // Note that the parameter rel_tol used to be known as ml_tol,
+        // so if we detect that the user has set ml_tol but not
+        // rel_tol, we'll accept that for specifying the relative
+        // tolerance. ml_tol is now considered deprecated and will be
+        // removed in a future release.
 
         std::string rel_tol_name = "rel_tol";
 
@@ -2076,18 +2086,13 @@ Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coe
 #endif
 
         // Modify Rhs and coeffs with the appropriate metric terms.
-#pragma gpu box(bx)
-        ca_apply_metric(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        AMREX_INT_ANYD(xbx.loVect()), AMREX_INT_ANYD(xbx.hiVect()),
+        apply_metric(bx,
+                     Rhs.array(mfi), (Rhs[mfi]).box(),
+                     (*coeffs[0]).array(mfi), xbx,
 #if AMREX_SPACEDIM >= 2
-                        AMREX_INT_ANYD(ybx.loVect()), AMREX_INT_ANYD(ybx.hiVect()),
+                     (*coeffs[1]).array(mfi), ybx,
 #endif
-                        BL_TO_FORTRAN_ANYD(Rhs[mfi]),
-                        BL_TO_FORTRAN_ANYD((*coeffs[0])[mfi]),
-#if AMREX_SPACEDIM >= 2
-                        BL_TO_FORTRAN_ANYD((*coeffs[1])[mfi]),
-#endif
-                        AMREX_REAL_ANYD(dx), coord_type);
+                     dx, coord_type);
     }
 }
 
@@ -2105,10 +2110,7 @@ Gravity::unweight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(cc[mfi]),
-                       AMREX_REAL_ANYD(dx), coord_type);
+        do_unweight_cc(bx, cc.array(mfi), dx, coord_type);
     }
 }
 
@@ -2127,11 +2129,7 @@ Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_unweight_edges(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                              BL_TO_FORTRAN_ANYD((*edges[idir])[mfi]),
-                              AMREX_REAL_ANYD(dx),
-                              coord_type, idir);
+            do_unweight_edges(bx, (*edges[idir]).array(mfi), idir, dx, coord_type);
         }
     }
 }
