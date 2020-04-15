@@ -247,10 +247,10 @@ Gravity::read_params ()
 
         if (pp.contains("sl_tol"))
             amrex::Warning("The gravity parameter sl_tol is no longer used.");
-        Ggravity = 4.0 * M_PI * Gconst;
+        Ggravity = 4.0 * M_PI * C::Gconst;
         if (verbose > 1 && ParallelDescriptor::IOProcessor())
         {
-           std::cout << "Getting Gconst from constants: " << Gconst << std::endl;
+           std::cout << "Getting Gconst from constants: " << C::Gconst << std::endl;
            std::cout << "Using " << Ggravity << " for 4 pi G in Gravity.cpp " << std::endl;
         }
 
