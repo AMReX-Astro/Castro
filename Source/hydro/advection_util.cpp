@@ -731,6 +731,17 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     Real density_floor = small_dens * density_floor_tolerance;
 
+    // We apply this flux limiter on a per-edge basis. So we can guarantee
+    // that any individual flux cannot cause a small density in one step,
+    // but with the above floor we cannot guarantee that the sum of the
+    // fluxes will enforce this constraint. The only way to guarantee that
+    // is if the density floor is increased by a factor of the number of
+    // edges, so that even if all edges are summed together, the density
+    // will still be at the floor. So we multiply the floor by a factor of
+    // 2 (two edges in each dimension) and a factor of AMREX_SPACEDIM.
+
+    density_floor *= AMREX_SPACEDIM * 2;
+
     const Real* dx = geom.CellSize();
 
     Real dtdx = dt / dx[idir];
@@ -876,11 +887,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
             // Solve for theta from (1 - theta) * rhoLF + theta * rho = density_floor.
 
-            theta = (density_floor - rhoLF) / (rhoL - rhoLF);
-
-            // Limit theta to the valid range (this will deal with roundoff issues).
-
-            theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+            theta = amrex::min(theta, (density_floor - rhoLF) / (rhoL - rhoLF));
 
         }
         else if (rhoR < density_floor) {
@@ -888,11 +895,13 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
             Real drhoLF = flux_coefR * fluxLF[URHO];
             Real rhoLF = uR[URHO] + drhoLF;
 
-            theta = (density_floor - rhoLF) / (rhoR - rhoLF);
-
-            theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+            theta = amrex::min(theta, (density_floor - rhoLF) / (rhoR - rhoLF));
 
         }
+
+        // Limit theta to the valid range (this will deal with roundoff issues).
+
+        theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
 
         // Assemble the limited flux (Equation 16).
 
@@ -956,7 +965,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     GpuArray<Real, 3> center;
     ca_get_center(center.begin());
 
-    Real lspeed_limit = speed_limit;
+    Real lspeed_limit = speed_limit / (2 * AMREX_SPACEDIM);
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -1078,11 +1087,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
                  // Solve for theta from (1 - theta) * rhouLF + theta * rhou = rhoL * speed_limit.
 
-                 theta = std::abs(rhoL * lspeed_limit - rhouLF) / std::abs(rhouL - rhouLF);
-
-                 // Limit theta to the valid range (this will deal with roundoff issues).
-
-                 theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+                 theta = amrex::min(theta, std::abs(rhoL * lspeed_limit - rhouLF) / std::abs(rhouL - rhouLF));
 
              }
              else if (std::abs(rhouR) > rhoR * lspeed_limit) {
@@ -1090,13 +1095,15 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
                  Real drhouLF = flux_coefR * fluxLF[UMOM];
                  Real rhouLF = std::abs(uR[UMOM] + drhouLF);
 
-                 theta = std::abs(rhoR * lspeed_limit - rhouLF) / std::abs(rhouR - rhouLF);
-
-                 theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
+                 theta = amrex::min(theta, std::abs(rhoR * lspeed_limit - rhouLF) / std::abs(rhouR - rhouLF));
 
              }
 
          }
+
+         // Limit theta to the valid range (this will deal with roundoff issues).
+
+         theta = amrex::min(1.0_rt, amrex::max(theta, 0.0_rt));
 
          // Assemble the limited flux (Equation 16).
 
