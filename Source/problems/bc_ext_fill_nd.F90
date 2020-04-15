@@ -75,18 +75,8 @@ contains
                 ! we are integrating along a column at constant i.
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(domlo(1),j,k,URHO)
-
-                if (dens_above == ZERO) then
-                   ! sometimes, we might be working in a corner where
-                   ! the ghost cells above us have not yet been
-                   ! initialized.  We'll skip these corner cells and
-                   ! they should be filled in the pass in the other
-                   ! directions.
-                   cycle
-                else
-                   temp_above = adv(domlo(1),j,k,UTEMP)
-                   X_zone(:) = adv(domlo(1),j,k,UFS:UFS-1+nspec)/dens_above
-                endif
+                temp_above = adv(domlo(1),j,k,UTEMP)
+                X_zone(:) = adv(domlo(1),j,k,UFS:UFS-1+nspec)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
@@ -244,18 +234,8 @@ contains
                 ! we are integrating along a column at constant i.
                 ! Make sure that our starting state is well-defined
                 dens_below = adv(domhi(1),j,k,URHO)
-
-                if (dens_below == ZERO) then
-                   ! sometimes, we might be working in a corner where
-                   ! the ghost cells above us have not yet been
-                   ! initialized.  We'll skip these corner cells and
-                   ! they should be filled in the pass in the other
-                   ! directions
-                   cycle
-                else
-                   temp_below = adv(domhi(1),j,k,UTEMP)
-                   X_zone(:) = adv(domhi(1),j,k,UFS:UFS-1+nspec)/dens_below
-                endif
+                temp_below = adv(domhi(1),j,k,UTEMP)
+                X_zone(:) = adv(domhi(1),j,k,UFS:UFS-1+nspec)/dens_below
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_below
@@ -418,18 +398,8 @@ contains
                 ! we are integrating along a column at constant i.
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(i,domlo(2),k,URHO)
-
-                if (dens_above == ZERO) then
-                   ! sometimes, we might be working in a corner where
-                   ! the ghost cells above us have not yet been
-                   ! initialized.  We'll skip these corner cells and
-                   ! they should be filled in the pass in the other
-                   ! directions.
-                   cycle
-                else
-                   temp_above = adv(i,domlo(2),k,UTEMP)
-                   X_zone(:) = adv(i,domlo(2),k,UFS:UFS-1+nspec)/dens_above
-                endif
+                temp_above = adv(i,domlo(2),k,UTEMP)
+                X_zone(:) = adv(i,domlo(2),k,UFS:UFS-1+nspec)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
@@ -590,18 +560,8 @@ contains
                 ! we are integrating along a column at constant i.
                 ! Make sure that our starting state is well-defined
                 dens_below = adv(i,domhi(2),k,URHO)
-
-                if (dens_below == ZERO) then
-                   ! sometimes, we might be working in a corner where
-                   ! the ghost cells above us have not yet been
-                   ! initialized.  We'll skip these corner cells and
-                   ! they should be filled in the pass in the other
-                   ! directions.
-                   cycle
-                else
-                   temp_below = adv(i,domhi(2),k,UTEMP)
-                   X_zone(:) = adv(i,domhi(2),k,UFS:UFS-1+nspec)/dens_below
-                endif
+                temp_below = adv(i,domhi(2),k,UTEMP)
+                X_zone(:) = adv(i,domhi(2),k,UFS:UFS-1+nspec)/dens_below
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_below
@@ -765,18 +725,8 @@ contains
                 ! we are integrating along a column at constant i.
                 ! Make sure that our starting state is well-defined
                 dens_above = adv(i,j,domlo(3),URHO)
-
-                if (dens_above == ZERO) then
-                   ! sometimes, we might be working in a corner where
-                   ! the ghost cells above us have not yet been
-                   ! initialized.  We'll skip these corner cells and
-                   ! they should be filled in the pass in the other
-                   ! directions.
-                   cycle
-                else
-                   temp_above = adv(i,j,domlo(3),UTEMP)
-                   X_zone(:) = adv(i,j,domlo(3),UFS:UFS-1+nspec)/dens_above
-                endif
+                temp_above = adv(i,j,domlo(3),UTEMP)
+                X_zone(:) = adv(i,j,domlo(3),UFS:UFS-1+nspec)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
