@@ -78,10 +78,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // that are not corners and then call it a second time on just the
     // corners.
 
-    std::cout << "about to check" << std::endl;
-    std::cout << bcr[URHO].lo(0) << " " << bcr[URHO].lo(1) << std::endl;
-    std::cout << bcr[URHO].hi(0) << " " << bcr[URHO].hi(1) << std::endl;
-
 #if AMREX_SPACEDIM == 2
     if ((bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
         (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
@@ -90,8 +86,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
       amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
-
-    std::cout << "done" << std::endl;
 
 #if AMREX_SPACEDIM == 3
     if ((bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zl corner
