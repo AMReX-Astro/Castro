@@ -2,6 +2,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+#include "hybrid.H"
+
 using namespace amrex;
 
 void
