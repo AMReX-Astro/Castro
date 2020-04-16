@@ -203,10 +203,10 @@
 /// @param dt           timestep
 /// @param mult_factor  multiplicative factor in front of the source
 ///
-    void do_sponge(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real const> const state,
-                   amrex::Array4<amrex::Real> const source,
-                   amrex::Real dt, amrex::Real mult_factor);
+    void apply_sponge(const amrex::Box& bx,
+                      amrex::Array4<amrex::Real const> const state,
+                      amrex::Array4<amrex::Real> const source,
+                      amrex::Real dt, amrex::Real mult_factor);
 
 ///
 /// Allocate sponge parameters
@@ -218,6 +218,9 @@
 /// Deallocate sponge parameters
 ///
     static void sponge_finalize();
+
+
+    void update_sponge_params(const amrex::Real time);
 #endif
 
 

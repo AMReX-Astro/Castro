@@ -11,7 +11,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
 
     if (!do_sponge) return;
 
-    update_sponge_params(&time);
+    update_sponge_params(time);
 
     const Real mult_factor = 1.0;
 
@@ -22,7 +22,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
     {
         const Box& bx = mfi.tilebox();
 
-        do_sponge(bx, state_in.array(mfi), source.array(mfi), dt, mult_factor);
+        apply_sponge(bx, state_in.array(mfi), source.array(mfi), dt, mult_factor);
 
     }
 
@@ -65,13 +65,13 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        do_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
+        apply_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
     }
 
     // Now update to the new-time sponge parameter values
     // and then evaluate the new-time part of the corrector.
 
-    update_sponge_params(&time);
+    update_sponge_params(time);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -80,7 +80,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     {
         const Box& bx = mfi.tilebox();
 
-        do_sponge(bx, state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
+        apply_sponge(bx, state_new.array(mfi), source.array(mfi), dt, mult_factor_new);
 
     }
 
@@ -115,10 +115,10 @@ Castro::sponge_finalize()
 }
 
 void
-Castro::do_sponge(const Box& bx,
-                  Array4<Real const> const state,
-                  Array4<Real> const source,
-                  Real dt, Real mult_factor) {
+Castro::apply_sponge(const Box& bx,
+                     Array4<Real const> const state,
+                     Array4<Real> const source,
+                     Real dt, Real mult_factor) {
 
   // alpha is a dimensionless measure of the timestep size; if
   // sponge_timescale < dt, then the sponge will have a larger effect,
@@ -130,12 +130,17 @@ Castro::do_sponge(const Box& bx,
     alpha = 0.0_rt;
   }
 
-  auto dx = geomdata.CellSizeArray();
+  auto dx = geom.CellSizeArray();
+auto problo = geom.ProbLoArray();
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real src(NSRC);
+    Real src[NSRC];
 
     for (int n = 0; n < NSRC; n++) {
       src[n] = 0.0;
@@ -148,7 +153,7 @@ Castro::do_sponge(const Box& bx,
     r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
 
     Real rho = state(i,j,k,URHO);
-    Real rhoInv = ONE / rho;
+    Real rhoInv = 1.0_rt / rho;
 
     // compute the update factor
 
@@ -248,6 +253,7 @@ Castro::do_sponge(const Box& bx,
     //    (rho v) + Sr == (rho v) / (ONE + alpha * sponge_factor),
     // which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
+    Real fac;
     if (sponge_implicit == 1) {
        fac = -(1.0_rt - 1.0_rt / (1.0_rt + alpha * sponge_factor));
 
@@ -260,7 +266,7 @@ Castro::do_sponge(const Box& bx,
     // now compute the source
     GpuArray<Real, 3> Sr;
     for (int i = 0; i < 3; i++) {
-      Sr[i] = (state(i,j,k,UMX+i) - rho * sponge_target_velocity) * fac * mult_factor / dt;
+      Sr[i] = (state(i,j,k,UMX+i) - rho * sponge_target_velocity[i]) * fac * mult_factor / dt;
       src[UMX+i] = Sr[i];
     }
 
@@ -288,6 +294,7 @@ Castro::do_sponge(const Box& bx,
     for (int n = 0; n < NSRC; n++) {
       source(i,j,k,n) += src[n];
     }
+
   });
 }
 
