@@ -11,7 +11,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
 
     if (!do_sponge) return;
 
-    update_sponge_params(time);
+    update_sponge_params(&time);
 
     const Real mult_factor = 1.0;
 
@@ -71,7 +71,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
     // Now update to the new-time sponge parameter values
     // and then evaluate the new-time part of the corrector.
 
-    update_sponge_params(time);
+    update_sponge_params(&time);
 
 #ifdef _OPENMP
 #pragma omp parallel

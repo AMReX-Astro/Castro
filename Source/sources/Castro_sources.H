@@ -219,8 +219,6 @@
 ///
     static void sponge_finalize();
 
-
-    void update_sponge_params(const amrex::Real time);
 #endif
 
 
