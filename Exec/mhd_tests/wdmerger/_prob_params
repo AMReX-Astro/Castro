@@ -1,0 +1,281 @@
+# name                          data type             default                  in namelist?           size
+  
+# Initial stellar properties
+# Note that the envelope mass is included within the total mass of the star
+
+mass_P                          real                  1.0e0_rt                 y
+mass_S                          real                  1.0e0_rt                 y
+central_density_P               real                 -1.0e0_rt                 y
+central_density_S               real                 -1.0e0_rt                 y
+stellar_temp                    real                  1.0e7_rt                 y
+primary_envelope_mass           real                  0.0e0_rt                 n
+secondary_envelope_mass         real                  0.0e0_rt                 n
+primary_envelope_comp           real                  0.0e0_rt                 n                      (nspec, network)
+secondary_envelope_comp         real                  0.0e0_rt                 n                      (nspec, network)
+
+
+
+# Binary orbit properties
+
+r_P_initial                     real                  0.0e0_rt                 n
+r_S_initial                     real                  0.0e0_rt                 n
+a                               real                  0.0e0_rt                 n
+center_P_initial                real                  0.0e0_rt                 n                      3
+center_S_initial                real                  0.0e0_rt                 n                      3
+orbital_eccentricity            real                  0.0e0_rt                 y
+orbital_angle                   real                  0.0e0_rt                 y
+
+
+
+# Axis is in orbital plane; we measure angle with respect to this axis. Normally the x axis.
+
+axis_1                          integer               1                        y
+
+# Perpendicular axis in the orbital plane. Normally the y axis.
+
+axis_2                          integer               2                        y
+
+# Perpendicular to both other axes. Normally the z axis and also the rotation axis.
+
+axis_3                          integer               3                        y
+
+# Location of the physical center of the problem, as a fraction of domain size
+
+center_fracx                    real                  0.5e0_rt                 y
+center_fracy                    real                  0.5e0_rt                 y
+center_fracz                    real                  0.5e0_rt                 y
+
+# Bulk system motion
+
+bulk_velx                       real                  0.0e0_rt                 y
+bulk_vely                       real                  0.0e0_rt                 y
+bulk_velz                       real                  0.0e0_rt                 y
+
+# Whether we're doing an initialization or a restart
+
+init                            integer               1                        n
+
+# Are we doing a single star simulation?
+
+single_star                     logical               .false.                  n
+
+
+
+# Smallest allowed velocity on the grid  
+smallu                          real                  0.e0_rt                  y
+
+
+
+# 1D initial model parameters
+
+# For the grid spacing for our model, we'll use 
+# 6.25 km. No simulation we do is likely to have a resolution
+# higher than that inside the stars (it represents
+# three jumps by a factor of four compared to our 
+# normal coarse grid resolution). By using 4096
+# grid points, the size of the 1D domain will be 2.56e9 cm,
+# which is larger than any reasonable mass white dwarf.
+
+initial_model_dx                real                  6.25e5_rt                y
+initial_model_npts              integer               4096                     y
+
+# initial_model_mass_tol is tolerance used for getting the total WD mass 
+# equal to the desired mass. It can be reasonably small, since there
+# will always be a central density value that can give the desired
+# WD mass on the grid we use.
+
+initial_model_mass_tol          real                  1.e-6_rt                 y
+
+# hse_tol is the tolerance used when iterating over a zone to force
+# it into HSE by adjusting the current density (and possibly
+# temperature).  hse_tol should be very small (~ 1.e-10).
+
+initial_model_hse_tol           real                  1.e-10_rt                y
+
+# Composition properties of initial models.
+# We follow the prescription of Dan et al. 2012 for determining
+# the composition of the WDs. In this approach, below a certain 
+# mass there are pure He WDs; just above that are hybrid WDs
+# with pure CO cores and a He mantle; above that are pure CO WDs
+# with slightly more oxygen than carbon; and above that are 
+# ONeMg WDs. All masses are in solar masses.
+
+max_he_wd_mass                  real                  0.45e0_rt                y
+max_hybrid_wd_mass              real                  0.6e0_rt                 y
+hybrid_wd_he_shell_mass         real                  0.1e0_rt                 y
+max_co_wd_mass                  real                  1.05e0_rt                y
+co_wd_he_shell_mass             real                  0.0e0_rt                 y
+
+hybrid_wd_c_frac                real                  0.50e0_rt                y
+hybrid_wd_o_frac                real                  0.50e0_rt                y
+
+co_wd_c_frac                    real                  0.40e0_rt                y
+co_wd_o_frac                    real                  0.60e0_rt                y
+
+onemg_wd_o_frac                 real                  0.60e0_rt                y
+onemg_wd_ne_frac                real                  0.35e0_rt                y
+onemg_wd_mg_frac                real                  0.05e0_rt                y
+
+
+
+# Parameters for interpolation from 1D model to 3D model
+
+# Default to interpolation that preserves temperature; otherwise, use pressure
+interp_temp                     logical               .true.                   y
+
+# Number of sub-grid-scale zones to use
+nsub                            integer               1                        y
+
+
+
+# Method for determining the initial problem setup.
+#
+# 0 = Collision; distance determined by a multiple of the secondary WD radius
+# 1 = Keplerian orbit; distance determined by Roche radius (or rotation period)
+# 2 = Tidal disruption event; distance determined by a multiple of the WD tidal radius
+
+problem                         integer               1                        y
+
+
+
+# If we're automatically determining the initial distance based on the Roche lobe
+# radii for the merger problem, this is the sizing factor we use. Negative means
+# that we set the initial distance using the user-selected rotation period.
+
+roche_radius_factor             real                  1.0e0_rt                 y
+
+
+
+# Collision parameters
+
+# For a collision, number of (secondary) WD radii to 
+# separate the WDs by.
+
+collision_separation            real                  4.0e0_rt                 y
+
+# For a collision, the impact parameter measured in
+# units of the primary's initial radius.
+
+collision_impact_parameter      real                  0.0e0_rt                 y
+
+# For a collision, the initial velocity of the WDs toward
+# each other. If this is negative, the velocity will
+# be set according to free-fall from an infinite distance.
+
+collision_velocity              real                 -1.0e0_rt                 y
+
+
+
+# TDE parameters
+
+# For a TDE, number of WD tidal radii to separate the WD and BH.
+
+tde_separation                  real                  8.0e0_rt                 y
+
+# For a TDE, the parameter beta: the ratio of the tidal radius to
+# the Schwarzschild radius of the BH.
+
+tde_beta                        real                  6.0e0_rt                 y
+
+# For a TDE, should we give the star an initial kick of velocity
+# corresponding to its parabolic orbit? By default we will, but
+# this option exists so we can test for HSE.
+
+tde_initial_velocity            integer               1                        y
+
+tde_tidal_radius                real                  0.0e0_rt                 n
+tde_schwarzschild_radius        real                  0.0e0_rt                 n
+tde_pericenter_radius           real                  0.0e0_rt                 n
+
+
+
+# Tagging criteria
+
+max_stellar_tagging_level       integer               20                       y
+max_temperature_tagging_level   integer               20                       y
+max_center_tagging_level        integer               20                       y
+stellar_density_threshold       real                  1.0e0_rt                 y
+temperature_tagging_threshold   real                  5.0e8_rt                 y
+center_tagging_radius           real                  0.0e0_rt                 y
+max_tagging_radius              real                  0.75e0_rt                y
+roche_tagging_factor            real                  2.0e0_rt                 y
+
+
+
+# Stores the center of mass location of the stars throughout the run
+
+com_P                           real                  0.0e0_rt                 n                      3
+com_S                           real                  0.0e0_rt                 n                      3
+vel_P                           real                  0.0e0_rt                 n                      3
+vel_S                           real                  0.0e0_rt                 n                      3
+
+
+
+# Stores the effective Roche radii
+
+roche_rad_P                     real                  0.0e0_rt                 n
+roche_rad_S                     real                  0.0e0_rt                 n
+
+
+
+# Relaxation parameters
+
+relaxation_damping_factor       real                 -1.0e-1_rt                y
+relaxation_density_cutoff       real                  1.0e3_rt                 y
+relaxation_cutoff_time          real                 -1.0e0_rt                 y
+relaxation_is_done              integer               1                        n
+
+# Radial damping parameters
+
+radial_damping_factor           real                 -1.0e3_rt                 y
+initial_radial_velocity_factor  real                 -1.0e-3_rt                y
+
+
+
+# Distance (in kpc) used for calculation of the gravitational wave amplitude
+# (this wil be calculated along all three coordinate axes).
+
+gw_dist                         real                  10.0e0_rt                y
+
+
+
+# Current value of the dynamical timescale for each star
+
+t_ff_P                          real                  0.0e0_rt                 n
+t_ff_S                          real                  0.0e0_rt                 n
+
+
+
+# Global extrema
+
+T_global_max                    real                  0.0e0_rt                 n
+rho_global_max                  real                  0.0e0_rt                 n
+ts_te_global_max                real                  0.0e0_rt                 n
+
+
+
+# Stores whether we assert that the simulation has completed.
+
+jobIsDone                       logical               .false.                  n
+signalJobIsNotDone              logical               .false.                  n
+
+
+
+# Auxiliary data for determining whether the job is done.
+
+num_previous_ener_timesteps     integer               5                        n
+total_ener_array                real                  0.0e0_rt                 n                      5
+
+
+
+# Lagrange points
+
+L1                              real                  0.0e0_rt                 n                      3
+L2                              real                  0.0e0_rt                 n                      3
+L3                              real                  0.0e0_rt                 n                      3
+
+#for the magnetic fields
+
+B_x                             real                  0.0e0_rt                 y    
+B_y                             real                  0.0e0_rt                 y
+B_z                             real                  0.0e0_rt                 y

@@ -88,7 +88,7 @@ castro.do_react = 0
 # Whether or not to apply the sponge
 castro.do_sponge = 1
 # Whether or not to apply external source terms
-castro.add_ext_src = 1
+castro.add_ext_src = 0
 # Whether or not to include the rotation source term
 castro.do_rotation = 0
 ############################################################################################

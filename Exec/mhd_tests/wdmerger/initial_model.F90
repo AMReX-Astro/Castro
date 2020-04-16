@@ -4,95 +4,181 @@
 
 module initial_model_module
 
-  use amrex_constants_module
-  use amrex_error_module, only: amrex_error
-  use eos_module, only: eos
+  use amrex_fort_module, only: rt => amrex_real
+  use amrex_constants_module, only: ZERO, HALF, ONE, FOUR3RD, M_PI
   use eos_type_module, only: eos_t, eos_input_rt
   use network, only: nspec
   use model_parser_module, only: itemp_model, idens_model, ipres_model, ispec_model
   use fundamental_constants_module, only: Gconst, M_solar
-  use interpolate_module, only: interpolate
   use meth_params_module, only: small_temp
 
   type :: initial_model
 
      ! Physical characteristics
 
-     double precision :: mass = ZERO
-     double precision :: envelope_mass = ZERO
-     double precision :: central_density = ZERO
-     double precision :: central_temp = ZERO
-     double precision :: min_density = ZERO
-     double precision :: radius = ZERO
+     real(rt) :: mass
+     real(rt) :: envelope_mass
+     real(rt) :: central_density
+     real(rt) :: central_temp
+     real(rt) :: min_density
+     real(rt) :: radius
 
      ! Composition
 
-     double precision :: core_comp(nspec) = ZERO
-     double precision :: envelope_comp(nspec) = ZERO
+     real(rt), allocatable :: core_comp(:)
+     real(rt), allocatable :: envelope_comp(:)
 
      ! Model storage
 
-     double precision :: dx
-     integer          :: npts
-     double precision :: mass_tol, hse_tol
+     real(rt) :: dx
+     integer  :: npts
+     real(rt) :: mass_tol, hse_tol
 
-     double precision, allocatable :: r(:), rl(:), rr(:)
-     double precision, allocatable :: M_enclosed(:), g(:)
+     real(rt), allocatable :: r(:), rl(:), rr(:)
+     real(rt), allocatable :: M_enclosed(:), g(:)
      type (eos_t), allocatable :: state(:)
 
   end type initial_model
-  
+
+  ! 1D initial models
+
+  type (initial_model), allocatable :: model_P, model_S
+  real(rt), allocatable :: rho_P(:), rho_S(:)
+  real(rt), allocatable :: T_P(:), T_S(:)
+  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
+  real(rt), allocatable :: r_P(:), r_S(:)
+
+#ifdef AMREX_USE_CUDA
+  attributes(managed) :: model_P, model_S
+  attributes(managed) :: rho_P, rho_S
+  attributes(managed) :: T_P, T_S
+  attributes(managed) :: xn_P, xn_S
+  attributes(managed) :: r_P, r_S
+#endif
+
+
 contains
 
-  subroutine initialize_model(model, dx, npts, mass_tol, hse_tol)
+  subroutine initialize_model(primary, dx, npts, mass_tol, hse_tol)
 
     implicit none
 
-    type (initial_model) :: model
-    integer :: npts
-    double precision :: dx, mass_tol, hse_tol
+    logical,  intent(in   ) :: primary
+    integer,  intent(in   ) :: npts
+    real(rt), intent(in   ) :: dx, mass_tol, hse_tol
 
     integer :: i
 
-    model % dx = dx
-    model % npts = npts
-    model % mass_tol = mass_tol
-    model % hse_tol = hse_tol
+    if (primary) then
 
-    allocate(model % r(npts))
-    allocate(model % rl(npts))
-    allocate(model % rr(npts))
-    allocate(model % M_enclosed(npts))
-    allocate(model % g(npts))
-    allocate(model % state(npts))
+       model_P % mass = ZERO
+       model_P % envelope_mass = ZERO
+       model_P % central_density = ZERO
+       model_P % central_temp = ZERO
+       model_P % min_density = ZERO
+       model_P % radius = ZERO
 
-    do i = 1, npts
+       allocate(model_P % core_comp(nspec))
+       allocate(model_P % envelope_comp(nspec))
 
-       model % rl(i) = (dble(i) - ONE)*dx
-       model % rr(i) = (dble(i)      )*dx
-       model % r(i)  = HALF*(model % rl(i) + model % rr(i))
+       model_P % core_comp(:) = ZERO
+       model_P % envelope_comp(:) = ZERO
 
-    enddo
+       model_P % dx = dx
+       model_P % npts = npts
+       model_P % mass_tol = mass_tol
+       model_P % hse_tol = hse_tol
+
+       allocate(model_P % r(npts))
+       allocate(model_P % rl(npts))
+       allocate(model_P % rr(npts))
+       allocate(model_P % M_enclosed(npts))
+       allocate(model_P % g(npts))
+       allocate(model_P % state(npts))
+
+       allocate(rho_P(npts))
+       allocate(T_P(npts))
+       allocate(xn_P(npts,nspec))
+       allocate(r_P(npts))
+
+       do i = 1, npts
+
+          model_P % rl(i) = (dble(i) - ONE)*dx
+          model_P % rr(i) = (dble(i)      )*dx
+          model_P % r(i)  = HALF*(model_P % rl(i) + model_P % rr(i))
+          r_P(i) = model_P % r(i)
+
+       end do
+
+    else
+
+       model_S % mass = ZERO
+       model_S % envelope_mass = ZERO
+       model_S % central_density = ZERO
+       model_S % central_temp = ZERO
+       model_S % min_density = ZERO
+       model_S % radius = ZERO
+
+       allocate(model_S % core_comp(nspec))
+       allocate(model_S % envelope_comp(nspec))
+
+       model_S % core_comp(:) = ZERO
+       model_S % envelope_comp(:) = ZERO
+
+       model_S % dx = dx
+       model_S % npts = npts
+       model_S % mass_tol = mass_tol
+       model_S % hse_tol = hse_tol
+
+       allocate(model_S % r(npts))
+       allocate(model_S % rl(npts))
+       allocate(model_S % rr(npts))
+       allocate(model_S % M_enclosed(npts))
+       allocate(model_S % g(npts))
+       allocate(model_S % state(npts))
+
+       allocate(rho_S(npts))
+       allocate(T_S(npts))
+       allocate(xn_S(npts,nspec))
+       allocate(r_S(npts))
+
+       do i = 1, npts
+
+          model_S % rl(i) = (dble(i) - ONE)*dx
+          model_S % rr(i) = (dble(i)      )*dx
+          model_S % r(i)  = HALF*(model_S % rl(i) + model_S % rr(i))
+          r_S(i) = model_S % r(i)
+
+       end do
+
+    end if
 
   end subroutine initialize_model
 
 
 
-  subroutine establish_hse(model)
+  subroutine establish_hse(model, rho, T, xn, r)
+
+    use eos_module, only: eos
+    use castro_error_module, only: castro_error
 
     implicit none
 
     ! Arguments
 
-    type (initial_model) :: model
+    type (initial_model), intent(inout) :: model
+    real(rt), intent(inout) :: rho(model % npts)
+    real(rt), intent(inout) :: T(model % npts)
+    real(rt), intent(inout) :: xn(model % npts, nspec)
+    real(rt), intent(inout) :: r(model % npts)
 
     ! Local variables
 
-    integer :: i, icutoff
+    integer :: i, icutoff, n
 
-    double precision :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
+    real(rt) :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
 
-    double precision :: p_want, rho_avg, rho, drho
+    real(rt) :: p_want, rho_avg, drho
 
     integer :: max_hse_iter = 250, max_mass_iter
 
@@ -102,18 +188,18 @@ contains
 
     ! Note that if central_density > 0, then this initial model generator will use it in calculating
     ! the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of 
-    ! determining the envelope mass boundary. 
+    ! determining the envelope mass boundary.
 
     ! Check to make sure we've specified at least one of them.
 
     if (model % mass < ZERO .and. model % central_density < ZERO) then
-       call amrex_error('Error: Must specify either mass or central density in the initial model generator.')
+       call castro_error('Error: Must specify either mass or central density in the initial model generator.')
     endif
 
-    ! If we are specifying the mass, then we don't know what WD central density 
-    ! will give the desired total mass, so we need to do a secant iteration 
-    ! over central density. rho_c_old is the 'old' guess for the central 
-    ! density and rho_c is the current guess.  After two loops, we can 
+    ! If we are specifying the mass, then we don't know what WD central density
+    ! will give the desired total mass, so we need to do a secant iteration
+    ! over central density. rho_c_old is the 'old' guess for the central
+    ! density and rho_c is the current guess.  After two loops, we can
     ! start estimating the density required to yield our desired mass.
 
     ! If instead we are specifying the central density, then we only need to do a 
@@ -131,14 +217,14 @@ contains
        max_mass_iter = max_hse_iter
 
        rho_c_old = -ONE
-       rho_c     = 1.d7     ! A reasonable starting guess for moderate-mass WDs
+       rho_c     = 1.e7_rt     ! A reasonable starting guess for moderate-mass WDs
 
     endif
 
     ! Check to make sure the initial temperature makes sense.
 
     if (model % central_temp < small_temp) then
-       call amrex_error("Error: WD central temperature is less than small_temp. Aborting.")
+       call castro_error("Error: WD central temperature is less than small_temp. Aborting.")
     endif
 
     mass_converged = .false.
@@ -150,19 +236,28 @@ contains
        ! We start at the center of the WD and integrate outward.  Initialize
        ! the central conditions.
 
-       model % state(1) % T    = model % central_temp
-       model % state(1) % rho  = rho_c
-       model % state(1) % xn   = model % core_comp
+       T(1)    = model % central_temp
+       rho(1)  = rho_c
+       xn(1,:) = model % core_comp
+
+       model % state(1) % rho  = rho(1)
+       model % state(1) % T    = T(1)
+       model % state(1) % xn   = xn(1,:)
 
        call eos(eos_input_rt, model % state(1))
 
        ! Make the initial guess be completely uniform.
 
        model % state(:) = model % state(1)
+       rho(:) = rho(1)
+       T(:)   = T(1)
+       do n = 1, nspec
+          xn(:,n) = xn(1,n)
+       end do
 
        ! Keep track of the mass enclosed below the current zone.
 
-       model % M_enclosed(1) = FOUR3RD * M_PI * (model % rr(1)**3 - model % rl(1)**3) * model % state(1) % rho
+       model % M_enclosed(1) = FOUR3RD * M_PI * (model % rr(1)**3 - model % rl(1)**3) * rho(1)
 
        !-------------------------------------------------------------------------
        ! HSE solve
@@ -171,12 +266,15 @@ contains
 
           ! As the initial guess for the density, use the underlying zone.
 
+          rho(i) = rho(i-1)
           model % state(i) % rho = model % state(i-1) % rho
 
           if (model % mass > ZERO .and. model % M_enclosed(i-1) .ge. model % mass - model % envelope_mass) then
-             model % state(i) % xn = model % envelope_comp
+             xn(i,:) = model % envelope_comp
+             model % state(i) % xn = xn(i,:)
           else
-             model % state(i) % xn = model % core_comp
+             xn(i,:) = model % core_comp
+             model % state(i) % xn = xn(i,:)
           endif
 
           model % g(i) = -Gconst * model % M_enclosed(i-1) / model % rl(i)**2
@@ -193,6 +291,7 @@ contains
           do hse_iter = 1, max_hse_iter
 
              if (fluff) then
+                rho(i) = model % min_density
                 model % state(i) % rho = model % min_density
                 exit
              endif
@@ -203,24 +302,22 @@ contains
              ! We difference HSE about the interface between the current
              ! zone and the one just inside.
 
-             rho_avg = HALF * (model % state(i) % rho + model % state(i-1) % rho)
+             rho_avg = HALF * (rho(i) + rho(i-1))
              p_want = model % state(i-1) % p + model % dx * rho_avg * model % g(i)
 
              call eos(eos_input_rt, model % state(i))
 
              drho = (p_want - model % state(i) % p) / (model % state(i) % dpdr - HALF * model % dx * model % g(i))
-             rho = model % state(i) % rho
 
-             rho = max(0.9 * rho, min(rho + drho, 1.1 * rho))
+             rho(i) = max(0.9 * rho(i), min(rho(i) + drho, 1.1 * rho(i)))
+             model % state(i) % rho = rho(i)
 
-             model % state(i) % rho = rho
-
-             if (rho < model % min_density) then
+             if (rho(i) < model % min_density) then
                 icutoff = i
                 fluff = .TRUE.
              endif
 
-             if (abs(drho) < model % hse_tol * rho) then
+             if (abs(drho) < model % hse_tol * rho(i)) then
                 converged_hse = .TRUE.
                 exit
              endif
@@ -230,10 +327,10 @@ contains
           if (.NOT. converged_hse .and. (.NOT. fluff)) then
 
              print *, 'Error: zone', i, ' did not converge in init_hse().'
-             print *, model % state(i) % rho, model % state (i) % T
+             print *, rho(i), T(i)
              print *, p_want, model % state(i) % p
-             print *, drho, model % hse_tol * model % state(i) % rho
-             call amrex_error('Error: HSE non-convergence.')
+             print *, drho, model % hse_tol * rho(i)
+             call castro_error('Error: HSE non-convergence.')
 
           endif
 
@@ -244,7 +341,7 @@ contains
           ! Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
           model % M_enclosed(i) = model % M_enclosed(i-1) + &
-                                  FOUR3RD * M_PI * model % state(i) % rho * model % dx * &
+                                  FOUR3RD * M_PI * rho(i) * model % dx * &
                                   (model % rr(i)**2 + model % rl(i) * model % rr(i) + model % rl(i)**2)
 
        enddo  ! End loop over zones
@@ -269,24 +366,24 @@ contains
           endif
 
           ! Do a secant iteration:
-          ! M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...        
+          ! M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...
 
           drho_c = (model % mass - mass) / ( (mass  - mass_old) / (rho_c - rho_c_old) )
 
           rho_c_old = rho_c
-          rho_c = min(1.1d0 * rho_c_old, max((rho_c + drho_c), 0.9d0 * rho_c_old))
+          rho_c = min(1.1e0_rt * rho_c_old, max((rho_c + drho_c), 0.9e0_rt * rho_c_old))
 
-       endif     
+       endif
 
        mass_old = mass
 
     enddo  ! End mass constraint loop
 
     if (.not. mass_converged .and. max_mass_iter .gt. 1) then
-       call amrex_error("ERROR: WD mass did not converge.")
+       call castro_error("ERROR: WD mass did not converge.")
     endif
 
-    model % central_density = model % state(1) % rho
+    model % central_density = rho(1)
     model % radius = radius
     model % mass = mass
 
@@ -300,28 +397,33 @@ contains
 
   subroutine interpolate_3d_from_1d(rho, T, xn, r, npts, loc, star_radius, dx, state, nsub_in)
 
+    use interpolate_module, only: interpolate ! function
+    use eos_module, only: eos
+
     implicit none
 
-    double precision,  intent(in   ) :: rho(npts)
-    double precision,  intent(in   ) :: T(npts)
-    double precision,  intent(in   ) :: xn(npts, nspec)
-    double precision,  intent(in   ) :: r(npts), star_radius
-    integer,           intent(in   ) :: npts
-    double precision,  intent(in   ) :: loc(3), dx(3)
-    type (eos_t),      intent(inout) :: state
-    integer, optional, intent(in   ) :: nsub_in
-    
-    integer :: i, j, k, n
-    integer :: nsub
-    double precision :: x, y, z, dist
+    real(rt),     intent(in   ) :: rho(npts)
+    real(rt),     intent(in   ) :: T(npts)
+    real(rt),     intent(in   ) :: xn(npts, nspec)
+    real(rt),     intent(in   ) :: r(npts), star_radius
+    integer,      intent(in   ) :: npts
+    real(rt),     intent(in   ) :: loc(3), dx(3)
+    type (eos_t), intent(inout) :: state
+    integer,      intent(in   ), optional :: nsub_in
+
+    integer  :: i, j, k, n
+    integer  :: nsub
+    real(rt) :: x, y, z, dist
+
+    !$gpu
 
     if (present(nsub_in)) then
        nsub = nsub_in
     else
        nsub = 1
     endif
-    
-    state % rho = ZERO 
+
+    state % rho = ZERO
     state % p   = ZERO
     state % T   = ZERO
     state % xn  = ZERO
@@ -379,7 +481,7 @@ contains
     ! Complete the thermodynamics.
 
     call eos(eos_input_rt, state)
-                    
+
   end subroutine interpolate_3d_from_1d
-  
+
 end module initial_model_module

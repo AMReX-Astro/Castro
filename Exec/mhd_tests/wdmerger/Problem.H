@@ -63,7 +63,7 @@ void writeGitHashes(std::ostream& log);
 
 // Check whether we should stop the run.
 
-void check_to_stop(amrex::Real time);
+void check_to_stop(amrex::Real time, bool dump = true);
 
 // Calculate extrema on grid.
 

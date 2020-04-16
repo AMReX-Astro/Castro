@@ -17,12 +17,16 @@ USE_MHD ?= TRUE
 
 # We want to use the dimension agnostic version of certain source files.
 
-DIMENSION_AGNOSTIC = TRUE
+GPU_COMPATIBLE_PROBLEM = TRUE
+
+# Opt in to the auto-generated problem parameters.
+
+USE_PROB_PARAMS = TRUE
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 
 ifeq ($(DIM), 3)
-  USE_HYBRID_MOMENTUM ?= FALSE
+  USE_HYBRID_MOMENTUM ?= TRUE
 endif
 
 # Set the default integrator for the burner.
@@ -32,10 +36,6 @@ INTEGRATOR_DIR ?= VODE
 # Default compiler.
 
 COMP ?= gnu
-
-ifndef MICROPHYSICS_HOME
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-endif
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 
@@ -48,12 +48,14 @@ NETWORK_DIR ?= aprox13
 # If using general_null, make sure we have a reasonable set of isotopes.
 
 ifeq ($(NETWORK_DIR), general_null)
-	NETWORK_INPUTS = aprox13.net
+  NETWORK_INPUTS = aprox13.net
 endif
 
 # Location where the source files are coming from.
 
-Blocs := $(CASTRO_HOME)/Exec/science/wdmerger/
-Bpack := $(CASTRO_HOME)/Exec/science/wdmerger/Make.package
+PROBLEM_DIR ?= $(CASTRO_HOME)/Exec/mhd_tests/wdmerger
+
+Blocs = $(PROBLEM_DIR)
+Bpack = $(PROBLEM_DIR)/Make.package
 
 include $(CASTRO_HOME)/Exec/Make.Castro
