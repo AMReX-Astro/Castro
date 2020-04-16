@@ -1334,6 +1334,10 @@ protected:
     //
 #include <castro_params.H>
 
+#ifdef SPONGE
+#include <sponge_params.H>
+#endif
+
 #ifdef AMREX_PARTICLES
 #include "particles_params.H"
 #endif

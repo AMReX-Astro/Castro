@@ -75,8 +75,21 @@ extern "C"
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
-  void ca_get_sponge_params(const int* name, const int* namlen);
+  void ca_read_sponge_params(const int* name, const int* namlen);
+
+  void ca_get_sponge_params(amrex::Real& sponge_lower_factor,
+                            amrex::Real& sponge_upper_factor,
+                            amrex::Real& sponge_lower_radius,
+                            amrex::Real& sponge_upper_radius,
+                            amrex::Real& sponge_lower_density,
+                            amrex::Real& sponge_upper_density,
+                            amrex::Real& sponge_lower_pressure,
+                            amrex::Real& sponge_upper_pressure,
+                            amrex::Real* sponge_target_velocity,
+                            amrex::Real& sponge_timescale);
+
   void ca_allocate_sponge_params();
+
   void ca_deallocate_sponge_params();
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
