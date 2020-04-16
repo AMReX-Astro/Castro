@@ -131,7 +131,7 @@ Castro::apply_sponge(const Box& bx,
   }
 
   auto dx = geom.CellSizeArray();
-auto problo = geom.ProbLoArray();
+  auto problo = geom.ProbLoArray();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -265,9 +265,9 @@ auto problo = geom.ProbLoArray();
 
     // now compute the source
     GpuArray<Real, 3> Sr;
-    for (int i = 0; i < 3; i++) {
-      Sr[i] = (state(i,j,k,UMX+i) - rho * sponge_target_velocity[i]) * fac * mult_factor / dt;
-      src[UMX+i] = Sr[i];
+    for (int n = 0; n < 3; n++) {
+      Sr[n] = (state(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
+      src[UMX+n] = Sr[n];
     }
 
     // Kinetic energy is 1/2 rho u**2, or (rho u)**2 / (2 rho). This means
@@ -276,8 +276,8 @@ auto problo = geom.ProbLoArray();
     // term, and thus the total energy source term, is u * momentum source.
 
     Real SrE = 0.0;
-    for (int i = 0; i < 3; i++) {
-      SrE += state(i,j,k,UMX+i) * rhoInv * Sr[i];
+    for (int n = 0; n < 3; n++) {
+      SrE += state(i,j,k,UMX+n) * rhoInv * Sr[n];
     }
 
     src[UEDEN] = SrE;
@@ -285,8 +285,8 @@ auto problo = geom.ProbLoArray();
 #ifdef HYBRID_MOMENTUM
     GpuArray<Real, 3> Sr_hybrid;
     set_hybrid_momentum_source(r, Sr, Sr_hybrid);
-    for (int i = 0; i < 3; i++) {
-      src[UMR+i] = Sr_hybrid[i];
+    for (int n = 0; n < 3; n++) {
+      src[UMR+n] = Sr_hybrid[n];
     }
 #endif
 
