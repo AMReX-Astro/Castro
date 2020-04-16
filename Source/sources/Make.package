@@ -9,7 +9,6 @@ CEXE_sources += Castro_external.cpp
 CEXE_sources += Castro_thermo.cpp
 
 ca_f90EXE_sources += update_sponge_params.f90
-ca_F90EXE_sources += sponge_nd.F90
 ca_F90EXE_sources += thermo_nd.F90
 
 ca_F90EXE_sources += ext_src_nd.F90
