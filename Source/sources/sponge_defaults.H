@@ -1,0 +1,10 @@
+Real Castro::sponge_lower_factor = -1;
+Real Castro::sponge_upper_factor = -1;
+Real Castro::sponge_lower_radius = -1;
+Real Castro::sponge_upper_radius = -1;
+Real Castro::sponge_lower_density = -1;
+Real Castro::sponge_upper_density = -1;
+Real Castro::sponge_lower_pressure = -1;
+Real Castro::sponge_upper_pressure = -1;
+Real Castro::sponge_target_velocity[3] = {-1.e20, -1.e20, -1.e20};
+Real Castro::sponge_timescale = -1;

@@ -82,6 +82,11 @@ int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 
 #include <castro_defaults.H>
 
+// the sponge parameters are controlled by Fortran, so
+// this just initializes them before we grab their values
+// from Fortran
+#include <sponge_defaults.H>
+
 #ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
