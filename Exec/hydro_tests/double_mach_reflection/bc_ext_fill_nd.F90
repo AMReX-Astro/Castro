@@ -14,7 +14,7 @@ module bc_ext_fill_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE, EXT_INTERP
+                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext, zr_ext
   use prob_params_module, only: dim
 
   implicit none

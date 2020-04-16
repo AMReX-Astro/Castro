@@ -15,10 +15,16 @@ amr.n_cell           = 64 64 64
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   0   3
-castro.hi_bc       =  0   0   1
+castro.lo_bc       =  0   0   1
+castro.hi_bc       =  0   0   2
 
-castro.zr_ext_bc_type = "interp"
+castro.zl_ext_bc_type = "hse"
+castro.hse_interp_temp = 1
+castro.hse_reflect_vels = 1
+
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 2
+castro.ambient_outflow_vel = 1
 
 # this is here just for test suite coverage
 castro.state_nghost = 1
