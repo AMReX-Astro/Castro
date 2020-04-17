@@ -28,10 +28,12 @@ Castro::volWgtSum (const std::string& name,
         MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
-    Real sum = 0.0;
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
+#pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -45,17 +47,16 @@ Castro::volWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-        Real* sum_d = AMREX_MFITER_REDUCE_SUM(&sum);
-
-        AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab(i,j,k) * vol(i,j,k);
-#endif
+            return {fab(i,j,k) * vol(i,j,k)};
         });
+
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real sum = amrex::get<0>(hv);
 
     if (!local)
         ParallelDescriptor::ReduceRealSum(sum);
@@ -80,10 +81,12 @@ Castro::volWgtSquaredSum (const std::string& name,
         MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
-    Real sum = 0.0;
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
+#pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -97,17 +100,16 @@ Castro::volWgtSquaredSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-        Real* sum_d = AMREX_MFITER_REDUCE_SUM(&sum);
-
-        AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab(i,j,k) * fab(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab(i,j,k) * fab(i,j,k) * vol(i,j,k);
-#endif
+            return {fab(i,j,k) * fab(i,j,k) * vol(i,j,k)};
         });
+
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real sum = amrex::get<0>(hv);
 
     if (!local)
         ParallelDescriptor::ReduceRealSum(sum);
@@ -133,13 +135,15 @@ Castro::locWgtSum (const std::string& name,
         MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
-    Real sum = 0.0;
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
+#pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -152,9 +156,8 @@ Castro::locWgtSum (const std::string& name,
         // whatever quantity is passed in, not strictly the "mass".
         //
 
-        Real* sum_d = AMREX_MFITER_REDUCE_SUM(&sum);
-
-        AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
             Real loc[3];
 
@@ -184,13 +187,12 @@ Castro::locWgtSum (const std::string& name,
                 ds = fab(i,j,k) * loc[2];
             }
 
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, ds);
-#else
-            *sum_d += ds;
-#endif
+            return {ds};
         });
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real sum = amrex::get<0>(hv);
 
     if (!local)
         ParallelDescriptor::ReduceRealSum(sum);
@@ -218,10 +220,12 @@ Castro::volProductSum (const std::string& name1,
         MultiFab::Multiply(*mf2, mask, 0, 0, 1, 0);
     }
 
-    Real sum = 0.0;
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
+#pragma omp parallel
 #endif    
     for (MFIter mfi(*mf1, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -231,17 +235,15 @@ Castro::volProductSum (const std::string& name1,
     
         const Box& box = mfi.tilebox();
 
-        Real* sum_d = AMREX_MFITER_REDUCE_SUM(&sum);
-
-        AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k));
-#else
-            *sum_d += fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k);
-#endif
+            return {fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k)};
         });
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real sum = amrex::get<0>(hv);
 
     if (!local)
         ParallelDescriptor::ReduceRealSum(sum);
@@ -267,13 +269,15 @@ Castro::locSquaredSum (const std::string& name,
         MultiFab::Multiply(*mf, mask, 0, 0, 1, 0);
     }
 
-    Real sum = 0.0;
+    ReduceOps<ReduceOpSum> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
     auto dx     = geom.CellSizeArray();
     auto problo = geom.ProbLoArray();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:sum)
+#pragma omp parallel
 #endif    
     for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -281,9 +285,8 @@ Castro::locSquaredSum (const std::string& name,
     
         const Box& box = mfi.tilebox();
 
-        Real* sum_d = AMREX_MFITER_REDUCE_SUM(&sum);
-
-        AMREX_HOST_DEVICE_PARALLEL_FOR_3D(box, i, j, k,
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
             Real loc[3];
 
@@ -316,13 +319,12 @@ Castro::locSquaredSum (const std::string& name,
                 ds = fab(i,j,k) * (loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
             }
 
-#if AMREX_DEVICE_COMPILE
-            Gpu::deviceReduceSum(sum_d, ds);
-#else
-            *sum_d += ds;
-#endif
+            return {ds};
         });
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real sum = amrex::get<0>(hv);
 
     if (!local)
         ParallelDescriptor::ReduceRealSum(sum);

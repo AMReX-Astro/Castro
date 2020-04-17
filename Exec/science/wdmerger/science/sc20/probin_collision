@@ -1,33 +1,19 @@
-&fortin 
+&fortin
 
-  ! Following Pakmor et al. 2013, set up the primary
-  ! with 1.1 solar masses and the secondary with 0.9.
-  ! We need to override the C/O WD limit to allow a
-  ! larger C/O WD, and we need to add the helium shell.
-  ! This implementation is more rudimentary than the
-  ! Pakmor et al. implementation because we will make
-  ! the entire outer envelope of the WD pure helium,
-  ! but with no phased transition layer into the C/O
-  ! core. This is not intended to be especially realistic;
-  ! the focus is on understanding what resolution is
-  ! needed for simulating this type of event.
+  mass_P = 0.64
+  mass_S = 0.64
 
-  mass_P = 1.10
-  mass_S = 0.90
+  problem = 0
 
-  max_co_wd_mass = 1.20
-  co_wd_he_shell_mass = 0.01
+  collision_separation = 4.0d0
+  collision_impact_parameter = 0.0d0
 
-  problem = 1
+  max_stellar_tagging_level = 0
 
-  roche_radius_factor = 1.1d0
+  max_center_tagging_level = 0
 
-  relaxation_damping_factor = -1.0d-1
-  relaxation_density_cutoff = -1.0d3
-  relaxation_cutoff_time = -1.0d2
-
-  max_stellar_tagging_level = 20
-  stellar_density_threshold = 1.0d0
+  max_temperature_tagging_level = 20
+  temperature_tagging_threshold = 1.0d9
 
 /
 
@@ -51,6 +37,7 @@
   sponge_timescale     = 0.01d0
 
 /
+
 
 &extern
 
@@ -94,5 +81,7 @@
   ! following option will have no effect.
 
   use_tables = T
+
+  ode_max_steps = 10000
 
 /

@@ -5,7 +5,6 @@
 #include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
-#include <Castro_generic_fill_F.H>
 
 using namespace amrex;
 
@@ -32,6 +31,15 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     const int* bc_f = bcrs.data();
 #endif
 
+    if (Gpu::inLaunchRegion()) {
+        GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(castro_generic_fill_func);
+        gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    }
+    else {
+        CpuBndryFuncFab cpu_bndry_func(nullptr);
+        cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    }
+
     // This routine either comes in with one component or all NUM_STATE.
 
     if (numcomp == 1) {
@@ -57,6 +65,55 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
 #ifdef AMREX_USE_CUDA
     clean_bc_launch_config();
+#endif
+
+    // we just did the standard BC fills (reflect, outflow, ...)  now
+    // we consider the external ones (HSE).  Note, if we are at a
+    // corner where two (or three) faces want to do HSE, we may run
+    // into a situation that the data is not valid in the corner where
+    // we start the integration.  We'll abort, for now, if we run into
+    // this case.
+    //
+    // The future fix is to first call ext_fill on the ghost cells
+    // that are not corners and then call it a second time on just the
+    // corners.
+
+#if AMREX_SPACEDIM == 2
+    if ((bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
+        (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
+      amrex::Error("Error: external boundaries meeting at a corner not supported");
+    }
+#endif
+
+#if AMREX_SPACEDIM == 3
+    if ((bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zl corner
+         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
+        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
+        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zl corner
+         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
+        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
+        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zr corner
+         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
+        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
+        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zr corner
+         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
+        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zl corner
+         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
+        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zl corner
+         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
+        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zr corner
+         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
+        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
+        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
+         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
+        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
+      amrex::Error("Error: external boundaries meeting at a corner not supported");
+    }
 #endif
 
     if (numcomp == 1) {

@@ -242,29 +242,29 @@ Castro::check_for_cfl_violation(const Real dt)
 
     BL_PROFILE("Castro::check_for_cfl_violation()");
 
-    Real courno = -1.0e+200;
-
     auto dx = geom.CellSizeArray();
 
     MultiFab& S_new = get_new_data(State_Type);
 
     int ltime_integration_method = time_integration_method;
 
+    ReduceOps<ReduceOpMax> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:courno)
+#pragma omp parallel
 #endif
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
-        Real* courno_d = AMREX_MFITER_REDUCE_MAX(&courno);
-
         auto qaux_arr = qaux.array(mfi);
         auto q_arr = q.array(mfi);
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-
             // Compute running max of Courant number over grids
 
             Real dtdx = dt / dx[0];
@@ -276,7 +276,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
             Real dtdz = 0.0_rt;
             if (AMREX_SPACEDIM == 3) {
-                dtdx = dt / dx[2];
+                dtdz = dt / dx[2];
             }
 
             Real courx = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QU))) * dtdx;
@@ -287,19 +287,7 @@ Castro::check_for_cfl_violation(const Real dt)
 
                 // CTU integration constraint
 
-                Real courmx = *courno_d;
-                Real courmy = *courno_d;
-                Real courmz = *courno_d;
-
-                courmx = amrex::max(courmx, courx);
-                courmy = amrex::max(courmy, coury);
-                courmz = amrex::max(courmz, courz);
-
-#if AMREX_DEVICE_COMPILE
-                Gpu::deviceReduceMax(courno_d, amrex::max(courmx, courmy, courmz));
-#else
-                *courno_d = amrex::max(*courno_d, courmx, courmy, courmz);
-#endif
+                return {amrex::max(courx, coury, courz)};
 
 #ifndef AMREX_USE_CUDA
                 if (verbose == 1) {
@@ -361,17 +349,16 @@ Castro::check_for_cfl_violation(const Real dt)
                 }
 #endif
 
-#if AMREX_DEVICE_COMPILE
-                Gpu::deviceReduceMax(courno_d, courtmp);
-#else
-                *courno_d = amrex::max(*courno_d, courtmp);
-#endif
+                return {courtmp};
 
             }
 
         });
 
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real courno = amrex::get<0>(hv);
 
     ParallelDescriptor::ReduceRealMax(courno);
 

@@ -207,12 +207,13 @@ Castro::pslope(const Box& bx, const int idir,
   const auto domlo = geom.Domain().loVect3d();
   const auto domhi = geom.Domain().hiVect3d();
 
+  Real lpslope_cutoff_density = pslope_cutoff_density;
+
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
   bool lo_bc_test = lo_bc[idir] == Symmetry;
   bool hi_bc_test = hi_bc[idir] == Symmetry;
-
 
   if (plm_iorder == 1) {
 
@@ -226,6 +227,10 @@ Castro::pslope(const Box& bx, const int idir,
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
+
+      if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
+        continue;
+      }
 
       Real p0;
       Real pp1;

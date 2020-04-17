@@ -1,6 +1,6 @@
 FILE = ../../inputs_3d
 
-amr.probin_file = probin
+amr.probin_file = probin_merger
 
 max_step = 10000000
 stop_time = 250.0
@@ -17,14 +17,14 @@ castro.change_max = 1.25
 
 amr.n_cell = 256 256 256
 amr.max_grid_size = 256
-amr.blocking_factor = 64
+amr.blocking_factor = 32
 amr.max_level = 0
 amr.ref_ratio = 4
 
 castro.do_sponge = 1
 castro.add_ext_src = 0
 castro.do_react = 1
-castro.do_rotation = 0
+castro.do_rotation = 1
 
 castro.max_subcycles = 64
 
@@ -40,8 +40,8 @@ amr.small_plot_vars = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
 amr.derive_small_plot_vars = pressure soundspeed x_velocity y_velocity z_velocity t_sound_t_enuc
 castro.small_plot_per_is_exact = 1
 
-castro.dtnuc_e = 1.e1
-castro.dtnuc_X = 1.e1
+castro.dtnuc_e = 1.e200
+castro.dtnuc_X = 1.e200
 
 castro.react_rho_min = 1.0e6
 castro.react_T_min = 5.0e8

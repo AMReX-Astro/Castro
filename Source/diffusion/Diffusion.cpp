@@ -4,6 +4,7 @@
 #include "Castro_F.H"
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
+#include <MGutils.H>
 
 #define MAX_LEV 15
 
@@ -89,10 +90,7 @@ Diffusion::weight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_weight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(cc[mfi]),
-                     AMREX_REAL_ANYD(dx), coord_type);
+        do_weight_cc(bx, cc.array(mfi), dx, coord_type);
     }
 }
 
@@ -108,10 +106,7 @@ Diffusion::unweight_cc(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_unweight_cc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       BL_TO_FORTRAN_ANYD(cc[mfi]),
-                       AMREX_REAL_ANYD(dx), coord_type);
+        do_unweight_cc(bx, cc.array(mfi), dx, coord_type);
     }
 }
 #endif
@@ -175,9 +170,9 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     mlabec.setLevelBC(0, &Temperature);
 
     mlabec.setScalars(0.0, -1.0);
-    mlabec.setBCoeffs(0, {AMREX_D_DECL(temp_cond_coef[0].get(),
-                                       temp_cond_coef[1].get(),
-                                       temp_cond_coef[2].get())});
+    mlabec.setBCoeffs(0, Array<MultiFab const*, AMREX_SPACEDIM>{AMREX_D_DECL(temp_cond_coef[0].get(),
+                                                                             temp_cond_coef[1].get(),
+                                                                             temp_cond_coef[2].get())});
 
     MLMG mlmg(mlabec);
     mlmg.setVerbose(verbose);

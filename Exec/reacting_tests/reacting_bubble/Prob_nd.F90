@@ -3,18 +3,42 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   use probdata_module
   use model_parser_module
   use castro_error_module
-
+  use ambient_module, only: ambient_state
   use amrex_fort_module, only : rt => amrex_real
+  use meth_params_module, only: URHO, UTEMP, UFS, UMX, UMZ, UEINT, UEDEN
+  use eos_module, only: eos
+  use eos_type_module, only: eos_t, eos_input_rt
+
   implicit none
 
   integer,  intent(in) :: init, namlen
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
+  type(eos_t) :: eos_state
+
   call probdata_init(name, namlen)
 
   ! Read initial model
   call read_model_file(model_name)
+
+  ! set the ambient state for the upper boundary condition
+  ambient_state(URHO) = model_state(npts_model, idens_model)
+  ambient_state(UTEMP) = model_state(npts_model, itemp_model)
+  ambient_state(UFS:UFS-1+nspec) = &
+       ambient_state(URHO) * model_state(npts_model, ispec_model:ispec_model-1+nspec)
+
+  ambient_state(UMX:UMZ) = 0.0_rt
+
+  ! make the ambient state thermodynamically consistent
+  eos_state % rho = ambient_state(URHO)
+  eos_state % T = ambient_state(UTEMP)
+  eos_state % xn(:) = ambient_state(UFS:UFS-1+nspec) / eos_state % rho
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_state(UEINT) = eos_state % rho * eos_state % e
+  ambient_state(UEDEN) = eos_state % rho * eos_state % e
 
 end subroutine amrex_probinit
 
