@@ -578,9 +578,7 @@ public:
 ///
 /// Compute the CFL timestep
 ///
-    void estdt_cfl(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real const> const u,
-                   amrex::Real time, amrex::Real* dt);
+    amrex::Real estdt_cfl();
 
 ///
 /// Diffusion-limited timestep
