@@ -331,26 +331,56 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         for (int k = 0; k < num_state_type; k++) {
 
-            // We want to store the previous state in pinned memory
-            // if we're running on a GPU. This helps us alleviate
-            // pressure on the GPU memory, at the slight cost of
-            // lower bandwidth when we are saving/restoring the state.
-            // Since we're using operator= to copy the StateData,
-            // we'll use a trick where we temporarily change the
-            // the arena used by the main state and then immediately
-            // restore it.
+            // If we're running on a GPU and low on memory, we want
+            // to store the previous state in pinned memory. This
+            // helps us alleviate pressure on the GPU memory, at the
+            // cost of lower bandwidth when we are saving/restoring
+            // the state. Since we're using operator= to copy the
+            // StateData, we'll use a trick where we temporarily
+            // change the the arena used by the main state and then
+            // immediately restore it.
+
+            // The heuristic we'd like to use for determining whether to
+            // fall back to pinned memory is whether the memory currently
+            // required by MultiFabs on this level would cause us to overflow
+            // the GPU's memory capacity. However, this will fail in the case
+            // where there's a significant contribution to the memory demands
+            // from temporary allocations during the step, which wouldn't be
+            // counted in the current MultiFab statistics. So instead we need
+            // to consider the high-water mark of memory allocation, which will
+            // include this factor. Yet this is also not quite right, because
+            // that high-water mark will include the usage from previous
+            // retries, if any have occurred. So we'll subtract off from the
+            // high water mark the memory requirement from this level's state
+            // data, and compare that to the free GPU memory. (This heuristic
+            // will be wrong the first time we do a retry, and this will hurt us
+            // if the total MultiFab size is close to the memory limit. But then
+            // we'll fall back to pinned memory on all subsequent retries.)
 
             if (!prev_state[k]->hasOldData()) {
 
 #ifdef AMREX_USE_GPU
+                bool use_pinned_memory = false;
+
+                size_t memory_HWM = MultiFab::queryMemUsageHWM();
+                memory_HWM -= MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
+
+                if (memory_HWM > Gpu::Device::totalGlobalMem()) {
+                    use_pinned_memory = true;
+                }
+
                 Arena* old_arena = state[k].getArena();
-                state[k].setArena(The_Pinned_Arena());
+                if (use_pinned_memory) {
+                    state[k].setArena(The_Pinned_Arena());
+                }
 #endif
 
                 *prev_state[k] = state[k];
 
 #ifdef AMREX_USE_GPU
-                state[k].setArena(old_arena);
+                if (use_pinned_memory) {
+                    state[k].setArena(old_arena);
+                }
 #endif
             }
 
