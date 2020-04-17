@@ -322,7 +322,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
     // Start off assuming a successful burn.
 
     int burn_success = 1;
-    Real burn_failed = 0.0;
+    Real* burn_failed = static_cast<Real*>(amrex::The_Managed_Arena()->alloc(sizeof(Real)));
+    *burn_failed = 0.0_rt;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -349,7 +350,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
         Real lreact_rho_min = Castro::react_rho_min;
         Real lreact_rho_max = Castro::react_rho_max;
 
-        auto f = [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        auto f = [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
             burn_t burn_state;
@@ -369,7 +370,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 #endif
 
             burn_state.success = true;
-            Real zone_burn_failed = 0.0_rt;
 
             // Don't burn on zones that we are intentionally masking out.
 
@@ -420,10 +420,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
             // If we were unsuccessful, update the failure count.
 
             if (!burn_state.success) {
-                zone_burn_failed = 1.0_rt;
-#if !AMREX_DEVICE_COMPILE
-                // For the CPU case, update the counter directly.
-                HostDevice::Atomic::Add(burn_failed, 1.0_rt);
+#if AMREX_DEVICE_COMPILE
+                atomicAdd_system(burn_failed, 1.0_rt);
+#else
+                *burn_failed += 1.0_rt;
 #endif
             }
 
@@ -474,14 +474,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
             }
 
-            return {zone_burn_failed};
-
         };
 
         // Now actually do the burn. Note that we are doing an explicit
         // reduction for the GPU case, but not for the CPU case.
 
-        reduce_op.eval(bx, reduce_data, f);
+        amrex::ParallelFor(bx, f);
         amrex::LoopConcurrentOnCpu(bx, f);
 
 #else
@@ -499,13 +497,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, MultiFab& w, R
 
     }
 
-#ifdef CXX_REACTIONS
-    // Update the failure counter with the GPU results.
-    ReduceTuple hv = reduce_data.value();
-    burn_failed += amrex::get<0>(hv);
-#endif
+    if (*burn_failed != 0.0) burn_success = 0;
 
-    if (burn_failed != 0.0) burn_success = 0;
+    amrex::The_Managed_Arena()->free(burn_failed);
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
