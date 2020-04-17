@@ -8,7 +8,7 @@
 using namespace amrex;
 
 Real
-Castro::estdt_cfl(void)
+Castro::estdt_cfl(const Real time)
 {
 
   // Courant-condition limited timestep
@@ -32,9 +32,6 @@ Castro::estdt_cfl(void)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-
-  Real dt = max_dt / cfl;
-
   for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
     const Box& box = mfi.tilebox();
 
@@ -132,10 +129,9 @@ Castro::estdt_cfl(void)
 }
 
 #ifdef DIFFUSION
-void
-Castro::estdt_temp_diffusion(const Box& bx,
-                             Array4<Real const> ustate,
-                             Real* dt)
+
+Real
+Castro::estdt_temp_diffusion(void)
 {
 
   // Diffusion-limited timestep
@@ -145,52 +141,75 @@ Castro::estdt_temp_diffusion(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
-  {
+  ReduceOps<ReduceOpMin> reduce_op;
+  ReduceData<Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
-    if (ustate(i,j,k,URHO) > diffuse_cutoff_density) {
+  const MultiFab& stateMF = get_new_data(State_Type);
 
-      Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+    const Box& box = mfi.tilebox();
 
-      // we need cv
-      eos_t eos_state;
-      eos_state.rho = ustate(i,j,k,URHO);
-      eos_state.T = ustate(i,j,k,UTEMP);
-      eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
-      }
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
-      }
+    auto ustate = stateMF.array(mfi);
 
-      eos(eos_input_re, eos_state);
+    reduce_op.eval(box, reduce_data,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    {
 
-      // we also need the conductivity
-      conductivity(eos_state);
+      if (ustate(i,j,k,URHO) > diffuse_cutoff_density) {
 
-      // maybe we should check (and take action) on negative cv here?
-      Real D = eos_state.conductivity * rho_inv / eos_state.cv;
+        Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
 
-      Real dt1 = 0.5_rt * dx[0]*dx[0] / D;
+        // we need cv
+        eos_t eos_state;
+        eos_state.rho = ustate(i,j,k,URHO);
+        eos_state.T = ustate(i,j,k,UTEMP);
+        eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
+        for (int n = 0; n < NumSpec; n++) {
+          eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
+        }
+        for (int n = 0; n < NumAux; n++) {
+          eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
+        }
 
-      Real dt2;
+        eos(eos_input_re, eos_state);
+
+        // we also need the conductivity
+        conductivity(eos_state);
+
+        // maybe we should check (and take action) on negative cv here?
+        Real D = eos_state.conductivity * rho_inv / eos_state.cv;
+
+        Real dt1 = 0.5_rt * dx[0]*dx[0] / D;
+
+        Real dt2;
 #if AMREX_SPACEDIM >= 2
-      dt2 = 0.5_rt * dx[1]*dx[1] / D;
+        dt2 = 0.5_rt * dx[1]*dx[1] / D;
 #else
-      dt2 = dt1;
+        dt2 = dt1;
 #endif
 
-      Real dt3;
+        Real dt3;
 #if AMREX_SPACEDIM >= 3
-      dt3 = 0.5_rt * dx[2]*dx[2] / D;
+        dt3 = 0.5_rt * dx[2]*dx[2] / D;
 #else
-      dt3 = dt1;
+        dt3 = dt1;
 #endif
 
-      Gpu::Atomic::Min(dt, amrex::min(dt1, dt2, dt3));
+        return {amrex::min(dt1, dt2, dt3)};
 
-    }
-  });
+      } else {
+        return max_dt/cfl;
+      }
+    });
+  }
+
+  ReduceTuple hv = reduce_data.value();
+  Real estdt_diff = amrex::get<0>(hv);
+
+  return estdt_diff;
 }
 #endif

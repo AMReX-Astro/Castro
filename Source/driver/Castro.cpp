@@ -1340,7 +1340,7 @@ Castro::estTimeStep (Real dt_old)
         {
 #endif
 
-          estdt_hydro = estdt_cfl();
+          estdt_hydro = estdt_cfl(time);
 
 #ifdef RADIATION
         }
@@ -1370,20 +1370,7 @@ Castro::estTimeStep (Real dt_old)
 
     if (diffuse_temp)
     {
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_diffusion)
-#endif
-        {
-            Real dt = max_dt / cfl;
-
-            for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.tilebox();
-
-                estdt_temp_diffusion(box, stateMF.array(mfi), AMREX_MFITER_REDUCE_MIN(&dt));
-            }
-            estdt_diffusion = std::min(estdt_diffusion, dt);
-        }
+      estdt_diffusion = estdt_temp_diffusion();
     }
 
     ParallelDescriptor::ReduceRealMin(estdt_diffusion);
