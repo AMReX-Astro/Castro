@@ -7,9 +7,9 @@ stop_time = 10.0
 
 # Stop the run when we've hit ignition,
 # which we can somewhat arbitrarily set
-# at 5 billion Kelvin.
+# at 4 billion Kelvin.
 
-castro.T_stopping_criterion = 5.e9
+castro.T_stopping_criterion = 4.e9
 castro.init_shrink = 0.01
 castro.dt_cutoff = 1.e-11
 castro.change_max = 1.25
