@@ -55,22 +55,103 @@ Castro::fill_thermo_source (Real time, Real dt,
                             MultiFab& state_old, MultiFab& state_new,
                             MultiFab& thermo_src)
 {
+
+  // Compute thermodynamic sources for the internal energy equation.
+  // At the moment, this is only the -p div{U} term in the internal
+  // energy equation, and only for method-of-lines integration,
+  // including the new SDC method (the `-` is because it is on the RHS
+  // of the equation)
+
   const Real* dx = geom.CellSize();
   const Real* prob_lo = geom.ProbLo();
+
+  auto coord = geom.Coord(); 
+
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (MFIter mfi(thermo_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  for (MFIter mfi(thermo_src, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+    const Box& bx = mfi.tilebox();
+
+    Array4<Real const> const old_state = state_old.array(mfi);
+    Array4<Real const> const new_state = state_new.array(mfi);
+    Array4<Real> const src = thermo_src.array(mfi);
+
+
+    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
 
-      const Box& bx = mfi.tilebox();
+      // radius for non-Cartesian
+      Real rp = prob_lo[0] + (static_cast<Real>(i) + 1.5_rt)*dx[0];
+      Real rm = prob_lo[0] + (static_cast<Real>(i) - 0.5_rt)*dx[0];
+      Real r = 0.5_rt*(rm + rp);
 
-#pragma gpu box(bx)
-      ca_thermo_src(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(state_old[mfi]),
-                    BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                    BL_TO_FORTRAN_ANYD(thermo_src[mfi]),
-                    AMREX_REAL_ANYD(prob_lo),AMREX_REAL_ANYD(dx),time,dt);
-    }
+      // compute -div{U}
+      if (coord == 0) {
+        src(i,j,k,UEINT) = -0.25_rt*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
+                                      new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
+                                     (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
+                                      new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx[0];
+
+      } else if (coord == 1) {
+        // axisymmetric
+        src(i,j,k,UEINT) = -0.25_rt*(rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
+                                         new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
+                                     rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
+                                         new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*dx[0]);
+
+      } else if (coord == 2) {
+        // spherical
+        src(i,j,k,UEINT) = -0.25_rt*(rp*rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
+                                            new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
+                                     rm*rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
+                                            new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*r*dx[0]);
+      }
+
+#if BL_SPACEDIM >= 2
+      src(i,j,k,UEINT) += -0.25_rt*((old_state(i,j+1,k,UMY)/old_state(i,j+1,k,URHO) +
+                                     new_state(i,j+1,k,UMY)/new_state(i,j+1,k,URHO)) -
+                                    (old_state(i,j-1,k,UMY)/old_state(i,j-1,k,URHO) +
+                                     new_state(i,j-1,k,UMY)/new_state(i,j-1,k,URHO)))/dx[1];
+#endif
+#if BL_SPACEDIM == 3
+      src(i,j,k,UEINT) += -0.25_rt*((old_state(i,j,k+1,UMZ)/old_state(i,j,k+1,URHO) +
+                                     new_state(i,j,k+1,UMZ)/new_state(i,j,k+1,URHO)) -
+                                    (old_state(i,j,k-1,UMZ)/old_state(i,j,k-1,URHO) +
+                                     new_state(i,j,k-1,UMZ)/new_state(i,j,k-1,URHO)))/dx[2];
+#endif
+
+      // we now need the pressure -- we will assume that the
+      // temperature is consistent with the input state
+      eos_t eos_state_old;
+      eos_state_old.rho = old_state(i,j,k,URHO);
+      eos_state_old.T = old_state(i,j,k,UTEMP);
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state_old.xn[n] = old_state(i,j,k,UFS+n)/old_state(i,j,k,URHO);
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state_old.aux[n] = old_state(i,j,k,UFX+n)/old_state(i,j,k,URHO);
+      }
+
+      eos(eos_input_rt, eos_state_old);
+
+      eos_t eos_state_new;
+      eos_state_new.rho = new_state(i,j,k,URHO);
+      eos_state_new.T = new_state(i,j,k,UTEMP);
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state_new.xn[n] = new_state(i,j,k,UFS+n)/new_state(i,j,k,URHO);
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state_new.aux[n] = new_state(i,j,k,UFX+n)/new_state(i,j,k,URHO);
+      }
+
+      eos(eos_input_rt, eos_state_new);
+
+      // final source term, -p div{U}
+      src(i,j,k,UEINT) = 0.5_rt*(eos_state_old.p + eos_state_new.p)*src(i,j,k,UEINT);
+
+    });
+  }
 }

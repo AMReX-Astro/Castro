@@ -1292,7 +1292,7 @@ Castro::estTimeStep (Real dt_old)
     Real estdt = max_dt;
 
     const MultiFab& stateMF = get_new_data(State_Type);
-
+    Real time = state[State_Type].curTime();
     const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
@@ -1342,24 +1342,7 @@ Castro::estTimeStep (Real dt_old)
         {
 #endif
 
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-            {
-                Real dt = max_dt / cfl;
-
-                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-                {
-                    const Box& box = mfi.tilebox();
-
-#pragma gpu box(box)
-                    ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                             BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                             AMREX_REAL_ANYD(dx),
-                             AMREX_MFITER_REDUCE_MIN(&dt));
-                }
-                estdt_hydro = std::min(estdt_hydro, dt);
-            }
+          estdt_hydro = estdt_cfl(time);
 
 #ifdef RADIATION
         }
@@ -1389,23 +1372,7 @@ Castro::estTimeStep (Real dt_old)
 
     if (diffuse_temp)
     {
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_diffusion)
-#endif
-        {
-            Real dt = max_dt / cfl;
-
-            for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.tilebox();
-
-#pragma gpu box(box)
-                ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-            }
-            estdt_diffusion = std::min(estdt_diffusion, dt);
-        }
+      estdt_diffusion = estdt_temp_diffusion();
     }
 
     ParallelDescriptor::ReduceRealMin(estdt_diffusion);
