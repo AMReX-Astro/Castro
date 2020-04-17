@@ -832,8 +832,8 @@ implicit none
         real(rt), intent(in)  :: dx, dt !dx will be dx, dy or dz
         integer, intent(in)   :: dir  
 
-        real(rt), intent(out) :: flxd1(flxd1_l1:flxd1_h1,flxd1_l2:flxd1_h2,flxd1_l3:flxd1_h3,NVAR+3,2)
-        real(rt), intent(out) :: flxd2(flxd2_l1:flxd2_h1,flxd2_l2:flxd2_h2,flxd2_l3:flxd2_h3,NVAR+3,2)
+        real(rt), intent(in)  :: flxd1(flxd1_l1:flxd1_h1,flxd1_l2:flxd1_h2,flxd1_l3:flxd1_h3,NVAR+3,2)
+        real(rt), intent(in)  :: flxd2(flxd2_l1:flxd2_h1,flxd2_l2:flxd2_h2,flxd2_l3:flxd2_h3,NVAR+3,2)
 
         real(rt), intent(out)   ::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
         real(rt), intent(out)   ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
@@ -843,8 +843,8 @@ implicit none
         integer  :: d1i, d1j, d1k, d2i, d2j, d2k
         integer  :: flxd1c, flxd2c !component of the flxd1 and flxd2  
 
-        uL = um
-        uR = up
+        uL(:,:,:,:,dir) = um(:,:,:,:,dir)
+        uR(:,:,:,:,dir) = up(:,:,:,:,dir)
 
         d1i = 0
         d1j = 0
