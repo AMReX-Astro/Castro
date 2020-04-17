@@ -961,14 +961,15 @@ Castro::initData ()
        // within any small limits
        computeTemp(S_new, cur_time, S_new.nGrow());
 
-       int init_failed_rho = 0;
-       int init_failed_T = 0;
+       ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
+       ReduceData<int, int> reduce_data(reduce_op);
+       using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:init_failed_rho,init_failed_T)
+#pragma omp parallel
 #endif
        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-         {
+       {
            const Box& bx = mfi.tilebox();
 
            auto S_arr = S_new.array(mfi);
@@ -976,33 +977,37 @@ Castro::initData ()
            Real lsmall_temp = small_temp;
            Real lsmall_dens = small_dens;
 
-           int* init_failed_rho_d = AMREX_MFITER_REDUCE_SUM(&init_failed_rho);
-           int* init_failed_T_d = AMREX_MFITER_REDUCE_SUM(&init_failed_T);
-
-           AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+           reduce_op.eval(bx, reduce_data,
+           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
            {
+               // if the problem tried to initialize a thermodynamic
+               // state that is at or below small_temp, then we abort.
+               // This is dangerous and we should recommend a smaller
+               // small_temp
+               int T_failed = 0;
+               if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+                   T_failed = 1;
+               }
 
-             // if the problem tried to initialize a thermodynamic
-             // state that is at or below small_temp, then we abort.
-             // This is dangerous and we should recommend a smaller
-             // small_temp
-             if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
-                 Gpu::Atomic::Add(init_failed_T_d, 1);
-             }
+               int rho_failed = 0;
+               if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+                   rho_failed = 1;
+               }
 
-             if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
-                 Gpu::Atomic::Add(init_failed_rho_d, 1);
-             }
-
+               return {T_failed, rho_failed};
            });
 
-         }
+       }
 
-       if (init_failed_rho != 0.0) {
+       ReduceTuple hv = reduce_data.value();
+       int init_failed_T   = amrex::get<0>(hv);
+       int init_failed_rho = amrex::get<1>(hv);
+
+       if (init_failed_rho != 0) {
          amrex::Error("Error: initial data has rho <~ small_dens");
        }
 
-       if (init_failed_T != 0.0) {
+       if (init_failed_T != 0) {
          amrex::Error("Error: initial data has T <~ small_temp");
        }
 
