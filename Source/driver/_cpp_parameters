@@ -34,9 +34,6 @@ update_sources_after_reflux  int           1
 # should we apply the sources one by one or all at once?
 apply_sources_consecutively  int           0
 
-# should we have state data for custom load-balancing weighting?
-use_custom_knapsack_weights  int           0
-
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
 #-----------------------------------------------------------------------------
@@ -384,7 +381,10 @@ disable_shock_burning        int           0                  y
 T_guess                     Real           1.e8               y
 
 # above this threshold, do the burn on the CPU if we're in a GPU build
-burn_on_cpu_temp_threshold  Real           1.e200             y
+burn_on_cpu_threshold        Real          1.e200             y
+
+# should we load balance inside the burn?
+use_burn_load_balancing      int           0
 
 #-----------------------------------------------------------------------------
 # category: diffusion

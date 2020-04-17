@@ -431,7 +431,7 @@ Castro::variableSetUp ()
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,0,NumSpec+2,
+                         StateDescriptor::Point,0,NumSpec+3,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -616,6 +616,7 @@ Castro::variableSetUp ()
     }
   desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+1, "weights", bc, genericBndryFunc);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -665,17 +666,6 @@ Castro::variableSetUp ()
   // some optional State_Type's -- since these depend on the value of
   // runtime parameters, we don't add these to the enum, but instead
   // add them to the count of State_Type's if we will use them
-
-  if (use_custom_knapsack_weights) {
-      Knapsack_Weight_Type = desc_lst.size();
-      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point,
-                             0, 1, &pc_interp);
-      // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
-      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
-                            bc, BndryFunc(ca_nullfill));
-  }
-
 
 #ifdef REACTIONS
   if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {
