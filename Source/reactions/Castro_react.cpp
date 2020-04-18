@@ -293,13 +293,31 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
         const Real avg_weight = r[mfi].sum<RunOn::Device>(NumSpec+2) / r[mfi].numPts();
 
+        // Now calculate the standard deviation.
+
+        ReduceOps<ReduceOpSum> reduce_op;
+        ReduceData<Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+            return {(r_arr(i,j,k) - avg_weight) * (r_arr(i,j,k) - avg_weight)};
+        });
+
+        ReduceTuple hv = reduce_data.value();
+        Real stddev = amrex::get<0>(hv);
+
+        stddev = std::sqrt(stddev / r[mfi].numPts());
+
         // Set the burn for the CPU if the weight of any particular
-        // box is sufficiently far above this average.
+        // zone is a sufficient number of standard deviations above
+        // the average.
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            if (r_arr(i,j,k,NumSpec+2) > lburn_on_cpu_threshold * avg_weight) {
+            if ((r_arr(i,j,k,NumSpec+2) - avg_weight) > lburn_on_cpu_threshold * stddev) {
                 burnOnCpu_arr(i,j,k) = 1.0_rt;
             }
             else {
