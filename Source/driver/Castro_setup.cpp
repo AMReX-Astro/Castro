@@ -253,11 +253,6 @@ Castro::variableSetUp ()
   burner_init();
 #endif
 
-#ifdef SPONGE
-  // Initialize the sponge
-  sponge_init();
-#endif
-
   // Initialize the amr info
   amrinfo_init();
 
@@ -330,10 +325,22 @@ Castro::variableSetUp ()
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
 #ifdef SPONGE
+  // Initialize the sponge
+
+  sponge_init();
+
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
 
-  ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+  ca_read_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+
+  // bring the sponge parameters into C++
+  ca_get_sponge_params(sponge_lower_factor, sponge_upper_factor,
+                       sponge_lower_radius, sponge_upper_radius,
+                       sponge_lower_density, sponge_upper_density,
+                       sponge_lower_pressure, sponge_upper_pressure,
+                       sponge_target_velocity, sponge_timescale);
+
 #endif
 
   // Read in the ambient state parameters.
