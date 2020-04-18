@@ -304,8 +304,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
     // Start off assuming a successful burn.
 
     int burn_success = 1;
-    Real* burn_failed = static_cast<Real*>(amrex::The_Managed_Arena()->alloc(sizeof(Real)));
-    *burn_failed = 0.0_rt;
+
+    Real burn_failed_c = 0.0_rt;
+    Real burn_failed_g = 0.0_rt;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -326,6 +327,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         Real lreact_T_max = Castro::react_T_max;
         Real lreact_rho_min = Castro::react_rho_min;
         Real lreact_rho_max = Castro::react_rho_max;
+
+        Real* const p_burn_failed_c = &burn_failed_c;
+        Real* const p_burn_failed_g = AMREX_MFITER_REDUCE_SUM(&burn_failed_g);
 
         auto f = [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
@@ -398,9 +402,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
             if (!burn_state.success) {
 #if AMREX_DEVICE_COMPILE
-                atomicAdd_system(burn_failed, 1.0_rt);
+                Gpu::Atomic::Add(p_burn_failed_g, 1.0_rt);
 #else
-                *burn_failed += 1.0_rt;
+                HostDevice::Atomic::Add(p_burn_failed_c, 1.0_rt);
 #endif
             }
 
@@ -463,15 +467,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
                        BL_TO_FORTRAN_ANYD(w[mfi]),
                        BL_TO_FORTRAN_ANYD(m[mfi]),
                        time, dt_react, strang_half,
-                       AMREX_MFITER_REDUCE_SUM(&burn_failed));
+                       AMREX_MFITER_REDUCE_SUM(&burn_failed_g));
 
 #endif
 
     }
 
-    if (*burn_failed != 0.0) burn_success = 0;
-
-    amrex::The_Managed_Arena()->free(burn_failed);
+    if (burn_failed_c + burn_failed_g != 0.0) burn_success = 0;
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
