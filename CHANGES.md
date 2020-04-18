@@ -1,5 +1,14 @@
 # 20.05
 
+   * Added an option to do CTU reactions in C++.  A compile flag
+     USE_CXX_REACTIONS is added which switches to the C++ integrator
+     in Microphysics. Since we will be doing a phased implementation
+     of the networks in Microphysics, this is opt-in for now.  (#836)
+
+   * More of the core routines have been ported to C++, including the
+     hydro and diffusion timestep estimators (#853) and the sponge
+     (#857)
+
    * AMReX provides CpuBndryFuncFab and GpuBndryFuncFab which are very
      similar to what generic_fill and hypfill did. The AMReX
      implementations are now used. We still have a hypfill and denfill
