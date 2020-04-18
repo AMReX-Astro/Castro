@@ -29,7 +29,6 @@ castro.change_max     = 1.25
 castro.dt_cutoff      = 1.e-20
 
 castro.small_temp     = 1.e5
-castro.allow_small_energy = 0
 
 castro.sum_interval   = 0
 castro.v              = 1
