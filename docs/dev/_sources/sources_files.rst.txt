@@ -5,4 +5,6 @@ Sources
    :maxdepth: 2
 
    file/Castro__sources_8H
+   file/sponge__defaults_8H
+   file/sponge__params_8H
    

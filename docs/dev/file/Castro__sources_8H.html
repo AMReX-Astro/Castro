@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Class list" href="../classlist.html" />
+    <link rel="next" title="File sponge_defaults.H" href="sponge__defaults_8H.html" />
     <link rel="prev" title="Sources" href="../sources_files.html" /> 
 </head>
 
@@ -145,6 +145,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_sources.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__defaults_8H.html">File sponge_defaults.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__params_8H.html">File sponge_params.H</a></li>
 </ul>
 </li>
 </ul>
@@ -441,6 +443,23 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv412apply_spongeRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv312apply_spongeRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv212apply_spongeRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEN5amrex4RealEN5amrex4RealE"></span><span id="apply_sponge__amrex::BoxCR.amrex::Array4:amrex::RealC:C.amrex::Array4:amrex::Real:C.amrex::Real.amrex::Real"></span><span class="target" id="Castro__sources_8H_1a54bb5208f232757b94958cd280b81f5b"></span>void <code class="sig-name descname">apply_sponge</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::Array4&lt;amrex::Real<em class="property">const</em> &gt;<em class="property">const</em>  <em>state</em>, amrex::Array4&lt;amrex::Real&gt;<em class="property">const</em>  <em>source</em>, amrex::Real <em>dt</em>, amrex::Real <em>mult_factor</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412apply_spongeRKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute the sponge source given a state</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: Box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: input state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: source incremented with the sponge </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mult_factor</span></code>: multiplicative factor in front of the source </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv411sponge_initv">
 <span id="_CPPv311sponge_initv"></span><span id="_CPPv211sponge_initv"></span><span id="sponge_init"></span><span class="target" id="Castro__sources_8H_1af0ca913be13d65af5b97cf3b257712bd"></span><em class="property">static</em> void <code class="sig-name descname">sponge_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411sponge_initv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Allocate sponge parameters </p>
@@ -577,7 +596,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../classlist.html" class="btn btn-neutral float-right" title="Class list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="sponge__defaults_8H.html" class="btn btn-neutral float-right" title="File sponge_defaults.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../sources_files.html" class="btn btn-neutral float-left" title="Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
