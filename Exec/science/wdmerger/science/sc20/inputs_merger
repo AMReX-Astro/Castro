@@ -12,7 +12,7 @@ stop_time = 250.0
 castro.T_stopping_criterion = 5.e9
 
 castro.init_shrink = 0.01
-castro.dt_cutoff = 1.e-11
+
 castro.change_max = 1.25
 
 amr.n_cell = 256 256 256
