@@ -320,7 +320,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-            return {(r_arr(i,j,k) - avg_weight) * (r_arr(i,j,k) - avg_weight)};
+            return {(r_arr(i,j,k,NumSpec+2) - avg_weight) * (r_arr(i,j,k,NumSpec+2) - avg_weight)};
         });
 
         ReduceTuple hv = reduce_data.value();
