@@ -81,7 +81,13 @@ implicit none
         real(rt)  :: dx, dy, dz, dt
 
         integer  :: i, work_lo(3), work_hi(3)
+        integer  :: UMAGX, UMAGY, UMAGZ
 
+
+
+       UMAGX = NVAR+1
+       UMAGY = NVAR+2
+       UMAGZ = NVAR+3
 
 um = 0.d0
 up = 0.d0
@@ -235,14 +241,55 @@ enddo
                            dx, dy, dz, dt) 
 
 
-
-
+        
+        !X direction
+        ! affected by Y Flux                                                    
         call corner_couple_mag(work_lo, work_hi, &
                                cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                                Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
-                               Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                                Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
-                               dx, dy, dz, dt) !Correct Conservative vars using Transverse Fluxes
+                              !x,y,z,dir2=1, sgn=+, UMAGD1, UMAGD2, UMAGD3  
+                               1, 2, 3, 1, 1, UMAGX, UMAGY, UMAGZ, dx, dt) !Correct Conservative vars using Transverse Fluxes
+
+      
+       ! affected by Z Flux                                                      
+        call corner_couple_mag(work_lo, work_hi, &
+                               cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                               Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
+                               Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &  
+                               1, 3, 2, 2, -1, UMAGX, UMAGZ, UMAGY, dx, dt)   
+       
+        !Y direction
+        ! affected by X Flux                                                    
+        call corner_couple_mag(work_lo, work_hi, &
+                               cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                               Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
+                               Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &  
+                               2, 1, 3, 1, -1, UMAGY, UMAGX, UMAGZ, dy, dt) 
+
+      
+       ! affected by Z Flux                                                      
+        call corner_couple_mag(work_lo, work_hi, &
+                               cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                               Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
+                               Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
+                               2, 3, 1, 2, 1, UMAGY, UMAGZ, UMAGX, dy, dt) 
+
+        !Z direction
+        ! affected by X Flux                                                    
+        call corner_couple_mag(work_lo, work_hi, &
+                               cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                               Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
+                               Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &  
+                               3, 1, 2, 1, 1, UMAGZ, UMAGX, UMAGY, dz, dt) 
+
+      
+       ! affected by Y Flux                                                      
+        call corner_couple_mag(work_lo, work_hi, &
+                               cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                               Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
+                               Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
+                               3, 2, 1, 2, -1, UMAGZ, UMAGY, UMAGX, dz, dt) 
 
 
 !Cons To Prim
@@ -653,159 +700,108 @@ implicit none
 end subroutine corner_couple
 
 !================================== Use 1D Electric Fields to Transverse correct the Temporary Magnetic Fields ===========================
-subroutine corner_couple_mag(lo, hi, &
+subroutine corner_couple_mag(w_lo, w_hi, &
                              uL, uR, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                                                     Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
-                                             Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
-                                         Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
-                             dx, dy, dz, dt)
+                             Ed1, ed1_l1,ed1_l2,ed1_l3,ed1_h1,ed1_h2,ed1_h3, &
+                             Ed3, ed3_l1,ed3_l2,ed3_l3,ed3_h1,ed3_h2,ed3_h3, &
+                             d1, d2, d3, dir2, sgn, UMAGD1, UMAGD2, UMAGD3, &           
+                             dx, dt)
 use amrex_fort_module, only : rt => amrex_real
 use meth_params_module, only : NVAR, UEINT
 
 !Correction using Faraday's Law
 implicit none
 
-        integer, intent(in)     :: lo(3), hi(3)
+        integer, intent(in)     :: w_lo(3), w_hi(3)
         integer, intent(in)     :: q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
-        integer, intent(in)     :: ex_l1,ex_l2,ex_l3,ex_h1,ex_h2, ex_h3
-        integer, intent(in)     :: ey_l1,ey_l2,ey_l3,ey_h1,ey_h2, ey_h3
-        integer, intent(in)     :: ez_l1,ez_l2,ez_l3,ez_h1,ez_h2, ez_h3
+        integer, intent(in)     :: ed1_l1,ed1_l2,ed1_l3,ed1_h1,ed1_h2, ed1_h3
+        integer, intent(in)     :: ed3_l1,ed3_l2,ed3_l3,ed3_h1,ed3_h2, ed3_h3
+        integer, intent(in)     :: d1, d2, d3, dir2, sgn, UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to dir2 
         real(rt), intent(inout) :: uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
         real(rt), intent(inout) :: uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
         real(rt), intent(in)    :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
         real(rt), intent(in)    :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)   
 
-        real(rt), intent(in)    :: Ex(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
-        real(rt), intent(in)    :: Ey(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
-        real(rt), intent(in)    :: Ez(ez_l1:ez_h1,ez_l2:ez_h2,ez_l3:ez_h3)
+        real(rt), intent(in)    :: Ed1(ed1_l1:ed1_h1,ed1_l2:ed1_h2,ed1_l3:ed1_h3)
+        real(rt), intent(in)    :: Ed3(ed3_l1:ed3_h1,ed3_l2:ed3_h2,ed3_l3:ed3_h3)
 
-        real(rt)                :: dx, dy, dz, dt
+        real(rt)                :: dx, dt
         integer                 :: i ,j ,k
+        integer                 :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k 
         integer                 ::UMAGX, UMAGY, UMAGZ
 
         UMAGX = NVAR+1
         UMAGY = NVAR+2
         UMAGZ = NVAR+3
+        
+        d   = 0
+        a1  = 0
+        a2  = 0
+        a3  = 0
+        d_2 = 0
 
-        do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                        do i = lo(1), hi(1)
+       
+       d(d2)  = 1   !for example if d2 = y, j+1 on Ed3
+       a1(d2) = 1   !j+1 on first and third term of addition Ed1
+       a3(d2) = 1
+          
+       a1(d3) = 1
+       a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k 
+       
+
+        do k = w_lo(3), w_hi(3)
+           do j = w_lo(2), w_hi(2)
+              do i = w_lo(1), w_hi(1)
                 !Left State
-                                !X-direction 
-                                !-> Affected by Y flux
-                                uL(i,j,k,UMAGX,1,1) = um(i,j,k,UMAGX,1) + dt/(3.d0*dx)*(Ez(i,j+1,k) - Ez(i,j,k))
-                                uL(i,j,k,UMAGZ,1,1) = um(i,j,k,UMAGZ,1) + dt/(6.d0*dx)* &
-                                                                                ((Ex(i,j+1,k+1) - Ex(i,j,k+1)) + &
-                                                                                 (Ex(i,j+1,k  ) - Ex(i,j,k)))
-                                !-> Affected by Z flux
-                                uL(i,j,k,UMAGX,1,2) = um(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i,j,k+1) - Ey(i,j,k))
-                                uL(i,j,k,UMAGY,1,2) = um(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
-                                                                                ((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
-                                                                                 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
-                                !-> Affected by X flux
-                                uL(i,j,k,UMAGY,1,1) = um(i,j,k,UMAGY,1)
-                                uL(i,j,k,UMAGZ,1,2) = um(i,j,k,UMAGZ,1)
 
-                                !Y-direction
-                                !-> Affected by X flux
-                                uL(i,j,k,UMAGY,2,1) = um(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j,k) - Ez(i,j,k))
-                                uL(i,j,k,UMAGZ,2,1) = um(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
-                                                                        ((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
-                                                                         (Ey(i+1,j,k  ) - Ey(i,j,k  )))
-                                !-> Affected by Z flux
-                                uL(i,j,k,UMAGY,2,2) = um(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j,k+1) - Ex(i,j,k))
-                                uL(i,j,k,UMAGX,2,2) = um(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
-                                                                        ((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
-                                                                         (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
+                ! d1 -direction
+                ! affected by dir2 flux    
 
-                                uL(i,j,k,UMAGX,2,1) = um(i,j,k,UMAGX,2)
-                                uL(i,j,k,UMAGZ,2,2) = um(i,j,k,UMAGZ,2)
 
-                                !Z-Direction
-                                !-> Affected by X flux
-                                uL(i,j,k,UMAGZ,3,1) = um(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k) - Ey(i,j,k))
-                                uL(i,j,k,UMAGY,3,1) = um(i,j,k,UMAGY,3) + dt/(6.d0*dz)*&
-                                                                        ((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
-                                                                         (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
-                                !-> Affected by Y flux
-                                uL(i,j,k,UMAGZ,3,2) = um(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k) - Ex(i,j,k))
-                                uL(i,j,k,UMAGX,3,2) = um(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
-                                                                        ((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
-                                                                         (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
+                ! eq. 38 and 39 of Miniati for -
+                                 
+                uL(i,j,k,UMAGD1,d1,dir2) = um(i,j,k,UMAGD1,d1) + sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
+                uL(i,j,k,UMAGD3,d1,dir2) = um(i,j,k,UMAGD3,d1) + sgn*dt/(6.d0*dx)* &
+                                                                             ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
+                                                                              (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                                
+                uL(i,j,k,UMAGD2,d1,dir2) = um(i,j,k,UMAGD2,d1)
+                                
 
-                                uL(i,j,k,UMAGX,3,1) = um(i,j,k,UMAGX,3)
-                                uL(i,j,k,UMAGY,3,2) = um(i,j,k,UMAGY,3)
+                uL(i,j,k,UEINT,d1,dir2) = uL(i,j,k,UEINT,d1,dir2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,d1,dir2),uL(i,j,k,UMAGX:UMAGZ,d1,dir2))
 
-                                uL(i,j,k,UEINT,1,1) = uL(i,j,k,UEINT,1,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,1),uL(i,j,k,UMAGX:UMAGZ,1,1))
+              enddo 
+           enddo
+        enddo  
 
-                                uL(i,j,k,UEINT,1,2) = uL(i,j,k,UEINT,1,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,1,2),uL(i,j,k,UMAGX:UMAGZ,1,2))
+      
+        d(d1)  = 1
+        d_2(d1) = 1
+       
 
-                                uL(i,j,k,UEINT,2,1) = uL(i,j,k,UEINT,2,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,2,1),uL(i,j,k,UMAGX:UMAGZ,2,1))
-
-                                uL(i,j,k,UEINT,2,2) = uL(i,j,k,UEINT,2,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,2,2),uL(i,j,k,UMAGX:UMAGZ,2,2))
-
-                                uL(i,j,k,UEINT,3,1) = uL(i,j,k,UEINT,3,1) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,3,1),uL(i,j,k,UMAGX:UMAGZ,3,1))
-
-                                uL(i,j,k,UEINT,3,2) = uL(i,j,k,UEINT,3,2) -0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,3,2),uL(i,j,k,UMAGX:UMAGZ,3,2))
+        do k = w_lo(3), w_hi(3)
+           do j = w_lo(2), w_hi(2)
+              do i = w_lo(1), w_hi(1)   
                 !Right State
-                                !X-direction 
-                                !-> Affected by Y flux
-                                uR(i,j,k,UMAGX,1,1) = up(i,j,k,UMAGX,1) + dt/(3.d0*dx)*(Ez(i+1,j+1,k) - Ez(i+1,j,k))
-                                uR(i,j,k,UMAGZ,1,1) = up(i,j,k,UMAGZ,1) + dt/(6.d0*dx)*&
-                                                                                ((Ex(i,j+1,k+1) - Ex(i,j,k+1)) + &
-                                                                                 (Ex(i,j+1,k  ) - Ex(i,j,k  )))
-                                !-> Affected by Z flux
-                                uR(i,j,k,UMAGX,1,2) = up(i,j,k,UMAGX,1) - dt/(3.d0*dx)*(Ey(i+1,j,k+1) - Ey(i+1,j,k))
-                                uR(i,j,k,UMAGY,1,2) = up(i,j,k,UMAGY,1) - dt/(6.d0*dx)*&
-                                                                                ((Ex(i,j+1,k+1) - Ex(i,j+1,k)) + &
-                                                                                 (Ex(i,j  ,k+1) - Ex(i,j  ,k)))
+                
+                !d1 -direction 
+                !-> Affected by dir2 flux
 
-                                uR(i,j,k,UMAGY,1,1) = up(i,j,k,UMAGY,1)
-                                uR(i,j,k,UMAGZ,1,2) = up(i,j,k,UMAGZ,1)
-                                !Y-direction
-                                !-> Affected by X flux
-                                uR(i,j,k,UMAGY,2,1) = up(i,j,k,UMAGY,2) - dt/(3.d0*dy)*(Ez(i+1,j+1,k) - Ez(i,j+1,k))
-                                uR(i,j,k,UMAGZ,2,1) = up(i,j,k,UMAGZ,2) - dt/(6.d0*dy)*&
-                                                                        ((Ey(i+1,j,k+1) - Ey(i,j,k+1)) + &
-                                                                         (Ey(i+1,j,k  ) - Ey(i,j,k  )))
-                                !-> Affected by Z flux
-                                uR(i,j,k,UMAGY,2,2) = up(i,j,k,UMAGY,2) + dt/(3.d0*dy)*(Ex(i,j+1,k+1) - Ex(i,j+1,k))
-                                uR(i,j,k,UMAGX,2,2) = up(i,j,k,UMAGX,2) + dt/(6.d0*dy)*&
-                                                                        ((Ey(i+1,j,k+1) - Ey(i+1,j,k)) + &
-                                                                         (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
+                ! eq. 38 and 39 of Miniati for +
 
-                                uR(i,j,k,UMAGX,2,1) = up(i,j,k,UMAGX,2)
-                                uR(i,j,k,UMAGZ,2,2) = up(i,j,k,UMAGZ,2)
+                uR(i,j,k,UMAGD1,d1,dir2) = up(i,j,k,UMAGD1,d1) + sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
+                uR(i,j,k,UMAGD3,d1,dir2) = up(i,j,k,UMAGD3,d1) + sgn*dt/(6.d0*dx)*&
+                                                                        ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
+                                                                         (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                                
 
-                                !Z-Direction
-                                !-> Affected by X flux
-                                uR(i,j,k,UMAGZ,3,1) = up(i,j,k,UMAGZ,3) + dt/(3.d0*dz)*(Ey(i+1,j,k+1) - Ey(i,j,k+1))
-                                uR(i,j,k,UMAGY,3,1) = up(i,j,k,UMAGY,3) + dt/(6.d0*dz)*&
-                                                                        ((Ez(i+1,j+1,k) - Ez(i,j+1,k)) + &
-                                                                         (Ez(i+1,j  ,k) - Ez(i,j  ,k)))
-                                !-> Affected by Y flux
-                                uR(i,j,k,UMAGZ,3,2) = up(i,j,k,UMAGZ,3) - dt/(3.d0*dz)*(Ex(i,j+1,k+1) - Ex(i,j,k+1))
-                                        
-                                uR(i,j,k,UMAGX,3,2) = up(i,j,k,UMAGX,3) - dt/(6.d0*dz)*&
-                                                                        ((Ez(i+1,j+1,k) - Ez(i+1,j,k)) + &
-                                                                         (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
+                uR(i,j,k,UMAGD2,d1,dir2) = up(i,j,k,UMAGD2,d1)
+                                               
 
-                                uR(i,j,k,UMAGX,3,1) = up(i,j,k,UMAGX,3)
-                                uR(i,j,k,UMAGY,3,2) = up(i,j,k,UMAGY,3)
+                uR(i,j,k,UEINT,d1,dir2) = uR(i,j,k,UEINT,d1,dir2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,d1,dir2),uR(i,j,k,UMAGX:UMAGZ,d1,dir2))
 
-                                uR(i,j,k,UEINT,1,1) = uR(i,j,k,UEINT,1,1) - 0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,1),uR(i,j,k,UMAGX:UMAGZ,1,1))
-
-                                uR(i,j,k,UEINT,1,2) = uR(i,j,k,UEINT,1,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,1,2),uR(i,j,k,UMAGX:UMAGZ,1,2))
-
-                                uR(i,j,k,UEINT,2,1) = uR(i,j,k,UEINT,2,1) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,2,1),uR(i,j,k,UMAGX:UMAGZ,2,1))
-
-                                uR(i,j,k,UEINT,2,2) = uR(i,j,k,UEINT,2,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,2,2),uR(i,j,k,UMAGX:UMAGZ,2,2))
-
-                                uR(i,j,k,UEINT,3,1) = uR(i,j,k,UEINT,3,1) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,3,1),uR(i,j,k,UMAGX:UMAGZ,3,1))
-
-                                uR(i,j,k,UEINT,3,2) = uR(i,j,k,UEINT,3,2) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,3,2),uR(i,j,k,UMAGX:UMAGZ,3,2))
-                        enddo
-                enddo
+              enddo
+           enddo
         enddo
 
 end subroutine corner_couple_mag
