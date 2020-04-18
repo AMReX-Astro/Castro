@@ -456,9 +456,17 @@ extern "C"
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
 
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
         Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+#if AMREX_SPACEDIM >= 2
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        Real y = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        Real z = 0.0_rt;
+#endif
 
         Real r = std::sqrt(x*x + y*y + z*z);
 
