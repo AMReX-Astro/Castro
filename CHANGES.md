@@ -3,7 +3,7 @@
    * Backwards compatibility in restarting from a checkpoint is no longer
      supported. Checkpoints from older versions of the code (as determined
      by the checkpoint version in the CastroHeader file in the checkpoint
-     directory) cannot be restarted from.
+     directory) cannot be restarted from. (#860)
 
    * AMReX provides CpuBndryFuncFab and GpuBndryFuncFab which are very
      similar to what generic_fill and hypfill did. The AMReX
