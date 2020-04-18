@@ -1,5 +1,10 @@
 # 20.05
 
+   * Backwards compatibility in restarting from a checkpoint is no longer
+     supported. Checkpoints from older versions of the code (as determined
+     by the checkpoint version in the CastroHeader file in the checkpoint
+     directory) cannot be restarted from. (#860)
+
    * Added an option to do CTU reactions in C++.  A compile flag
      USE_CXX_REACTIONS is added which switches to the C++ integrator
      in Microphysics. Since we will be doing a phased implementation
