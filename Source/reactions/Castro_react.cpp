@@ -289,16 +289,30 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
         Real lburn_on_cpu_threshold = burn_on_cpu_threshold;
 
+        // Find the average of the weights across the box.
+
+        const Real avg_weight = r[mfi].sum<RunOn::Device>(NumSpec+2) / r[mfi].numPts();
+
+        // Set the burn for the CPU if the weight of any particular
+        // box is sufficiently far above this average.
+
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            if (r_arr(i,j,k,NumSpec+2) > lburn_on_cpu_threshold) {
+            if (r_arr(i,j,k,NumSpec+2) > lburn_on_cpu_threshold * avg_weight) {
                 burnOnCpu_arr(i,j,k) = 1.0_rt;
             }
             else {
                 burnOnCpu_arr(i,j,k) = 0.0_rt;
             }
         });
+
+    }
+
+    if (verbose > 1) {
+        const Real num_cpu_burns = burnOnCpu.sum();
+        const Real cpu_burn_frac = num_cpu_burns / burnOnCpu.boxArray().numPts();
+        amrex::Print() << "  Fraction of zones burning on the CPU = " << cpu_burn_frac << std::endl << std::endl;
     }
 
     // Start off assuming a successful burn.
