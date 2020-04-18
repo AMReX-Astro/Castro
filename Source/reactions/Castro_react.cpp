@@ -289,13 +289,14 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
     const Real strt_time = ParallelDescriptor::second();
 
-    MultiFab burnOnCpu(grids, dmap, 1, ngrow);
-
+#ifdef AMREX_USE_GPU
     // Determine on a zone-by-zone basis whether the burn should
     // happen on the CPU or the GPU. The general heuristic should
     // be that we always burn on the GPU except for every hard cases
     // where we expect the GPU to be worse because a few zones require
     // many integrator steps while everything else does not. 
+
+    MultiFab burnOnCpu(s.boxArray(), s.DistributionMap(), 1, ngrow);
 
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
@@ -349,6 +350,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         const Real cpu_burn_frac = num_cpu_burns / burnOnCpu.boxArray().numPts();
         amrex::Print() << "  Fraction of zones burning on the CPU = " << cpu_burn_frac << std::endl << std::endl;
     }
+#endif
 
     // Start off assuming a successful burn.
 
@@ -369,7 +371,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto mask = m.array(mfi);
+#ifdef AMREX_USE_GPU
         auto burnOnCpu_arr = burnOnCpu.array(mfi);
+#endif
 
         Real lreact_T_min = Castro::react_T_min;
         Real lreact_T_max = Castro::react_T_max;
@@ -386,6 +390,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
             // Initialize some data for later.
 
+#ifdef AMREX_USE_GPU
+
 #if AMREX_DEVICE_COMPILE
             bool do_burn = true;
             if (burnOnCpu_arr(i,j,k) == 1.0_rt) {
@@ -396,6 +402,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
             if (burnOnCpu_arr(i,j,k) == 1.0_rt) {
                 do_burn = true;
             }
+#endif
+
+#else
+            bool do_burn = true;
 #endif
 
             burn_state.success = true;
@@ -515,7 +525,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         // reduction for the GPU case, but not for the CPU case.
 
         amrex::ParallelFor(bx, f);
+#ifdef AMREX_USE_GPU
         amrex::LoopConcurrentOnCpu(bx, f);
+#endif
 
 #else
 
