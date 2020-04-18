@@ -41,73 +41,57 @@ extern "C"
 
     }
 
-    void ca_dereint1(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                     const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                     const int* lo, const int* hi,
-                     const int* domain_lo, const int* domain_hi,
-                     const Real* delta, const Real* xlo,
-                     const Real* time, const Real* dt, const int* bcrec, 
-                     const int* level, const int* grid_no)
+    void ca_dereint1(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        Box bx(ilo, ihi);
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
 
-#pragma gpu box(bx)
-        dereint1(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                 AMREX_REAL_ANYD(delta));
+        Real rhoInv = 1.0_rt/dat(i,j,k,URHO);
+        Real ux = dat(i,j,k,UMX)*rhoInv;
+        Real uy = dat(i,j,k,UMY)*rhoInv;
+        Real uz = dat(i,j,k,UMZ)*rhoInv;
 
+        der(i,j,k,0) = dat(i,j,k,UEDEN)*rhoInv -
+          0.5_rt * (ux*ux + uy*uy + uz*uz);
+      });
     }
 
-    void ca_dereint2(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                     const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                     const int* lo, const int* hi,
-                     const int* domain_lo, const int* domain_hi,
-                     const Real* delta, const Real* xlo,
-                     const Real* time, const Real* dt, const int* bcrec, 
-                     const int* level, const int* grid_no)
+    void ca_dereint2(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        Box bx(ilo, ihi);
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
 
-#pragma gpu box(bx)
-        dereint2(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                 data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                 AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                 AMREX_REAL_ANYD(delta));
-
+        der(i,j,k,0) = dat(i,j,k,UEINT) / dat(i,j,k,URHO);
+      });
     }
 
-    void ca_derlogden(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* delta, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
+    void ca_derlogden(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& geomdata,
+                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-        derlogden(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(delta));
-
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
+        der(i,j,k,0) = std::log10(dat(i,j,k,0));
+      });
     }
 
     void ca_deruplusc(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
@@ -694,97 +678,198 @@ extern "C"
 
   }
 
-  void ca_derspec(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec, 
-                  const int* level, const int* grid_no)
-  {
+  void ca_derspec(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& geomdata,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
 
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-    Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-    derspec(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-            data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-            AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-            AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-            AMREX_REAL_ANYD(delta));
-
-  }
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
+             der(i,j,k,0) = dat(i,j,k,1) / dat(i,j,k,0);
+      });
+    }
 
 
-  void ca_derabar(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec, 
-                  const int* level, const int* grid_no)
-  {
+  void ca_derabar(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& geomdata,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
 
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-    Box bx(ilo, ihi);
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
 
-#pragma gpu box(bx)
-    derabar(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-            data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-            AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-            AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-            AMREX_REAL_ANYD(delta));
+        Real sum = 0.0_rt;
+        Real xn;
+        for (int n = 0; n < NumSpec; n++) {
+          xn = dat(i,j,k,1+n)/dat(i,j,k,0);
+          sum += xn/aion[n];
+        }
+        der(i,j,k,0) = 1.0_rt / sum;
+      });
+    }
 
-  }
+  void ca_dermagvort(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
 
-  void ca_dermagvort(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                     const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                     const int* lo, const int* hi,
-                     const int* domain_lo, const int* domain_hi,
-                     const Real* delta, const Real* xlo,
-                     const Real* time, const Real* dt, const int* bcrec, 
-                     const int* level, const int* grid_no)
-  {
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto dx = geomdata.CellSizeArray();
 
-    Box bx(ilo, ihi);
+      const int coord_type = geomdata.Coord();
 
-#pragma gpu box(bx)
-    dermagvort(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-               data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-               AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-               AMREX_REAL_ANYD(delta));
+      auto problo = geomdata.ProbLoArray();
 
-  }
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
 
-  void ca_derdivu(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec, 
-                  const int* level, const int* grid_no)
-  {
+        // Calculate vorticity.
+        if (coord_type == 0) {
+          // Cartesian
 
-    IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-    IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+          // dv/dx and dw/dx
+          Real vx = 0.5_rt * (dat(i+1,j,k,2) / dat(i+1,j,k,0) -
+                              dat(i-1,j,k,2) / dat(i-1,j,k,0)) / dx[0];
+          Real wx = 0.5_rt * (dat(i+1,j,k,3) / dat(i+1,j,k,0) -
+                              dat(i-1,j,k,3) / dat(i-1,j,k,0)) / dx[0];
 
-    Box bx(ilo, ihi);
+          Real uy = 0.0;
+          Real wy = 0.0;
 
-#pragma gpu box(bx)
-    derdivu(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-            data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-            AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-            AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-            AMREX_REAL_ANYD(delta));
+#if AMREX_SPACEDIM >= 2
+          // du/dy and dw/dy
+          uy = 0.5_rt * (dat(i,j+1,k,1) / dat(i,j+1,k,0) -
+                         dat(i,j-1,k,1) / dat(i,j-1,k,0)) / dx[1];
+          wy = 0.5_rt * (dat(i,j+1,k,3) / dat(i,j+1,k,0) -
+                         dat(i,j-1,k,3) / dat(i,j-1,k,0)) / dx[1];
+#endif
 
+          Real uz = 0.0;
+          Real vz = 0.0;
+
+#if AMREX_SPACEDIM == 3
+          // du/dz and dv/dz
+          uz = 0.5_rt * (dat(i,j,k+1,1) / dat(i,j,k+1,0) -
+                         dat(i,j,k-1,1) / dat(i,j,k-1,0)) / dx[2];
+          vz = 0.5_rt * (dat(i,j,k+1,2) / dat(i,j,k+1,0) -
+                         dat(i,j,k-1,2) / dat(i,j,k-1,0)) / dx[2];
+#endif
+
+          // curl in Cartesian coords
+         Real v1 = wy - vz;
+         Real v2 = uz - wx;
+         Real v3 = vx - uy;
+         der(i,j,k,0) = std::sqrt(v1*v1 + v2*v2 + v3*v3);
+
+        } else if (coord_type == 1) {
+          // 2-d axisymmetric -- the coordinate ordering is r, z, phi
+
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          // dv_r/dz
+          Real vr_z = 0.5_rt * (dat(i,j+1,k,1) / dat(i,j+1,k,0) -
+                                dat(i,j-1,k,1) / dat(i,j-1,k,0)) / dx[1];
+
+          // dv_phi/dz
+          Real vphi_z = 0.5_rt * (dat(i,j+1,k,3) / dat(i,j+1,k,0) -
+                                  dat(i,j-1,k,3) / dat(i,j-1,k,0)) / dx[1];
+
+          // d (r v_phi)/dr
+          Real rvphi_r = 0.5_rt * (rp1 * dat(i+1,j,k,3) / dat(i+1,j,k,0) -
+                                   rm1 * dat(i-1,j,k,3) / dat(i-1,j,k,0)) / dx[0];
+
+          // dv_z/dr
+          Real vz_r = 0.5_rt * (dat(i+1,j,k,2) / dat(i+1,j,k,0) -
+                                dat(i-1,j,k,2) / dat(i-1,j,k,0)) / dx[0];
+
+          der(i,j,k,0) = std::sqrt(vphi_z*vphi_z +
+                                   (vr_z - vz_r)*(vr_z - vz_r) +
+                                   (rvphi_r/r)*(rvphi_r/r));
+
+        } else if (coord_type == 2) {
+          // 1-d spherical -- we don't really have a vorticity in this
+          // case
+          der(i,j,k,0) = 0.0;
+
+        }
+      });
+    }
+
+  void ca_derdivu(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                         const FArrayBox& datfab, const Geometry& geomdata,
+                         Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
+
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
+
+      auto dx = geomdata.CellSizeArray();
+
+      // center calculated like advection_utils.cpp
+      GpuArray<Real, 3> center;
+      ca_get_center(center.begin());
+
+      auto problo = geomdata.ProbLoArray();
+
+      const int coord_type = geomdata.Coord();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
+
+        Real uhi = dat(i+1,j,k,1) / dat(i+1,j,k,0);
+        Real ulo = dat(i-1,j,k,1) / dat(i-1,j,k,0);
+
+        Real vhi = dat(i,j+dg1,k,2) / dat(i,j+dg1,k,0);
+        Real vlo = dat(i,j-dg1,k,2) / dat(i,j-dg1,k,0);
+
+        Real whi = dat(i,j,k+dg2,3) / dat(i,j,k+dg2,0);
+        Real wlo = dat(i,j,k-dg2,3) / dat(i,j,k-dg2,0);
+
+        if (coord_type == 0) {
+          // Cartesian divergence
+
+          der(i,j,k,0) = 0.5_rt * (uhi - ulo) / dx[0];
+#if AMREX_SPACEDIM >= 2
+          der(i,j,k,0) += 0.5_rt * (vhi - vlo) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+          der(i,j,k,0) += 0.5_rt * (whi - wlo) / dx[2];
+#endif
+        } else if (coord_type == 1) {
+          // axisymmetric divergence -- defined only for 2-d axisymmetric
+
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]) +
+            0.5_rt*(vhi - vlo) / dx[1];
+
+        } else if (coord_type == 2) {
+
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          der(i,j,k,0) = 0.5_rt * (rp1*rp1*uhi - rm1*rm1*ulo) /
+            (r*r * dx[0]);
+        }
+
+      });
   }
 
   void ca_derstate(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
