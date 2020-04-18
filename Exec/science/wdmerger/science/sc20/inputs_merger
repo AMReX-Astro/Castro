@@ -1,6 +1,6 @@
 FILE = ../../inputs_3d
 
-amr.probin_file = probin
+amr.probin_file = probin_merger
 
 max_step = 10000000
 stop_time = 250.0
@@ -17,7 +17,7 @@ castro.change_max = 1.25
 
 amr.n_cell = 256 256 256
 amr.max_grid_size = 256
-amr.blocking_factor = 64
+amr.blocking_factor = 32
 amr.max_level = 0
 amr.ref_ratio = 4
 
