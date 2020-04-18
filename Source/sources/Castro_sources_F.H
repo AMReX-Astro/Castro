@@ -8,16 +8,7 @@ extern "C"
 {
 #endif
 
-
 #ifdef SPONGE
-  void ca_sponge
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real dt,
-     const amrex::Real time, const amrex::Real mult_factor);
-
   void update_sponge_params(const amrex::Real* time);
 #endif
 

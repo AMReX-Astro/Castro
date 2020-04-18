@@ -195,6 +195,20 @@
 
 
 ///
+/// Compute the sponge source given a state
+///
+/// @param bx           Box to operate over
+/// @param state        input state
+/// @param source       source incremented with the sponge
+/// @param dt           timestep
+/// @param mult_factor  multiplicative factor in front of the source
+///
+    void apply_sponge(const amrex::Box& bx,
+                      amrex::Array4<amrex::Real const> const state,
+                      amrex::Array4<amrex::Real> const source,
+                      amrex::Real dt, amrex::Real mult_factor);
+
+///
 /// Allocate sponge parameters
 ///
     static void sponge_init();
@@ -204,6 +218,7 @@
 /// Deallocate sponge parameters
 ///
     static void sponge_finalize();
+
 #endif
 
 
