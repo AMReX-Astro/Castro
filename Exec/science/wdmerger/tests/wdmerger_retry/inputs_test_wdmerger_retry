@@ -47,7 +47,7 @@ max_step = 1
 castro.use_stopping_criterion = 1
 
 # Level 0 timestep below which we halt
-castro.dt_cutoff = 1.0e-12
+
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5

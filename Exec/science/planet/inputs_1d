@@ -62,7 +62,7 @@ gravity.const_grav   = -1.0e3
 castro.cfl            = 0.01     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep
 castro.change_max     = 1.001     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 #castro.fixed_dt = 1.3e-10
 #castro.initial_dt = 1e-4
 # DIAGNOSTICS & VERBOSITY

@@ -24,7 +24,6 @@ castro.ppm_type = 1
 castro.time_integration_method = 0
 
 # TIME STEP CONTROL
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 
 # DIAGNOSTICS & VERBOSITY
