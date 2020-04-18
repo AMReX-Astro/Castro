@@ -48,11 +48,12 @@ using namespace amrex;
 // 4: Reactions_Type added to checkpoint; ReactHeader functionality deprecated
 // 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
 // 6: Simplified_SDC_Source_Type removed from Castro
+// 7: A weights field was added to Reactions_Type
 
 namespace
 {
     int input_version = -1;
-    int current_version = 6;
+    int current_version = 7;
 }
 
 // I/O routines for Castro

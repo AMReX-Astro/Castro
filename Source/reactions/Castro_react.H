@@ -4,7 +4,6 @@
 /// @param state        Current state
 /// @param reactions    MultiFab to save reaction sources to
 /// @param mask
-/// @param weights
 /// @param time         current time
 /// @param dt_react     reaction timestep
 /// @param strang_half  Is this a Strang-split half timestep?

@@ -10,7 +10,6 @@ contains
   subroutine ca_react_state(lo, hi, &
                             state, s_lo, s_hi, &
                             reactions, r_lo, r_hi, &
-                            weights, w_lo, w_hi, &
                             mask, m_lo, m_hi, &
                             time, dt_react, strang_half, &
                             failed) bind(C, name="ca_react_state")
@@ -43,11 +42,9 @@ contains
     integer , intent(in   ) :: lo(3), hi(3)
     integer , intent(in   ) :: s_lo(3), s_hi(3)
     integer , intent(in   ) :: r_lo(3), r_hi(3)
-    integer , intent(in   ) :: w_lo(3), w_hi(3)
     integer , intent(in   ) :: m_lo(3), m_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
-    real(rt), intent(inout) :: weights(w_lo(1):w_hi(1),w_lo(2):w_hi(2),w_lo(3):w_hi(3))
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ), value :: time, dt_react
     real(rt) , intent(inout) :: failed
@@ -73,7 +70,7 @@ contains
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
     !$acc copyin(mask, dx_min) &
-    !$acc copy(state, reactions, weights) if(do_acc == 1)
+    !$acc copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
 
@@ -211,16 +208,21 @@ contains
                    end do
                    reactions(i,j,k,nspec+1) = delta_e / dt_react
                    reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
+                   reactions(i,j,k,nspec+3) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
                 end if
 
-                ! Insert weights for these burns.
+             else
 
-                if ( i .ge. w_lo(1) .and. i .le. w_hi(1) .and. &
-                     j .ge. w_lo(2) .and. j .le. w_hi(2) .and. &
-                     k .ge. w_lo(3) .and. k .le. w_hi(3) ) then
+                if ( i .ge. r_lo(1) .and. i .le. r_hi(1) .and. &
+                     j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
+                     k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                   weights(i,j,k) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                   do n = 1, nspec+2
+                      reactions(i,j,k,n) = ZERO
+                   end do
+
+                   reactions(i,j,k,nspec+3) = ONE
 
                 end if
 

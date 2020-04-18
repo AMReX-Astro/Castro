@@ -436,6 +436,7 @@ Castro::variableSetUp ()
   // Components 0:Numspec-1         are      omegadot_i
   // Component    NumSpec            is      enuc =      (eout-ein)
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
+  // Component    NumSpec+2          is      weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,0,NumSpec+3,
@@ -623,7 +624,7 @@ Castro::variableSetUp ()
     }
   desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "weights", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+2, "weights", bc, genericBndryFunc); 
 #endif
 
 #ifdef SIMPLIFIED_SDC

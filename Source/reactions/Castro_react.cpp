@@ -12,10 +12,10 @@ Castro::strang_react_first_half(Real time, Real dt)
 {
     BL_PROFILE("Castro::strang_react_first_half()");
 
-    // Sanity check: should only be in here if we're doing CTU or MOL.
+    // Sanity check: should only be in here if we're doing CTU.
 
     if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+        amrex::Error("Strang reactions are only supported for the CTU advance.");
     }
 
     bool burn_success = true;
@@ -24,11 +24,14 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     MultiFab& reactions = get_old_data(Reactions_Type);
 
-    // Ensure we always have valid data, even if we don't do the burn.
+    if (do_react != 1) {
 
-    reactions.setVal(0.0, 0, NumSpec+2);
+        // Ensure we always have valid data, even if we don't do the burn.
+        reactions.setVal(0.0);
 
-    if (do_react != 1) return burn_success;
+        return burn_success;
+
+    }
 
     // Get the current state data.
 
@@ -36,7 +39,14 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     // Check if we have any zones to burn.
 
-    if (!valid_zones_to_burn(state_burn)) return burn_success;
+    if (!valid_zones_to_burn(state_burn)) {
+
+        // Ensure we always have valid data, even if we don't do the burn.
+        reactions.setVal(0.0);
+
+        return burn_success;
+
+    }
 
     const int ng = state_burn.nGrow();
 
@@ -72,7 +82,7 @@ Castro::strang_react_first_half(Real time, Real dt)
         // done a swap on the new data for the old data, so this is
         // really the new-time burn from the last timestep.
 
-        MultiFab weights(grids, dmap, 0, 1);
+        MultiFab weights(grids, dmap, 1, reactions.nGrow());
 
         MultiFab::Copy(weights, reactions, NumSpec+2, 0, 1, reactions.nGrow());
 
@@ -143,10 +153,7 @@ Castro::strang_react_first_half(Real time, Real dt)
 
     clean_state(state_burn, time, state_burn.nGrow());
 
-    if (burn_success)
-        return true;
-    else
-        return false;
+    return burn_success;
 
 }
 
@@ -157,27 +164,37 @@ Castro::strang_react_second_half(Real time, Real dt)
 {
     BL_PROFILE("Castro::strang_react_second_half()");
 
-    // Sanity check: should only be in here if we're doing CTU or MOL.
+    // Sanity check: should only be in here if we're doing CTU.
 
     if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+        amrex::Error("Strang reactions are only supported for the CTU advance.");
     }
 
     bool burn_success = true;
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
-    // Ensure we always have valid data, even if we don't do the burn.
+    if (do_react != 1) {
 
-    reactions.setVal(0.0, 0, NumSpec+2);
+        // Ensure we always have valid data, even if we don't do the burn.
+        reactions.setVal(0.0);
 
-    if (do_react != 1) return burn_success;
+        return burn_success;
+
+    }
 
     MultiFab& state_burn = get_new_data(State_Type);
 
     // Check if we have any zones to burn.
 
-    if (!valid_zones_to_burn(state_burn)) return burn_success;
+    if (!valid_zones_to_burn(state_burn)) {
+
+        // Ensure we always have valid data, even if we don't do the burn.
+        reactions.setVal(0.0);
+
+        return burn_success;
+
+    }
 
     // To be consistent with other source term types,
     // we are only applying this on the interior zones.
@@ -200,9 +217,9 @@ Castro::strang_react_second_half(Real time, Real dt)
 
         // Here we use the old-time weights filled in during the first-half Strang-split burn.
 
-        MultiFab weights(grids, dmap, 0, 1);
-
         MultiFab& old_reactions = get_old_data(Reactions_Type);
+
+        MultiFab weights(grids, dmap, 1, old_reactions.nGrow());
 
         MultiFab::Copy(weights, old_reactions, NumSpec+2, 0, 1, old_reactions.nGrow());
 
@@ -352,7 +369,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
         auto mask = m.array(mfi);
-
         auto burnOnCpu_arr = burnOnCpu.array(mfi);
 
         Real lreact_T_min = Castro::react_T_min;
@@ -464,7 +480,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
                     }
                     reactions(i,j,k,NumSpec  ) = delta_e / dt_react;
                     reactions(i,j,k,NumSpec+1) = delta_rho_e / dt_react;
-                    reactions(i,j,k,NumSpec+2) = amrex::max(1.0_rt, (Real) (burn_state.n_rhs + 2 * burn_state.n_jac));
+                    reactions(i,j,k,NumSpec+2) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                 }
 
                 U(i,j,k,UEINT) += delta_rho_e;
@@ -479,6 +495,17 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
                     U(i,j,k,UFX+n)  = U(i,j,k,URHO) * burn_state.aux[n];
                 }
 #endif
+
+            }
+            else {
+
+                if (reactions.contains(i,j,k)) {
+                    for (int n = 0; n < NumSpec+2; ++n) {
+                        reactions(i,j,k,n) = 0.0_rt;
+                    }
+
+                    reactions(i,j,k,NumSpec+2) = 1.0_rt;
+                }
 
             }
 
@@ -496,7 +523,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(s[mfi]),
                        BL_TO_FORTRAN_ANYD(r[mfi]),
-                       BL_TO_FORTRAN_ANYD(w[mfi]),
                        BL_TO_FORTRAN_ANYD(m[mfi]),
                        time, dt_react, strang_half,
                        AMREX_MFITER_REDUCE_SUM(&burn_failed_g));
