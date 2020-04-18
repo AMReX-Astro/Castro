@@ -87,7 +87,7 @@ amr.ref_ratio = 4 4 4 4 4 4 4 4 4
 amr.regrid_int = 2
 
 # Allow special regrids based on stability criteria
-castro.use_post_step_regrid = 1
+castro.use_post_step_regrid = 0
 
 # Number of buffer cells in error estimation
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
