@@ -36,7 +36,7 @@ castro.plot_per_is_exact = 1
 
 amr.small_plot_per = 0.1
 amr.small_plot_vars = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
-amr.derive_small_plot_vars = pressure soundspeed x_velocity y_velocity z_velocity t_sound_t_enuc
+amr.derive_small_plot_vars = t_sound_t_enuc
 castro.small_plot_per_is_exact = 1
 
 castro.dtnuc_e = 1.e200
