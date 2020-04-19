@@ -261,6 +261,8 @@ extern "C"
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
 
+        eos(eos_input_re, eos_state);
+
         der(i,j,k,0) = std::sqrt(dat(i,j,k,UMX)*dat(i,j,k,UMX) +
                                  dat(i,j,k,UMY)*dat(i,j,k,UMY) +
                                  dat(i,j,k,UMZ)*dat(i,j,k,UMZ)) /
