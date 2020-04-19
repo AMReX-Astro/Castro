@@ -1,9 +1,36 @@
-DIM = 3
-USE_MPI = TRUE
-USE_OMP = FALSE
-USE_CUDA = TRUE
-COMP = PGI
-NETWORK_DIR = iso7
-USE_CXX_REACTIONS = TRUE
+PRECISION  = DOUBLE
+PROFILE    = FALSE
+TINY_PROFILE = TRUE
 
-include ../../GNUmakefile
+DEBUG      = FALSE
+
+DIM        = 3
+
+COMP	   = pgi
+
+USE_MPI    = TRUE
+USE_OMP    = FALSE
+USE_CUDA   = TRUE
+
+USE_GRAV   = TRUE
+USE_REACT  = TRUE
+USE_ROTATION  = TRUE
+USE_DIFFUSION = TRUE
+
+# define the location of the CASTRO top directory
+CASTRO_HOME  := ../../../../..
+
+GPU_COMPATIBLE_PROBLEM = TRUE
+USE_PROB_PARAMS = TRUE
+
+EOS_DIR     := helmholtz
+NETWORK_DIR := iso7
+USE_CXX_REACTIONS := TRUE
+CONDUCTIVITY_DIR := stellar
+
+PROBLEM_DIR := ../../
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
+
+include $(CASTRO_HOME)/Exec/Make.Castro

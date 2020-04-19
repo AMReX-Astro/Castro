@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 990000
-stop_time =  3.0
+stop_time = 0.1
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0          0         0
@@ -90,4 +90,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.boost_10_10
+amr.probin_file = probin
