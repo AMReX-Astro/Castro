@@ -163,12 +163,6 @@ extern "C"
   void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
-  void ca_enforce_consistent_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_recompute_energetics
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
   void ca_reset_internal_e
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
