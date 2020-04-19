@@ -266,14 +266,14 @@ extern "C"
         der(i,j,k,0) = std::sqrt(dat(i,j,k,UMX)*dat(i,j,k,UMX) +
                                  dat(i,j,k,UMY)*dat(i,j,k,UMY) +
                                  dat(i,j,k,UMZ)*dat(i,j,k,UMZ)) /
-          (dat(i,j,k,URHO) * eos_state.cs);
+          dat(i,j,k,URHO) / eos_state.cs;
 
       });
     }
 
     void ca_derentropy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                          const FArrayBox& datfab, const Geometry& geomdata,
-                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                       const FArrayBox& datfab, const Geometry& geomdata,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
       auto const dat = datfab.array();
@@ -297,7 +297,7 @@ extern "C"
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
 
-        eos(eos_input_rt, eos_state);
+        eos(eos_input_re, eos_state);
 
         der(i,j,k,0) = eos_state.s;
       });
