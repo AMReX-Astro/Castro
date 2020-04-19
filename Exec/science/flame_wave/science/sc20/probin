@@ -46,6 +46,6 @@
   rtol_spec = 1.d-6
   atol_spec = 1.d-6
 
-  react_boost = 10.0
+  react_boost = 100.0
   use_tables = T
 /

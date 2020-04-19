@@ -12,23 +12,20 @@ USE_MPI    = TRUE
 USE_OMP    = FALSE
 USE_CUDA   = TRUE
 
-USE_GRAV   = TRUE
-USE_REACT  = TRUE
-USE_ROTATION  = TRUE
-USE_DIFFUSION = TRUE
+GPU_COMPATIBLE_PROBLEM = TRUE
+USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../../../..
 
-GPU_COMPATIBLE_PROBLEM = TRUE
-USE_PROB_PARAMS = TRUE
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
+EOS_DIR     := gamma_law
 
-EOS_DIR     := helmholtz
-NETWORK_DIR := iso7
-USE_CXX_REACTIONS := TRUE
-CONDUCTIVITY_DIR := stellar
+# This sets the network directory in $(MICROPHYSICS_HOME)/Networks
+NETWORK_DIR := general_null
+NETWORK_INPUTS = gammalaw.net
 
-PROBLEM_DIR := ../../
+PROBLEM_DIR = ../../
 
 Bpack   := $(PROBLEM_DIR)/Make.package
 Blocs   := $(PROBLEM_DIR)

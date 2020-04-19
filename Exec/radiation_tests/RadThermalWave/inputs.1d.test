@@ -39,7 +39,7 @@ amr.probin_file     = probin.1d
 castro.lo_bc       =  3 
 castro.hi_bc       =  2 
 
-castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.initial_dt     = 1.e-15
