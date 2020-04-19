@@ -70,7 +70,7 @@ castro.react_T_min = 6.e7
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.dtnuc_e = 0.1
 
 # DIAGNOSTICS & VERBOSITY

@@ -22,7 +22,6 @@ castro.do_hydro = 1
 castro.ppm_type = 1
 
 # TIME STEP CONTROL
-castro.dt_cutoff      = 5.e-20
 castro.cfl            = 0.5
 
 # DIAGNOSTICS & VERBOSITY

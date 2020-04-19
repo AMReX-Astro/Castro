@@ -296,8 +296,9 @@ fixed_dt                     Real         -1.0
 # constraints)
 initial_dt                   Real         -1.0
 
-# the smallest valid timestep---if we go below this, we abort
-dt_cutoff                    Real          0.0
+# the smallest valid timestep, as a fraction of the current simulation time.
+# if we go below this, we abort.
+dt_cutoff                    Real          1.e-12
 
 # the largest valid timestep---limit all timesteps to be no larger than this
 max_dt                       Real          1.e200
