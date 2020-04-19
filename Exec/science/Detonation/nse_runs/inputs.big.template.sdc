@@ -39,7 +39,7 @@ castro.sdc_iters = @@SDC_ITERS@@
 castro.cfl            = @@CFL@@     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass

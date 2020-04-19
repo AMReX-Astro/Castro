@@ -53,7 +53,7 @@ castro.rotation_include_centrifugal = 0
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
+
 castro.use_retry      = 1       # retry subcycled times if we detect a CFL violation
 
 # DIAGNOSTICS & VERBOSITY
