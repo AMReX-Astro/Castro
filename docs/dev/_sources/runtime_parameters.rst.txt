@@ -276,8 +276,8 @@ namespace: ``castro``
 | ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
 |                                        | from the timestep constraints)                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
-|                                        | abort                                                   |               |
+| ``dt_cutoff``                          | the smallest valid timestep, as a fraction of the       | 1.e-12        |
+|                                        | current simulation time. if we go below this, we abort. |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
 |                                        | no larger than this                                     |               |
