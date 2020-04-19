@@ -1,0 +1,32 @@
+PRECISION    = DOUBLE
+
+PROFILE      = FALSE
+TINY_PROFILE = TRUE
+
+DEBUG        = FALSE
+
+DIM          = 1
+
+COMP	     = PGI
+
+USE_MPI      = TRUE
+USE_CUDA     = TRUE
+
+USE_REACT    = TRUE
+
+GPU_COMPATIBLE_PROBLEM = TRUE
+USE_PROB_PARAMS = TRUE
+
+EOS_DIR     := helmholtz
+NETWORK_DIR := aprox13
+USE_CXX_REACTIONS = TRUE
+USE_NETWORK_SOLVER = TRUE
+
+PROBLEM_DIR = ../../
+
+Bpack   := $(PROBLEM_DIR)/Make.package
+Blocs   := $(PROBLEM_DIR)
+
+CASTRO_HOME = ../../../../..
+
+include $(CASTRO_HOME)/Exec/Make.Castro
