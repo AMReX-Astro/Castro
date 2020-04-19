@@ -3,14 +3,14 @@ dir=scaling_results
 
 mkdir -p $dir
 
-ncell_list="256 384 512 1024 2048"
-ngpu_list="6 12 24 48 72 96 144 192 384 768 1536 3072"
+ncell_list="192 256 384 512 768 1024 1536 2048"
+ngpu_list="6 12 24 48 96 192 384 768 1536 3072"
 grid_size_list="32 48 64 96 128"
 
 inputs=inputs
 probin=probin
 
-Castro_ex=Castro3d.pgi.MPI.CUDA.ex
+Castro_ex=Castro3d.pgi.TPROF.MPI.CUDA.ex
 
 if [ ! -e $dir/$Castro_ex ]; then
     cp $Castro_ex $dir/
@@ -31,17 +31,35 @@ do
         ncell_min=0
         ncell_max=1048576
 
-        if   [ $ngpu -eq 6 ]; then
-            ncell_min=256
+        if   [ $ngpu -le 6 ]; then
+            ncell_min=192
             ncell_max=256
-        elif [ $ngpu -le 48 ]; then
+        elif [ $ngpu -le 12 ]; then
             ncell_min=256
+            ncell_max=384
+        elif [ $ngpu -le 24 ]; then
+            ncell_min=256
+            ncell_max=384
+        elif [ $ngpu -le 48 ]; then
+            ncell_min=384
             ncell_max=512
-        elif [ $ngpu -le 384 ]; then
+        elif [ $ngpu -le 96 ]; then
             ncell_min=512
+            ncell_max=768
+        elif [ $ngpu -le 192 ]; then
+            ncell_min=512
+            ncell_max=768
+        elif [ $ngpu -le 384 ]; then
+            ncell_min=768
             ncell_max=1024
-        elif [ $ngpu -le 3072 ]; then
+        elif [ $ngpu -le 768 ]; then
             ncell_min=1024
+            ncell_max=1536
+        elif [ $ngpu -le 1536 ]; then
+            ncell_min=1024
+            ncell_max=1536
+        elif [ $ngpu -le 3072 ]; then
+            ncell_min=1536
             ncell_max=2048
         fi
 
