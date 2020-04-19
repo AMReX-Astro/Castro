@@ -119,51 +119,6 @@ contains
   end subroutine ca_clamp_temp
 
 
-
-  subroutine ca_check_initial_species(lo, hi, state, state_lo, state_hi) bind(c,name='ca_check_initial_species')
-
-    use network           , only: nspec
-    use meth_params_module, only: NVAR, URHO, UFS
-#ifndef AMREX_USE_CUDA
-    use castro_error_module, only: castro_error
-#endif
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: state_lo(3), state_hi(3)
-    real(rt), intent(in) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-
-    ! Local variables
-    integer  :: i, j, k
-    real(rt) :: spec_sum
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             spec_sum = sum(state(i,j,k,UFS:UFS+nspec-1))
-
-#ifndef AMREX_USE_CUDA
-             if (abs(state(i,j,k,URHO)-spec_sum) .gt. 1.e-8_rt * state(i,j,k,URHO)) then
-
-                print *,'Sum of (rho X)_i vs rho at (i,j,k): ',i,j,k,spec_sum,state(i,j,k,URHO)
-                call castro_error("Error:: Failed check of initial species summing to 1")
-
-             end if
-#endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_check_initial_species
-
-
-
   subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
 
     use network, only: nspec

@@ -1029,9 +1029,23 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
          const Box& bx = mfi.validbox();
-#pragma gpu box(bx)
-         ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
+
+         auto S_arr = S_new.array(mfi);
+
+         amrex::ParallelFor(bx,
+         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         {
+           Real spec_sum = 0.0_rt;
+           for (int n = 0; n < NumSpec; n++) {
+             spec_sum += S_arr(i,j,k,UFS+n);
+           }
+           if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
+             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
+                       << i << " " << j << " " << k << " " 
+                       << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
+             amrex::Error("Error: failed check of initial species summing to 1");
+           }
+         });
        }
 
 #ifdef TRUE_SDC
