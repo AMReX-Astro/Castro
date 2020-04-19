@@ -439,7 +439,7 @@ Castro::variableSetUp ()
   // Component    NumSpec+2          is      weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,0,NumSpec+3,
+                         StateDescriptor::Point, NUM_GROW, NumSpec+3,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
