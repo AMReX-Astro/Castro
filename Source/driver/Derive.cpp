@@ -297,6 +297,8 @@ extern "C"
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
 
+        eos(eos_input_rt, eos_state);
+
         der(i,j,k,0) = eos_state.s;
       });
     }
