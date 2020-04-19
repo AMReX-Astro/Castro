@@ -10,13 +10,9 @@ extern "C"
 #endif
 
   void ca_derpres
-    (BL_FORT_FAB_ARG_3D(der), const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data), const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dereint1
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
@@ -34,58 +30,34 @@ extern "C"
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_deruplusc
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_deruminusc
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dersoundspeed
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dergamma1
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dermachnumber
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_derentropy
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
 #ifdef DIFFUSION
   void ca_dercond
@@ -117,13 +89,9 @@ extern "C"
 #endif
 
   void ca_derenuctimescale
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec,
-     const int* level, const int* grid_no);
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
   void ca_dervel
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
