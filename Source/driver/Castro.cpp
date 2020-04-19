@@ -136,7 +136,6 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
-int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
@@ -548,10 +547,6 @@ Castro::Castro (Amr&            papa,
 #endif
 
 
-   if (Knapsack_Weight_Type > 0) {
-    get_new_data(Knapsack_Weight_Type).setVal(1.0);
-   }
-
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
       if (diffusion == 0)
@@ -907,10 +902,6 @@ Castro::initData ()
    }
 #endif
 #endif
-
-   if (Knapsack_Weight_Type > 0) {
-       get_new_data(Knapsack_Weight_Type).setVal(1.0);
-   }
 
 #ifdef MAESTRO_INIT
     MAESTRO_init();
@@ -2731,9 +2722,7 @@ Castro::avgDown ()
   if (level == parent->finestLevel()) return;
 
   for (int k = 0; k < num_state_type; k++) {
-    if (k != Knapsack_Weight_Type) {
       avgDown(k);
-    }
   }
 
 }
