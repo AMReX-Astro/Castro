@@ -235,16 +235,16 @@
 <h1>File NGBndry.H<a class="headerlink" href="#file-ngbndry-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Enums</p>
-<dl class="enum">
+<dl class="cpp enum">
 <dt id="_CPPv47BC_Mode">
 <span id="_CPPv37BC_Mode"></span><span id="_CPPv27BC_Mode"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6"></span><em class="property">enum </em><code class="sig-name descname">BC_Mode</code><a class="headerlink" href="#_CPPv47BC_Mode" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><em>Values:</em></p>
-<dl class="enumerator">
+<dl class="cpp enumerator">
 <dt id="_CPPv414Homogeneous_BC">
 <span id="_CPPv314Homogeneous_BC"></span><span id="_CPPv214Homogeneous_BC"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6a8d8b4584f68e113e2c01503c12a9d30e"></span><code class="sig-name descname">Homogeneous_BC</code> = 0<a class="headerlink" href="#_CPPv414Homogeneous_BC" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="enumerator">
+<dl class="cpp enumerator">
 <dt id="_CPPv416Inhomogeneous_BC">
 <span id="_CPPv316Inhomogeneous_BC"></span><span id="_CPPv216Inhomogeneous_BC"></span><span class="target" id="NGBndry_8H_1a632024b707e1590be97a17ad0a4ee6d6aa5a5bb00cbf11758bc50f9320baa780b"></span><code class="sig-name descname">Inhomogeneous_BC</code><a class="headerlink" href="#_CPPv416Inhomogeneous_BC" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -252,13 +252,13 @@
 </dd></dl>
 
 </div>
-<dl class="class">
+<dl class="cpp class">
 <dt id="_CPPv47NGBndry">
 <span id="_CPPv37NGBndry"></span><span id="_CPPv27NGBndry"></span><span id="NGBndry"></span><span class="target" id="classNGBndry"></span><em class="property">class </em><code class="sig-name descname">NGBndry</code> : <em class="property">public</em> RadInterpBndryData<br /></dt>
 <dd><em>#include &lt;NGBndry.H&gt;</em><p>Subclassed by <a class="reference internal" href="MGRadBndry_8H.html#classMGRadBndry"><span class="std std-ref">MGRadBndry</span></a>, <a class="reference internal" href="RadBndry_8H.html#classRadBndry"><span class="std std-ref">RadBndry</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
 <span id="_CPPv3N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2N7NGBndry7NGBndryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndry::NGBndry__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCR"></span><span class="target" id="classNGBndry_1a5299c28d18798f3362c84267b0809b98"></span><code class="sig-name descname">NGBndry</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BoxArray &amp;<em>_grids</em>, <em class="property">const</em> amrex::DistributionMapping &amp;<em>_dmap</em>, int <em>_ncomp</em>, <em class="property">const</em> amrex::Geometry &amp;<em>_geom</em><span class="sig-paren">)</span><br /></dt>
 <dd><p><dl class="simple">
@@ -277,7 +277,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode">
 <span id="_CPPv3N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="_CPPv2N7NGBndry17setBndryFluxCondsERKN5amrex5BCRecEK7BC_Mode"></span><span id="NGBndry::setBndryFluxConds__amrex::BCRecCR.BC_ModeC"></span><span class="target" id="classNGBndry_1a1be60281dc393a03d1fa6f2bad40a273"></span><em class="property">virtual</em> void <code class="sig-name descname">setBndryFluxConds</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BCRec &amp;<em>bc</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv47BC_Mode" title="BC_Mode">BC_Mode</a> <em>phys_bc_mode</em> = <a class="reference internal" href="#_CPPv416Inhomogeneous_BC" title="Inhomogeneous_BC">Inhomogeneous_BC</a><span class="sig-paren">)</span> = 0<br /></dt>
 <dd><p><dl class="simple">
@@ -290,7 +290,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4NK7NGBndry10bndryTypesERKN5amrex11OrientationE">
 <span id="_CPPv3NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10bndryTypesERKN5amrex11OrientationE"></span><span id="NGBndry::bndryTypes__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a3cdefa3041f94605bbb95a03f11e147c"></span><em class="property">const</em> amrex::Vector&lt;std::unique_ptr&lt;amrex::BaseFab&lt;int&gt;&gt;&gt; &amp;<code class="sig-name descname">bndryTypes</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Orientation &amp;<em>_face</em><span class="sig-paren">)</span> <em class="property">const</em><br /></dt>
 <dd><p><dl class="simple">
@@ -302,7 +302,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4NK7NGBndry10mixedBndryERKN5amrex11OrientationE">
 <span id="_CPPv3NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="_CPPv2NK7NGBndry10mixedBndryERKN5amrex11OrientationE"></span><span id="NGBndry::mixedBndry__amrex::OrientationCRC"></span><span class="target" id="classNGBndry_1a616ada7eb1bcffd5999eaa6b7b0dbe93"></span><em class="property">virtual</em> int <code class="sig-name descname">mixedBndry</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Orientation &amp;<em>_face</em><span class="sig-paren">)</span> <em class="property">const</em><br /></dt>
 <dd><p><dl class="simple">
@@ -317,7 +317,7 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Protected Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt>
 <span class="target" id="classNGBndry_1aa54bbcf072748af4a31d15760e1e7991"></span><code class="sig-name descname">amrex::Vector&lt; std::unique_ptr&lt;amrex::BaseFab&lt;int&gt; &gt; &gt; NGBndry::bctypearray(\2 *BL_SPACEDIM\)</code></dt>
 <dd><p>If used, these arrays must be built/deleted by a derived class: </p>
@@ -326,7 +326,7 @@
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Private Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4N7NGBndry7NGBndryERK7NGBndry">
 <span id="_CPPv3N7NGBndry7NGBndryERK7NGBndry"></span><span id="_CPPv2N7NGBndry7NGBndryERK7NGBndry"></span><span id="NGBndry::NGBndry__NGBndryCR"></span><span class="target" id="classNGBndry_1a82a8a81e1aa556d9994ad4f62356b875"></span><code class="sig-name descname">NGBndry</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../class/classNGBndry.html#_CPPv4N7NGBndry7NGBndryERK7NGBndry" title="NGBndry::NGBndry">NGBndry</a> &amp;<em>src</em><span class="sig-paren">)</span><br /></dt>
 <dd><p><dl class="simple">
@@ -338,7 +338,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4N7NGBndryaSERK7NGBndry">
 <span id="_CPPv3N7NGBndryaSERK7NGBndry"></span><span id="_CPPv2N7NGBndryaSERK7NGBndry"></span><span id="NGBndry::assign-operator__NGBndryCR"></span><span class="target" id="classNGBndry_1a33ce0ed3952176b25a30d518a8287868"></span><a class="reference internal" href="../class/classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> &amp;<code class="sig-name descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../class/classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> &amp;<em>src</em><span class="sig-paren">)</span><br /></dt>
 <dd></dd></dl>
@@ -346,13 +346,13 @@
 </div>
 </dd></dl>
 
-<dl class="class">
+<dl class="cpp class">
 <dt id="_CPPv410NGBndryBld">
 <span id="_CPPv310NGBndryBld"></span><span id="_CPPv210NGBndryBld"></span><span id="NGBndryBld"></span><span class="target" id="classNGBndryBld"></span><em class="property">class </em><code class="sig-name descname">NGBndryBld</code><br /></dt>
 <dd><em>#include &lt;NGBndry.H&gt;</em><p>Subclassed by <a class="reference internal" href="MGRadBndry_8H.html#classMGRadBndryBld"><span class="std std-ref">MGRadBndryBld</span></a>, <a class="reference internal" href="RadBndry_8H.html#classRadBndryBld"><span class="std std-ref">RadBndryBld</span></a></p>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv4NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
 <span id="_CPPv3NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndryBld::call-operator__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCRC"></span><span class="target" id="classNGBndryBld_1a538ed0033af935ef1b47b10ebd7982a0"></span><em class="property">virtual</em> <a class="reference internal" href="../class/classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> *<code class="sig-name descname">operator()</code><span class="sig-paren">(</span><em class="property">const</em> amrex::BoxArray &amp;<em>_grids</em>, <em class="property">const</em> amrex::DistributionMapping &amp;<em>_dmap</em>, int <em>_ncomp</em>, <em class="property">const</em> amrex::Geometry &amp;<em>_geom</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<br /></dt>
 <dd></dd></dl>
