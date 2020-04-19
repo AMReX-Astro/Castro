@@ -179,9 +179,6 @@ castro.small_temp = 1.e5
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
 
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
-
 # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta1 = 1.0e-3
 
