@@ -298,7 +298,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
     MultiFab burnOnCpu(s.boxArray(), s.DistributionMap(), 1, ngrow);
 
-    for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    for (MFIter mfi(r, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ngrow);
 
@@ -320,7 +320,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
-            return {(r_arr(i,j,k,NumSpec+2) - avg_weight) * (r_arr(i,j,k,NumSpec+2) - avg_weight)};
+            if (r_arr.contains(i,j,k)) {
+                return {(r_arr(i,j,k,NumSpec+2) - avg_weight) * (r_arr(i,j,k,NumSpec+2) - avg_weight)};
+            }
+            else {
+                return {0.0_rt};
+            }
         });
 
         ReduceTuple hv = reduce_data.value();
@@ -335,8 +340,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            if ((r_arr(i,j,k,NumSpec+2) - avg_weight) > lburn_on_cpu_threshold * stddev) {
-                burnOnCpu_arr(i,j,k) = 1.0_rt;
+            if (r_arr.contains(i,j,k)) {
+                if ((r_arr(i,j,k,NumSpec+2) - avg_weight) > lburn_on_cpu_threshold * stddev) {
+                    burnOnCpu_arr(i,j,k) = 1.0_rt;
+                }
+                else {
+                    burnOnCpu_arr(i,j,k) = 0.0_rt;
+                }
             }
             else {
                 burnOnCpu_arr(i,j,k) = 0.0_rt;
