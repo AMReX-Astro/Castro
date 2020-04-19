@@ -27,7 +27,7 @@ Castro::strang_react_first_half(Real time, Real dt)
     if (do_react != 1) {
 
         // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0);
+        reactions.setVal(0.0, reactions.nGrow());
 
         return burn_success;
 
@@ -42,7 +42,7 @@ Castro::strang_react_first_half(Real time, Real dt)
     if (!valid_zones_to_burn(state_burn)) {
 
         // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0);
+        reactions.setVal(0.0, reactions.nGrow());
 
         return burn_success;
 
@@ -177,7 +177,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (do_react != 1) {
 
         // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0);
+        reactions.setVal(0.0, reactions.nGrow());
 
         return burn_success;
 
@@ -190,7 +190,7 @@ Castro::strang_react_second_half(Real time, Real dt)
     if (!valid_zones_to_burn(state_burn)) {
 
         // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0);
+        reactions.setVal(0.0, reactions.nGrow());
 
         return burn_success;
 
@@ -612,7 +612,7 @@ Castro::react_state(Real time, Real dt)
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
-    reactions.setVal(0.0);
+    reactions.setVal(0.0, reactions.nGrow());
 
     // Start off assuming a successful burn.
 
