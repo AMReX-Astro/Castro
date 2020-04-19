@@ -55,7 +55,7 @@ implicit none
         real(rt), intent(out)  :: Ez(ez_l1:ez_h1,ez_l2:ez_h2,ez_l3:ez_h3)
  
         ! these are conserved + magnetic field (cell centered)
- ! TODO: should be NVAR+3
+ 
         real(rt)  :: um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3) !PtoC Vars
         real(rt)  :: up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
         real(rt)  :: cons_temp_M(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2) !2D Temporary Conservative Vars
@@ -71,7 +71,7 @@ implicit none
 
         real(rt)  :: flxx1D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3)
         real(rt)  :: flxy1D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3) 
-    real(rt)  :: flxz1D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3) !Flux1d for all directions
+        real(rt)  :: flxz1D(flxz_l1:flxz_h1,flxz_l2:flxz_h2,flxz_l3:flxz_h3,NVAR+3) !Flux1d for all directions
 
         real(rt)  :: flxx2D(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
         real(rt)  :: flxy2D(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
@@ -210,35 +210,36 @@ enddo
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
-                           1 , 1, &    !y corrected x  
-                           dx, dy, dz, dt) !Correct Conservative vars using Transverse Fluxes
+                           !d1 = x, d2 = y, dir2 = 1 last component in the cons_temp arrays 
+                           1 , 2, 1, &    !y corrected x  
+                           dx, dt) !Correct Conservative vars using Transverse Fluxes
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
-                           1 , 2, &    !z corrected x  
-                           dx, dy, dz, dt)
+                           1, 3, 2, &    !z corrected x  
+                           dx, dt)
  
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
-                           2 , 1, &    !x corrected y  
-                           dx, dy, dz, dt) 
+                           2, 1, 1, &    !x corrected y  
+                           dy, dt) 
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
-                           2 , 2, &    !z corrected y 
-                           dx, dy, dz, dt) 
+                           2, 3, 2, &    !z corrected y 
+                           dy, dt) 
 
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
-                           3 , 1, &    !x corrected z  
-                           dx, dy, dz, dt) 
+                           3, 1, 1, &    !x corrected z  
+                           dz, dt) 
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
-                           3, 2, &    !y corrected z 
-                           dx, dy, dz, dt) 
+                           3, 2, 2, &    !y corrected z 
+                           dz, dt) 
 
 
         
@@ -611,8 +612,8 @@ end subroutine ConsToPrim
 subroutine corner_couple(w_lo, w_hi, &
                          uL, uR, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                          flxd2, flxd2_l1,flxd2_l2,flxd2_l3,flxd2_h1,flxd2_h2,flxd2_h3, &
-                         dir, dir2, &
-                         dx, dy, dz, dt)
+                         d1, d2, dir2, &
+                         dx, dt)
 
 use amrex_fort_module, only : rt => amrex_real
 use meth_params_module
@@ -620,11 +621,11 @@ use network, only : nspec
 
 implicit none
         
-        integer, intent(in)             :: w_lo(3), w_hi(3)
-        integer, intent(in)             :: q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
-        integer, intent(in)             :: flxd2_l1,flxd2_l2,flxd2_l3,flxd2_h1,flxd2_h2,flxd2_h3
-        integer, intent(in)             :: dir, dir2
-        real(rt), intent(in)            :: dx, dy, dz, dt
+        integer, intent(in)      :: w_lo(3), w_hi(3)
+        integer, intent(in)      :: q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
+        integer, intent(in)      :: flxd2_l1,flxd2_l2,flxd2_l3,flxd2_h1,flxd2_h2,flxd2_h3
+        integer, intent(in)      :: d1, d2, dir2
+        real(rt), intent(in)     :: dx, dt
         
         real(rt), intent(in)    ::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
         real(rt), intent(in)    ::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
@@ -634,65 +635,55 @@ implicit none
         real(rt), intent(out)   ::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
         real(rt), intent(out)   ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3,2)
 
-        real(rt)                          :: u, v, w
-        integer                           :: i ,j ,k
-        integer                 :: di, dj, dk    
+        real(rt)                :: u, v, w
+        integer                 :: i ,j ,k
+        integer                 :: d(3) !for the addition of +1 to either i,j,k depending on d2    
 
-        uL(:,:,:,:,dir,dir2) = um(:,:,:,:,dir)
-        uR(:,:,:,:,dir,dir2) = up(:,:,:,:,dir)
+        uL(:,:,:,:,d1,dir2) = um(:,:,:,:,d1)
+        uR(:,:,:,:,d1,dir2) = up(:,:,:,:,d1)
 
     
-    di = 0
-    dj = 0
-    dk = 0
+    d = 0
   
-    if ( ((dir.eq.1) .and. (dir2.eq.1)) .or. ((dir.eq.3) .and. (dir2.eq.2)) ) then
-       dj = 1
-    endif
-    
-    if ( ((dir.eq.1) .and. (dir2.eq.2)) .or. ((dir.eq.2) .and. (dir2.eq.2)) ) then
-       dk = 1
-    endif
-
-    if ( ((dir.eq.2) .and. (dir2.eq.1)) .or. ((dir.eq.3) .and. (dir2.eq.1)) ) then
-       di = 1
-    endif
-    
-    
- 
+    !the first term of the flxd2 substraction is shifted by 1 on the direction d2
+    d(d2) = 1 
+   
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
+
+        ! eq. 37 from Miniati paper, for both + and - 
+
         !Left Corrected States
-             uL(i,j,k,URHO,dir,dir2) = um(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,URHO) - flxd2(i,j,k,URHO))
-             uL(i,j,k,UMX,dir,dir2) = um(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMX) - flxd2(i,j,k,UMX))
-             uL(i,j,k,UMY,dir,dir2) = um(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMY) - flxd2(i,j,k,UMY))
-             uL(i,j,k,UMZ,dir,dir2) = um(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMZ) - flxd2(i,j,k,UMZ))
-             uL(i,j,k,UEDEN,dir,dir2) = um(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UEDEN) - flxd2(i,j,k,UEDEN))
-             uL(i,j,k,UFS:UFS+nspec-1,dir,dir2) = um(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UFS:UFS+nspec-1) &  
+             uL(i,j,k,URHO,d1,dir2) = um(i,j,k,URHO,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - flxd2(i,j,k,URHO))
+             uL(i,j,k,UMX,d1,dir2) = um(i,j,k,UMX,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - flxd2(i,j,k,UMX))
+             uL(i,j,k,UMY,d1,dir2) = um(i,j,k,UMY,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - flxd2(i,j,k,UMY))
+             uL(i,j,k,UMZ,d1,dir2) = um(i,j,k,UMZ,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - flxd2(i,j,k,UMZ))
+             uL(i,j,k,UEDEN,d1,dir2) = um(i,j,k,UEDEN,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - flxd2(i,j,k,UEDEN))
+             uL(i,j,k,UFS:UFS+nspec-1,d1,dir2) = um(i,j,k,UFS:UFS+nspec-1,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &  
                                              - flxd2(i,j,k,UFS:UFS+nspec-1))
 
              
-             u = uL(i,j,k,UMX,dir,dir2)/uL(i,j,k,URHO,dir,dir2)
-             v = uL(i,j,k,UMY,dir,dir2)/uL(i,j,k,URHO,dir,dir2)
-             w = uL(i,j,k,UMZ,dir,dir2)/uL(i,j,k,URHO,dir,dir2)
-             uL(i,j,k,UEINT,dir,dir2) = uL(i,j,k,UEDEN,dir,dir2) - 0.5d0*uL(i,j,k,URHO,dir,dir2)*(u**2 + v**2 + w**2)
+             u = uL(i,j,k,UMX,d1,dir2)/uL(i,j,k,URHO,d1,dir2)
+             v = uL(i,j,k,UMY,d1,dir2)/uL(i,j,k,URHO,d1,dir2)
+             w = uL(i,j,k,UMZ,d1,dir2)/uL(i,j,k,URHO,d1,dir2)
+             uL(i,j,k,UEINT,d1,dir2) = uL(i,j,k,UEDEN,d1,dir2) - 0.5d0*uL(i,j,k,URHO,d1,dir2)*(u**2 + v**2 + w**2)
                         
 
         !Right Corrected States
-             uR(i,j,k,URHO,dir,dir2) = up(i,j,k,URHO,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,URHO) - flxd2(i,j,k,URHO))
-             uR(i,j,k,UMX,dir,dir2) = up(i,j,k,UMX,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMX) - flxd2(i,j,k,UMX))
-             uR(i,j,k,UMY,dir,dir2) = up(i,j,k,UMY,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMY) - flxd2(i,j,k,UMY))
-             uR(i,j,k,UMZ,dir,dir2) = up(i,j,k,UMZ,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UMZ) - flxd2(i,j,k,UMZ))
-             uR(i,j,k,UEDEN,dir,dir2) = up(i,j,k,UEDEN,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UEDEN) - flxd2(i,j,k,UEDEN))
-             uR(i,j,k,UFS:UFS+nspec-1,dir,dir2) = up(i,j,k,UFS:UFS+nspec-1,dir) - dt/(3.d0*dx)*(flxd2(i+di,j+dj,k+dk,UFS:UFS+nspec-1) & 
+             uR(i,j,k,URHO,d1,dir2) = up(i,j,k,URHO,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - flxd2(i,j,k,URHO))
+             uR(i,j,k,UMX,d1,dir2) = up(i,j,k,UMX,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - flxd2(i,j,k,UMX))
+             uR(i,j,k,UMY,d1,dir2) = up(i,j,k,UMY,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - flxd2(i,j,k,UMY))
+             uR(i,j,k,UMZ,d1,dir2) = up(i,j,k,UMZ,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - flxd2(i,j,k,UMZ))
+             uR(i,j,k,UEDEN,d1,dir2) = up(i,j,k,UEDEN,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - flxd2(i,j,k,UEDEN))
+             uR(i,j,k,UFS:UFS+nspec-1,d1,dir2) = up(i,j,k,UFS:UFS+nspec-1,d1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) & 
                                              - flxd2(i,j,k,UFS:UFS+nspec-1))
 
                                              
-             u = uR(i,j,k,UMX,dir,dir2)/uR(i,j,k,URHO,dir,dir2)
-             v = uR(i,j,k,UMY,dir,dir2)/uR(i,j,k,URHO,dir,dir2)
-             w = uR(i,j,k,UMZ,dir,dir2)/uR(i,j,k,URHO,dir,dir2)
-             uR(i,j,k,UEINT,dir,dir2) = uR(i,j,k,UEDEN,dir,dir2) - 0.5d0*uR(i,j,k,URHO,dir,dir2)*(u**2 + v**2 + w**2)
+             u = uR(i,j,k,UMX,d1,dir2)/uR(i,j,k,URHO,d1,dir2)
+             v = uR(i,j,k,UMY,d1,dir2)/uR(i,j,k,URHO,d1,dir2)
+             w = uR(i,j,k,UMZ,d1,dir2)/uR(i,j,k,URHO,d1,dir2)
+             uR(i,j,k,UEINT,d1,dir2) = uR(i,j,k,UEDEN,d1,dir2) - 0.5d0*uR(i,j,k,URHO,d1,dir2)*(u**2 + v**2 + w**2)
 
           enddo
        enddo
