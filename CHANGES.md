@@ -1,5 +1,10 @@
 # 20.05
 
+   * The meaning of dt_cutoff has changed: it is now the fraction of the
+     current simulation time which dt may be no smaller than, instead of
+     being an absolute measure. We now have set a non-zero default
+     (1.e-12) as well. (#865)
+
    * Backwards compatibility in restarting from a checkpoint is no longer
      supported. Checkpoints from older versions of the code (as determined
      by the checkpoint version in the CastroHeader file in the checkpoint

@@ -2319,10 +2319,10 @@ Castro::okToContinue ()
       if (ParallelDescriptor::IOProcessor())
         std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
     }
-    else if (parent->dtLevel(0) < dt_cutoff) {
+    else if (parent->dtLevel(level) < dt_cutoff * parent->cumTime()) {
       test = 0;
       if (ParallelDescriptor::IOProcessor())
-        std::cout << " Signalling a stop of the run because dt < dt_cutoff." << std::endl;
+        std::cout << " Signalling a stop of the run because dt < dt_cutoff * time." << std::endl;
     }
 
     return test;

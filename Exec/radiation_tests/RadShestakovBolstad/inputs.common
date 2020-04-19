@@ -60,7 +60,7 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.change_max     = 1.0
 #castro.initial_dt     = 1.e-12
-castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+
 castro.fixed_dt  =  4.5339149910673475e-08   # 1/256
 
 # DIAGNOSTICS & VERBOSITY
