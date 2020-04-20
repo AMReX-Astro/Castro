@@ -37,10 +37,8 @@ Commands begin with a "@":
 
    @namespace: sets the namespace that these will be under (see below)
      it also gives the C++ class name.
-     if we include the keyword "static" after the name, then the parameters
-     will be defined as static member variables in C++
 
-     e.g. @namespace castro Castro static
+     e.g. @namespace castro Castro
 
 Note: categories listed in the input file aren't used for code generation
 but are used for the documentation generation
@@ -56,6 +54,10 @@ For a namespace, name, we write out:
 
   -- name_queries.H  (for castro, included in Castro.cpp):
      does the parmparse query to override the default in C++
+
+  -- name_job_info_tests.H
+     this tests the current value against the default and outputs
+     into a file
 
 we write out a single copy of:
 
@@ -90,7 +92,7 @@ class Param:
 
     def __init__(self, name, dtype, default,
                  cpp_var_name=None,
-                 namespace=None, cpp_class=None, static=None,
+                 namespace=None, cpp_class=None,
                  debug_default=None,
                  in_fortran=0, f90_name=None, f90_dtype=None,
                  ifdef=None):
@@ -102,11 +104,6 @@ class Param:
 
         self.namespace = namespace
         self.cpp_class = cpp_class
-
-        if static is None:
-            self.static = 0
-        else:
-            self.static = static
 
         self.debug_default = debug_default
         self.in_fortran = in_fortran
@@ -131,13 +128,13 @@ class Param:
         # into Castro.cpp
 
         if self.dtype == "int":
-            tstr = "int         {}::{}".format(self.cpp_class, self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED int         {}".format(self.cpp_var_name)
         elif self.dtype == "bool":
-            tstr = "bool        {}::{}".format(self.cpp_class, self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED bool        {}".format(self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "amrex::Real {}::{}".format(self.cpp_class, self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED amrex::Real {}".format(self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "std::string {}::{}".format(self.cpp_class, self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED std::string {}".format(self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -238,10 +235,10 @@ class Param:
     def get_job_info_test(self):
         # this is the output in C++ in the job_info writing
 
-        ostr = 'jobInfoFile << ({}::{} == {} ? "    " : "[*] ") << "{}.{} = " << {}::{} << std::endl;\n'.format(
-            self.cpp_class, self.cpp_var_name, self.default_format(),
+        ostr = 'jobInfoFile << ({} == {} ? "    " : "[*] ") << "{}.{} = " << {} << std::endl;\n'.format(
+            self.cpp_var_name, self.default_format(),
             self.namespace, self.cpp_var_name,
-            self.cpp_class, self.cpp_var_name)
+            self.cpp_var_name)
 
         return ostr
 
@@ -250,18 +247,14 @@ class Param:
         # this is the line that goes into castro_params.H included
         # into Castro.H
 
-        static = ""
-        if self.static:
-            static = "static"
-
         if self.dtype == "int":
-            tstr = "{} int {};\n".format(static, self.cpp_var_name)
+            tstr = "extern AMREX_GPU_MANAGED int {};\n".format(self.cpp_var_name)
         elif self.dtype == "bool":
-            tstr = "{} bool {};\n".format(static, self.cpp_var_name)
+            tstr = "extern AMREX_GPU_MANAGED bool {};\n".format(self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "{} amrex::Real {};\n".format(static, self.cpp_var_name)
+            tstr = "extern AMREX_GPU_MANAGED amrex::Real {};\n".format(self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "{} std::string {};\n".format(static, self.cpp_var_name)
+            tstr = "extern AMREX_GPU_MANAGED std::string {};\n".format(self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -437,7 +430,6 @@ def parse_params(infile, meth_template, out_directory):
 
     namespace = None
     cpp_class = None
-    static = None
 
     try:
         f = open(infile)
@@ -459,17 +451,6 @@ def parse_params(infile, meth_template, out_directory):
                 fields = value.split()
                 namespace = fields[0]
                 cpp_class = fields[1]
-
-                try:
-                    static = fields[2]
-                except IndexError:
-                    static = ""
-
-                # do we have the static keyword?
-                if "static" in static:
-                    static = 1
-                else:
-                    static = 0
 
             else:
                 sys.exit("invalid command")
@@ -526,7 +507,6 @@ def parse_params(infile, meth_template, out_directory):
                             cpp_var_name=cpp_var_name,
                             namespace=namespace,
                             cpp_class=cpp_class,
-                            static=static,
                             debug_default=debug_default,
                             in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
                             ifdef=ifdef))
@@ -550,6 +530,8 @@ def parse_params(infile, meth_template, out_directory):
             sys.exit("unable to open {}_defaults.H for writing".format(nm))
 
         cd.write(CWARNING)
+        cd.write("#ifndef _{}_DEFAULTS_H_\n".format(nm.upper()))
+        cd.write("#define _{}_DEFAULTS_H_\n".format(nm.upper()))
 
         for ifdef in ifdefs:
             if ifdef is None:
@@ -561,6 +543,7 @@ def parse_params(infile, meth_template, out_directory):
                     cd.write(p.get_default_string())
                 cd.write("#endif\n")
 
+        cd.write("#endif\n")
         cd.close()
 
         # write name_params.H
@@ -570,6 +553,8 @@ def parse_params(infile, meth_template, out_directory):
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
         cp.write(CWARNING)
+        cp.write("#ifndef _{}_DEFAULTS_H_\n".format(nm.upper()))
+        cp.write("#define _{}_DEFAULTS_H_\n".format(nm.upper()))
 
         for ifdef in ifdefs:
             if ifdef is None:
@@ -581,6 +566,7 @@ def parse_params(infile, meth_template, out_directory):
                     cp.write(p.get_decl_string())
                 cp.write("#endif\n")
 
+        cp.write("#endif\n")
         cp.close()
 
         # write castro_queries.H
