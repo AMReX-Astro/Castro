@@ -372,6 +372,10 @@ Castro::read_params ()
       }
 
 
+    if (limit_fluxes_on_small_dens && cfl > 0.5_rt) {
+        amrex::Error("limit_fluxes_on_small_dens requires CFL <= 0.5");
+    }
+
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
