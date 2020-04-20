@@ -44,7 +44,7 @@ contains
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+3)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
@@ -187,7 +187,7 @@ contains
 #endif
     real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 #ifdef REACTIONS
-    real(rt), intent(in) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    real(rt), intent(in) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
 #endif
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt

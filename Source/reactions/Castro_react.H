@@ -4,7 +4,6 @@
 /// @param state        Current state
 /// @param reactions    MultiFab to save reaction sources to
 /// @param mask
-/// @param weights
 /// @param time         current time
 /// @param dt_react     reaction timestep
 /// @param strang_half  Is this a Strang-split half timestep?
@@ -13,7 +12,6 @@
     bool react_state(amrex::MultiFab& state,
                      amrex::MultiFab& reactions,
                      const amrex::iMultiFab& mask,
-                     amrex::MultiFab& weights,
                      amrex::Real time,
                      amrex::Real dt_react,
                      int strang_half, int  ngrow = 0);
