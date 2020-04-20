@@ -5,7 +5,7 @@ import numpy as np
 import os
 import argparse
 
-def plot(normalized, show_linear):
+def plot(unnormalized, show_linear):
 
     results_dir = 'scaling_results/'
 
@@ -101,13 +101,13 @@ def plot(normalized, show_linear):
     fom_worst = np.array([x for _, x in sorted(zip(num_worst, fom_worst))])
     num_worst = sorted(num_worst)
 
-    if normalized:
+    if not unnormalized:
         fom_best = fom_best / fom_fiducial[0] / num_best
         fom_worst = fom_worst / fom_fiducial[0] / num_worst
         fom_linear = fom_linear / fom_fiducial[0] / num_linear
         fom_fiducial = fom_fiducial / fom_fiducial[0] / num_fiducial
 
-    plt.xticks([1, 4, 8, 16, 32, 64])
+    plt.xticks([1, 2, 4, 8, 16, 32, 64, 128, 256, 512])
     plt.tick_params(labelsize=14)
 
     plt.plot(num_fiducial, fom_fiducial, linestyle='-', lw=4, label='True weak scaling')
@@ -117,17 +117,18 @@ def plot(normalized, show_linear):
     plt.plot(num_worst, fom_worst, marker='s', markersize=12, linestyle='--', lw=4, label='Worst case')
 
     plt.xlim([0.9 * min(num_best), 1.01 * max(num_best)])
-    if normalized:
+    if not unnormalized:
         plt.ylim([0, 1.25 * max(fom_best)])
     else:
         plt.ylim([0, 1.10 * max(fom_best)])
 
-    if normalized:
+    if not unnormalized:
         plt.ylabel('Zones advanced per usec (normalized)', fontsize=16)
     else:
         plt.ylabel('Zones advanced per usec', fontsize=16)
     plt.xlabel('Number of nodes', fontsize=16)
     plt.title('Weak scaling of CASTRO Sedov', fontsize=16)
+    plt.xscale('log', basex=2)
     plt.legend(loc='best', numpoints=3, markerscale=0.6, handlelength=5)
     plt.tight_layout()
 
@@ -138,14 +139,14 @@ def main():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--normalized', action='store_true',
-                        help='Should we normalize the figure of merit per GPU?')
+    parser.add_argument('--unnormalized', action='store_true',
+                        help='Should we not normalize the figure of merit per GPU?')
     parser.add_argument('--show_linear', action='store_true',
                         help='Should we show a linear scaling curve?')
 
     args = parser.parse_args()
 
-    plot(args.normalized, args.show_linear)
+    plot(args.unnormalized, args.show_linear)
 
 if __name__ == "__main__":
 
