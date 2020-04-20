@@ -412,13 +412,36 @@ enddo
                        3, 1, 2, dz, dt)
  
 
-
+        !x direction 
         call half_step_mag(work_lo, work_hi, &
-                                           cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                           cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
-                                           Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
-                                           Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
-                                           dx, dy, dz, dt)
+                           Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
+                           Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
+                           !d=x, d1=y, d2=z, UMAGD UMAGD1, UMAGD2, sgn,
+                           1, 2, 3, UMAGX, UMAGY, UMAGZ, -1, &
+                           dx, dt)
+        !y direction
+        call half_step_mag(work_lo, work_hi, &
+                           cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                           Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
+                           Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
+                           Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
+                           !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
+                           2, 1, 3, UMAGY, UMAGX, UMAGZ, 1, &
+                           dy, dt)
+
+        !z direction
+        call half_step_mag(work_lo, work_hi, &
+                           cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
+                           Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
+                           Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
+                           Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
+                           !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
+                           3, 1, 2, UMAGZ, UMAGX, UMAGY, -1, &
+                           dz, dt)
+
+
 do i = 1,3
         call ConsToPrim(q_half_M(:,:,:,:,i), cons_half_M(:,:,:,:,i), q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3)
         call ConsToPrim(q_half_P(:,:,:,:,i), cons_half_P(:,:,:,:,i), q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3)
@@ -913,139 +936,114 @@ implicit none
 end subroutine 
 
 !================================================= Final Magnetic Corrections ========================================================================
-subroutine half_step_mag(lo, hi, &
-                                 uL, uR, um, up, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
-                         Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
-                                 Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
-                                 Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
-                                 dx, dy, dz, dt)
+subroutine half_step_mag(w_lo, w_hi, &
+                          uL, uR, um, up, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
+                          Ed, ed_l1,ed_l2,ed_l3,ed_h1,ed_h2,ed_h3, &
+                          Ed1, ed1_l1,ed1_l2,ed1_l3,ed1_h1,ed1_h2,ed1_h3, &
+                          Ed2, ed2_l1,ed2_l2,ed2_l3,ed2_h1,ed2_h2,ed2_h3, &
+                          d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn, &
+                          dx, dt)
 use amrex_fort_module, only : rt => amrex_real
 use meth_params_module, only : NVAR, UEINT
 
 !Correction using Faraday's Law
 implicit none
 
-        integer, intent(in)   :: lo(3), hi(3), q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
-        integer, intent(in)   :: ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3
-        integer, intent(in)   :: ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3
-        integer, intent(in)   :: ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3
+        integer, intent(in)   :: w_lo(3), w_hi(3), q_l1,q_l2,q_l3,q_h1,q_h2, q_h3
+        integer, intent(in)   :: ed_l1,ed_l2,ed_l3,ed_h1,ed_h2,ed_h3
+        integer, intent(in)   :: ed1_l1,ed1_l2,ed1_l3,ed1_h1,ed1_h2,ed1_h3
+        integer, intent(in)   :: ed2_l1,ed2_l2,ed2_l3,ed2_h1,ed2_h2,ed2_h3
+        integer, intent(in)   :: d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn
 
-        real(rt), intent(inout)         ::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
-        real(rt), intent(inout)     ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
-        real(rt), intent(in)            ::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
-        real(rt), intent(in)            ::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)    
+        real(rt), intent(inout)   ::uL(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+        real(rt), intent(inout)   ::uR(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+        real(rt), intent(in)      ::um(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)
+        real(rt), intent(in)      ::up(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NVAR+3,3)    
 
-        real(rt), intent(in)  :: Ex(ex_l1:ex_h1,ex_l2:ex_h2,ex_l3:ex_h3)
-        real(rt), intent(in)  :: Ey(ey_l1:ey_h1,ey_l2:ey_h2,ey_l3:ey_h3)
-        real(rt), intent(in)  :: Ez(ez_l1:ez_h1,ez_l2:ez_h2,ez_l3:ez_h3)
+        real(rt), intent(in)  :: Ed(ed_l1:ed_h1,ed_l2:ed_h2,ed_l3:ed_h3)
+        real(rt), intent(in)  :: Ed1(ed1_l1:ed1_h1,ed1_l2:ed1_h2,ed1_l3:ed1_h3)
+        real(rt), intent(in)  :: Ed2(ed2_l1:ed2_h1,ed2_l2:ed2_h2,ed2_l3:ed2_h3)
 
-        real(rt)                                        :: dx, dy, dz, dt
-        integer                                         :: i ,j ,k, n
+        real(rt), intent(in)  :: dx, dt
+
+        integer               :: i ,j ,k
+        integer               :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k  
         integer      :: UMAGX, UMAGY, UMAGZ
 
         UMAGX = NVAR+1
         UMAGY = NVAR+2
         UMAGZ = NVAR+3
 
-        do k = lo(3), hi(3)
-                do j = lo(2), hi(2)
-                        do i = lo(1), hi(1)
-                !---------------------------------------left state-----------------------------------------------------
-                                !X-Direction
-                                !Bx
-                                uL(i,j,k,UMAGX,1) = um(i,j,k,UMAGX,1) - 0.5d0*dt/dx*((Ey(i,j,k+1) - Ey(i,j,k)) &
-                                                                                   - (Ez(i,j+1,k) - Ez(i,j,k)))
-                                !By
-                                uL(i,j,k,UMAGY,1) = um(i,j,k,UMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
-                                                                                   + (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)) &
-                                                                                   - (Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
-                                                                                   - (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)))
-                                !Bz
-                                uL(i,j,k,UMAGZ,1) = um(i,j,k,UMAGZ,1) + 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j,k+1)) &
-                                                                                   + (Ex(i  ,j+1,k  ) - Ex(i,j,k  )) &
-                                                                                   - (Ey(i+1,j  ,k+1) - Ey(i,j,k+1)) &
-                                                                                   - (Ey(i+1,j  ,k  ) - Ey(i,j,k  )))
-                                !Y-Direction
-                                !Bx
-                                uL(i,j,k,UMAGX,2) = um(i,j,k,UMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-                                                                                   + (Ey(i  ,j,k+1) - Ey(i  ,j,k)) &
-                                                                                   - (Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
-                                                                                   - (Ez(i  ,j+1,k) - Ez(i  ,j,k)))
-                                !By
-                                uL(i,j,k,UMAGY,2) = um(i,j,k,UMAGY,2) + 0.5d0*dt/dy*((Ex(i,j,k+1) - Ex(i,j,k)) &
-                                                                                   - (Ez(i+1,j,k) - Ez(i,j,k)))
-                                !Bz
-                                uL(i,j,k,UMAGZ,2) = um(i,j,k,UMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
-                                                                                   + (Ey(i+1,j,k  ) - Ey(i,j,k  )) &
-                                                                                   - (Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
-                                                                                   - (Ex(i,j+1,k  ) - Ex(i,j,k  )))
-                                !Z-direction
-                                !Bx
-                                uL(i,j,k,UMAGX,3) = um(i,j,k,UMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
-                                                                                   + (Ez(i  ,j+1,k) - Ez(i  ,j,k)) &
-                                                                                   - (Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-                                                                                   - (Ey(i  ,j,k+1) - Ey(i  ,j,k)))
-                                !By
-                                uL(i,j,k,UMAGY,3) = um(i,j,k,UMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
-                                                                                    +(Ez(i+1,j  ,k  ) - Ez(i,j  ,k)) &
-                                                                                    -(Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
-                                                                                   - (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)))
-                                !Bz
-                                uL(i,j,k,UMAGZ,3) = um(i,j,k,UMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k) - Ex(i,j,k)) &
-                                                                                   - (Ey(i+1,j,k) - Ey(i,j,k)))
-                                do n = 1,3
-                                        uL(i,j,k,UEINT,n) = uL(i,j,k,UEINT,n) - 0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,n),uL(i,j,k,UMAGX:UMAGZ,n))
-                                enddo
+        a1 = 0
+        a2 = 0
+        b1 = 0
+        b2 = 0
+        b3 = 0
+        b4 = 0
+        b5 = 0
+        b6 = 0 
 
-        !---------------------------------------right state-----------------------------------------------------
-                                !X-Direction
-                                !Bx
-                                uR(i,j,k,UMAGX,1) = up(i,j,k,UMAGX,1) - 0.5d0*dt/dx*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-                                                                    -                (Ez(i+1,j+1,k) - Ez(i+1,j,k)))
-                                !By
-                                uR(i,j,k,UMAGY,1) = up(i,j,k,UMAGY,1) - 0.5d0*dt/dx*((Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
-                                                                                   + (Ex(i  ,j  ,k+1) - Ex(i,j  ,k)) &
-                                                                                   - (Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
-                                                                                   - (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)))
-                                !Bz
-                                uR(i,j,k,UMAGZ,1) = up(i,j,k,UMAGZ,1) + 0.5d0*dt/dx*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
-                                                                                   + (Ex(i,j+1,k  ) - Ex(i,j,k  )) &
-                                                                                   - (Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
-                                                                                   - (Ey(i+1,j,k  ) - Ey(i,j,k  )))                             
-                                !Y-Direction
-                                !Bx
-                                uR(i,j,k,UMAGX,2) = up(i,j,k,UMAGX,2) + 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-                                                                                   + (Ey(i  ,j,k+1) - Ey(i  ,j,k)) &
-                                                                                   - (Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
-                                                                                   - (Ez(i  ,j+1,k) - Ez(i,j,k)))
-                                !By
-                                uR(i,j,k,UMAGY,2) = up(i,j,k,UMAGY,2) + 0.5d0*dt/dy*((Ex(i,j+1,k+1) - Ex(i,j+1,k)) &
-                                                                    - (Ez(i+1,j+1,k) - Ez(i,j+1,k)))
-                                !Bz
-                                uR(i,j,k,UMAGZ,2) = up(i,j,k,UMAGZ,2) - 0.5d0*dt/dy*((Ey(i+1,j,k+1) - Ey(i,j,k+1)) &
-                                                                        + (Ey(i+1,j,k) - Ey(i,j,k)) &
-                                                                        - (Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
-                                                                        - (Ex(i,j+1,k) - Ex(i,j,k)))    
-                
-                                !Z-direction
-                                !Bx
-                                uR(i,j,k,UMAGX,3) = up(i,j,k,UMAGX,3) - 0.5d0*dt/dz*((Ez(i+1,j+1,k) - Ez(i+1,j,k)) &
-                                                                        + (Ez(i,j+1,k) - Ez(i,j,k)) &
-                                                                        - (Ey(i+1,j,k+1) - Ey(i+1,j,k)) &
-                                                                        - (Ey(i,j,k+1) - Ey(i,j,k)))
-                                !By
-                                uR(i,j,k,UMAGY,3) = up(i,j,k,UMAGY,3) + 0.5d0*dt/dz*((Ez(i+1,j+1,k  ) - Ez(i,j+1,k)) &
-                                                                                   + (Ez(i+1,j  ,k  ) - Ez(i,j  ,k)) &
-                                                                                   - (Ex(i  ,j+1,k+1) - Ex(i,j+1,k)) &
-                                                                                   - (Ex(i  ,j  ,k+1) - Ex(i,j,k)))
-                                !Bz
-                                uR(i,j,k,UMAGZ,3) = up(i,j,k,UMAGZ,3) - 0.5d0*dt/dz*((Ex(i,j+1,k+1) - Ex(i,j,k+1)) &
-                                                                                   - (Ey(i+1,j,k+1) - Ey(i,j,k+1)))                     
-                                do n = 1,3
-                                        uR(i,j,k,UEINT,n) = uR(i,j,k,UEINT,n) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,n),uR(i,j,k,UMAGX:UMAGZ,n))
-                                enddo   
-                        enddo
-                enddo
+        !for Bd 
+        a1(d2) = 1 !shift on first term of Ed1 substraction, in d2 component
+        a2(d1) = 1 !shift on first term of Ed2 substraction, in d1 component
+        
+        !for Bd1 and Bd2
+        b1(d1) = 1 !shift on 1st term for Bd1 and Bd2 
+        b1(d2) = 1 ! in d1 and d2 components
+        b2(d1) = 1 !shift on 2nd and 6th term for Bd1, and 3rd term for Bd2
+        b3(d2) = 1 !shift on 3rd term for Bd1, and 2nd and 6th term for Bd2
+        b4(d)  = 1 !shift on 5th term for Bd1, on d and d1 components
+        b4(d1) = 1
+        b5(d)  = 1 !shift on 7th term for Bd1 and Bd2
+        b6(d)  = 1 !shift on 5th term for Bd2, on d and d2 components
+        b6(d2) = 1
+        
+
+        do k = w_lo(3), w_hi(3)
+           do j = w_lo(2), w_hi(2)
+              do i = w_lo(1), w_hi(1)
+                !---------------------------------------left state-----------------------------------------------------
+                                
+                 !d-Direction
+                 !Bd eq.45 in Miniati for - 
+                 uL(i,j,k,UMAGD,d) = um(i,j,k,UMAGD,d) + sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
+                                                                        - (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
+                 !Bd1 eq.46 in Miniati
+                 uL(i,j,k,UMAGD1,d) = um(i,j,k,UMAGD1,d) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
+                                                                          + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
+                                                                          - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
+                                                                          - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+                 !Bd2 eq. 46 in Miniati
+                 uL(i,j,k,UMAGD2,d) = um(i,j,k,UMAGD2,d) - sgn* 0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
+                                                                           + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
+                                                                           - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
+                                                                           - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+                                                               
+                 uL(i,j,k,UEINT,d) = uL(i,j,k,UEINT,d) - 0.5d0*dot_product(uL(i,j,k,UMAGX:UMAGZ,d),uL(i,j,k,UMAGX:UMAGZ,d))
+                          
+
+                 !---------------------------------------right state-----------------------------------------------------
+                                
+                 !d-Direction
+                 !Bd eq. 45 in Miniati for +
+                 ! for the + case, the shifts mentioned above in b6, b5, and b4 
+                 ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely     
+                 uR(i,j,k,UMAGD,d) = up(i,j,k,UMAGD,d) + sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
+                                                                        - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
+                 !Bd1 eq. 46 in Miniati
+                 uR(i,j,k,UMAGD1,d) = up(i,j,k,UMAGD1,d) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
+                                                                          + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
+                                                                          - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
+                                                                          - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+                 !Bd2 eq. 46 in Miniati
+                 uR(i,j,k,UMAGD2,d) = up(i,j,k,UMAGD2,d) - sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
+                                                                          + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
+                                                                          - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
+                                                                          - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))                             
+                 uR(i,j,k,UEINT,d) = uR(i,j,k,UEINT,d) -0.5d0*dot_product(uR(i,j,k,UMAGX:UMAGZ,d),uR(i,j,k,UMAGX:UMAGZ,d))
+                                
+              enddo
+           enddo
         enddo
 
 end subroutine half_step_mag
