@@ -78,43 +78,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // that are not corners and then call it a second time on just the
     // corners.
 
-#if AMREX_SPACEDIM == 2
-    if ((bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
-    }
-#endif
-
-#if AMREX_SPACEDIM == 3
-    if ((bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zl corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zl corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zr corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].lo(0) == EXT_DIR &&           // xl, yr, zr corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zl corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zl corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].lo(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].lo(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yl, zr corner
-         (bcr[URHO].lo(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].lo(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR) ||
-        (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
-         (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
-        (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
-    }
-#endif
 
     if (numcomp == 1) {
 

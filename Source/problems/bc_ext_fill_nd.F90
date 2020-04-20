@@ -60,6 +60,43 @@ contains
 
     !$gpu
 
+#if AMREX_SPACEDIM == 2
+    if ((bc(1,1,URHO) == EXT_DIR .and. bc(2,1,URHO) == EXT_DIR) .or. &
+        (bc(1,1,URHO) == EXT_DIR .and. bc(2,2,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and. bc(2,1,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and. bc(2,2,URHO) == EXT_DIR)) then
+       call castro_error("Error: external boundaries meeting at a corner not supported")
+    end if
+#endif
+
+#if AMREX_SPACEDIM == 3
+    if ((bc(1,1,URHO) == EXT_DIR .and. &          ! xl, yl, zl corner
+         (bc(2,1,URHO) == EXT_DIR .or. bc(3,1,URHO) == EXT_DIR)) .or. &
+        (bc(2,1,URHO) == EXT_DIR .and. bc(3,1,URHO) == EXT_DIR) .or. &
+        (bc(1,1,URHO) == EXT_DIR .and. &          ! xl, yr, zl corner
+         (bc(2,2,URHO) == EXT_DIR .or. bc(3,1,URHO) == EXT_DIR)) .or. &
+        (bc(2,2,URHO) == EXT_DIR .and. bc(3,1,URHO) == EXT_DIR) .or. &
+        (bc(1,1,URHO) == EXT_DIR .and. &          ! xl, yl, zr corner
+         (bc(2,1,URHO) == EXT_DIR .or. bc(3,2,URHO) == EXT_DIR)) .or. &
+        (bc(2,1,URHO) == EXT_DIR .and. bc(3,2,URHO) == EXT_DIR) .or. &
+        (bc(1,1,URHO) == EXT_DIR .and. &          ! xl, yr, zr corner
+         (bc(2,2,URHO) == EXT_DIR .or. bc(3,2,URHO) == EXT_DIR)) .or. &
+        (bc(2,2,URHO) == EXT_DIR .and. bc(3,2,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and. &          ! xr, yl, zl corner
+         (bc(2,1,URHO) == EXT_DIR .or. bc(3,1,URHO) == EXT_DIR)) .or. &
+        (bc(2,1,URHO) == EXT_DIR .and. bc(3,1,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and. &           ! xr, yr, zl corner
+         (bc(2,2,URHO) == EXT_DIR .or. bc(3,1,URHO) == EXT_DIR)) .or. &
+        (bc(2,2,URHO) == EXT_DIR .and. bc(3,1,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and.           ! xr, yl, zr corner
+         (bc(2.1.URHO) == EXT_DIR .or. bc(3,2,URHO) == EXT_DIR)) .or. &
+        (bc(2,1,URHO) == EXT_DIR .and. bc(3,2,URHO) == EXT_DIR) .or. &
+        (bc(1,2,URHO) == EXT_DIR .and.           ! xr, yr, zr corner
+         (bc(2,2,URHO) == EXT_DIR .or. bc(3,2,URHO) == EXT_DIR)) .or. &
+        (bc(2,2,URHO) == EXT_DIR .and. bc(3,2,URHO) == EXT_DIR)) then
+        call castro_error("Error: external boundaries meeting at a corner not supported")
+     end if
+#endif
 
     !-------------------------------------------------------------------------
     ! x boundaries
