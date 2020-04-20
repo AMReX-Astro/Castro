@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.apply_sources_consecutively, castro.use_custom_knapsack_weights
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.apply_sources_consecutively
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -28,9 +28,6 @@ namespace: ``castro``
 |                                        | time_integration_method drivers                         |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``apply_sources_consecutively``        | should we apply the sources one by one or all at once?  | 0             |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
-|                                        | weighting?                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -321,7 +318,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.use_burn_load_balancing
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -361,6 +358,8 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``T_guess``                            | initial guess for the temperature when inverting the    | 1.e8          |
 |                                        | EoS (e.g. when calling eos_input_re)                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``use_burn_load_balancing``            | should we load balance inside the burn?                 | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 

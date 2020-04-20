@@ -264,11 +264,6 @@ time_integration_method drivers</p></td>
 <td><p>should we apply the sources one by one or all at once?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></p></td>
-<td><p>should we have state data for custom load-balancing
-weighting?</p></td>
-<td><p>0</p></td>
-</tr>
 </tbody>
 </table>
 <p><strong>hydrodynamics</strong></p>
@@ -789,6 +784,10 @@ zone</p></td>
 <td><p>initial guess for the temperature when inverting the
 EoS (e.g. when calling eos_input_re)</p></td>
 <td><p>1.e8</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_burn_load_balancing</span></code></p></td>
+<td><p>should we load balance inside the burn?</p></td>
+<td><p>0</p></td>
 </tr>
 </tbody>
 </table>
