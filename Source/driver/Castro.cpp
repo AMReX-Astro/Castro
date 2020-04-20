@@ -1097,7 +1097,7 @@ Castro::initData ()
 
              auto S_arr = Sborder.array(mfi);
 
-             ParallelFox(box,
+             amrex::ParallelFor(box,
              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
              {
 
