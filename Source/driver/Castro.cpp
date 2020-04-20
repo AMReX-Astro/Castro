@@ -1031,9 +1031,11 @@ Castro::initData ()
              spec_sum += S_arr(i,j,k,UFS+n);
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
+#ifndef AMREX_USE_CUDA
              std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
                        << i << " " << j << " " << k << " " 
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
+#endif
              amrex::Error("Error: failed check of initial species summing to 1");
            }
          });
