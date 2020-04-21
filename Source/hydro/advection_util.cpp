@@ -473,7 +473,8 @@ Castro::apply_av(const Box& bx,
 
   Real diff_coeff = difmag;
 
-  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  amrex::ParallelFor(bx, NUM_STATE,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     if (n == UTEMP) return;
