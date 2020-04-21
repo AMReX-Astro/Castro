@@ -4,6 +4,8 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
+#include "gravity_params.H"
+
 // This vector can be accessed on the GPU.
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
 
@@ -426,8 +428,6 @@ protected:
   static int   stencil_type;
 
   static amrex::Real max_radius_all_in_domain;
-
-#include "gravity_params.H"
 
 
 #if (BL_SPACEDIM < 3)

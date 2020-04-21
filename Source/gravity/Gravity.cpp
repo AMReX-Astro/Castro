@@ -15,9 +15,8 @@
 #include <AMReX_MLMG.H>
 #include <AMReX_MLPoisson.H>
 
-#define MAX_LEV 30
+#include <castro_limits.H>
 
-#include "gravity_defaults.H"
 #include "fundamental_constants.H"
 
 #include "MGutils.H"

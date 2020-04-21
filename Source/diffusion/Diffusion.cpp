@@ -6,9 +6,7 @@
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
 
-#define MAX_LEV 15
-
-#include "diffusion_defaults.H"
+#include <castro_limits.H>
 
 using namespace amrex;
 

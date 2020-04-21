@@ -18,6 +18,7 @@ CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
 CEXE_headers += Castro.H
+CEXE_headers += castro_limits.H
 CEXE_headers += Castro_io.H
 CEXE_headers += state_indices.H
 
