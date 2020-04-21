@@ -115,38 +115,23 @@ Ez = 0.d0
 
 !Calculate Flux 1D
         !x-dir
-        work_lo(1) = flxx_l1
-        work_lo(2) = flxx_l2
-        work_lo(3) = flxx_l3
-        work_hi(1) = flxx_h1
-        work_hi(2) = flxx_h2
-        work_hi(3) = flxx_h3
-        
+        work_lo = (/ flxx_l1, flxx_l2, flxx_l3 /)
+        work_hi = (/ flxx_h1, flxx_h2, flxx_h3 /)
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxx1D(:,:,:,:),flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1)
 
 
 
-        work_lo(1) = flxy_l1
-        work_lo(2) = flxy_l2
-        work_lo(3) = flxy_l3
-        work_hi(1) = flxy_h1
-        work_hi(2) = flxy_h2
-        work_hi(3) = flxy_h3
-
+        work_lo = (/ flxy_l1, flxy_l2, flxy_l3 /)
+        work_hi = (/ flxy_h1, flxy_h2, flxy_h3 /)
         !y-dir  
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxy1D(:,:,:,:),flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2)
 
 
 
-        work_lo(1) = flxz_l1
-        work_lo(2) = flxz_l2
-        work_lo(3) = flxz_l3
-        work_hi(1) = flxz_h1
-        work_hi(2) = flxz_h2
-        work_hi(3) = flxz_h3
-                  
+        work_lo = (/ flxz_l1, flxz_l2, flxz_l3 /)
+        work_hi = (/ flxz_h1, flxz_h2, flxz_h3 /)
         !z-dir
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz1D(:,:,:,:),flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3)
@@ -162,36 +147,24 @@ enddo
 !Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields
 
 
-        work_lo(1) = ex_l1+1
-        work_lo(2) = ex_l2+1
-        work_lo(3) = ex_l3+1
-        work_hi(1) = ex_h1-1
-        work_hi(2) = ex_h2-1
-        work_hi(3) = ex_h3-1
+        work_lo = (/ ex_l1+1, ex_l2+1, ex_l3+1 /)
+        work_hi = (/ ex_h1-1, ex_h2-1, ex_h3-1 /)
         call electric_edge_x(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                              flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ey_l1+1
-        work_lo(2) = ey_l2+1
-        work_lo(3) = ey_l3+1
-        work_hi(1) = ey_h1-1
-        work_hi(2) = ey_h2-1
-        work_hi(3) = ey_h3-1
+        work_lo = (/ ey_l1+1, ey_l2+1, ey_l3+1 /) 
+        work_hi = (/ ey_h1-1, ey_h2-1, ey_h3-1 /)
         call electric_edge_y(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                              flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ez_l1+1
-        work_lo(2) = ez_l2+1
-        work_lo(3) = ez_l3+1
-        work_hi(1) = ez_h1-1
-        work_hi(2) = ez_h2-1
-        work_hi(3) = ez_h3-1
+        work_lo = (/ ez_l1+1, ez_l2+1, ez_l3+1 /)
+        work_hi = (/ ez_h1-1, ez_h2-1, ez_h3-1 /)
         call electric_edge_z(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
@@ -200,12 +173,8 @@ enddo
 
 !Corner Couple
         
-        work_lo(1) = q_l1+1
-        work_lo(2) = q_l2+1
-        work_lo(3) = q_l3+1
-        work_hi(1) = q_h1-1
-        work_hi(2) = q_h2-1
-        work_hi(3) = q_h3-1
+        work_lo = (/ q_l1+1, q_l2+1, q_l3+1 /)
+        work_hi = (/ q_h1-1, q_h2-1, q_h3-1 /)
         
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
@@ -303,36 +272,21 @@ enddo
 
 !Calculate Flux 2D
 do i = 1,2
-        work_lo(1) = flxx_l1+1
-        work_lo(2) = flxx_l2+1
-        work_lo(3) = flxx_l3+1
-        work_hi(1) = flxx_h1-1
-        work_hi(2) = flxx_h2-1
-        work_hi(3) = flxx_h3-1
+        work_lo = (/ flxx_l1+1, flxx_l2+1, flxx_l3+1 /)
+        work_hi = (/ flxx_h1-1, flxx_h2-1, flxx_h3-1 /) 
         !x-dir
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,i),q_temp_P(:,:,:,:,:,i),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxx2D(:,:,:,:,i),flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1)
 
         !y-dir  
-        work_lo(1) = flxy_l1+1
-        work_lo(2) = flxy_l2+1
-        work_lo(3) = flxy_l3+1
-        work_hi(1) = flxy_h1-1
-        work_hi(2) = flxy_h2-1
-        work_hi(3) = flxy_h3-1
-
+        work_lo = (/ flxy_l1+1, flxy_l2+1, flxy_l3+1 /)
+        work_hi = (/ flxy_h1-1, flxy_h2-1, flxy_h3-1 /)
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,i),q_temp_P(:,:,:,:,:,i),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxy2D(:,:,:,:,i),flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2)
 
         !z-dir
-
-        work_lo(1) = flxz_l1+1
-        work_lo(2) = flxz_l2+1
-        work_lo(3) = flxz_l3+1
-        work_hi(1) = flxz_h1-1
-        work_hi(2) = flxz_h2-1
-        work_hi(3) = flxz_h3-1
-        
+        work_lo = (/ flxz_l1+1, flxz_l2+1, flxz_l3+1 /)
+        work_hi = (/ flxz_h1-1, flxz_h2-1, flxz_h3-1 /) 
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,i),q_temp_P(:,:,:,:,:,i),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz2D(:,:,:,:,i),flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3)
 
@@ -344,36 +298,24 @@ enddo
         flxz1D(:,:,:,:) = 0.5d0*(flxz2D(:,:,:,:,1) + flxz2D(:,:,:,:,2))
 
 
-        work_lo(1) = ex_l1+1!+2
-        work_lo(2) = ex_l2+1!+2
-        work_lo(3) = ex_l3+1!+2
-        work_hi(1) = ex_h1-1!-2
-        work_hi(2) = ex_h2-1!-2
-        work_hi(3) = ex_h3-1!-2
+        work_lo = (/ ex_l1+1, ex_l2+1, ex_l3+1 /)
+        work_hi = (/ ex_h1-1, ex_h2-1, ex_h3-1 /)
         call electric_edge_x(work_lo, work_hi, &
                          q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                              flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ey_l1+1!+2
-        work_lo(2) = ey_l2+1!+2
-        work_lo(3) = ey_l3+1!+2
-        work_hi(1) = ey_h1-1!-2
-        work_hi(2) = ey_h2-1!-2
-        work_hi(3) = ey_h3-1!-2
+        work_lo = (/ ey_l1+1, ey_l2+1, ey_l3+1 /)
+        work_hi = (/ ey_h1-1, ey_h2-1, ey_h3-1 /)
         call electric_edge_y(work_lo, work_hi, &
                          q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                              flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ez_l1+1!+2
-        work_lo(2) = ez_l2+1!+2
-        work_lo(3) = ez_l3+1!+2
-        work_hi(1) = ez_h1-1!-2
-        work_hi(2) = ez_h2-1!-2
-        work_hi(3) = ez_h3-1!-2
+        work_lo = (/ ez_l1+1, ez_l2+1, ez_l3+1 /)
+        work_hi = (/ ez_h1-1, ez_h2-1, ez_h3-1 /)
         call electric_edge_z(work_lo, work_hi, &
                          q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
@@ -381,14 +323,9 @@ enddo
                              flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3)
 
 !Half Step conservative vars
-        work_lo(1) = q_l1+1
-        work_lo(2) = q_l2+1
-        work_lo(3) = q_l3+1
-        work_hi(1) = q_h1-2
-        work_hi(2) = q_h2-2
-        work_hi(3) = q_h3-2
+        work_lo = (/ q_l1+1, q_l2+1, q_l3+1 /)
+        work_hi = (/ q_h1-2, q_h2-2, q_h3-2 /)
                                      
-        
         !for x direction   
         call half_step(work_lo, work_hi, &
                        cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
@@ -451,35 +388,20 @@ enddo
 
 
         !x-dir
-        work_lo(1) = flxx_l1+2
-        work_lo(2) = flxx_l2+2
-        work_lo(3) = flxx_l3+2
-        work_hi(1) = flxx_h1-2
-        work_hi(2) = flxx_h2-2
-        work_hi(3) = flxx_h3-2
-
+        work_lo = (/ flxx_l1+2, flxx_l2+2, flxx_l3+2 /)
+        work_hi = (/ flxx_h1-2, flxx_h2-2, flxx_h3-2 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                    flxx,flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1)
 
         !y-dir  
-        work_lo(1) = flxy_l1+2
-        work_lo(2) = flxy_l2+2
-        work_lo(3) = flxy_l3+2
-        work_hi(1) = flxy_h1-2
-        work_hi(2) = flxy_h2-2
-        work_hi(3) = flxy_h3-2
-        
+        work_lo = (/ flxy_l1+2, flxy_l2+2, flxy_l3+2 /)
+        work_hi = (/ flxy_h1-2, flxy_h2-2, flxy_h3-2 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                    flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2)
 
         !z-dir
-        work_lo(1) = flxz_l1+2
-        work_lo(2) = flxz_l2+2
-        work_lo(3) = flxz_l3+2
-        work_hi(1) = flxz_h1-2
-        work_hi(2) = flxz_h2-2
-        work_hi(3) = flxz_h3-2
-        
+        work_lo = (/ flxz_l1+2, flxz_l2+2, flxz_l3+2 /)
+        work_hi = (/ flxz_h1-2, flxz_h2-2, flxz_h3-2 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3)
         
@@ -493,36 +415,24 @@ enddo
 !Final Electric Field Update
 
 
-        work_lo(1) = ex_l1+2!+3
-        work_lo(2) = ex_l2+2!+3
-        work_lo(3) = ex_l3+2!+3
-        work_hi(1) = ex_h1-2!-3
-        work_hi(2) = ex_h2-2!-3
-        work_hi(3) = ex_h3-2!-3
+        work_lo = (/ ex_l1+2, ex_l2+2, ex_l3+2 /)
+        work_hi = (/ ex_h1-2, ex_h2-2, ex_h3-2 /)
         call electric_edge_x(work_lo, work_hi, &
                          q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                                              flxy, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                                              flxz, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ey_l1+2!+3
-        work_lo(2) = ey_l2+2!+3
-        work_lo(3) = ey_l3+2!+3
-        work_hi(1) = ey_h1-2!-3
-        work_hi(2) = ey_h2-2!-3
-        work_hi(3) = ey_h3-2!-3
+        work_lo = (/ ey_l1+2, ey_l2+2, ey_l3+2 /)
+        work_hi = (/ ey_h1-2, ey_h2-2, ey_h3-2 /)
         call electric_edge_y(work_lo, work_hi, &
                          q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                                              flxx, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                                              flxz, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
-        work_lo(1) = ez_l1+2!+3
-        work_lo(2) = ez_l2+2!+3
-        work_lo(3) = ez_l3+2!+3
-        work_hi(1) = ez_h1-2!-3
-        work_hi(2) = ez_h2-2!-3
-        work_hi(3) = ez_h3-2!-3
+        work_lo = (/ ez_l1+2, ez_l2+2, ez_l3+2 /)
+        work_hi = (/ ez_h1-2, ez_h2-2, ez_h3-2 /)
         call electric_edge_z(work_lo, work_hi, &
                          q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
