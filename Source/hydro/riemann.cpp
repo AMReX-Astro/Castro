@@ -156,6 +156,95 @@ Castro::riemann_state(const Box& bx,
                       Array4<Real const> const qaux_arr,
                       const int idir, const int compute_gammas) {
 
+
+  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  {
+
+    GpuArray<Real, NQ> qm_int;
+    for (int n = 0; n < NQ; n++) {
+      qm_int[n] = qm(i,j,k,n);
+    }
+
+    GpuArray<Real, NQ> qp_int;
+    for (int n = 0; n < NQ; n++) {
+      qp_int[n] = qp(i,j,k,n);
+    }
+
+    GpuArray<Real, NQ> q_riemann;
+
+    Real gcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
+#ifdef TRUE_SDC
+    if (luse_reconstructed_gamma1 == 1) {
+      gcl = ql(i,j,k,QGC);
+    }
+#endif
+
+    Real gcr = qaux_arr(i,j,k,QGAMC);
+#ifdef TRUE_SDC
+    if (luse_reconstructed_gamma1 == 1) {
+      gcr = qr(i,j,k,QGC);
+    }
+#endif
+
+    Real cl = qaux_arr(i-sx,j-sy,k-sz,QC);
+    Real cr = qaux_arr(i,j,k,QC);
+
+#ifdef RADIATION
+    Real laml[NGROUPS];
+    Real lamr[NGROUPS];
+
+    if (idir == 0) {
+      for (int g = 0; g < NGROUPS; g++) {
+        laml[g] = qaux_arr(i-1,j,k,QLAMS+g);
+      }
+      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
+
+      gamcgl = qaux_arr(i-1,j,k,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+    } else if (idir == 1) {
+      for (int g = 0; g < NGROUPS; g++) {
+        laml[g] = qaux_arr(i,j-1,k,QLAMS+g);
+      }
+      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
+
+      gamcgl = qaux_arr(i,j-1,k,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+    } else {
+      for (int g = 0; g < NGROUPS; g++) {
+        laml[g] = qaux_arr(i,j,k-1,QLAMS+g);
+      }
+      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
+
+      gamcgl = qaux_arr(i,j,k-1,QGAMCG);
+      gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+    }
+#endif
+
+    riemann_state_interface(qm_int, qp_int,
+                            qcl, qcr, cl, cr,
+                            q_riemann, idir);
+
+    for (int n = 0; n < NQ; n++) {
+      qint(i,j,k,n) = q_riemann[n];
+    }
+
+  });
+
+}
+
+
+void
+Castro::riemann_state_interface(GpuArray<Real, NQ>& qm, GpuArray<Real, NQ>& qp,
+                                const Real qcl, const Real qcr, const Real cl, const Real cr,
+#ifdef RADIATION
+                                GpuArray<Real, Radiation::ngroups> lambda_int,
+#endif
+                                GpuArray<Real, NQ>& qint,
+                                const int idir) {
+
   // just compute the hydrodynamic state on the interfaces
   // don't compute the fluxes
 
@@ -164,25 +253,6 @@ Castro::riemann_state(const Box& bx,
   // the caller to specify the interfaces over which to solve the
   // Riemann problems
 
-#ifdef RADIATION
-#ifndef AMREX_USE_CUDA
-  if (hybrid_riemann == 1) {
-    amrex::Error("ERROR: hybrid Riemann not supported for radiation");
-  }
-
-  if (riemann_solver > 0) {
-    amrex::Error("ERROR: only the CGF Riemann solver is supported for radiation");
-  }
-#endif
-#endif
-
-#if AMREX_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
-  if (riemann_solver > 1) {
-    amrex::Error("ERROR: HLLC not implemented for 1-d");
-  }
-#endif
-#endif
 
   if (ppm_temp_fix == 2) {
     // recompute the thermodynamics on the interface to make it
@@ -194,47 +264,43 @@ Castro::riemann_state(const Box& bx,
 
     const Real lT_guess = T_guess;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
-    {
+    eos_t eos_state;
 
-     eos_t eos_state;
+    // this is an initial guess for iterations, since we
+    // can't be certain what temp is on interfaces
+    eos_state.T = lT_guess;
 
-     // this is an initial guess for iterations, since we
-     // can't be certain what temp is on interfaces
-     eos_state.T = lT_guess;
+    // minus state
+    eos_state.rho = qm(QRHO);
+    eos_state.p = qm(QPRES);
+    eos_state.e = qm(QREINT)/qm(QRHO);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = qm(QFS+n);
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qm(QFX+n);
+    }
 
-     // minus state
-     eos_state.rho = qm(i,j,k,QRHO);
-     eos_state.p = qm(i,j,k,QPRES);
-     eos_state.e = qm(i,j,k,QREINT)/qm(i,j,k,QRHO);
-     for (int n = 0; n < NumSpec; n++) {
-       eos_state.xn[n] = qm(i,j,k,QFS+n);
-     }
-     for (int n = 0; n < NumAux; n++) {
-       eos_state.aux[n] = qm(i,j,k,QFX+n);
-     }
+    eos(eos_input_re, eos_state);
 
-     eos(eos_input_re, eos_state);
+    qm(QREINT) = eos_state.e * eos_state.rho;
+    qm(QPRES) = eos_state.p;
 
-     qm(i,j,k,QREINT) = eos_state.e * eos_state.rho;
-     qm(i,j,k,QPRES) = eos_state.p;
+    // plus state
+    eos_state.rho = qp(QRHO);
+    eos_state.p = qp(QPRES);
+    eos_state.e = qp(QREINT)/qp(QRHO);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = qp(QFS+n);
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qp(QFX+n);
+    }
 
-     // plus state
-     eos_state.rho = qp(i,j,k,QRHO);
-     eos_state.p = qp(i,j,k,QPRES);
-     eos_state.e = qp(i,j,k,QREINT)/qp(i,j,k,QRHO);
-     for (int n = 0; n < NumSpec; n++) {
-       eos_state.xn[n] = qp(i,j,k,QFS+n);
-     }
-     for (int n = 0; n < NumAux; n++) {
-       eos_state.aux[n] = qp(i,j,k,QFX+n);
-     }
+    eos(eos_input_re, eos_state);
 
-     eos(eos_input_re, eos_state);
-
-     qp(i,j,k,QREINT) = eos_state.e * eos_state.rho;
-     qp(i,j,k,QPRES) = eos_state.p;
-    });
+     qp(QREINT) = eos_state.e * eos_state.rho;
+     qp(QPRES) = eos_state.p;
   }
 
   // Solve Riemann problem
@@ -253,9 +319,9 @@ Castro::riemann_state(const Box& bx,
     // Colella & Glaz solver
 
 #ifndef RADIATION
-    riemanncg(bx,
-              qm, qp,
-              qaux_arr, qint,
+    riemanncg(qm, qp,
+              qcl, qcr, cl, cr,
+              qint,
               idir);
 #endif
 

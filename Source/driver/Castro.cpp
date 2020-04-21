@@ -371,7 +371,15 @@ Castro::read_params ()
         amrex::Error();
       }
 
+#ifdef RADIATION
+    if (hybrid_riemann == 1) {
+      amrex::Error("ERROR: hybrid Riemann not supported for radiation");
+    }
 
+    if (riemann_solver > 0) {
+      amrex::Error("ERROR: only the CGF Riemann solver is supported for radiation");
+    }
+#endif
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) do_reflux = 0;
