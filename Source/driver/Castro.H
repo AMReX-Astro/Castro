@@ -6,6 +6,8 @@
 
 // runtime parameters
 #include <castro_params.H>
+using namespace castro;
+
 #ifdef AMREX_PARTICLES
 #include <particles_params.H>
 #endif

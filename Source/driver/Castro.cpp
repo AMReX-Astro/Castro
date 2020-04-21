@@ -210,6 +210,8 @@ Castro::read_params ()
 
     ParmParse pp("castro");
 
+    using namespace castro;
+
 #include <castro_queries.H>
 
     // Get boundary conditions

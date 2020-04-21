@@ -128,13 +128,13 @@ class Param:
         # into Castro.cpp
 
         if self.dtype == "int":
-            tstr = "AMREX_GPU_MANAGED int         {}".format(self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED int         {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "bool":
-            tstr = "AMREX_GPU_MANAGED bool        {}".format(self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED bool        {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "Real":
-            tstr = "AMREX_GPU_MANAGED amrex::Real {}".format(self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED amrex::Real {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "AMREX_GPU_MANAGED std::string {}".format(self.cpp_var_name)
+            tstr = "AMREX_GPU_MANAGED std::string {}::{}".format(self.namespace, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -556,6 +556,9 @@ def parse_params(infile, meth_template, out_directory):
         cp.write("#ifndef _{}_DEFAULTS_H_\n".format(nm.upper()))
         cp.write("#define _{}_DEFAULTS_H_\n".format(nm.upper()))
 
+        cp.write("\n")
+        cp.write("namespace {} {{\n".format(nm))
+
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
@@ -565,7 +568,7 @@ def parse_params(infile, meth_template, out_directory):
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cp.write(p.get_decl_string())
                 cp.write("#endif\n")
-
+        cp.write("};\n\n")
         cp.write("#endif\n")
         cp.close()
 
