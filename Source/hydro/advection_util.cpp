@@ -476,9 +476,9 @@ Castro::apply_av(const Box& bx,
   AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
   {
 
-    if (n == UTEMP) continue;
+    if (n == UTEMP) return;
 #ifdef SHOCK_VAR
-    if (n == USHK) continue;
+    if (n == USHK) return;
 #endif
 
     Real div1;

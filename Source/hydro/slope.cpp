@@ -229,7 +229,7 @@ Castro::pslope(const Box& bx, const int idir,
     {
 
       if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
-        continue;
+        return;
       }
 
       Real p0;
