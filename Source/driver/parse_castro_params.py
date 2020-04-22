@@ -217,7 +217,7 @@ class Param:
 
         ostr = ""
         if language == "C++":
-            ostr += "pp.query(\"{}\", {});\n".format(self.name, self.cpp_var_name)
+            ostr += "pp.query(\"{}\", {}::{});\n".format(self.name, self.namespace, self.cpp_var_name)
         elif language == "F90":
             ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
         else:
@@ -235,10 +235,10 @@ class Param:
     def get_job_info_test(self):
         # this is the output in C++ in the job_info writing
 
-        ostr = 'jobInfoFile << ({} == {} ? "    " : "[*] ") << "{}.{} = " << {} << std::endl;\n'.format(
-            self.cpp_var_name, self.default_format(),
+        ostr = 'jobInfoFile << ({}::{} == {} ? "    " : "[*] ") << "{}.{} = " << {}::{} << std::endl;\n'.format(
+            self.namespace, self.cpp_var_name, self.default_format(),
             self.namespace, self.cpp_var_name,
-            self.cpp_var_name)
+            self.namespace, self.cpp_var_name)
 
         return ostr
 
@@ -553,8 +553,8 @@ def parse_params(infile, meth_template, out_directory):
             sys.exit("unable to open {}_params.H for writing".format(nm))
 
         cp.write(CWARNING)
-        cp.write("#ifndef _{}_DEFAULTS_H_\n".format(nm.upper()))
-        cp.write("#define _{}_DEFAULTS_H_\n".format(nm.upper()))
+        cp.write("#ifndef _{}_PARAMS_H_\n".format(nm.upper()))
+        cp.write("#define _{}_PARAMS_H_\n".format(nm.upper()))
 
         cp.write("\n")
         cp.write("namespace {} {{\n".format(nm))

@@ -70,9 +70,9 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
      radial_pres.resize(MAX_LEV);
 #endif
 
-     if (gravity_type == "PoissonGrav") make_mg_bc();
+     if (gravity::gravity_type == "PoissonGrav") make_mg_bc();
 #if (BL_SPACEDIM > 1)
-     if (gravity_type == "PoissonGrav") init_multipole_grav();
+     if (gravity::gravity_type == "PoissonGrav") init_multipole_grav();
 #endif
      max_rhs = 0.0;
 }
@@ -92,45 +92,45 @@ Gravity::read_params ()
 
 #include "gravity_queries.H"
 
-        if ( (gravity_type != "ConstantGrav") &&
-             (gravity_type != "PoissonGrav") &&
-             (gravity_type != "MonopoleGrav") &&
-             (gravity_type != "PrescribedGrav") )
+        if ( (gravity::gravity_type != "ConstantGrav") &&
+             (gravity::gravity_type != "PoissonGrav") &&
+             (gravity::gravity_type != "MonopoleGrav") &&
+             (gravity::gravity_type != "PrescribedGrav") )
              {
                 std::cout << "Sorry -- dont know this gravity type"  << std::endl;
                 amrex::Abort("Options are ConstantGrav, PoissonGrav, MonopoleGrav, or PrescribedGrav");
              }
 
-        if (  gravity_type == "ConstantGrav")
+        if (  gravity::gravity_type == "ConstantGrav")
         {
           if ( dgeom.IsSPHERICAL() )
               amrex::Abort("Can't use constant direction gravity with non-Cartesian coordinates");
         }
 
 #if (BL_SPACEDIM == 1)
-        if (gravity_type == "PoissonGrav")
+        if (gravity::gravity_type == "PoissonGrav")
         {
-          amrex::Abort(" gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity_type = MonopoleGrav");
+          amrex::Abort(" gravity::gravity_type = PoissonGrav doesn't work well in 1-d -- please set gravity::gravity_type = MonopoleGrav");
         }
-        else if (gravity_type == "MonopoleGrav" && !(dgeom.IsSPHERICAL()))
+        else if (gravity::gravity_type == "MonopoleGrav" && !(dgeom.IsSPHERICAL()))
         {
           amrex::Abort("Only use MonopoleGrav in 1D spherical coordinates");
         }
-        else if (gravity_type == "ConstantGrav" && dgeom.IsSPHERICAL())
+        else if (gravity::gravity_type == "ConstantGrav" && dgeom.IsSPHERICAL())
         {
           amrex::Abort("Can't use constant gravity in 1D spherical coordinates");
         }
 
 #elif (BL_SPACEDIM == 2)
-        if (gravity_type == "MonopoleGrav" && dgeom.IsCartesian() )
+        if (gravity::gravity_type == "MonopoleGrav" && dgeom.IsCartesian() )
         {
-          amrex::Abort(" gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
+          amrex::Abort(" gravity::gravity_type = MonopoleGrav doesn't make sense in 2D Cartesian coordinates");
         }
 #endif
 
-        if (pp.contains("get_g_from_phi") && !get_g_from_phi && gravity_type == "PoissonGrav")
+        if (pp.contains("get_g_from_phi") && !gravity::get_g_from_phi && gravity::gravity_type == "PoissonGrav")
           if (ParallelDescriptor::IOProcessor())
-            std::cout << "Warning: gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
+            std::cout << "Warning: gravity::gravity_type = PoissonGrav assumes get_g_from_phi is true" << std::endl;
 
         int nlevs = parent->maxLevel() + 1;
 
@@ -289,7 +289,7 @@ Gravity::install_level (int                   level,
 
     const Geometry& geom = level_data->Geom();
 
-    if (gravity_type == "PoissonGrav") {
+    if (gravity::gravity_type == "PoissonGrav") {
 
        const DistributionMapping& dm = level_data->DistributionMap();
 
@@ -301,11 +301,11 @@ Gravity::install_level (int                   level,
        for (int n=0; n<BL_SPACEDIM; ++n)
            grad_phi_curr[level][n].reset(new MultiFab(level_data->getEdgeBoxArray(n),dm,1,1));
 
-    } else if (gravity_type == "MonopoleGrav") {
+    } else if (gravity::gravity_type == "MonopoleGrav") {
 
         if (!geom.isAllPeriodic())
         {
-           int n1d = drdxfac*numpts_at_level;
+           int n1d = gravity::drdxfac*numpts_at_level;
 
            radial_grav_old[level].resize(n1d);
            radial_grav_new[level].resize(n1d);
@@ -343,27 +343,27 @@ Gravity::install_level (int                   level,
 
 std::string Gravity::get_gravity_type()
 {
-  return gravity_type;
+  return gravity::gravity_type;
 }
 
 int Gravity::get_max_solve_level()
 {
-  return max_solve_level;
+  return gravity::max_solve_level;
 }
 
 int Gravity::NoSync()
 {
-  return no_sync;
+  return gravity::no_sync;
 }
 
 int Gravity::NoComposite()
 {
-  return no_composite;
+  return gravity::no_composite;
 }
 
 int Gravity::DoCompositeCorrection()
 {
-  return do_composite_phi_correction;
+  return gravity::do_composite_phi_correction;
 }
 
 int Gravity::test_results_of_solves()
@@ -401,7 +401,7 @@ Gravity::swapTimeLevels (int level)
 {
     BL_PROFILE("Gravity::swapTimeLevels()");
     
-    if (gravity_type == "PoissonGrav") {
+    if (gravity::gravity_type == "PoissonGrav") {
         for (int n=0; n < BL_SPACEDIM; n++) {
             std::swap(grad_phi_prev[level][n], grad_phi_curr[level][n]);
             grad_phi_curr[level][n]->setVal(1.e50);
@@ -434,7 +434,7 @@ Gravity::solve_for_phi (int               level,
     // If we are below the max_solve_level, do the Poisson solve.
     // Otherwise, interpolate using a fillpatch from max_solve_level.
 
-    if (level <= max_solve_level) {
+    if (level <= gravity::max_solve_level) {
 
         Vector<MultiFab*> phi_p(1, &phi);
 
@@ -487,10 +487,10 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
     // There is no need to do a synchronization if
     // we didn't solve on the fine levels.
 
-    if (fine_level > max_solve_level) {
+    if (fine_level > gravity::max_solve_level) {
         return;
     } else {
-        fine_level = std::min(fine_level, max_solve_level);
+        fine_level = amrex::min(fine_level, gravity::max_solve_level);
     }
 
     BL_ASSERT(parent->finestLevel()>crse_level);
@@ -556,7 +556,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
       if ( direct_sum_bcs )
           fill_direct_sum_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       else {
-          if (lnum >= 0) {
+          if (gravity::lnum >= 0) {
               fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
           } else {
               int fill_interior = 0;
@@ -564,7 +564,7 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
           }
       }
 #elif (BL_SPACEDIM == 2)
-      if (lnum >= 0) {
+      if (gravity::lnum >= 0) {
           fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       } else {
           int fill_interior = 0;
@@ -765,7 +765,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
         time = LevelData[crse_level]->get_state_data(PhiGrav_Type).prevTime();
     }
 
-    int fine_level = std::min(finest_level_in, max_solve_level);
+    int fine_level = amrex::min(finest_level_in, gravity::max_solve_level);
 
     if (fine_level >= crse_level) {
 
@@ -803,7 +803,7 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
     // fills from the coarse level just below it, we need to fill from the
     // lowest level upwards using successive interpolations.
 
-    for (int amr_lev = max_solve_level+1; amr_lev <= finest_level_in; amr_lev++) {
+    for (int amr_lev = gravity::max_solve_level+1; amr_lev <= finest_level_in; amr_lev++) {
 
         // Interpolate the potential.
 
@@ -859,7 +859,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill data from the level below if we're not doing a solve on this level.
 
-    if (level > max_solve_level) {
+    if (level > gravity::max_solve_level) {
 
         LevelData[level]->FillCoarsePatch(grav_vector,0,time,Gravity_Type,0,3,ng);
 
@@ -875,24 +875,24 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab grav(grids[level], dmap[level], BL_SPACEDIM, ng);
     grav.setVal(0.0,ng);
 
-    if (gravity_type == "ConstantGrav") {
+    if (gravity::gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction and zero in all others.
 
-       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
+       grav.setVal(gravity::const_grav,BL_SPACEDIM-1,1,ng);
 
-    } else if (gravity_type == "MonopoleGrav") {
+    } else if (gravity::gravity_type == "MonopoleGrav") {
 
        const Real prev_time = LevelData[level]->get_state_data(State_Type).prevTime();
        make_radial_gravity(level,prev_time,radial_grav_old[level]);
        interpolate_monopole_grav(level,radial_grav_old[level],grav);
 
-    } else if (gravity_type == "PrescribedGrav") {
+    } else if (gravity::gravity_type == "PrescribedGrav") {
 
         MultiFab& phi = LevelData[level]->get_old_data(PhiGrav_Type);
       make_prescribed_grav(level,time,grav,phi);
 
-    } else if (gravity_type == "PoissonGrav") {
+    } else if (gravity::gravity_type == "PoissonGrav") {
 
        const Geometry& geom = parent->Geom(level);
        amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_prev[level]), geom);
@@ -913,7 +913,7 @@ Gravity::get_old_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 
 #if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav") {
+    if (gravity::gravity_type != "ConstantGrav") {
         // Fill ghost cells
         AmrLevel* amrlev = &parent->getLevel(level) ;
         AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
@@ -937,7 +937,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 
     // Fill data from the level below if we're not doing a solve on this level.
 
-    if (level > max_solve_level) {
+    if (level > gravity::max_solve_level) {
 
         LevelData[level]->FillCoarsePatch(grav_vector,0,time,Gravity_Type,0,3,ng);
 
@@ -953,24 +953,24 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     MultiFab grav(grids[level],dmap[level],BL_SPACEDIM,ng);
     grav.setVal(0.0,ng);
 
-    if (gravity_type == "ConstantGrav") {
+    if (gravity::gravity_type == "ConstantGrav") {
 
        // Set to constant value in the BL_SPACEDIM direction
-       grav.setVal(const_grav,BL_SPACEDIM-1,1,ng);
+       grav.setVal(gravity::const_grav,BL_SPACEDIM-1,1,ng);
 
-    } else if (gravity_type == "MonopoleGrav") {
+    } else if (gravity::gravity_type == "MonopoleGrav") {
 
         // We always fill radial_grav_new (at every level)
         const Real cur_time = LevelData[level]->get_state_data(State_Type).curTime();
         make_radial_gravity(level,cur_time,radial_grav_new[level]);
         interpolate_monopole_grav(level,radial_grav_new[level],grav);
 
-    } else if (gravity_type == "PrescribedGrav") {
+    } else if (gravity::gravity_type == "PrescribedGrav") {
 
     MultiFab& phi = LevelData[level]->get_new_data(PhiGrav_Type);
     make_prescribed_grav(level,time,grav,phi);
 
-    } else if (gravity_type == "PoissonGrav") {
+    } else if (gravity::gravity_type == "PoissonGrav") {
 
         const Geometry& geom = parent->Geom(level);
         amrex::average_face_to_cellcenter(grav, amrex::GetVecOfConstPtrs(grad_phi_curr[level]), geom);
@@ -991,7 +991,7 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
     }
 
 #if (BL_SPACEDIM > 1)
-    if (gravity_type != "ConstantGrav" && ng>0) {
+    if (gravity::gravity_type != "ConstantGrav" && ng>0) {
         // Fill ghost cells
         AmrLevel* amrlev = &parent->getLevel(level) ;
         AmrLevel::FillPatch(*amrlev,grav_vector,ng,time,Gravity_Type,0,BL_SPACEDIM);
@@ -1340,7 +1340,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx = geom.CellSize();
-    const Real dr        = dx[0] / double(drdxfac);
+    const Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1364,7 +1364,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     const Real strt = ParallelDescriptor::second();
 
-    int n1d = drdxfac*numpts_at_level;
+    int n1d = gravity::drdxfac*numpts_at_level;
 
     RealVector radial_mass(n1d,0.0);
     RealVector radial_vol(n1d,0.0);
@@ -1373,7 +1373,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx   = geom.CellSize();
-    Real dr = dx[0] / double(drdxfac);
+    Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
     // Define total mass in each shell
     // Note that RHS = density (we have not yet multiplied by G)
@@ -1408,7 +1408,7 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
                                    radial_vol.dataPtr(),
 #endif
                                    AMREX_REAL_ANYD(geom.ProbLo()),
-                                   n1d, drdxfac, level);
+                                   n1d, gravity::drdxfac, level);
         }
 
 #ifdef _OPENMP
@@ -1498,8 +1498,8 @@ Gravity::init_multipole_grav()
       hi_bc[dir] = -1;
     }
 
-    if (lnum >= 0) {
-        init_multipole_gravity(&lnum, lo_bc, hi_bc);
+    if (gravity::lnum >= 0) {
+        init_multipole_gravity(&gravity::lnum, lo_bc, hi_bc);
     }
 }
 
@@ -1512,7 +1512,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
     BL_ASSERT(crse_level == 0);
 
-    BL_ASSERT(lnum >= 0);
+    BL_ASSERT(gravity::lnum >= 0);
 
     const Real strt = ParallelDescriptor::second();
 
@@ -1531,9 +1531,9 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     // domain in 2D, since we can only have one
     // radial index for calculating the multipole moments.
 
-    Box boxq0( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, 0,    npts-1)) );
-    Box boxqC( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, lnum, npts-1)) );
-    Box boxqS( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(lnum, lnum, npts-1)) );
+    Box boxq0( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, 0,    npts-1)) );
+    Box boxqC( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
+    Box boxqS( IntVect(D_DECL(0, 0, 0)), IntVect(D_DECL(gravity::lnum, gravity::lnum, npts-1)) );
 
     FArrayBox qL0(boxq0);
     FArrayBox qLC(boxqC);
@@ -1646,7 +1646,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
                                              AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
                                              AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(source[mfi]),
                                              BL_TO_FORTRAN_ANYD((*volume[lev])[mfi]),
-                                             lnum,
+                                             gravity::lnum,
 #ifdef _OPENMP
                                              priv_qL0[tid]->dataPtr(),
                                              priv_qLC[tid]->dataPtr(),priv_qLS[tid]->dataPtr(),
@@ -1780,7 +1780,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         ca_put_multipole_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                              AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
                              AMREX_REAL_ANYD(dx), BL_TO_FORTRAN_ANYD(phi[mfi]),
-                             lnum,
+                             gravity::lnum,
                              qL0.dataPtr(), qLC.dataPtr(), qLS.dataPtr(),
                              qU0.dataPtr(), qUC.dataPtr(), qUS.dataPtr(),
                              npts, boundary_only);
@@ -2308,7 +2308,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
         const Geometry& geom = parent->Geom(lev);
         const Real* dx   = geom.CellSize();
-        Real dr = dx[0] / double(drdxfac);
+        Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
 
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
@@ -2347,7 +2347,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                                        radial_vol[lev].dataPtr(),
 #endif
                                        AMREX_REAL_ANYD(geom.ProbLo()),
-                                       n1d, drdxfac, lev);
+                                       n1d, gravity::drdxfac, lev);
 
 #ifdef GR_GRAV
                 ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
@@ -2357,7 +2357,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #else
                                    radial_pres[lev].dataPtr(),
 #endif
-                                   geom.ProbLo(),&n1d,&drdxfac,&lev);
+                                   geom.ProbLo(),&n1d,&gravity::drdxfac,&lev);
 #endif
             }
 
@@ -2428,7 +2428,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 
     const Geometry& geom = parent->Geom(level);
     const Real* dx = geom.CellSize();
-    Real dr        = dx[0] / double(drdxfac);
+    Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
 
     // ***************************************************************** //
     // Compute the average density to use at the radius above
@@ -2648,7 +2648,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         if ( direct_sum_bcs ) {
             fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
-            if (lnum >= 0) {
+            if (gravity::lnum >= 0) {
                 fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
             } else {
                 int fill_interior = 0;
@@ -2656,7 +2656,7 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
             }
         }
 #elif (BL_SPACEDIM == 2)
-        if (lnum >= 0) {
+        if (gravity::lnum >= 0) {
             fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
             int fill_interior = 0;
@@ -2759,8 +2759,8 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     }
 
     LPInfo info;
-    info.setAgglomeration(mlmg_agglomeration);
-    info.setConsolidation(mlmg_consolidation);
+    info.setAgglomeration(gravity::mlmg_agglomeration);
+    info.setConsolidation(gravity::mlmg_consolidation);
 
     MLPoisson mlpoisson(gmv, bav, dmv, info);
 
@@ -2779,7 +2779,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     MLMG mlmg(mlpoisson);
     mlmg.setVerbose(verbose - 1); // With normal verbosity we don't want MLMG information
     if (crse_level == 0) {
-        mlmg.setMaxFmgIter(mlmg_max_fmg_iter);
+        mlmg.setMaxFmgIter(gravity::mlmg_max_fmg_iter);
     } else {
         mlmg.setMaxFmgIter(0); // Vcycle
     }
@@ -2791,7 +2791,7 @@ Gravity::actual_solve_with_mlmg (int crse_level, int fine_level,
     {
         if (!gmv[0].isAllPeriodic()) mlmg.setAlwaysUseBNorm(true);
 
-        mlmg.setNSolve(mlmg_nsolve);
+        mlmg.setNSolve(gravity::mlmg_nsolve);
         final_resnorm = mlmg.solve(phi, rhs, rel_eps, abs_eps);
 
         mlmg.getGradSolution(grad_phi);

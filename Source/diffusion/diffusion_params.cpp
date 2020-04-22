@@ -2,4 +2,6 @@
 
 #include <castro_limits.H>
 
-#include "diffusion_defaults.H"
+#include <diffusion_params.H>
+
+#include <diffusion_defaults.H>

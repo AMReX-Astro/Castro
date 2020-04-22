@@ -534,7 +534,7 @@ public:
 
   inline amrex::Real
   get_const_grav() {
-    return const_grav;
+    return gravity::const_grav;
   }
 
 
