@@ -218,18 +218,20 @@ Castro::pslope(const Box& bx, const int idir,
   if (plm_iorder == 1) {
 
     // first order -- piecewise constant slopes
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
      dq(i,j,k,QPRES) = 0.0_rt;
     });
 
   } else {
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
 
       if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
-        continue;
+        return;
       }
 
       Real p0;
