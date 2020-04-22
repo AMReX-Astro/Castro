@@ -141,47 +141,47 @@ subroutine ca_advance_mhd(time, lo, hi, &
   call bl_allocate(  csml, lo-NHYP, hi+NHYP      )
   call bl_allocate(  srcQ, lo-1, hi+1, NQSRC)
 
-  flxx_l1 = lo(1)-3
+  flxx_l1 = lo(1)-2
   flxx_l2 = lo(2)-3
   flxx_l3 = lo(3)-3
-  flxx_h1 = hi(1)+4
+  flxx_h1 = hi(1)+3
   flxx_h2 = hi(2)+3
   flxx_h3 = hi(3)+3
 
   flxy_l1 = lo(1)-3
-  flxy_l2 = lo(2)-3
+  flxy_l2 = lo(2)-2
   flxy_l3 = lo(3)-3
   flxy_h1 = hi(1)+3
-  flxy_h2 = hi(2)+4
+  flxy_h2 = hi(2)+3
   flxy_h3 = hi(3)+3
 
   flxz_l1 = lo(1)-3
   flxz_l2 = lo(2)-3
-  flxz_l3 = lo(3)-3
+  flxz_l3 = lo(3)-2
   flxz_h1 = hi(1)+3
   flxz_h2 = hi(2)+3
-  flxz_h3 = hi(3)+4
+  flxz_h3 = hi(3)+3
 
-  extemp_l1 = lo(1)-3
-  extemp_l2 = lo(2)-3
-  extemp_l3 = lo(3)-3
-  extemp_h1 = hi(1)+3
-  extemp_h2 = hi(2)+4
-  extemp_h3 = hi(3)+4
+  extemp_l1 = lo(1)-2
+  extemp_l2 = lo(2)-2
+  extemp_l3 = lo(3)-2
+  extemp_h1 = hi(1)+2
+  extemp_h2 = hi(2)+3
+  extemp_h3 = hi(3)+3
 
-  eytemp_l1 = lo(1)-3
-  eytemp_l2 = lo(2)-3
-  eytemp_l3 = lo(3)-3
-  eytemp_h1 = hi(1)+4
-  eytemp_h2 = hi(2)+3
-  eytemp_h3 = hi(3)+4
+  eytemp_l1 = lo(1)-2
+  eytemp_l2 = lo(2)-2
+  eytemp_l3 = lo(3)-2
+  eytemp_h1 = hi(1)+3
+  eytemp_h2 = hi(2)+2
+  eytemp_h3 = hi(3)+3
 
-  eztemp_l1 = lo(1)-3
-  eztemp_l2 = lo(2)-3
-  eztemp_l3 = lo(3)-3
-  eztemp_h1 = hi(1)+4
-  eztemp_h2 = hi(2)+4
-  eztemp_h3 = hi(3)+3
+  eztemp_l1 = lo(1)-2
+  eztemp_l2 = lo(2)-2
+  eztemp_l3 = lo(3)-2
+  eztemp_h1 = hi(1)+3
+  eztemp_h2 = hi(2)+3
+  eztemp_h3 = hi(3)+2
 
   allocate(flxx(flxx_l1:flxx_h1,flxx_l2:flxx_h2,flxx_l3:flxx_h3,NVAR+3))
   allocate(flxy(flxy_l1:flxy_h1,flxy_l2:flxy_h2,flxy_l3:flxy_h3,NVAR+3))
