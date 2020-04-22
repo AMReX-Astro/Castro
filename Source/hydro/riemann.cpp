@@ -231,7 +231,7 @@ Castro::riemann_state(const Box& bx,
     Real cr = qaux_arr(i,j,k,QC);
 
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (castro::use_reconstructed_gamma1 == 1) {
       gcl = qm(i,j,k,QGC);
       gcr = qp(i,j,k,QGC);
     }
