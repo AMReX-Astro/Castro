@@ -345,22 +345,24 @@
                        amrex::Array4<amrex::Real const> const qaux,
                        const int idir, const int compute_gammas);
 
-    void riemanncg(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const ql,
-                   amrex::Array4<amrex::Real> const qr,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real> const qint,
-                   const int idir);
+    void
+    riemanncg(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
+              const amrex::Real gcl, const amrex::Real gcr,
+              const amrex::Real cl, const amrex::Real cr,
+              amrex::GpuArray<amrex::Real, NQ>& qint,
+              const amrex::Real bnd_fac, const int idir);
 
-    void riemannus(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const ql,
-                   amrex::Array4<amrex::Real> const qr,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real> const qint,
+    void
+    riemannus(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
+              const amrex::Real gamcl, const amrex::Real gamcr,
+              const amrex::Real cl, const amrex::Real cr,
 #ifdef RADIATION
-                   amrex::Array4<amrex::Real> const lambda_int,
+              const amrex::Real gamcgl, const amrex::Real gamcgr,
+              amrex::GpuArray<amrex::Real, Radiation::ngroups> laml,
+              amrex::GpuArray<amrex::Real, Radiation::ngroups> lamr,
 #endif
-                   const int idir, const int compute_gammas);
+              amrex::GpuArray<amrex::Real, NQ>& qint,
+              const amrex::Real bnd_fac, const int idir);
 
 
     void HLLC(const amrex::Box& bx,
@@ -386,6 +388,17 @@
           const amrex::Real gmin, const amrex::Real gmax, const amrex::Real csq,
           const amrex::Real pstar, amrex::Real& wsq);
 
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    void
+    riemann_state_interface(amrex::GpuArray<amrex::Real, NQ>& qm, amrex::GpuArray<amrex::Real, NQ>& qp,
+                            const amrex::Real qcl, const amrex::Real qcr,
+                            const amrex::Real cl, const amrex::Real cr,
+#ifdef RADIATION
+                            amrex::GpuArray<amrex::Real, Radiation::ngroups> lambda_int,
+#endif
+                            amrex::GpuArray<amrex::Real, NQ>& qint,
+                            const amrex::Real bnd_fac, const int idir);
+
     AMREX_GPU_HOST_DEVICE
     void
     pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
@@ -400,16 +413,12 @@
 
     AMREX_GPU_HOST_DEVICE
     void
-    cons_state(const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
+    cons_state(const amrex::Real* q, amrex::Real* U);
 
     AMREX_GPU_HOST_DEVICE
     void
     HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
-               const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
+               const amrex::Real* q, amrex::Real* U);
 
     void
     compute_flux_q(const amrex::Box& bx,
@@ -433,7 +442,6 @@
     void
     compute_flux(const int idir, const amrex::Real bnd_fac, const int coord,
                  const amrex::Real* U, const amrex::Real p,
-                 const GpuArray<int, npassive>& upass_map_p,
                  amrex::Real* F);
 
     AMREX_GPU_HOST_DEVICE

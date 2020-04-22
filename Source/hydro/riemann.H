@@ -1,11 +1,109 @@
 #ifndef _riemann_H_
 #define _riemann_H_
 
+#include <castro_params.H>
+#include <Castro_util.H>
+
 using namespace amrex;
 
 const Real smlp1 = 1.e-10_rt;
 const Real small = 1.e-8_rt;
 const Real smallu = 1.e-12_rt;
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+Castro::riemann_state_interface(GpuArray<Real, NQ>& qm, GpuArray<Real, NQ>& qp,
+                                const Real gcl, const Real gcr, const Real cl, const Real cr,
+#ifdef RADIATION
+                                GpuArray<Real, Radiation::ngroups> lambda_int,
+#endif
+                                GpuArray<Real, NQ>& qint,
+                                const Real bnd_fac, const int idir) {
+
+  // just compute the hydrodynamic state on the interfaces
+  // don't compute the fluxes
+
+  // note: bx is not necessarily the limits of the valid (no ghost
+  // cells) domain, but could be hi+1 in some dimensions.  We rely on
+  // the caller to specify the interfaces over which to solve the
+  // Riemann problems
+
+
+  if (ppm_temp_fix == 2) {
+    // recompute the thermodynamics on the interface to make it
+    // all consistent
+
+    // we want to take the edge states of rho, e, and X, and get
+    // new values for p on the edges that are
+    // thermodynamically consistent.
+
+    eos_t eos_state;
+
+    // this is an initial guess for iterations, since we
+    // can't be certain what temp is on interfaces
+    eos_state.T = castro::T_guess;
+
+    // minus state
+    eos_state.rho = qm[QRHO];
+    eos_state.p = qm[QPRES];
+    eos_state.e = qm[QREINT]/qm[QRHO];
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = qm[QFS+n];
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qm[QFX+n];
+    }
+
+    eos(eos_input_re, eos_state);
+
+    qm[QREINT] = eos_state.e * eos_state.rho;
+    qm[QPRES] = eos_state.p;
+
+    // plus state
+    eos_state.rho = qp[QRHO];
+    eos_state.p = qp[QPRES];
+    eos_state.e = qp[QREINT]/qp[QRHO];
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = qp[QFS+n];
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qp[QFX+n];
+    }
+
+    eos(eos_input_re, eos_state);
+
+    qp[QREINT] = eos_state.e * eos_state.rho;
+    qp[QPRES] = eos_state.p;
+  }
+
+  // Solve Riemann problem
+  if (riemann_solver == 0) {
+    // Colella, Glaz, & Ferguson solver
+
+    riemannus(qm, qp,
+              gcl, gcr, cl, cr,
+#ifdef RADIATION
+              lambda_int,
+#endif
+              qint,
+              bnd_fac, idir);
+
+  } else if (riemann_solver == 1) {
+    // Colella & Glaz solver
+
+#ifndef RADIATION
+    riemanncg(qm, qp,
+              gcl, gcr, cl, cr,
+              qint,
+              bnd_fac, idir);
+#endif
+
+#ifndef AMREX_USE_CUDA
+  } else {
+    amrex::Error("ERROR: invalid value of riemann_solver");
+#endif
+  }
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void

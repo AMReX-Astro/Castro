@@ -19,7 +19,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
                   const Real gcl, const Real gcr,
                   const Real cl, const Real cr,
                   GpuArray<Real, NQ>& qint,
-                  const int idir) {
+                  const Real bnd_fac, const int idir) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
   // (1985)
@@ -31,95 +31,37 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   GpuArray<Real, HISTORY_SIZE> pstar_hist;
   GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
 
-  if (cg_maxiter > HISTORY_SIZE) {
+  if (castro::cg_maxiter > HISTORY_SIZE) {
     amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
   }
 #endif
 
 #ifndef AMREX_USE_CUDA
-  if (cg_blend == 2 && cg_maxiter < 5) {
+  if (castro::cg_blend == 2 && castro::cg_maxiter < 5) {
     amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
   }
 #endif
 
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
   int iu, iv1, iv2;
-  int sx, sy, sz;
 
   if (idir == 0) {
     iu = QU;
     iv1 = QV;
     iv2 = QW;
-    sx = 1;
-    sy = 0;
-    sz = 0;
 
   } else if (idir == 1) {
     iu = QV;
     iv1 = QU;
     iv2 = QW;
-    sx = 0;
-    sy = 1;
-    sz = 0;
 
   } else {
     iu = QW;
     iv1 = QU;
     iv2 = QV;
-    sx = 0;
-    sy = 0;
-    sz = 1;
   }
-
-
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  // do we want to force the flux to zero at the boundary?
-  const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                               lo_bc[idir] == SlipWall ||
-                               lo_bc[idir] == NoSlipWall);
-  const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                               hi_bc[idir] == SlipWall ||
-                               hi_bc[idir] == NoSlipWall);
-
-  const Real lsmall_dens = small_dens;
-  const Real lsmall_pres = small_pres;
-  const Real lsmall_temp = small_temp;
-  const Real lsmall = small;
-
-  const int lcg_blend = cg_blend;
-  const int lcg_maxiter = cg_maxiter;
-  const Real lcg_tol = cg_tol;
-
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
-  // deal with hard walls
-  Real bnd_fac = 1.0_rt;
-
-  if (idir == 0) {
-    if ((i == domlo[0] && special_bnd_lo) ||
-        (i == domhi[0]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-
-  } else if (idir == 1) {
-    if ((j == domlo[1] && special_bnd_lo) ||
-        (j == domhi[1]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-  } else {
-    if ((k == domlo[2] && special_bnd_lo) ||
-        (k == domhi[2]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-  }
-
 
   // left state
-  Real rl = amrex::max(ql(QRHO), lsmall_dens);
+  Real rl = amrex::max(ql(QRHO), castro::small_dens);
 
   Real pl = ql(QPRES);
   Real rel = ql(QREINT);
@@ -133,13 +75,13 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   // sometime we come in here with negative energy or pressure
   // note: reset both in either case, to remain thermo
   // consistent
-  if (rel <= 0.0_rt || pl < lsmall_pres) {
+  if (rel <= 0.0_rt || pl < castro::small_pres) {
 #ifndef AMREX_USE_CUDA
-    std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << rel << " " << pl << " " << lsmall_pres << std::endl;
+    std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << rel << " " << pl << " " << castro::small_pres << std::endl;
 #endif
 
     eos_t eos_state;
-    eos_state.T = lsmall_temp;
+    eos_state.T = castro::small_temp;
     eos_state.rho = rl;
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = ql(QFS+n);
@@ -156,7 +98,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
   // right state
-  Real rr = amrex::max(qr(QRHO), lsmall_dens);
+  Real rr = amrex::max(qr(QRHO), castro::small_dens);
 
   Real pr = qr(QPRES);
   Real rer = qr(QREINT);
@@ -166,13 +108,13 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real v1r = qr(iv1);
   Real v2r = qr(iv2);
 
-  if (rer <= 0.0_rt || pr < lsmall_pres) {
+  if (rer <= 0.0_rt || pr < castro::small_pres) {
 #ifndef AMREX_USE_CUDA
-    std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << rer << " " << pr << " " << lsmall_pres << std::endl;
+    std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << rer << " " << pr << " " << castro::small_pres << std::endl;
 #endif
     eos_t eos_state;
 
-    eos_state.T = lsmall_temp;
+    eos_state.T = castro::small_temp;
     eos_state.rho = rr;
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qr(QFS+n);
@@ -196,7 +138,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real clsql = gcl*pl*rl;
   Real clsqr = gcr*pr*rr;
 
-  Real csmall = amrex::max(lsmall, amrex::max(lsmall * cr, lsmall * cl));
+  Real csmall = amrex::max(castro::small, amrex::max(castro::small * cr, castro::small * cl));
 
   Real cavg = 0.5_rt*(cl + cr);
 
@@ -218,7 +160,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real gdot = 2.0_rt*(1.0_rt - game_bar/gamc_bar)*(game_bar - 1.0_rt);
 
-  Real wsmall = lsmall_dens*csmall;
+  Real wsmall = castro::small_dens*csmall;
   Real wl = amrex::max(wsmall, std::sqrt(std::abs(clsql)));
   Real wr = amrex::max(wsmall, std::sqrt(std::abs(clsqr)));
 
@@ -226,7 +168,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   // approximation
   //pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
   Real pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr);
-  pstar = amrex::max(pstar, lsmall_pres);
+  pstar = amrex::max(pstar, castro::small_pres);
 
   // get the shock speeds -- this computes W_s from CG Eq. 34
   Real gamstar = 0.0;
@@ -254,13 +196,13 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   // revise our pstar guess
   // pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
   pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr);
-  pstar = amrex::max(pstar, lsmall_pres);
+  pstar = amrex::max(pstar, castro::small_pres);
 
   // secant iteration
   bool converged = false;
 
   int iter = 0;
-  while ((iter < lcg_maxiter && !converged) || iter < 2) {
+  while ((iter < castro::cg_maxiter && !converged) || iter < 2) {
 
     wsqge(pl, taul, gamel, gdot, gamstar,
           gmin, gmax, clsql, pstar, wlsq);
@@ -296,13 +238,13 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     }
 
     // the new pstar is found via CG Eq. 18
-    Real denom = dpditer/amrex::max(zp+zm, lsmall*cavg);
+    Real denom = dpditer/amrex::max(zp+zm, castro::small*cavg);
     pstar_old = pstar;
     pstar = pstar - denom*(ustar_r - ustar_l);
-    pstar = amrex::max(pstar, lsmall_pres);
+    pstar = amrex::max(pstar, castro::small_pres);
 
     Real err = std::abs(pstar - pstar_old);
-    if (err < lcg_tol*pstar) {
+    if (err < castro::cg_tol*pstar) {
       converged = true;
     }
 
@@ -321,11 +263,11 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   if (!converged) {
 
-    if (lcg_blend == 0) {
+    if (castro::cg_blend == 0) {
 
 #ifndef AMREX_USE_CUDA
       std::cout <<  "pstar history: " << std::endl;
-      for (int iter_l=0; iter_l < lcg_maxiter; iter_l++) {
+      for (int iter_l=0; iter_l < castro::cg_maxiter; iter_l++) {
         std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
       }
 
@@ -337,11 +279,11 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
       amrex::Error("ERROR: non-convergence in the Riemann solver");
 #endif
 
-    } else if (lcg_blend == 1) {
+    } else if (castro::cg_blend == 1) {
 
       pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr);
 
-    } else if (lcg_blend == 2) {
+    } else if (castro::cg_blend == 2) {
 
       // we don't store the history if we are in CUDA, so
       // we can't do this
@@ -349,29 +291,29 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
       // first try to find a reasonable bounds
       Real pstarl = 1.e200;
       Real pstaru = -1.e200;
-      for (int n = lcg_maxiter-6; n < lcg_maxiter; n++) {
+      for (int n = castro::cg_maxiter-6; n < castro::cg_maxiter; n++) {
         pstarl = amrex::min(pstarl, pstar_hist[n]);
         pstaru = amrex::max(pstaru, pstar_hist[n]);
       }
 
-      pstarl = amrex::max(pstarl, lsmall_pres);
-      pstaru = amrex::max(pstaru, lsmall_pres);
+      pstarl = amrex::max(pstarl, castro::small_pres);
+      pstaru = amrex::max(pstaru, castro::small_pres);
 
       pstar_bisection(pstarl, pstaru,
                       ul, pl, taul, gamel, clsql,
                       ur, pr, taur, gamer, clsqr,
                       gdot, gmin, gmax,
-                      lcg_maxiter, lcg_tol, 
+                      castro::cg_maxiter, castro::cg_tol, 
                       pstar, gamstar, converged, pstar_hist_extra);
 
       if (!converged) {
 
         std::cout << "pstar history: " << std::endl;
-        for (int iter_l = 0; iter_l < lcg_maxiter; iter_l++) {
+        for (int iter_l = 0; iter_l < castro::cg_maxiter; iter_l++) {
           std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
         }
         std::cout << "pstar extra history: " << std::endl;
-        for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*lcg_maxiter; iter_l++) {
+        for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*castro::cg_maxiter; iter_l++) {
           std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
         }
 
@@ -442,7 +384,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
   // use tau = 1/rho as the independent variable here
-  ro = amrex::max(lsmall_dens, 1.0_rt/tauo);
+  ro = amrex::max(castro::small_dens, 1.0_rt/tauo);
   tauo = 1.0_rt/ro;
 
   Real co = std::sqrt(std::abs(gamco*po*tauo));
@@ -465,7 +407,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   //rstar=max(ONE-ro*dpjmp/wosq, (gameo-ONE)/(gameo+ONE))
   Real rstar = 1.0_rt - ro*dpjmp/wosq;
   rstar = ro/rstar;
-  rstar = amrex::max(lsmall_dens, rstar);
+  rstar = amrex::max(castro::small_dens, rstar);
 
   Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
   cstar = amrex::max(cstar, csmall);
@@ -481,7 +423,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     spout = ushock;
   }
 
-  Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), lsmall*cavg));
+  Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), castro::small*cavg));
 
   // the transverse velocity states only depend on the
   // direction that the contact moves
@@ -519,7 +461,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     game_int = gamstar;
   }
 
-  qint(QPRES) = amrex::max(qint(QPRES), lsmall_pres);
+  qint(QPRES) = amrex::max(qint(QPRES), castro::small_pres);
 
   qint(iu) = qint(iu) * bnd_fac;
 
@@ -553,7 +495,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
                   GpuArray<Real, Radiation::ngroups> lamr,
 #endif
                   GpuArray<Real, NQ>& qint,
-                  const int idir) {
+                  const Real bnd_fac, const int idir) {
 
   // Colella, Glaz, and Ferguson solver
   //
@@ -563,9 +505,6 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   // set integer pointers for the normal and transverse velocity and
   // momentum
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
 
   int iu, iv1, iv2;
 
@@ -586,49 +525,9 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   }
 
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  // do we want to force the flux to zero at the boundary?
-  const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                               lo_bc[idir] == SlipWall ||
-                               lo_bc[idir] == NoSlipWall);
-  const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                               hi_bc[idir] == SlipWall ||
-                               hi_bc[idir] == NoSlipWall);
-
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-  const int luse_eos_in_riemann = use_eos_in_riemann;
-
-  const Real lsmall = small;
-  const Real lsmall_dens = small_dens;
-  const Real lsmall_pres = small_pres;
-  const Real lT_guess = T_guess;
-
-  // deal with hard walls
-  Real bnd_fac = 1.0_rt;
-
-  if (idir == 0) {
-    if ((i == domlo[0] && special_bnd_lo) ||
-        (i == domhi[0]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-
-  } else if (idir == 1) {
-    if ((j == domlo[1] && special_bnd_lo) ||
-        (j == domhi[1]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-  } else {
-    if ((k == domlo[2] && special_bnd_lo) ||
-        (k == domhi[2]+1 && special_bnd_hi)) {
-      bnd_fac = 0.0_rt;
-    }
-  }
-
   // set the left and right states for this interface
 
-  Real rl = amrex::max(ql(QRHO), lsmall_dens);
+  Real rl = amrex::max(ql(QRHO), castro::small_dens);
 
   // pick left velocities based on direction
   Real ul  = ql(iu);
@@ -645,11 +544,11 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real pl_g = ql(QPRES);
   Real rel_g = ql(QREINT);
 #else
-  Real pl = amrex::max(ql(QPRES), lsmall_pres);
+  Real pl = amrex::max(ql(QPRES), castro::small_pres);
   Real rel = ql(QREINT);
 #endif
 
-  Real rr = amrex::max(qr(QRHO), lsmall_dens);
+  Real rr = amrex::max(qr(QRHO), castro::small_dens);
 
   // pick right velocities based on direction
   Real ur  = qr(iu);
@@ -666,7 +565,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real pr_g = qr(QPRES);
   Real rer_g = qr(QREINT);
 #else
-  Real pr = amrex::max(qr(QPRES), lsmall_pres);
+  Real pr = amrex::max(qr(QPRES), castro::small_pres);
   Real rer = qr(QREINT);
 #endif
 
@@ -679,47 +578,10 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real gamcgr;
 #endif
 
-  csmall = amrex::max(lsmall, lsmall * amrex::max(cl, cr));
+  csmall = amrex::max(castro::small, castro::small * amrex::max(cl, cr));
   cavg = 0.5_rt*(cl + cr);
 
-#ifndef RADIATION
-  if (compute_gammas == 1) {
-
-    // we come in with a good p, rho, and X on the interfaces
-    // -- use this to find the gamma used in the sound speed
-    eos_t eos_state;
-    eos_state.p = pl;
-    eos_state.rho = rl;
-    for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = ql(QFS+n);
-    }
-    eos_state.T = lT_guess; // initial guess
-    for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = ql(QFX+n);
-    }
-
-    eos(eos_input_rp, eos_state);
-
-    gamcl = eos_state.gam1;
-
-    eos_state.p = pr;
-    eos_state.rho = rr;
-    for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = qr(QFS+n);
-    }
-    eos_state.T = lT_guess; // initial guess
-    for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = qr(QFX+n);
-    }
-
-    eos(eos_input_rp, eos_state);
-
-    gamcr = eos_state.gam1;
-
-  }
-#endif
-
-  Real wsmall = lsmall_dens*csmall;
+  Real wsmall = castro::small_dens*csmall;
 
   // this is Castro I: Eq. 33
   Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
@@ -729,7 +591,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
   Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
 
-  pstar = amrex::max(pstar, lsmall_pres);
+  pstar = amrex::max(pstar, castro::small_pres);
 
   // for symmetry preservation, if ustar is really small, then we
   // set it to zero
@@ -779,7 +641,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real gamco_g = fp*gamcgl + fm*gamcgr;
 #endif
 
-  ro = amrex::max(lsmall_dens, ro);
+  ro = amrex::max(castro::small_dens, ro);
 
   Real roinv = 1.0_rt/ro;
 
@@ -796,7 +658,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real drho = (pstar - po)*co2inv;
   Real rstar = ro + drho;
-  rstar = amrex::max(lsmall_dens, rstar);
+  rstar = amrex::max(castro::small_dens, rstar);
 
 #ifdef RADIATION
   Real estar_g = reo_g + drho*(reo_g + po_g)*roinv;
@@ -805,7 +667,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   co_g = amrex::max(csmall, co_g);
 
   Real pstar_g = po_g + drho*co_g*co_g;
-  pstar_g = amrex::max(pstar_g, lsmall_pres);
+  pstar_g = amrex::max(pstar_g, castro::small_pres);
 
   Real estar_r[NGROUPS];
   for (int g = 0; g < NGROUPS; g++) {
@@ -838,7 +700,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real scr = spout - spin;
   if (spout-spin == 0.0_rt) {
-    scr = lsmall*cavg;
+    scr = castro::small*cavg;
   }
 
   // interpolate for the case that we are in a rarefaction
@@ -920,13 +782,13 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
 #else
-  qint(QPRES) = amrex::max(qint(QPRES), lsmall_pres);
+  qint(QPRES) = amrex::max(qint(QPRES), castro::small_pres);
   qint(QREINT) = regdnv;
 #endif
 
   // we are potentially thermodynamically inconsistent, fix that
   // here
-  if (luse_eos_in_riemann == 1) {
+  if (castro::use_eos_in_riemann == 1) {
     // we need to know the species -- they only jump across
     // the contact
     eos_t eos_state;
@@ -938,7 +800,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
       eos_state.xn[n] = fp*ql(QFS+n) + fm*qr(QFS+n);
     }
 
-    eos_state.T = lT_guess;
+    eos_state.T = castro::T_guess;
 
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = fp*ql(QFX+n) + fm*qr(QFX+n);
@@ -1013,11 +875,6 @@ Castro::HLLC(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const Real lsmall_dens = small_dens;
-  const Real lsmall_pres = small_pres;
-  const Real lsmall = small;
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
   int coord = geom.Coord();
 
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
@@ -1045,38 +902,38 @@ Castro::HLLC(const Box& bx,
     }
 
 
-    Real rl = amrex::max(ql(i,j,k,QRHO), lsmall_dens);
+    Real rl = amrex::max(ql(i,j,k,QRHO), castro::small_dens);
 
     // pick left velocities based on direction
     Real ul  = ql(i,j,k,iu);
 
-    Real pl = amrex::max(ql(i,j,k,QPRES), lsmall_pres);
+    Real pl = amrex::max(ql(i,j,k,QPRES), castro::small_pres);
     Real rel = ql(i,j,k,QREINT);
 
-    Real rr = amrex::max(qr(i,j,k,QRHO), lsmall_dens);
+    Real rr = amrex::max(qr(i,j,k,QRHO), castro::small_dens);
 
     // pick right velocities based on direction
     Real ur  = qr(i,j,k,iu);
 
-    Real pr = amrex::max(qr(i,j,k,QPRES), lsmall_pres);
+    Real pr = amrex::max(qr(i,j,k,QPRES), castro::small_pres);
     Real rer = qr(i,j,k,QREINT);
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
-    Real csmall = amrex::max(lsmall, amrex::max(lsmall * qaux_arr(i,j,k,QC), lsmall * qaux_arr(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(castro::small, amrex::max(castro::small * qaux_arr(i,j,k,QC), castro::small * qaux_arr(i-sx,j-sy,k-sz,QC)));
     Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
     Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
     Real gamcr = qaux_arr(i,j,k,QGAMC);
 
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (castro::use_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
     }
 #endif
 
-    Real wsmall = lsmall_dens*csmall;
+    Real wsmall = castro::small_dens*csmall;
     Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
     Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
 
@@ -1084,7 +941,7 @@ Castro::HLLC(const Box& bx,
     Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
     Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
 
-    pstar = amrex::max(pstar, lsmall_pres);
+    pstar = amrex::max(pstar, castro::small_pres);
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
     if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
@@ -1119,7 +976,7 @@ Castro::HLLC(const Box& bx,
       gamco = 0.5_rt*(gamcl + gamcr);
     }
 
-    ro = amrex::max(lsmall_dens, ro);
+    ro = amrex::max(castro::small_dens, ro);
 
     Real roinv = 1.0_rt/ro;
     Real co = std::sqrt(std::abs(gamco*po*roinv));
@@ -1127,7 +984,7 @@ Castro::HLLC(const Box& bx,
     Real co2inv = 1.0_rt/(co*co);
 
     Real rstar = ro + (pstar - po)*co2inv;
-    rstar = amrex::max(lsmall_dens, rstar);
+    rstar = amrex::max(castro::small_dens, rstar);
 
     Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
     cstar = max(cstar, csmall);
@@ -1144,7 +1001,7 @@ Castro::HLLC(const Box& bx,
 
     Real scr = spout-spin;
     if (spout-spin == 0.0_rt) {
-      scr = lsmall*cavg;
+      scr = castro::small*cavg;
     }
 
     Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
