@@ -4,6 +4,15 @@
 
 #include <state_indices.H>
 
+// runtime parameters
+#include <castro_params.H>
+using namespace castro;
+
+#ifdef AMREX_PARTICLES
+#include <particles_params.H>
+#endif
+
+
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
 
@@ -1346,15 +1355,11 @@ protected:
     //
     // Static data members.
     //
-#include <castro_params.H>
 
 #ifdef SPONGE
 #include <sponge_params.H>
 #endif
 
-#ifdef AMREX_PARTICLES
-#include "particles_params.H"
-#endif
 
     static bool      signalStopJob;
     static int       radius_grow;
