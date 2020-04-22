@@ -4,7 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro static
+@namespace: castro Castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -578,7 +578,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro static
+@namespace: particles Castro
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -606,7 +606,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity static
+@namespace: gravity Gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -662,7 +662,7 @@ mlmg_consolidation           int           1                  n
 # Do N-Solve?
 mlmg_nsolve                  int           0                  n
 
-@namespace: diffusion Diffusion static
+@namespace: diffusion Diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
@@ -671,7 +671,7 @@ mlmg_nsolve                  int           0                  n
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
 
-@namespace: radsolve RadSolve static
+@namespace: radsolve RadSolve
 
 # the linear solver option to use
 level_solver_flag            int           1                  n
@@ -690,7 +690,7 @@ beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
 
-@namespace: radiation Radiation static
+@namespace: radiation Radiation
 
 prop_temp_floor              Real          0.0                y
 

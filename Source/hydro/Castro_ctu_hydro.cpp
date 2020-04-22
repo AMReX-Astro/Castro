@@ -220,7 +220,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
         uflatten(obx, q_arr, flatg_arr, QPTOT);
 
-        Real flatten_pp_thresh = Radiation::flatten_pp_threshold;
+        Real flatten_pp_thresh = radiation::flatten_pp_threshold;
 
         AMREX_PARALLEL_FOR_3D(obx, i, j, k,
         {

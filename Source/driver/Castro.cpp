@@ -80,8 +80,6 @@ Vector<Real> Castro::node_weights;
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 #endif
 
-#include <castro_defaults.H>
-
 // the sponge parameters are controlled by Fortran, so
 // this just initializes them before we grab their values
 // from Fortran
@@ -211,6 +209,8 @@ Castro::read_params ()
     done = true;
 
     ParmParse pp("castro");
+
+    using namespace castro;
 
 #include <castro_queries.H>
 

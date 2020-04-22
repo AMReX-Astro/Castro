@@ -1,5 +1,11 @@
 # 20.05
 
+   * We've changed how the runtime parameters are stored.  Previously
+     they were static members of their respective class, but this
+     prevented their use in lambda-capture functions on GPUs.  Now the
+     runtime parameters are grouped into namespaces as extern managed
+     data. (#873)
+
    * We currently have a scheme for storing reactions weightings, which
      are a measure of the number of RHS evaluations during the burn and
      therefore a proxy for the difficulty of the burn. These weights were
