@@ -127,7 +127,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         HLL(ql_zone, qr_zone, cl, cr,
             idir, coord,
-            upass_map_p, qpass_map_p,
             flx_zone);
 
         for (int n = 0; n < NUM_STATE; n++) {
@@ -233,8 +232,8 @@ Castro::riemann_state(const Box& bx,
 
 #ifdef TRUE_SDC
     if (luse_reconstructed_gamma1 == 1) {
-      gcl = ql(i,j,k,QGC);
-      gcr = qr(i,j,k,QGC);
+      gcl = qm(i,j,k,QGC);
+      gcr = qp(i,j,k,QGC);
     }
 #endif
 
@@ -244,33 +243,33 @@ Castro::riemann_state(const Box& bx,
       // we come in with a good p, rho, and X on the interfaces
       // -- use this to find the gamma used in the sound speed
       eos_t eos_state;
-      eos_state.p = pl;
-      eos_state.rho = rl;
+      eos_state.p = qm_int[QPRES];
+      eos_state.rho = qm_int[QRHO];
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = ql(QFS+n);
+        eos_state.xn[n] = qm_int[QFS+n];
       }
       eos_state.T = castro::T_guess; // initial guess
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = ql(QFX+n);
+        eos_state.aux[n] = qm_int[QFX+n];
       }
 
       eos(eos_input_rp, eos_state);
 
-      gamcl = eos_state.gam1;
+      gcl = eos_state.gam1;
 
-      eos_state.p = pr;
-      eos_state.rho = rr;
+      eos_state.p = qp_int[QPRES];
+      eos_state.rho = qp_int[QRHO];
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qr(QFS+n);
+        eos_state.xn[n] = qp_int[QFS+n];
       }
       eos_state.T = castro::T_guess; // initial guess
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qr(QFX+n);
+        eos_state.aux[n] = qp_int[QFX+n];
       }
 
       eos(eos_input_rp, eos_state);
 
-      gamcr = eos_state.gam1;
+      gcr = eos_state.gam1;
 
     }
 #endif

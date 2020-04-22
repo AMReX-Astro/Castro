@@ -347,7 +347,7 @@
 
     void
     riemanncg(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
-              const amrex::Real gcl, const amrex::Real gcr,
+              amrex::Real& gcl, amrex::Real& gcr,
               const amrex::Real cl, const amrex::Real cr,
               amrex::GpuArray<amrex::Real, NQ>& qint,
               const amrex::Real bnd_fac, const int idir);
@@ -377,8 +377,6 @@
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
              const int idir, const int coord,
-             const amrex::GpuArray<int, npassive>& upass_map_p,
-             const amrex::GpuArray<int, npassive>& qpass_map_p,
              amrex::Real* f);
 
     AMREX_GPU_HOST_DEVICE
@@ -391,7 +389,7 @@
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     riemann_state_interface(amrex::GpuArray<amrex::Real, NQ>& qm, amrex::GpuArray<amrex::Real, NQ>& qp,
-                            const amrex::Real qcl, const amrex::Real qcr,
+                            amrex::Real& qcl, amrex::Real& qcr,
                             const amrex::Real cl, const amrex::Real cr,
 #ifdef RADIATION
                             amrex::GpuArray<amrex::Real, Radiation::ngroups> lambda_int,

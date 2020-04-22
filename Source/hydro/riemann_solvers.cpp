@@ -16,7 +16,7 @@ using namespace amrex;
 
 void
 Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
-                  const Real gcl, const Real gcr,
+                  Real& gcl, Real& gcr,
                   const Real cl, const Real cr,
                   GpuArray<Real, NQ>& qint,
                   const Real bnd_fac, const int idir) {
@@ -61,15 +61,15 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
   // left state
-  Real rl = amrex::max(ql(QRHO), castro::small_dens);
+  Real rl = amrex::max(ql[QRHO], castro::small_dens);
 
-  Real pl = ql(QPRES);
-  Real rel = ql(QREINT);
+  Real pl = ql[QPRES];
+  Real rel = ql[QREINT];
 
   // pick left velocities based on direction
-  Real ul = ql(iu);
-  Real v1l = ql(iv1);
-  Real v2l = ql(iv2);
+  Real ul = ql[iu];
+  Real v1l = ql[iv1];
+  Real v2l = ql[iv2];
 
 
   // sometime we come in here with negative energy or pressure
@@ -84,10 +84,10 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     eos_state.T = castro::small_temp;
     eos_state.rho = rl;
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = ql(QFS+n);
+      eos_state.xn[n] = ql[QFS+n];
     }
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = ql(QFX+n);
+      eos_state.aux[n] = ql[QFX+n];
     }
 
     eos(eos_input_rt, eos_state);
@@ -98,15 +98,15 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
   // right state
-  Real rr = amrex::max(qr(QRHO), castro::small_dens);
+  Real rr = amrex::max(qr[QRHO], castro::small_dens);
 
-  Real pr = qr(QPRES);
-  Real rer = qr(QREINT);
+  Real pr = qr[QPRES];
+  Real rer = qr[QREINT];
 
   // pick right velocities based on direction
-  Real ur = qr(iu);
-  Real v1r = qr(iv1);
-  Real v2r = qr(iv2);
+  Real ur = qr[iu];
+  Real v1r = qr[iv1];
+  Real v2r = qr[iv2];
 
   if (rer <= 0.0_rt || pr < castro::small_pres) {
 #ifndef AMREX_USE_CUDA
@@ -117,10 +117,10 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     eos_state.T = castro::small_temp;
     eos_state.rho = rr;
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = qr(QFS+n);
+      eos_state.xn[n] = qr[QFS+n];
     }
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = qr(QFX+n);
+      eos_state.aux[n] = qr[QFX+n];
     }
 
     eos(eos_input_rt, eos_state);
@@ -138,7 +138,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real clsql = gcl*pl*rl;
   Real clsqr = gcr*pr*rr;
 
-  Real csmall = amrex::max(castro::small, amrex::max(castro::small * cr, castro::small * cl));
+  Real csmall = amrex::max(small, amrex::max(small * cr, small * cl));
 
   Real cavg = 0.5_rt*(cl + cr);
 
@@ -160,7 +160,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real gdot = 2.0_rt*(1.0_rt - game_bar/gamc_bar)*(game_bar - 1.0_rt);
 
-  Real wsmall = castro::small_dens*csmall;
+  Real wsmall = castro::small_dens * csmall;
   Real wl = amrex::max(wsmall, std::sqrt(std::abs(clsql)));
   Real wr = amrex::max(wsmall, std::sqrt(std::abs(clsqr)));
 
@@ -238,7 +238,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     }
 
     // the new pstar is found via CG Eq. 18
-    Real denom = dpditer/amrex::max(zp+zm, castro::small*cavg);
+    Real denom = dpditer/amrex::max(zp+zm, small*cavg);
     pstar_old = pstar;
     pstar = pstar - denom*(ustar_r - ustar_l);
     pstar = amrex::max(pstar, castro::small_pres);
@@ -423,63 +423,64 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     spout = ushock;
   }
 
-  Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout), castro::small*cavg));
+  Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout),
+                                                         small*cavg));
 
   // the transverse velocity states only depend on the
   // direction that the contact moves
   if (ustar > 0.0_rt) {
-    qint(iv1) = v1l;
-    qint(iv2) = v2l;
+    qint[iv1] = v1l;
+    qint[iv2] = v2l;
   } else if (ustar < 0.0_rt) {
-    qint(iv1) = v1r;
-    qint(iv2) = v2r;
+    qint[iv1] = v1r;
+    qint[iv2] = v2r;
   } else {
-    qint(iv1) = 0.5_rt*(v1l+v1r);
-    qint(iv2) = 0.5_rt*(v2l+v2r);
+    qint[iv1] = 0.5_rt*(v1l+v1r);
+    qint[iv2] = 0.5_rt*(v2l+v2r);
   }
 
   // linearly interpolate between the star and normal state -- this covers the
   // case where we are inside the rarefaction fan.
-  qint(QRHO) = frac*rstar + (1.0_rt - frac)*ro;
-  qint(iu) = frac*ustar + (1.0_rt - frac)*uo;
-  qint(QPRES) = frac*pstar + (1.0_rt - frac)*po;
+  qint[QRHO] = frac*rstar + (1.0_rt - frac)*ro;
+  qint[iu] = frac*ustar + (1.0_rt - frac)*uo;
+  qint[QPRES] = frac*pstar + (1.0_rt - frac)*po;
   Real game_int = frac*gamstar + (1.0_rt-frac)*gameo;
 
   // now handle the cases where instead we are fully in the
   // star or fully in the original (l/r) state
   if (spout < 0.0_rt) {
-    qint(QRHO) = ro;
-    qint(iu) = uo;
-    qint(QPRES) = po;
+    qint[QRHO] = ro;
+    qint[iu] = uo;
+    qint[QPRES] = po;
     game_int = gameo;
   }
 
   if (spin >= 0.0_rt) {
-    qint(QRHO) = rstar;
-    qint(iu) = ustar;
-    qint(QPRES) = pstar;
+    qint[QRHO] = rstar;
+    qint[iu] = ustar;
+    qint[QPRES] = pstar;
     game_int = gamstar;
   }
 
-  qint(QPRES) = amrex::max(qint(QPRES), castro::small_pres);
+  qint[QPRES] = amrex::max(qint[QPRES], castro::small_pres);
 
-  qint(iu) = qint(iu) * bnd_fac;
+  qint[iu] = qint[iu] * bnd_fac;
 
   // Compute fluxes, order as conserved state (not q)
 
   // compute the total energy from the internal, p/(gamma - 1), and the kinetic
-  qint(QREINT) = qint(QPRES)/(game_int - 1.0_rt);
+  qint[QREINT] = qint[QPRES]/(game_int - 1.0_rt);
 
   // advected quantities -- only the contact matters
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int nqp = qpass_map_p[ipassive];
+    int nqp = qpassmap(ipassive);
 
     if (ustar > 0.0_rt) {
-      qint(nqp) = ql(nqp);
+      qint[nqp] = ql[nqp];
     } else if (ustar < 0.0_rt) {
-      qint(nqp) = qr(nqp);
+      qint[nqp] = qr[nqp];
     } else {
-      qint(nqp) = 0.5_rt * (ql(nqp) + qr(nqp));
+      qint[nqp] = 0.5_rt * (ql[nqp] + qr[nqp]);
     }
   }
 
@@ -527,46 +528,46 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   // set the left and right states for this interface
 
-  Real rl = amrex::max(ql(QRHO), castro::small_dens);
+  Real rl = amrex::max(ql[QRHO], castro::small_dens);
 
   // pick left velocities based on direction
-  Real ul  = ql(iu);
-  Real v1l = ql(iv1);
-  Real v2l = ql(iv2);
+  Real ul  = ql[iu];
+  Real v1l = ql[iv1];
+  Real v2l = ql[iv2];
 
 #ifdef RADIATION
-  Real pl = ql(QPTOT);
-  Real rel = ql(QREITOT);
+  Real pl = ql[QPTOT];
+  Real rel = ql[QREITOT];
   Real erl[NGROUPS];
   for (int g = 0; g < NGROUPS; g++) {
-    erl[g] = ql(QRAD+g);
+    erl[g] = ql[QRAD+g];
   }
-  Real pl_g = ql(QPRES);
-  Real rel_g = ql(QREINT);
+  Real pl_g = ql[QPRES];
+  Real rel_g = ql[QREINT];
 #else
-  Real pl = amrex::max(ql(QPRES), castro::small_pres);
-  Real rel = ql(QREINT);
+  Real pl = amrex::max(ql[QPRES], castro::small_pres);
+  Real rel = ql[QREINT];
 #endif
 
-  Real rr = amrex::max(qr(QRHO), castro::small_dens);
+  Real rr = amrex::max(qr[QRHO], castro::small_dens);
 
   // pick right velocities based on direction
-  Real ur  = qr(iu);
-  Real v1r = qr(iv1);
-  Real v2r = qr(iv2);
+  Real ur  = qr[iu];
+  Real v1r = qr[iv1];
+  Real v2r = qr[iv2];
 
 #ifdef RADIATION
-  Real pr = qr(QPTOT);
-  Real rer = qr(QREITOT);
+  Real pr = qr[QPTOT];
+  Real rer = qr[QREITOT];
   Real err[NGROUPS];
   for (int g = 0; g < NGROUPS; g++) {
-    err[g] = qr(QRAD+g);
+    err[g] = qr[QRAD+g];
   }
-  Real pr_g = qr(QPRES);
-  Real rer_g = qr(QREINT);
+  Real pr_g = qr[QPRES];
+  Real rer_g = qr[QREINT];
 #else
-  Real pr = amrex::max(qr(QPRES), castro::small_pres);
-  Real rer = qr(QREINT);
+  Real pr = amrex::max(qr[QPRES], castro::small_pres);
+  Real rer = qr[QREINT];
 #endif
 
   // estimate the star state: pstar, ustar
@@ -578,7 +579,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real gamcgr;
 #endif
 
-  csmall = amrex::max(castro::small, castro::small * amrex::max(cl, cr));
+  csmall = amrex::max(small, small * amrex::max(cl, cr));
   cavg = 0.5_rt*(cl + cr);
 
   Real wsmall = castro::small_dens*csmall;
@@ -651,8 +652,8 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   // we can already deal with the transverse velocities -- they
   // only jump across the contact
-  qint(iv1) = fp*v1l + fm*v1r;
-  qint(iv2) = fp*v2l + fm*v2r;
+  qint[iv1] = fp*v1l + fm*v1r;
+  qint[iv2] = fp*v2l + fm*v2r;
 
   // compute the rest of the star state
 
@@ -700,15 +701,15 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real scr = spout - spin;
   if (spout-spin == 0.0_rt) {
-    scr = castro::small*cavg;
+    scr = small*cavg;
   }
 
   // interpolate for the case that we are in a rarefaction
   Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
   frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
 
-  qint(QRHO) = frac*rstar + (1.0_rt - frac)*ro;
-  qint(iu  ) = frac*ustar + (1.0_rt - frac)*uo;
+  qint[QRHO] = frac*rstar + (1.0_rt - frac)*ro;
+  qint[iu] = frac*ustar + (1.0_rt - frac)*uo;
 
 #ifdef RADIATION
   Real pgdnv_t = frac*pstar + (1.0_rt - frac)*po;
@@ -719,7 +720,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     regdnv_r[g] = frac*estar_r[g] + (1.0_rt - frac)*reo_r[g];
   }
 #else
-  qint(QPRES) = frac*pstar + (1.0_rt - frac)*po;
+  qint[QPRES] = frac*pstar + (1.0_rt - frac)*po;
   Real regdnv = frac*estar + (1.0_rt - frac)*reo;
 #endif
 
@@ -731,8 +732,8 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   // to determine which region we are in
   if (spout < 0.0_rt) {
     // the l or r state is on the interface
-    qint(QRHO) = ro;
-    qint(iu  ) = uo;
+    qint[QRHO] = ro;
+    qint[iu] = uo;
 #ifdef RADIATION
     pgdnv_t = po;
     pgdnv_g = po_g;
@@ -741,15 +742,15 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
       regdnv_r[g] = reo_r[g];
     }
 #else
-    qint(QPRES) = po;
+    qint[QPRES] = po;
     regdnv = reo;
 #endif
   }
 
   if (spin >= 0.0_rt) {
     // the star state is on the interface
-    qint(QRHO) = rstar;
-    qint(iu  ) = ustar;
+    qint[QRHO] = rstar;
+    qint[iu] = ustar;
 #ifdef RADIATION
     pgdnv_t = pstar;
     pgdnv_g = pstar_g;
@@ -758,23 +759,23 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
       regdnv_r[g] = estar_r[g];
     }
 #else
-    qint(QPRES) = pstar;
+    qint[QPRES] = pstar;
     regdnv = estar;
 #endif
   }
 
 #ifdef RADIATION
   for (int g = 0; g < NGROUPS; g++) {
-    qint(QRAD+g) = amrex::max(regdnv_r[g], 0.0_rt);
+    qint[QRAD+g] = amrex::max(regdnv_r[g], 0.0_rt);
   }
 
-  qint(QPRES) = pgdnv_g;
-  qint(QPTOT) = pgdnv_t;
-  qint(QREINT) = regdnv_g;
+  qint[QPRES] = pgdnv_g;
+  qint[QPTOT] = pgdnv_t;
+  qint[QREINT] = regdnv_g;
 
-  qint(QREITOT) = regdnv_g;
+  qint[QREITOT] = regdnv_g;
   for (int g = 0; g < NGROUPS; g++) {
-    qint(QREITOT) += regdnv_r[g];
+    qint[QREITOT] += regdnv_r[g];
   }
 
   for (int g = 0; g < NGROUPS; g++) {
@@ -782,8 +783,8 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
 #else
-  qint(QPRES) = amrex::max(qint(QPRES), castro::small_pres);
-  qint(QREINT) = regdnv;
+  qint[QPRES] = amrex::max(qint[QPRES], castro::small_pres);
+  qint[QREINT] = regdnv;
 #endif
 
   // we are potentially thermodynamically inconsistent, fix that
@@ -793,31 +794,31 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     // the contact
     eos_t eos_state;
 
-    eos_state.rho = qint(QRHO);
-    eos_state.p = qint(QPRES);
+    eos_state.rho = qint[QRHO];
+    eos_state.p = qint[QPRES];
 
     for (int n = 0; n < NumSpec; n++) {
-      eos_state.xn[n] = fp*ql(QFS+n) + fm*qr(QFS+n);
+      eos_state.xn[n] = fp*ql[QFS+n] + fm*qr[QFS+n];
     }
 
     eos_state.T = castro::T_guess;
 
     for (int n = 0; n < NumAux; n++) {
-      eos_state.aux[n] = fp*ql(QFX+n) + fm*qr(QFX+n);
+      eos_state.aux[n] = fp*ql[QFX+n] + fm*qr[QFX+n];
     }
 
     eos(eos_input_rp, eos_state);
 
-    qint(QREINT) = eos_state.rho * eos_state.e;
+    qint[QREINT] = eos_state.rho * eos_state.e;
   }
 
   // Enforce that fluxes through a symmetry plane or wall are hard zero.
-  qint(iu) = qint(iu) * bnd_fac;
+  qint[iu] = qint[iu] * bnd_fac;
 
   // passively advected quantities
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int nqp = qpass_map_p[ipassive];
-    qint(nqp) = fp*ql(nqp) + fm*qr(nqp);
+    int nqp = qpassmap(ipassive);
+    qint[nqp] = fp*ql[nqp] + fm*qr[nqp];
   }
 }
 
@@ -920,7 +921,7 @@ Castro::HLLC(const Box& bx,
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
-    Real csmall = amrex::max(castro::small, amrex::max(castro::small * qaux_arr(i,j,k,QC), castro::small * qaux_arr(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(small, amrex::max(small * qaux_arr(i,j,k,QC), small * qaux_arr(i-sx,j-sy,k-sz,QC)));
     Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
     Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
@@ -933,7 +934,7 @@ Castro::HLLC(const Box& bx,
     }
 #endif
 
-    Real wsmall = castro::small_dens*csmall;
+    Real wsmall = castro::small_dens * csmall;
     Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
     Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
 
@@ -1001,7 +1002,7 @@ Castro::HLLC(const Box& bx,
 
     Real scr = spout-spin;
     if (spout-spin == 0.0_rt) {
-      scr = castro::small*cavg;
+      scr = small * cavg;
     }
 
     Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;

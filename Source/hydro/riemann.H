@@ -13,7 +13,7 @@ const Real smallu = 1.e-12_rt;
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::riemann_state_interface(GpuArray<Real, NQ>& qm, GpuArray<Real, NQ>& qp,
-                                const Real gcl, const Real gcr, const Real cl, const Real cr,
+                                Real& gcl, Real& gcr, const Real cl, const Real cr,
 #ifdef RADIATION
                                 GpuArray<Real, Radiation::ngroups> lambda_int,
 #endif
