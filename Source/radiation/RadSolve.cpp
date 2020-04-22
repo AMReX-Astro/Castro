@@ -20,25 +20,23 @@
 
 using namespace amrex;
 
-#include <radsolve_defaults.H>
-
 RadSolve::RadSolve (Amr* Parent, int level, const BoxArray& grids, const DistributionMapping& dmap)
     : parent(Parent)
 {
     read_params();
 
-    if (level_solver_flag < 100) {
-        hd.reset(new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag));
+    if (radsolve::level_solver_flag < 100) {
+        hd.reset(new HypreABec(grids, dmap, parent->Geom(level), radsolve::level_solver_flag));
     }
     else {
-        if (use_hypre_nonsymmetric_terms == 0) {
-            hm.reset(new HypreMultiABec(level, level, level_solver_flag));
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            hm.reset(new HypreMultiABec(level, level, radsolve::level_solver_flag));
             hm->addLevel(level, parent->Geom(level), grids, dmap,
                          IntVect::TheUnitVector());
             hm->buildMatrixStructure();
         }
         else {
-            hem.reset(new HypreExtMultiABec(level, level, level_solver_flag));
+            hem.reset(new HypreExtMultiABec(level, level, radsolve::level_solver_flag));
             cMulti  = hem->cMultiplier();
             d1Multi = hem->d1Multiplier();
             d2Multi = hem->d2Multiplier();
@@ -58,22 +56,22 @@ RadSolve::read_params ()
 
     if (BL_SPACEDIM == 1) {
         // pfmg will not work in 1D
-        level_solver_flag = 0;
+        radsolve::level_solver_flag = 0;
     }
 
     if (Radiation::SolverType == Radiation::SGFLDSolver
         && Radiation::Er_Lorentz_term) { 
-        use_hypre_nonsymmetric_terms = 1;
+        radsolve::use_hypre_nonsymmetric_terms = 1;
     }
 
     if (Radiation::SolverType == Radiation::MGFLDSolver && 
         Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-        use_hypre_nonsymmetric_terms = 1;
+        radsolve::use_hypre_nonsymmetric_terms = 1;
     }
 
     if (Radiation::SolverType == Radiation::SGFLDSolver ||
         Radiation::SolverType == Radiation::MGFLDSolver) {
-        abstol = 0.0;
+        radsolve::abstol = 0.0;
     }
 
 #include "radsolve_queries.H"
@@ -81,7 +79,7 @@ RadSolve::read_params ()
     // Check for unsupported options.
 
     if (BL_SPACEDIM == 1) {
-        if (level_solver_flag == 1) {
+        if (radsolve::level_solver_flag == 1) {
             amrex::Error("radsolve.level_solver_flag = 1 is not supported in 1D");
         }
     }
@@ -89,7 +87,7 @@ RadSolve::read_params ()
     if (Radiation::SolverType == Radiation::SGFLDSolver
         && Radiation::Er_Lorentz_term) { 
 
-        if (level_solver_flag < 100) {
+        if (radsolve::level_solver_flag < 100) {
             amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
         }
     }
@@ -97,7 +95,7 @@ RadSolve::read_params ()
     if (Radiation::SolverType == Radiation::MGFLDSolver && 
         Radiation::accelerate == 2 && Radiation::nGroups > 1) {
 
-        if (level_solver_flag < 100) {
+        if (radsolve::level_solver_flag < 100) {
             amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
         }
     }
@@ -433,17 +431,17 @@ void RadSolve::levelSolve(int level,
 
   // Set coeffs, build solver, solve
   if (hd) {
-    hd->setScalars(alpha, beta);
+    hd->setScalars(radsolve::alpha, radsolve::beta);
   }
   else if (hm) {
-    hm->setScalars(alpha, beta);
+    hm->setScalars(radsolve::alpha, radsolve::beta);
   }
   else if (hem) {
-    hem->setScalars(alpha, beta);
+    hem->setScalars(radsolve::alpha, radsolve::beta);
   }
 
   if (hd) {
-    hd->setupSolver(reltol, abstol, maxiter);
+    hd->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
     hd->solve(Er, igroup, rhs, Inhomogeneous_BC);
     Real res = hd->getAbsoluteResidual();
     if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
@@ -459,7 +457,7 @@ void RadSolve::levelSolve(int level,
     hm->finalizeMatrix();
     hm->loadLevelVectors(level, Er, igroup, rhs, Inhomogeneous_BC);
     hm->finalizeVectors();
-    hm->setupSolver(reltol, abstol, maxiter);
+    hm->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
     hm->solve();
     hm->getSolution(level, Er, igroup);
     Real res = hm->getAbsoluteResidual();
@@ -476,7 +474,7 @@ void RadSolve::levelSolve(int level,
     hem->finalizeMatrix();
     hem->loadLevelVectors(level, Er, igroup, rhs, Inhomogeneous_BC);
     hem->finalizeVectors();
-    hem->setupSolver(reltol, abstol, maxiter);
+    hem->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
     hem->solve();
     hem->getSolution(level, Er, igroup);
     Real res = hem->getAbsoluteResidual();
@@ -568,7 +566,7 @@ void RadSolve::levelFlux(int level,
                         n,
                         BL_TO_FORTRAN_ANYD(Erborder[mfi]), 
                         BL_TO_FORTRAN_ANYD(bcoef[mfi]), 
-                        beta, AMREX_REAL_ANYD(dx),
+                        radsolve::beta, AMREX_REAL_ANYD(dx),
                         BL_TO_FORTRAN_ANYD(Flux[n][mfi]));
       }
 
