@@ -47,10 +47,10 @@ but are used for the documentation generation
 For a namespace, name, we write out:
 
   -- name_params.H  (for castro, included in Castro.H):
-     declares the static variables of the Castro class
+     sets up the namespace and extern parameters
 
-  -- name_defaults.H  (for castro, included in Castro.cpp):
-     sets the defaults of the runtime parameters
+  -- name_declares.H  (for castro, included in Castro.cpp):
+     declares the runtime parameters
 
   -- name_queries.H  (for castro, included in Castro.cpp):
      does the parmparse query to override the default in C++
@@ -123,8 +123,8 @@ class Param:
         else:
             self.f90_dtype = f90_dtype
 
-    def get_default_string(self):
-        # this is the line that goes into castro_defaults.H included
+    def get_declare_string(self):
+        # this is the line that goes into castro_declares.H included
         # into Castro.cpp
 
         if self.dtype == "int":
@@ -134,20 +134,26 @@ class Param:
         elif self.dtype == "Real":
             tstr = "AMREX_GPU_MANAGED amrex::Real {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "AMREX_GPU_MANAGED std::string {}::{}".format(self.namespace, self.cpp_var_name)
+            tstr = "std::string {}::{}".format(self.namespace, self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
+
+        return "{};\n".format(tstr)
+
+    def get_default_string(self):
+        # this is the line that goes into castro_declares.H included
+        # into Castro.cpp
 
         ostr = ""
 
         if not self.debug_default is None:
             ostr += "#ifdef AMREX_DEBUG\n"
-            ostr += "{} = {};\n".format(tstr, self.debug_default)
+            ostr += "{}::{} = {};\n".format(self.namespace, self.cpp_var_name, self.debug_default)
             ostr += "#else\n"
-            ostr += "{} = {};\n".format(tstr, self.default)
+            ostr += "{}::{} = {};\n".format(self.namespace, self.cpp_var_name, self.default)
             ostr += "#endif\n"
         else:
-            ostr += "{} = {};\n".format(tstr, self.default)
+            ostr += "{}::{} = {};\n".format(self.namespace, self.cpp_var_name, self.default)
 
         return ostr
 
@@ -254,7 +260,7 @@ class Param:
         elif self.dtype == "Real":
             tstr = "extern AMREX_GPU_MANAGED amrex::Real {};\n".format(self.cpp_var_name)
         elif self.dtype == "string":
-            tstr = "extern AMREX_GPU_MANAGED std::string {};\n".format(self.cpp_var_name)
+            tstr = "extern std::string {};\n".format(self.cpp_var_name)
         else:
             sys.exit("invalid data type for parameter {}".format(self.name))
 
@@ -523,24 +529,24 @@ def parse_params(infile, meth_template, out_directory):
         params_nm = [q for q in params if q.namespace == nm]
         ifdefs = {q.ifdef for q in params_nm}
 
-        # write name_defaults.H
+        # write name_declares.H
         try:
-            cd = open("{}/{}_defaults.H".format(out_directory, nm), "w")
+            cd = open("{}/{}_declares.H".format(out_directory, nm), "w")
         except IOError:
-            sys.exit("unable to open {}_defaults.H for writing".format(nm))
+            sys.exit("unable to open {}_declares.H for writing".format(nm))
 
         cd.write(CWARNING)
-        cd.write("#ifndef _{}_DEFAULTS_H_\n".format(nm.upper()))
-        cd.write("#define _{}_DEFAULTS_H_\n".format(nm.upper()))
+        cd.write("#ifndef _{}_DECLARES_H_\n".format(nm.upper()))
+        cd.write("#define _{}_DECLARES_H_\n".format(nm.upper()))
 
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
-                    cd.write(p.get_default_string())
+                    cd.write(p.get_declare_string())
             else:
                 cd.write("#ifdef {}\n".format(ifdef))
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
-                    cd.write(p.get_default_string())
+                    cd.write(p.get_declare_string())
                 cd.write("#endif\n")
 
         cd.write("#endif\n")
@@ -583,13 +589,17 @@ def parse_params(infile, meth_template, out_directory):
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
+                    cq.write(p.get_default_string())
                     cq.write(p.get_query_string("C++"))
+                    cq.write("\n")
             else:
                 cq.write("#ifdef {}\n".format(ifdef))
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
+                    cq.write(p.get_default_string())
                     cq.write(p.get_query_string("C++"))
+                    cq.write("\n")
                 cq.write("#endif\n")
-
+            cq.write("\n")
         cq.close()
 
         # write the job info tests

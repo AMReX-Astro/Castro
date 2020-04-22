@@ -2,8 +2,8 @@
 
 #include <radsolve_params.H>
 
-#include <radsolve_defaults.H>
+#include <radsolve_declares.H>
 
 #include <radiation_params.H>
 
-#include <radiation_defaults.H>
+#include <radiation_declares.H>
