@@ -132,6 +132,11 @@ Castro::cmpflx_plus_godunov(const Box& bx,
       }
 #endif
 
+      // store the flux
+      for (int n = 0; n < NUM_STATE; n++) {
+        flx(i,j,k,n) = F[n];
+      }
+
     });
 
   } else if (riemann_solver == 2) {
