@@ -15,13 +15,11 @@ using namespace amrex;
 
 void
 Castro::cmpflx_plus_godunov(const Box& bx,
-                            Array4<Real> const qm,
-                            Array4<Real> const qp,
+                            Array4<Real> const ql_arr,
+                            Array4<Real> const qr_arr,
                             Array4<Real> const flx,
-                            Array4<Real> const qint,
 #ifdef RADIATION
                             Array4<Real> const rflx,
-                            Array4<Real> const lambda_int,
 #endif
                             Array4<Real> const qgdnv,
                             Array4<Real const> const qaux_arr,
@@ -33,34 +31,115 @@ Castro::cmpflx_plus_godunov(const Box& bx,
   // the caller to specify the interfaces over which to solve the
   // Riemann problems
 
-  // Solve Riemann problem to get the fluxes
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
 
-  if (riemann_solver == 0 || riemann_solver == 1) {
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  // do we want to force the flux to zero at the boundary?
+  const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
+                               lo_bc[idir] == SlipWall ||
+                               lo_bc[idir] == NoSlipWall);
+  const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
+                               hi_bc[idir] == SlipWall ||
+                               hi_bc[idir] == NoSlipWall);
+
+  if (castro::riemann_solver == 0 || castro::riemann_solver == 1) {
     // approximate state Riemann solvers
 
-    riemann_state(bx,
-                  qm, qp,
-                  qint,
-#ifdef RADIATION
-                  lambda_int,
-#endif
-                  qaux_arr,
-                  idir, 0);
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
 
-    compute_flux_q(bx,
-                   qint, flx,
+      // Solve Riemann problem to get the fluxes
+
+      GpuArray<Real, NQ> ql_int;
+      GpuArray<Real, NQ> qr_int;
+
+      Real gcl, gcr;
+      Real cl, cr;
+
 #ifdef RADIATION
-                   lambda_int, rflx,
+      GpuArray<Real, Radiation::ngroups> laml_int;
+      GpuArray<Real, Radiation::ngroups> lamr_int;
+      Real gamcgl, gamcgr;
 #endif
-                   idir, 0);
+
+      get_riemann_input_states(ql_arr, qr_arr,
+                               qaux_arr,
+                               i, j, k, idir, 0,
+                               gcl, gcr, cl, cr,
+#ifdef RADIATION
+                               laml_int, lamr_int,
+                               gamcgl, gamcgr,
+#endif
+                               ql_int, qr_int);
+
+      // deal with hard walls
+      Real bnd_fac = 1.0_rt;
+
+      if (idir == 0) {
+        if ((i == domlo[0] && special_bnd_lo) ||
+            (i == domhi[0]+1 && special_bnd_hi)) {
+          bnd_fac = 0.0_rt;
+        }
+
+      } else if (idir == 1) {
+        if ((j == domlo[1] && special_bnd_lo) ||
+            (j == domhi[1]+1 && special_bnd_hi)) {
+          bnd_fac = 0.0_rt;
+        }
+      } else {
+        if ((k == domlo[2] && special_bnd_lo) ||
+            (k == domhi[2]+1 && special_bnd_hi)) {
+          bnd_fac = 0.0_rt;
+        }
+      }
+
+
+      // solve the Riemann problem
+
+      GpuArray<Real, NQ> q_riemann;
+
+      riemann_state_interface(ql_int, qr_int,
+                              gcl, gcr, cl, cr,
+                              q_riemann, bnd_fac, idir);
+
+      // compute the flux
+
+      GpuArray<Real, NUM_STATE> F;
+
+      compute_flux_q(q_riemann, F,
+#ifdef RADIATION
+                     lambda_int, rflx,
+#endif
+                     idir, 0);
+
+      // store the godunov state
+      qgdnv(i,j,k,GDRHO) = q_riemann[QRHO];
+      qgdnv(i,j,k,GDU) = q_riemann[QU];
+      qgdnv(i,j,k,GDV) = q_riemann[QV];
+      qgdnv(i,j,k,GDW) = q_riemann[QW];
+      qgdnv(i,j,k,GDPRES) = q_riemann[QPRES];
+#ifdef RADIATION
+      for (int g = 0; g < NGROUPS; g++) {
+        qgdnv(i,j,k,GDLAMS+g) = lambda(i,j,k,g);
+        qgdnv(i,j,k,GDERADS+g) = qint(i,j,k,QRAD+g);
+      }
+#endif
+
+    });
 
   } else if (riemann_solver == 2) {
     // HLLC
     HLLC(bx,
-         qm, qp,
+         ql_arr, qr_arr,
          qaux_arr,
-         flx, qint,
+         flx, qgdnv,  // wrong
          idir);
+
+    // need to do this zone-by-zone and store the godunov state
 
 #ifndef AMREX_USE_CUDA
   } else {
@@ -71,13 +150,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
   if (hybrid_riemann == 1) {
     // correct the fluxes using an HLL scheme if we are in a shock
     // and doing the hybrid approach
-
-    GpuArray<int, npassive> upass_map_p;
-    GpuArray<int, npassive> qpass_map_p;
-    for (int n = 0; n < npassive; ++n) {
-      upass_map_p[n] = upass_map[n];
-      qpass_map_p[n] = qpass_map[n];
-    }
 
     auto coord = geom.Coord();
 
@@ -114,8 +186,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
         Real flx_zone[NUM_STATE];
 
         for (int n = 0; n < NQ; n++) {
-          ql_zone[n] = qm(i,j,k,n);
-          qr_zone[n] = qp(i,j,k,n);
+          ql_zone[n] = ql_arr(i,j,k,n);
+          qr_zone[n] = qr_arr(i,j,k,n);
         }
 
         // pass in the current flux -- the
@@ -136,20 +208,13 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     });
   }
 
-
-  store_godunov_state(bx,
-                      qint,
-#ifdef RADIATION
-                      lambda_int,
-#endif
-                      qgdnv);
 }
 
 
 void
 Castro::riemann_state(const Box& bx,
-                      Array4<Real> const qm,
-                      Array4<Real> const qp,
+                      Array4<Real> const ql_arr,
+                      Array4<Real> const qr_arr,
                       Array4<Real> const qint,
 #ifdef RADIATION
                       Array4<Real> lambda_int,
@@ -197,118 +262,31 @@ Castro::riemann_state(const Box& bx,
       }
     }
 
+    GpuArray<Real, NQ> ql_int;
+    GpuArray<Real, NQ> qr_int;
 
-    GpuArray<Real, NQ> qm_int;
-    for (int n = 0; n < NQ; n++) {
-      qm_int[n] = qm(i,j,k,n);
-    }
+    Real gcl, gcr;
+    Real cl, cr;
 
-    GpuArray<Real, NQ> qp_int;
-    for (int n = 0; n < NQ; n++) {
-      qp_int[n] = qp(i,j,k,n);
-    }
+#ifdef RADIATION
+    GpuArray<Real, Radiation::ngroups> laml_int;
+    GpuArray<Real, Radiation::ngroups> lamr_int;
+    Real gamcgl, gamcgr;
+#endif
+
+    get_riemann_input_states(ql_arr, qr_arr,
+                             qaux_arr,
+                             i, j, k, idir, 0,
+                             gcl, gcr, cl, cr,
+#ifdef RADIATION
+                             laml_int, lamr_int,
+                             gamcgl, gamcgr,
+#endif
+                             ql_int, qr_int);
 
     GpuArray<Real, NQ> q_riemann;
 
-    Real gcl;
-    Real cl;
-
-    if (idir == 0) {
-      gcl = qaux_arr(i-1,j,k,QGAMC);
-      cl = qaux_arr(i-1,j,k,QC);
-
-    } else if (idir == 1) {
-      gcl = qaux_arr(i,j-1,k,QGAMC);
-      cl = qaux_arr(i,j-1,k,QC);
-
-    } else {
-      gcl = qaux_arr(i,j,k-1,QGAMC);
-      cl = qaux_arr(i,j,k-1,QC);
-
-    }
-
-    Real gcr = qaux_arr(i,j,k,QGAMC);
-    Real cr = qaux_arr(i,j,k,QC);
-
-#ifdef TRUE_SDC
-    if (castro::use_reconstructed_gamma1 == 1) {
-      gcl = qm(i,j,k,QGC);
-      gcr = qp(i,j,k,QGC);
-    }
-#endif
-
-#ifndef RADIATION
-    if (compute_gammas == 1) {
-
-      // we come in with a good p, rho, and X on the interfaces
-      // -- use this to find the gamma used in the sound speed
-      eos_t eos_state;
-      eos_state.p = qm_int[QPRES];
-      eos_state.rho = qm_int[QRHO];
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qm_int[QFS+n];
-      }
-      eos_state.T = castro::T_guess; // initial guess
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qm_int[QFX+n];
-      }
-
-      eos(eos_input_rp, eos_state);
-
-      gcl = eos_state.gam1;
-
-      eos_state.p = qp_int[QPRES];
-      eos_state.rho = qp_int[QRHO];
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qp_int[QFS+n];
-      }
-      eos_state.T = castro::T_guess; // initial guess
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qp_int[QFX+n];
-      }
-
-      eos(eos_input_rp, eos_state);
-
-      gcr = eos_state.gam1;
-
-    }
-#endif
-
-#ifdef RADIATION
-    Real laml[NGROUPS];
-    Real lamr[NGROUPS];
-
-    if (idir == 0) {
-      for (int g = 0; g < NGROUPS; g++) {
-        laml[g] = qaux_arr(i-1,j,k,QLAMS+g);
-      }
-      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
-
-      gamcgl = qaux_arr(i-1,j,k,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-
-    } else if (idir == 1) {
-      for (int g = 0; g < NGROUPS; g++) {
-        laml[g] = qaux_arr(i,j-1,k,QLAMS+g);
-      }
-      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
-
-      gamcgl = qaux_arr(i,j-1,k,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-
-    } else {
-      for (int g = 0; g < NGROUPS; g++) {
-        laml[g] = qaux_arr(i,j,k-1,QLAMS+g);
-      }
-      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
-
-      gamcgl = qaux_arr(i,j,k-1,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-
-    }
-#endif
-
-    riemann_state_interface(qm_int, qp_int,
+    riemann_state_interface(ql_int, qr_int,
                             gcl, gcr, cl, cr,
                             q_riemann, bnd_fac, idir);
 

@@ -196,7 +196,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             q_int.resize(nbx1, 1);
             Elixir elix_qint = q_int.elixir();
-            auto q_int_arr = q_int.array();
 
             q_avg.resize(ibx[idir], NQ);
             Elixir elix_qavg = q_avg.elixir();
@@ -436,10 +435,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // compute the fluxes and add artificial viscosity
 
-          q_int.resize(obx, NQ);
-          Elixir elix_q_int = q_int.elixir();
-          auto q_int_arr = q_int.array();
-
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             const int idir_f = idir + 1;
@@ -488,7 +483,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (nbx,
                  qm_arr, qp_arr,
-                 flux_arr, q_int_arr,
+                 flux_arr,
                  qe_arr,
                  qaux_arr, shk_arr,
                  idir);

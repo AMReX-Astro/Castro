@@ -21,9 +21,8 @@ using namespace amrex;
 #include <riemann.H>
 
 void
-Castro::compute_flux_q(const Box& bx,
-                       Array4<Real const> const qint,
-                       Array4<Real> const F,
+Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
+                       GpuArray<Real, NUM_STATE>& F,
 #ifdef RADIATION
                        Array4<Real const> const lambda,
                        Array4<Real> const rF,
@@ -71,109 +70,96 @@ Castro::compute_flux_q(const Box& bx,
   int closure = Radiation::closure;
 #endif
 
-  const Real lT_guess = T_guess;
-
   GeometryData geomdata = geom.data();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
-  amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-  {
+  Real u_adv = q_riemann[iu];
+  Real rhoeint = q_riemann[QREINT];
 
-    Real u_adv = qint(i,j,k,iu);
-    Real rhoeint = qint(i,j,k,QREINT);
-
-    // if we are enforcing the EOS, then take rho, p, and X, and
-    // compute rhoe
-    if (enforce_eos == 1) {
-      eos_t eos_state;
-      eos_state.rho = qint(i,j,k,QRHO);
-      eos_state.p = qint(i,j,k,QPRES);
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qint(i,j,k,QFS+n);
-      }
-      eos_state.T = lT_guess;  // initial guess
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qint(i,j,k,QFX+n);
-      }
-
-      eos(eos_input_rp, eos_state);
-
-      rhoeint = qint(i,j,k,QRHO) * eos_state.e;
+  // if we are enforcing the EOS, then take rho, p, and X, and
+  // compute rhoe
+  if (enforce_eos == 1) {
+    eos_t eos_state;
+    eos_state.rho = q_riemann[QRHO];
+    eos_state.p = q_riemann[QPRES];
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = q_riemann[QFS+n];
+    }
+    eos_state.T = castro::T_guess;  // initial guess
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = q_riemann[QFX+n];
     }
 
-    // Compute fluxes, order as conserved state (not q)
-    F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
+    eos(eos_input_rp, eos_state);
 
-    F(i,j,k,im1) = F(i,j,k,URHO)*qint(i,j,k,iu);
-    if (mom_check) {
-      F(i,j,k,im1) += qint(i,j,k,QPRES);
-    }
-    F(i,j,k,im2) = F(i,j,k,URHO)*qint(i,j,k,iv1);
-    F(i,j,k,im3) = F(i,j,k,URHO)*qint(i,j,k,iv2);
+    rhoeint = q_riemann[QRHO] * eos_state.e;
+  }
 
-    Real rhoetot = rhoeint + 0.5_rt * qint(i,j,k,QRHO)*
-      (qint(i,j,k,iu)*qint(i,j,k,iu) +
-       qint(i,j,k,iv1)*qint(i,j,k,iv1) +
-       qint(i,j,k,iv2)*qint(i,j,k,iv2));
+  // Compute fluxes, order as conserved state (not q)
+  F[URHO] = q_riemann[QRHO]*u_adv;
 
-    F(i,j,k,UEDEN) = u_adv*(rhoetot + qint(i,j,k,QPRES));
-    F(i,j,k,UEINT) = u_adv*rhoeint;
+  F[im1] = F[URHO] * u_adv;
+  if (mom_check) {
+    F[im1] += q_riemann[QPRES];
+  }
+  F[im2] = F[URHO] * q_riemann[iv1];
+  F[im3] = F[URHO] * q_riemann[iv2];
 
-    F(i,j,k,UTEMP) = 0.0;
+  Real rhoetot = rhoeint + 0.5_rt * q_riemann[QRHO] *
+      (q_riemann[iu] * q_riemann[iu] +
+       q_riemann[iv1] * q_riemann[iv1] +
+       q_riemann[iv2] * q_riemann[iv2]);
+
+  F[UEDEN] = u_adv * (rhoetot + q_riemann[QPRES]);
+  F[UEINT] = u_adv * rhoeint;
+
+  F[UTEMP] = 0.0;
 #ifdef SHOCK_VAR
-    F(i,j,k,USHK) = 0.0;
+  F[USHK] = 0.0;
 #endif
 
 #ifdef RADIATION
-    if (fspace_t == 1) {
-      for (int g = 0; g < NGROUPS; g++) {
-        Real eddf = Edd_factor(lambda(i,j,k,g), limiter, closure);
-        Real f1 = 0.5e0_rt*(1.0_rt-eddf);
-        rF(i,j,k,g) = (1.0_rt + f1) * qint(i,j,k,QRAD+g) * u_adv;
-      }
-    } else {
-      // type 2
-      for (int g = 0; g < NGROUPS; g++) {
-        rF(i,j,k,g) = qint(i,j,k,QRAD+g) * u_adv;
-      }
+  if (fspace_t == 1) {
+    for (int g = 0; g < NGROUPS; g++) {
+      Real eddf = Edd_factor(lambda(i,j,k,g), limiter, closure);
+      Real f1 = 0.5e0_rt*(1.0_rt-eddf);
+      rF(i,j,k,g) = (1.0_rt + f1) * q_riemann[QRAD+g] * u_adv;
     }
+  } else {
+    // type 2
+    for (int g = 0; g < NGROUPS; g++) {
+      rF(i,j,k,g) = q_riemann[QRAD+g] * u_adv;
+    }
+  }
 #endif
 
-    // passively advected quantities
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upassmap(ipassive);
-      int nqp = qpassmap(ipassive);
+  // passively advected quantities
+  for (int ipassive = 0; ipassive < npassive; ipassive++) {
+    int n  = upassmap(ipassive);
+    int nqp = qpassmap(ipassive);
 
-      F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
-    }
+    F[n] = F[URHO] * q_riemann[nqp];
+  }
 
 #ifdef HYBRID_MOMENTUM
-    // the hybrid routine uses the Godunov indices, not the full NQ state
-    GpuArray<Real, NGDNV> qgdnv_zone;
-    qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
-    qgdnv_zone[GDU] = qint(i,j,k,QU);
-    qgdnv_zone[GDV] = qint(i,j,k,QV);
-    qgdnv_zone[GDW] = qint(i,j,k,QW);
-    qgdnv_zone[GDPRES] = qint(i,j,k,QPRES);
+  // the hybrid routine uses the Godunov indices, not the full NQ state
+  GpuArray<Real, NGDNV> qgdnv_zone;
+  qgdnv_zone[GDRHO] = q_riemann[QRHO];
+  qgdnv_zone[GDU] = q_riemann[QU];
+  qgdnv_zone[GDV] = q_riemann[QV];
+  qgdnv_zone[GDW] = q_riemann[QW];
+  qgdnv_zone[GDPRES] = q_riemann[QPRES];
 #ifdef RADIATION
-    for (int g = 0; g < NGROUPS; g++) {
-        qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
-        qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
-    }
+  for (int g = 0; g < NGROUPS; g++) {
+    qgdnv_zone[GDLAMS+g] = lambda(i,j,k,g);
+    qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
+  }
 #endif
-    GpuArray<Real, NUM_STATE> F_zone;
-    for (int n = 0; n < NUM_STATE; n++) {
-        F_zone[n] = F(i,j,k,n);
-    }
-    compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F_zone);
-    for (int n = 0; n < NUM_STATE; n++) {
-        F(i,j,k,n) = F_zone[n];
-    }
+  compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F);
 #endif
-  });
+
 }
 
 
@@ -192,7 +178,6 @@ Castro::store_godunov_state(const Box& bx,
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
-    // the hybrid routine uses the Godunov indices, not the full NQ state
     qgdnv(i,j,k,GDRHO) = qint(i,j,k,QRHO);
     qgdnv(i,j,k,GDU) = qint(i,j,k,QU);
     qgdnv(i,j,k,GDV) = qint(i,j,k,QV);

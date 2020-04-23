@@ -10,6 +10,129 @@ const Real smlp1 = 1.e-10_rt;
 const Real small = 1.e-8_rt;
 const Real smallu = 1.e-12_rt;
 
+
+
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+Castro::get_riemann_input_states(Array4<Real const> const ql_arr, Array4<Real const> const qr_arr,
+                                 Array4<Real const> const qaux_arr,
+                                 const int i, const int j, const int k, const int idir,
+                                 const int compute_gammas,
+                                 Real& gcl, Real& gcr,
+                                 Real& cl, Real& cr,
+#ifdef RADIATION
+                                 GpuArray<Real, NQ>& laml_int, GpuArray<Real, NQ>& lamr_int,
+                                 Real& gamcgl, Real& gamcgr,
+#endif
+                                 GpuArray<Real, NQ>& ql_int, GpuArray<Real, NQ>& qr_int) {
+
+
+  // copy the initial interface states
+
+  for (int n = 0; n < NQ; n++) {
+    ql_int[n] = ql_arr(i,j,k,n);
+  }
+
+  for (int n = 0; n < NQ; n++) {
+    qr_int[n] = qr_arr(i,j,k,n);
+  }
+
+  if (idir == 0) {
+    gcl = qaux_arr(i-1,j,k,QGAMC);
+    cl = qaux_arr(i-1,j,k,QC);
+
+  } else if (idir == 1) {
+    gcl = qaux_arr(i,j-1,k,QGAMC);
+    cl = qaux_arr(i,j-1,k,QC);
+
+  } else {
+    gcl = qaux_arr(i,j,k-1,QGAMC);
+    cl = qaux_arr(i,j,k-1,QC);
+
+  }
+
+  gcr = qaux_arr(i,j,k,QGAMC);
+  cr = qaux_arr(i,j,k,QC);
+
+#ifdef TRUE_SDC
+  if (castro::use_reconstructed_gamma1 == 1) {
+    gcl = ql_arr(i,j,k,QGC);
+    gcr = qr_arr(i,j,k,QGC);
+  }
+#endif
+
+#ifndef RADIATION
+  if (compute_gammas == 1) {
+
+    // we come in with a good p, rho, and X on the interfaces
+    // -- use this to find the gamma used in the sound speed
+    eos_t eos_state;
+    eos_state.p = ql_int[QPRES];
+    eos_state.rho = ql_int[QRHO];
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = ql_int[QFS+n];
+      }
+      eos_state.T = castro::T_guess; // initial guess
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = ql_int[QFX+n];
+      }
+
+      eos(eos_input_rp, eos_state);
+
+      gcl = eos_state.gam1;
+
+      eos_state.p = qr_int[QPRES];
+      eos_state.rho = qr_int[QRHO];
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = qr_int[QFS+n];
+      }
+      eos_state.T = castro::T_guess; // initial guess
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = qr_int[QFX+n];
+      }
+
+      eos(eos_input_rp, eos_state);
+
+      gcr = eos_state.gam1;
+
+    }
+#endif
+
+#ifdef RADIATION
+  if (idir == 0) {
+    for (int g = 0; g < NGROUPS; g++) {
+      laml_int[g] = qaux_arr(i-1,j,k,QLAMS+g);
+    }
+    lamr_int[g] = qaux_arr(i,j,k,QLAMS+g);
+
+    gamcgl = qaux_arr(i-1,j,k,QGAMCG);
+    gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+  } else if (idir == 1) {
+    for (int g = 0; g < NGROUPS; g++) {
+      laml_int[g] = qaux_arr(i,j-1,k,QLAMS+g);
+    }
+    lamr_int[g] = qaux_arr(i,j,k,QLAMS+g);
+
+    gamcgl = qaux_arr(i,j-1,k,QGAMCG);
+    gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+  } else {
+    for (int g = 0; g < NGROUPS; g++) {
+      laml_int[g] = qaux_arr(i,j,k-1,QLAMS+g);
+    }
+    lamr_int[g] = qaux_arr(i,j,k,QLAMS+g);
+
+    gamcgl = qaux_arr(i,j,k-1,QGAMCG);
+    gamcgr = qaux_arr(i,j,k,QGAMCG);
+
+  }
+#endif
+
+}
+
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::riemann_state_interface(GpuArray<Real, NQ>& qm, GpuArray<Real, NQ>& qp,

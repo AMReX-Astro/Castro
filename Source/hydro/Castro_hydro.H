@@ -325,15 +325,30 @@
                              amrex::Array4<amrex::Real> const qm,
                              amrex::Array4<amrex::Real> const qp,
                              amrex::Array4<amrex::Real> const flx,
-                             amrex::Array4<amrex::Real> const qint,
 #ifdef RADIATION
                              amrex::Array4<amrex::Real> const rflx,
-                             amrex::Array4<amrex::Real> const lambda_int,
 #endif
                              amrex::Array4<amrex::Real> const qgdnv,
                              amrex::Array4<amrex::Real const> const qaux,
                              amrex::Array4<amrex::Real const> const shk,
                              const int idir);
+
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    void
+    get_riemann_input_states(amrex::Array4<amrex::Real const> const ql_arr,
+                             amrex::Array4<amrex::Real const> const qr_arr,
+                             amrex::Array4<amrex::Real const> const qaux_arr,
+                             const int i, const int j, const int k, const int idir,
+                             const int compute_gammas,
+                             amrex::Real& gcl, amrex::Real& gcr,
+                             amrex::Real& cl, amrex::Real& cr,
+#ifdef RADIATION
+                             amrex::GpuArray<amrex::Real, NQ>& laml_int,
+                             amrex::GpuArray<amrex::Real, NQ>& lamr_int,
+                             amrex::Real& gamcgl, amrex::Real& gamcgr,
+#endif
+                             amrex::GpuArray<amrex::Real, NQ>& ql_int,
+                             amrex::GpuArray<amrex::Real, NQ>& qr_int);
 
     void riemann_state(const amrex::Box& bx,
                        amrex::Array4<amrex::Real> const qm,
@@ -419,12 +434,11 @@
                const amrex::Real* q, amrex::Real* U);
 
     void
-    compute_flux_q(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real const> const qint,
-                   amrex::Array4<amrex::Real> const F,
+    compute_flux_q(amrex::GpuArray<amrex::Real, NQ>& q_riemann,
+                   amrex::GpuArray<amrex::Real, NUM_STATE>& F,
 #ifdef RADIATION
-                   amrex::Array4<amrex::Real const> const lambda,
-                   amrex::Array4<amrex::Real> const rF,
+                   Array4<Real const> const lambda,
+                   Array4<Real> const rF,
 #endif
                    const int idir, const int enforce_eos);
 
