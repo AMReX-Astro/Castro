@@ -32,9 +32,6 @@ Castro::get_riemann_input_states(Array4<Real const> const ql_arr, Array4<Real co
 
   for (int n = 0; n < NQ; n++) {
     ql_int[n] = ql_arr(i,j,k,n);
-  }
-
-  for (int n = 0; n < NQ; n++) {
     qr_int[n] = qr_arr(i,j,k,n);
   }
 
