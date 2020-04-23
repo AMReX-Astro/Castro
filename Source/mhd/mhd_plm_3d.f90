@@ -54,13 +54,9 @@ contains
     real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,NQ,3)
 
     real(rt), intent(in   ) :: dx,dy,dz,dt
-
+ 
     real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ_p(7), summ_m(7)
-    real(rt) :: temp(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,8), smhd(7)
-    real(rt) :: temp_s(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1,nspec)!store species with lo-1 and hi+1
-    real(rt) :: tbx(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
-    real(rt) :: tby(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
-    real(rt) :: tbz(s_l1-1:s_h1+1,s_l2-1:s_h2+1,s_l3-1:s_h3+1)
+    real(rt) :: smhd(7)
     real(rt) :: dt_over_a
     integer  :: ii,ibx,iby,ibz, i , j, k, n, idir
 
@@ -77,341 +73,11 @@ contains
     Ip = 0.d0
     Im = 0.d0
 
-    !------------------------workspace variables---------------------------------------------
+       
 
-    ! temp are just the primitive variables that participate in the Eigensystem
-    ! in temp, the magnetic field are the cell-centered magnetic fields
 
-    temp = 0.d0
-    temp(:,:,:,1) = small_dens
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,1) = s(:,:,:,QRHO) !Gas vars Cell Centered
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,2) = s(:,:,:,QU)
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,3) = s(:,:,:,QV)
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,4) = s(:,:,:,QW)
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,5) = s(:,:,:,QPRES)
-    temp(s_l1: s_h1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(:,:,:,QMAGX:QMAGZ) !Mag vars Cell Centered
-    temp_s(s_l1:s_h1, s_l2:s_h2, s_l3: s_h3,:) = s(:,:,:,QFS:QFS+nspec-1)
-    !-------------------- Fill Boundaries ---------------------------------------------------
-    temp(s_l1-1,s_l2-1,s_l3-1,1) = s(s_l1,s_l2,s_l3,QRHO)
-    temp(s_l1-1,s_l2-1,s_l3-1,2) = s(s_l1,s_l2,s_l3,QU)
-    temp(s_l1-1,s_l2-1,s_l3-1,3) = s(s_l1,s_l2,s_l3,QV)
-    temp(s_l1-1,s_l2-1,s_l3-1,4) = s(s_l1,s_l2,s_l3,QW)
-    temp(s_l1-1,s_l2-1,s_l3-1,5) = s(s_l1,s_l2,s_l3,QPRES)
-    temp(s_l1-1,s_l2-1,s_l3-1,ibx:ibz) = s(s_l1,s_l2,s_l3,QMAGX:QMAGZ)
-    temp_s(s_l1-1, s_l2-1, s_l3-1, :) = s(s_l1,s_l2,s_l3,QFS:QFS+nspec-1)
-
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,1) = s(s_l1,:,:,QRHO)
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,2) = s(s_l1,:,:,QU)
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,3) = s(s_l1,:,:,QV)
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,4) = s(s_l1,:,:,QW)
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,5) = s(s_l1,:,:,QPRES)
-    temp(s_l1-1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_l1,:,:,QMAGX:QMAGZ)
-    temp_s(s_l1-1, s_l2:s_h2, s_l3:s_h3, :) = s(s_l1,:,:,QFS:QFS+nspec-1)
-
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,1) = s(:,s_l2,:,QRHO)
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,2) = s(:,s_l2,:,QU)
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,3) = s(:,s_l2,:,QV)
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,4) = s(:,s_l2,:,QW)
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,5) = s(:,s_l2,:,QPRES)
-    temp(s_l1:s_h1, s_l2-1, s_l3: s_h3,ibx:ibz) = s(:,s_l2,:,QMAGX:QMAGZ)
-    temp_s(s_l1:s_h1, s_l2-1, s_l3:s_h3, :) = s(:,s_l2,:,QFS:QFS+nspec-1)
-
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,1) = s(:,:,s_l3,QRHO)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,2) = s(:,:,s_l3,QU)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,3) = s(:,:,s_l3,QV)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,4) = s(:,:,s_l3,QW)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,5) = s(:,:,s_l3,QPRES)
-    temp(s_l1:s_h1, s_l2:s_h2, s_l3-1,ibx:ibz) = s(:,:,s_l3,QMAGX:QMAGZ)    
-    temp_s(s_l1:s_h1, s_l2:s_h2, s_l3-1, :) = s(:,:,s_l3,QFS:QFS+nspec-1)
-
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,1) = s(s_h1,:,:,QRHO)
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,2) = s(s_h1,:,:,QU)
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,3) = s(s_h1,:,:,QV)
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,4) = s(s_h1,:,:,QW)
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,5) = s(s_h1,:,:,QPRES)
-    temp(s_h1+1, s_l2: s_h2, s_l3: s_h3,ibx:ibz) = s(s_h1,:,:,QMAGX:QMAGZ)
-    temp_s(s_h1+1, s_l2:s_h2, s_l3:s_h3, :) = s(s_h1,:,:,QFS:QFS+nspec-1)
-
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,1) = s(:,s_h2,:,QRHO)
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,2) = s(:,s_h2,:,QU)
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,3) = s(:,s_h2,:,QV)
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,4) = s(:,s_h2,:,QW)
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,5) = s(:,s_h2,:,QPRES)
-    temp(s_l1:s_h1, s_h2+1, s_l3: s_h3,ibx:ibz) = s(:,s_h2,:,QMAGX:QMAGZ)
-    temp_s(s_l1:s_h1, s_h2+1, s_l3:s_h3, :) = s(:,s_h2,:,QFS:QFS+nspec-1)
-
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,1) = s(:,:,s_h3,QRHO)
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,2) = s(:,:,s_h3,QU)
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,3) = s(:,:,s_h3,QV)
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,4) = s(:,:,s_h3,QW)
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,5) = s(:,:,s_h3,QPRES)
-    temp(s_l1:s_h1, s_l2:s_h2, s_h3+1,ibx:ibz) = s(:,:,s_h3,QMAGX:QMAGZ)
-    temp_s(s_l1:s_h1, s_l2:s_h2, s_h3+1, :) = s(:,:,s_h3,QFS:QFS+nspec-1)
-
-    temp(s_h1+1,s_h2+1,s_h3+1,1) = s(s_h1,s_h2,s_h3,QRHO)
-    temp(s_h1+1,s_h2+1,s_h3+1,2) = s(s_h1,s_h2,s_h3,QU)
-    temp(s_h1+1,s_h2+1,s_h3+1,3) = s(s_h1,s_h2,s_h3,QV)
-    temp(s_h1+1,s_h2+1,s_h3+1,4) = s(s_h1,s_h2,s_h3,QW)
-    temp(s_h1+1,s_h2+1,s_h3+1,5) = s(s_h1,s_h2,s_h3,QPRES)
-    temp(s_h1+1,s_h2+1,s_h3+1,ibx:ibz) = s(s_h1,s_h2,s_h3,QMAGX:QMAGZ)
-    temp_s(s_h1+1, s_h2+1, s_h3+1, :) = s(s_h1,s_h2,s_h3,QFS:QFS+nspec-1)
-
-    ! Temp face centered magnetic fields
-
-    ! the following are face-centered magnetic fields -- we need these for the source terms
-    ! not the eigensystem
-
-    do k = s_l3-1, s_h3+1
-       do j = s_l2-1, s_h2+1
-          do i = s_l1-1, s_h1+1
-             !---------------------- set up temporary bx ---------------------
-             if(i.lt.bxlo(1)) then
-                if(j.lt.bxlo(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxlo(1),bxlo(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxlo(1), bxlo(2), k)
-                   else
-                      tbx(i,j,k) = bx(bxlo(1), bxlo(2), bxhi(3))
-                   endif
-                elseif(j.lt.bxhi(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxlo(1),j,bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxlo(1), j, k)
-                   else
-                      tbx(i,j,k) = bx(bxlo(1), j, bxhi(3))
-                   endif
-                else
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxlo(1),bxhi(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxlo(1), bxhi(2), k)
-                   else
-                      tbx(i,j,k) = bx(bxlo(1), bxhi(2), bxhi(3))
-                   endif
-                endif
-             elseif(i.lt.bxhi(1)) then
-                if(j.lt.bxlo(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(i,bxlo(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(i, bxlo(2), k)
-                   else
-                      tbx(i,j,k) = bx(i, bxlo(2), bxhi(3))
-                   endif
-                elseif(j.lt.bxhi(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(i,j,bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(i, j, k)
-                   else
-                      tbx(i,j,k) = bx(i, j, bxhi(3))
-                   endif
-                else
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(i,bxhi(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(i, bxhi(2), k)
-                   else
-                      tbx(i,j,k) = bx(i, bxhi(2), bxhi(3))
-                   endif
-                endif
-             else
-                if(j.lt.bxlo(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxhi(1),bxlo(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxhi(1), bxlo(2), k)
-                   else
-                      tbx(i,j,k) = bx(bxhi(1), bxlo(2), bxhi(3))
-                   endif
-                elseif(j.lt.bxhi(2)) then
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxhi(1),j,bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxhi(1), j, k)
-                   else
-                      tbx(i,j,k) = bx(bxhi(1), j, bxhi(3))
-                   endif
-                else
-                   if(k.lt.bxlo(3)) then
-                      tbx(i,j,k) = bx(bxhi(1),bxhi(2),bxlo(3))
-                   elseif(k.lt.bxhi(3)) then
-                      tbx(i,j,k) = bx(bxhi(1), bxhi(2), k)
-                   else
-                      tbx(i,j,k) = bx(bxhi(1), bxhi(2), bxhi(3))
-                   endif
-                endif
-             endif
-
-             !---------------------- set up temporary by ---------------------
-             if(i.lt.bylo(1)) then
-                if(j.lt.bylo(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(bylo(1),bylo(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(bylo(1), bylo(2), k)
-                   else
-                      tby(i,j,k) = by(bylo(1), bylo(2), byhi(3))
-                   endif
-                elseif(j.lt.byhi(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(bylo(1),j,bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(bylo(1), j, k)
-                   else
-                      tby(i,j,k) = by(bylo(1), j, byhi(3))
-                   endif
-                else
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(bylo(1),byhi(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(bylo(1), byhi(2), k)
-                   else
-                      tby(i,j,k) = by(bylo(1), byhi(2), byhi(3))
-                   endif
-                endif
-             elseif(i.lt.byhi(1)) then
-                if(j.lt.bylo(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(i,bylo(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(i, bylo(2), k)
-                   else
-                      tby(i,j,k) = by(i, bylo(2), byhi(3))
-                   endif
-                elseif(j.lt.byhi(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(i,j,bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(i, j, k)
-                   else
-                      tby(i,j,k) = by(i, j, byhi(3))
-                   endif
-                else
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(i,byhi(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(i, byhi(2), k)
-                   else
-                      tby(i,j,k) = by(i, byhi(2), byhi(3))
-                   endif
-                endif
-             else
-                if(j.lt.bylo(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(byhi(1),bylo(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(byhi(1), bylo(2), k)
-                   else
-                      tby(i,j,k) = by(byhi(1), bylo(2), byhi(3))
-                   endif
-                elseif(j.lt.byhi(2)) then
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(byhi(1),j,bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(byhi(1), j, k)
-                   else
-                      tby(i,j,k) = by(byhi(1), j, byhi(3))
-                   endif
-                else
-                   if(k.lt.bylo(3)) then
-                      tby(i,j,k) = by(byhi(1),byhi(2),bylo(3))
-                   elseif(k.lt.byhi(3)) then
-                      tby(i,j,k) = by(byhi(1), byhi(2), k)
-                   else
-                      tby(i,j,k) = by(byhi(1), byhi(2), byhi(3))
-                   endif
-                endif
-             endif
-
-             !---------------------- set up temporary bz ---------------------
-             if(i.lt.bzlo(1)) then
-                if(j.lt.bzlo(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzlo(1),bzlo(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzlo(1), bzlo(2), k)
-                   else
-                      tbz(i,j,k) = bz(bzlo(1), bzlo(2), bzhi(3))
-                   endif
-                elseif(j.lt.bzhi(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzlo(1),j,bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzlo(1), j, k)
-                   else
-                      tbz(i,j,k) = bz(bzlo(1), j, bzhi(3))
-                   endif
-                else
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzlo(1),bzhi(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzlo(1), bzhi(2), k)
-                   else
-                      tbz(i,j,k) = bz(bzlo(1), bzhi(2), bzhi(3))
-                   endif
-                endif
-             elseif(i.lt.bzhi(1)) then
-                if(j.lt.bzlo(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(i,bzlo(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(i, bzlo(2), k)
-                   else
-                      tbz(i,j,k) = bz(i, bzlo(2), bzhi(3))
-                   endif
-                elseif(j.lt.bzhi(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(i,j,bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(i, j, k)
-                   else
-                      tbz(i,j,k) = bz(i, j, bzhi(3))
-                   endif
-                else
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(i,bzhi(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(i, bzhi(2), k)
-                   else
-                      tbz(i,j,k) = bz(i, bzhi(2), bzhi(3))
-                   endif
-                endif
-             else
-                if(j.lt.bzlo(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzhi(1),bzlo(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzhi(1), bzlo(2), k)
-                   else
-                      tbz(i,j,k) = bz(bzhi(1), bzlo(2), bzhi(3))
-                   endif
-                elseif(j.lt.bzhi(2)) then
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzhi(1),j,bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzhi(1), j, k)
-                   else
-                      tbz(i,j,k) = bz(bzhi(1), j, bzhi(3))
-                   endif
-                else
-                   if(k.lt.bzlo(3)) then
-                      tbz(i,j,k) = bz(bzhi(1),bzhi(2),bzlo(3))
-                   elseif(k.lt.bzhi(3)) then
-                      tbz(i,j,k) = bz(bzhi(1), bzhi(2), k)
-                   else
-                      tbz(i,j,k) = bz(bzhi(1), bzhi(2), bzhi(3))
-                   endif
-                endif
-             endif
-          enddo
-       enddo
-    enddo
-
-    !=========================== PLM =========================================
-    do k = s_l3+1, s_h3-1
+       !=========================== PLM =========================================
+    do k = s_l3+1,s_h3-1
        do j = s_l2+1, s_h2-1
           do i = s_l1+1, s_h1-1
 
@@ -426,23 +92,35 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip Bx
-             dQL(1:5) =         temp(i,j,k,1:ibx-1) - temp(i-1,j,k,1:ibx-1) !gas
-             dQL(6:7) =         temp(i,j,k,ibx+1:8) - temp(i-1,j,k,ibx+1:8)     !mag
-             dQR(1:5) =         temp(i+1,j,k,1:ibx-1) - temp(i,j,k,1:ibx-1)
-             dQR(6:7) =         temp(i+1,j,k,ibx+1:8) - temp(i,j,k,ibx+1:8)
-
+             dQL(1) = s(i,j,k,QRHO) - s(i-1,j,k,QRHO)
+             dQL(2) = s(i,j,k,QU) - s(i-1,j,k,QU)
+             dQL(3) = s(i,j,k,QV) - s(i-1,j,k,QV)
+             dQL(4) = s(i,j,k,QW) - s(i-1,j,k,QW)
+             dQL(5) = s(i,j,k,QPRES)-s(i-1,j,k,QPRES)
+             dQL(6) = s(i,j,k,QMAGY)-s(i-1,j,k,QMAGY)
+             dQL(7) = s(i,j,k,QMAGZ)-s(i-1,j,k,QMAGZ)
+             
+             dQR(1) = s(i+1,j,k,QRHO) - s(i,j,k,QRHO)
+             dQR(2) = s(i+1,j,k,QU) - s(i,j,k,QU)
+             dQR(3) = s(i+1,j,k,QV) - s(i,j,k,QV)
+             dQR(4) = s(i+1,j,k,QW) - s(i,j,k,QW)
+             dQR(5) = s(i+1,j,k,QPRES)-s(i,j,k,QPRES)
+             dQR(6) = s(i+1,j,k,QMAGY)-s(i,j,k,QMAGY)
+             dQR(7) = s(i+1,j,k,QMAGZ)-s(i,j,k,QMAGZ)
+       
+            
              call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
              call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecx(reig,s(i,j,k,:))    !!right eigenvectors
              !MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
-             smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
-             smhd(3) = temp(i,j,k,iby)/temp(i,j,k,1)
-             smhd(4) = temp(i,j,k,ibz)/temp(i,j,k,1)
-             smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
-             smhd(6) = temp(i,j,k,3)
-             smhd(7) = temp(i,j,k,4)
-             smhd       = smhd*(tbx(i+1,j,k) - tbx(i,j,k))/dx !cross-talk of normal magnetic field direction
-             !Interpolate
+             smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
+             smhd(3) = s(i,j,k,QMAGY)/s(i,j,k,QRHO)
+             smhd(4) = s(i,j,k,QMAGZ)/s(i,j,k,QRHO)
+             smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
+             smhd(6) = s(i,j,k,QV)
+             smhd(7) = s(i,j,k,QW)
+             smhd 	= smhd*(bx(i+1,j,k) - bx(i,j,k))/dx !cross-talk of normal magnetic field direction
+            !Interpolate
              !Plus
              !!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
              do ii = 1,7
@@ -452,19 +130,19 @@ contains
                 summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
              enddo
-             Ip(i,j,k,QRHO,1) = temp(i,j,k,1) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)
-             Ip(i,j,k,QU,1) = temp(i,j,k,2) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,1) = temp(i,j,k,3) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,1) = temp(i,j,k,4) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,1) = temp(i,j,k,5) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,1) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)
+             Ip(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,1) = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,1) = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,1) = s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,1) = tbx(i+1,j,k) !! Bx stuff
-             Ip(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGX,1) = bx(i+1,j,k) !! Bx stuff
+             Ip(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
             
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i-1,j,k,ii-QFS+1)
-               dR = temp_s(i+1,j,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
+               dL = s(i,j,k,ii) - s(i-1,j,k,ii)
+               dR = s(i+1,j,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
                Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
@@ -479,14 +157,14 @@ contains
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
 
              !Minus
-             Im(i,j,k,QRHO,1) = temp(i,j,k,1) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)
-             Im(i,j,k,QU,1) = temp(i,j,k,2) +0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,1) = temp(i,j,k,3) +0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,1) = temp(i,j,k,4) +0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,1) = temp(i,j,k,5) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QRHO,1) = s(i,j,k,QRHO) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)
+             Im(i,j,k,QU,1) = s(i,j,k,QU) +0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,1) = s(i,j,k,QV) +0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,1) = s(i,j,k,QW) +0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,1) = s(i,j,k,QPRES) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX,1)  = tbx(i,j,k) !! Bx stuff
-             Im(i,j,k,QMAGY:QMAGZ,1)  = temp(i,j,k,iby:ibz) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Im(i,j,k,QMAGX,1)  = bx(i,j,k) !! Bx stuff
+             Im(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,1)
@@ -510,10 +188,22 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip By
-             dQL(1:6) = temp(i,j,k,1:ibx) - temp(i,j-1,k,1:ibx) !gas + bx
-             dQL(7) = temp(i,j,k,8) - temp(i,j-1,k,iby+1) !bz
-             dQR(1:6) = temp(i,j+1,k,1:ibx) - temp(i,j,k,1:ibx)
-             dQR(7) = temp(i,j+1,k,ibz) - temp(i,j,k,ibz)
+             dQL(1) = s(i,j,k,QRHO) - s(i,j-1,k,QRHO)
+             dQL(2) = s(i,j,k,QU) - s(i,j-1,k,QU)
+             dQL(3) = s(i,j,k,QV) - s(i,j-1,k,QV)
+             dQL(4) = s(i,j,k,QW) - s(i,j-1,k,QW)
+             dQL(5) = s(i,j,k,QPRES)-s(i,j-1,k,QPRES)
+             dQL(6) = s(i,j,k,QMAGX)-s(i,j-1,k,QMAGX)
+             dQL(7) = s(i,j,k,QMAGZ)-s(i,j-1,k,QMAGZ)
+             
+             dQR(1) = s(i,j+1,k,QRHO) - s(i,j,k,QRHO)
+             dQR(2) = s(i,j+1,k,QU) - s(i,j,k,QU)
+             dQR(3) = s(i,j+1,k,QV) - s(i,j,k,QV)
+             dQR(4) = s(i,j+1,k,QW) - s(i,j,k,QW)
+             dQR(5) = s(i,j+1,k,QPRES)-s(i,j,k,QPRES)
+             dQR(6) = s(i,j+1,k,QMAGX)-s(i,j,k,QMAGX)
+             dQR(7) = s(i,j+1,k,QMAGZ)-s(i,j,k,QMAGZ)
+
 
              call evals(lam, s(i,j,k,:), 2) !!Y dir eigenvalues
              call lvecy(leig,s(i,j,k,:))    !!left eigenvectors
@@ -527,31 +217,31 @@ contains
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dy*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
-             smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
-             smhd(3) = temp(i,j,k,iby)/temp(i,j,k,1)
-             smhd(4) = temp(i,j,k,ibz)/temp(i,j,k,1)
-             smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
-             smhd(6) = temp(i,j,k,2)
-             smhd(7) = temp(i,j,k,4)
-             smhd    = smhd*(tby(i,j+1,k) - tby(i,j,k))/dy !cross-talk of normal magnetic field direction
+             smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
+             smhd(3) = s(i,j,k,QMAGY)/s(i,j,k,QRHO)
+             smhd(4) = s(i,j,k,QMAGZ)/s(i,j,k,QRHO)
+             smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
+             smhd(6) = s(i,j,k,QU)
+             smhd(7) = s(i,j,k,QW)
+             smhd    = smhd*(by(i,j+1,k) - by(i,j,k))/dy !cross-talk of normal magnetic field direction
 
 
 
              !Interpolate
-             Ip(i,j,k,QRHO,2) = temp(i,j,k,1) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Ip(i,j,k,QU,2)   = temp(i,j,k,2) +0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,2) = temp(i,j,k,3) +0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,2) = temp(i,j,k,4) +0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,2) = temp(i,j,k,5) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,2) = s(i,j,k,QRHO) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QU,2)   = s(i,j,k,QU) +0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,2) = s(i,j,k,QV) +0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,2) = s(i,j,k,QW) +0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,2) = s(i,j,k,QPRES) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX,2)  = temp(i,j,k,ibx) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
-             Ip(i,j,k,QMAGY,2)  = tby(i,j+1,k) !! By stuff
-             Ip(i,j,k,QMAGZ,2)  = temp(i,j,k,ibz) + 0.5d0*summ_p(7) + 0.5d0*dt_over_a*smhd(7)
+             Ip(i,j,k,QMAGX,2)  = s(i,j,k,QMAGX) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
+             Ip(i,j,k,QMAGY,2)  = by(i,j+1,k) !! By stuff
+             Ip(i,j,k,QMAGZ,2)  = s(i,j,k,QMAGZ) + 0.5d0*summ_p(7) + 0.5d0*dt_over_a*smhd(7)
              
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j-1,k,ii-QFS+1)
-               dR = temp_s(i,j+1,k,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
+               dL = s(i,j,k,ii) - s(i,j-1,k,ii)
+               dR = s(i,j+1,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
                Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
@@ -566,15 +256,15 @@ contains
              Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,2) = temp(i,j,k,1) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Im(i,j,k,QU,2)   = temp(i,j,k,2) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,2)   = temp(i,j,k,3) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,2) = temp(i,j,k,4) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,2) = temp(i,j,k,5) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QRHO,2) = s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QU,2)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,2)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,2) = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,2) = s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX,2) = temp(i,j,k,ibx) + 0.5d0*summ_m(6) + 0.5d0*dt_over_a*smhd(6)
-             Im(i,j,k,QMAGY,2) = tby(i,j,k) !! By stuff
-             Im(i,j,k,QMAGZ,2) = temp(i,j,k,ibz) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
+             Im(i,j,k,QMAGX,2) = s(i,j,k,QMAGX) + 0.5d0*summ_m(6) + 0.5d0*dt_over_a*smhd(6)
+             Im(i,j,k,QMAGY,2) = by(i,j,k) !! By stuff
+             Im(i,j,k,QMAGZ,2) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
 
 
              !update this, when species work is done
@@ -598,9 +288,22 @@ contains
              leig = 0.d0
              lam = 0.d0
              !Skip Bz
-             dQL(1:7) =         temp(i,j,k,1:iby) - temp(i,j,k-1,1:iby)
-             dQR(1:7) =         temp(i,j,k+1,1:iby) - temp(i,j,k,1:iby)
-                        
+             dQL(1) = s(i,j,k,QRHO) - s(i,j,k-1,QRHO)
+             dQL(2) = s(i,j,k,QU) - s(i,j,k-1,QU)
+             dQL(3) = s(i,j,k,QV) - s(i,j,k-1,QV)
+             dQL(4) = s(i,j,k,QW) - s(i,j,k-1,QW)
+             dQL(5) = s(i,j,k,QPRES)-s(i,j,k-1,QPRES)
+             dQL(6) = s(i,j,k,QMAGX)-s(i,j,k-1,QMAGX)
+             dQL(7) = s(i,j,k,QMAGY)-s(i,j,k-1,QMAGY)
+             
+             dQR(1) = s(i,j,k+1,QRHO) - s(i,j,k,QRHO)
+             dQR(2) = s(i,j,k+1,QU) - s(i,j,k,QU)
+             dQR(3) = s(i,j,k+1,QV) - s(i,j,k,QV)
+             dQR(4) = s(i,j,k+1,QW) - s(i,j,k,QW)
+             dQR(5) = s(i,j,k+1,QPRES)-s(i,j,k,QPRES)
+             dQR(6) = s(i,j,k+1,QMAGX)-s(i,j,k,QMAGX)
+             dQR(7) = s(i,j,k+1,QMAGY)-s(i,j,k,QMAGY)
+                       
              call evals(lam, s(i,j,k,:), 3) !!Z dir eigenvalues
              call lvecz(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecz(reig,s(i,j,k,:))    !!right eigenvectors
@@ -614,28 +317,26 @@ contains
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dz*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
-             smhd(2) = temp(i,j,k,ibx)/temp(i,j,k,1)
-             smhd(3) = temp(i,j,k,iby)/temp(i,j,k,1)
-             smhd(4) = temp(i,j,k,ibz)/temp(i,j,k,1)
-             smhd(5) = temp(i,j,k,ibx)*temp(i,j,k,2) + temp(i,j,k,iby)*temp(i,j,k,3) + temp(i,j,k,ibz)*temp(i,j,k,4)
-             smhd(6) = temp(i,j,k,2)
-             smhd(7) = temp(i,j,k,3)
-             smhd       = smhd*(tbz(i,j,k+1) - tbz(i,j,k))/dz !cross-talk of normal magnetic field direction
-
+             smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
+             smhd(3) = s(i,j,k,QMAGY)/s(i,j,k,QRHO)
+             smhd(4) = s(i,j,k,QMAGZ)/s(i,j,k,QRHO)
+             smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
+             smhd(6) = s(i,j,k,QU)
+             smhd(7) = s(i,j,k,QV)
+             smhd  = smhd*(bz(i,j,k+1) - bz(i,j,k))/dz !cross-talk of normal magnetic field direction
              !Interpolate
-             Ip(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Ip(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QRHO,3) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
+             Ip(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
+             Ip(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
+             Ip(i,j,k,QPRES,3) = s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX:QMAGY,3)    = temp(i,j,k,ibx:iby) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Ip(i,j,k,QMAGZ,3)          = tbz(i,j,k+1) !! Bz stuff
-
+             Ip(i,j,k,QMAGX:QMAGY,3)	= s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGZ,3) 		= bz(i,j,k+1) !! Bz stuff
              !species
              do ii = QFS, QFS+nspec-1  
-               dL = temp_s(i,j,k,ii-QFS+1) - temp_s(i,j,k-1,ii-QFS+1)
-               dR = temp_s(i,j,k+1,ii-QFS+1) - temp_s(i,j,k,ii-QFS+1)
+               dL = s(i,j,k,ii) - s(i,j,k-1,ii)
+               dR = s(i,j,k+1,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR,flatn(i,j,k))
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
                Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
@@ -649,15 +350,14 @@ contains
              Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,3) = temp(i,j,k,1) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
-             Im(i,j,k,QU,3)   = temp(i,j,k,2) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,3)   = temp(i,j,k,3) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,3)   = temp(i,j,k,4) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,3) = temp(i,j,k,5) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QRHO,3) = s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
+             Im(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
+             Im(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
+             Im(i,j,k,QPRES,3) = s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Im(i,j,k,QMAGX:QMAGY,3) = temp(i,j,k,ibx:iby) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Im(i,j,k,QMAGZ,3)          = tbz(i,j,k) !! Bz stuff
-
+             Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Im(i,j,k,QMAGZ,3) = bz(i,j,k) !! Bz stuff
              
              !update this, when species work is done
              eos_state % rho = Im(i,j,k,QRHO,3)
