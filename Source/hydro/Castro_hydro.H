@@ -360,6 +360,7 @@
                        amrex::Array4<amrex::Real const> const qaux,
                        const int idir, const int compute_gammas);
 
+    AMREX_GPU_HOST_DEVICE
     void
     riemanncg(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
               amrex::Real& gcl, amrex::Real& gcr,
@@ -367,6 +368,7 @@
               amrex::GpuArray<amrex::Real, NQ>& qint,
               const amrex::Real bnd_fac, const int idir);
 
+    AMREX_GPU_HOST_DEVICE
     void
     riemannus(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
               const amrex::Real gamcl, const amrex::Real gamcr,
@@ -433,6 +435,7 @@
     HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
                const amrex::Real* q, amrex::Real* U);
 
+    AMREX_GPU_HOST_DEVICE
     void
     compute_flux_q(amrex::GpuArray<amrex::Real, NQ>& q_riemann,
                    amrex::GpuArray<amrex::Real, NUM_STATE>& F,
@@ -440,6 +443,7 @@
                    Array4<Real const> const lambda,
                    Array4<Real> const rF,
 #endif
+                   const int coord_type,
                    const int idir, const int enforce_eos);
 
     void

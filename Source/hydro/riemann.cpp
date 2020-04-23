@@ -45,6 +45,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
+  auto coord = geom.Coord();
+
   if (castro::riemann_solver == 0 || castro::riemann_solver == 1) {
     // approximate state Riemann solvers
 
@@ -114,6 +116,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 #ifdef RADIATION
                      lambda_int, rflx,
 #endif
+                     coord,
                      idir, 0);
 
       // store the godunov state
@@ -151,7 +154,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     // correct the fluxes using an HLL scheme if we are in a shock
     // and doing the hybrid approach
 
-    auto coord = geom.Coord();
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {

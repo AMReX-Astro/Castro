@@ -20,6 +20,7 @@ using namespace amrex;
 
 #include <riemann.H>
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
                        GpuArray<Real, NUM_STATE>& F,
@@ -27,6 +28,7 @@ Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
                        Array4<Real const> const lambda,
                        Array4<Real> const rF,
 #endif
+                       const int coord_type,
                        const int idir, const int enforce_eos) {
 
   // given a primitive state, compute the flux in direction idir
@@ -35,8 +37,7 @@ Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
   int iu, iv1, iv2;
   int im1, im2, im3;
 
-  auto coord = geom.Coord();
-  auto mom_check = mom_flux_has_p(idir, idir, coord);
+  auto mom_check = mom_flux_has_p(idir, idir, coord_type);
 
   if (idir == 0) {
     iu = QU;

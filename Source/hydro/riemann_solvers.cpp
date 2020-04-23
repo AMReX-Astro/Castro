@@ -14,6 +14,7 @@
 
 using namespace amrex;
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
                   Real& gcl, Real& gcr,
@@ -138,7 +139,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real clsql = gcl*pl*rl;
   Real clsqr = gcr*pr*rr;
 
-  Real csmall = amrex::max(small, amrex::max(small * cr, small * cl));
+  Real csmall = amrex::max(SMALL, amrex::max(SMALL * cr, SMALL * cl));
 
   Real cavg = 0.5_rt*(cl + cr);
 
@@ -238,7 +239,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
     }
 
     // the new pstar is found via CG Eq. 18
-    Real denom = dpditer/amrex::max(zp+zm, small*cavg);
+    Real denom = dpditer/amrex::max(zp+zm, SMALL*cavg);
     pstar_old = pstar;
     pstar = pstar - denom*(ustar_r - ustar_l);
     pstar = amrex::max(pstar, castro::small_pres);
@@ -424,7 +425,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   }
 
   Real frac = 0.5_rt*(1.0_rt + (spin + spout)/amrex::max(amrex::max(spout-spin, spin+spout),
-                                                         small*cavg));
+                                                         SMALL*cavg));
 
   // the transverse velocity states only depend on the
   // direction that the contact moves
@@ -486,6 +487,7 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
 }
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
                   const Real gamcl, const Real gamcr,
@@ -579,7 +581,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
   Real gamcgr;
 #endif
 
-  csmall = amrex::max(small, small * amrex::max(cl, cr));
+  csmall = amrex::max(SMALL, SMALL * amrex::max(cl, cr));
   cavg = 0.5_rt*(cl + cr);
 
   Real wsmall = castro::small_dens*csmall;
@@ -701,7 +703,7 @@ Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
   Real scr = spout - spin;
   if (spout-spin == 0.0_rt) {
-    scr = small*cavg;
+    scr = SMALL*cavg;
   }
 
   // interpolate for the case that we are in a rarefaction
@@ -921,7 +923,7 @@ Castro::HLLC(const Box& bx,
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
-    Real csmall = amrex::max(small, amrex::max(small * qaux_arr(i,j,k,QC), small * qaux_arr(i-sx,j-sy,k-sz,QC)));
+    Real csmall = amrex::max(SMALL, amrex::max(SMALL * qaux_arr(i,j,k,QC), SMALL * qaux_arr(i-sx,j-sy,k-sz,QC)));
     Real cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-sx,j-sy,k-sz,QC));
 
     Real gamcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
@@ -1002,7 +1004,7 @@ Castro::HLLC(const Box& bx,
 
     Real scr = spout-spin;
     if (spout-spin == 0.0_rt) {
-      scr = small * cavg;
+      scr = SMALL * cavg;
     }
 
     Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
