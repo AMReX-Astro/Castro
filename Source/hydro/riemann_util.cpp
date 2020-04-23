@@ -22,8 +22,8 @@ using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
-                       GpuArray<Real, NUM_STATE>& F,
+Castro::compute_flux_q(Real* q_riemann,
+                       Real* F,
 #ifdef RADIATION
                        Array4<Real const> const lambda,
                        Array4<Real> const rF,

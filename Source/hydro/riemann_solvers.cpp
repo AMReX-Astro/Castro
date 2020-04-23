@@ -16,10 +16,10 @@ using namespace amrex;
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
+Castro::riemanncg(Real* ql, Real* qr,
                   Real& gcl, Real& gcr,
                   const Real cl, const Real cr,
-                  GpuArray<Real, NQ>& qint,
+                  Real* qint,
                   const Real bnd_fac, const int idir) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
@@ -489,15 +489,14 @@ Castro::riemanncg(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
 
 AMREX_GPU_HOST_DEVICE
 void
-Castro::riemannus(GpuArray<Real, NQ>& ql, GpuArray<Real, NQ>& qr,
+Castro::riemannus(Real* ql, Real* qr,
                   const Real gamcl, const Real gamcr,
                   const Real cl, const Real cr,
 #ifdef RADIATION
                   const Real gamcgl, const Real gamcgr,
-                  GpuArray<Real, Radiation::ngroups> laml,
-                  GpuArray<Real, Radiation::ngroups> lamr,
+                  Real* laml, Real* lamr,
 #endif
-                  GpuArray<Real, NQ>& qint,
+                  Real* qint,
                   const Real bnd_fac, const int idir) {
 
   // Colella, Glaz, and Ferguson solver

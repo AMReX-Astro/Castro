@@ -63,15 +63,15 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
       // Solve Riemann problem to get the fluxes
 
-      GpuArray<Real, NQ> ql_int;
-      GpuArray<Real, NQ> qr_int;
+      Real ql_int[NQ];
+      Real qr_int[NQ];
 
       Real gcl, gcr;
       Real cl, cr;
 
 #ifdef RADIATION
-      GpuArray<Real, Radiation::ngroups> laml_int;
-      GpuArray<Real, Radiation::ngroups> lamr_int;
+      Real laml_int[NGROUPS];
+      Real lamr_int[NGROUPS];
       Real gamcgl, gamcgr;
 #endif
 
@@ -110,7 +110,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
       // solve the Riemann problem
 
-      GpuArray<Real, NQ> q_riemann;
+      Real q_riemann[NQ];
 
       riemann_state_interface(ql_int, qr_int,
                               gcl, gcr, cl, cr,
@@ -119,7 +119,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
       // compute the flux
 
-      GpuArray<Real, NUM_STATE> F;
+      Real F[NUM_STATE];
 
       compute_flux_q(q_riemann, F,
 #ifdef RADIATION
@@ -281,15 +281,15 @@ Castro::riemann_state(const Box& bx,
       }
     }
 
-    GpuArray<Real, NQ> ql_int;
-    GpuArray<Real, NQ> qr_int;
+    Real ql_int[NQ];
+    Real qr_int[NQ];
 
     Real gcl, gcr;
     Real cl, cr;
 
 #ifdef RADIATION
-    GpuArray<Real, Radiation::ngroups> laml_int;
-    GpuArray<Real, Radiation::ngroups> lamr_int;
+    Real laml_int[NGROUPS];
+    Real lamr_int[NGROUPS];
     Real gamcgl, gamcgr;
 #endif
 
@@ -303,7 +303,7 @@ Castro::riemann_state(const Box& bx,
 #endif
                              ql_int, qr_int);
 
-    GpuArray<Real, NQ> q_riemann;
+    Real q_riemann[NQ];
 
     riemann_state_interface(ql_int, qr_int,
                             gcl, gcr, cl, cr,

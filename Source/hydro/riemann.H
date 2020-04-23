@@ -22,10 +22,10 @@ Castro::get_riemann_input_states(Array4<Real const> const ql_arr, Array4<Real co
                                  Real& gcl, Real& gcr,
                                  Real& cl, Real& cr,
 #ifdef RADIATION
-                                 GpuArray<Real, NQ>& laml_int, GpuArray<Real, NQ>& lamr_int,
+                                 Real* laml_int, Real* lamr_int,
                                  Real& gamcgl, Real& gamcgr,
 #endif
-                                 GpuArray<Real, NQ>& ql_int, GpuArray<Real, NQ>& qr_int) {
+                                 Real* ql_int, Real* qr_int) {
 
 
   // copy the initial interface states
@@ -135,12 +135,12 @@ Castro::get_riemann_input_states(Array4<Real const> const ql_arr, Array4<Real co
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::riemann_state_interface(GpuArray<Real, NQ>& qm, GpuArray<Real, NQ>& qp,
+Castro::riemann_state_interface(Real* qm, Real* qp,
                                 Real& gcl, Real& gcr, const Real cl, const Real cr,
 #ifdef RADIATION
-                                GpuArray<Real, Radiation::ngroups> lambda_int,
+                                Real* lambda_int,
 #endif
-                                GpuArray<Real, NQ>& qint,
+                                Real* qint,
                                 const Real bnd_fac, const int idir) {
 
   // just compute the hydrodynamic state on the interfaces

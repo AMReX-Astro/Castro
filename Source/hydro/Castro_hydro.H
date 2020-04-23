@@ -343,12 +343,10 @@
                              amrex::Real& gcl, amrex::Real& gcr,
                              amrex::Real& cl, amrex::Real& cr,
 #ifdef RADIATION
-                             amrex::GpuArray<amrex::Real, NQ>& laml_int,
-                             amrex::GpuArray<amrex::Real, NQ>& lamr_int,
+                             Real* laml_int, Real* lamr_int,
                              amrex::Real& gamcgl, amrex::Real& gamcgr,
 #endif
-                             amrex::GpuArray<amrex::Real, NQ>& ql_int,
-                             amrex::GpuArray<amrex::Real, NQ>& qr_int);
+                             Real* ql_int, Real* qr_int);
 
     void riemann_state(const amrex::Box& bx,
                        amrex::Array4<amrex::Real> const qm,
@@ -362,23 +360,22 @@
 
     AMREX_GPU_HOST_DEVICE
     void
-    riemanncg(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
+    riemanncg(Real* ql, Real* qr,
               amrex::Real& gcl, amrex::Real& gcr,
               const amrex::Real cl, const amrex::Real cr,
-              amrex::GpuArray<amrex::Real, NQ>& qint,
+              Real* qint,
               const amrex::Real bnd_fac, const int idir);
 
     AMREX_GPU_HOST_DEVICE
     void
-    riemannus(amrex::GpuArray<amrex::Real, NQ>& ql, amrex::GpuArray<amrex::Real, NQ>& qr,
+    riemannus(Real* ql, Real* qr,
               const amrex::Real gamcl, const amrex::Real gamcr,
               const amrex::Real cl, const amrex::Real cr,
 #ifdef RADIATION
               const amrex::Real gamcgl, const amrex::Real gamcgr,
-              amrex::GpuArray<amrex::Real, Radiation::ngroups> laml,
-              amrex::GpuArray<amrex::Real, Radiation::ngroups> lamr,
+              Real* laml, Real* lamr,
 #endif
-              amrex::GpuArray<amrex::Real, NQ>& qint,
+              Real* qint,
               const amrex::Real bnd_fac, const int idir);
 
 
@@ -405,13 +402,13 @@
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
-    riemann_state_interface(amrex::GpuArray<amrex::Real, NQ>& qm, amrex::GpuArray<amrex::Real, NQ>& qp,
+    riemann_state_interface(Real* qm, Real* qp,
                             amrex::Real& qcl, amrex::Real& qcr,
                             const amrex::Real cl, const amrex::Real cr,
 #ifdef RADIATION
-                            amrex::GpuArray<amrex::Real, Radiation::ngroups> lambda_int,
+                            Real* lambda_int,
 #endif
-                            amrex::GpuArray<amrex::Real, NQ>& qint,
+                            Real* qint,
                             const amrex::Real bnd_fac, const int idir);
 
     AMREX_GPU_HOST_DEVICE
@@ -437,8 +434,8 @@
 
     AMREX_GPU_HOST_DEVICE
     void
-    compute_flux_q(amrex::GpuArray<amrex::Real, NQ>& q_riemann,
-                   amrex::GpuArray<amrex::Real, NUM_STATE>& F,
+    compute_flux_q(Real* q_riemann,
+                   Real* F,
 #ifdef RADIATION
                    Array4<Real const> const lambda,
                    Array4<Real> const rF,
