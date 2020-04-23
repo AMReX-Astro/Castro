@@ -28,6 +28,9 @@ Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
                        Array4<Real const> const lambda,
                        Array4<Real> const rF,
 #endif
+#ifdef HYBRID_MOMEMTUM
+                       GeometryData const& geomdata, GpuArray<Real, 3>& center,
+#endif
                        const int coord_type,
                        const int idir, const int enforce_eos) {
 
@@ -70,11 +73,6 @@ Castro::compute_flux_q(GpuArray<Real, NQ>& q_riemann,
   int limiter = Radiation::limiter;
   int closure = Radiation::closure;
 #endif
-
-  GeometryData geomdata = geom.data();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   Real u_adv = q_riemann[iu];
   Real rhoeint = q_riemann[QREINT];

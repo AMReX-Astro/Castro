@@ -47,6 +47,13 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
   auto coord = geom.Coord();
 
+#ifdef HYBRID_MOMENTUM
+  GeometryData geomdata = geom.data();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+#endif
+
   if (castro::riemann_solver == 0 || castro::riemann_solver == 1) {
     // approximate state Riemann solvers
 
@@ -78,6 +85,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 #endif
                                ql_int, qr_int);
 
+
       // deal with hard walls
       Real bnd_fac = 1.0_rt;
 
@@ -108,6 +116,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                               gcl, gcr, cl, cr,
                               q_riemann, bnd_fac, idir);
 
+
       // compute the flux
 
       GpuArray<Real, NUM_STATE> F;
@@ -115,6 +124,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
       compute_flux_q(q_riemann, F,
 #ifdef RADIATION
                      lambda_int, rflx,
+#endif
+#ifdef HYBRID_MOMENTUM
+                     geomdata, center,
 #endif
                      coord,
                      idir, 0);
@@ -167,7 +179,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
       if (idir == 0) {
         is_shock = shk(i-1,j,k) + shk(i,j,k);
-      } else if (idir == 1) { 
+      } else if (idir == 1) {
         is_shock = shk(i,j-1,k) + shk(i,j,k);
       } else {
         is_shock = shk(i,j,k-1) + shk(i,j,k);
@@ -180,7 +192,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
         if (idir == 0) {
           cl = qaux_arr(i-1,j,k,QC);
           cr = qaux_arr(i,j,k,QC);
-        } else if (idir == 1) { 
+        } else if (idir == 1) {
           cl = qaux_arr(i,j-1,k,QC);
           cr = qaux_arr(i,j,k,QC);
         } else {
