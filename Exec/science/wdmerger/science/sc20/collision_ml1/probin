@@ -6,14 +6,14 @@
   problem = 0
 
   collision_separation = 4.0d0
-  collision_impact_parameter = 0.0d0
+  collision_impact_parameter = 0.1d0
 
-  max_stellar_tagging_level = 20
+  max_stellar_tagging_level = 0
   stellar_density_threshold = 1.0d0
 
   max_center_tagging_level = 0
 
-  max_temperature_tagging_level = 20
+  max_temperature_tagging_level = 1
   temperature_tagging_threshold = 1.0d9
 
 /
