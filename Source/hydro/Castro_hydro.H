@@ -358,7 +358,7 @@
                        amrex::Array4<amrex::Real const> const qaux,
                        const int idir, const int compute_gammas);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     riemanncg(Real* ql, Real* qr,
               amrex::Real& gcl, amrex::Real& gcr,
@@ -366,7 +366,7 @@
               Real* qint,
               const amrex::Real bnd_fac, const int idir);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     riemannus(Real* ql, Real* qr,
               const amrex::Real gamcl, const amrex::Real gamcr,
