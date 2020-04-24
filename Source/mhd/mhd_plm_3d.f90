@@ -119,7 +119,7 @@ contains
              smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
              smhd(6) = s(i,j,k,QV)
              smhd(7) = s(i,j,k,QW)
-             smhd 	= smhd*(bx(i+1,j,k) - bx(i,j,k))/dx !cross-talk of normal magnetic field direction
+             smhd       = smhd*(bx(i+1,j,k) - bx(i,j,k))/dx !cross-talk of normal magnetic field direction
             !Interpolate
              !Plus
              !!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
@@ -331,8 +331,8 @@ contains
              Ip(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
              Ip(i,j,k,QPRES,3) = s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
 
-             Ip(i,j,k,QMAGX:QMAGY,3)	= s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             Ip(i,j,k,QMAGZ,3) 		= bz(i,j,k+1) !! Bz stuff
+             Ip(i,j,k,QMAGX:QMAGY,3)    = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGZ,3)          = bz(i,j,k+1) !! Bz stuff
              !species
              do ii = QFS, QFS+nspec-1  
                dL = s(i,j,k,ii) - s(i,j,k-1,ii)
