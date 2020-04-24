@@ -313,10 +313,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         auto reactions = r.array(mfi);
         auto mask = m.array(mfi);
 
-        Real lreact_T_min = Castro::react_T_min;
-        Real lreact_T_max = Castro::react_T_max;
-        Real lreact_rho_min = Castro::react_rho_min;
-        Real lreact_rho_max = Castro::react_rho_max;
+        Real lreact_T_min = castro::react_T_min;
+        Real lreact_T_max = castro::react_T_max;
+        Real lreact_rho_min = castro::react_rho_min;
+        Real lreact_rho_max = castro::react_rho_max;
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
