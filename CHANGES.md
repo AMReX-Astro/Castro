@@ -1,5 +1,8 @@
 # 20.05
 
+   * The parameter use_custom_knapsack_weights and its associated
+     functionality have been removed. (#876)
+
    * We've changed how the runtime parameters are stored.  Previously
      they were static members of their respective class, but this
      prevented their use in lambda-capture functions on GPUs.  Now the
@@ -10,15 +13,8 @@
      are a measure of the number of RHS evaluations during the burn and
      therefore a proxy for the difficulty of the burn. These weights were
      added as separate StateData depending on the runtime option
-     use_custom_knapsack_weights.
-
-     Now, instead we place the weights directly in the Reactions_Type
-     StateData as a new component. Now that we always store the weights,
-     load balancing and other future changes that depend on the weights
-     are easier to manage.
-
-     The parameter use_custom_knapsack_weights is now renamed
-     use_burn_load_balancing so that it is clearer what is does.
+     use_custom_knapsack_weights. Now, instead we place the weights
+     directly in the Reactions_Type StateData as a new component.
 
      The number of ghost zones in Reactions_Type is increased to 4.
 
