@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_diffusion.H &mdash; Castro 20.04.1
+  <title>File diffusion_util.H &mdash; Castro 20.04.1
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Diffusion.H" href="Diffusion_8H.html" />
-    <link rel="prev" title="Diffusion" href="../diffusion_files.html" /> 
+    <link rel="next" title="Driver" href="../driver_files.html" />
+    <link rel="prev" title="File Diffusion.H" href="Diffusion_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/Castro__diffusion_8H.html">master</a> | <a href="../file/Castro__diffusion_8H.html">development</a>
+        Branch: <a href="../../file/diffusion__util_8H.html">master</a> | <a href="../file/diffusion__util_8H.html">development</a>
     </div>
 
         </div>
@@ -139,9 +139,9 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../diffusion_files.html">Diffusion</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_diffusion.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__diffusion_8H.html">File Castro_diffusion.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Diffusion_8H.html">File Diffusion.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="diffusion__util_8H.html">File diffusion_util.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File diffusion_util.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
@@ -211,13 +211,13 @@
         
           <li><a href="../diffusion_files.html">Diffusion</a> &raquo;</li>
         
-      <li>File Castro_diffusion.H</li>
+      <li>File diffusion_util.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/Castro__diffusion_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/diffusion__util_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -230,74 +230,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-castro-diffusion-h">
-<h1>File Castro_diffusion.H<a class="headerlink" href="#file-castro-diffusion-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-diffusion-util-h">
+<h1>File diffusion_util.H<a class="headerlink" href="#file-diffusion-util-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt id="_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv325construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a59cdd89e59c7a166c33833cc068380e0"></span>void <code class="sig-name descname">construct_old_diff_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Construct diffusion source at old time</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<dt id="_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">
+<span id="_CPPv314fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv214fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="fill_temp_cond__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR"></span><span class="target" id="diffusion__util_8H_1abbef9b2b142d252d9e00e9c7e0b6f3da"></span>void <code class="sig-name descname">fill_temp_cond</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::Array4&lt;amrex::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>U_arr</em>, amrex::Array4&lt;amrex::Real&gt; <em class="property">const</em> &amp;<em>coeff_arr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv425construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv325construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a2eea87bd84b03fce1caa947811100d33"></span>void <code class="sig-name descname">construct_new_diff_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Construct diffusion source at new time</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv420getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE">
-<span id="_CPPv320getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv220getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="getTempDiffusionTerm__amrex::Real.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__diffusion_8H_1a057493fcc9c50ae1c1c765cfbfdbccc4"></span>void <code class="sig-name descname">getTempDiffusionTerm</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>DiffTerm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get thermal conductivity diffusion term at given time</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DiffTerm</span></code>: MultiFab to save term to </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv428add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv328add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv228add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="add_temp_diffusion_to_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1ae0052f64f5a4112372349d57cf6568d3"></span>void <code class="sig-name descname">add_temp_diffusion_to_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>ext_src</em>, amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>DiffTerm</em>, amrex::Real <em>t</em>, amrex::Real <em>mult_factor</em> = 1.0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv428add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Calculate temperature or enthalpty diffusion terms and add to <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> (multiplied by <code class="docutils literal notranslate"><span class="pre">mult_factor</span></code>).</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ext_src</span></code>: Source terms to add diffusion sources to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DiffTerm</span></code>: MultiFab to save diffusion sources to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">t</span></code>: Current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mult_factor</span></code>: Real, factor to multiply diffusion sources by before adding to other sources. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<dt id="_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">
+<span id="_CPPv320fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv220fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="fill_temp_diff_coeff__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR"></span><span class="target" id="diffusion__util_8H_1ad6948871c69c2d521b5ddb9971ff371a"></span>void <code class="sig-name descname">fill_temp_diff_coeff</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::Array4&lt;amrex::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>U_arr</em>, amrex::Array4&lt;amrex::Real&gt; <em class="property">const</em> &amp;<em>coeff_arr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -310,10 +255,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Diffusion_8H.html" class="btn btn-neutral float-right" title="File Diffusion.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../driver_files.html" class="btn btn-neutral float-right" title="Driver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../diffusion_files.html" class="btn btn-neutral float-left" title="Diffusion" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Diffusion_8H.html" class="btn btn-neutral float-left" title="File Diffusion.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
