@@ -4,6 +4,7 @@ ca_F90EXE_sources += amrinfo_nd.F90
 ca_F90EXE_sources += Castro_error_nd.F90
 
 CEXE_sources += Castro.cpp
+CEXE_sources += runparams_defaults.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -17,6 +18,7 @@ CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
 CEXE_headers += Castro.H
+CEXE_headers += castro_limits.H
 CEXE_headers += Castro_io.H
 CEXE_headers += state_indices.H
 

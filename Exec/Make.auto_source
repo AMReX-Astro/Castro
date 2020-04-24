@@ -65,6 +65,9 @@ $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TE
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
+# for debugging
+test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90
+
 #------------------------------------------------------------------------------
 # state variable info
 #-------------------------------------------------------------------------------
