@@ -143,10 +143,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-
-  void ca_check_initial_species
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
-
   void ca_enforce_minimum_density
     (const int* lo, const int* hi,
      const amrex::Real* state, const int* s_lo, const int* s_hi,
@@ -161,12 +157,6 @@ extern "C"
                       const amrex::Real* dx, const amrex::Real* problo);
 
   void ca_clamp_temp
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_enforce_consistent_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_recompute_energetics
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
