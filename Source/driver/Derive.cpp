@@ -1,9 +1,12 @@
 #include "AMReX_REAL.H"
 
 #include "Derive.H"
-#include "Derive_F.H"
 #include "Castro.H"
 #include "Castro_F.H"
+
+#ifdef DIFFUSION
+#include "diffusion_util.H"
+#endif
 
 using namespace amrex;
 
@@ -304,125 +307,114 @@ extern "C"
     }
 
 #ifdef DIFFUSION
-    void ca_dercond(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                    const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                    const int* lo, const int* hi,
-                    const int* domain_lo, const int* domain_hi,
-                    const Real* delta, const Real* xlo,
-                    const Real* time, const Real* dt, const int* bcrec, 
-                    const int* level, const int* grid_no)
+    void ca_dercond(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& geomdata,
+                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-        dercond(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                AMREX_REAL_ANYD(delta));
+      fill_temp_cond(bx, dat, der);
 
     }
 
-    void ca_derdiffcoeff(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                         const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                         const int* lo, const int* hi,
-                         const int* domain_lo, const int* domain_hi,
-                         const Real* delta, const Real* xlo,
-                         const Real* time, const Real* dt, const int* bcrec, 
-                         const int* level, const int* grid_no)
+    void ca_derdiffcoeff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& geomdata,
+                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-        derdiffcoeff(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                     der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                     data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                     AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                     AMREX_REAL_ANYD(delta));
+      fill_temp_diff_coeff(bx, dat, der);
 
     }
 
-    void ca_derdiffterm(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                        const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                        const int* lo, const int* hi,
-                        const int* domain_lo, const int* domain_hi,
-                        const Real* delta, const Real* xlo,
-                        const Real* time, const Real* dt, const int* bcrec,
-                        const int* level, const int* grid_no)
+    void ca_derdiffterm(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                        const FArrayBox& datfab, const Geometry& geomdata,
+                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
-        // Create an array for storing cell-centered conductivity data.
-        // It needs to have a ghost zone for the next step.
+      const Box& obx = amrex::grow(bx, 1);
 
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
+      FArrayBox coeff_cc;
+      coeff_cc.resize(obx, 1);
+      Elixir elix_coeff_cc = coeff_cc.elixir();
+      Array4<Real> const coeff_arr = coeff_cc.array();
 
-        const Box bx(ilo, ihi);
-        const Box& obx = amrex::grow(bx, 1);
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
 
-        FArrayBox coeff_cc;
-        coeff_cc.resize(obx, 1);
-        Elixir elix_coeff_cc = coeff_cc.elixir();
-        Array4<Real> const coeff_arr = coeff_cc.array();
+      fill_temp_cond(obx, dat, coeff_arr);
 
-        FArrayBox coeffs[3];
-        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-            coeffs[dir].resize(amrex::surroundingNodes(bx, dir), 1);
-        }
+      auto dx = geomdata.CellSizeArray();
+      auto problo = geomdata.ProbLoArray();
+      const int coord_type = geomdata.Coord();
 
-        Elixir elix_coeffs_x = coeffs[0].elixir();
-        Elixir elix_coeffs_y = coeffs[1].elixir();
-        Elixir elix_coeffs_z = coeffs[2].elixir();
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
 
-#pragma gpu box(obx)
-        ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                          data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi),
-                          BL_TO_FORTRAN_ANYD(coeff_cc));
+        // (k grad T)_{i+1/2}
+        Real kgradT_xhi = 0.5_rt * (coeff_arr(i+1,j,k) + coeff_arr(i,j,k)) *
+          (dat(i+1,j,k,UTEMP) - dat(i,j,k,UTEMP)) / dx[0];
 
-        // Now average the data to zone edges.
+        // (k grad T)_{i-1/2}
+        Real kgradT_xlo = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k)) *
+          (dat(i,j,k,UTEMP) - dat(i-1,j,k,UTEMP)) / dx[0];
 
-        for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-            const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-            Array4<Real> const edge_coeff_arr = (coeffs[idir]).array();
-
-            AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-            {
-
-              if (idir == 0) {
-                edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
-              } else if (idir == 1) {
-                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
-              } else {
-                edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
-              }
-            });
-
-        }
-
-#pragma gpu box(bx)
-        derdiffterm(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                    der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                    data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                    BL_TO_FORTRAN_ANYD(coeffs[0]),
 #if AMREX_SPACEDIM >= 2
-                    BL_TO_FORTRAN_ANYD(coeffs[1]),
+        // (k grad T)_{j+1/2}
+        Real kgradT_yhi = 0.5_rt * (coeff_arr(i,j+1,k) + coeff_arr(i,j,k)) *
+          (dat(i,j+1,k,UTEMP) - dat(i,j,k,UTEMP)) / dx[1];
+
+        // (k grad T)_{j-1/2}
+        Real kgradT_ylo = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k)) *
+          (dat(i,j,k,UTEMP) - dat(i,j-1,k,UTEMP)) / dx[1];
+#endif
+
+#if AMREX_SPACEDIM == 3
+        // (k grad T)_{k+1/2}
+        Real kgradT_zhi = 0.5_rt * (coeff_arr(i,j,k+1) + coeff_arr(i,j,k)) *
+          (dat(i,j,k+1,UTEMP) - dat(i,j,k,UTEMP)) / dx[2];
+
+        // (k grad T)_{k-1/2}
+        Real kgradT_zlo = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1)) *
+          (dat(i,j,k,UTEMP) - dat(i,j,k-1,UTEMP)) / dx[2];
+#endif
+
+        if (coord_type == 0) {
+          // Cartesian
+          der(i,j,k,0) = (kgradT_xhi - kgradT_xlo)/dx[0];
+#if AMREX_SPACEDIM >= 2
+          der(i,j,k,0) += (kgradT_yhi - kgradT_ylo)/dx[1];
 #endif
 #if AMREX_SPACEDIM == 3
-                    BL_TO_FORTRAN_ANYD(coeffs[2]),
+          der(i,j,k,0) += (kgradT_zhi - kgradT_zlo)/dx[2];
 #endif
-                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                    AMREX_REAL_ANYD(delta));
 
+        } else if (coord_type == 1) {
+          // axisymmetric coords (2-d)
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          der(i,j,k,0) = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*dx[0]);
+#if AMREX_SPACEDIM == 2
+          der(i,j,k,0) += (kgradT_yhi - kgradT_ylo)/dx[1];
+#endif
+
+        } else if (coord_type == 2) {
+          // spherical coords (1-d)
+          Real r = (static_cast<Real>(i) + 0.5_rt)*dx[0] + problo[0];
+          Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
+          Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
+
+          der(i,j,k,0) = (rp1*rp1*kgradT_xhi - rm1*rm1*kgradT_xlo)/(r*r*dx[0]);
+
+        }
+      });
     }
 #endif
 

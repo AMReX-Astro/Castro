@@ -3,6 +3,10 @@
 #include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
+#ifdef DIFFUSION
+#include "diffusion_util.H"
+#endif
+
 using namespace amrex;
 
 ///
@@ -535,10 +539,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Elixir elix_cond = cond.elixir();
 
 #ifdef DIFFUSION
-            ca_fill_temp_cond
-              (AMREX_ARLIM_ANYD(obx.loVect()), AMREX_ARLIM_ANYD(obx.hiVect()),
-               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-               BL_TO_FORTRAN_ANYD(cond));
+            fill_temp_cond(obx, Sborder.array(mfi), cond.array());
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 

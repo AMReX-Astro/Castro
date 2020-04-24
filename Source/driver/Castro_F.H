@@ -267,12 +267,6 @@ extern "C"
 #endif
 
 
-/* diffusion */
-#ifdef DIFFUSION
-#include <Castro_diffusion_F.H>
-#endif
-
-
 /* SCF */
 #include <scf_relax_F.H>
 
