@@ -62,7 +62,7 @@ Castro::riemanncg(Real* ql, Real* qr,
   }
 
   // left state
-  Real rl = amrex::max(ql[QRHO], castro::small_dens);
+  Real rl = ql[QRHO];
 
   Real pl = ql[QPRES];
   Real rel = ql[QREINT];
@@ -99,7 +99,7 @@ Castro::riemanncg(Real* ql, Real* qr,
   }
 
   // right state
-  Real rr = amrex::max(qr[QRHO], castro::small_dens);
+  Real rr = qr[QRHO];
 
   Real pr = qr[QPRES];
   Real rer = qr[QREINT];
@@ -529,12 +529,12 @@ Castro::riemannus(Real* ql, Real* qr,
 
   // set the left and right states for this interface
 
-  Real rl = amrex::max(ql[QRHO], castro::small_dens);
+  Real& rl = ql[QRHO];
 
   // pick left velocities based on direction
-  Real ul  = ql[iu];
-  Real v1l = ql[iv1];
-  Real v2l = ql[iv2];
+  Real& ul  = ql[iu];
+  Real& v1l = ql[iv1];
+  Real& v2l = ql[iv2];
 
 #ifdef RADIATION
   Real pl = ql[QPTOT];
@@ -546,16 +546,16 @@ Castro::riemannus(Real* ql, Real* qr,
   Real pl_g = ql[QPRES];
   Real rel_g = ql[QREINT];
 #else
-  Real pl = amrex::max(ql[QPRES], castro::small_pres);
-  Real rel = ql[QREINT];
+  Real& pl = ql[QPRES];
+  Real& rel = ql[QREINT];
 #endif
 
-  Real rr = amrex::max(qr[QRHO], castro::small_dens);
+  Real& rr = qr[QRHO];
 
   // pick right velocities based on direction
-  Real ur  = qr[iu];
-  Real v1r = qr[iv1];
-  Real v2r = qr[iv2];
+  Real& ur  = qr[iu];
+  Real& v1r = qr[iv1];
+  Real& v2r = qr[iv2];
 
 #ifdef RADIATION
   Real pr = qr[QPTOT];
@@ -567,8 +567,8 @@ Castro::riemannus(Real* ql, Real* qr,
   Real pr_g = qr[QPRES];
   Real rer_g = qr[QREINT];
 #else
-  Real pr = amrex::max(qr[QPRES], castro::small_pres);
-  Real rer = qr[QREINT];
+  Real& pr = qr[QPRES];
+  Real& rer = qr[QREINT];
 #endif
 
   // estimate the star state: pstar, ustar

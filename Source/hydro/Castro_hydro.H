@@ -393,7 +393,7 @@
              const int idir, const int coord,
              amrex::Real* f);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     wsqge(const amrex::Real p, const amrex::Real v,
           const amrex::Real gam, const amrex::Real gdot, amrex::Real& gstar,
@@ -411,7 +411,7 @@
                             Real* qint,
                             const amrex::Real bnd_fac, const int idir);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
                     const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
@@ -423,16 +423,16 @@
                     amrex::Real& pstar, amrex::Real& gamstar,
                     bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     cons_state(const amrex::Real* q, amrex::Real* U);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
                const amrex::Real* q, amrex::Real* U);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     compute_flux_q(Real* q_riemann,
                    Real* F,
@@ -451,7 +451,7 @@
 #endif
                         amrex::Array4<amrex::Real> const qgdnv);
 
-    AMREX_GPU_HOST_DEVICE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     compute_flux(const int idir, const amrex::Real bnd_fac, const int coord,
                  const amrex::Real* U, const amrex::Real p,
