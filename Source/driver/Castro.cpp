@@ -1028,9 +1028,25 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
          const Box& bx = mfi.validbox();
-#pragma gpu box(bx)
-         ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
+
+         auto S_arr = S_new.array(mfi);
+
+         amrex::ParallelFor(bx,
+         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         {
+           Real spec_sum = 0.0_rt;
+           for (int n = 0; n < NumSpec; n++) {
+             spec_sum += S_arr(i,j,k,UFS+n);
+           }
+           if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
+#ifndef AMREX_USE_CUDA
+             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
+                       << i << " " << j << " " << k << " " 
+                       << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
+#endif
+             amrex::Error("Error: failed check of initial species summing to 1");
+           }
+         });
        }
 
 #ifdef TRUE_SDC
@@ -1089,8 +1105,34 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(1);
 
-             ca_recompute_energetics(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_ANYD(Sborder[mfi]));
+             auto S_arr = Sborder.array(mfi);
+
+             amrex::ParallelFor(box,
+             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+             {
+
+               Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
+               Real u = S_arr(i,j,k,UMX) * rhoInv;
+               Real v = S_arr(i,j,k,UMY) * rhoInv;
+               Real w = S_arr(i,j,k,UMZ) * rhoInv;
+
+               eos_t eos_state;
+               eos_state.rho = S_arr(i,j,k,URHO);
+               eos_state.T = S_arr(i,j,k,UTEMP);
+               eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
+               for (int n = 0; n < NumSpec; n++) {
+                 eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
+               }
+               for (int n = 0; n < NumAux; n++) {
+                 eos_state.aux[n] = S_arr(i,j,k,UFX+n) * rhoInv;
+               }
+
+               eos(eos_input_re, eos_state);
+
+               S_arr(i,j,k,UTEMP) = eos_state.T;
+
+               S_arr(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+             });
            }
 
          // convert back to averages -- not tile safe
@@ -2784,11 +2826,20 @@ Castro::enforce_consistent_e (MultiFab& S)
     for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box     = mfi.tilebox();
-        const int* lo      = box.loVect();
-        const int* hi      = box.hiVect();
 
-#pragma gpu box(box)
-        ca_enforce_consistent_e(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi), BL_TO_FORTRAN_ANYD(S[mfi]));
+        auto S_arr = S.array(mfi);
+
+        ParallelFor(box,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
+          Real u = S_arr(i,j,k,UMX) * rhoInv;
+          Real v = S_arr(i,j,k,UMY) * rhoInv;
+          Real w = S_arr(i,j,k,UMZ) * rhoInv;
+
+          S_arr(i,j,k,UEDEN) = S_arr(i,j,k,UEINT) +
+            0.5_rt * S_arr(i,j,k,URHO) * (u*u + v*v + w*w);
+        });
     }
 }
 

@@ -118,7 +118,7 @@ def plot(unnormalized, show_linear):
         fom_linear = fom_linear / fom_fiducial[0] / num_linear
         fom_fiducial = fom_fiducial / fom_fiducial[0] / num_fiducial
 
-    plt.plot(num_fiducial, fom_fiducial, linestyle='-', lw=4, label='True weak scaling')
+    plt.plot(num_fiducial, fom_fiducial, marker='x', markersize=14, linestyle='-', lw=4, zorder=100, label='Weak scaling')
     if show_linear:
         plt.plot(num_linear, fom_linear, linestyle='-', color='k', lw=2, label='Linear scaling')
     plt.plot(num_best, fom_best, marker='o', markersize=12, linestyle='--', lw=4, label='Best case')
