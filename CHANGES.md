@@ -1,7 +1,7 @@
 # 20.05
 
    * The parameter use_custom_knapsack_weights and its associated
-     functionality have been removed. (#876)
+     functionality have been removed. (#877)
 
    * We've changed how the runtime parameters are stored.  Previously
      they were static members of their respective class, but this
