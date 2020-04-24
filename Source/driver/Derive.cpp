@@ -400,9 +400,10 @@ extern "C"
           Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
           Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*dx[0]) +
-            (kgradT_yhi - kgradT_ylo)/dx[1];
-
+          der(i,j,k,0) = (rp1*kgradT_xhi - rm1*kgradT_xlo)/(r*dx[0]);
+#if AMREX_SPACEDIM == 2
+          der(i,j,k,0) += (kgradT_yhi - kgradT_ylo)/dx[1];
+#endif
 
         } else if (coord_type == 2) {
           // spherical coords (1-d)
