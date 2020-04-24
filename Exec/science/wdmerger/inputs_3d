@@ -50,7 +50,7 @@ stop_time = 100.0
 castro.use_stopping_criterion = 1
 
 # Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
+
 
 # CFL number for hyperbolic system
 castro.cfl = 0.5
@@ -87,7 +87,7 @@ amr.ref_ratio = 4 4 4 4 4 4 4 4 4
 amr.regrid_int = 2
 
 # Allow special regrids based on stability criteria
-castro.use_post_step_regrid = 1
+castro.use_post_step_regrid = 0
 
 # Number of buffer cells in error estimation
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
@@ -169,7 +169,7 @@ castro.density_reset_method = 2
 castro.limit_fluxes_on_small_dens = 1
 
 # Explicitly limit fluxes to avoid large velocities
-castro.limit_fluxes_on_large_vel = 1
+castro.limit_fluxes_on_large_vel = 0
 castro.speed_limit = 2.99792458e9
 
 ############################################################################################
@@ -181,9 +181,6 @@ castro.small_temp = 1.e5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
-
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
 
 # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta1 = 1.0e-3

@@ -36,7 +36,6 @@ castro.small_dens    = 1.e-6
 castro.cfl            = 0.5
 castro.init_shrink    = 0.01
 castro.change_max     = 1.0
-castro.dt_cutoff      = 1.e-10
 castro.limit_fluxes_on_small_dens = 1
 
 # DIAGNOSTICS & VERBOSITY

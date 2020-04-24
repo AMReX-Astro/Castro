@@ -8,116 +8,6 @@ module timestep_module
 
 contains
 
-
-  subroutine ca_estdt(lo,hi,u,u_lo,u_hi,dx,dt) bind(C, name="ca_estdt")
-    ! Courant-condition limited timestep
-    !
-    ! .. note::
-    !    Binds to C function ``ca_estdt``
-
-    use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, UFX, time_integration_method
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
-    use prob_params_module, only: dim
-    use amrex_constants_module, ONLY : ONE
-#ifdef ROTATION
-    use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_module, only: inertial_to_rotational_velocity
-    use amrinfo_module, only: amr_time
-#endif
-    use amrex_fort_module, only : rt => amrex_real
-    use reduction_module, only: reduce_min
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-    real(rt), intent(in) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-    real(rt), intent(in) :: dx(3)
-    real(rt), intent(inout) :: dt
-
-    real(rt)         :: rhoInv, ux, uy, uz, c, dt1, dt2, dt3, dt_tmp
-    integer          :: i, j, k
-
-    type (eos_t) :: eos_state
-
-#ifdef ROTATION
-    real(rt)         :: vel(3)
-#endif
-
-    !$gpu
-
-    ! Call EOS for the purpose of computing sound speed
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             rhoInv = ONE / u(i,j,k,URHO)
-
-             eos_state % rho = u(i,j,k,URHO )
-             eos_state % T   = u(i,j,k,UTEMP)
-             eos_state % e   = u(i,j,k,UEINT) * rhoInv
-             eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = u(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             call eos(eos_input_re, eos_state)
-
-             ! Compute velocity and then calculate CFL timestep.
-
-             ux = u(i,j,k,UMX) * rhoInv
-             uy = u(i,j,k,UMY) * rhoInv
-             uz = u(i,j,k,UMZ) * rhoInv
-
-#ifdef ROTATION
-             if (do_rotation == 1 .and. state_in_rotating_frame /= 1) then
-                vel = [ux, uy, uz]
-                call inertial_to_rotational_velocity([i, j, k], amr_time, vel)
-                ux = vel(1)
-                uy = vel(2)
-                uz = vel(3)
-             endif
-#endif
-
-             c = eos_state % cs
-
-             dt1 = dx(1)/(c + abs(ux))
-             if (dim >= 2) then
-                dt2 = dx(2)/(c + abs(uy))
-             else
-                dt2 = dt1
-             endif
-             if (dim == 3) then
-                dt3 = dx(3)/(c + abs(uz))
-             else
-                dt3 = dt1
-             endif
-
-             ! The CTU method has a less restrictive timestep than
-             ! MOL-based schemes (including the true SDC).  Since the
-             ! simplified SDC solver is based on CTU, we can use its
-             ! timestep.
-             if (time_integration_method == 0 .or. time_integration_method == 3) then
-                call reduce_min(dt, min(dt1,dt2,dt3))
-             else
-                ! method of lines-style constraint is tougher
-                dt_tmp = ONE/dt1
-                if (dim >= 2) then
-                   dt_tmp = dt_tmp + ONE/dt2
-                endif
-                if (dim == 3) then
-                   dt_tmp = dt_tmp + ONE/dt3
-                endif
-
-                call reduce_min(dt, ONE/dt_tmp)
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_estdt
-
 #ifdef MHD
   subroutine ca_estdt_mhd(lo,hi,u,u_lo,u_hi, &
                            bx, bx_lo, bx_hi, &
@@ -172,7 +62,7 @@ contains
              ux = u(i,j,k,UMX)*rhoInv
              uy = u(i,j,k,UMY)*rhoInv
              uz = u(i,j,k,UMZ)*rhoInv
-       
+
              eos_state % rho = u(i,j,k,URHO)
              eos_state % e = u(i,j,k,UEINT) * rhoInv
              eos_state % T = u(i,j,k,UTEMP)
@@ -188,20 +78,20 @@ contains
 
              if (e .gt. 0.d0) then
                 cad = bcx**2/u(i,j,k,URHO)
-                call eos_soundspeed_mhd(cx, as, ca, cad) 
-                
+                call eos_soundspeed_mhd(cx, as, ca, cad)
+
                 cad = bcy**2/u(i,j,k,URHO)
-                call eos_soundspeed_mhd(cy, as, ca, cad) 
-                                        
+                call eos_soundspeed_mhd(cy, as, ca, cad)
+
                 cad = bcz**2/u(i,j,k,URHO)
                 call eos_soundspeed_mhd(cz, as, ca, cad)
-                                       
+
              else
                 cx = 0.0d0
                 cy = 0.0d0
                 cz = 0.0d0
              endif
-             
+
              dt1 = dx(1)/(cx + abs(ux))
              dt2 = dx(2)/(cy + abs(uy))
              dt3 = dx(3)/(cz + abs(uz))
@@ -211,8 +101,7 @@ contains
     enddo
 
   end subroutine ca_estdt_mhd
-#endif 
-
+#endif
 
 #ifdef REACTIONS
 
@@ -249,7 +138,7 @@ contains
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+2)
+    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+3)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
@@ -358,94 +247,6 @@ contains
 #endif
 
 
-#ifdef DIFFUSION
-
-  subroutine ca_estdt_temp_diffusion(lo, hi, &
-       state, s_lo, s_hi, &
-       dx, dt) bind(C, name="ca_estdt_temp_diffusion")
-   ! Diffusion-limited timestep
-   !
-   ! .. note::
-   !    Binds to C function ``ca_estdt_temp_diffusion``
-
-    use network, only: nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_input_re, eos_t
-    use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX, &
-         diffuse_cutoff_density
-    use prob_params_module, only: dim
-    use amrex_constants_module, only : ONE, HALF
-    use conductivity_module, only: conductivity
-    use amrex_fort_module, only: rt => amrex_real
-    use reduction_module, only: reduce_min
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(inout) :: dt
-
-    real(rt) :: dt1, dt2, dt3, rho_inv
-    integer  :: i, j, k
-    real(rt) :: D
-
-    type (eos_t) :: eos_state
-
-    !$gpu
-
-    ! dt < 0.5 dx**2 / D
-    ! where D = k/(rho c_v), and k is the conductivity
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (state(i,j,k,URHO) > diffuse_cutoff_density) then
-
-                rho_inv = ONE/state(i,j,k,URHO)
-
-                ! we need cv
-                eos_state % rho = state(i,j,k,URHO )
-                eos_state % T   = state(i,j,k,UTEMP)
-                eos_state % e   = state(i,j,k,UEINT) * rho_inv
-
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rho_inv
-                eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rho_inv
-
-                call eos(eos_input_re, eos_state)
-
-                ! we also need the conductivity
-                call conductivity(eos_state)
-
-                ! maybe we should check (and take action) on negative cv here?
-                D = eos_state % conductivity*rho_inv/eos_state%cv
-
-                dt1 = HALF*dx(1)**2/D
-
-                if (dim >= 2) then
-                   dt2 = HALF*dx(2)**2/D
-                else
-                   dt2 = dt1
-                endif
-
-                if (dim == 3) then
-                   dt3 = HALF*dx(3)**2/D
-                else
-                   dt3 = dt1
-                endif
-
-                call reduce_min(dt, min(dt1,dt2,dt3))
-
-             endif
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_estdt_temp_diffusion
-#endif
 
 
   subroutine ca_check_timestep(lo, hi, &
@@ -480,7 +281,7 @@ contains
 #endif
     real(rt), intent(in) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 #ifdef REACTIONS
-    real(rt), intent(in) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+2)
+    real(rt), intent(in) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
 #endif
     real(rt), intent(in) :: dx(3)
     real(rt), intent(in), value :: dt

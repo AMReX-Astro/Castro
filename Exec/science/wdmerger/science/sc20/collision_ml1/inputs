@@ -1,44 +1,45 @@
-FILE = ../../inputs_3d
+FILE = ../../../inputs_3d
 
 amr.probin_file = probin
 
 max_step = 10000000
-stop_time = 250.0
+stop_time = 10.0
 
 # Stop the run when we've hit ignition,
 # which we can somewhat arbitrarily set
-# at 5 billion Kelvin.
+# at 4 billion Kelvin.
 
-castro.T_stopping_criterion = 5.e9
-
+castro.T_stopping_criterion = 4.e9
 castro.init_shrink = 0.01
-castro.dt_cutoff = 1.e-11
+
 castro.change_max = 1.25
 
-amr.n_cell = 256 256 256
-amr.max_grid_size = 256
-amr.blocking_factor = 64
-amr.max_level = 0
+amr.n_cell = 512 512 512
+amr.max_grid_size = 96
+amr.blocking_factor = 32
+amr.max_level = 1
 amr.ref_ratio = 4
 
 castro.do_sponge = 1
 castro.add_ext_src = 0
 castro.do_react = 1
-castro.do_rotation = 1
+castro.do_rotation = 0
 
 castro.max_subcycles = 64
 
 amr.check_int = -1
-amr.check_per = -1.0
+amr.check_per = 0.25
 
 amr.plot_int = -1
-amr.plot_per = -1.0
+amr.plot_per = 0.5
 castro.plot_per_is_exact = 1
 
 amr.small_plot_per = 0.1
 amr.small_plot_vars = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
-amr.derive_small_plot_vars = pressure soundspeed x_velocity y_velocity z_velocity t_sound_t_enuc
+amr.derive_small_plot_vars = t_sound_t_enuc
 castro.small_plot_per_is_exact = 1
+
+castro.output_at_completion = 1
 
 castro.dtnuc_e = 1.e200
 castro.dtnuc_X = 1.e200

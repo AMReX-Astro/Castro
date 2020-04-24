@@ -4,7 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro static
+@namespace: castro Castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -33,9 +33,6 @@ update_sources_after_reflux  int           1
 
 # should we apply the sources one by one or all at once?
 apply_sources_consecutively  int           0
-
-# should we have state data for custom load-balancing weighting?
-use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -302,8 +299,9 @@ fixed_dt                     Real         -1.0
 # constraints)
 initial_dt                   Real         -1.0
 
-# the smallest valid timestep---if we go below this, we abort
-dt_cutoff                    Real          0.0
+# the smallest valid timestep, as a fraction of the current simulation time.
+# if we go below this, we abort.
+dt_cutoff                    Real          1.e-12
 
 # the largest valid timestep---limit all timesteps to be no larger than this
 max_dt                       Real          1.e200
@@ -388,6 +386,9 @@ disable_shock_burning        int           0                  y
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
+
+# should we load balance inside the burn?
+use_burn_load_balancing      int           0
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -583,7 +584,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro static
+@namespace: particles Castro
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -611,7 +612,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity static
+@namespace: gravity Gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -667,7 +668,7 @@ mlmg_consolidation           int           1                  n
 # Do N-Solve?
 mlmg_nsolve                  int           0                  n
 
-@namespace: diffusion Diffusion static
+@namespace: diffusion Diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
@@ -676,7 +677,7 @@ mlmg_nsolve                  int           0                  n
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
 
-@namespace: radsolve RadSolve static
+@namespace: radsolve RadSolve
 
 # the linear solver option to use
 level_solver_flag            int           1                  n
@@ -695,7 +696,7 @@ beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
 
-@namespace: radiation Radiation static
+@namespace: radiation Radiation
 
 prop_temp_floor              Real          0.0                y
 

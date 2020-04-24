@@ -1,34 +1,36 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 9900000
-stop_time =  3.0
+max_step = 990000
+stop_time = 0.1
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 0       0
+geometry.is_periodic = 0          0         0
 geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     = 0       0
-geometry.prob_hi     = 1.2288e5     3.072e4
-amr.n_cell           = 768         192
+geometry.prob_lo     = 0          0         0
+geometry.prob_hi     = 1.2288e5  1.2288e5   3.072e4
+amr.n_cell           = 768       768        192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1
-castro.hi_bc       =  1
+castro.lo_bc       =  3   3   1
+castro.hi_bc       =  2   2   2
 
-castro.xl_ext_bc_type = "hse"
+castro.zl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
-castro.xr_ext_bc_type = "interp"
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 2
+castro.ambient_outflow_vel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
-castro.do_react = 0
-castro.do_rotation = 0
+castro.do_react = 1
+castro.do_rotation = 1
 castro.do_grav = 1
-castro.do_sponge = 0
+castro.do_sponge = 1
 
 castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
@@ -39,14 +41,24 @@ castro.grav_source_type = 2
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e14
 
-castro.diffuse_temp = 0
+castro.rotational_period = 0.001
+castro.rotation_include_centrifugal = 0
+
+castro.diffuse_temp = 1
+castro.diffuse_cutoff_density = 5.e4
+castro.diffuse_cond_scale_fac = 10.0
+
+castro.react_rho_min = 1.e2
+castro.react_rho_max = 1.5e7
+
+castro.react_T_min = 6.e7
 
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.use_retry      = 1
 castro.max_subcycles = 16
 
@@ -56,16 +68,16 @@ castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
 # REFINEMENT / REGRIDDING
-amr.max_level       = 3       # maximum level number allowed
+amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 16       # block factor in grid generation
+amr.blocking_factor = 32       # block factor in grid generation
 amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = flame_wave_chk        # root name of checkpoint file
-amr.check_int       = 250        # number of timesteps between checkpoints
+amr.check_int       = 100        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = flame_wave_plt        # root name of plotfile
@@ -73,9 +85,9 @@ amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_smallplt        # root name of plotfile
-amr.small_plot_per         = 1.e-4      # number of seconds between plotfiles
+amr.small_plot_per         = 5.e-5      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.hse_test
+amr.probin_file = probin

@@ -12,6 +12,8 @@
 #include "HypreMultiABec.H"
 #include "HypreExtMultiABec.H"
 
+#include <radsolve_params.H>
+
 ///
 /// @class RadSolve
 /// @brief
@@ -303,7 +305,6 @@ protected:
     std::unique_ptr<HypreMultiABec> hm;
     std::unique_ptr<HypreExtMultiABec> hem;
 
-#include <radsolve_params.H>
 
 };
 

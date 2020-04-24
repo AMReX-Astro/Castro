@@ -52,7 +52,6 @@ module meth_params_module
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
-  integer, parameter :: EXT_INTERP = 2
 
   integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 
@@ -132,8 +131,6 @@ contains
     select case (xl_ext_bc_type)
     case ("hse", "HSE")
        xl_ext = EXT_HSE
-    case ("interp", "INTERP")
-       xl_ext = EXT_INTERP
     case default
        xl_ext = EXT_UNDEFINED
     end select
@@ -141,8 +138,6 @@ contains
     select case (yl_ext_bc_type)
     case ("hse", "HSE")
        yl_ext = EXT_HSE
-    case ("interp", "INTERP")
-       yl_ext = EXT_INTERP
     case default
        yl_ext = EXT_UNDEFINED
     end select
@@ -150,8 +145,6 @@ contains
     select case (zl_ext_bc_type)
     case ("hse", "HSE")
        zl_ext = EXT_HSE
-    case ("interp", "INTERP")
-       zl_ext = EXT_INTERP
     case default
        zl_ext = EXT_UNDEFINED
     end select
@@ -159,8 +152,6 @@ contains
     select case (xr_ext_bc_type)
     case ("hse", "HSE")
        xr_ext = EXT_HSE
-    case ("interp", "INTERP")
-       xr_ext = EXT_INTERP
     case default
        xr_ext = EXT_UNDEFINED
     end select
@@ -168,8 +159,6 @@ contains
     select case (yr_ext_bc_type)
     case ("hse", "HSE")
        yr_ext = EXT_HSE
-    case ("interp", "INTERP")
-       yr_ext = EXT_INTERP
     case default
        yr_ext = EXT_UNDEFINED
     end select
@@ -177,8 +166,6 @@ contains
     select case (zr_ext_bc_type)
     case ("hse", "HSE")
        zr_ext = EXT_HSE
-    case ("interp", "INTERP")
-       zr_ext = EXT_INTERP
     case default
        zr_ext = EXT_UNDEFINED
     end select

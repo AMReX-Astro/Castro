@@ -4,6 +4,15 @@
 
 #include <state_indices.H>
 
+// runtime parameters
+#include <castro_params.H>
+using namespace castro;
+
+#ifdef AMREX_PARTICLES
+#include <particles_params.H>
+#endif
+
+
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
 
@@ -30,6 +39,9 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
+#ifdef CXX_REACTIONS
+#include <burner.H>
+#endif
 
 #ifdef BL_LAZY
 #include <AMReX_Lazy.H>
@@ -584,6 +596,17 @@ public:
 /// @param dt_old   previous timestep
 ///
     amrex::Real estTimeStep (amrex::Real dt_old);
+
+
+///
+/// Compute the CFL timestep
+///
+    amrex::Real estdt_cfl(const amrex::Real time);
+
+///
+/// Diffusion-limited timestep
+///
+    amrex::Real estdt_temp_diffusion();
 
 ///
 /// Compute initial time step.
@@ -1373,11 +1396,11 @@ protected:
     //
     // Static data members.
     //
-#include <castro_params.H>
 
-#ifdef AMREX_PARTICLES
-#include "particles_params.H"
+#ifdef SPONGE
+#include <sponge_params.H>
 #endif
+
 
     static bool      signalStopJob;
     static int       radius_grow;
@@ -1459,7 +1482,6 @@ protected:
     static amrex::IntVect hydro_tile_size;
     static amrex::IntVect no_tile_size;
 
-    static int Knapsack_Weight_Type;
     static int SDC_Source_Type;
     static int num_state_type;
 

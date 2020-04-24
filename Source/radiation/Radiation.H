@@ -11,6 +11,8 @@
 #include <AMReX_FluxRegister.H>
 #include <AMReX_Array.H>
 
+#include <radiation_params.H>
+
 ///
 /// @class Radiation
 /// @brief
@@ -110,8 +112,6 @@ public:
   static std::string current_group_name;
 
   static int pure_hydro;
-
-#include <radiation_params.H>
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 

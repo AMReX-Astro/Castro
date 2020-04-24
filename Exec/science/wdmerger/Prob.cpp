@@ -325,12 +325,12 @@ Castro::wd_update (Real time, Real dt)
 
     if (mass_p > 0.0 && vol_p[2] > 0.0) {
       rho_avg_p = mass_p / vol_p[2];
-      t_ff_p = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_p));
+      t_ff_p = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_p));
     }
 
     if (mass_s > 0.0 && vol_s[2] > 0.0) {
       rho_avg_s = mass_s / vol_s[2];
-      t_ff_s = sqrt(3.0 * M_PI / (32.0 * Gconst * rho_avg_s));
+      t_ff_s = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_s));
     }
 
     // Send this updated information back to the Fortran module

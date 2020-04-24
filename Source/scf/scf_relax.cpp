@@ -445,7 +445,7 @@ Castro::do_hscf_solve()
             std::cout << "   Potential energy: " << pot_eng << std::endl;
             std::cout << "   Internal energy: " << int_eng << std::endl;
             std::cout << "   Virial error: " << virial_error << std::endl;
-            std::cout << "   Mass: " << mass / M_solar << " solar masses" << std::endl;
+            std::cout << "   Mass: " << mass / C::M_solar << " solar masses" << std::endl;
 
             if (is_relaxed == 1) {
                 std::cout << "  Relaxation completed!" << std::endl;

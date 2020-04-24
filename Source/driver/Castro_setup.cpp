@@ -226,6 +226,9 @@ Castro::variableSetUp ()
 
   // Initialize the network
   ca_network_init();
+#ifdef CXX_REACTIONS
+  network_init();
+#endif
 
   // Initialize the EOS
   ca_eos_init();
@@ -268,11 +271,6 @@ Castro::variableSetUp ()
 #ifdef REACTIONS
   // Initialize the burner
   burner_init();
-#endif
-
-#ifdef SPONGE
-  // Initialize the sponge
-  sponge_init();
 #endif
 
   // Initialize the amr info
@@ -347,10 +345,22 @@ Castro::variableSetUp ()
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
 #ifdef SPONGE
+  // Initialize the sponge
+
+  sponge_init();
+
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
 
-  ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+  ca_read_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+
+  // bring the sponge parameters into C++
+  ca_get_sponge_params(sponge_lower_factor, sponge_upper_factor,
+                       sponge_lower_radius, sponge_upper_radius,
+                       sponge_lower_density, sponge_upper_density,
+                       sponge_lower_pressure, sponge_upper_pressure,
+                       sponge_target_velocity, sponge_timescale);
+
 #endif
 
   // Read in the ambient state parameters.
@@ -465,9 +475,10 @@ Castro::variableSetUp ()
   // Components 0:Numspec-1         are      omegadot_i
   // Component    NumSpec            is      enuc =      (eout-ein)
   // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
+  // Component    NumSpec+2          is      weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,0,NumSpec+2,
+                         StateDescriptor::Point, NUM_GROW, NumSpec+3,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -661,6 +672,7 @@ Castro::variableSetUp ()
     }
   desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
   desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+2, "weights", bc, genericBndryFunc); 
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -710,17 +722,6 @@ Castro::variableSetUp ()
   // some optional State_Type's -- since these depend on the value of
   // runtime parameters, we don't add these to the enum, but instead
   // add them to the count of State_Type's if we will use them
-
-  if (use_custom_knapsack_weights) {
-      Knapsack_Weight_Type = desc_lst.size();
-      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point,
-                             0, 1, &pc_interp);
-      // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
-      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
-                            bc, BndryFunc(ca_nullfill));
-  }
-
 
 #ifdef REACTIONS
   if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {

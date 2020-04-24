@@ -80,7 +80,10 @@ Vector<Real> Castro::node_weights;
 int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 #endif
 
-#include <castro_defaults.H>
+// the sponge parameters are controlled by Fortran, so
+// this just initializes them before we grab their values
+// from Fortran
+#include <sponge_defaults.H>
 
 #ifdef GRAVITY
 // the gravity object
@@ -131,7 +134,6 @@ Real         Castro::previousCPUTimeUsed = 0.0;
 
 Real         Castro::startCPUTime = 0.0;
 
-int          Castro::Knapsack_Weight_Type = -1;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
@@ -207,6 +209,8 @@ Castro::read_params ()
     done = true;
 
     ParmParse pp("castro");
+
+    using namespace castro;
 
 #include <castro_queries.H>
 
@@ -542,10 +546,6 @@ Castro::Castro (Amr&            papa,
 
 #endif
 
-
-   if (Knapsack_Weight_Type > 0) {
-    get_new_data(Knapsack_Weight_Type).setVal(1.0);
-   }
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
@@ -915,10 +915,6 @@ Castro::initData ()
 #endif
 #endif
 
-   if (Knapsack_Weight_Type > 0) {
-       get_new_data(Knapsack_Weight_Type).setVal(1.0);
-   }
-
 #ifdef MAESTRO_INIT
     MAESTRO_init();
 #else
@@ -999,14 +995,15 @@ Castro::initData ()
 #endif
                    S_new, cur_time, S_new.nGrow());
 
-       int init_failed_rho = 0;
-       int init_failed_T = 0;
+       ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
+       ReduceData<int, int> reduce_data(reduce_op);
+       using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:init_failed_rho,init_failed_T)
+#pragma omp parallel
 #endif
        for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-         {
+       {
            const Box& bx = mfi.tilebox();
 
            auto S_arr = S_new.array(mfi);
@@ -1014,33 +1011,37 @@ Castro::initData ()
            Real lsmall_temp = small_temp;
            Real lsmall_dens = small_dens;
 
-           int* init_failed_rho_d = AMREX_MFITER_REDUCE_SUM(&init_failed_rho);
-           int* init_failed_T_d = AMREX_MFITER_REDUCE_SUM(&init_failed_T);
-
-           AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+           reduce_op.eval(bx, reduce_data,
+           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
            {
+               // if the problem tried to initialize a thermodynamic
+               // state that is at or below small_temp, then we abort.
+               // This is dangerous and we should recommend a smaller
+               // small_temp
+               int T_failed = 0;
+               if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
+                   T_failed = 1;
+               }
 
-             // if the problem tried to initialize a thermodynamic
-             // state that is at or below small_temp, then we abort.
-             // This is dangerous and we should recommend a smaller
-             // small_temp
-             if (S_arr(i,j,k,UTEMP) < lsmall_temp * 1.001) {
-                 Gpu::Atomic::Add(init_failed_T_d, 1);
-             }
+               int rho_failed = 0;
+               if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
+                   rho_failed = 1;
+               }
 
-             if (S_arr(i,j,k,URHO) < lsmall_dens * 1.001) {
-                 Gpu::Atomic::Add(init_failed_rho_d, 1);
-             }
-
+               return {T_failed, rho_failed};
            });
 
-         }
+       }
 
-       if (init_failed_rho != 0.0) {
+       ReduceTuple hv = reduce_data.value();
+       int init_failed_T   = amrex::get<0>(hv);
+       int init_failed_rho = amrex::get<1>(hv);
+
+       if (init_failed_rho != 0) {
          amrex::Error("Error: initial data has rho <~ small_dens");
        }
 
-       if (init_failed_T != 0.0) {
+       if (init_failed_T != 0) {
          amrex::Error("Error: initial data has T <~ small_temp");
        }
 
@@ -1062,9 +1063,25 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
          const Box& bx = mfi.validbox();
-#pragma gpu box(bx)
-         ca_check_initial_species(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  BL_TO_FORTRAN_ANYD(S_new[mfi]));
+
+         auto S_arr = S_new.array(mfi);
+
+         amrex::ParallelFor(bx,
+         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         {
+           Real spec_sum = 0.0_rt;
+           for (int n = 0; n < NumSpec; n++) {
+             spec_sum += S_arr(i,j,k,UFS+n);
+           }
+           if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
+#ifndef AMREX_USE_CUDA
+             std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
+                       << i << " " << j << " " << k << " " 
+                       << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
+#endif
+             amrex::Error("Error: failed check of initial species summing to 1");
+           }
+         });
        }
 
 #ifdef TRUE_SDC
@@ -1127,8 +1144,34 @@ Castro::initData ()
            {
              const Box& box = mfi.growntilebox(1);
 
-             ca_recompute_energetics(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_ANYD(Sborder[mfi]));
+             auto S_arr = Sborder.array(mfi);
+
+             amrex::ParallelFor(box,
+             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+             {
+
+               Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
+               Real u = S_arr(i,j,k,UMX) * rhoInv;
+               Real v = S_arr(i,j,k,UMY) * rhoInv;
+               Real w = S_arr(i,j,k,UMZ) * rhoInv;
+
+               eos_t eos_state;
+               eos_state.rho = S_arr(i,j,k,URHO);
+               eos_state.T = S_arr(i,j,k,UTEMP);
+               eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
+               for (int n = 0; n < NumSpec; n++) {
+                 eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
+               }
+               for (int n = 0; n < NumAux; n++) {
+                 eos_state.aux[n] = S_arr(i,j,k,UFX+n) * rhoInv;
+               }
+
+               eos(eos_input_re, eos_state);
+
+               S_arr(i,j,k,UTEMP) = eos_state.T;
+
+               S_arr(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+             });
            }
 
          // convert back to averages -- not tile safe
@@ -1345,6 +1388,8 @@ Castro::estTimeStep (Real dt_old)
     const MultiFab& bzMF = get_new_data(Mag_Type_z);
 #endif
 
+    Real time = state[State_Type].curTime();
+
     const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
@@ -1394,6 +1439,8 @@ Castro::estTimeStep (Real dt_old)
         {
 #endif
 
+#ifdef MHD
+
 #ifdef _OPENMP
 #pragma omp parallel reduction(min:estdt_hydro)
 #endif
@@ -1404,26 +1451,20 @@ Castro::estTimeStep (Real dt_old)
                 {
                     const Box& box = mfi.tilebox();
 
-#ifndef MHD
-
-#pragma gpu
-                  ca_estdt(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                           BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                           AMREX_REAL_ANYD(dx),
-                           AMREX_MFITER_REDUCE_MIN(&dt));
-#else
                   ca_estdt_mhd(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
                                BL_TO_FORTRAN_3D(stateMF[mfi]),
                                BL_TO_FORTRAN_3D(bxMF[mfi]),
                                BL_TO_FORTRAN_3D(byMF[mfi]),
                                BL_TO_FORTRAN_3D(bzMF[mfi]),
                                ZFILL(dx),&dt);
-#endif
 
 
                 }
               estdt_hydro = std::min(estdt_hydro, dt);
             }
+#else
+          estdt_hydro = estdt_cfl(time);
+#endif
 
 #ifdef RADIATION
         }
@@ -1453,23 +1494,7 @@ Castro::estTimeStep (Real dt_old)
 
     if (diffuse_temp)
     {
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_diffusion)
-#endif
-        {
-            Real dt = max_dt / cfl;
-
-            for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.tilebox();
-
-#pragma gpu box(box)
-                ca_estdt_temp_diffusion(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(stateMF[mfi]),
-                                        AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-            }
-            estdt_diffusion = std::min(estdt_diffusion, dt);
-        }
+      estdt_diffusion = estdt_temp_diffusion();
     }
 
     ParallelDescriptor::ReduceRealMin(estdt_diffusion);
@@ -2427,10 +2452,10 @@ Castro::okToContinue ()
       if (ParallelDescriptor::IOProcessor())
         std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
     }
-    else if (parent->dtLevel(0) < dt_cutoff) {
+    else if (parent->dtLevel(level) < dt_cutoff * parent->cumTime()) {
       test = 0;
       if (ParallelDescriptor::IOProcessor())
-        std::cout << " Signalling a stop of the run because dt < dt_cutoff." << std::endl;
+        std::cout << " Signalling a stop of the run because dt < dt_cutoff * time." << std::endl;
     }
 
     return test;
@@ -2853,9 +2878,7 @@ Castro::avgDown ()
   if (level == parent->finestLevel()) return;
 
   for (int k = 0; k < num_state_type; k++) {
-    if (k != Knapsack_Weight_Type) {
       avgDown(k);
-    }
   }
 
 }
@@ -2915,17 +2938,38 @@ Castro::enforce_consistent_e (
     for (MFIter mfi(S, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& box     = mfi.tilebox();
-        const int* lo      = box.loVect();
-        const int* hi      = box.hiVect();
 
-#pragma gpu box(box)
-        ca_enforce_consistent_e(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+        auto S_arr = S.array(mfi);
+
 #ifdef MHD
-                                BL_TO_FORTRAN_3D(Bx[mfi]),
-                                BL_TO_FORTRAN_3D(By[mfi]),
-                                BL_TO_FORTRAN_3D(Bz[mfi]),
+        auto Bx_arr = Bx.array(mfi);
+        auto By_arr = By.array(mfi);
+        auto Bz_arr = Bz.array(mfi);
 #endif
-                                BL_TO_FORTRAN_ANYD(S[mfi]));
+
+        ParallelFor(box,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
+          Real u = S_arr(i,j,k,UMX) * rhoInv;
+          Real v = S_arr(i,j,k,UMY) * rhoInv;
+          Real w = S_arr(i,j,k,UMZ) * rhoInv;
+
+          S_arr(i,j,k,UEDEN) = S_arr(i,j,k,UEINT) +
+            0.5_rt * S_arr(i,j,k,URHO) * (u*u + v*v + w*w);
+
+#ifdef MHD
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          S_arr(i,j,k,UEDEN) += 0.5_rt * (bx_cell_c * bx_cell_c +
+                                          by_cell_c * by_cell_c +
+                                          bz_cell_c * bz_cell_c);
+#endif
+
+        });
+
     }
 }
 

@@ -75,8 +75,21 @@ extern "C"
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
-  void ca_get_sponge_params(const int* name, const int* namlen);
+  void ca_read_sponge_params(const int* name, const int* namlen);
+
+  void ca_get_sponge_params(amrex::Real& sponge_lower_factor,
+                            amrex::Real& sponge_upper_factor,
+                            amrex::Real& sponge_lower_radius,
+                            amrex::Real& sponge_upper_radius,
+                            amrex::Real& sponge_lower_density,
+                            amrex::Real& sponge_upper_density,
+                            amrex::Real& sponge_lower_pressure,
+                            amrex::Real& sponge_upper_pressure,
+                            amrex::Real* sponge_target_velocity,
+                            amrex::Real& sponge_timescale);
+
   void ca_allocate_sponge_params();
+
   void ca_deallocate_sponge_params();
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
@@ -130,10 +143,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-
-  void ca_check_initial_species
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
-
   void ca_enforce_minimum_density
     (const int* lo, const int* hi,
      const amrex::Real* state, const int* s_lo, const int* s_hi,
@@ -150,18 +159,6 @@ extern "C"
   void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
-  void ca_enforce_consistent_e
-    (const int* lo, const int* hi,
-#ifdef MHD
-     BL_FORT_FAB_ARG_3D(bx),
-     BL_FORT_FAB_ARG_3D(by),
-     BL_FORT_FAB_ARG_3D(bz),
-#endif
-     BL_FORT_FAB_ARG_3D(state));
-
-  void ca_recompute_energetics
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
   void ca_reset_internal_e
     (const int* lo, const int* hi,
 #ifdef MHD
@@ -172,11 +169,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
 
-  void ca_estdt
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
-
 #ifdef MHD
   void ca_estdt_mhd
     (const int* lo, const int* hi,
@@ -184,13 +176,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(Bx),
      const BL_FORT_FAB_ARG_3D(By),
      const BL_FORT_FAB_ARG_3D(Bz),
-     const amrex::Real* dx, amrex::Real* dt);
-#endif
-
-#ifdef DIFFUSION
-  void ca_estdt_temp_diffusion
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
      const amrex::Real* dx, amrex::Real* dt);
 #endif
 

@@ -460,24 +460,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     while (subcycle_time < (1.0 - eps) * (time + dt)) {
 
-        // Determine whether we're below the cutoff timestep. Note that
-        // dt_cutoff is set for level 0, so we need to scale this appropriately
-        // depending on our level of refinement.
+        // Save the dt_subcycle before modifying it, we will use it later.
 
-        Real cutoff_dt = dt_cutoff;
-        for (int lev = 0; lev < level; ++lev) {
-            cutoff_dt /= parent->MaxRefRatio(lev);
-        }
-
-        if (dt_subcycle < cutoff_dt) {
-            if (ParallelDescriptor::IOProcessor()) {
-                std::cout << std::endl;
-                std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
-                          << "  but this timestep is shorter than the user-defined minimum, " << std::endl
-                          << "  castro.dt_cutoff, scaled to the current level (" << cutoff_dt << "). Aborting." << std::endl;
-            }
-            amrex::Abort("Error: subcycled timesteps too short.");
-        }
+        last_dt_subcycle = dt_subcycle;
 
         // Shorten the last timestep so that we don't overshoot
         // the ending time. Relatedly, we also don't want to
@@ -488,16 +473,24 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // roundoff issues, under the logic that as long as the
         // tolerance is still small, there is no meaningful harm
         // from the timestep being slightly larger than our recommended
-        // safe dt in the subcycling.       
+        // safe dt in the subcycling.
 
-        const Real eps2 = 1.0e-10;
+        AMREX_ASSERT(dt_cutoff > eps);
 
-        // Save the dt_subcycle before modifying it, we will use it later.
-
-        last_dt_subcycle = dt_subcycle;
-
-        if (subcycle_time + dt_subcycle > (1.0 - eps2) * (time + dt))
+        if (subcycle_time + dt_subcycle > (1.0 - dt_cutoff) * (time + dt))
             dt_subcycle = (time + dt) - subcycle_time;
+
+        // Determine whether we're below the cutoff timestep.
+
+        if (dt_subcycle < dt_cutoff * time) {
+            if (ParallelDescriptor::IOProcessor()) {
+                std::cout << std::endl;
+                std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
+                          << "  but this timestep is shorter than the user-defined minimum, " << std::endl
+                          << "  castro.dt_cutoff, multiplied by the current time (" << dt_cutoff * time << "). Aborting." << std::endl;
+            }
+            amrex::Abort("Error: subcycled timesteps too short.");
+        }
 
         // Check on whether we are going to take too many subcycles.
 

@@ -72,8 +72,6 @@ std::string Radiation::current_group_name = "Radiation";
 
 int Radiation::pure_hydro = 0;
 
-#include <radiation_defaults.H>
-
 // static initialization, must be called before Castro::variableSetUp
 
 void Radiation::read_static_params()
@@ -160,11 +158,6 @@ void Radiation::read_static_params()
     }
   }
 
-  if (rad_hydro_combined) {
-    if (Castro::riemann_solver == 1) {
-      amrex::Error("The Colella and Glaz Riemann solver cannot be used with rad_hydro_combined.");
-    }
-  }
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
 

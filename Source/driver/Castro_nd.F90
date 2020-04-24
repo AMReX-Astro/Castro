@@ -830,7 +830,7 @@ end subroutine ca_get_tagging_params
 
 
 
-subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
+subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_params")
     ! Initialize the sponge parameters
     !
     ! Binds to C function `ca_get_sponge_params`
@@ -895,8 +895,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   end do
 
   ! read in the namelist
-  un = 9
-  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+  open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
   read (unit=un, nml=sponge, iostat=status)
 
   if (status < 0) then
@@ -928,8 +927,48 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   endif
 #endif
 
-end subroutine ca_get_sponge_params
+end subroutine ca_read_sponge_params
 
+
+subroutine ca_get_sponge_params(sponge_lower_factor_in, sponge_upper_factor_in, &
+                                sponge_lower_radius_in, sponge_upper_radius_in, &
+                                sponge_lower_density_in, sponge_upper_density_in, &
+                                sponge_lower_pressure_in, sponge_upper_pressure_in, &
+                                sponge_target_velocity_in, &
+                                sponge_timescale_in) bind(C, name="ca_get_sponge_params")
+
+  use sponge_module
+
+  implicit none
+
+  real(rt), intent(inout) :: sponge_lower_factor_in
+  real(rt), intent(inout) :: sponge_upper_factor_in
+  real(rt), intent(inout) :: sponge_lower_radius_in
+  real(rt), intent(inout) :: sponge_upper_radius_in
+  real(rt), intent(inout) :: sponge_lower_density_in
+  real(rt), intent(inout) :: sponge_upper_density_in
+  real(rt), intent(inout) :: sponge_lower_pressure_in
+  real(rt), intent(inout) :: sponge_upper_pressure_in
+  real(rt), intent(inout) :: sponge_target_velocity_in(3)
+  real(rt), intent(inout) :: sponge_timescale_in
+
+  sponge_lower_factor_in = sponge_lower_factor
+  sponge_upper_factor_in = sponge_upper_factor
+
+  sponge_lower_radius_in = sponge_lower_radius
+  sponge_upper_radius_in = sponge_upper_radius
+
+  sponge_lower_density_in = sponge_lower_density
+  sponge_upper_density_in = sponge_upper_density
+
+  sponge_lower_pressure_in = sponge_lower_pressure
+  sponge_upper_pressure_in = sponge_upper_pressure
+
+  sponge_target_velocity_in(:) = sponge_target_velocity(:)
+
+  sponge_timescale_in = sponge_timescale
+
+end subroutine ca_get_sponge_params
 
 
 subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
