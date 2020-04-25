@@ -1473,7 +1473,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
     if (verbose) {
-        amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
+        amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n' << std::endl;
     }
 
     return estdt;
