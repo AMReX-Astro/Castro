@@ -318,7 +318,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -358,6 +358,9 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``T_guess``                            | initial guess for the temperature when inverting the    | 1.e8          |
 |                                        | EoS (e.g. when calling eos_input_re)                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reactions_max_solve_level``          | maximum level to do an explicit burn on (above this, we | 100           |
+|                                        | interpolate the reactions source)                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
