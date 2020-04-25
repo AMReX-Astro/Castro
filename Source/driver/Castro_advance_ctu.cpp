@@ -75,11 +75,14 @@ Castro::do_advance_ctu(Real time,
 #ifdef REACTIONS
     bool burn_success = true;
 
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        // this operates on Sborder (which is initially S_old).  The result
-        // of the reactions is added directly back to Sborder.
-        burn_success = strang_react_first_half(prev_time, 0.5 * dt);
+        // The result of the reactions is added directly to Sborder.
+        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
+        clean_state(Sborder, prev_time, Sborder.nGrow());
 
     }
 #endif
@@ -95,8 +98,6 @@ Castro::do_advance_ctu(Real time,
         // Do this for the reactions as well, in case we cut the timestep
         // short due to it being rejected.
 
-        MultiFab& R_old = get_old_data(Reactions_Type);
-        MultiFab& R_new = get_new_data(Reactions_Type);
         MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
@@ -244,7 +245,8 @@ Castro::do_advance_ctu(Real time,
 #ifdef REACTIONS
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        burn_success = strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
+        clean_state(S_new, cur_time, S_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -260,10 +262,6 @@ Castro::do_advance_ctu(Real time,
     // Check if this timestep violated our stability criteria.
 
     Real check_timestep_failure = 0.0_rt;
-
-#ifdef REACTIONS
-    MultiFab& R_new = get_new_data(Reactions_Type);
-#endif
 
     const Real* dx = geom.CellSize();
 

@@ -2,170 +2,55 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
-#include "AMReX_DistributionMapping.H"
-
 using std::string;
 using namespace amrex;
 
-bool
-Castro::strang_react_first_half(Real time, Real dt)
-{
-    BL_PROFILE("Castro::strang_react_first_half()");
-
-    // Sanity check: should only be in here if we're doing CTU.
-
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU advance.");
-    }
-
-    bool burn_success = true;
-
-    // Get the reactions MultiFab to fill in.
-
-    MultiFab& reactions = get_old_data(Reactions_Type);
-
-    if (do_react != 1) {
-
-        // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0, reactions.nGrow());
-
-        return burn_success;
-
-    }
-
-    // Get the current state data.
-
-    MultiFab& state_burn = Sborder;
-
-    // Check if we have any zones to burn.
-
-    if (!valid_zones_to_burn(state_burn)) {
-
-        // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0, reactions.nGrow());
-
-        return burn_success;
-
-    }
-
-    const int ng = state_burn.nGrow();
-
-    // Reactions are expensive and we would usually rather do a
-    // communication step than burn on the ghost zones. So what we
-    // will do here is create a mask that indicates that we want to
-    // turn on the valid interior zones but NOT on the ghost zones
-    // that are interior to the level. However, we DO want to burn on
-    // the ghost zones that are on the coarse-fine interfaces, since
-    // that is going to be more accurate than interpolating from
-    // coarse zones. So we will not mask out those zones, and the
-    // subsequent FillBoundary call will not interfere with it.
-
-    iMultiFab& interior_mask = build_interior_boundary_mask(ng);
-
-    if (verbose)
-        amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
-
-    burn_success = react_state(state_burn, reactions, interior_mask, time, dt, 1, ng);
-
-    if (verbose)
-        amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
-
-    // Now do a boundary fill so that the masked out zones which were skipped get their valid data.
-
-    state_burn.FillBoundary(geom.periodicity());
-
-    // Ensure consistency in internal energy and recompute temperature.
-
-    clean_state(state_burn, time, state_burn.nGrow());
-
-    return burn_success;
-
-}
-
-
+// Strang version
 
 bool
-Castro::strang_react_second_half(Real time, Real dt)
+Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 {
-    BL_PROFILE("Castro::strang_react_second_half()");
-
-    // Sanity check: should only be in here if we're doing CTU.
-
-    if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU advance.");
-    }
-
-    bool burn_success = true;
-
-    MultiFab& reactions = get_new_data(Reactions_Type);
-
-    if (do_react != 1) {
-
-        // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0, reactions.nGrow());
-
-        return burn_success;
-
-    }
-
-    MultiFab& state_burn = get_new_data(State_Type);
-
-    // Check if we have any zones to burn.
-
-    if (!valid_zones_to_burn(state_burn)) {
-
-        // Ensure we always have valid data, even if we don't do the burn.
-        reactions.setVal(0.0, reactions.nGrow());
-
-        return burn_success;
-
-    }
-
-    // To be consistent with other source term types,
-    // we are only applying this on the interior zones.
-
-    const int ng = 0;
-
-    iMultiFab& interior_mask = build_interior_boundary_mask(ng);
-
-    if (verbose)
-        amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
-
-    burn_success = react_state(state_burn, reactions, interior_mask, time, dt, 2, ng);
-
-    if (verbose)
-        amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
-
-    state_burn.FillBoundary(geom.periodicity());
-
-    clean_state(state_burn, time + 0.5 * dt, state_burn.nGrow());
-
-    return burn_success;
-
-}
-
-
-
-bool
-Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Real dt_react, int strang_half, int ngrow)
-{
-
     BL_PROFILE("Castro::react_state()");
 
-    // Sanity check: should only be in here if we're doing CTU or MOL.
+    // Sanity check: should only be in here if we're doing CTU.
 
     if (time_integration_method != CornerTransportUpwind) {
-        amrex::Error("Strang reactions are only supported for the CTU and MOL advance.");
+        amrex::Error("Strang reactions are only supported for the CTU advance.");
     }
 
     const Real strt_time = ParallelDescriptor::second();
 
-    // Start off assuming a successful burn.
+    // Start off by assuming a successful burn.
 
     int burn_success = 1;
 #ifndef CXX_REACTIONS
     Real burn_failed = 0.0;
 #endif
+
+    if (do_react != 1) {
+
+        // Ensure we always have valid data, even if we don't do the burn.
+        r.setVal(0.0, r.nGrow());
+
+        return burn_success;
+
+    }
+
+    // Check if we have any zones to burn.
+
+    if (!valid_zones_to_burn(s)) {
+
+        // Ensure we always have valid data, even if we don't do the burn.
+        r.setVal(0.0, r.nGrow());
+
+        return burn_success;
+
+    }
+
+    const int ng = s.nGrow();
+
+    if (verbose)
+        amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -177,17 +62,11 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
     for (MFIter mfi(s, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
-        const Box& bx = mfi.growntilebox(ngrow);
+        const Box& bx = mfi.growntilebox(ng);
 
 #ifdef CXX_REACTIONS
         auto U = s.array(mfi);
         auto reactions = r.array(mfi);
-        auto mask = m.array(mfi);
-
-        Real lreact_T_min = castro::react_T_min;
-        Real lreact_T_max = castro::react_T_max;
-        Real lreact_rho_min = castro::react_rho_min;
-        Real lreact_rho_max = castro::react_rho_max;
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
@@ -200,12 +79,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
             bool do_burn = true;
             burn_state.success = true;
             Real burn_failed = 0.0_rt;
-
-            // Don't burn on zones that we are intentionally masking out.
-
-            if (mask(i,j,k) != 1) {
-                do_burn = false;
-            }
 
             // Don't burn on zones inside shock regions, if the relevant option is set.
 
@@ -238,13 +111,13 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
             // Don't burn if we're outside of the relevant (rho, T) range.
 
-            if (burn_state.T < lreact_T_min || burn_state.T > lreact_T_max ||
-                burn_state.rho < lreact_rho_min || burn_state.rho > lreact_rho_max) {
+            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                 do_burn = false;
             }
 
             if (do_burn) {
-                burner(burn_state, dt_react);
+                burner(burn_state, dt);
             }
 
             // If we were unsuccessful, update the failure count.
@@ -273,10 +146,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
                 if (reactions.contains(i,j,k)) {
                     for (int n = 0; n < NumSpec; ++n) {
-                        reactions(i,j,k,n) = (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt_react;
+                        reactions(i,j,k,n) = (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                     }
-                    reactions(i,j,k,NumSpec  ) = delta_e / dt_react;
-                    reactions(i,j,k,NumSpec+1) = delta_rho_e / dt_react;
+                    reactions(i,j,k,NumSpec  ) = delta_e / dt;
+                    reactions(i,j,k,NumSpec+1) = delta_rho_e / dt;
                     reactions(i,j,k,NumSpec+2) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                 }
 
@@ -316,8 +189,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
         ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                        BL_TO_FORTRAN_ANYD(s[mfi]),
                        BL_TO_FORTRAN_ANYD(r[mfi]),
-                       BL_TO_FORTRAN_ANYD(m[mfi]),
-                       time, dt_react, strang_half,
+                       time, dt,
                        AMREX_MFITER_REDUCE_SUM(&burn_failed));
 
 #endif
@@ -342,6 +214,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 
     }
 
+    if (verbose)
+        amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
+
     if (verbose > 0)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
@@ -358,10 +233,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 #endif
     }
 
-    if (burn_success)
-        return true;
-    else
-        return false;
+    return burn_success;
 
 }
 

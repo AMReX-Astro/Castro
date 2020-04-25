@@ -10,8 +10,7 @@ contains
   subroutine ca_react_state(lo, hi, &
                             state, s_lo, s_hi, &
                             reactions, r_lo, r_hi, &
-                            mask, m_lo, m_hi, &
-                            time, dt_react, strang_half, &
+                            time, dt_react, &
                             failed) bind(C, name="ca_react_state")
 
     use network           , only : nspec, naux
@@ -42,16 +41,13 @@ contains
     integer , intent(in   ) :: lo(3), hi(3)
     integer , intent(in   ) :: s_lo(3), s_hi(3)
     integer , intent(in   ) :: r_lo(3), r_hi(3)
-    integer , intent(in   ) :: m_lo(3), m_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
     real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
-    integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ), value :: time, dt_react
     real(rt) , intent(inout) :: failed
 
     integer          :: i, j, k, n
     real(rt)         :: rhoInv, delta_e, delta_rho_e, dx_min
-    integer, intent(in), value :: strang_half
     logical          :: do_burn
 
     type (burn_t) :: burn_state_in, burn_state_out
@@ -68,8 +64,8 @@ contains
     dx_min = minval(dx_level(1:dim, amr_level))
 
     !$acc data &
-    !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, m_lo, m_hi, dt_react, time) &
-    !$acc copyin(mask, dx_min) &
+    !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, dt_react, time) &
+    !$acc copyin(dx_min) &
     !$acc copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
@@ -88,12 +84,6 @@ contains
              do_burn = .true.
              burn_state_in % success = .true.
              burn_state_out % success = .true.
-
-             ! Don't burn on zones that we are intentionally masking out.
-
-             if (mask(i,j,k) /= 1) then
-                do_burn = .false.
-             end if
 
              ! Don't burn on zones inside shock regions, if the relevant option is set.
 
