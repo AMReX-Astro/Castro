@@ -598,6 +598,11 @@ public:
     amrex::Real estdt_temp_diffusion();
 
 ///
+/// Check whether the timestep was valid (returns true if so)
+///
+    bool check_timestep(amrex::Real dt);
+
+///
 /// Compute initial time step.
 ///
     amrex::Real initialTimeStep ();

@@ -259,35 +259,7 @@ Castro::do_advance_ctu(Real time,
 
     // Check if this timestep violated our stability criteria.
 
-    Real check_timestep_failure = 0.0_rt;
-
-#ifdef REACTIONS
-    MultiFab& R_new = get_new_data(Reactions_Type);
-#endif
-
-    const Real* dx = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-        const Box& bx = mfi.tilebox();
-
-#pragma gpu box(bx)
-        ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-#ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_new[mfi]),
-#endif
-                          AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
-
-    }
-
-    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
-
-    if (check_timestep_failure > 0.0_rt) {
+    if (!check_timestep(dt)) {
         status.success = false;
         status.reason = "timestep validity check failed";
     }
