@@ -318,7 +318,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.use_burn_load_balancing
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -358,8 +358,6 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``T_guess``                            | initial guess for the temperature when inverting the    | 1.e8          |
 |                                        | EoS (e.g. when calling eos_input_re)                    |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_burn_load_balancing``            | should we load balance inside the burn?                 | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
