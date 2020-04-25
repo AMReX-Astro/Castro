@@ -155,8 +155,8 @@ Castro::compute_flux_q(Real* q_riemann,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::get_riemann_input_states(Array4<Real const> const ql_arr, Array4<Real const> const qr_arr,
-                                 Array4<Real const> const qaux_arr,
+Castro::get_riemann_input_states(Array4<Real const> const& ql_arr, Array4<Real const> const& qr_arr,
+                                 Array4<Real const> const& qaux_arr,
                                  const int i, const int j, const int k, const int idir,
                                  const int compute_gammas,
                                  Real& gcl, Real& gcr,

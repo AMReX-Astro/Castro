@@ -335,9 +335,9 @@
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
-    get_riemann_input_states(amrex::Array4<amrex::Real const> const ql_arr,
-                             amrex::Array4<amrex::Real const> const qr_arr,
-                             amrex::Array4<amrex::Real const> const qaux_arr,
+    get_riemann_input_states(amrex::Array4<amrex::Real const> const& ql_arr,
+                             amrex::Array4<amrex::Real const> const& qr_arr,
+                             amrex::Array4<amrex::Real const> const& qaux_arr,
                              const int i, const int j, const int k, const int idir,
                              const int compute_gammas,
                              amrex::Real& gcl, amrex::Real& gcr,
