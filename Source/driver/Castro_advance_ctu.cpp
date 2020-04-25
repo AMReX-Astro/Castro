@@ -257,37 +257,18 @@ Castro::do_advance_ctu(Real time,
     }
 #endif
 
-    // Check if this timestep violated our stability criteria.
+    // Check if this timestep violated our stability criteria. Our idea is,
+    // if the timestep created a velocity v and sound speed at the new time
+    // such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
+    // chosen timestep constraint and change_max is the factor that determines
+    // how much the timestep can change during an advance, consider the advance
+    // to have failed. This prevents the timestep from shrinking too much,
+    // whereas in computeNewDt change_max prevents the timestep from growing
+    // too much. The same reasoning applies for the other timestep limiters.
 
-    Real check_timestep_failure = 0.0_rt;
+    Real new_dt = estTimeStep(dt);
 
-#ifdef REACTIONS
-    MultiFab& R_new = get_new_data(Reactions_Type);
-#endif
-
-    const Real* dx = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-        const Box& bx = mfi.tilebox();
-
-#pragma gpu box(bx)
-        ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-#ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_new[mfi]),
-#endif
-                          AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
-
-    }
-
-    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
-
-    if (check_timestep_failure > 0.0_rt) {
+    if (castro::change_max * new_dt < dt) {
         status.success = false;
         status.reason = "timestep validity check failed";
     }
