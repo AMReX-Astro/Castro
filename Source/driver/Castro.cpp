@@ -15,7 +15,6 @@
 #include <AMReX_CONSTANTS.H>
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Derive_F.H>
 #include <Castro_error_F.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
@@ -318,7 +317,13 @@ Castro::read_params ()
     }
 #endif
 
-
+#ifdef REACTIONS
+#ifdef SIMPLIFIED_SDC
+    if (jacobian == 1) {
+      amrex::Abort("Simplified SDC requires the numerical Jacobian now (jacobian = 2)");
+    }
+#endif
+#endif
     // sanity checks
 
     if (grown_factor < 1)
@@ -1563,7 +1568,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
     if (verbose) {
-        amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n';
+        amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n' << std::endl;
     }
 
     return estdt;

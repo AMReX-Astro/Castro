@@ -28,7 +28,6 @@ CEXE_sources += sum_integrated_quantities.cpp
 FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
 
-FEXE_headers += Derive_F.H
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
 
@@ -38,7 +37,6 @@ CEXE_sources += Castro_generic_fill.cpp
 ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 ca_F90EXE_sources += Castro_util_nd.F90
-ca_F90EXE_sources += Derive_nd.F90
 ca_F90EXE_sources += interpolate_nd.F90
 ca_F90EXE_sources += io_nd.F90
 ca_F90EXE_sources += math_nd.F90

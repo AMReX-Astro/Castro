@@ -232,7 +232,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     iteration = amr_iteration;
 
-    do_subcycle = false;
     sub_iteration = 0;
     sub_ncycle = 0;
     dt_subcycle = 1.e200;
@@ -256,36 +255,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
             // Zero it out, and add them back using the saved copy of the fluxes.
 
             getLevel(level-1).FluxRegCrseInit();
-
-            // If we're coming off a new regrid at the end of the last coarse
-            // timestep, then we want to subcycle this timestep at the timestep
-            // suggested by this level, since the data on this level will not
-            // have been taken into account when calculating the timestep
-            // constraint using the coarser data. This is true even if the level
-            // previously existed, because in general there can be new data at this
-            // level as a result of the regrid.
-
-            // This step MUST be done before the time level swap because estTimeStep
-            // looks at the "new" time data for calculating the timestep constraint.
-            // It should also be done before the call to ca_set_amr_info since estTimeStep
-            // temporarily resets the level data.
-
-            dt_subcycle = estTimeStep(dt);
-
-            if (dt_subcycle < dt) {
-
-                sub_ncycle = ceil(dt / dt_subcycle);
-
-                if (ParallelDescriptor::IOProcessor()) {
-                    std::cout << std::endl;
-                    std::cout << "  Subcycling with maximum dt = " << dt_subcycle << " at level " << level
-                              << " to avoid timestep constraint violations after a post-timestep regrid."
-                              << std::endl << std::endl;
-                }
-
-                do_subcycle = true;
-
-            }
 
         }
 

@@ -115,77 +115,6 @@ contains
 
 #ifdef AMREX_USE_CUDA
 
-  attributes(device) function warpReduceSum(x) result(y)
-    ! Reduce within a warp.
-    ! https://devblogs.nvidia.com/faster-parallel-reductions-kepler/
-
-    implicit none
-
-    real(rt), intent(in) :: x
-
-    real(rt) :: y
-
-    integer :: offset
-
-    offset = warpsize / 2
-
-    y = x
-
-    do while (offset > 0)
-
-       y = y + __shfl_down(y, offset)
-
-       offset = offset / 2
-
-    end do
-
-  end function warpReduceSum
-
-  attributes(device) function blockReduceSum(x) result(y)
-    ! Reduce within a threadblock.
-    ! https://devblogs.nvidia.com/faster-parallel-reductions-kepler/
-
-    implicit none
-
-    real(rt), intent(in) :: x
-
-    real(rt) :: y
-
-    real(rt), shared :: s(0:(AMREX_GPU_MAX_THREADS/warpsize) - 1)
-
-    integer :: lane, wid
-
-    lane = mod(threadIdx%x-1, warpsize)
-    wid = (threadIdx%x-1) / warpsize
-
-    y = x
-    y = warpReduceSum(y)
-
-    ! syncthreads() prior to writing to shared memory is necessary
-    ! if this reduction call is occurring multiple times in a kernel,
-    ! and since we don't know how many times the user is calling it,
-    ! we do it always to be safe.
-
-    call syncthreads()
-
-    if (lane == 0) then
-       s(wid) = y
-    end if
-
-    call syncthreads()
-
-    if ((threadIdx%x-1) < max(blockDim%x, warpsize) / warpsize) then
-       y = s(lane)
-    else
-       y = 0
-    end if
-
-    if (wid == 0) then
-       y = warpReduceSum(y)
-    end if
-
-  end function blockReduceSum
-
 #ifdef AMREX_GPU_PRAGMA_NO_HOST
   attributes(device) subroutine reduce_add(x, y)
 #else
@@ -201,32 +130,8 @@ contains
     logical,  intent(in   ), optional :: blockReduce
 
     real(rt) :: t
-    logical :: doBlockReduce
 
-    ! By default we coordinate the thread block to do a within-block
-    ! reduction first, and then a single atomic for the block afterward.
-    ! This reduces atomic pressure. However, it is not appropriate for
-    ! every circumstance; an example where it is unwanted is when threads
-    ! are not all adding to the same data.
-
-    doBlockReduce = .true.
-    if (present(blockReduce)) then
-       if (.not. blockReduce) then
-          doBlockReduce = .false.
-       end if
-    end if
-
-    t = y
-
-    if (doBlockReduce) then
-       t = blockReduceSum(t)
-    end if
-
-    if (threadIdx%x == 1 .or. .not. doBlockReduce) then
-
-       t = atomicAdd(x, t)
-
-    end if
+    t = atomicAdd(x, y)
 
 #ifdef AMREX_GPU_PRAGMA_NO_HOST
   end subroutine reduce_add

@@ -387,8 +387,8 @@ disable_shock_burning        int           0                  y
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
 
-# should we load balance inside the burn?
-use_burn_load_balancing      int           0
+# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
+reactions_max_solve_level    int           100
 
 #-----------------------------------------------------------------------------
 # category: diffusion

@@ -195,14 +195,6 @@ extern "C"
      const amrex::Real* dx, amrex::Real* dt);
 #endif
 
-  void ca_check_timestep
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-#ifdef REACTIONS
-     const BL_FORT_FAB_ARG_3D(reactions),
-#endif
-     const amrex::Real* dx, const amrex::Real dt, amrex::Real* failed);
-
   void ca_make_fourth_average(const int lo[], const int hi[],
                               BL_FORT_FAB_ARG_3D(q), const int* nc,
                               const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar,
@@ -286,12 +278,6 @@ extern "C"
 /* SDC */
 #ifdef TRUE_SDC
 #include <Castro_sdc_F.H>
-#endif
-
-
-/* diffusion */
-#ifdef DIFFUSION
-#include <Castro_diffusion_F.H>
 #endif
 
 

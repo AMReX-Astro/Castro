@@ -1493,7 +1493,6 @@ protected:
 ///
     int sub_iteration;
     int sub_ncycle;
-    bool do_subcycle;
     amrex::Real dt_subcycle;
     amrex::Real dt_advance;
 
