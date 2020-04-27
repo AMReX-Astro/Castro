@@ -30,6 +30,8 @@ FEXE_headers += Castro_error_F.H
 
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
+ca_F90EXE_sources += Derive_nd.F90
+FEXE_headers += Derive_F.H
 
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp

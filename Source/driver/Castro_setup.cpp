@@ -13,7 +13,7 @@
 # include "Radiation.H"
 # include "RAD_F.H"
 #endif
-#include "Problem_Derive_F.H"
+#include "Derive_F.H"
 
 #include "AMReX_buildInfo.H"
 
