@@ -26,8 +26,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     // for 4th order reactive SDC, we need to first compute the source, C
     // and do a ghost cell fill on it
 
-    auto const domain_lo = geom.Domain().loVect3d();
-    auto const domain_hi = geom.Domain().hiVect3d();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     // the timestep from m to m+1
     Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
@@ -123,7 +123,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     FArrayBox C_center;
     FArrayBox U_new_center;
     FArrayBox R_new;
-    FArrayBox tmp;
+    FArrayBox tlap;
 
     FArrayBox C2;
 
@@ -230,17 +230,17 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
             Elixir elix_R_new = R_new.elixir();
-            Array4<const Real> const& R_new_arr=R_new.array();
+            Array4<Real> const& R_new_arr = R_new.array();
 
             ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
                                    BL_TO_FORTRAN_3D(U_new_center),
                                    BL_TO_FORTRAN_3D(R_new));
 
-            tmp.resize(bx, 1);
-            Elixir elix_tmp = tmp.elixir();
-            auto const tmp_arr = tmp.array();
+            tlap.resize(bx, 1);
+            Elixir elix_tlap = tlap.elixir();
+            auto const tlap_arr = tlap.array();
 
-            make_fourth_in_place(bx, R_new_arr, tmp_arr, domain_lo, domain_hi);
+            make_fourth_in_place(bx, R_new_arr, tlap_arr, domain_lo, domain_hi);
 
             // now do the conservative update using this <R> to get <U>
             // We'll also need to pass in <C>
@@ -315,8 +315,8 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
     BL_PROFILE("Castro::construct_old_react_source()");
 
-    auto const domain_lo = geom.Domain().loVect3d();
-    auto const domain_hi = geom.Domain().hiVect3d();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     if (sdc_order == 4 && input_is_average)
     {
