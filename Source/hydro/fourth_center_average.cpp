@@ -18,9 +18,12 @@ Castro::make_cell_center(const Box& bx,
   auto U_lo = lbound(U);
   auto U_hi = ubound(U);
 
-  AMREX_ASSERT(U_lo[0] <= lo[0]-1 && U_hi[0] >= hi[0]+1 &&
-               (AMREX_SPACEDIM >= 2 && (U_lo[1] <= lo[1]-1 && U_hi[1] >= hi[1]+1)) &&
-               (AMREX_SPACEDIM == 3 && (U_lo[2] <= lo[2]-1 && U_hi[2] >= hi[2]+1)));
+  auto lo = bx.loVect();
+  auto hi = bx.hiVect();
+
+  AMREX_ASSERT(U_lo.x <= lo[0]-1 && U_hi.x >= hi[0]+1 &&
+               (AMREX_SPACEDIM >= 2 && (U_lo.y <= lo[1]-1 && U_hi.y >= hi[1]+1)) &&
+               (AMREX_SPACEDIM == 3 && (U_lo.z <= lo[2]-1 && U_hi.z >= hi[2]+1)));
 
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
