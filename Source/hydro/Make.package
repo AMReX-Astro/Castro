@@ -33,6 +33,8 @@ ca_F90EXE_sources += Castro_ctu_nd.F90
 
 ifeq ($(USE_TRUE_SDC),TRUE)
   ca_F90EXE_sources += fourth_order_nd.F90
+  CEXE_sources += fourth_center_average.cpp
+  CEXE_headers += fourth_center_average.H
   ca_F90EXE_sources += Castro_mol_nd.F90
   ca_F90EXE_sources += Castro_fourth_order_nd.F90
 endif

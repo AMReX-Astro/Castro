@@ -1,3 +1,12 @@
+#include <AMReX_Geometry.H>
+#include <AMReX_Gpu.H>
+
+#include <state_indices.H>
+
+#include "castro_params.H"
+
+using namespace amrex;
+
 
 
 // Note: pretty much all of these routines below assume that dx(1) = dx(2) = dx(3)
@@ -162,7 +171,7 @@ void make_cell_center_in_place(const Box& bx,
 
 
 void compute_lap_term(const Box& bx,
-                      Array4<Real const> const& Y,
+                      Array4<Real const> const& U,
                       Array4<Real> const& lap, const int ncomp,
                       GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi) {
 

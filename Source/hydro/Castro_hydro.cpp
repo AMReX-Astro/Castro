@@ -124,10 +124,12 @@ Castro::cons_to_prim_fourth(const Real time)
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto const domain_lo = geom.Domain().loVect3d();
+    auto const domain_hi = geom.Domain().hiVect3d();
 
     MultiFab& S_new = get_new_data(State_Type);
+
+    FArrayBox U_cc;
 
     // we don't support radiation here
 #ifdef RADIATION
@@ -147,13 +149,11 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_avg to U_cc -- this will use a Laplacian
       // operation and will result in U_cc defined only on
       // NUM_GROW-1 ghost cells at the end.
-      FArrayBox U_cc;
       U_cc.resize(qbx, NUM_STATE);
+      Elixir elix_u_cc = U_cc.elixir();
+      auto const U_cc_arr = U_cc.array();
 
-      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
-                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_cc),
-                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
 
       // enforce the minimum density on the new cell-centered state
       ca_enforce_minimum_density
@@ -218,17 +218,12 @@ Castro::cons_to_prim_fourth(const Real time)
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
       // we need here
 
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(q[mfi]),
-                             BL_TO_FORTRAN_FAB(q_bar[mfi]),
-                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      make_fourth_average(qbxm1, q.array(mfi), q_bar.array(mfi), domain_lo, domain_hi);
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(qaux[mfi]),
-                             BL_TO_FORTRAN_FAB(qaux_bar[mfi]),
-                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+
+      make_fourth_average(qbmx1, qaux.array(mfi), qaux_bar.array(mfi), domain_lo, domain_hi);
 
     }
 
