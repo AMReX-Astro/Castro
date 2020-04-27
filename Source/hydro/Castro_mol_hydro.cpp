@@ -298,7 +298,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               hi_periodic[idir] = hi_bc[idir] == Interior;
             }
 
-            amrex::ParallelFor(bx, NQ,
+            amrex::ParallelFor(nbx, NQ,
             [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
               bool test = (n == QGC) || (n == QTEMP);
