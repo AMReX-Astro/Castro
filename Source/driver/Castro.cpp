@@ -1056,8 +1056,8 @@ Castro::initData ()
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
            // note: this cannot be tiled
-           auto const domain_lo = geom.Domain().loVect3d();
-           auto const domain_hi = geom.Domain().hiVect3d();
+           auto domain_lo = geom.Domain().loVect3d();
+           auto domain_hi = geom.Domain().hiVect3d();
 
            FArrayBox tmp;
 
@@ -1083,8 +1083,8 @@ Castro::initData ()
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
          // convert to centers -- not tile safe
-         auto const domain_lo = geom.Domain().loVect3d();
-         auto const domain_hi = geom.Domain().hiVect3d();
+         auto domain_lo = geom.Domain().loVect3d();
+         auto domain_hi = geom.Domain().hiVect3d();
 
          FArrayBox tmp;
 
@@ -3329,8 +3329,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
-    auto const domain_lo = geom.Domain().loVect3d();
-    auto const domain_hi = geom.Domain().hiVect3d();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     FArrayBox tmp;
 
@@ -3346,7 +3346,7 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
       Elixir elix_tmp = tmp.elixir();
       auto tmp_arr = tmp.array();
 
-      make_cell_center_in_place(bx, Stemp.arry(mfi), tmp_arr, domain_lo, domain_hi);
+      make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
 
     }
 
@@ -3433,8 +3433,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     // cell-averages -- this is 4th-order and will be a no-op for
     // those zones where e wasn't changed.
 
-    auto const domain_lo = geom.Domain().loVect3d();
-    auto const domain_hi = geom.Domain().hiVect3d();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     FArrayBox tmp;
 

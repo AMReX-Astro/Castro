@@ -7,6 +7,8 @@
 #include "diffusion_util.H"
 #endif
 
+#include "fourth_center_average.H"
+
 using namespace amrex;
 
 ///
@@ -41,8 +43,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
-  const auto domain_lo = geom.Domain().loVect3d();
-  const auto domain_hi = geom.Domain().hiVect3d();
+  GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
+  GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -286,6 +288,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc
+            const int* lo_bc = phys_bc.lo();
+            const int* hi_bc = phys_bc.hi();
+
+            GpuArray<bool, 3> lo_periodic;
+            GpuArray<bool, 3> hi_periodic;
+            for (int idir = 0; idir < 3; idir++) {
+              lo_periodic[idir] = lo_bc[idir] == Interior;
+              hi_periodic[idir] = hi_bc[idir] == Interior;
+            }
+
             amrex::ParallelFor(bx, NQ,
             [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
@@ -293,8 +305,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               if (test) return;
 
-              Real lap = trans_laplacian(i, j, k, n, idir,
-                                         q_avg_arr, domain_lo, domain_hi);
+              Real lap = trans_laplacian(i, j, k, n, idir, q_avg_arr,
+                                         lo_periodic, hi_periodic, domain_lo, domain_hi);
 
               q_fc_arr(i,j,k,n) = q_avg_arr(i,j,k,n) - (1.0_rt/24.0_rt) * lap;
 
@@ -333,8 +345,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
 
-              Real lap = trans_laplacian(i, j, k, n, idir,
-                                         f_avg_arr, domain_lo, domain_hi);
+              Real lap = trans_laplacian(i, j, k, n, idir, f_avg_arr,
+                                         lo_periodic, hi_periodic, domain_lo, domain_hi);
 
               flux_arr(i,j,k,n) += (1.0_rt/24.0_rt) * lap;
 

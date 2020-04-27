@@ -40,8 +40,8 @@ Castro::do_advance_sdc (Real time,
   MultiFab& S_old = get_old_data(State_Type);
   MultiFab& S_new = get_new_data(State_Type);
 
-  auto const domain_lo = geom.Domain().loVect3d();
-  auto const domain_hi = geom.Domain().hiVect3d();
+  auto domain_lo = geom.Domain().loVect3d();
+  auto domain_hi = geom.Domain().hiVect3d();
 
   // Perform initialization steps.
 

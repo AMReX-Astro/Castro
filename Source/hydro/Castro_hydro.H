@@ -541,4 +541,50 @@
 /// @param ng       Number of ghost cells
 ///
     void linear_to_hybrid_momentum(amrex::MultiFab& state, int ng = 0);
+
+#endif
+
+#ifdef TRUE_SDC
+
+    Real compute_laplacian(int i, int j, int k, int n,
+                           Array4<Real const> const a,
+                           GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
+
+    Real trans_laplacian(int i, int j, int k, int n,
+                         int idir,
+                         Array4<Real const> const a,
+                         GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
+
+    void make_cell_center(const Box& bx,
+                          Array4<Real const> const& U,
+                          Array4<Real> const& U_cc,
+                          GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
+    void make_cell_center_in_place(const Box& bx,
+                                   Array4<Real> const& U,
+                                   Array4<Real> const& tmp,
+                                   GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
+    void compute_lap_term(const Box& bx,
+                          Array4<Real const> const& U,
+                          Array4<Real> const& lap, const int ncomp,
+                          GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
+    void make_fourth_average(const Box& bx,
+                             Array4<Real> const& q,
+                             Array4<Real const> const& q_bar,
+                             GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
+    void make_fourth_in_place(const Box& bx,
+                              Array4<Real> const& q,
+                              Array4<Real> const& tmp,
+                              GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
+    void make_fourth_in_place_n(const Box& bx,
+                                Array4<Real> const& q, const int ncomp,
+                                Array4<Real> const& tmp,
+                                GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi);
+
 #endif

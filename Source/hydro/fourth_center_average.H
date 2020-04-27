@@ -1,43 +1,115 @@
 #ifndef _FOURTH_CENTER_AVERAGE_H_
 #define _FOURTH_CENTER_AVERAGE_H_
 
-Real compute_laplacian(int i, int j, int k, int n,
-                       Array4<Real const> const a,
-                       GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+Real
+Castro:: compute_laplacian(int i, int j, int k, int n,
+                           Array4<Real const> const a,
+                           GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
-Real trans_laplacian(int i, int j, int k, int n,
-                     int idir,
-                     Array4<Real const> const a,
-                     GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  Real lapx = 0.0;
+  Real lapy = 0.0;
+  Real lapz = 0.0;
 
-void make_cell_center(const Box& bx,
-                      Array4<Real const> const& U,
-                      Array4<Real> const& U_cc,
-                      GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  // we use 2nd-order accurate one-sided stencils at the physical
+  // boundaries note: this differs from the suggestion in MC2011 --
+  // they just suggest using the Laplacian from +1 off the interior.
+  // I like the one-sided better.
 
-void make_cell_center_in_place(const Box& bx,
-                               Array4<Real> const& U,
-                               Array4<Real> const& tmp,
-                               GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  if (i == domlo[0] && !lo_periodic[0]) {
+    lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n);
 
-void compute_lap_term(const Box& bx,
-                      Array4<Real const> const& U,
-                      Array4<Real> const& lap, const int ncomp,
-                      GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  } else if (i == domhi[0] && !hi_periodic[0]) {
+    lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n);
 
-void make_fourth_average(const Box& bx,
-                         Array4<Real> const& q,
-                         Array4<Real const> const& q_bar,
-                         GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  } else {
+    lapx = a(i+1,j,k,n) - 2.0_rt*a(i,j,k,n) + a(i-1,j,k,n);
+  }
 
-void make_fourth_in_place(const Box& bx,
-                          Array4<Real> const& q,
-                          Array4<Real> const& tmp,
-                          GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+#if AMREX_SPACEDIM >= 2
+  if (j == domlo[1] && !lo_periodic[1]) {
+    lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n);
 
-void make_fourth_in_place_n(const Box& bx,
-                            Array4<Real> const& q, const int ncomp,
-                            Array4<Real> const& tmp,
-                            GpuArray<Real, 3>& domlo, GpuArray<Real, 3>& domhi);
+  } else if (j == domhi[1] && !hi_periodic[1]) {
+    lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n);
+
+  } else {
+    lapy = a(i,j+1,k,n) - 2.0_rt*a(i,j,k,n) + a(i,j-1,k,n);
+  }
+#endif
+
+#if AMREX_SPACEDIM == 3
+  if (k == domlo[2] && !lo_periodic[2]) {
+    lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n);
+
+  } else if (k == domhi[2] && !hi_periodic[2]) {
+    lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n);
+
+  } else {
+    lapz = a(i,j,k+1,n) - 2.0_rt*a(i,j,k,n) + a(i,j,k-1,n);
+  }
+#endif
+
+  return lapx + lapy + lapz;
+}
+
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+Real
+Castro::trans_laplacian(int i, int j, int k, int n,
+                        int idir,
+                        Array4<Real const> const a,
+                        GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                        GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
+
+  Real lapx = 0.0;
+  Real lapy = 0.0;
+  Real lapz = 0.0;
+
+  // we use 2nd-order accurate one-sided stencils at the physical boundaries
+  if (idir != 0) {
+
+    if (i == domlo[0] && !lo_periodic[0]) {
+      lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n);
+
+    } else if (i == domhi[0] && !hi_periodic[0]) {
+      lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n);
+
+    } else {
+      lapx = a(i+1,j,k,n) - 2.0_rt*a(i,j,k,n) + a(i-1,j,k,n);
+    }
+  }
+
+  if (idir != 1) {
+
+    if (j == domlo[1] && !lo_periodic[1]) {
+      lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j+1,k,n) + 4.0_rt*a(i,j+2,k,n) - a(i,j+3,k,n);
+
+    } else if (j == domhi[1] && !hi_periodic[1]) {
+      lapy = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j-1,k,n) + 4.0_rt*a(i,j-2,k,n) - a(i,j-3,k,n);
+
+    } else {
+      lapy = a(i,j+1,k,n) - 2.0_rt*a(i,j,k,n) + a(i,j-1,k,n);
+    }
+  }
+
+#if AMREX_SPACEDIM == 3
+  if (idir != 2) {
+
+    if (k == domlo[2] && !lo_periodic[2]) {
+      lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k+1,n) + 4.0_rt*a(i,j,k+2,n) - a(i,j,k+3,n);
+
+    } else if (k == domhi[2] && !hi_periodic[2]) {
+      lapz = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i,j,k-1,n) + 4.0_rt*a(i,j,k-2,n) - a(i,j,k-3,n);
+
+    } else {
+      lapz = a(i,j,k+1,n) - 2.0_rt*a(i,j,k,n) + a(i,j,k-1,n);
+    }
+  }
+#endif
+
+  return lapx + lapy + lapz;
+}
+
 
 #endif

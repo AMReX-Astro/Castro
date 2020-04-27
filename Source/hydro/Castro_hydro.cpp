@@ -124,8 +124,8 @@ Castro::cons_to_prim_fourth(const Real time)
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
-    auto const domain_lo = geom.Domain().loVect3d();
-    auto const domain_hi = geom.Domain().hiVect3d();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     MultiFab& S_new = get_new_data(State_Type);
 
@@ -182,7 +182,6 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_cc to q_cc (we'll store this temporarily in q,
       // qaux).  This will remain valid only on the NUM_GROW-1 ghost
       // cells.
-      auto U_cc_arr = U_cc.array();
       auto q_arr = q.array(mfi);
       auto qaux_arr = qaux.array(mfi);
 
@@ -223,7 +222,7 @@ Castro::cons_to_prim_fourth(const Real time)
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
 
-      make_fourth_average(qbmx1, qaux.array(mfi), qaux_bar.array(mfi), domain_lo, domain_hi);
+      make_fourth_average(qbxm1, qaux.array(mfi), qaux_bar.array(mfi), domain_lo, domain_hi);
 
     }
 
