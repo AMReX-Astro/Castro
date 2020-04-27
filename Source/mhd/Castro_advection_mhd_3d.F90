@@ -66,7 +66,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   real(rt), intent(inout) :: byout(byout_lo(1):byout_hi(1), byout_lo(2):byout_hi(2), byout_lo(3):byout_hi(3))
   real(rt), intent(inout) :: bzout(bzout_lo(1):bzout_hi(1), bzout_lo(2):bzout_hi(2), bzout_lo(3):bzout_hi(3))
 
-  real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NVAR)
+  real(rt), intent(in   ) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NSRC)
 
   real(rt), intent(inout) :: flux1(flux1_lo(1):flux1_hi(1), flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3), NVAR)
   real(rt), intent(inout) :: flux2(flux2_lo(1):flux2_hi(1), flux2_lo(2):flux2_hi(2), flux2_lo(3):flux2_hi(3), NVAR)
@@ -243,7 +243,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
   call consup(uin,  uin_lo, uin_hi, &
               uout, uout_lo, uout_hi, &
               bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
-              src , src_lo, src_hi, &
               flxx,flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
               flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
               flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
@@ -260,7 +259,6 @@ subroutine ca_advance_mhd(time, lo, hi, &
              bxout, bxout_lo, bxout_hi, &
              byout, byout_lo, byout_hi, &
              bzout, bzout_lo, bzout_hi, &
-             src ,  src_lo, src_hi, &
              Extemp, extemp_l1,extemp_l2,extemp_l3,extemp_h1,extemp_h2,extemp_h3, &
              Eytemp, eytemp_l1,eytemp_l2,eytemp_l3,eytemp_h1,eytemp_h2,eytemp_h3, &
              Eztemp, eztemp_l1,eztemp_l2,eztemp_l3,eztemp_h1,eztemp_h2,eztemp_h3, &
@@ -370,7 +368,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   use amrex_error_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
                                  UEDEN, UEINT, UFA, UFS, UTEMP, &
-                                 NQ, NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
+                                 NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
                                  QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
                                  QMAGX,  QMAGY, QMAGZ, &
                                  nadv, small_dens, small_pres, &
@@ -403,7 +401,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   real(rt) :: cz(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
   real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NVAR)
+  real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NSRC)
   real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,NQSRC)
   real(rt) :: qaux(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQAUX)
   real(rt) :: dx, dy, dz, dt, courno
@@ -480,6 +478,7 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            q(i,j,k,QV)   = uin(i,j,k,UMY)*rhoInv
            q(i,j,k,QW)   = uin(i,j,k,UMZ)*rhoInv
 
+           q(i,j,k,QFS:QFS+nspec-1) = uin(i,j,k,UFS:UFS+nspec-1)*rhoInv
            ! Convert "rho e" to "e"
            q(i,j,k,QREINT ) = uin(i,j,k,UEINT)*rhoInv
         enddo
@@ -689,7 +688,6 @@ end subroutine ctoprim
 subroutine consup(uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
                   bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
-                  src , src_lo, src_hi, &
                   fluxx,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
                   fluxy,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
                   fluxz,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
@@ -707,12 +705,10 @@ subroutine consup(uin, uin_lo, uin_hi, &
   integer,  intent(in)  :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
   integer,  intent(in)  :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
   integer,  intent(in)  :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
-  integer,  intent(in)  :: src_lo(3), src_hi(3)
   integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
   real(rt), intent(inout)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
-  real(rt), intent(in)  :: src(src_lo(1):src_hi(1),src_lo(2):src_hi(2),src_lo(3):src_hi(3), NVAR)
   real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
@@ -762,7 +758,6 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
                  bxout, bxout_lo, bxout_hi, &
                  byout, byout_lo, byout_hi, &
                  bzout, bzout_lo, bzout_hi, &
-                 src ,  src_lo, src_hi, &
                  Ex,ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                  Ey,ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                  Ez,ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
@@ -779,7 +774,6 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   integer, intent(in)   :: bxout_lo(3), bxout_hi(3)
   integer, intent(in)   :: byout_lo(3), byout_hi(3)
   integer, intent(in)   :: bzout_lo(3), bzout_hi(3)
-  integer, intent(in)   :: src_lo(3), src_hi(3)
   integer, intent(in)   ::  ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3
   integer, intent(in)   ::  ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3
   integer, intent(in)   ::  ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3
@@ -788,7 +782,6 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   real(rt), intent(in)  :: bxin(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
   real(rt), intent(in)  :: byin(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
   real(rt), intent(in)  :: bzin(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
-  real(rt), intent(in)  :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NQSRC)
 
   real(rt), intent(in) ::  Ex(ex_l1:ex_h1,ex_l2:ex_h2, ex_l3:ex_h3)
   real(rt), intent(in) ::  Ey(ey_l1:ey_h1,ey_l2:ey_h2, ey_l3:ey_h3)
