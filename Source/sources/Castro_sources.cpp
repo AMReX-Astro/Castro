@@ -47,7 +47,7 @@ Castro::source_flag(int src)
             return true;
         else
             return false;
-#ifndef MHD	
+#ifndef MHD     
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
           return true;
@@ -55,8 +55,8 @@ Castro::source_flag(int src)
           return false;
 #else
     case thermo_src:
-	return true;
-#endif 	
+        return true;
+#endif  
 
 #ifdef DIFFUSION
     case diff_src:
