@@ -37,6 +37,10 @@ Castro::do_advance_ctu(Real time,
     MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+
     MultiFab& Bx_new = get_new_data(Mag_Type_x);
     MultiFab& By_new = get_new_data(Mag_Type_y);
     MultiFab& Bz_new = get_new_data(Mag_Type_z);
@@ -134,7 +138,7 @@ Castro::do_advance_ctu(Real time,
 
       do_old_sources(
 #ifdef MHD
-                      Bx_new, By_new, Bz_new,
+                      Bx_old, By_old, Bz_old,
 #endif                
                       old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
