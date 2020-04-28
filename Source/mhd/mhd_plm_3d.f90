@@ -376,54 +376,7 @@ contains
 
     !Need to add source terms, heating cooling, gravity, etc.
 
-    !adding source terms
-    do k = srcq_l3, srcq_h3
-       do j = srcq_l2, srcq_h2
-          do i = srcq_l1, srcq_h1
-
-             Ip(i,j,k,QRHO,1) =  Ip(i,j,k,QRHO,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Ip(i,j,k,QU,1) = Ip(i,j,k,QU,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,1) = Ip(i,j,k,QV,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,1) = Ip(i,j,k,QW,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,1) = Ip(i,j,k,QPRES,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-             Ip(i,j,k,QRHO,2) =  Ip(i,j,k,QRHO,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Ip(i,j,k,QU,2) = Ip(i,j,k,QU,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,2) = Ip(i,j,k,QV,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,2) = Ip(i,j,k,QW,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,2) = Ip(i,j,k,QPRES,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-             Ip(i,j,k,QRHO,3) =  Ip(i,j,k,QRHO,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Ip(i,j,k,QU,3) = Ip(i,j,k,QU,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,3) = Ip(i,j,k,QV,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,3) = Ip(i,j,k,QW,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,3) = Ip(i,j,k,QPRES,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-             Im(i,j,k,QRHO,1) =  Im(i,j,k,QRHO,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Im(i,j,k,QU,1) = Im(i,j,k,QU,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,1) = Im(i,j,k,QV,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,1) = Im(i,j,k,QW,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,1) = Im(i,j,k,QPRES,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-             Im(i,j,k,QRHO,2) =  Im(i,j,k,QRHO,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Im(i,j,k,QU,2) = Im(i,j,k,QU,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,2) = Im(i,j,k,QV,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,2) = Im(i,j,k,QW,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,2) = Im(i,j,k,QPRES,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-             Im(i,j,k,QRHO,3) =  Im(i,j,k,QRHO,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO)
-             Im(i,j,k,QU,3) = Im(i,j,k,QU,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,3) = Im(i,j,k,QV,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,3) = Im(i,j,k,QW,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,3) = Im(i,j,k,QPRES,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-
-
-
-
-          enddo
-       enddo
-    enddo
- 
+     
   end subroutine plm
 
   !======================================== Minmod TVD slope limiter =========================================
