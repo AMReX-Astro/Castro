@@ -180,6 +180,7 @@ Castro::do_advance_ctu(Real time,
       apply_source_to_state(S_new, hydro_source, dt, 0);
 #else
       just_the_mhd(time, dt);
+      apply_source_to_state(S_new, hydro_source, dt, 0);
 #endif
 
       // Check for small/negative densities.

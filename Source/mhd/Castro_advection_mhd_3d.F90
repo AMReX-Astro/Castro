@@ -130,7 +130,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   srcq_h2 = hi(2)+1
   srcq_h3 = hi(3)+1
 
-  uout(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:) = uin(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:)
+  !uout(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:) = uin(lo(1)-1:hi(1)+1,lo(2)-1:hi(2)+1,lo(3)-1:hi(3)+1,:)
 
   call bl_allocate(     q, lo-NHYP, hi+NHYP, NQ)
   call bl_allocate(   bcc, lo-NHYP, hi+NHYP,  3  )
@@ -264,12 +264,12 @@ subroutine ca_advance_mhd(time, lo, hi, &
              Eztemp, eztemp_l1,eztemp_l2,eztemp_l3,eztemp_h1,eztemp_h2,eztemp_h3, &
              lo, hi, dx, dy, dz, dt)
 
-  call enercorr(bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
-                bxout, bxout_lo, bxout_hi, &
-                byout, byout_lo, byout_hi, &
-                bzout, bzout_lo, bzout_hi, &
-                uout, uout_lo, uout_hi, &
-                lo, hi)
+  !call enercorr(bcc, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3, &
+  !              bxout, bxout_lo, bxout_hi, &
+  !              byout, byout_lo, byout_hi, &
+  !              bzout, bzout_lo, bzout_hi, &
+  !              uout, uout_lo, uout_hi, &
+  !              lo, hi)
 
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),URHO) = &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),URHO)
@@ -720,24 +720,27 @@ subroutine consup(uin, uin_lo, uin_hi, &
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
-           uout(i,j,k,URHO) = uin(i,j,k,URHO) - dt/dx*(fluxx(i+1,j,k,URHO) - fluxx(i,j,k,URHO)) &
-                - dt/dy*(fluxy(i,j+1,k,URHO) - fluxy(i,j,k,URHO)) &
-                - dt/dz*(fluxz(i,j,k+1,URHO) - fluxz(i,j,k,URHO)) !Add source terms later
-           uout(i,j,k,UMX) = uin(i,j,k,UMX) - dt/dx*(fluxx(i+1,j,k,UMX) - fluxx(i,j,k,UMX)) &
-                - dt/dy*(fluxy(i,j+1,k,UMX) - fluxy(i,j,k,UMX)) &
-                - dt/dz*(fluxz(i,j,k+1,UMX) - fluxz(i,j,k,UMX)) !Add source terms later
-           uout(i,j,k,UMY) = uin(i,j,k,UMY) - dt/dx*(fluxx(i+1,j,k,UMY) - fluxx(i,j,k,UMY)) &
-                - dt/dy*(fluxy(i,j+1,k,UMY) - fluxy(i,j,k,UMY)) &
-                - dt/dz*(fluxz(i,j,k+1,UMY) - fluxz(i,j,k,UMY)) !Add source terms later
-           uout(i,j,k,UMZ) = uin(i,j,k,UMZ) - dt/dx*(fluxx(i+1,j,k,UMZ) - fluxx(i,j,k,UMZ)) &
-                - dt/dy*(fluxy(i,j+1,k,UMZ) - fluxy(i,j,k,UMZ)) &
-                - dt/dz*(fluxz(i,j,k+1,UMZ) - fluxz(i,j,k,UMZ)) !Add source terms later
-           uout(i,j,k,UEDEN) = uin(i,j,k,UEDEN) - dt/dx*(fluxx(i+1,j,k,UEDEN) - fluxx(i,j,k,UEDEN)) &
-                - dt/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
-                - dt/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN)) !Add source terms later
-           uout(i,j,k,UFS:UFS+nspec-1) = uin(i,j,k,UFS:UFS+nspec-1) - dt/dx*(fluxx(i+1,j,k,UFS:UFS+nspec-1) - &
-           fluxx(i,j,k,UFS:UFS+nspec-1)) - dt/dy*(fluxy(i,j+1,k,UFS:UFS+nspec-1) - fluxy(i,j,k,UFS:UFS+nspec-1)) &
-                - dt/dz*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1)) !Add source terms later
+           uout(i,j,k,URHO) = uout(i,j,k,URHO) - 1.0/dx*(fluxx(i+1,j,k,URHO) - fluxx(i,j,k,URHO)) &
+                - 1.0/dy*(fluxy(i,j+1,k,URHO) - fluxy(i,j,k,URHO)) &
+                - 1.0/dz*(fluxz(i,j,k+1,URHO) - fluxz(i,j,k,URHO)) !Add source terms later
+           uout(i,j,k,UMX) = uout(i,j,k,UMX) - 1.0/dx*(fluxx(i+1,j,k,UMX) - fluxx(i,j,k,UMX)) &
+                - 1.0/dy*(fluxy(i,j+1,k,UMX) - fluxy(i,j,k,UMX)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UMX) - fluxz(i,j,k,UMX)) !Add source terms later
+           uout(i,j,k,UMY) = uout(i,j,k,UMY) - 1.0/dx*(fluxx(i+1,j,k,UMY) - fluxx(i,j,k,UMY)) &
+                - 1.0/dy*(fluxy(i,j+1,k,UMY) - fluxy(i,j,k,UMY)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UMY) - fluxz(i,j,k,UMY)) !Add source terms later
+           uout(i,j,k,UMZ) = uout(i,j,k,UMZ) - 1.0/dx*(fluxx(i+1,j,k,UMZ) - fluxx(i,j,k,UMZ)) &
+                - 1.0/dy*(fluxy(i,j+1,k,UMZ) - fluxy(i,j,k,UMZ)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UMZ) - fluxz(i,j,k,UMZ)) !Add source terms later
+           uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) - 1.0/dx*(fluxx(i+1,j,k,UEDEN) - fluxx(i,j,k,UEDEN)) &
+                - 1.0/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN))
+           uout(i,j,k,UEINT) = uout(i,j,k,UEINT) - 1.0/dx*(fluxx(i+1,j,k,UEINT) - fluxx(i,j,k,UEINT)) &
+                - 1.0/dy*(fluxy(i,j+1,k,UEINT) - fluxy(i,j,k,UEINT)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UEINT) - fluxz(i,j,k,UEINT))   !Add source terms later
+           uout(i,j,k,UFS:UFS+nspec-1) = uout(i,j,k,UFS:UFS+nspec-1) - 1.0/dx*(fluxx(i+1,j,k,UFS:UFS+nspec-1) - &
+           fluxx(i,j,k,UFS:UFS+nspec-1)) - 1.0/dy*(fluxy(i,j+1,k,UFS:UFS+nspec-1) - fluxy(i,j,k,UFS:UFS+nspec-1)) &
+                - 1.0/dz*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1)) !Add source terms later
 
            bcc(i,j,k,:) = bcc(i,j,k,:) - dt/dx*(fluxx(i+1, j, k, NVAR+1:NVAR+3)- fluxx(i,j,k, NVAR+1:NVAR+3)) &
                                        - dt/dy*(fluxy(i, j+1, k, NVAR+1:NVAR+3)- fluxy(i,j,k, NVAR+1:NVAR+3)) &
