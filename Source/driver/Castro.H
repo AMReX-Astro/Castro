@@ -471,17 +471,10 @@ public:
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
+/// @param dt_subcycle     the current subcycled timestep
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, advance_status status);
+    bool retry_advance_ctu(amrex::Real &dt_subcycle, advance_status status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -1452,7 +1445,6 @@ protected:
 ///
     int sub_iteration;
     int sub_ncycle;
-    amrex::Real dt_subcycle;
     amrex::Real dt_advance;
 
 

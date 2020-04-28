@@ -283,7 +283,7 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
+Castro::retry_advance_ctu(Real& dt_subcycle, advance_status status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
@@ -296,11 +296,12 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
     if (do_retry) {
 
-        dt_subcycle = std::min(dt, dt_subcycle) * retry_subcycle_factor;
+        Real dt_old = dt_subcycle;
+        dt_subcycle *= retry_subcycle_factor;
 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << std::endl;
-            std::cout << "  Timestep " << dt << " rejected at level " << level << "." << std::endl;
+            std::cout << "  Timestep " << dt_old << " rejected at level " << level << "." << std::endl;
             std::cout << "  Performing a retry, with subcycled timesteps of maximum length dt = " << dt_subcycle << std::endl;
             std::cout << std::endl;
         }
@@ -390,17 +391,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 {
     BL_PROFILE("Castro::subcycle_advance_ctu()");
 
-    // Start the subcycle time off with the main dt,
-    // unless we already came in here with an estimate
-    // that is different from the initial value we assigned,
-    // for example from the post-step regrid algorithm.
+    // Start the subcycle time off with the main dt.
 
-    if (dt_subcycle == 1.e200)
-        dt_subcycle = dt;
+    Real dt_subcycle = dt;
 
     Real subcycle_time = time;
-
-    Real dt_new = 1.e200;
 
     sub_iteration = 0;
 
@@ -599,10 +594,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, status)) {
+            if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
-                lastDtRetryLimited = true;
-                lastDtFromRetry = dt_subcycle;
                 in_retry = true;
 
                 continue;
@@ -665,15 +658,11 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
     }
 
-    // We want to return the subcycled timestep as a suggestion.
-    // Let's be sure to return the subcycled timestep that was
-    // unmodified by anything we had to do in the last subcycle
-    // to reach the target time.
+    // Return the original dt as a suggestion for the next timestep;
+    // we ignore any retries that happened, on the hope that they were
+    // a temporary blip that were fixed by the subcycling. If we are
+    // wrong, we will just have more retries on the next step.
 
-    dt_subcycle = last_dt_subcycle;
-
-    dt_new = std::min(dt_new, dt_subcycle);
-
-    return dt_new;
+    return dt;
 
 }

@@ -220,7 +220,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     sub_iteration = 0;
     sub_ncycle = 0;
-    dt_subcycle = 1.e200;
     dt_advance = dt;
 
     keep_prev_state = false;
