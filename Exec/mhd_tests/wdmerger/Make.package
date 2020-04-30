@@ -1,4 +1,0 @@
-ca_F90EXE_sources += binary.F90
-ca_f90EXE_sources += problem_io.f90
-ca_F90EXE_sources += initial_model.F90
-ca_F90EXE_sources += wdmerger_util.F90
