@@ -28,7 +28,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR+3)
 
    real(rt)       :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
-   real(rt)       :: caR, canR, asL, asR, ptL, ptR, eL, eR
+   real(rt)       :: caR, canR, asL, asR, ptL, ptR, eL, eR, eintL, eintR
    real(rt)       :: QL(NQ), QR(NQ)
    real(rt)       :: FL(NVAR+3), FR(NVAR+3)
    real(rt)       :: uL(NVAR+3), uR(NVAR+3)
@@ -117,19 +117,21 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
       call PToC(qL, uL)
       call PToC(qR, uR)
-      ! Note this is actually (rho e)
+      
       eos_state % rho = qL(QRHO)
       eos_state % p   = qL(QPRES)
       eos_state % T   = 100.0 !dummy initial guess 
       eos_state % xn  = qL(QFS:QFS+nspec-1)
 
+      ! Note this is actually (rho E)
       call eos(eos_input_rp, eos_state)
 
       eL   = eos_state % rho * eos_state % e & 
                         + 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)) &
                             + 0.5d0*dot_product(qL(QU:QW),qL(QU:QW))*qL(QRHO)
+      eintL = eos_state % e
       gam1_L = eos_state % gam1
-!here use total p not just p_g eq.11
+!here use total p not just p_g eq.11 in Miniati
       FL(URHO)  = qL(QRHO)*qL(QVELN)
       FL(UMN)   = qL(QRHO)*qL(QVELN)**2 + (qL(QPRES)+ 0.5d0*dot_product(qL(QMAGX:QMAGZ),qL(QMAGX:QMAGZ)))&
                   - qL(QMAGN)**2
@@ -141,6 +143,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN)  
       FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN) 
       FL(UFS:UFS+nspec-1) = qL(QRHO)*qL(QVELN)*qL(QFS:QFS+nspec-1) 
+      FL(UEINT) = qL(QRHO)*qL(QVELN)*eintL
 
       eos_state % rho = qR(QRHO)
       eos_state % p   = qR(QPRES)
@@ -152,6 +155,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       eR   = eos_state % rho * eos_state % e &
                         + 0.5d0*dot_product(qR(QMAGX:QMAGZ),qR(QMAGX:QMAGZ)) &
                         + 0.5d0*dot_product(qR(QU:QW),qR(QU:QW))*qR(QRHO)
+      eintR = eos_state % e
       gam1_R = eos_state % gam1
 
       FR(URHO)  = qR(QRHO)*qR(QVELN)
@@ -165,7 +169,7 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
       FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)   
       FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN) 
       FR(UFS:UFS+nspec-1) = qR(QRHO)*qR(QVELN)*qR(QFS:QFS+nspec-1) 
-
+      FR(UEINT) = qR(QRHO)*qR(QVELN)*eintR
 
       ! From Miyoshi and Kusano paper eq.(3) 
         asL  = gam1_L * qL(QPRES)/qL(QRHO)
@@ -209,6 +213,10 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
 
         UsL(UFS:UFS+nspec-1) = qL(QFS:QFS+nspec-1)*UsL(URHO)
         UsR(UFS:UFS+nspec-1) = qR(QFS:QFS+nspec-1)*UsR(URHO)
+
+        ! e   
+        UsL(UEINT) = eintL * UsL(URHO)
+        UsR(UEINT) = eintR * UsR(URHO)
 
         !--------------------------------------------------------- Vel * states----------------------------------------------------------------
 
@@ -297,6 +305,10 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
         !species
         UssL(UFS:UFS+nspec-1) = UsL(UFS:UFS+nspec-1)
         UssR(UFS:UFS+nspec-1) = UsR(UFS:UFS+nspec-1)
+       
+        !e
+        UssL(UEINT) = UsL(UEINT)
+        UssR(UEINT) = UsR(UEINT)
         
         !Vel in normal direction
         UssL(UMN)    = sM

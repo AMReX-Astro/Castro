@@ -71,9 +71,9 @@ subroutine electric_edge_x(work_lo, work_hi, &
            !-------------------Y derivatives -----------------
            !dEx/dy i,j-3/4, k-1/2
            call electric(q(i,j-1,k-1,:),Ecen,1)
-           a = 2.d0*( -flxy(i,j,k-1,UMAGZ) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
+           a = 2.d0*( -flxy(i,j,k-1,UMAGZ) - Ecen ) 
            call electric(q(i,j-1,k,:),Ecen,1)
-           b = 2.d0*( -flxy(i,j,k,UMAGZ) - Ecen )  !(Ecen + flxy(i,j,k,QMAGZ))
+           b = 2.d0*( -flxy(i,j,k,UMAGZ) - Ecen )  
         
            !Upwind in the z direction to get dEx/dy i, j-3/4, k-1/2
            if(flxz(i,j-1,k,URHO) .gt. 0.d0) then !recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
@@ -86,9 +86,9 @@ subroutine electric_edge_x(work_lo, work_hi, &
 
            !dEx/dy i,j-1/4, k-1/2
            call electric(q(i,j,k-1,:),Ecen, 1)
-           a = 2.d0*( Ecen + flxy(i,j,k-1,UMAGZ) ) !(-flxy(i,j,k-1,QMAGZ) - Ecen)
+           a = 2.d0*( Ecen + flxy(i,j,k-1,UMAGZ) ) 
            call electric(q(i,j,k,:),Ecen, 1)
-           b = 2.d0*( Ecen + flxy(i,j,k,UMAGZ) )  !(-flxy(i,j,k,QMAGZ) - Ecen)
+           b = 2.d0*( Ecen + flxy(i,j,k,UMAGZ) )  
 
            !Upwind in the z direction to get dEx/dy i, j-1/4, k-1/2
            if(flxz(i,j,k,URHO) .gt. 0.d0) then
@@ -105,9 +105,9 @@ subroutine electric_edge_x(work_lo, work_hi, &
            !------------------ Z derivatives --------------------
            !dEx/dz i, j-1/2, k - 3/4
            call electric(q(i,j-1,k-1,:),Ecen,1)
-           a = 2.d0*( flxz(i,j-1,k,UMAGY) - Ecen )       !(Ecen - flxz(i,j-1,k,UMAGY))   
+           a = 2.d0*( flxz(i,j-1,k,UMAGY) - Ecen )        
            call electric(q(i,j, k-1, :), Ecen, 1)
-           b = 2.d0*( flxz(i,j,k,UMAGY) - Ecen )         !(Ecen - flxz(i,j,k,UMAGY))
+           b = 2.d0*( flxz(i,j,k,UMAGY) - Ecen )         
            
            !upwind in the y direction to get dEx/dz i, j-1/2, k -3/4
            if(flxy(i,j,k-1,URHO).gt.0.d0) then     
@@ -120,9 +120,9 @@ subroutine electric_edge_x(work_lo, work_hi, &
 
            !dEx/dz i, j-1/2, k-1/4
            call electric(q(i,j-1,k,:), Ecen, 1)
-           a = 2.d0*( Ecen - flxz(i,j-1,k,UMAGY) )      !(flxz(i,j-1,k,QMAGY) - Ecen)
+           a = 2.d0*( Ecen - flxz(i,j-1,k,UMAGY) )     
            call electric(q(i,j,k,:), Ecen, 1)
-           b = 2.d0*( Ecen - flxz(i,j,k,UMAGY) )  !(flxz(i,j,k,QMAGY) - Ecen)
+           b = 2.d0*( Ecen - flxz(i,j,k,UMAGY) )  
 
            !Upwind in the y direction for i,j-1/2,k-1/2
            if(flxy(i,j,k,URHO).gt.0.d0) then
@@ -190,9 +190,9 @@ subroutine electric_edge_y(work_lo, work_hi, &
            !-------------------Z derivatives -----------------
            !dEy/dz i-1/2,j, k-3/4
            call electric(q(i-1,j,k-1,:),Ecen,2)
-           a = 2.d0*( -flxz(i-1,j,k,UMAGX) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
+           a = 2.d0*( -flxz(i-1,j,k,UMAGX) - Ecen )  
            call electric(q(i,j,k-1,:),Ecen,2)
-           b = 2.d0*( -flxz(i,j,k,UMAGX) - Ecen )  !(Ecen + flxy(i,j,k,QMAGZ))
+           b = 2.d0*( -flxz(i,j,k,UMAGX) - Ecen )  
         
            !Upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
            if(flxx(i,j,k-1,URHO) .gt. 0.d0) then 
@@ -205,9 +205,9 @@ subroutine electric_edge_y(work_lo, work_hi, &
 
            !dEy/dz i-1/2,j, k-1/4
            call electric(q(i-1,j,k,:),Ecen, 2)
-           a = 2.d0*( Ecen + flxz(i-1,j,k,UMAGX) ) !(-flxy(i,j,k-1,QMAGZ) - Ecen)
+           a = 2.d0*( Ecen + flxz(i-1,j,k,UMAGX) ) 
            call electric(q(i,j,k,:),Ecen, 2)
-           b = 2.d0*( Ecen + flxz(i,j,k,UMAGX) )  !(-flxy(i,j,k,QMAGZ) - Ecen)
+           b = 2.d0*( Ecen + flxz(i,j,k,UMAGX) )  
 
            !Upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
            if(flxx(i,j,k,URHO) .gt. 0.d0) then
@@ -224,9 +224,9 @@ subroutine electric_edge_y(work_lo, work_hi, &
          !------------------ X derivatives --------------------
            !dEy/dx i -3/4, j, k - 1/2
            call electric(q(i-1,j,k-1,:),Ecen,2)
-           a = 2.d0*( flxx(i,j,k-1,UMAGZ) - Ecen )       !(Ecen - flxz(i,j-1,k,UMAGY))   
+           a = 2.d0*( flxx(i,j,k-1,UMAGZ) - Ecen )          
            call electric(q(i-1,j, k, :), Ecen, 2)
-           b = 2.d0*( flxx(i,j,k,UMAGZ) - Ecen )         !(Ecen - flxz(i,j,k,UMAGY))
+           b = 2.d0*( flxx(i,j,k,UMAGZ) - Ecen )         
            
            !upwind in the z direction to get dEy/dx i-3/4, j, k -1/2
            if(flxz(i-1,j,k,URHO).gt.0.d0) then     
@@ -239,9 +239,9 @@ subroutine electric_edge_y(work_lo, work_hi, &
 
            !dEy/dx i-1/4, j, k-1/2
            call electric(q(i,j,k-1,:), Ecen, 2)
-           a = 2.d0*( Ecen - flxx(i,j,k-1,UMAGZ) )      !(flxz(i,j-1,k,QMAGY) - Ecen)
+           a = 2.d0*( Ecen - flxx(i,j,k-1,UMAGZ) )      
            call electric(q(i,j,k,:), Ecen, 2)
-           b = 2.d0*( Ecen - flxx(i,j,k,UMAGZ) )  !(flxz(i,j,k,QMAGY) - Ecen)
+           b = 2.d0*( Ecen - flxx(i,j,k,UMAGZ) )  
 
            !Upwind in the z direction for i-1/2,j,k-1/2
            if(flxz(i,j,k,URHO).gt.0.d0) then
@@ -309,12 +309,12 @@ subroutine electric_edge_z(work_lo, work_hi, &
            !-------------------X derivatives -----------------
            !dEz/dx i-3/4 ,j-1/2, k
            call electric(q(i-1,j-1,k,:),Ecen,3)
-           a = 2.d0*( -flxx(i,j-1,k,UMAGY) - Ecen )   !(Ecen + flxy(i,j,k-1,QMAGZ))
+           a = 2.d0*( -flxx(i,j-1,k,UMAGY) - Ecen )  
            call electric(q(i-1,j,k,:),Ecen,3)
-           b = 2.d0*( -flxx(i,j,k,UMAGY) - Ecen )  !(Ecen + flxy(i,j,k,QMAGZ))
+           b = 2.d0*( -flxx(i,j,k,UMAGY) - Ecen )  
         
            !Upwind in the y direction to get dEz/dx i-3/4, j-1/2, k
-           if(flxy(i-1,j,k,URHO) .gt. 0.d0) then !recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
+           if(flxy(i-1,j,k,URHO) .gt. 0.d0) then 
               d1 = a
            else if(flxy(i-1,j,k,URHO) .lt. 0.d0) then
               d1 = b
@@ -324,9 +324,9 @@ subroutine electric_edge_z(work_lo, work_hi, &
 
            !dEz/dx i-1/4,j-1/2, k
            call electric(q(i,j-1,k,:),Ecen, 3)
-           a = 2.d0*( Ecen + flxx(i,j-1,k,UMAGY) ) !(-flxy(i,j,k-1,QMAGZ) - Ecen)
+           a = 2.d0*( Ecen + flxx(i,j-1,k,UMAGY) ) 
            call electric(q(i,j,k,:),Ecen, 3)
-           b = 2.d0*( Ecen + flxx(i,j,k,UMAGY) )  !(-flxy(i,j,k,QMAGZ) - Ecen)
+           b = 2.d0*( Ecen + flxx(i,j,k,UMAGY) )  
 
            !Upwind in the y direction to get dEz/dx i-1/4, j-1/2, k
            if(flxy(i,j,k,URHO) .gt. 0.d0) then
@@ -343,9 +343,9 @@ subroutine electric_edge_z(work_lo, work_hi, &
            !------------------ Y derivatives --------------------
            !dEz/dy i-1/2, j-3/4, k 
            call electric(q(i-1,j-1,k,:),Ecen,3)
-           a = 2.d0*( flxy(i-1,j,k,UMAGX) - Ecen )       !(Ecen - flxz(i,j-1,k,UMAGY))   
+           a = 2.d0*( flxy(i-1,j,k,UMAGX) - Ecen )        
            call electric(q(i,j-1, k, :), Ecen, 3)
-           b = 2.d0*( flxy(i,j,k,UMAGX) - Ecen )         !(Ecen - flxz(i,j,k,UMAGY))
+           b = 2.d0*( flxy(i,j,k,UMAGX) - Ecen )         
            
            !upwind in the x direction to get dEz/dy i-1/2, j-3/4, k 
            if(flxx(i,j-1,k,URHO).gt.0.d0) then     
@@ -358,9 +358,9 @@ subroutine electric_edge_z(work_lo, work_hi, &
 
            !dEz/dy i-1/2, j-1/4, k
            call electric(q(i-1,j,k,:), Ecen, 3)
-           a = 2.d0*( Ecen - flxy(i-1,j,k,UMAGX) )      !(flxz(i,j-1,k,QMAGY) - Ecen)
+           a = 2.d0*( Ecen - flxy(i-1,j,k,UMAGX) )      
            call electric(q(i,j,k,:), Ecen, 3)
-           b = 2.d0*( Ecen - flxy(i,j,k,UMAGX) )  !(flxz(i,j,k,QMAGY) - Ecen)
+           b = 2.d0*( Ecen - flxy(i,j,k,UMAGX) )  
 
            !Upwind in the x direction for i-1/2,j-1/2,k
            if(flxx(i,j,k,URHO).gt.0.d0) then

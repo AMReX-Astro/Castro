@@ -47,12 +47,16 @@ Castro::source_flag(int src)
             return true;
         else
             return false;
-
+#ifndef MHD     
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
           return true;
         else
           return false;
+#else
+    case thermo_src:
+        return true;
+#endif  
 
 #ifdef DIFFUSION
     case diff_src:
@@ -359,6 +363,12 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
     case ext_src:
         construct_new_ext_source(source, state_old, state_new, time, dt);
         break;
+
+#ifdef MHD
+    case thermo_src:
+        construct_new_thermo_source(source, state_old, state_new, time, dt);
+        break;
+#endif
 
 #ifdef DIFFUSION
     case diff_src:

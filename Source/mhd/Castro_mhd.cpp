@@ -84,7 +84,7 @@ Castro::just_the_mhd(Real time, Real dt)
            ca_advance_mhd
             (&time, bx.loVect(), bx.hiVect(),
              BL_TO_FORTRAN_3D(statein),
-             BL_TO_FORTRAN_3D(stateout),
+             BL_TO_FORTRAN_3D(source_out),
              BL_TO_FORTRAN_3D(Bx),
              BL_TO_FORTRAN_3D(By),
              BL_TO_FORTRAN_3D(Bz),
