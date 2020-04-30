@@ -2,18 +2,18 @@
   p_l = 1.0
   u_l = 0.0
   rho_l = 1.0
-  B_z_l = 0.0
-  B_x_l = 0.0
+  B_z_l = 0.75
+  B_x_l = 1.0
   B_y_l = 0.0 
 
   p_r = 0.1
   u_r = 0.0
   rho_r = 0.125
-  B_z_r = 0.0
+  B_z_r = 0.75
   B_y_r = 0.0
-  B_x_r = 0.0
+  B_x_r = -1.0
 
-  idir = 2
+  idir = 3
   frac = 0.5
 
 /
@@ -35,5 +35,5 @@
 &extern
 
   eos_assume_neutral = T
-  eos_gamma = 1.4
+  eos_gamma = 2
 /

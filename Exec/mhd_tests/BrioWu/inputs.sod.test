@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10000
+max_step = 10
 stop_time =  0.2
 
 # PROBLEM SIZE & GEOMETRY
@@ -29,7 +29,6 @@ castro.use_flattening = 0
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -50,7 +49,7 @@ amr.check_file      = sod_x_chk  # root name of checkpoint file
 amr.check_int       = 10         # number of timesteps between checkpoints
 
 # PLOTFILES
-#amr.plot_files_output = 0
+amr.plot_files_output = 0
 amr.checkpoint_files_output = 0
 
 amr.plot_file       = sod_x_plt  # root name of plotfile
@@ -58,4 +57,4 @@ amr.plot_int        = 4          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure x_velocity y_velocity z_velocity B_x B_y B_z # these variables appear in the plotfile
 
 #PROBIN FILENAME
-amr.probin_file = probin-sod-x
+amr.probin_file = probin.sod.test
