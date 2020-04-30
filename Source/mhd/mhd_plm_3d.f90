@@ -166,7 +166,7 @@ contains
              Im(i,j,k,QMAGX,1)  = bx(i,j,k) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              
-             !update this, when species work is done
+             
              eos_state % rho = Im(i,j,k,QRHO,1)
              eos_state % p   = Im(i,j,k,QPRES,1)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,1)
@@ -247,7 +247,7 @@ contains
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
-             !update this, when species work is done
+             
              eos_state % rho = Ip(i,j,k,QRHO,2)
              eos_state % p   = Ip(i,j,k,QPRES,2)
              eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,2)
@@ -267,7 +267,7 @@ contains
              Im(i,j,k,QMAGZ,2) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
 
 
-             !update this, when species work is done
+             
              eos_state % rho = Im(i,j,k,QRHO,2)
              eos_state % p   = Im(i,j,k,QPRES,2)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,2)
@@ -359,7 +359,7 @@ contains
              Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3) = bz(i,j,k) !! Bz stuff
              
-             !update this, when species work is done
+            
              eos_state % rho = Im(i,j,k,QRHO,3)
              eos_state % p   = Im(i,j,k,QPRES,3)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1, 3)
