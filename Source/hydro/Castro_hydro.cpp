@@ -129,12 +129,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-#ifdef MHD
-    MultiFab& Bx = get_new_data(Mag_Type_x);
-    MultiFab& By = get_new_data(Mag_Type_y);
-    MultiFab& Bz = get_new_data(Mag_Type_z);
-#endif
-
     // we don't support radiation here
 #ifdef RADIATION
     amrex::Abort("radiation not supported to fourth order");

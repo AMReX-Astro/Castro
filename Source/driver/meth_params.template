@@ -18,7 +18,6 @@ module meth_params_module
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
 #ifdef MHD
-  integer, parameter     :: MAXADV  = 5
   integer, parameter     :: NMAG    = 3
 #endif
 
