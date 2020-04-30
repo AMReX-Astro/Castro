@@ -9,7 +9,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
 #ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
-#else
+#endif
 
   const Real strt_time = ParallelDescriptor::second();
 
@@ -40,7 +40,6 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 #endif
     }
 
-#endif //MHD
 }
 
 
