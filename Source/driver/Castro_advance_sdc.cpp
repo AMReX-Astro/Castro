@@ -148,7 +148,7 @@ Castro::do_advance_sdc (Real time,
 
         // store the result in sources_for_hydro -- this is what will
         // be used in the final conservative update
-        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, sources_for_hydro.nGrow());
+        MultiFab::Copy(sources_for_hydro, old_source, 0, 0, NSRC, old_source.nGrow());
 
       } else {
         sources_for_hydro.setVal(0.0, 0);
