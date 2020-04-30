@@ -1,0 +1,7 @@
+frac           real      0.5_rt        y
+split          real      0.0_rt        n                3
+rho_1          real      1.0_rt        y
+rho_2          real      2.0_rt        y
+p0_base        real      5.0_rt        y
+L_x            real      0.5_rt        y
+B_0            real      0.0_rt        y 
