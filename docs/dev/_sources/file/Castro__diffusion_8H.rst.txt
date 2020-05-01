@@ -1,4 +1,0 @@
-File Castro_diffusion.H
-=======================
-
-.. doxygenfile:: Castro_diffusion.H

@@ -1,4 +1,0 @@
-File Castro_rotation.H
-======================
-
-.. doxygenfile:: Castro_rotation.H

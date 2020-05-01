@@ -1,4 +1,0 @@
-Class Castro
-============
-
-.. doxygenclass:: Castro

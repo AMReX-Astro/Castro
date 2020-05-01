@@ -1,4 +1,0 @@
-Class Radiation
-===============
-
-.. doxygenclass:: Radiation

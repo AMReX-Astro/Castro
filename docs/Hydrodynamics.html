@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Hydrodynamics &mdash; Castro 20.04
+  <title>Hydrodynamics &mdash; Castro 20.05
  documentation</title>
   
 
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                20.04
+                20.05
 
               </div>
             
@@ -411,36 +411,32 @@ are “gas” only and those with the “tot” subscript are “gas + radiation
 <td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QGAME</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\(p/(\rho e) + 1\)</span></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QFA</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QFA</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(A_1\)</span></p></td>
 <td><p>the first advected
 quantity</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QFS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QFS</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(X_1\)</span></p></td>
 <td><p>the first species</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QFX</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QFX</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(Y_1\)</span></p></td>
 <td><p>the first auxiliary
 variable</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QPTOT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QPTOT</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(p_\mathrm{tot}\)</span></p></td>
 <td><p>the total pressure,
 gas + radiation</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QREITOT</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QREITOT</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(e_\mathrm{tot}\)</span></p></td>
 <td><p>the total specific
 internal energy, gas
 + radiation</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QRAD</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QRAD</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(E_r\)</span></p></td>
 <td><p>the radiation energy
 (there are ngroups of
@@ -481,22 +477,7 @@ from the EOS</p></td>
 <td><p>the sound speed, as
 returned from the EOS</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QCSML</span></code></p></td>
-<td></td>
-<td><p>a small sound speed
-used for cutoffs</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDPDR</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\(\partial p/
-\partial \rho |_e\)</span></p></td>
-<td><p>computed via the EOS</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDPDE</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\(\partial p/
-\partial e|_\rho\)</span></p></td>
-<td><p>computed via the EOS</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QGAMCG</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QGAMCG</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\Gamma_1
 }_\mathrm{tot}\)</span></p></td>
 <td><p>includes radiation
@@ -504,7 +485,7 @@ components (defined
 only if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code>
 is defined)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QCG</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QCG</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({c_s
 }_\mathrm{tot}\)</span></p></td>
 <td><p>total sound speed
@@ -513,7 +494,7 @@ including radiation
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
 defined)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QLAMS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QLAMS</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\lambda_f\)</span></p></td>
 <td><p>the <code class="docutils literal notranslate"><span class="pre">ngroups</span></code> flux
 limiters (defined
@@ -569,16 +550,7 @@ defined,
 this is always just
 the gas pressure</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDGAME</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\(\gamma_e = p/(
-\rho e) + 1\)</span></p></td>
-<td><p>regardless of whether
-<code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
-defined,
-this is always just
-the gas contribution</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDLAMS</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDLAMS</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\lambda_f}\)</span></p></td>
 <td><p>the starting index
 for the flux
@@ -588,7 +560,7 @@ ngroups components
 <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is
 defined)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">QDERADS</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">QDERADS</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(E_r\)</span></p></td>
 <td><p>the starting index
 for the radiation

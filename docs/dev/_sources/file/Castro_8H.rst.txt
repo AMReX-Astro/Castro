@@ -1,4 +1,0 @@
-File Castro.H
-=============
-
-.. doxygenfile:: Castro.H

@@ -1,4 +1,0 @@
-File ppm.H
-==========
-
-.. doxygenfile:: ppm.H

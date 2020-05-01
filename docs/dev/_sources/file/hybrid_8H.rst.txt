@@ -1,4 +1,0 @@
-File hybrid.H
-=============
-
-.. doxygenfile:: hybrid.H

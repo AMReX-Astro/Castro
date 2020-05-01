@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_rotation.H &mdash; Castro 20.04
+  <title>File Castro_rotation.H &mdash; Castro 20.05
  documentation</title>
   
 
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                20.04
+                20.05
 
               </div>
             
@@ -232,7 +232,7 @@
 <h1>File Castro_rotation.H<a class="headerlink" href="#file-castro-rotation-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv329construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a47cc1e70495745d2a5a3ed83590477bb"></span>void <code class="sig-name descname">construct_old_rotation_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct rotation source terms at old time</p>
@@ -248,7 +248,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv329construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a35ddccae23393f527f14f985ffaee436"></span>void <code class="sig-name descname">construct_new_rotation_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct rotation source terms at new time.</p>
@@ -265,7 +265,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a7d593ea25c5aeab9468015712fb7ec3a"></span>void <code class="sig-name descname">fill_rotation_field</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>phi</em>, amrex::MultiFab &amp;<em>rot</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Fill rotational potential and acceleration</p>
@@ -281,7 +281,7 @@
 </p>
 </dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt>
 <span class="target" id="Castro__rotation_8H_1af2c1b37113922e4f043a9dddef402ef0"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity_c(const int i, const int j, const int k, const amrex::GeometryData &amp; geomdata, const Real * center, const Real * omega, const amrex::Real time, amrex::Real * v)</code></dt>
 <dd></dd></dl>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>namespace: castro &mdash; Castro 20.04
+  <title>namespace: castro &mdash; Castro 20.05
  documentation</title>
   
 
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                20.04
+                20.05
 
               </div>
             
@@ -270,11 +270,6 @@ time_integration_method drivers</p></td>
 <td><p>should we apply the sources one by one or all at once?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code></p></td>
-<td><p>should we have state data for custom load-balancing
-weighting?</p></td>
-<td><p>0</p></td>
-</tr>
 </tbody>
 </table>
 <p><strong>hydrodynamics</strong></p>
@@ -375,35 +370,30 @@ piecewise constant, 2 = piecewise linear</p></td>
 order MC, 2 = 4th order MC</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plm_well_balanced</span></code></p></td>
-<td><p>for piecewise linear, MOL or SDC, do well-balanced
-reconstruction on pressure</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></p></td>
 <td><p>do we drop from our regular Riemann solver to HLL when
 we are in shocks to avoid the odd-even decoupling
 instability?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></p></td>
 <td><p>which Riemann solver do we use: 0: Colella, Glaz, &amp;
 Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a
 two-shock solver) 2: HLLC</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, the maximum
 number of iterations to take when solving for the star
 state</p></td>
 <td><p>12</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, the tolerance
 to demand in finding the star state</p></td>
 <td><p>1.0e-5</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, what to do if
 we do not converge to a solution for the star state. 0
 = do nothing; print iterations and exit 1 = revert to
@@ -411,30 +401,30 @@ the original guess for p-star 2 = do a bisection search
 for another 2 * cg_maxiter iterations.</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></p></td>
 <td><p>should we use the EOS in the Riemann solver to ensure
 thermodynamic consistency?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></p></td>
 <td><p>flatten the reconstructed profiles around shocks to
 prevent them from becoming too thin</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></p></td>
 <td><p>after we add the transverse correction to the interface
 states, replace the predicted pressure with an EOS call
 (using <span class="math notranslate nohighlight">\(e\)</span> and <span class="math notranslate nohighlight">\(\rho\)</span>).</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></p></td>
 <td><p>if the transverse interface state correction, if the
 new density is negative, then replace all of the
 interface quantities with their values without the
 transverse correction.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></p></td>
 <td><p>if the interface state for <span class="math notranslate nohighlight">\((\rho e)\)</span> is negative
 after we add the transverse terms, then replace the
 interface value of <span class="math notranslate nohighlight">\((\rho e)\)</span> with a value
@@ -442,22 +432,28 @@ constructed from the <span class="math notranslate nohighlight">\((\rho e)\)</sp
 equation</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></p></td>
 <td><p>Threshold value of (E - K) / E such that above eta1,
 the hydrodynamic pressure is derived from E - K;
 otherwise, we use the internal energy variable UEINT.</p></td>
 <td><p>1.0e0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></p></td>
 <td><p>Threshold value of (E - K) / E such that above eta2, we
 update the internal energy variable UEINT to match E -
 K. Below this, UEINT remains unchanged.</p></td>
 <td><p>1.0e-4</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></p></td>
 <td><p>for the piecewise linear reconstruction, do we subtract
-off <span class="math notranslate nohighlight">\((\rho g)\)</span> from the pressure before limiting?</p></td>
+off <span class="math notranslate nohighlight">\((\rho g)\)</span> from the pressure before limiting?
+This is a well-balanced method that does well with HSE</p></td>
 <td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pslope_cutoff_density</span></code></p></td>
+<td><p>if we are using pslope, below what density to we turn
+off the well-balanced reconstruction?</p></td>
+<td><p>-1.e20</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></p></td>
 <td><p>Should we limit the density fluxes so that we do not
@@ -510,32 +506,32 @@ first-order method</p></td>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">xl_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external -x boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">xr_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external +x boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">yl_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external -y boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">yr_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external +y boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">zl_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external -z boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">zr_ext_bc_type</span></code></p></td>
 <td><p>if we are doing an external +z boundary condition, who
 do we interpret it?</p></td>
-<td><p>“”</p></td>
+<td><p>“fillme”</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hse_zero_vels</span></code></p></td>
 <td><p>if we are doing HSE boundary conditions, do we zero the
@@ -555,6 +551,17 @@ treat the velocity? reflect? or outflow?</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fill_ambient_bc</span></code></p></td>
 <td><p>fills physical domain boundaries with the ambient state</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ambient_fill_dir</span></code></p></td>
+<td><p>which direction do we do ambient BCs?  -1 = all, 0 = x,
+1 = y, 2 = z</p></td>
+<td><p>-1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ambient_outflow_vel</span></code></p></td>
+<td><p>in the ambient region, do we do a basic outflow in the
+normal direction of the velocity (with a min/max to
+ensure it is outgoing)</p></td>
 <td><p>0</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">clamp_ambient_temp</span></code></p></td>
@@ -650,9 +657,9 @@ from the timestep constraints)</p></td>
 <td><p>-1.0</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code></p></td>
-<td><p>the smallest valid timestep—if we go below this, we
-abort</p></td>
-<td><p>0.0</p></td>
+<td><p>the smallest valid timestep, as a fraction of the
+current simulation time. if we go below this, we abort.</p></td>
+<td><p>1.e-12</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_dt</span></code></p></td>
 <td><p>the largest valid timestep—limit all timesteps to be
@@ -672,7 +679,7 @@ that requested by the timestep estimators</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">change_max</span></code></p></td>
 <td><p>the maximum factor by which the timestep can increase
-from one step to the next.</p></td>
+or decrease from one step to the next</p></td>
 <td><p>1.1</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plot_per_is_exact</span></code></p></td>
@@ -692,22 +699,6 @@ will suggest a new timestep that satisfies the
 criteria, and we will do subcycled timesteps on the
 same level until we reach the original target time.</p></td>
 <td><p>1</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_tolerance</span></code></p></td>
-<td><p>Tolerance to use when evaluating whether to do a retry.
-The timestep suggested by the retry will be multiplied
-by (1 + this factor) before comparing the actual
-timestep to it. If set to some number slightly larger
-than zero, then this prevents retries that are caused
-by small numerical differences.</p></td>
-<td><p>0.02</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_neg_dens_factor</span></code></p></td>
-<td><p>If we’re doing retries, set the target threshold for
-changes in density if a retry is triggered by a
-negative density. If this is set to a negative number
-then it will disable retries using this criterion.</p></td>
-<td><p>1.e-1</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">retry_subcycle_factor</span></code></p></td>
 <td><p>When performing a retry, the factor to multiply the
@@ -799,6 +790,11 @@ zone</p></td>
 <td><p>initial guess for the temperature when inverting the
 EoS (e.g. when calling eos_input_re)</p></td>
 <td><p>1.e8</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reactions_max_solve_level</span></code></p></td>
+<td><p>maximum level to do an explicit burn on (above this, we
+interpolate the reactions source)</p></td>
+<td><p>100</p></td>
 </tr>
 </tbody>
 </table>
@@ -1106,7 +1102,7 @@ integral sums (for runtime diagnostics)</p></td>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
 <td><p>a string describing the simulation that will be copied
 into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</p></td>
-<td><p>“”</p></td>
+<td><p>“Castro”</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
 <td><p>write a final plotfile and checkpoint upon completion</p></td>

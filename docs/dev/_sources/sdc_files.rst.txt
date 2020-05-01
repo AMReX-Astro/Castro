@@ -1,8 +1,0 @@
-Sdc
-===
-
-.. toctree::
-   :maxdepth: 2
-
-   file/Castro__sdc_8H
-   

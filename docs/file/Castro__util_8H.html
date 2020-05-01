@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_util.H &mdash; Castro 20.04
+  <title>File Castro_util.H &mdash; Castro 20.05
  documentation</title>
   
 
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                20.04
+                20.05
 
               </div>
             
@@ -145,6 +145,8 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_util.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
@@ -236,24 +238,24 @@
 <h1>File Castro_util.H<a class="headerlink" href="#file-castro-util-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="function">
+<dl class="cpp function">
 <dt>
 <span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt>
 <span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap(int ipassive)</code></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt>
 <span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p(const int mom_dir, const int flux_dir, const int coord)</code></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1ae0cf29d6d631bf88579dde0a5f221e32"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, Real * loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
+<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, GpuArray&lt; Real, 3 &gt; &amp; loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
 <dd></dd></dl>
 
 </div>

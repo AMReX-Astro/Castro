@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File hybrid.H &mdash; Castro 20.05
+  <title>File sponge_params.H &mdash; Castro 20.05
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File ppm.H" href="ppm_8H.html" />
-    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
+    <link rel="next" title="Class list" href="../classlist.html" />
+    <link rel="prev" title="File sponge_defaults.H" href="sponge__defaults_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/hybrid_8H.html">master</a> | <a href="../dev/file/hybrid_8H.html">development</a>
+        Branch: <a href="../file/sponge__params_8H.html">master</a> | <a href="../dev/file/sponge__params_8H.html">development</a>
     </div>
 
         </div>
@@ -141,13 +141,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -155,7 +149,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__defaults_8H.html">File sponge_defaults.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File sponge_params.H</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -210,15 +209,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
         
-      <li>File hybrid.H</li>
+      <li>File sponge_params.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/hybrid_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/sponge__params_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -231,36 +230,61 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-hybrid-h">
-<h1>File hybrid.H<a class="headerlink" href="#file-hybrid-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-sponge-params-h">
+<h1>File sponge_params.H<a class="headerlink" href="#file-sponge-params-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="hybrid_8H_1a6d370358f779d78740c8813552a15e43"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; linear_mom, GpuArray&lt; Real, 3 &gt; &amp; hybrid_mom)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a17a4a79407b4406a49695b7be2c5b0fa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; hybrid_mom, GpuArray&lt; Real, 3 &gt; &amp; linear_mom)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a149cd9ca74e5e070548945a44ec4c421"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; linear_source, GpuArray&lt; Real, 3 &gt; &amp; hybrid_source)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a0df5b725a9e6d7a9f26a3da0f6da3b41"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const GpuArray&lt; Real, NGDNV &gt; &amp; state, const GeometryData &amp; geomdata, const GpuArray&lt; Real, 3 &gt; &amp; center, int idir, int i, int j, int k, GpuArray&lt; Real, NUM_STATE &gt; &amp; flux, bool cell_centered = false)</code></dt>
+<span class="target" id="sponge__params_8H_1ae139748031abea3f71032bef21e1770f"></span><code class="sig-name descname">Real Castro::sponge_target_velocity(\3\)</code></dt>
 <dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="cpp member">
-<dt>
-<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="sig-name descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
+<dt id="_CPPv4N6Castro19sponge_lower_factorE">
+<span id="_CPPv3N6Castro19sponge_lower_factorE"></span><span id="_CPPv2N6Castro19sponge_lower_factorE"></span><span id="Castro::sponge_lower_factor__Real"></span><span class="target" id="sponge__params_8H_1a8ebd8852c9d8c478d03a92581a306098"></span>Real <code class="sig-name descname">sponge_lower_factor</code> = -1<a class="headerlink" href="#_CPPv4N6Castro19sponge_lower_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro19sponge_upper_factorE">
+<span id="_CPPv3N6Castro19sponge_upper_factorE"></span><span id="_CPPv2N6Castro19sponge_upper_factorE"></span><span id="Castro::sponge_upper_factor__Real"></span><span class="target" id="sponge__params_8H_1a3d15e3a72aedf2a72d894f1dac025c28"></span>Real <code class="sig-name descname">sponge_upper_factor</code> = -1<a class="headerlink" href="#_CPPv4N6Castro19sponge_upper_factorE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro19sponge_lower_radiusE">
+<span id="_CPPv3N6Castro19sponge_lower_radiusE"></span><span id="_CPPv2N6Castro19sponge_lower_radiusE"></span><span id="Castro::sponge_lower_radius__Real"></span><span class="target" id="sponge__params_8H_1ae2536e2d42a955d0baebb2e39e32143a"></span>Real <code class="sig-name descname">sponge_lower_radius</code> = -1<a class="headerlink" href="#_CPPv4N6Castro19sponge_lower_radiusE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro19sponge_upper_radiusE">
+<span id="_CPPv3N6Castro19sponge_upper_radiusE"></span><span id="_CPPv2N6Castro19sponge_upper_radiusE"></span><span id="Castro::sponge_upper_radius__Real"></span><span class="target" id="sponge__params_8H_1ae8b2d5fe0034fca2a17fc4e88229767b"></span>Real <code class="sig-name descname">sponge_upper_radius</code> = -1<a class="headerlink" href="#_CPPv4N6Castro19sponge_upper_radiusE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro20sponge_lower_densityE">
+<span id="_CPPv3N6Castro20sponge_lower_densityE"></span><span id="_CPPv2N6Castro20sponge_lower_densityE"></span><span id="Castro::sponge_lower_density__Real"></span><span class="target" id="sponge__params_8H_1a90e936399712e046186f6a9ddbb0a60b"></span>Real <code class="sig-name descname">sponge_lower_density</code> = -1<a class="headerlink" href="#_CPPv4N6Castro20sponge_lower_densityE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro20sponge_upper_densityE">
+<span id="_CPPv3N6Castro20sponge_upper_densityE"></span><span id="_CPPv2N6Castro20sponge_upper_densityE"></span><span id="Castro::sponge_upper_density__Real"></span><span class="target" id="sponge__params_8H_1ab3e845aa3b3176b0c7f4c4c6b8222b3f"></span>Real <code class="sig-name descname">sponge_upper_density</code> = -1<a class="headerlink" href="#_CPPv4N6Castro20sponge_upper_densityE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro21sponge_lower_pressureE">
+<span id="_CPPv3N6Castro21sponge_lower_pressureE"></span><span id="_CPPv2N6Castro21sponge_lower_pressureE"></span><span id="Castro::sponge_lower_pressure__Real"></span><span class="target" id="sponge__params_8H_1a40f83ed4e1b7b521f8528e037cba1fa9"></span>Real <code class="sig-name descname">sponge_lower_pressure</code> = -1<a class="headerlink" href="#_CPPv4N6Castro21sponge_lower_pressureE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro21sponge_upper_pressureE">
+<span id="_CPPv3N6Castro21sponge_upper_pressureE"></span><span id="_CPPv2N6Castro21sponge_upper_pressureE"></span><span id="Castro::sponge_upper_pressure__Real"></span><span class="target" id="sponge__params_8H_1ab68cb78a5cb45b0590f4ca22177a0424"></span>Real <code class="sig-name descname">sponge_upper_pressure</code> = -1<a class="headerlink" href="#_CPPv4N6Castro21sponge_upper_pressureE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp member">
+<dt id="_CPPv4N6Castro16sponge_timescaleE">
+<span id="_CPPv3N6Castro16sponge_timescaleE"></span><span id="_CPPv2N6Castro16sponge_timescaleE"></span><span id="Castro::sponge_timescale__Real"></span><span class="target" id="sponge__params_8H_1a68a3e67bd773e7451e31cb3eb35d875c"></span>Real <code class="sig-name descname">sponge_timescale</code> = -1<a class="headerlink" href="#_CPPv4N6Castro16sponge_timescaleE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -274,10 +298,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ppm_8H.html" class="btn btn-neutral float-right" title="File ppm.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../classlist.html" class="btn btn-neutral float-right" title="Class list" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="sponge__defaults_8H.html" class="btn btn-neutral float-left" title="File sponge_defaults.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

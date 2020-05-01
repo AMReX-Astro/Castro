@@ -1,4 +1,0 @@
-Class Gravity
-=============
-
-.. doxygenclass:: Gravity

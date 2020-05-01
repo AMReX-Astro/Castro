@@ -1,4 +1,0 @@
-File HypreExtMultiABec.H
-========================
-
-.. doxygenfile:: HypreExtMultiABec.H

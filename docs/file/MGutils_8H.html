@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File hybrid.H &mdash; Castro 20.05
+  <title>File MGutils.H &mdash; Castro 20.05
  documentation</title>
   
 
@@ -39,8 +39,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File ppm.H" href="ppm_8H.html" />
-    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
+    <link rel="next" title="File castro_limits.H" href="castro__limits_8H.html" />
+    <link rel="prev" title="File Derive.H" href="Derive_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -85,7 +85,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/hybrid_8H.html">master</a> | <a href="../dev/file/hybrid_8H.html">development</a>
+        Branch: <a href="../file/MGutils_8H.html">master</a> | <a href="../dev/file/MGutils_8H.html">development</a>
     </div>
 
         </div>
@@ -139,15 +139,18 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File hybrid.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File MGutils.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -210,15 +213,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
         
-      <li>File hybrid.H</li>
+      <li>File MGutils.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/hybrid_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/MGutils_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -231,36 +234,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-hybrid-h">
-<h1>File hybrid.H<a class="headerlink" href="#file-hybrid-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-mgutils-h">
+<h1>File MGutils.H<a class="headerlink" href="#file-mgutils-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a6d370358f779d78740c8813552a15e43"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; linear_mom, GpuArray&lt; Real, 3 &gt; &amp; hybrid_mom)</code></dt>
+<dt id="_CPPv412apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxPK4RealKi">
+<span id="_CPPv312apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxPK4RealKi"></span><span id="_CPPv212apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxPK4RealKi"></span><span id="apply_metric__BoxCR.Array4:Real:C.BoxCR.Array4:Real:C.BoxCR.Array4:Real:C.BoxCR.RealCP.iC"></span><span class="target" id="MGutils_8H_1aa9c6d0d8d195334a09bead93b49d8161"></span>void <code class="sig-name descname">apply_metric</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>rhs</em>, <em class="property">const</em> Box &amp;<em>rbx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>ecx</em>, <em class="property">const</em> Box &amp;<em>xbx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>ecy</em>, <em class="property">const</em> Box &amp;<em>ybx</em>, <em class="property">const</em> Real *<em>dx</em>, <em class="property">const</em> int <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412apply_metricRK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxK6Array4I4RealERK3BoxPK4RealKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a17a4a79407b4406a49695b7be2c5b0fa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; hybrid_mom, GpuArray&lt; Real, 3 &gt; &amp; linear_mom)</code></dt>
+<dt id="_CPPv412do_weight_ccRK3BoxK6Array4I4RealEPK4RealKi">
+<span id="_CPPv312do_weight_ccRK3BoxK6Array4I4RealEPK4RealKi"></span><span id="_CPPv212do_weight_ccRK3BoxK6Array4I4RealEPK4RealKi"></span><span id="do_weight_cc__BoxCR.Array4:Real:C.RealCP.iC"></span><span class="target" id="MGutils_8H_1afc1dfb686620ed8abfbb1647660a9bdb"></span>void <code class="sig-name descname">do_weight_cc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>cc</em>, <em class="property">const</em> Real *<em>dx</em>, <em class="property">const</em> int <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412do_weight_ccRK3BoxK6Array4I4RealEPK4RealKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a149cd9ca74e5e070548945a44ec4c421"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(const GpuArray&lt; Real, 3 &gt; &amp; loc, const GpuArray&lt; Real, 3 &gt; &amp; linear_source, GpuArray&lt; Real, 3 &gt; &amp; hybrid_source)</code></dt>
+<dt id="_CPPv414do_unweight_ccRK3BoxK6Array4I4RealEPK4RealKi">
+<span id="_CPPv314do_unweight_ccRK3BoxK6Array4I4RealEPK4RealKi"></span><span id="_CPPv214do_unweight_ccRK3BoxK6Array4I4RealEPK4RealKi"></span><span id="do_unweight_cc__BoxCR.Array4:Real:C.RealCP.iC"></span><span class="target" id="MGutils_8H_1a44515a9775fec3711dc7ce6d4b60077e"></span>void <code class="sig-name descname">do_unweight_cc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>cc</em>, <em class="property">const</em> Real *<em>dx</em>, <em class="property">const</em> int <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414do_unweight_ccRK3BoxK6Array4I4RealEPK4RealKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a0df5b725a9e6d7a9f26a3da0f6da3b41"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(const GpuArray&lt; Real, NGDNV &gt; &amp; state, const GeometryData &amp; geomdata, const GpuArray&lt; Real, 3 &gt; &amp; center, int idir, int i, int j, int k, GpuArray&lt; Real, NUM_STATE &gt; &amp; flux, bool cell_centered = false)</code></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Variables</p>
-<dl class="cpp member">
-<dt>
-<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="sig-name descname">AMREX_GPU_MANAGED Real R_min = std::numeric_limits&lt;Real&gt;::min()</code></dt>
+<dt id="_CPPv417do_unweight_edgesRK3BoxK6Array4I4RealEKiPK4RealKi">
+<span id="_CPPv317do_unweight_edgesRK3BoxK6Array4I4RealEKiPK4RealKi"></span><span id="_CPPv217do_unweight_edgesRK3BoxK6Array4I4RealEKiPK4RealKi"></span><span id="do_unweight_edges__BoxCR.Array4:Real:C.iC.RealCP.iC"></span><span class="target" id="MGutils_8H_1acd8a784653a92e7cabc1462041a76212"></span>void <code class="sig-name descname">do_unweight_edges</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> <em>ec</em>, <em class="property">const</em> int <em>idir</em>, <em class="property">const</em> Real *<em>dx</em>, <em class="property">const</em> int <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417do_unweight_edgesRK3BoxK6Array4I4RealEKiPK4RealKi" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -274,10 +269,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="ppm_8H.html" class="btn btn-neutral float-right" title="File ppm.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="castro__limits_8H.html" class="btn btn-neutral float-right" title="File castro_limits.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Derive_8H.html" class="btn btn-neutral float-left" title="File Derive.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

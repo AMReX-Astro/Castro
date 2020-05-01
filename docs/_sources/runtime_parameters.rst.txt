@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.apply_sources_consecutively, castro.use_custom_knapsack_weights
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.apply_sources_consecutively
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -29,15 +29,12 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``apply_sources_consecutively``        | should we apply the sources one by one or all at once?  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_custom_knapsack_weights``        | should we have state data for custom load-balancing     | 0             |
-|                                        | weighting?                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
 
 
 
 **hydrodynamics**
 
-.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.plm_well_balanced, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.limit_fluxes_on_small_dens, castro.limit_fluxes_on_large_vel, castro.speed_limit, castro.density_reset_method, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
+.. index:: castro.difmag, castro.small_dens, castro.small_temp, castro.small_pres, castro.small_ener, castro.do_hydro, castro.time_integration_method, castro.limit_fourth_order, castro.initialization_is_cell_average, castro.use_reconstructed_gamma1, castro.add_ext_src, castro.hybrid_hydro, castro.ppm_type, castro.ppm_temp_fix, castro.plm_iorder, castro.plm_limiter, castro.hybrid_riemann, castro.riemann_solver, castro.cg_maxiter, castro.cg_tol, castro.cg_blend, castro.use_eos_in_riemann, castro.use_flattening, castro.transverse_use_eos, castro.transverse_reset_density, castro.transverse_reset_rhoe, castro.dual_energy_eta1, castro.dual_energy_eta2, castro.use_pslope, castro.pslope_cutoff_density, castro.limit_fluxes_on_small_dens, castro.limit_fluxes_on_large_vel, castro.speed_limit, castro.density_reset_method, castro.do_sponge, castro.sponge_implicit, castro.ext_src_implicit, castro.source_term_predictor, castro.first_order_hydro, castro.xl_ext_bc_type, castro.xr_ext_bc_type, castro.yl_ext_bc_type, castro.yr_ext_bc_type, castro.zl_ext_bc_type, castro.zr_ext_bc_type, castro.hse_zero_vels, castro.hse_interp_temp, castro.hse_reflect_vels, castro.fill_ambient_bc, castro.ambient_fill_dir, castro.ambient_outflow_vel, castro.clamp_ambient_temp, castro.ambient_safety_factor, castro.sdc_order, castro.sdc_quadrature, castro.sdc_extra, castro.sdc_solver, castro.sdc_solver_tol_dens, castro.sdc_solver_tol_spec, castro.sdc_solver_tol_ener, castro.sdc_solver_atol, castro.sdc_solver_relax_factor, castro.sdc_solve_for_rhoe, castro.sdc_use_analytic_jac
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -95,9 +92,6 @@ namespace: ``castro``
 | ``plm_limiter``                        | for piecewise linear, what limiter to use? 1 = 2nd      | 2             |
 |                                        | order MC, 2 = 4th order MC                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``plm_well_balanced``                  | for piecewise linear, MOL or SDC, do well-balanced      | 0             |
-|                                        | reconstruction on pressure                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
 | ``hybrid_riemann``                     | do we drop from our regular Riemann solver to HLL when  | 0             |
 |                                        | we are in shocks to avoid the odd-even decoupling       |               |
 |                                        | instability?                                            |               |
@@ -150,6 +144,10 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``use_pslope``                         | for the piecewise linear reconstruction, do we subtract | 1             |
 |                                        | off :math:`(\rho g)` from the pressure before limiting? |               |
+|                                        | This is a well-balanced method that does well with HSE  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``pslope_cutoff_density``              | if we are using pslope, below what density to we turn   | -1.e20        |
+|                                        | off the well-balanced reconstruction?                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``limit_fluxes_on_small_dens``         | Should we limit the density fluxes so that we do not    | 0             |
 |                                        | create small densities?                                 |               |
@@ -181,22 +179,22 @@ namespace: ``castro``
 |                                        | reconstructed profiles to be flat, resulting in a       |               |
 |                                        | first-order method                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | ""            |
+| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | ""            |
+| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | ""            |
+| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | ""            |
+| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | ""            |
+| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | ""            |
+| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | "fillme"      |
 |                                        | do we interpret it?                                     |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hse_zero_vels``                      | if we are doing HSE boundary conditions, do we zero the | 0             |
@@ -210,6 +208,13 @@ namespace: ``castro``
 |                                        | treat the velocity? reflect? or outflow?                |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``fill_ambient_bc``                    | fills physical domain boundaries with the ambient state | 0             |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``ambient_fill_dir``                   | which direction do we do ambient BCs?  -1 = all, 0 = x, | -1            |
+|                                        | 1 = y, 2 = z                                            |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``ambient_outflow_vel``                | in the ambient region, do we do a basic outflow in the  | 0             |
+|                                        | normal direction of the velocity (with a min/max to     |               |
+|                                        | ensure it is outgoing)                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``clamp_ambient_temp``                 | clamps the ambient material to the ambient temperature  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -256,7 +261,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_tolerance, castro.retry_neg_dens_factor, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -268,8 +273,8 @@ namespace: ``castro``
 | ``initial_dt``                         | the initial timestep (negative uses the step returned   | -1.0          |
 |                                        | from the timestep constraints)                          |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``dt_cutoff``                          | the smallest valid timestep---if we go below this, we   | 0.0           |
-|                                        | abort                                                   |               |
+| ``dt_cutoff``                          | the smallest valid timestep, as a fraction of the       | 1.e-12        |
+|                                        | current simulation time. if we go below this, we abort. |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``max_dt``                             | the largest valid timestep---limit all timesteps to be  | 1.e200        |
 |                                        | no larger than this                                     |               |
@@ -282,7 +287,7 @@ namespace: ``castro``
 |                                        | that requested by the timestep estimators               |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``change_max``                         | the maximum factor by which the timestep can increase   | 1.1           |
-|                                        | from one step to the next.                              |               |
+|                                        | or decrease from one step to the next                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``plot_per_is_exact``                  | enforce that the AMR plot interval must be hit exactly  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -295,18 +300,6 @@ namespace: ``castro``
 |                                        | will suggest a new timestep that satisfies the          |               |
 |                                        | criteria, and we will do subcycled timesteps on the     |               |
 |                                        | same level until we reach the original target time.     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_tolerance``                    | Tolerance to use when evaluating whether to do a retry. | 0.02          |
-|                                        | The timestep suggested by the retry will be multiplied  |               |
-|                                        | by (1 + this factor) before comparing the actual        |               |
-|                                        | timestep to it. If set to some number slightly larger   |               |
-|                                        | than zero, then this prevents retries that are caused   |               |
-|                                        | by small numerical differences.                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``retry_neg_dens_factor``              | If we're doing retries, set the target threshold for    | 1.e-1         |
-|                                        | changes in density if a retry is triggered by a         |               |
-|                                        | negative density. If this is set to a negative number   |               |
-|                                        | then it will disable retries using this criterion.      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
 |                                        | current timestep by when trying again.                  |               |
@@ -325,7 +318,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -365,6 +358,9 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``T_guess``                            | initial guess for the temperature when inverting the    | 1.e8          |
 |                                        | EoS (e.g. when calling eos_input_re)                    |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``reactions_max_solve_level``          | maximum level to do an explicit burn on (above this, we | 100           |
+|                                        | interpolate the reactions source)                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
@@ -554,7 +550,7 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``show_center_of_mass``                | display center of mass diagnostics                      | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``job_name``                           | a string describing the simulation that will be copied  | ""            |
+| ``job_name``                           | a string describing the simulation that will be copied  | "Castro"      |
 |                                        | into the plotfile's ``job_info`` file                   |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``output_at_completion``               | write a final plotfile and checkpoint upon completion   | 1             |
