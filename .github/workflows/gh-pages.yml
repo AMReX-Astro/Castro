@@ -43,11 +43,13 @@ jobs:
 
       - name: Set branch environment variable
         if: ${{ endsWith(github.ref, 'master') }}
-          env:
-            GITHUB_BRANCH: 'master'
+        env:
+          GITHUB_BRANCH: 'master'
+          
+      - name: Set branch environment variable
         if: ${{ endsWith(github.ref, 'development') }}
-          env:
-            GITHUB_BRANCH: 'development'
+        env:
+          GITHUB_BRANCH: 'development'
 
       - name: Build docs 
         run: ./deploy_docs_action.sh
