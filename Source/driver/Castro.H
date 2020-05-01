@@ -603,6 +603,14 @@ public:
 ///
     amrex::Real estdt_cfl(const amrex::Real time);
 
+
+#ifdef MHD
+///
+/// Compute the CFL timestep
+///
+    amrex::Real estdt_mhd();
+#endif
+
 ///
 /// Diffusion-limited timestep
 ///
