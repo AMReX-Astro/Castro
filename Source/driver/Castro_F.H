@@ -160,9 +160,24 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
+    (const int* lo, const int* hi,
+#ifdef MHD
+     BL_FORT_FAB_ARG_3D(bx),
+     BL_FORT_FAB_ARG_3D(by),
+     BL_FORT_FAB_ARG_3D(bz),
+#endif
+     BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
 
+#ifdef MHD
+  void ca_estdt_mhd
+    (const int* lo, const int* hi,
+     const BL_FORT_FAB_ARG_3D(state),
+     const BL_FORT_FAB_ARG_3D(Bx),
+     const BL_FORT_FAB_ARG_3D(By),
+     const BL_FORT_FAB_ARG_3D(Bz),
+     const amrex::Real* dx, amrex::Real* dt);
+#endif
 
 #ifdef RADIATION
   void ca_estdt_rad
@@ -247,9 +262,16 @@ extern "C"
 #include <Castro_gravity_F.H>
 #endif
 
+
 /* rotation */
 #ifdef ROTATION
 #include <Castro_rotation_F.H>
+#endif
+
+
+/* mhd */
+#ifdef MHD
+#include <Castro_mhd_F.H>
 #endif
 
 
@@ -307,6 +329,16 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 #endif
+#endif
+
+#ifdef MHD
+BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& nx, BL_FORT_FAB_ARG_3D(magx),
+   const int& ny, BL_FORT_FAB_ARG_3D(magy),
+   const int& nz, BL_FORT_FAB_ARG_3D(magz),
+   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
 

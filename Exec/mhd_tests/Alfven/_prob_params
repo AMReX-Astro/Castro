@@ -1,0 +1,30 @@
+p_0                real            1.0_rt        y
+
+u_x                real            0.0_rt        y
+
+u_y                real            0.0_rt        y
+
+u_z                real            0.0_rt        y
+
+rho_0              real            1.0_rt        y
+
+rhoe_0             real            1.0_rt        y
+
+# fraction of the domain where we put the interface
+frac               real            0.5_rt        y
+
+T_0                real            1.0_rt        y
+
+# coordinate direction normal to the interface
+idir               integer         1             y
+
+# internal storage
+split              real            0.0_rt        n       3
+
+B_x                real            0.0_rt        y
+
+B_y                real            0.0_rt        y
+
+B_z                real            0.0_rt        y         
+
+ 

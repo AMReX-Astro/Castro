@@ -986,24 +986,165 @@ extern "C"
   {
 
     auto const dat = datfab.array();
-      auto const der = derfab.array();
+    auto const der = derfab.array();
 
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-      {
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
 
-        // density
-        der(i,j,k,0) = dat(i,j,k,0);
+      // density
+      der(i,j,k,0) = dat(i,j,k,0);
 
-        // temperature
-        der(i,j,k,1) = dat(i,j,k,1);
+      // temperature
+      der(i,j,k,1) = dat(i,j,k,1);
 
-        // (rho X)_1 = X_1
-        der(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,0);
+      // (rho X)_1 = X_1
+      der(i,j,k,2) = dat(i,j,k,2) / dat(i,j,k,0);
 
-      });
+    });
 
-    }
+  }
+
+#ifdef MHD
+  void ca_dermagcenx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i+1,j,k,0));
+    });
+
+  }
+
+  void ca_dermagceny(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i,j+1,k,0));
+    });
+
+  }
+
+  void ca_dermagcenz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      der(i,j,k,0) = 0.5_rt * (dat(i,j,k,0) + dat(i,j,k+1,0));
+    });
+
+  }
+
+  void ca_derex(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& geomdata,
+                Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    // compute E_x = -(V X B)_x
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    // here dat contains (mag_y,mag_z,density,ymom,zmom)
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      Real vy = dat(i,j,k,3) / dat(i,j,k,2);
+      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
+      der(i,j,k,0) = -vy*dat(i,j,k,1) + vz*dat(i,j,k,0);
+
+    });
+
+  }
+
+  void ca_derey(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& geomdata,
+                Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    // compute E_y = -(V X B)_y
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    // here dat contains (mag_x,mag_z,density,xmom,zmom)
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
+      Real vz = dat(i,j,k,4) / dat(i,j,k,2);
+      der(i,j,k,0) = -vz*dat(i,j,k,0) + vx*dat(i,j,k,1);
+
+    });
+
+  }
+
+  void ca_derez(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& geomdata,
+                Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    // compute E_z = -(V X B)_z
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    // here dat contains (mag_x,mag_y,density,xmom,ymom)
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      Real vx = dat(i,j,k,3) / dat(i,j,k,2);
+      Real vy = dat(i,j,k,4) / dat(i,j,k,2);
+      der(i,j,k,0) = -vx*dat(i,j,k,1) + vy*dat(i,j,k,0);
+
+    });
+
+  }
+
+  void ca_derdivb(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& geomdata,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    auto dx = geomdata.CellSizeArray();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    {
+      Real dBx = dat(i+1,j,k,0) - dat(i,j,k,0);
+      Real dBy = dat(i,j+1,k,1) - dat(i,j,k,1);
+      Real dBz = dat(i,j,k+1,2) - dat(i,j,k,2);
+      der(i,j,k,0) = dBx/dx[0] + dBy/dx[1] + dBz/dx[2];
+    });
+  }
+
+#endif
+
 
 #ifdef __cplusplus
 }
