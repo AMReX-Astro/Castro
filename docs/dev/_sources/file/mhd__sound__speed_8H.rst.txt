@@ -1,0 +1,4 @@
+File mhd_sound_speed.H
+======================
+
+.. doxygenfile:: mhd_sound_speed.H
