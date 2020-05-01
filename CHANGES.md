@@ -1,3 +1,8 @@
+# 20.06
+
+   * castro.use_post_step_regrid now unconditionally regrids after
+     every timestep on every level. (#898)
+
 # 20.05
 
    * The parameter use_custom_knapsack_weights and its associated
