@@ -1,0 +1,46 @@
+span[id*='MathJax-Span']{
+   color: inherit;
+}
+
+span.eqno {
+   float: right;
+}
+
+
+code.docutils.literal.notranslate {
+   border: 0px;
+   background: inherit;
+   padding: 1px 1px;
+   font-size: 95%;
+}
+
+/* override table width restrictions */
+@media screen and (min-width: 767px) {
+
+   .wy-table-responsive table td {
+      /* !important prevents the common CSS stylesheets from overriding
+         this as on RTD they are loaded after this stylesheet */
+      white-space: normal !important;
+   }
+
+   .wy-table-responsive {
+      overflow: visible !important;
+   }
+}
+
+.wy-side-nav-search>div.branch{
+    font-weight:normal;
+    color:rgba(255,255,255,0.3);
+    font-size:100%;
+    display:inline-block;
+    padding:4px 6px;
+    margin-top:.8em;
+    margin-bottom:.5em;
+}
+
+.wy-side-nav-search>div.branch>a{
+    /* margin-top:-.4045em;
+    margin-bottom:.809em; */
+    color:#fcfcfc;
+    font-weight:bold;
+}

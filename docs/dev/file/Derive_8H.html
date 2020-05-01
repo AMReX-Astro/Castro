@@ -1,0 +1,475 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Derive.H &mdash; Castro 20.05
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File MGutils.H" href="MGutils_8H.html" />
+    <link rel="prev" title="File Castro_util.H" href="Castro__util_8H.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.05
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Derive_8H.html">master</a> | <a href="../file/Derive_8H.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
+        
+      <li>File Derive.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Derive_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-derive-h">
+<h1>File Derive.H<a class="headerlink" href="#file-derive-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv410ca_derpresRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_derpresRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_derpresRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derpres__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a09960675406919cce428fc6e9ffa498b"></span>void <code class="sig-name descname">ca_derpres</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_derpresRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv411ca_dereint1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv311ca_dereint1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv211ca_dereint1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dereint1__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a7cb75bacf843d8068ff937e09ee34265"></span>void <code class="sig-name descname">ca_dereint1</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_dereint1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv411ca_dereint2RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv311ca_dereint2RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv211ca_dereint2RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dereint2__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a33d4ccb86ae572599400b0ee375a94bb"></span>void <code class="sig-name descname">ca_dereint2</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_dereint2RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_derlogdenRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_derlogdenRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_derlogdenRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derlogden__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a0afd8f4593682af99f15c49f92ed3393"></span>void <code class="sig-name descname">ca_derlogden</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_derlogdenRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_derupluscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_derupluscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_derupluscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_deruplusc__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a591c2bcc79ed4eca610b68e077210a18"></span>void <code class="sig-name descname">ca_deruplusc</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_derupluscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_deruminuscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_deruminuscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_deruminuscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_deruminusc__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1aa64d4a06be9e296444edc4c01a6db884"></span>void <code class="sig-name descname">ca_deruminusc</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_deruminuscRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv416ca_dersoundspeedRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv316ca_dersoundspeedRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv216ca_dersoundspeedRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dersoundspeed__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a7acc1024ac438ba10ad644a1129fcbc8"></span>void <code class="sig-name descname">ca_dersoundspeed</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_dersoundspeedRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_dergamma1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_dergamma1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_dergamma1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dergamma1__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a0ad885fcc95ebda7031071011dbdfba1"></span>void <code class="sig-name descname">ca_dergamma1</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_dergamma1RKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv416ca_dermachnumberRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv316ca_dermachnumberRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv216ca_dermachnumberRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermachnumber__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a728c1481a4ae3d2361df43757c018499"></span>void <code class="sig-name descname">ca_dermachnumber</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416ca_dermachnumberRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_derentropyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_derentropyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_derentropyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derentropy__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a862bf6a9d6871fd39c3bddbb22ac65f5"></span>void <code class="sig-name descname">ca_derentropy</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_derentropyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_dercondRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_dercondRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_dercondRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dercond__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a73261c635a815a8b76bbca18a7e37e39"></span>void <code class="sig-name descname">ca_dercond</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_dercondRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv415ca_derdiffcoeffRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv315ca_derdiffcoeffRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv215ca_derdiffcoeffRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derdiffcoeff__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1add01ad105cd782663c338a22ac51da44"></span>void <code class="sig-name descname">ca_derdiffcoeff</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415ca_derdiffcoeffRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv414ca_derdifftermRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv314ca_derdifftermRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv214ca_derdifftermRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derdiffterm__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a825a3f58703940a0b49b125810404997"></span>void <code class="sig-name descname">ca_derdiffterm</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414ca_derdifftermRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv419ca_derenuctimescaleRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv319ca_derenuctimescaleRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv219ca_derenuctimescaleRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derenuctimescale__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a33c1e887438f9b4857f75ef27eb16cc3"></span>void <code class="sig-name descname">ca_derenuctimescale</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419ca_derenuctimescaleRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv49ca_dervelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv39ca_dervelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv29ca_dervelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dervel__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1ad771690793eaa6b40a7a6f83295e44e1"></span>void <code class="sig-name descname">ca_dervel</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49ca_dervelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_dermagvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_dermagvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_dermagvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagvel__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a4251db8c73fd52f3f5152c66308e1f69"></span>void <code class="sig-name descname">ca_dermagvel</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_dermagvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_dermaggravRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_dermaggravRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_dermaggravRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermaggrav__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1aabb1cd6975cd209478eeceea0729fa37"></span>void <code class="sig-name descname">ca_dermaggrav</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_dermaggravRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv415ca_derradialvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv315ca_derradialvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv215ca_derradialvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derradialvel__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a79b0e352ee1c49bebad9f8e81db41a34"></span>void <code class="sig-name descname">ca_derradialvel</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415ca_derradialvelRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_dermagmomRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_dermagmomRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_dermagmomRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagmom__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a2a0c96e3412498dff9598085d37bc7c9"></span>void <code class="sig-name descname">ca_dermagmom</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_dermagmomRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_derangmomxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_derangmomxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_derangmomxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derangmomx__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a63470c93bf667b888242f72b7f125860"></span>void <code class="sig-name descname">ca_derangmomx</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int <em>ncomp</em>, <em class="property">const</em> amrex::FArrayBox &amp;<em>datafab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bcrec</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_derangmomxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_derangmomyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_derangmomyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_derangmomyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derangmomy__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a07b3e69dcfdae55611145fef0b73ce93"></span>void <code class="sig-name descname">ca_derangmomy</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int <em>ncomp</em>, <em class="property">const</em> amrex::FArrayBox &amp;<em>datafab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bcrec</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_derangmomyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_derangmomzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_derangmomzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_derangmomzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derangmomz__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1af151410f2c440f8496ab32d078babee3"></span>void <code class="sig-name descname">ca_derangmomz</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int <em>ncomp</em>, <em class="property">const</em> amrex::FArrayBox &amp;<em>datafab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bcrec</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_derangmomzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv412ca_derkinengRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv312ca_derkinengRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv212ca_derkinengRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derkineng__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a589857dec162ecdc42e5610dfc28ff00"></span>void <code class="sig-name descname">ca_derkineng</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int <em>ncomp</em>, <em class="property">const</em> amrex::FArrayBox &amp;<em>datafab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real <em>time</em>, <em class="property">const</em> int *<em>bcrec</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412ca_derkinengRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_dernullF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi">
+<span id="_CPPv310ca_dernullF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi"></span><span id="_CPPv210ca_dernullF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi"></span><span class="target" id="Derive_8H_1aeba626c9b1fd48d39fee7e6b4c4bcbdb"></span>void <code class="sig-name descname">ca_dernull</code><span class="sig-paren">(</span>BL_FORT_FAB_ARG_3D<span class="sig-paren">(</span>der<span class="sig-paren">)</span>, <em class="property">const</em> int *<em>nvar</em>, <em class="property">const</em> BL_FORT_FAB_ARG_3Ddata, <em class="property">const</em> int *<em>ncomp</em>, <em class="property">const</em> int *<em>lo</em>, <em class="property">const</em> int *<em>hi</em>, <em class="property">const</em> int *<em>domain_lo</em>, <em class="property">const</em> int *<em>domain_hi</em>, <em class="property">const</em> amrex::Real *<em>delta</em>, <em class="property">const</em> amrex::Real *<em>xlo</em>, <em class="property">const</em> amrex::Real *<em>time</em>, <em class="property">const</em> amrex::Real *<em>dt</em>, <em class="property">const</em> int *<em>bcrec</em>, <em class="property">const</em> int *<em>level</em>, <em class="property">const</em> int *<em>grid_no</em>, <span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_dernullF18BL_FORT_FAB_ARG_3D3derEPKiK22BL_FORT_FAB_ARG_3DdataPKiPKiPKiPKiPKiPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKN5amrex4RealEPKiPKiPKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_derspecRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_derspecRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_derspecRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derspec__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a398c41b9e566f9c420f4917a4ed67fa8"></span>void <code class="sig-name descname">ca_derspec</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_derspecRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_derabarRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_derabarRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_derabarRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derabar__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a2e7e382dd406f6e227177a2d3e048b39"></span>void <code class="sig-name descname">ca_derabar</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_derabarRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_dermagvortRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_dermagvortRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_dermagvortRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagvort__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a3b3a7e189211ccb63cf1a28f268005d9"></span>void <code class="sig-name descname">ca_dermagvort</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_dermagvortRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_derdivuRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_derdivuRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_derdivuRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derdivu__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1aea2976c275fcaa8a0d01a5db6f1754ae"></span>void <code class="sig-name descname">ca_derdivu</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_derdivuRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv411ca_derstateRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv311ca_derstateRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv211ca_derstateRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derstate__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a1ad5b84cf9e0e459cb90d9f23e0ffc60"></span>void <code class="sig-name descname">ca_derstate</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411ca_derstateRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_dermagcenxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_dermagcenxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_dermagcenxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagcenx__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a39d008e142fe39cb6e7ab23eff1c9115"></span>void <code class="sig-name descname">ca_dermagcenx</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_dermagcenxRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_dermagcenyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_dermagcenyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_dermagcenyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagceny__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1aa25b9e39824f5d030acce6fc3c09f8a7"></span>void <code class="sig-name descname">ca_dermagceny</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_dermagcenyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413ca_dermagcenzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv313ca_dermagcenzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv213ca_dermagcenzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_dermagcenz__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a37b007747d3e9dd6729c891ed166b46d"></span>void <code class="sig-name descname">ca_dermagcenz</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413ca_dermagcenzRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv48ca_derexRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv38ca_derexRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv28ca_derexRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derex__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1a267b0e9a6a93042f70ce2d097f7b9622"></span>void <code class="sig-name descname">ca_derex</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48ca_derexRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv48ca_dereyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv38ca_dereyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv28ca_dereyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derey__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1abbc956c2517133ea2ac95683686fbdba"></span>void <code class="sig-name descname">ca_derey</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48ca_dereyRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv48ca_derezRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv38ca_derezRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv28ca_derezRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derez__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1adf8200ef6c04dbb0bb7bcc92e1bd5d82"></span>void <code class="sig-name descname">ca_derez</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48ca_derezRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410ca_derdivbRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii">
+<span id="_CPPv310ca_derdivbRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="_CPPv210ca_derdivbRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii"></span><span id="ca_derdivb__amrex::BoxCR.amrex::FArrayBoxR.i.i.amrex::FArrayBoxCR.amrex::GeometryCR.amrex::Real.iCP.i"></span><span class="target" id="Derive_8H_1ab3d515c895f2a519f43f397f8427cae7"></span>void <code class="sig-name descname">ca_derdivb</code><span class="sig-paren">(</span><em class="property">const</em> amrex::Box &amp;<em>bx</em>, amrex::FArrayBox &amp;<em>derfab</em>, int <em>dcomp</em>, int, <em class="property">const</em> amrex::FArrayBox &amp;<em>datfab</em>, <em class="property">const</em> amrex::Geometry &amp;<em>geomdata</em>, amrex::Real, <em class="property">const</em> int*, int<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410ca_derdivbRKN5amrex3BoxERN5amrex9FArrayBoxEiiRKN5amrex9FArrayBoxERKN5amrex8GeometryEN5amrex4RealEPKii" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="MGutils_8H.html" class="btn btn-neutral float-right" title="File MGutils.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Castro__util_8H.html" class="btn btn-neutral float-left" title="File Castro_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

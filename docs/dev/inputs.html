@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Input Files &mdash; Castro 20.05
+ documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Runtime Parameters" href="rp_intro.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                20.05
+
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../inputs.html">master</a> | <a href="./inputs.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Input Files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-probin-files">Working with probin Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-inputs-options">Common inputs Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#problem-geometry">Problem Geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#domain-boundary-conditions">Domain Boundary Conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resolution">Resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-parameters">Other parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Input Files</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/inputs.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="input-files">
+<h1>Input Files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h1>
+<p>The Castro executable uses two inputs files at runtime to set and
+alter the behavior of the algorithm and initial conditions:</p>
+<blockquote>
+<div><ul>
+<li><p>The main inputs file, typically named <code class="docutils literal notranslate"><span class="pre">inputs</span></code>:</p>
+<p>This is used to set AMReX parameters and the control flow in the
+physics solvers in Castro.  Each parameter here has a namespace
+(like <code class="docutils literal notranslate"><span class="pre">amr.optionname</span></code> or <code class="docutils literal notranslate"><span class="pre">castro.optionname</span></code>).  Parameters
+set here are read using the AMReX <code class="docutils literal notranslate"><span class="pre">ParmParse</span></code> class
+infrastructure.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Because the inputs file is handled by the C++ portion
+of the code, any quantities you specify in scientific notation,
+must take the form <code class="docutils literal notranslate"><span class="pre">1.e5</span></code> and not <code class="docutils literal notranslate"><span class="pre">1.d5</span></code>—the <code class="docutils literal notranslate"><span class="pre">d</span></code>
+specifier is not recognized.</p>
+</div>
+</li>
+<li><p>The problem / external inputs file, typically named <code class="docutils literal notranslate"><span class="pre">probin</span></code>:</p>
+<p>This is used by the Fortran code that initializes the problem
+setup.  It is read at problem initialization (via a Fortran
+namelist) and the problem-specific quantities are stored in a
+Fortran module <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in the problem’s
+<code class="docutils literal notranslate"><span class="pre">probdata.f90</span></code> file.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">probin</span></code> file also has an <code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> namelist that is
+used to specify runtime parameters for the microphysics
+(EOS, reaction network, …)</p>
+</li>
+</ul>
+</div></blockquote>
+<p>Only the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file is specified on the commandline. The
+associated <code class="docutils literal notranslate"><span class="pre">probin</span></code> file is specified in the inputs file
+using the <code class="docutils literal notranslate"><span class="pre">amr.probin_file</span></code> parameter, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">probin_file</span> <span class="o">=</span> <span class="n">my_special_probin</span>
+</pre></div>
+</div>
+<p>for example, has the Fortran code read a file called <code class="docutils literal notranslate"><span class="pre">my_special_probin</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Additionally, note that in Castro, all quantities are in CGS units.</p>
+</div>
+<div class="section" id="working-with-probin-files">
+<h2>Working with probin Files<a class="headerlink" href="#working-with-probin-files" title="Permalink to this headline">¶</a></h2>
+<p>There are three several Fortran namelists that can be defined in the
+<code class="docutils literal notranslate"><span class="pre">probin</span></code> file:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> is the main namelist read by the problem’s
+<code class="docutils literal notranslate"><span class="pre">probinit</span></code> subroutine in the <code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;extern</span></code> is used to set different microphysics options</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;tagging</span></code> is used to get the parameters (defined in
+<code class="docutils literal notranslate"><span class="pre">tagging_module</span></code>) that affect how we tag for refinement.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> is used to set the parameters for the sponge source
+term that is used to damp velocities.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="common-inputs-options">
+<h2>Common inputs Options<a class="headerlink" href="#common-inputs-options" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="problem-geometry">
+<h3>Problem Geometry<a class="headerlink" href="#problem-geometry" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">geometry</span></code> namespace is used by BoxLib to define the
+computational domain. The main parameters here are:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.prob_lo</span></code>: physical location of low corner of the
+domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; must be set)</p>
+<p>Note: a number is needed for each dimension in the problem.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.prob_hi</span></code>: physical location of high corner of the
+domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; must be set)</p>
+<p>Note: a number is needed for each dimension in the problem.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.coord_sys</span></code>: coordinate system, 0 = Cartesian,
+1 = <span class="math notranslate nohighlight">\(r\)</span>-<span class="math notranslate nohighlight">\(z\)</span> (2-d only), 2 = spherical (1-d only) (must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry.is_periodic</span></code>: is the domain periodic in this direction?
+0 if false, 1 if true (default: <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">0</span> <span class="pre">0</span></code>)</p>
+<p>Note: an integer is needed for each dimension in the problem.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.center</span></code>: physical location of problem center on the
+domain (type: <code class="docutils literal notranslate"><span class="pre">Real</span></code>; default: <code class="docutils literal notranslate"><span class="pre">0.0</span> <span class="pre">0.0</span> <span class="pre">0.0</span></code>). The problem
+center is used for gravity, rotation, and some other quantities.
+This is not necessarily the geometric center of the domain—often
+you should choose it to coincide with the center of mass of your
+system. See § <a class="reference internal" href="software.html#soft-prob-params"><span class="std std-ref">prob_params_module</span></a> for more details.</p></li>
+</ul>
+<blockquote>
+<div><p>Note: a number is needed for each dimension in the problem.</p>
+</div></blockquote>
+</div></blockquote>
+<p>As an example, the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">geometry</span><span class="o">.</span><span class="n">prob_lo</span> <span class="o">=</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">prob_hi</span> <span class="o">=</span> <span class="mf">1.e8</span> <span class="mf">2.e8</span> <span class="mf">2.e8</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">coord_sys</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">geometry</span><span class="o">.</span><span class="n">is_periodic</span> <span class="o">=</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">center</span> <span class="o">=</span> <span class="mf">5.e7</span> <span class="mf">1.e8</span> <span class="mf">1.e8</span>
+</pre></div>
+</div>
+<p>This defines the domain to run from <span class="math notranslate nohighlight">\((0,0,0)\)</span> at the lower left to
+<span class="math notranslate nohighlight">\((10^8,\, 2\times 10^8,\, 2\times 10^8)\)</span> at the upper right in physical
+space, specifies a Cartesian geometry, and makes the domain periodic
+in the <span class="math notranslate nohighlight">\(y\)</span>-direction only. The problem center is set to be halfway in
+between the lower left and upper right corners.</p>
+</div>
+<div class="section" id="domain-boundary-conditions">
+<h3>Domain Boundary Conditions<a class="headerlink" href="#domain-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<p>Boundary conditions are specified using integer keys that are interpreted
+by BoxLib. The runtime parameters that we use are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code>: boundary type of each low face (must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code>: boundary type of each high face (must be set)</p></li>
+</ul>
+</div></blockquote>
+<p>The valid boundary types are:</p>
+<table class="docutils align-center" id="id1">
+<caption><span class="caption-number">Table 2 </span><span class="caption-text">boundary condition types</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 59%" />
+<col style="width: 41%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>0: Interior / Periodic</p></td>
+<td><p>3: Symmetry</p></td>
+</tr>
+<tr class="row-even"><td><p>1: Inflow</p></td>
+<td><p>4: Slip Wall</p></td>
+</tr>
+<tr class="row-odd"><td><p>2: Outflow</p></td>
+<td><p>5: No Slip Wall</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> must be consistent
+with <code class="docutils literal notranslate"><span class="pre">geometry.is_periodic</span></code>—if the domain is periodic in a
+particular direction then the low and high bc’s must be set to 0
+for that direction.</p>
+</div>
+<p>As an example, the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">lo_bc</span> <span class="o">=</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">0</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">hi_bc</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">0</span>
+
+<span class="n">geometry</span><span class="o">.</span><span class="n">is_periodic</span> <span class="o">=</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>This defines a problem with inflow (1) in the low-<span class="math notranslate nohighlight">\(x\)</span> direction,
+outflow (2) in the high-<span class="math notranslate nohighlight">\(x\)</span> direction, slip wall (4) on
+the low and high <span class="math notranslate nohighlight">\(y\)</span>-faces, and periodic in the <span class="math notranslate nohighlight">\(z\)</span>-direction.
+See § <a class="reference internal" href="software.html#soft-phys-bcs"><span class="std std-ref">Physical Boundaries</span></a>.</p>
+</div>
+<div class="section" id="resolution">
+<h3>Resolution<a class="headerlink" href="#resolution" title="Permalink to this headline">¶</a></h3>
+<p>The grid resolution is specified by defining the resolution at the
+coarsest level (level 0) and the number of refinement levels and
+factor of refinement between levels. The relevant parameters are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.n_cell</span></code>: number of cells in each direction at the coarsest
+level (integer <span class="math notranslate nohighlight">\(&gt; 0\)</span>; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>: number of levels of refinement above the
+coarsest level (integer <span class="math notranslate nohighlight">\(\geq 0\)</span>; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code>: ratio of coarse to fine grid spacing
+between subsequent levels (2 or 4; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code>: how often (in terms of number of steps) to
+regrid (integer; must be set)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span></code>: should we regrid immediately after
+restarting? (0 or 1; default: 0)</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if <code class="docutils literal notranslate"><span class="pre">amr.max_level</span> <span class="pre">=</span> <span class="pre">0</span></code> then you do not need to set
+<code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code> or <code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code>.</p>
+</div>
+<p>Some examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">n_cell</span> <span class="o">=</span> <span class="mi">32</span> <span class="mi">64</span> <span class="mi">64</span>
+</pre></div>
+</div>
+<p>would define the domain to have 32 cells in the <span class="math notranslate nohighlight">\(x\)</span>-direction, 64 cells
+in the <span class="math notranslate nohighlight">\(y\)</span>-direction, and 64 cells in the <span class="math notranslate nohighlight">\(z\)</span>-direction <em>at the
+coarsest level</em>. (If this line appears in a 2D inputs file then the
+final number will be ignored.)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">max_level</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>would allow a maximum of 2 refined levels in addition to the coarse
+level. Note that these additional levels will only be created only if
+the tagging criteria are such that cells are flagged as needing
+refinement. The number of refined levels in a calculation must be
+<span class="math notranslate nohighlight">\(\leq\)</span> <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>, but can change in time and need not
+always be equal to <code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">ref_ratio</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">4</span>
+</pre></div>
+</div>
+<p>would set factor of 2 refinement between levels 0 and 1, and factor of 4
+refinement between levels 1 and 2. Note that you must have at least
+<code class="docutils literal notranslate"><span class="pre">amr.max_level</span></code> values of <code class="docutils literal notranslate"><span class="pre">amr.ref_ratio</span></code> (Additional values
+may appear in that line and they will be ignored).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">regrid_int</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>tells the code to regrid every 2 steps. Thus in this example, new
+level 1 grids will be created every 2 level-0 time steps, and new
+level 2 grids will be created every 2 level-1 time steps. If
+<code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span></code> <span class="math notranslate nohighlight">\(&lt;\)</span> 0 for any level, then regridding starting at that
+level will be disabled. If <code class="docutils literal notranslate"><span class="pre">amr.regrid_int</span> <span class="pre">=</span> <span class="pre">-1</span></code> only, then we
+never regrid for any level. Note that this is not compatible with
+<code class="docutils literal notranslate"><span class="pre">amr.regrid_on_restart</span> <span class="pre">=</span> <span class="pre">1</span></code>.</p>
+</div>
+<div class="section" id="other-parameters">
+<h3>Other parameters<a class="headerlink" href="#other-parameters" title="Permalink to this headline">¶</a></h3>
+<p>There are a large number of solver-specific runtime parameters. We describe these
+together with the discussion of the physics solvers in later chapters.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="rp_intro.html" class="btn btn-neutral float-right" title="Runtime Parameters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>
