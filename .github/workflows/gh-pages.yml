@@ -41,17 +41,16 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install -r ./requirements.txt
 
-      - name: Set branch environment variable
+      - name: Build docs
         if: ${{ endsWith(github.ref, 'master') }}
         env:
           GITHUB_BRANCH: 'master'
-          
-      - name: Set branch environment variable
+        run: ./deploy_docs_action.sh
+
+      - name: Build docs 
         if: ${{ endsWith(github.ref, 'development') }}
         env:
           GITHUB_BRANCH: 'development'
-
-      - name: Build docs 
         run: ./deploy_docs_action.sh
 
       - name: Deploy
