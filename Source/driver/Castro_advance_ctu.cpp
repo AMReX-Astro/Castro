@@ -568,7 +568,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
                     // Do the ODE integration to capture the reaction source terms.
 
-                    bool burn_success = react_state(subcycle_time, dt_subcycle);
+                    bool burn_success = react_state(subcycle_time, dt_subcycle, num_sub_iters);
 
                     if (!burn_success) {
                         status.success = false;

@@ -238,7 +238,7 @@ contains
                                            asrc,as_lo,as_hi, &
                                            reactions,r_lo,r_hi, &
                                            mask,m_lo,m_hi, &
-                                           time,dt_react,sdc_iter, &
+                                           time,dt_react,sdc_iter, num_sdc_iters, &
                                            failed) bind(C, name="ca_react_state_simplified_sdc")
 
     use network           , only : nspec, naux
@@ -270,7 +270,7 @@ contains
     real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ), value :: time, dt_react
-    integer , intent(in   ), value :: sdc_iter
+    integer , intent(in   ), value :: sdc_iter, num_sdc_iters
     real(rt) , intent(inout) :: failed
 
     integer  :: i, j, k, n
@@ -296,6 +296,9 @@ contains
              do_burn = .true.
              burn_state_in % success = .true.
              burn_state_out % success = .true.
+
+             burn_state_in % sdc_iter = sdc_iter
+             burn_state_in % num_sdc_iters = num_sdc_iters
 
              ! Don't burn on zones that we are intentionally masking out.
 

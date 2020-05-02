@@ -267,7 +267,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 // Simplified SDC version
 
 bool
-Castro::react_state(Real time, Real dt)
+Castro::react_state(Real time, Real dt, const int num_sdc_iters)
 {
     BL_PROFILE("Castro::react_state()");
 
@@ -325,7 +325,7 @@ Castro::react_state(Real time, Real dt)
                                       BL_TO_FORTRAN_ANYD(a),
                                       BL_TO_FORTRAN_ANYD(r),
                                       BL_TO_FORTRAN_ANYD(m),
-                                      time, dt, sdc_iteration,
+                                      time, dt, sdc_iteration, num_sdc_iters,
                                       AMREX_MFITER_REDUCE_SUM(&burn_failed));
 
     }
