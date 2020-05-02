@@ -17,6 +17,9 @@ module meth_params_module
 
   ! number of ghost cells for the hyperbolic solver
   integer, parameter     :: NHYP    = 4
+#ifdef MHD
+  integer, parameter     :: NMAG    = 3
+#endif
 
 #ifdef RADIATION
   integer,  allocatable, save :: fspace_type

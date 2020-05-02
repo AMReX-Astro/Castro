@@ -148,7 +148,16 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
            Source/scf Util/model_parser Util/conservative_interpolate
 endif
 
+
 # add / define any special physics we need
+
+ifeq ($(USE_MHD), TRUE)
+  Bdirs += Source/mhd
+  DEFINES += -DMHD
+else
+  Bdirs += Source/hydro
+endif
+
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY

@@ -8,7 +8,6 @@ module timestep_module
 
 contains
 
-
 #ifdef REACTIONS
 
   subroutine ca_estdt_burning(lo, hi, &

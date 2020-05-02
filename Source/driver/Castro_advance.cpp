@@ -54,6 +54,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
+#ifndef MHD     
 #ifndef AMREX_USE_CUDA
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
@@ -65,6 +66,7 @@ Castro::advance (Real time,
 
 #endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
+#endif //MHD    
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
@@ -116,7 +118,6 @@ Castro::advance (Real time,
 }
 
 
-
 void
 Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
@@ -163,6 +164,19 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Sborder, which does have ghost zones.
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+#ifdef MHD
+      MultiFab& Bx_old = get_old_data(Mag_Type_x);
+      MultiFab& By_old = get_old_data(Mag_Type_y);
+      MultiFab& Bz_old = get_old_data(Mag_Type_z);
+
+      Bx_old_tmp.define(Bx_old.boxArray(), Bx_old.DistributionMap(), 1, NUM_GROW);
+      By_old_tmp.define(By_old.boxArray(), By_old.DistributionMap(), 1, NUM_GROW);
+      Bz_old_tmp.define(Bz_old.boxArray(), Bz_old.DistributionMap(), 1, NUM_GROW);
+
+      FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
+      FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
+      FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
+#endif      
       // for the CTU unsplit method, we always start with the old
       // state note: a clean_state has already been done on the old
       // state in initialize_advance so we don't need to do another
@@ -301,7 +315,14 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(S_old, time, S_old.nGrow());
+    clean_state(
+#ifdef MHD
+                 get_old_data(Mag_Type_x),
+                 get_old_data(Mag_Type_y),
+                 get_old_data(Mag_Type_z),
+#endif      
+                  S_old, time, S_old.nGrow());
+
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.

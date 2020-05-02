@@ -6,7 +6,10 @@ using namespace amrex;
 void
 Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
+
+#ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
+#endif
 
   const Real strt_time = ParallelDescriptor::second();
 
@@ -36,6 +39,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
       });
 #endif
     }
+
 }
 
 
@@ -43,9 +47,57 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 void
 Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
+
+#ifndef MHD
   if (!(time_integration_method == SpectralDeferredCorrections)) return;
 
   amrex::Abort("you should not get here!");
+#else
+
+  const Real strt_time = ParallelDescriptor::second();
+ 
+  MultiFab thermo_src(grids, dmap, source.nComp(), 0);
+
+  thermo_src.setVal(0.0);
+
+  //Substract off the old-time value first
+  Real old_time = time - dt;
+
+  fill_thermo_source(old_time, dt, state_old, state_old, thermo_src);
+
+  Real mult_factor = -0.5;
+
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+
+  //Time center with the new data
+  
+  thermo_src.setVal(0.0);
+
+  mult_factor = 0.5;
+  
+  fill_thermo_source(time, dt, state_old, state_new, thermo_src);
+  
+  MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
+
+  if (verbose > 1)
+  {
+      const int IOProc   = ParallelDescriptor::IOProcessorNumber();
+      Real      run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+      Lazy::QueueReduction( [=] () mutable {
+#endif
+      ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+
+      if (ParallelDescriptor::IOProcessor())
+          std::cout << "Castro::construct_new_thermo_source() time = " << run_time << "\n" << "\n";
+#ifdef BL_LAZY
+      });
+#endif
+    }
+
+
+#endif //MHD
 }
 
 

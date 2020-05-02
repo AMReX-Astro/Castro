@@ -29,3 +29,8 @@ center_y               real            0.0_rt         y
 center_z               real            0.0_rt         y
 
 nsub                   integer         5              y
+
+B_x                    real            0.0e0_rt       y
+B_y                    real            0.0e0_rt       y
+B_z                    real            0.0e0_rt       y
+
