@@ -221,10 +221,10 @@ Castro::just_the_mhd(Real time, Real dt)
           consup(lo, hi,
                  BL_TO_FORTRAN_ANYD(statein),
                  BL_TO_FORTRAN_ANYD(source_out),
-                 BL_TO_FORTRAN(bcc),
-                 BL_TO_FORTRAN(flxx),
-                 BL_TO_FORTRAN(flxy),
-                 BL_TO_FORTRAN(flxz),
+                 BL_TO_FORTRAN_ANYD(bcc),
+                 BL_TO_FORTRAN_ANYD(flxx),
+                 BL_TO_FORTRAN_ANYD(flxy),
+                 BL_TO_FORTRAN_ANYD(flxz),
                  dx, dt);
 
 
