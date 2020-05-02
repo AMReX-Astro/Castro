@@ -712,13 +712,14 @@ end subroutine check_for_mhd_cfl_violation
 ! ::: ========================== Conservative Update ===============================================================
 ! :::
 
-subroutine consup(uin, uin_lo, uin_hi, &
+subroutine consup(lo, hi, &
+                  uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
-                  bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
-                  fluxx,flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3, &
-                  fluxy,flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3, &
-                  fluxz,flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3, &
-                  lo,hi,dx,dy,dz,dt)
+                  bcc, bcc_lo, bcc_hi, &
+                  fluxx, flux1_lo, flux1_hi, &
+                  fluxy, flux2_lo, flux2_hi, &
+                  fluxz, flux3_lo, flux3_hi, &
+                  dx, dt)
 
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module, only : UMX,UMY,UMZ, NVAR, URHO, UEDEN, UEINT, UFS
@@ -726,23 +727,23 @@ subroutine consup(uin, uin_lo, uin_hi, &
 
   implicit none
 
-  integer,  intent(in)  :: uin_lo(3), uin_hi(3)
-  integer,  intent(in)  :: uout_lo(3), uout_hi(3)
-  integer,  intent(in)  :: bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
-  integer,  intent(in)  :: flux1_l1,flux1_l2,flux1_l3,flux1_h1,flux1_h2,flux1_h3
-  integer,  intent(in)  :: flux2_l1,flux2_l2,flux2_l3,flux2_h1,flux2_h2,flux2_h3
-  integer,  intent(in)  :: flux3_l1,flux3_l2,flux3_l3,flux3_h1,flux3_h2,flux3_h3
+  integer, intent(in)  :: uin_lo(3), uin_hi(3)
+  integer, intent(in)  :: uout_lo(3), uout_hi(3)
+  integer, intent(in)  :: bcc_lo(3), bcc_hi(3)
+  integer, intent(in)  :: flux1_lo(3), flux1_hi(3)
+  integer, intent(in)  :: flux2_lo(3), flux2_hi(3)
+  integer, intent(in)  :: flux3_lo(3), flux3_hi(3)
   integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-  real(rt), intent(inout)  :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
-  real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
-  real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
-  real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
-  real(rt), intent(in)  :: dx,dy,dz,dt
+  real(rt), intent(inout)  :: bcc(bcc_lo(1):bcc_hi(1), bcc_lo(2):bcc_hi(2), bcc_lo(3):bcc_hi(3), 3)
+  real(rt), intent(in)  :: fluxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR+3)
+  real(rt), intent(in)  :: fluxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR+3)
+  real(rt), intent(in)  :: fluxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR+3)
+  real(rt), intent(in)  :: dx(3), dt
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
 
-  integer                               :: i, j, k
+  integer :: i, j, k
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
