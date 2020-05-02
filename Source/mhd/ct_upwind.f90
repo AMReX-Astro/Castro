@@ -77,7 +77,8 @@ subroutine corner_transport(q, q_lo, q_hi, &
         real(rt)  :: flxz2D(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3), NVAR+3, 2) !Flux2d for all directions 2 perpendicular directions
 
         real(rt)  :: q2D(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-        real(rt)  :: dx(3), dt
+        real(rt)  :: dx(3)
+        real(rt), intent(in), value :: dt
 
         integer  :: i, work_lo(3), work_hi(3)
         integer  :: UMAGX, UMAGY, UMAGZ

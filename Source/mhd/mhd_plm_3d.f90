@@ -60,7 +60,7 @@ contains
     real(rt), intent(out) :: Im(Ip_lo(1):Ip_hi(1), Ip_lo(2):Ip_hi(2), Ip_lo(3):Ip_hi(3), NQ, 3)
 
     real(rt), intent(in   ) :: dx(3)
-    real(rt) :: dt
+    real(rt), intent(in), value :: dt
 
     real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ_p(7), summ_m(7)
     real(rt) :: smhd(7)

@@ -341,15 +341,15 @@ end subroutine ca_advance_mhd
 ! :::
 
 subroutine ctoprim_mhd(lo, hi, &
-                       uin, uin_lo, uin_hi, &
-                       bcc, bcc_lo, bcc_hi, &
-                       bx, bxin_lo, bxin_hi, &
-                       by, byin_lo, byin_hi, &
-                       bz, bzin_lo, bzin_hi, &
-                       q, q_lo, q_hi, &
-                       cx, cx_lo, cx_hi, &
-                       cy, cy_lo, cy_hi, &
-                       cz, cz_lo, cz_hi) bind(C, name="ctoprim_mhd")
+     uin, uin_lo, uin_hi, &
+     bcc, bcc_lo, bcc_hi, &
+     bx, bxin_lo, bxin_hi, &
+     by, byin_lo, byin_hi, &
+     bz, bzin_lo, bzin_hi, &
+     q, q_lo, q_hi, &
+     cx, cx_lo, cx_hi, &
+     cy, cy_lo, cy_hi, &
+     cz, cz_lo, cz_hi) bind(C, name="ctoprim_mhd")
 
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec, naux
@@ -360,12 +360,12 @@ subroutine ctoprim_mhd(lo, hi, &
   use amrex_constants_module
   use amrex_error_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
-                                 UEDEN, UEINT, UFA, UFS, UTEMP, &
-                                 NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
-                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
-                                 QMAGX,  QMAGY, QMAGZ, &
-                                 nadv, small_dens, small_pres, &
-                                 npassive, upass_map, qpass_map
+       UEDEN, UEINT, UFA, UFS, UTEMP, &
+       NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
+       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QMAGX,  QMAGY, QMAGZ, &
+       nadv, small_dens, small_pres, &
+       npassive, upass_map, qpass_map
 
   implicit none
 
@@ -453,14 +453,14 @@ subroutine ctoprim_mhd(lo, hi, &
            ! should we use the dual energy formalism like in the regular hydro?
 
            if (q(i,j,k,QREINT) .lt. ZERO) then
-                 !
-                 ! A critical region since we usually can't write from threads.
-                 !
-                 print *,'   '
-                 print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
-                 print *,'>>> ... e is negative ',q(i,j,k,QREINT)
-                 print *,'    '
-                 call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim")
+              !
+              ! A critical region since we usually can't write from threads.
+              !
+              print *,'   '
+              print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
+              print *,'>>> ... e is negative ',q(i,j,k,QREINT)
+              print *,'    '
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim")
            end if
 
            ! Define the magneto-accoustic speed from the EOS
@@ -513,9 +513,9 @@ subroutine ctoprim_mhd(lo, hi, &
 end subroutine ctoprim_mhd
 
 subroutine srctoprim_mhd(lo, hi, &
-                         q, q_lo, q_hi, &
-                         src, src_lo, src_hi, &
-                         srcQ, srcq_lo, srcq_hi) bind(C, name="srctoprim_mhd")
+     q, q_lo, q_hi, &
+     src, src_lo, src_hi, &
+     srcQ, srcq_lo, srcq_hi) bind(C, name="srctoprim_mhd")
 
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec, naux
@@ -526,12 +526,12 @@ subroutine srctoprim_mhd(lo, hi, &
   use amrex_constants_module
   use amrex_error_module
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
-                                 UEDEN, UEINT, UFA, UFS, UTEMP, &
-                                 NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
-                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
-                                 QMAGX,  QMAGY, QMAGZ, &
-                                 nadv, small_dens, small_pres, &
-                                 npassive, upass_map, qpass_map
+       UEDEN, UEINT, UFA, UFS, UTEMP, &
+       NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
+       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QMAGX,  QMAGY, QMAGZ, &
+       nadv, small_dens, small_pres, &
+       npassive, upass_map, qpass_map
 
   implicit none
 
@@ -579,20 +579,20 @@ subroutine srctoprim_mhd(lo, hi, &
            srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoInv
            srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
            srcQ(i,j,k,QPRES ) = dpde*(srcQ(i,j,k,QREINT) - &
-                                  q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoInv + &
-                                  dpdr * srcQ(i,j,k,QRHO)
+                q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoInv + &
+                dpdr * srcQ(i,j,k,QRHO)
 
-  ! add ifdef PRIM_SPECIES_HAVE_SOURCES
+           ! add ifdef PRIM_SPECIES_HAVE_SOURCES
 
-  !            if (UFS .gt. 0) then
-  !               do ispec = 1,nspec+naux
-  !                  srcQ(i,j,k,QFS+ispec-1) = src(i,j,k,UFS+ispec-1)*rhoInv
-  !               enddo
-  !            end if ! UFS > 0
+           !            if (UFS .gt. 0) then
+           !               do ispec = 1,nspec+naux
+           !                  srcQ(i,j,k,QFS+ispec-1) = src(i,j,k,UFS+ispec-1)*rhoInv
+           !               enddo
+           !            end if ! UFS > 0
 
-  !            do iadv = 1,nadv
-  !               srcQ(i,j,k,QFA+iadv-1) = src(i,j,k,UFA+iadv-1)*rhoInv
-  !            enddo
+           !            do iadv = 1,nadv
+           !               srcQ(i,j,k,QFA+iadv-1) = src(i,j,k,UFA+iadv-1)*rhoInv
+           !            enddo
 
         enddo
      enddo
@@ -602,18 +602,18 @@ end subroutine srctoprim_mhd
 
 
 subroutine check_for_mhd_cfl_violation(lo, hi, &
-                                       q, q_lo, q_hi, &
-                                       cx, cx_lo, cx_hi, &
-                                       cy, cy_lo, cy_hi, &
-                                       cz, cz_lo, cz_hi, &
-                                       courno, dx, dt) bind(C, name="check_for_mhd_cfl_violation")
+     q, q_lo, q_hi, &
+     cx, cx_lo, cx_hi, &
+     cy, cy_lo, cy_hi, &
+     cz, cz_lo, cz_hi, &
+     courno, dx, dt) bind(C, name="check_for_mhd_cfl_violation")
 
   use amrex_fort_module, only : rt => amrex_real
   use amrex_constants_module
   use amrex_error_module
   use meth_params_module, only : NQ, QRHO, QU, QV, QW, QC, NQAUX,&
-                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
-                                 QMAGX,  QMAGY, QMAGZ
+       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QMAGX,  QMAGY, QMAGZ
 
   implicit none
 
@@ -630,6 +630,7 @@ subroutine check_for_mhd_cfl_violation(lo, hi, &
 
   real(rt), intent(in) :: dx(AMREX_SPACEDIM)
   real(rt), intent(out) :: courno
+  real(rt), intent(in), value :: dt
 
   integer :: i, j, k
 
@@ -740,7 +741,8 @@ subroutine consup(lo, hi, &
   real(rt), intent(in)  :: fluxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR+3)
-  real(rt), intent(in)  :: dx(3), dt
+  real(rt), intent(in)  :: dx(3)
+  real(rt), intent(in), value :: dt
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
 
   integer :: i, j, k
@@ -783,16 +785,17 @@ end subroutine consup
 ! ::: ========================== Magnetic Update ===============================================================
 ! :::
 
-subroutine magup(bxin, bxin_lo, bxin_hi, &
+subroutine magup(lo, hi, &
+                 bxin, bxin_lo, bxin_hi, &
                  byin, byin_lo, byin_hi, &
                  bzin, bzin_lo, bzin_hi, &
                  bxout, bxout_lo, bxout_hi, &
                  byout, byout_lo, byout_hi, &
                  bzout, bzout_lo, bzout_hi, &
-                 Ex,ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
-                 Ey,ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
-                 Ez,ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
-                 lo, hi, dx, dy, dz, dt)
+                 Ex, Ex_lo, Ex_hi, &
+                 Ey, Ey_lo, Ey_hi, &
+                 Ez, Ez_lo, Ez_hi, &
+                 dx, dt)
 
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module!, only : QVAR, NVAR, UEINT
@@ -805,18 +808,18 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   integer, intent(in)   :: bxout_lo(3), bxout_hi(3)
   integer, intent(in)   :: byout_lo(3), byout_hi(3)
   integer, intent(in)   :: bzout_lo(3), bzout_hi(3)
-  integer, intent(in)   ::  ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3
-  integer, intent(in)   ::  ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3
-  integer, intent(in)   ::  ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3
+  integer, intent(in)   :: Ex_lo(3), Ex_hi(3)
+  integer, intent(in)   :: Ey_lo(3), Ey_hi(3)
+  integer, intent(in)   :: Ez_lo(3), Ez_hi(3)
   integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(in)  :: bxin(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
   real(rt), intent(in)  :: byin(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
   real(rt), intent(in)  :: bzin(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
 
-  real(rt), intent(in) ::  Ex(ex_l1:ex_h1,ex_l2:ex_h2, ex_l3:ex_h3)
-  real(rt), intent(in) ::  Ey(ey_l1:ey_h1,ey_l2:ey_h2, ey_l3:ey_h3)
-  real(rt), intent(in) ::  Ez(ez_l1:ez_h1,ez_l2:ez_h2, ez_l3:ez_h3)
+  real(rt), intent(in) ::  Ex(Ex_lo(1):Ex_hi(1), Ex_lo(2):Ex_hi(2), Ex_lo(3):Ex_hi(3))
+  real(rt), intent(in) ::  Ey(Ey_lo(1):Ey_hi(1), Ey_lo(2):Ey_hi(2), Ey_lo(3):Ey_hi(3))
+  real(rt), intent(in) ::  Ez(Ez_lo(1):Ez_hi(1), Ez_lo(2):Ez_hi(2), Ez_lo(3):Ez_hi(3))
 
   real(rt), intent(in)  :: dx, dy, dz, dt
 
