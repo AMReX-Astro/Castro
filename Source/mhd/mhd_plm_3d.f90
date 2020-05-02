@@ -20,15 +20,16 @@ contains
   ! This is called from within threaded loops in advance_mhd_tile so *no* OMP here ...
   !===========================================================================
 
-  subroutine plm(lo, hi, s,s_l1,s_l2,s_l3,s_h1,s_h2,s_h3,&
-                 flatn, & 
+  subroutine plm(lo, hi, &
+                 s, s_lo, s_hi, &
+                 flatn, f_lo, f_hi, &
                  bx, bxlo, bxhi, &
                  by, bylo, byhi, &
                  bz, bzlo, bzhi, &
-                 Ip,Im, ilo1,ilo2,ilo3,ihi1,ihi2,ihi3, &
-                 srcQ, srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3, &
-                 dx,dy,dz,dt)
-
+                 Ip, Ip_lo, Ip_hi, &
+                 Im, Im_lo, Im_hi, &
+                 srcQ, srcq_lo, srcq_hi, &
+                 dx, dt) bind(C, name="plm")
 
     use network, only: nspec
     use eos_module
@@ -36,25 +37,31 @@ contains
 
     implicit none
 
-    integer , intent(in   ) ::  s_l1, s_l2, s_l3, s_h1, s_h2, s_h3, lo(3), hi(3)
-    integer , intent(in   ) ::  ilo1,ilo2,ilo3,ihi1,ihi2,ihi3
-    integer , intent(in   ) ::  bxlo(3), bxhi(3)
-    integer , intent(in   ) ::  bylo(3), byhi(3)
-    integer , intent(in   ) ::  bzlo(3), bzhi(3)
-    integer , intent(in   ) ::  srcq_l1, srcq_l2, srcq_l3, srcq_h1, srcq_h2, srcq_h3
+    integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: f_lo(3), f_hi(3)
+    integer, intent(in) :: bxlo(3), bxhi(3)
+    integer, intent(in) :: bylo(3), byhi(3)
+    integer, intent(in) :: bzlo(3), bzhi(3)
+    integer, intent(in) :: Ip_lo(3), Ip_hi(3)
+    integer, intent(in) :: Im_lo(3), Im_hi(3)
+    integer, intent(in) :: srcq_lo(3), srcq_hi(3)
 
-    real(rt), intent(in   ) ::  s(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3,NQ) !Primitive Vars
-    real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))!Face Centered Magnetic Fields
+    real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NQ)
+
+   ! face-centered magnetic fields
+    real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))
     real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
     real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
-    real(rt), intent(in   ) ::  srcQ(srcq_l1:srcq_h1, srcq_l2:srcq_h2, srcq_l3:srcq_h3,NQSRC)
-    real(rt), intent(in   ) ::  flatn(s_l1:s_h1,s_l2:s_h2,s_l3:s_h3)
 
-    real(rt), intent(out) :: Ip(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,NQ,3)
-    real(rt), intent(out) :: Im(ilo1:ihi1,ilo2:ihi2,ilo3:ihi3,NQ,3)
+    real(rt), intent(in) :: srcQ(srcq_lo(1):srcq_h(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
+    real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
-    real(rt), intent(in   ) :: dx,dy,dz,dt
- 
+    real(rt), intent(out) :: Ip(Ip_lo(1):Ip_hi(1), Ip_lo(2):Ip_hi(2), Ip_lo(3):Ip_hi(3), NQ, 3)
+    real(rt), intent(out) :: Im(Ip_lo(1):Ip_hi(1), Ip_lo(2):Ip_hi(2), Ip_lo(3):Ip_hi(3), NQ, 3)
+
+    real(rt), intent(in   ) :: dx(3)
+    real(rt) :: dt
+
     real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ_p(7), summ_m(7)
     real(rt) :: smhd(7)
     real(rt) :: dt_over_a
@@ -73,7 +80,7 @@ contains
     Ip = 0.d0
     Im = 0.d0
 
-       
+
 
 
        !=========================== PLM =========================================
@@ -99,7 +106,7 @@ contains
              dQL(5) = s(i,j,k,QPRES)-s(i-1,j,k,QPRES)
              dQL(6) = s(i,j,k,QMAGY)-s(i-1,j,k,QMAGY)
              dQL(7) = s(i,j,k,QMAGZ)-s(i-1,j,k,QMAGZ)
-             
+
              dQR(1) = s(i+1,j,k,QRHO) - s(i,j,k,QRHO)
              dQR(2) = s(i+1,j,k,QU) - s(i,j,k,QU)
              dQR(3) = s(i+1,j,k,QV) - s(i,j,k,QV)
@@ -107,8 +114,8 @@ contains
              dQR(5) = s(i+1,j,k,QPRES)-s(i,j,k,QPRES)
              dQR(6) = s(i+1,j,k,QMAGY)-s(i,j,k,QMAGY)
              dQR(7) = s(i+1,j,k,QMAGZ)-s(i,j,k,QMAGZ)
-       
-            
+
+
              call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
              call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecx(reig,s(i,j,k,:))    !!right eigenvectors
@@ -138,20 +145,20 @@ contains
 
              Ip(i,j,k,QMAGX,1) = bx(i+1,j,k) !! Bx stuff
              Ip(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-            
+
              !species
-             do ii = QFS, QFS+nspec-1  
+             do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i-1,j,k,ii)
                dR = s(i+1,j,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
                Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
                Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
-             enddo 
+             enddo
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
              eos_state % p   = Ip(i,j,k,QPRES,1)
              eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
-             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,1)             
+             eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,1)
 
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
@@ -165,8 +172,8 @@ contains
 
              Im(i,j,k,QMAGX,1)  = bx(i,j,k) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
-             
-             
+
+
              eos_state % rho = Im(i,j,k,QRHO,1)
              eos_state % p   = Im(i,j,k,QPRES,1)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,1)
@@ -195,7 +202,7 @@ contains
              dQL(5) = s(i,j,k,QPRES)-s(i,j-1,k,QPRES)
              dQL(6) = s(i,j,k,QMAGX)-s(i,j-1,k,QMAGX)
              dQL(7) = s(i,j,k,QMAGZ)-s(i,j-1,k,QMAGZ)
-             
+
              dQR(1) = s(i,j+1,k,QRHO) - s(i,j,k,QRHO)
              dQR(2) = s(i,j+1,k,QU) - s(i,j,k,QU)
              dQR(3) = s(i,j+1,k,QV) - s(i,j,k,QV)
@@ -237,9 +244,9 @@ contains
              Ip(i,j,k,QMAGX,2)  = s(i,j,k,QMAGX) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
              Ip(i,j,k,QMAGY,2)  = by(i,j+1,k) !! By stuff
              Ip(i,j,k,QMAGZ,2)  = s(i,j,k,QMAGZ) + 0.5d0*summ_p(7) + 0.5d0*dt_over_a*smhd(7)
-             
+
              !species
-             do ii = QFS, QFS+nspec-1  
+             do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i,j-1,k,ii)
                dR = s(i,j+1,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
@@ -247,7 +254,7 @@ contains
                Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
              enddo
 
-             
+
              eos_state % rho = Ip(i,j,k,QRHO,2)
              eos_state % p   = Ip(i,j,k,QPRES,2)
              eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,2)
@@ -267,7 +274,7 @@ contains
              Im(i,j,k,QMAGZ,2) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
 
 
-             
+
              eos_state % rho = Im(i,j,k,QRHO,2)
              eos_state % p   = Im(i,j,k,QPRES,2)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1,2)
@@ -295,7 +302,7 @@ contains
              dQL(5) = s(i,j,k,QPRES)-s(i,j,k-1,QPRES)
              dQL(6) = s(i,j,k,QMAGX)-s(i,j,k-1,QMAGX)
              dQL(7) = s(i,j,k,QMAGY)-s(i,j,k-1,QMAGY)
-             
+
              dQR(1) = s(i,j,k+1,QRHO) - s(i,j,k,QRHO)
              dQR(2) = s(i,j,k+1,QU) - s(i,j,k,QU)
              dQR(3) = s(i,j,k+1,QV) - s(i,j,k,QV)
@@ -303,7 +310,7 @@ contains
              dQR(5) = s(i,j,k+1,QPRES)-s(i,j,k,QPRES)
              dQR(6) = s(i,j,k+1,QMAGX)-s(i,j,k,QMAGX)
              dQR(7) = s(i,j,k+1,QMAGY)-s(i,j,k,QMAGY)
-                       
+
              call evals(lam, s(i,j,k,:), 3) !!Z dir eigenvalues
              call lvecz(leig,s(i,j,k,:))    !!left eigenvectors
              call rvecz(reig,s(i,j,k,:))    !!right eigenvectors
@@ -334,14 +341,14 @@ contains
              Ip(i,j,k,QMAGX:QMAGY,3)    = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Ip(i,j,k,QMAGZ,3)          = bz(i,j,k+1) !! Bz stuff
              !species
-             do ii = QFS, QFS+nspec-1  
+             do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i,j,k-1,ii)
                dR = s(i,j,k+1,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR,flatn(i,j,k))
                Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
                Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
              enddo
-     
+
              eos_state % rho = Ip(i,j,k,QRHO,3)
              eos_state % p   = Ip(i,j,k,QPRES,3)
              eos_state % xn  = Ip(i,j,k,QFS:QFS+nspec-1,3)
@@ -358,8 +365,8 @@ contains
 
              Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3) = bz(i,j,k) !! Bz stuff
-             
-            
+
+
              eos_state % rho = Im(i,j,k,QRHO,3)
              eos_state % p   = Im(i,j,k,QPRES,3)
              eos_state % xn  = Im(i,j,k,QFS:QFS+nspec-1, 3)
@@ -376,7 +383,7 @@ contains
 
     !Need to add source terms, heating cooling, gravity, etc.
 
-     
+
   end subroutine plm
 
   !======================================== Minmod TVD slope limiter =========================================
@@ -425,7 +432,7 @@ contains
 
     real(rt), intent(in )    :: WR, WL
     real(rt), intent(out)    :: dW
-    
+
     dW = (WR+WL)/2.0d0
 
 
@@ -462,25 +469,25 @@ contains
     use amrex_fort_module, only : rt => amrex_real
 
     implicit none
-    real(rt), intent(in )    :: flat 
+    real(rt), intent(in )    :: flat
     real(rt), intent(in )    :: WR, WL
     real(rt), intent(out)    :: dW
 
     if  (mhd_plm_slope == 0)  then
        dW = 0.0
-    elseif (mhd_plm_slope == 1) then 
+    elseif (mhd_plm_slope == 1) then
        call vanleer(dW,WR,WL)
-    elseif (mhd_plm_slope == 2) then 
+    elseif (mhd_plm_slope == 2) then
        call centerdif(dW,WR,WL)
     elseif (mhd_plm_slope == 3) then
        call secondMC(dW,WR,WL)
-    endif  
+    endif
 
     if (use_flattening == 1) then
         dW = flat * dW
-    endif    
-             
-  end subroutine slope        
+    endif
+
+  end subroutine slope
 
   !=========================================== Evals =========================================================
 
@@ -502,7 +509,7 @@ contains
 
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES) 
+    eos_state % p   = Q(QPRES)
     eos_state % xn  = Q(QFS:QFS+nspec-1)
     eos_state % T   = Q(QTEMP)
 
@@ -639,7 +646,7 @@ contains
     real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
     type (eos_t) :: eos_state
- 
+
     !Speeeeeeeedssssss
     eos_state % rho = Q(QRHO)
     eos_state % p   = Q(QPRES)

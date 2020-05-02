@@ -1,9 +1,14 @@
+module mhd_advection_module
+
+  implicit none
+
+contains
 
 ! :::
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_advance_mhd(time, lo, hi, & 
+subroutine ca_advance_mhd(time, lo, hi, &
                           uin, uin_lo, uin_hi, &
                           uout, uout_lo, uout_hi, &
                           bxin, bxin_lo, bxin_hi, &
@@ -32,7 +37,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   use meth_params_module!, only : QVAR, NTHERM, NHYP, normalize_species, NVAR, URHO, UEDEN
   use prob_params_module, only : dg
   use amrex_constants_module
-  use network, only: nspec  
+  use network, only: nspec
 
   implicit none
 
@@ -40,7 +45,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
 
   integer , intent(in   ) :: lo(3),hi(3), print_fortran_warnings
   integer , intent(in   ) :: uin_lo(3), uin_hi(3)
-  integer , intent(in   ) :: uout_lo(3), uout_hi(3) 
+  integer , intent(in   ) :: uout_lo(3), uout_hi(3)
   integer , intent(in   ) :: bxin_lo(3), bxin_hi(3)
   integer , intent(in   ) :: byin_lo(3), byin_hi(3)
   integer , intent(in   ) :: bzin_lo(3), bzin_hi(3)
@@ -56,7 +61,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   integer , intent(in   ) :: ez_lo(3), ez_hi(3)
 
   real(rt), intent(in   ) :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-  real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR) 
+  real(rt), intent(inout) :: uout(uout_lo(1):uout_hi(1), uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3), NVAR)
 
   real(rt), intent(in   ) :: bxin(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
   real(rt), intent(in   ) :: byin(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
@@ -213,7 +218,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   flatn(:,:,:) = 0.0
   call mhd_flatten(lo-dg*ngf, hi+dg*ngf, &
                 q, flatn,lo-NHYP, hi+NHYP)
- 
+
   !Step Two, Interpolate Cell centered values to faces
   call plm(lo, hi, q, q_l1, q_l2, q_l3, q_h1, q_h2, q_h3,&
            flatn, &
@@ -229,7 +234,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
   flxz = 0.d0
 
   !Step Three, Corner Couple and find the correct fluxes + electric fields
-  call corner_transport(q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3, &  
+  call corner_transport(q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3, &
                         flxx,flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                         flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                         flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
@@ -246,7 +251,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
               flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
               flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, &
               lo ,hi ,dx ,dy ,dz ,dt)
- 
+
   bxout = 0.0
   byout = 0.0
   bzout = 0.0
@@ -263,7 +268,7 @@ subroutine ca_advance_mhd(time, lo, hi, &
              Eztemp, eztemp_l1,eztemp_l2,eztemp_l3,eztemp_h1,eztemp_h2,eztemp_h3, &
              lo, hi, dx, dy, dz, dt)
 
-  
+
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),URHO) = &
        flxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2), flux1_lo(3):flux1_hi(3),URHO)
   flux1(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),UMX) = &
@@ -335,27 +340,22 @@ end subroutine ca_advance_mhd
 ! ::: ------------------------------------------------------------------
 ! :::
 
-subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
-                   bcc, bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3, &
-                   bx, bxin_lo, bxin_hi, &
-                   by, byin_lo, byin_hi, &
-                   bz, bzin_lo, bzin_hi, &
-                   q,cx, cy, cz,csml,flatn,  q_l1,  q_l2,  q_l3,  q_h1,  q_h2,  q_h3, &
-                   src,  src_lo, src_hi, &
-                   srcQ,srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3, &
-                   courno,dx,dy,dz,dt,ngp,ngf)
-  !
-  !     Will give primitive variables on lo-ngp:hi+ngp, and flatn on lo-ngf:hi+ngf
-  !     if use_flattening=1.  Declared dimensions of q,c,csml,flatn are given
-  !     by DIMS(q).  This declared region is assumed to encompass lo-ngp:hi+ngp.
-  !     Also, uflaten call assumes ngp>=ngf+3 (ie, primitve data is used by the
-  !     routine that computes flatn).
-  !
+subroutine ctoprim_mhd(lo, hi, &
+                       uin, uin_lo, uin_hi, &
+                       bcc, bcc_lo, bcc_hi, &
+                       bx, bxin_lo, bxin_hi, &
+                       by, byin_lo, byin_hi, &
+                       bz, bzin_lo, bzin_hi, &
+                       q, q_lo, q_hi, &
+                       cx, cx_lo, cx_hi, &
+                       cy, cy_lo, cy_hi, &
+                       cz, cz_lo, cz_hi) bind(C, name="ctoprim_mhd")
+
   use amrex_fort_module, only : rt => amrex_real
   use network, only : nspec, naux
   !      use eos_params_module
   use eos_module
-  use eos_type_module, only : eos_t, eos_input_re 
+  use eos_type_module, only : eos_t, eos_input_re
   !      use flatten_module
   use amrex_constants_module
   use amrex_error_module
@@ -365,95 +365,67 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
                                  QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
                                  QMAGX,  QMAGY, QMAGZ, &
                                  nadv, small_dens, small_pres, &
-                                 npassive, upass_map, qpass_map, &
-                                 use_flattening
+                                 npassive, upass_map, qpass_map
 
   implicit none
 
-  real(rt), parameter:: small = 1.d-8
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: uin_lo(3), uin_hi(3)
+  integer, intent(in) :: bcc_lo(3), bcc_hi(3)
+  integer, intent(in) :: bxin_lo(3), bxin_hi(3)
+  integer, intent(in) :: byin_lo(3), byin_hi(3)
+  integer, intent(in) :: bzin_lo(3), bzin_hi(3)
+  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: cx_lo(3), cx_hi(3)
+  integer, intent(in) :: cy_lo(3), cy_hi(3)
+  integer, intent(in) :: cz_lo(3), cz_hi(3)
+  integer, intent(in) :: src_lo(3), src_hi(3)
+  integer, intent(in) :: srcq_lo(3), srcq_hi(3)
 
-  integer lo(3), hi(3)
-  integer  uin_lo(3), uin_hi(3)
-  integer bxin_lo(3), bxin_hi(3)
-  integer byin_lo(3), byin_hi(3)
-  integer bzin_lo(3), bzin_hi(3)
-  integer    q_l1,   q_l2,   q_l3,   q_h1,   q_h2,   q_h3
-  integer bcc_l1, bcc_l2, bcc_l3, bcc_h1, bcc_h2, bcc_h3
-  integer  src_lo(3),  src_hi(3)
-  integer srcq_l1,srcq_l2,srcq_l3,srcq_h1,srcq_h2,srcq_h3
+  real(rt), intent(in) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
+  real(rt), intent(in) :: bx(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
+  real(rt), intent(in) :: by(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
+  real(rt), intent(in) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
 
-  real(rt) :: uin(uin_lo(1):uin_hi(1),uin_lo(2):uin_hi(2),uin_lo(3):uin_hi(3),NVAR)
-  real(rt) :: bx(bxin_lo(1):bxin_hi(1), bxin_lo(2):bxin_hi(2), bxin_lo(3):bxin_hi(3))
-  real(rt) :: by(byin_lo(1):byin_hi(1), byin_lo(2):byin_hi(2), byin_lo(3):byin_hi(3))
-  real(rt) :: bz(bzin_lo(1):bzin_hi(1), bzin_lo(2):bzin_hi(2), bzin_lo(3):bzin_hi(3))
-  real(rt) :: bcc(bcc_l1:bcc_h1, bcc_l2:bcc_h2, bcc_l3:bcc_h3, 3)
+  real(rt), intent(inout) :: bcc(bcc_lo(1):bcc_hi(1), bcc_lo(2):bcc_hi(2), bcc_lo(3):bcc_hi(3), 3)
+  real(rt), intent(inout) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+  real(rt), intent(inout) :: cx(cx_lo(1):cx_hi(1), cx_lo(2):cx_hi(2), cx_lo(3):cx_hi(3))
+  real(rt), intent(inout) :: cy(cy_lo(1):cy_hi(1), cy_lo(2):cy_hi(2), cy_lo(3):cx_hi(3))
+  real(rt), intent(inout) :: cz(cz_lo(1):cz_hi(1), cz_lo(2):cz_hi(2), cz_lo(3):cx_hi(3))
+  real(rt), intent(in) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NSRC)
+  real(rt), intent(inout) :: srcQ(srcq_lo(1):srcq_hi(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
 
-  real(rt) :: q(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ) !Contains Cell Centered Mag Field
-  real(rt) :: cx(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: cy(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: cz(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: csml(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: flatn(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3)
-  real(rt) :: src( src_lo(1): src_hi(1), src_lo(2): src_hi(2), src_lo(3): src_hi(3),NSRC)
-  real(rt) :: srcQ(srcq_l1:srcq_h1,srcq_l2:srcq_h2,srcq_l3:srcq_h3,NQSRC)
-  real(rt) :: qaux(q_l1:q_h1, q_l2:q_h2, q_l3:q_h3, NQAUX)
-  real(rt) :: dx, dy, dz, dt, courno
-  real(rt) :: dpdr, dpde
+  integer :: i, j, k
+  integer :: n, nq2, ipassive
 
-  integer          :: i, j, k
-  integer          :: ngp, ngf, loq(3), hiq(3)
-  integer          :: n, nq2, ipassive
-  integer          :: iadv, ispec
-  real(rt) :: courx, coury, courz, courmx, courmy, courmz, cad
-  real(rt) :: a_half, a_dot, rhoInv
-  real(rt) :: dtdxaold, dtdyaold, dtdzaold, small_pres_over_dens
+  real(rt) :: cad
+  real(rt) :: rhoInv
 
-  !for the soundspeed
+  ! for the soundspeed
   real(rt) :: as, ca
 
   type(eos_t) :: eos_state
 
 
-  do i=1,3
-     loq(i) = lo(i)-ngp
-     hiq(i) = hi(i)+ngp
-  enddo
-
   !
   ! Make q (all but p), except put e in slot for rho.e, fix after eos call.
   ! The temperature is used as an initial guess for the eos call and will be overwritten.
   !
-  !Calculate Cell Centered Magnetic Field x
+  ! Also calculate cell-centered magnetic field
 
-  do k = loq(3),hiq(3)
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
+
            q(i,j,k,QMAGX) = 0.5d0*(bx(i+1,j,k) + bx(i,j,k))
            bcc(i,j,k, 1) = q(i,j,k,QMAGX)
-        end do
-     end do
-  end do
 
-  do k = loq(3),hiq(3)
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
            q(i,j,k,QMAGY) = 0.5d0*(by(i,j+1,k) + by(i,j,k))
            bcc(i,j,k,2) = q(i,j,k,QMAGY)
-        end do
-     end do
-  end do
 
-  do k = loq(3),hiq(3)
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
            q(i,j,k,QMAGZ) = 0.5d0*(bz(i,j,k+1) + bz(i,j,k))
            bcc(i,j,k,3) = q(i,j,k,QMAGZ)
-        end do
-     end do
-  end do
-  do k = loq(3),hiq(3)
-     do j = loq(2),hiq(2)
-        do i = loq(1),hiq(1)
+
            if (uin(i,j,k,URHO) .le. ZERO) then
               !
               ! A critical region since we usually can't write from threads.
@@ -474,32 +446,8 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            q(i,j,k,QFS:QFS+nspec-1) = uin(i,j,k,UFS:UFS+nspec-1)*rhoInv
            ! Convert "rho e" to "e"
            q(i,j,k,QREINT ) = uin(i,j,k,UEINT)*rhoInv
-        enddo
-     enddo
-  enddo
 
-  ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
-  do ipassive = 1, npassive
-     n = upass_map(ipassive)
-     nq2 = qpass_map(ipassive)
-     do k = loq(3),hiq(3)
-        do j = loq(2),hiq(2)
-           do i = loq(1),hiq(1)
-              q(i,j,k,nq2) = uin(i,j,k,n)/q(i,j,k,QRHO)
-           enddo
-        enddo
-     enddo
-  enddo
-
-
-  small_pres_over_dens = small_pres / small_dens
-
- 
-  qaux = 0.0
-  ! Get p, T, c, csml using q state
-  do k = loq(3), hiq(3)
-     do j = loq(2), hiq(2)
-        do i = loq(1), hiq(1)
+           ! Get p, T, c, using q state
 
            ! If necessary, reset the energy using small_temp ?
            ! should we use the dual energy formalism like in the regular hydro?
@@ -518,34 +466,22 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
            ! Define the magneto-accoustic speed from the EOS
            ! Note: QREINT is currently just "e"
 
-
            eos_state % rho = q(i,j,k,QRHO)
            eos_state % e   = q(i,j,k, QREINT)
            eos_state % T   = uin(i,j,k,UTEMP)
            eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
-           
+
            call eos(eos_input_re, eos_state)
 
-
-           ! Set csmal based on small_pres and small_dens 
-           ! TODO: this is a small sound speed -- we should do this how we do in hydro
-           csml(i,j,k) = max(small, small * eos_state % cs) !? 
-
-           q(i,j,k,QPRES) = eos_state % p 
+           q(i,j,k,QPRES) = eos_state % p
 
            q(i,j,k,QTEMP) = eos_state % T
 
-           !for the src 
-           qaux(i,j,k,QDPDR) = eos_state % dpdr_e
-           qaux(i,j,k,QDPDE) = eos_state % dpde
- 
- 
            ! Convert "e" back to "rho e"
            q(i,j,k,QREINT) = q(i,j,k,QREINT)*q(i,j,k,QRHO)
 
-             
            !sound speed for ideal mhd
-           as = eos_state % gam1 * q(i,j,k,QPRES)/q(i,j,k,QRHO) 
+           as = eos_state % gam1 * q(i,j,k,QPRES)/q(i,j,k,QRHO)
            ca = (q(i,j,k,QMAGX)**2 + q(i,j,k,QMAGY)**2 + q(i,j,k,QMAGZ)**2)/q(i,j,k,QRHO)
 
            cad = q(i,j,k,QMAGX)**2/q(i,j,k,QRHO)
@@ -556,37 +492,96 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
 
            cad = q(i,j,k,QMAGZ)**2/q(i,j,k,QRHO)
            call eos_soundspeed_mhd(cz(i,j,k), as, ca, cad)
-           
-          
-           ! Do we need gam1 and cs in q ? 
-            
-        end do
-     end do
-  end do
 
+        enddo
+     enddo
+  enddo
 
-  ! Make sure these are initialized to zero.
-  srcQ = ZERO
+  ! Load advected quatities, c, into q, assuming they arrived in uin as rho.c
+  do ipassive = 1, npassive
+     n = upass_map(ipassive)
+     nq2 = qpass_map(ipassive)
+     do k = lo(3), hi(3)
+        do j = lo(2), hi(2)
+           do i = lo(1), hi(1)
+              q(i,j,k,nq2) = uin(i,j,k,n)/q(i,j,k,QRHO)
+           enddo
+        enddo
+     enddo
+  enddo
+
+end subroutine ctoprim_mhd
+
+subroutine srctoprim_mhd(lo, hi, &
+                         q, q_lo, q_hi, &
+                         src, src_lo, src_hi, &
+                         srcQ, srcq_lo, srcq_hi) bind(C, name="srctoprim_mhd")
+
+  use amrex_fort_module, only : rt => amrex_real
+  use network, only : nspec, naux
+  !      use eos_params_module
+  use eos_module
+  use eos_type_module, only : eos_t, eos_input_re
+  !      use flatten_module
+  use amrex_constants_module
+  use amrex_error_module
+  use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
+                                 UEDEN, UEINT, UFA, UFS, UTEMP, &
+                                 NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
+                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+                                 QMAGX,  QMAGY, QMAGZ, &
+                                 nadv, small_dens, small_pres, &
+                                 npassive, upass_map, qpass_map
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: src_lo(3), src_hi(3)
+  integer, intent(in) :: srcq_lo(3), srcq_hi(3)
+
+  real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+  real(rt), intent(in) :: src(src_lo(1):src_hi(1), src_lo(2):src_hi(2), src_lo(3):src_hi(3), NSRC)
+  real(rt), intent(inout) :: srcQ(srcq_lo(1):srcq_hi(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
+
+  real(rt) :: dpdr, dpde
+
+  integer :: i, j, k
+  integer :: n, nq2, ipassive
+
+  real(rt) :: rhoInv
+
+  type(eos_t) :: eos_state
+
 
   ! NOTE - WE ASSUME HERE THAT src(i,j,k,URHO) = 0. --
   !        IF NOT THEN THE FORMULAE BELOW ARE INCOMPLETE.
 
   ! compute srcQ terms
-  do k = lo(3)-1, hi(3)+1
-     do j = lo(2)-1, hi(2)+1
-        do i = lo(1)-1, hi(1)+1
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
 
-             rhoInv = ONE/q(i,j,k,QRHO)
+           rhoInv = ONE/q(i,j,k,QRHO)
 
-             srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
-             srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoInv
-             srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoInv
-             srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoInv
-             srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
-             srcQ(i,j,k,QPRES ) = qaux(i,j,k,QDPDE)*(srcQ(i,j,k,QREINT) - &
+           eos_state % rho = q(i,j,k,QRHO)
+           eos_state % T   = uin(i,j,k,UTEMP)
+           eos_state % xn  = q(i,j,k,QFS:QFS+nspec-1)
+
+           call eos(eos_input_rt, eos_state)
+
+           dpdr = eos_state % dpdr_e
+           dpde = eos_state % dpde
+
+           srcQ(i,j,k,QRHO  ) = src(i,j,k,URHO)
+           srcQ(i,j,k,QU    ) = (src(i,j,k,UMX) - q(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoInv
+           srcQ(i,j,k,QV    ) = (src(i,j,k,UMY) - q(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoInv
+           srcQ(i,j,k,QW    ) = (src(i,j,k,UMZ) - q(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoInv
+           srcQ(i,j,k,QREINT) = src(i,j,k,UEINT)
+           srcQ(i,j,k,QPRES ) = dpde*(srcQ(i,j,k,QREINT) - &
                                   q(i,j,k,QREINT)*srcQ(i,j,k,QRHO)*rhoinv) * rhoInv + &
-                                  qaux(i,j,k,QDPDR) * srcQ(i,j,k,QRHO)
-  
+                                  dpdr * srcQ(i,j,k,QRHO)
+
   ! add ifdef PRIM_SPECIES_HAVE_SOURCES
 
   !            if (UFS .gt. 0) then
@@ -603,23 +598,60 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
      enddo
   enddo
 
+end subroutine srctoprim_mhd
+
+
+subroutine check_for_mhd_cfl_violation(lo, hi, &
+                                       q, q_lo, q_hi, &
+                                       cx, cx_lo, cx_hi, &
+                                       cy, cy_lo, cy_hi, &
+                                       cz, cz_lo, cz_hi, &
+                                       courno, dx, dt) bind(C, name="check_for_mhd_cfl_violation")
+
+  use amrex_fort_module, only : rt => amrex_real
+  use amrex_constants_module
+  use amrex_error_module
+  use meth_params_module, only : NQ, QRHO, QU, QV, QW, QC, NQAUX,&
+                                 QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+                                 QMAGX,  QMAGY, QMAGZ
+
+  implicit none
+
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: q_lo(3), q_hi(3)
+  integer, intent(in) :: cx_lo(3), cx_hi(3)
+  integer, intent(in) :: cy_lo(3), cy_hi(3)
+  integer, intent(in) :: cz_lo(3), cz_hi(3)
+
+  real(rt), intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+  real(rt), intent(in) :: cx(cx_lo(1):cx_hi(1), cx_lo(2):cx_hi(2), cx_lo(3):cx_hi(3))
+  real(rt), intent(in) :: cy(cy_lo(1):cy_hi(1), cy_lo(2):cy_hi(2), cy_lo(3):cx_hi(3))
+  real(rt), intent(in) :: cz(cz_lo(1):cz_hi(1), cz_lo(2):cz_hi(2), cz_lo(3):cx_hi(3))
+
+  real(rt), intent(in) :: dx(AMREX_SPACEDIM)
+  real(rt), intent(out) :: courno
+
+  integer :: i, j, k
+
+  real(rt) :: courx, coury, courz, courmx, courmy, courmz
+  real(rt) :: dtdx_old, dtdy_old, dtdz_old
+
   ! Compute running max of Courant number over grids
   courmx = courno
   courmy = courno
   courmz = courno
 
-  dtdxaold = dt / dx
-  dtdyaold = dt / dy
-  dtdzaold = dt / dz
+  dtdx = dt / dx
+  dtdy = dt / dy
+  dtdz = dt / dz
 
-  do k = lo(3),hi(3)
-     do j = lo(2),hi(2)
-        do i = lo(1),hi(1)
+  do k = lo(3), hi(3)
+     do j = lo(2), hi(2)
+        do i = lo(1), hi(1)
 
-           courx = ( cx(i,j,k)+abs(q(i,j,k,QU)) ) * dtdxaold
-           coury = ( cy(i,j,k)+abs(q(i,j,k,QV)) ) * dtdyaold
-           courz = ( cz(i,j,k)+abs(q(i,j,k,QW)) ) * dtdzaold
-
+           courx = ( cx(i,j,k)+abs(q(i,j,k,QU)) ) * dtdx
+           coury = ( cy(i,j,k)+abs(q(i,j,k,QV)) ) * dtdy
+           courz = ( cz(i,j,k)+abs(q(i,j,k,QW)) ) * dtdz
 
            courmx = max( courmx, courx )
            courmy = max( courmy, coury )
@@ -673,10 +705,12 @@ subroutine ctoprim(lo,hi,uin,uin_lo,uin_hi,&
   enddo
   courno = max( courmx, courmy, courmz )
 
-end subroutine ctoprim
+end subroutine check_for_mhd_cfl_violation
+
+
 ! :::
 ! ::: ========================== Conservative Update ===============================================================
-! ::: 
+! :::
 
 subroutine consup(uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
@@ -705,35 +739,35 @@ subroutine consup(uin, uin_lo, uin_hi, &
   real(rt), intent(in)  :: fluxx(flux1_l1:flux1_h1,flux1_l2:flux1_h2,flux1_l3:flux1_h3,NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_l1:flux2_h1,flux2_l2:flux2_h2,flux2_l3:flux2_h3,NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_l1:flux3_h1,flux3_l2:flux3_h2,flux3_l3:flux3_h3,NVAR+3)
-  real(rt), intent(in)  :: dx,dy,dz,dt 
+  real(rt), intent(in)  :: dx,dy,dz,dt
   real(rt), intent(out) :: uout(uout_lo(1):uout_hi(1),uout_lo(2):uout_hi(2), uout_lo(3):uout_hi(3),NVAR)
 
-  integer                               :: i, j, k      
-  
+  integer                               :: i, j, k
+
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
            uout(i,j,k,URHO) = uout(i,j,k,URHO) - 1.0/dx*(fluxx(i+1,j,k,URHO) - fluxx(i,j,k,URHO)) &
                 - 1.0/dy*(fluxy(i,j+1,k,URHO) - fluxy(i,j,k,URHO)) &
-                - 1.0/dz*(fluxz(i,j,k+1,URHO) - fluxz(i,j,k,URHO)) 
+                - 1.0/dz*(fluxz(i,j,k+1,URHO) - fluxz(i,j,k,URHO))
            uout(i,j,k,UMX) = uout(i,j,k,UMX) - 1.0/dx*(fluxx(i+1,j,k,UMX) - fluxx(i,j,k,UMX)) &
                 - 1.0/dy*(fluxy(i,j+1,k,UMX) - fluxy(i,j,k,UMX)) &
-                - 1.0/dz*(fluxz(i,j,k+1,UMX) - fluxz(i,j,k,UMX)) 
+                - 1.0/dz*(fluxz(i,j,k+1,UMX) - fluxz(i,j,k,UMX))
            uout(i,j,k,UMY) = uout(i,j,k,UMY) - 1.0/dx*(fluxx(i+1,j,k,UMY) - fluxx(i,j,k,UMY)) &
                 - 1.0/dy*(fluxy(i,j+1,k,UMY) - fluxy(i,j,k,UMY)) &
-                - 1.0/dz*(fluxz(i,j,k+1,UMY) - fluxz(i,j,k,UMY)) 
+                - 1.0/dz*(fluxz(i,j,k+1,UMY) - fluxz(i,j,k,UMY))
            uout(i,j,k,UMZ) = uout(i,j,k,UMZ) - 1.0/dx*(fluxx(i+1,j,k,UMZ) - fluxx(i,j,k,UMZ)) &
                 - 1.0/dy*(fluxy(i,j+1,k,UMZ) - fluxy(i,j,k,UMZ)) &
-                - 1.0/dz*(fluxz(i,j,k+1,UMZ) - fluxz(i,j,k,UMZ)) 
+                - 1.0/dz*(fluxz(i,j,k+1,UMZ) - fluxz(i,j,k,UMZ))
            uout(i,j,k,UEDEN) = uout(i,j,k,UEDEN) - 1.0/dx*(fluxx(i+1,j,k,UEDEN) - fluxx(i,j,k,UEDEN)) &
                 - 1.0/dy*(fluxy(i,j+1,k,UEDEN) - fluxy(i,j,k,UEDEN)) &
                 - 1.0/dz*(fluxz(i,j,k+1,UEDEN) - fluxz(i,j,k,UEDEN))
            uout(i,j,k,UEINT) = uout(i,j,k,UEINT) - 1.0/dx*(fluxx(i+1,j,k,UEINT) - fluxx(i,j,k,UEINT)) &
                 - 1.0/dy*(fluxy(i,j+1,k,UEINT) - fluxy(i,j,k,UEINT)) &
-                - 1.0/dz*(fluxz(i,j,k+1,UEINT) - fluxz(i,j,k,UEINT))   
+                - 1.0/dz*(fluxz(i,j,k+1,UEINT) - fluxz(i,j,k,UEINT))
            uout(i,j,k,UFS:UFS+nspec-1) = uout(i,j,k,UFS:UFS+nspec-1) - 1.0/dx*(fluxx(i+1,j,k,UFS:UFS+nspec-1) - &
            fluxx(i,j,k,UFS:UFS+nspec-1)) - 1.0/dy*(fluxy(i,j+1,k,UFS:UFS+nspec-1) - fluxy(i,j,k,UFS:UFS+nspec-1)) &
-                - 1.0/dz*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1)) 
+                - 1.0/dz*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1))
 
            bcc(i,j,k,:) = bcc(i,j,k,:) - dt/dx*(fluxx(i+1, j, k, NVAR+1:NVAR+3)- fluxx(i,j,k, NVAR+1:NVAR+3)) &
                                        - dt/dy*(fluxy(i, j+1, k, NVAR+1:NVAR+3)- fluxy(i,j,k, NVAR+1:NVAR+3)) &
@@ -746,7 +780,7 @@ end subroutine consup
 
 ! :::
 ! ::: ========================== Magnetic Update ===============================================================
-! ::: 
+! :::
 
 subroutine magup(bxin, bxin_lo, bxin_hi, &
                  byin, byin_lo, byin_hi, &
@@ -821,5 +855,3 @@ subroutine magup(bxin, bxin_lo, bxin_hi, &
   enddo
 
  end subroutine magup
-
-
