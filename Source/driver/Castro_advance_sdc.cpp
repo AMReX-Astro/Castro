@@ -20,6 +20,7 @@
 using std::string;
 using namespace amrex;
 
+#ifndef MHD
 #ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance_sdc (Real time,
@@ -368,4 +369,5 @@ Castro::do_advance_sdc (Real time,
   return dt;
 }
 
+#endif
 #endif

@@ -78,6 +78,11 @@ enum StateType { State_Type = 0,
 #ifdef REACTIONS
                  Reactions_Type,
 #endif
+#ifdef MHD
+               Mag_Type_x,
+               Mag_Type_y,
+               Mag_Type_z,
+#endif
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
                  Simplified_SDC_React_Type
@@ -571,11 +576,17 @@ public:
 ///
     void check_for_nan(amrex::MultiFab& state, int check_ghost=0);
 
+
 #include <Castro_sources.H>
 
 
 #ifdef GRAVITY
 #include <Castro_gravity.H>
+#endif
+
+
+#ifdef MHD
+#include <Castro_mhd.H>
 #endif
 
 
@@ -825,15 +836,19 @@ public:
                                int ncycle);
 #endif
 
-
 ///
 /// Reset the internal energy
 ///
 /// @param State    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
-    void reset_internal_energy (amrex::MultiFab& State, int ng);
-
+    void reset_internal_energy (
+#ifdef MHD
+                                amrex::MultiFab& Bx,
+                                amrex::MultiFab& By,
+                                amrex::MultiFab& Bz,
+#endif
+                                amrex::MultiFab& State, int ng);
 
 
 ///
@@ -842,7 +857,14 @@ public:
 /// @param bx       Box to update
 /// @param u        Current state (Fab)
 ///
-    void reset_internal_energy (const amrex::Box& bx, amrex::Array4<Real> const u);
+    void reset_internal_energy (const amrex::Box& bx,
+#ifdef MHD
+                                amrex::Array4<amrex::Real> const Bx,
+                                amrex::Array4<amrex::Real> const By,
+                                amrex::Array4<amrex::Real> const Bz,
+#endif
+                                amrex::Array4<amrex::Real> const u);
+
 
 
 
@@ -853,7 +875,13 @@ public:
 /// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void computeTemp(amrex::MultiFab& state, amrex::Real time, int ng);
+    void computeTemp (
+#ifdef MHD
+                      amrex::MultiFab& Bx,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
+#endif
+                      amrex::MultiFab& state, amrex::Real time, int ng);
 
 
 ///
@@ -945,7 +973,6 @@ public:
 ///
     amrex::Real get_point_mass ();
 #endif
-
 
 
 ///
@@ -1043,7 +1070,11 @@ public:
 ///
 /// @param S  State
 ///
-    void enforce_consistent_e (amrex::MultiFab& S);
+    void enforce_consistent_e (
+#ifdef MHD
+                               amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
+#endif
+                               amrex::MultiFab& S);
 
 ///
 /// This routine sets the density in ``state`` to be larger than the density floor.
@@ -1062,7 +1093,11 @@ public:
 /// @param time     current time
 /// @param ng       number of ghost cells
 ///
-    void clean_state (amrex::MultiFab& state, amrex::Real time, int ng);
+    void clean_state (
+#ifdef MHD
+                      amrex::MultiFab& Bx, amrex::MultiFab& By, amrex::MultiFab& Bz,
+#endif
+                      amrex::MultiFab& state, amrex::Real time, int ng);
 
 ///
 /// Average new state from ``level+1`` down to ``level``
@@ -1191,6 +1226,12 @@ protected:
 /// A state array with ghost zones.
 ///
     amrex::MultiFab Sborder;
+
+#ifdef MHD
+   amrex::MultiFab Bx_old_tmp;
+   amrex::MultiFab By_old_tmp;
+   amrex::MultiFab Bz_old_tmp;
+#endif
 
 #ifdef RADIATION
     amrex::MultiFab Erborder;
@@ -1452,7 +1493,6 @@ protected:
 ///
     int sub_iteration;
     int sub_ncycle;
-    bool do_subcycle;
     amrex::Real dt_subcycle;
     amrex::Real dt_advance;
 

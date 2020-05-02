@@ -31,15 +31,13 @@
 /
 
 &extern
-!  jacobian = 2
-!  centered_diff_jac = T
-!   rtol_enuc = 1.e-8
-   call_eos_in_rhs = T
-   do_constant_volume_burn = T
 
-   rtol_spec = 1.e-10
+   rtol_spec = 1.e-8
    rtol_enuc = 1.e-8
    rtol_temp = 1.e-8
    use_tables = T
-   jacobian = 2
+   jacobian = 1
+
+   retry_burn = F
+   abort_on_failure = F
 /

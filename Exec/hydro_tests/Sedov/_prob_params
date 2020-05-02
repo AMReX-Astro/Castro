@@ -19,3 +19,8 @@ nsub                   integer              4                            y
 
 e_exp                  real                 0.0_rt
 
+
+B_x                    real                 0.0_rt                       y
+B_y                    real                 0.0_rt                       y
+B_z                    real                 0.0_rt                       y
+
