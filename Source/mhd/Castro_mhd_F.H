@@ -52,7 +52,8 @@ extern "C"
      const amrex::Real dx[], const amrex::Real dt);
 
   void corner_transport
-    (const BL_FORT_FAB_ARG_3D(q),
+    (const int lo[], const int hi[],
+     const BL_FORT_FAB_ARG_3D(q),
      const BL_FORT_FAB_ARG_3D(qm),
      const BL_FORT_FAB_ARG_3D(qp),
      BL_FORT_FAB_ARG_3D(flxx),

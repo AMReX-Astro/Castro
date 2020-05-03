@@ -206,7 +206,8 @@ Castro::just_the_mhd(Real time, Real dt)
             flxz_arr(i,j,k,n) = 0.0_rt;
           });
 
-          corner_transport(BL_TO_FORTRAN_ANYD(q),
+          corner_transport(lo, hi,
+                           BL_TO_FORTRAN_ANYD(q),
                            BL_TO_FORTRAN_ANYD(qm),
                            BL_TO_FORTRAN_ANYD(qp),
                            BL_TO_FORTRAN_ANYD(flxx),
