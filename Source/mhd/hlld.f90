@@ -5,8 +5,11 @@ module hlld_solver
 
 contains
 
-subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
-                flx,flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3,dir)
+subroutine hlld(work_lo, work_hi, &
+                qm, qm_lo, qm_hi, &
+                qp, qp_lo, qp_hi, &
+                flx, flx_lo, flx_hi, &
+                dir)
 
   !Riemann solve:
   !Main assumption, the normal velocity/Mag field is constant in the Riemann fan, and is sM/Bn respectively. 
@@ -18,14 +21,15 @@ subroutine hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
    use eos_type_module, only: eos_t, eos_input_rp
    use network, only : nspec
 
-   integer, intent(in)   :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
+   integer, intent(in)   :: qm_lo(3), qm_hi(3)
+   integer, intent(in)   :: qp_lo(3), qp_hi(3)
    integer, intent(in)   :: work_lo(3), work_hi(3)
-   integer, intent(in)   :: flx_l1,flx_l2,flx_l3,flx_h1,flx_h2,flx_h3
+   integer, intent(in)   :: flx_lo(3), flx_hi(3)
    integer, intent(in)   :: dir
 
-   real(rt), intent(in)  :: qm(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
-   real(rt), intent(in)  :: qp(q_l1:q_h1,q_l2:q_h2,q_l3:q_h3,NQ,3)
-   real(rt), intent(out) :: flx(flx_l1:flx_h1,flx_l2:flx_h2,flx_l3:flx_h3,NVAR+3)
+   real(rt), intent(in)  :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,3)
+   real(rt), intent(in)  :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,3)
+   real(rt), intent(out) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR+3)
 
    real(rt)       :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
    real(rt)       :: caR, canR, asL, asR, ptL, ptR, eL, eR, eintL, eintR
