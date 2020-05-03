@@ -2,6 +2,7 @@ module mhd_advection_module
 
   implicit none
 
+contains
 
 ! :::
 ! ::: ------------------------------------------------------------------

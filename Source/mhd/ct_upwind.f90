@@ -119,7 +119,7 @@ subroutine corner_transport(lo, hi, &
         ![lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
         work_lo = (/ lo(1)-2, lo(2)-3, lo(3)-3 /)   
         work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /) 
-        call hlld(work_lo, workk_hi, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
+        call hlld(work_lo, work_hi, qm, qm_lo, qm_hi, qp, qp_lo, qp_hi, &
                   flxx1D(:,:,:,:), flxx_lo, flxx_hi, 1)
 
         !y-dir
@@ -511,7 +511,6 @@ subroutine corner_transport(lo, hi, &
 
         !y-dir
         ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
-<<<<<<< HEAD
         work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
         work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call hlld(work_lo, work_hi, &
