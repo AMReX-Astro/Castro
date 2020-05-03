@@ -37,6 +37,7 @@ contains
 
     implicit none
 
+    integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: s_lo(3), s_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: bxlo(3), bxhi(3)
@@ -53,7 +54,7 @@ contains
     real(rt), intent(in   ) ::  by(bylo(1):byhi(1), bylo(2):byhi(2), bylo(3):byhi(3))
     real(rt), intent(in   ) ::  bz(bzlo(1):bzhi(1), bzlo(2):bzhi(2), bzlo(3):bzhi(3))
 
-    real(rt), intent(in) :: srcQ(srcq_lo(1):srcq_h(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
+    real(rt), intent(in) :: srcQ(srcq_lo(1):srcq_hi(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
     real(rt), intent(out) :: Ip(Ip_lo(1):Ip_hi(1), Ip_lo(2):Ip_hi(2), Ip_lo(3):Ip_hi(3), NQ, 3)
@@ -83,10 +84,10 @@ contains
 
 
 
-       !=========================== PLM =========================================
-    do k = s_l3+1,s_h3-1
-       do j = s_l2+1, s_h2-1
-          do i = s_l1+1, s_h1-1
+    !=========================== PLM =========================================
+    do k = s_lo(3)+1,s_hi(3)-1
+       do j = s_lo(2)+1, s_hi(2)-1
+          do i = s_lo(1)+1, s_hi(1)-1
 
              !=========================== X Direction ========================
              summ_p = 0.d0
@@ -126,7 +127,7 @@ contains
              smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
              smhd(6) = s(i,j,k,QV)
              smhd(7) = s(i,j,k,QW)
-             smhd       = smhd*(bx(i+1,j,k) - bx(i,j,k))/dx !cross-talk of normal magnetic field direction
+             smhd       = smhd*(bx(i+1,j,k) - bx(i,j,k))/dx(1) !cross-talk of normal magnetic field direction
             !Interpolate
              !Plus
              !!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
@@ -134,8 +135,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR, flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
              enddo
              Ip(i,j,k,QRHO,1) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)
              Ip(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
@@ -151,8 +152,8 @@ contains
                dL = s(i,j,k,ii) - s(i-1,j,k,ii)
                dR = s(i+1,j,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
-               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx*s(i,j,k,QU))*dW
-               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx*s(i,j,k,QU))*dW
+               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx(1)*s(i,j,k,QU))*dW
+               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx(1)*s(i,j,k,QU))*dW
              enddo
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
@@ -220,8 +221,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR,flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dy*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dy*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(2)*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(2)*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
@@ -230,7 +231,7 @@ contains
              smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
              smhd(6) = s(i,j,k,QU)
              smhd(7) = s(i,j,k,QW)
-             smhd    = smhd*(by(i,j+1,k) - by(i,j,k))/dy !cross-talk of normal magnetic field direction
+             smhd    = smhd*(by(i,j+1,k) - by(i,j,k))/dx(2) !cross-talk of normal magnetic field direction
 
 
 
@@ -250,8 +251,8 @@ contains
                dL = s(i,j,k,ii) - s(i,j-1,k,ii)
                dR = s(i,j+1,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
-               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dy*s(i,j,k,QV))*dW
-               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dy*s(i,j,k,QV))*dW
+               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx(2)*s(i,j,k,QV))*dW
+               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dx(2)*s(i,j,k,QV))*dW
              enddo
 
 
@@ -320,8 +321,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR, flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dz*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dz*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(3)*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(3)*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
@@ -330,7 +331,7 @@ contains
              smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
              smhd(6) = s(i,j,k,QU)
              smhd(7) = s(i,j,k,QV)
-             smhd  = smhd*(bz(i,j,k+1) - bz(i,j,k))/dz !cross-talk of normal magnetic field direction
+             smhd  = smhd*(bz(i,j,k+1) - bz(i,j,k))/dx(3) !cross-talk of normal magnetic field direction
              !Interpolate
              Ip(i,j,k,QRHO,3) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
              Ip(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
@@ -345,8 +346,8 @@ contains
                dL = s(i,j,k,ii) - s(i,j,k-1,ii)
                dR = s(i,j,k+1,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR,flatn(i,j,k))
-               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dz*s(i,j,k,QW))*dW
-               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dz*s(i,j,k,QW))*dW
+               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dx(3)*s(i,j,k,QW))*dW
+               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dx(3)*s(i,j,k,QW))*dW
              enddo
 
              eos_state % rho = Ip(i,j,k,QRHO,3)
