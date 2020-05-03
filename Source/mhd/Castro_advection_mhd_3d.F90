@@ -30,7 +30,7 @@ subroutine ctoprim_mhd(lo, hi, &
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
        UEDEN, UEINT, UFA, UFS, UTEMP, &
        NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
-       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QREINT, QPRES, QFA, QFS, QTEMP, &
        QMAGX,  QMAGY, QMAGZ, &
        nadv, small_dens, small_pres, &
        npassive, upass_map, qpass_map
@@ -192,7 +192,7 @@ subroutine srctoprim_mhd(lo, hi, &
   use meth_params_module, only : URHO, UMX, UMY, UMZ, NVAR,&
        UEDEN, UEINT, UFA, UFS, UTEMP, &
        NQ, NSRC ,NQSRC, QRHO, QU, QV, QW, QC, NQAUX,&
-       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QREINT, QPRES, QFA, QFS, QTEMP, &
        QMAGX,  QMAGY, QMAGZ, &
        nadv, small_dens, small_pres, &
        npassive, upass_map, qpass_map
@@ -276,7 +276,7 @@ subroutine check_for_mhd_cfl_violation(lo, hi, &
   use amrex_constants_module
   use amrex_error_module
   use meth_params_module, only : NQ, QRHO, QU, QV, QW, QC, NQAUX,&
-       QREINT, QPRES, QFA, QFS, QTEMP, QDPDE, QDPDR,&
+       QREINT, QPRES, QFA, QFS, QTEMP, &
        QMAGX,  QMAGY, QMAGZ
 
   implicit none
