@@ -998,7 +998,7 @@ Castro::initData ()
 #ifdef MHD
                    Bx_new, By_new, Bz_new,
 #endif
-                   S_new, cur_time, S_new.nGrow());
+                   S_new, cur_time, 0);
 
        ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
        ReduceData<int, int> reduce_data(reduce_op);
