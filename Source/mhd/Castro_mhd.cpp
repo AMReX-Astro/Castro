@@ -135,7 +135,7 @@ Castro::just_the_mhd(Real time, Real dt)
                                       BL_TO_FORTRAN_ANYD(cs[2]),
                                       courno, dx, dt);
 
-          flatn.resize(obx, 1);
+          flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();
           amrex::ParallelFor(obx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
