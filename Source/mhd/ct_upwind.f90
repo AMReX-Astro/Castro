@@ -12,7 +12,7 @@ module ct_upwind
  
  contains
 
-subroutine corner_transport( q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3, &      
+subroutine corner_transport( lo, hi, q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3, &      
                                 flxx, flxx_l1 , flxx_l2 , flxx_l3 , flxx_h1 , flxx_h2 , flxx_h3, &
                                 flxy, flxy_l1 , flxy_l2 , flxy_l3 , flxy_h1 , flxy_h2 , flxy_h3, &
                                 flxz, flxz_l1 , flxz_l2 , flxz_l3 , flxz_h1 , flxz_h2 , flxz_h3, &
@@ -26,6 +26,7 @@ subroutine corner_transport( q, qm, qp, q_l1 , q_l2 , q_l3 , q_h1 , q_h2 , q_h3,
  use electric_field
 implicit none
 
+        integer, intent(in)   :: lo(3), hi(3)
         integer, intent(in)   :: q_l1,q_l2,q_l3,q_h1,q_h2,q_h3
 
         integer, intent(in)   :: ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3
@@ -111,22 +112,22 @@ implicit none
         !Calculate Flux 1D, eq.35
         !x-dir
         ![lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
-        work_lo = (/ flxx_l1, flxx_l2, flxx_l3 /)   
-        work_hi = (/ flxx_h1, flxx_h2, flxx_h3 /) 
+        work_lo = (/ lo(1)-2, lo(2)-3, lo(3)-3 /)   
+        work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /) 
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxx1D(:,:,:,:),flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1)
        
         !y-dir
         ![lo(1)-3, lo(2)-2, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]  
-        work_lo = (/ flxy_l1, flxy_l2, flxy_l3 /) 
-        work_hi = (/ flxy_h1, flxy_h2, flxy_h3 /)
+        work_lo = (/ lo(1)-3, lo(2)-2, lo(3)-3 /) 
+        work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxy1D(:,:,:,:),flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2)
 
         !z-dir
         ![lo(1)-3, lo(2)-3, lo(3)-2] [hi(1)+3, hi(2)+3, hi(3)+3]
-        work_lo = (/ flxz_l1, flxz_l2, flxz_l3 /)
-        work_hi = (/ flxz_h1, flxz_h2, flxz_h3 /)
+        work_lo = (/ lo(1)-3, lo(2)-3, lo(3)-2 /)
+        work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
         call hlld(work_lo, work_hi, qm,qp,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz1D(:,:,:,:),flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3)
          
@@ -140,8 +141,8 @@ implicit none
         !Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
 
         ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+2, hi(2)+3, hi(3)+3] 
-        work_lo = (/ ex_l1, ex_l2, ex_l3 /)
-        work_hi = (/ ex_h1, ex_h2, ex_h3 /)
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+2, hi(2)+3, hi(3)+3 /)
         call electric_edge_x(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
@@ -149,8 +150,8 @@ implicit none
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
         ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+2, hi(3)+3]              
-        work_lo = (/ ey_l1, ey_l2, ey_l3 /) 
-        work_hi = (/ ey_h1, ey_h2, ey_h3 /)
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /) 
+        work_hi = (/ hi(1)+3, hi(2)+2, hi(3)+3 /)
         call electric_edge_y(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
@@ -158,8 +159,8 @@ implicit none
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
 
         ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+3, hi(3)+2]      
-        work_lo = (/ ez_l1, ez_l2, ez_l3 /)
-        work_hi = (/ ez_h1, ez_h2, ez_h3 /)
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+2 /)
         call electric_edge_z(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
@@ -172,8 +173,8 @@ implicit none
         !X direction
         ! affected by Y Flux  
         ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2] 
-        work_lo = (/ flxx_l1 , flxx_l2+1, flxx_l3+1 /)
-        work_hi = (/ flxx_h1-1, flxx_h2-1, flxx_h3-1 /) 
+        work_lo = (/ lo(1)-2 , lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+2 , hi(2)+2, hi(3)+2 /) 
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
@@ -206,8 +207,8 @@ implicit none
         !Y direction
         ! affected by X Flux
         ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2] 
-        work_lo = (/ flxy_l1+1, flxy_l2, flxy_l3+1 /)
-        work_hi = (/ flxy_h1-1, flxy_h2-1 , flxy_h3-1 /)                
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)                
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
@@ -238,8 +239,8 @@ implicit none
         !Z direction
         ! affected by X Flux 
         ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2] 
-        work_lo = (/ flxz_l1+1, flxz_l2+1, flxz_l3 /)
-        work_hi = (/ flxz_h1-1, flxz_h2-1 , flxz_h3-1/)         
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2/)         
         call corner_couple(work_lo, work_hi, &
                            cons_temp_M, cons_temp_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                            flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
@@ -270,8 +271,8 @@ implicit none
 
         !Calculate Flux 2D eq. 40
         ![lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-        work_lo = (/ flxx_l1+1, flxx_l2+1, flxx_l3+1 /)
-        work_hi = (/ flxx_h1-1, flxx_h2-1, flxx_h3-1 /)
+        work_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
         !x-dir
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,1),q_temp_P(:,:,:,:,:,1),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxx2D(:,:,:,:,1),flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1) !F^{x|y}
@@ -279,8 +280,8 @@ implicit none
                   flxx2D(:,:,:,:,2),flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1) !F^{x|z}
         !y-dir
         ![lo(1)-2, lo(2)-1, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-        work_lo = (/ flxy_l1+1, flxy_l2+1, flxy_l3+1 /)
-        work_hi = (/ flxy_h1-1, flxy_h2-1, flxy_h3-1 /)
+        work_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,1),q_temp_P(:,:,:,:,:,1),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                   flxy2D(:,:,:,:,1),flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2) !F^{y|x}
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,2),q_temp_P(:,:,:,:,:,2),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
@@ -288,8 +289,8 @@ implicit none
 
         !z-dir
         ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
-        work_lo = (/ flxz_l1+1, flxz_l2+1, flxz_l3+1 /)
-        work_hi = (/ flxz_h1-1, flxz_h2-1, flxz_h3-1  /)
+        work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,1),q_temp_P(:,:,:,:,:,1),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz2D(:,:,:,:,1),flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3) !F^{z|x}
         call hlld(work_lo, work_hi, q_temp_M(:,:,:,:,:,2),q_temp_P(:,:,:,:,:,2),q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
@@ -304,24 +305,24 @@ implicit none
 
         !eq. 41
         ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]  
-        work_lo = (/ ex_l1+1, ex_l2+1, ex_l3+1 /)
-        work_hi = (/ ex_h1-1, ex_h2-1, ex_h3-1 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+2, hi(3)+2 /)
         call electric_edge_x(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                              flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
         ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
-        work_lo = (/ ey_l1+1, ey_l2+1, ey_l3+1 /)
-        work_hi = (/ ey_h1-1, ey_h2-1, ey_h3-1 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+2, hi(2)+1, hi(3)+2 /)
         call electric_edge_y(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                              flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                              flxz1D, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
         ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]  
-        work_lo = (/ ez_l1+1, ez_l2+1, ez_l3+1 /)
-        work_hi = (/ ez_h1-1, ez_h2-1, ez_h3-1 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+1 /)
         call electric_edge_z(work_lo, work_hi, &
                              q, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
@@ -332,8 +333,8 @@ implicit none
 
         !for x direction
         ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ flxx_l1+1, flxx_l2+2, flxx_l3+2 /)
-        work_hi = (/ flxx_h1-2, flxx_h2-2, flxx_h3-2 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call half_step(work_lo, work_hi, &
                        cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                        flxy2D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
@@ -354,8 +355,8 @@ implicit none
 
         !for y direction
         ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ flxy_l1+2, flxy_l2+1, flxy_l3+2 /)
-        work_hi = (/ flxy_h1-2, flxy_h2-2, flxy_h3-2 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call half_step(work_lo, work_hi, &
                        cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                        flxx2D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
@@ -374,8 +375,8 @@ implicit none
               
         !for z direction
         ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ flxz_l1+2, flxz_l2+2, flxz_l3+1 /)
-        work_hi = (/ flxz_h1-2, flxz_h2-2, flxz_h3-2 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call half_step(work_lo, work_hi, &
                        cons_half_M, cons_half_P, um, up, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                        flxx2D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
@@ -397,29 +398,29 @@ implicit none
 
         !x-dir
         ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ flxx_l1+2, flxx_l2+2, flxx_l3+2 /)
-        work_hi = (/ flxx_h1-2, flxx_h2-2, flxx_h3-2 /)
+        work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                    flxx,flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, 1)
 
         !y-dir  
         ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
-        work_lo = (/ flxy_l1+2, flxy_l2+2, flxy_l3+2 /)
-        work_hi = (/ flxy_h1-2, flxy_h2-2, flxy_h3-2 /)
+        work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                    flxy,flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, 2)
 
         !z-dir
         ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ flxz_l1+2, flxz_l2+2, flxz_l3+2 /)
-        work_hi = (/ flxz_h1-2, flxz_h2-2, flxz_h3-2 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call hlld(work_lo, work_hi, q_half_M,q_half_P,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3,&
                   flxz,flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3, 3)
 
         !Primitive update eq. 48
         ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-        work_lo = (/ q_l1+3, q_l2+3, q_l3+3 /)
-        work_hi = (/ q_h1-3, q_h2-3, q_h3-3 /)
+        work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
         call prim_half(work_lo, work_hi,q2D,q,q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                       flxx1D, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                       flxy1D, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
@@ -428,24 +429,24 @@ implicit none
 
         !Final Electric Field Update eq.48
         ![lo(1), lo(2), lo(3)][hi(1), hi(2)+1, hi(3)+1]
-        work_lo = (/ ex_l1+2, ex_l2+2, ex_l3+2 /)
-        work_hi = (/ ex_h1-2, ex_h2-2, ex_h3-2 /)
+        work_lo = (/ lo(1), lo(2), lo(3) /)
+        work_hi = (/ hi(1), hi(2)+1, hi(3)+1 /)
         call electric_edge_x(work_lo, work_hi, &
                              q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ex, ex_l1,ex_l2,ex_l3,ex_h1,ex_h2,ex_h3, &
                              flxy, flxy_l1,flxy_l2,flxy_l3,flxy_h1,flxy_h2,flxy_h3, &
                              flxz, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
         ![lo(1), lo(2), lo(3)][hi(1)+1, hi(2), hi(3)+1]
-        work_lo = (/ ey_l1+2, ey_l2+2, ey_l3+2 /)
-        work_hi = (/ ey_h1-2, ey_h2-2, ey_h3-2 /)
+        work_lo = (/ lo(1), lo(2), lo(3) /)
+        work_hi = (/ hi(1)+1, hi(2), hi(3)+1 /)
         call electric_edge_y(work_lo, work_hi, &
                              q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ey, ey_l1,ey_l2,ey_l3,ey_h1,ey_h2,ey_h3, &
                              flxx, flxx_l1,flxx_l2,flxx_l3,flxx_h1,flxx_h2,flxx_h3, &
                              flxz, flxz_l1,flxz_l2,flxz_l3,flxz_h1,flxz_h2,flxz_h3)
         ![lo(1), lo(2), lo(3)][hi(1)+1, hi(2)+1 ,hi(3)]
-        work_lo = (/ ez_l1+2, ez_l2+2, ez_l3+2 /)
-        work_hi = (/ ez_h1-2, ez_h2-2, ez_h3-2 /)
+        work_lo = (/ lo(1), lo(2), lo(3) /)
+        work_hi = (/ hi(1)+1, hi(2)+1, hi(3) /)
         call electric_edge_z(work_lo, work_hi, &
                              q2D, q_l1,q_l2,q_l3,q_h1,q_h2,q_h3, &
                              Ez, ez_l1,ez_l2,ez_l3,ez_h1,ez_h2,ez_h3, &
