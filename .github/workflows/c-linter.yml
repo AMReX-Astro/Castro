@@ -10,10 +10,28 @@ jobs:
       - name: Get submodules 
         run: git submodule update --init
 
-      - name: cpp-linter
+      - name: Run cpp linter
         uses: AMReX-Astro/cpp-linter-action@master
         with: 
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_path: 'Exec/science/flame_wave'
-          make_options: 'USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
+          make_options: '-j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
           ignore_files: 'amrex|Microphysics'
+      
+      - name: Archive clang tidy report
+        uses: actions/upload-artifact@v1
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt
+      
+      - name: Archive clang format report
+        uses: actions/upload-artifact@v1
+        with:
+          name: clang-format-report
+          path: clang-format-report.txt
+      
+      - name: Archive cppcheck report
+        uses: actions/upload-artifact@v1
+        with:
+          name: cppcheck-report
+          path: cppcheck-report.txt
