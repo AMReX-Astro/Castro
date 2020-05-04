@@ -6,9 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: cpp-linter
-        uses: AMReX-Astro/clang-tidy-action@master
+        uses: AMReX-Astro/cpp-linter-action@master
         with: 
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_path: 'Exec/science/flame_wave'
