@@ -1,5 +1,5 @@
-#ifndef _CASTRO_LIMITS_H_
-#define _CASTRO_LIMITS_H_
+#ifndef CASTRO_LIMITS_H
+#define CASTRO_LIMITS_H
 
 #define MAX_LEV 15
 

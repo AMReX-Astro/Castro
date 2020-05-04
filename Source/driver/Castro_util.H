@@ -1,5 +1,5 @@
-#ifndef _Castro_util_H_
-#define _Castro_util_H_
+#ifndef CASTRO_UTIL_H
+#define CASTRO_UTIL_H
 
 #include "AMReX_Geometry.H"
 

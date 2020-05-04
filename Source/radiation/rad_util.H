@@ -1,7 +1,7 @@
 #include <cmath>
 
-#ifndef _rad_util_H_
-#define _rad_util_H_
+#ifndef CASTRO_RAD_UTIL_H
+#define CASTRO_RAD_UTIL_H
 
 using namespace amrex;
 

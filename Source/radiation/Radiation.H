@@ -1,5 +1,5 @@
-#ifndef _Radiation_H_
-#define _Radiation_H_
+#ifndef CASTRO_RADIATION_H
+#define CASTRO_RADIATION_H
 
 #include <AMReX_AmrLevel.H>
 

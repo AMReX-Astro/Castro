@@ -1,5 +1,6 @@
-#ifndef _Castro_react_F_H_
-#define _Castro_react_F_H_
+#ifndef CASTRO_REACT_F_H
+#define CASTRO_REACT_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
