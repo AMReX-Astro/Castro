@@ -119,6 +119,13 @@ subroutine hlld(work_lo, work_hi, &
       flx(i,j,k,:) = 0.d0  
       FL  = 0.d0; FR = 0.d0; UsL = 0.d0; UsR = 0.d0; FsL = 0.d0; FsR = 0.d0; UssL = 0.d0; UssR = 0.d0; FssL = 0.d0; FssR = 0.d0
 
+      !check to not go lower than small_dens and small_press
+      qL(QRHO) = max(small_dens, qL(QRHO))
+      qR(QRHO) = max(small_dens, qR(QRHO))
+      qL(QPRES) = max(small_pres, qL(QPRES))
+      qR(QPRES) = max(small_pres, qR(QPRES))
+
+
       call PToC(qL, uL)
       call PToC(qR, uR)
       
@@ -407,7 +414,7 @@ subroutine PToC(q, u)
 
    integer :: n
 
-   u(:) = 0.d0
+   u(:) = 0.d0 
 
    u(URHO)       = q(QRHO)
    u(UMX)        = q(QRHO)*q(QU)

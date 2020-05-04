@@ -98,7 +98,12 @@ subroutine ctoprim_mhd(lo, hi, &
               print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
               print *,'>>> ... negative density ',uin(i,j,k,URHO)
               call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim")
-           end if
+           elseif (uin(i,j,k,URHO) .le. small_dens) then 
+              print *,'   '
+              print *,'>>> Error: Castro_advection_mhd_3d::ctoprim ',i,j,k
+              print *,'>>> ... small density ',uin(i,j,k,URHO)
+              call amrex_error("Error:: Castro_advection_mhd_3d.f90 :: ctoprim") 
+           endif
 
            rhoInv = ONE/uin(i,j,k,URHO)
 
