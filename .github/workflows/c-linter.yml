@@ -7,6 +7,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Get submodules 
+        run: git submodule update --init
+
       - name: cpp-linter
         uses: AMReX-Astro/cpp-linter-action@master
         with: 
