@@ -34,6 +34,7 @@ contains
     use network, only: nspec
     use eos_module
     use eos_type_module, only: eos_t, eos_input_rp
+    use meth_params_module, only: small_dens, small_pres
 
     implicit none
 
@@ -138,11 +139,11 @@ contains
                 summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
                 summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
              enddo
-             Ip(i,j,k,QRHO,1) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)
+             Ip(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1))
              Ip(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
              Ip(i,j,k,QV,1) = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
              Ip(i,j,k,QW,1) = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,1) = s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
 
              Ip(i,j,k,QMAGX,1) = bx(i+1,j,k) !! Bx stuff
              Ip(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
@@ -165,11 +166,11 @@ contains
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
 
              !Minus
-             Im(i,j,k,QRHO,1) = s(i,j,k,QRHO) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)
+             Im(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1))
              Im(i,j,k,QU,1) = s(i,j,k,QU) +0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
              Im(i,j,k,QV,1) = s(i,j,k,QV) +0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
              Im(i,j,k,QW,1) = s(i,j,k,QW) +0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,1) = s(i,j,k,QPRES) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
 
              Im(i,j,k,QMAGX,1)  = bx(i,j,k) !! Bx stuff
              Im(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
@@ -236,11 +237,11 @@ contains
 
 
              !Interpolate
-             Ip(i,j,k,QRHO,2) = s(i,j,k,QRHO) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
              Ip(i,j,k,QU,2)   = s(i,j,k,QU) +0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
              Ip(i,j,k,QV,2) = s(i,j,k,QV) +0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
              Ip(i,j,k,QW,2) = s(i,j,k,QW) +0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,2) = s(i,j,k,QPRES) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
 
              Ip(i,j,k,QMAGX,2)  = s(i,j,k,QMAGX) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
              Ip(i,j,k,QMAGY,2)  = by(i,j+1,k) !! By stuff
@@ -264,11 +265,11 @@ contains
              Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,2) = s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
              Im(i,j,k,QU,2)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
              Im(i,j,k,QV,2)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
              Im(i,j,k,QW,2) = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,2) = s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
 
              Im(i,j,k,QMAGX,2) = s(i,j,k,QMAGX) + 0.5d0*summ_m(6) + 0.5d0*dt_over_a*smhd(6)
              Im(i,j,k,QMAGY,2) = by(i,j,k) !! By stuff
@@ -333,11 +334,11 @@ contains
              smhd(7) = s(i,j,k,QV)
              smhd  = smhd*(bz(i,j,k+1) - bz(i,j,k))/dx(3) !cross-talk of normal magnetic field direction
              !Interpolate
-             Ip(i,j,k,QRHO,3) = s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Ip(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
              Ip(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
              Ip(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
              Ip(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,3) = s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5)
+             Ip(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
 
              Ip(i,j,k,QMAGX:QMAGY,3)    = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Ip(i,j,k,QMAGZ,3)          = bz(i,j,k+1) !! Bz stuff
@@ -358,11 +359,11 @@ contains
              Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,3) = s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1) !!GAS
+             Im(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
              Im(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
              Im(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
              Im(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,3) = s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5)
+             Im(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
 
              Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
              Im(i,j,k,QMAGZ,3) = bz(i,j,k) !! Bz stuff
