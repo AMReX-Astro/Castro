@@ -1,0 +1,16 @@
+name: cpp-linter
+
+on: [pull_request]
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: cpp-linter
+        uses: AMReX-Astro/clang-tidy-action@master
+        with: 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_path: 'Exec/science/flame_wave'
+          make_options: 'USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
+          ignore_files: 'amrex|Microphysics'
