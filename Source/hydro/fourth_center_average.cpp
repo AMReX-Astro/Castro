@@ -39,10 +39,16 @@ Castro::make_cell_center(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
 
+  const auto problo = geom.ProbLoArray();
+  const auto dx_arr = geom.CellSizeArray();
+
+  auto coord = geom.Coord();
+
   amrex::ParallelFor(bx, U.nComp(),
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
     Real lap = compute_laplacian(i, j, k, n, U,
+                                 coord, dx_arr, problo,
                                  lo_periodic, hi_periodic, domlo, domhi);
 
     U_cc(i,j,k,n) = U(i,j,k,n) - (1.0_rt/24.0_rt) * lap;
@@ -72,12 +78,17 @@ Castro::make_cell_center_in_place(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
 
+  const auto problo = geom.ProbLoArray();
+  const auto dx_arr = geom.CellSizeArray();
+  auto coord = geom.Coord();
+
   for (int n = 0; n < U.nComp(); n++) {
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
     {
       tmp(i,j,k) = compute_laplacian(i, j, k, n, U,
+                                     coord, dx_arr, problo,
                                      lo_periodic, hi_periodic, domlo, domhi);
     });
 
@@ -109,11 +120,16 @@ Castro::compute_lap_term(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
 
+  const auto problo = geom.ProbLoArray();
+  const auto dx_arr = geom.CellSizeArray();
+  auto coord = geom.Coord();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     lap(i,j,k) = (1.0_rt/24.0_rt) *
       compute_laplacian(i, j, k, ncomp, U,
+                        coord, dx_arr, problo,
                         lo_periodic, hi_periodic, domlo, domhi);
   });
 
@@ -140,10 +156,15 @@ Castro::make_fourth_average(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
 
+  const auto problo = geom.ProbLoArray();
+  const auto dx_arr = geom.CellSizeArray();
+  auto coord = geom.Coord();
+
   amrex::ParallelFor(bx, q.nComp(),
   [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
     Real lap = compute_laplacian(i, j, k, n, q_bar,
+                                 coord, dx_arr, problo,
                                  lo_periodic, hi_periodic, domlo, domhi);
 
     q(i,j,k,n) += (1.0_rt/24.0_rt) * lap;
@@ -190,10 +211,15 @@ Castro::make_fourth_in_place_n(const Box& bx,
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
 
+  const auto problo = geom.ProbLoArray();
+  const auto dx_arr = geom.CellSizeArray();
+  auto coord = geom.Coord();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     tmp(i,j,k) = compute_laplacian(i, j, k, ncomp, q,
+                                   coord, dx_arr, problo,
                                    lo_periodic, hi_periodic, domlo, domhi);
   });
 

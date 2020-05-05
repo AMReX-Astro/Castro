@@ -5,12 +5,17 @@ AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 Real
 Castro:: compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const a,
+                           const int coord_type,
+                           GpuArray<Real, 3> const& dx, GpuArray<Real, 3> const& problo,
                            GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
                            GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   Real lapx = 0.0;
   Real lapy = 0.0;
   Real lapz = 0.0;
+
+  // for axisymmetric
+  Real dadr = 0.0;
 
   // we use 2nd-order accurate one-sided stencils at the physical
   // boundaries note: this differs from the suggestion in MC2011 --
@@ -19,12 +24,21 @@ Castro:: compute_laplacian(int i, int j, int k, int n,
 
   if (i == domlo[0] && !lo_periodic[0]) {
     lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i+1,j,k,n) + 4.0_rt*a(i+2,j,k,n) - a(i+3,j,k,n);
+    if (coord_type == 1) {
+      dadr = 0.5_rt*(-3.0_rt*a(i,j,k,n) + 4.0_rt*a(i+1,j,k,n) - a(i+2,j,k,n));
+    }
 
   } else if (i == domhi[0] && !hi_periodic[0]) {
     lapx = 2.0_rt*a(i,j,k,n) - 5.0_rt*a(i-1,j,k,n) + 4.0_rt*a(i-2,j,k,n) - a(i-3,j,k,n);
+    if (coord_type == 1) {
+      dadr = 0.5_rt*(3.0_rt*a(i,j,k,n) - 4.0_rt*a(i-1,j,k,n) + a(i-2,j,k,n));
+    }
 
   } else {
     lapx = a(i+1,j,k,n) - 2.0_rt*a(i,j,k,n) + a(i-1,j,k,n);
+    if (coord_type == 1) {
+      dadr = 0.5_rt*(a(i+1,j,k,n) - a(i-1,j,k,n));
+    }
   }
 
 #if AMREX_SPACEDIM >= 2
@@ -51,7 +65,9 @@ Castro:: compute_laplacian(int i, int j, int k, int n,
   }
 #endif
 
-  return lapx + lapy + lapz;
+  Real rc = problo[0] + (static_cast<Real>(i) + 0.5_rt)*dx[0];
+  return lapx + lapy + lapz + dx[0]*dadr/(12.0_rt*rc);
+
 }
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
