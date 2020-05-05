@@ -420,6 +420,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, const iMultiFab& m, Real time, Rea
 #endif
     }
 
+    // fill ghost cells since we only computed the average in bx
+    AmrLevel::FillPatch(*this, s, s.nGrow(), time, State_Type, 0, NUM_STATE);
+
+
     if (burn_success)
         return true;
     else
