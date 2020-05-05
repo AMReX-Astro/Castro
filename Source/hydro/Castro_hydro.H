@@ -546,7 +546,7 @@
 
     Real compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const a,
-                           const int coord, GpuArray<Real, 3> const& dx, GpuArray<Real, 3> const& problo,
+                           const int coord, GpuArray<Real, AMREX_SPACEDIM> const& dx, GpuArray<Real, AMREX_SPACEDIM> const& problo,
                            GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
                            GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
