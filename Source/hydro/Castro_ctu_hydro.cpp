@@ -212,7 +212,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (first_order_hydro == 1) {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          flatn_arr(i,j,k) = 0.0;
+        });
       } else if (use_flattening == 1) {
 
         uflatten(obx, q_arr, flatn_arr, QPRES);
@@ -222,7 +226,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
         Real flatten_pp_thresh = radiation::flatten_pp_threshold;
 
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k,
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
         {
           flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
@@ -239,7 +244,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       } else {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          flatn_arr(i,j,k) = 1.0;
+        });
       }
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
@@ -272,7 +281,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         shock(obx, q_arr, shk_arr);
       }
       else {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        {
+          shk_arr(i,j,k) = 0.0;
+        });
       }
 
       // get the primitive variable hydro sources
@@ -1147,7 +1160,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
-          AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+          amrex::ParallelFor(nbx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1297,7 +1311,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             // get the scaled radial pressure -- we need to treat this specially
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                amrex::ParallelFor(nbx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
@@ -1306,7 +1321,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                amrex::ParallelFor(nbx,
+                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });

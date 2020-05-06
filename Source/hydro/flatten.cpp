@@ -22,7 +22,8 @@ Castro::uflatten(const Box& bx,
   constexpr Real zcut2 = 0.85_rt;
   constexpr Real dzcut = 1.0_rt / (zcut2-zcut1);
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // x-direction flattening coef

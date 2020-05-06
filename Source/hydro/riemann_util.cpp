@@ -196,7 +196,8 @@ Castro::store_godunov_state(const Box& bx,
   // variable) over to a smaller subset of size NGDNV for use later in the
   // hydro advancement.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // the hybrid routine uses the Godunov indices, not the full NQ state

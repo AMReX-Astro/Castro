@@ -52,7 +52,8 @@ Castro::ctoprim(const Box& bx,
   get_omega(time, omega.begin());
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 
@@ -217,7 +218,8 @@ Castro::shock(const Box& bx,
   Real dzinv = 1.0_rt / dx[2];
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
     Real div_u = 0.0_rt;
 
@@ -371,7 +373,8 @@ Castro::divu(const Box& bx,
   Real dzinv = 0.0_rt;
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -523,7 +526,8 @@ Castro::apply_av_rad(const Box& bx,
 
   Real diff_coeff = difmag;
 
-  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, n,
+  amrex::ParallelFor(bx, Radiation::nGroups,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real div1;
@@ -564,7 +568,8 @@ Castro::normalize_species_fluxes(const Box& bx,
   // they sum to 0.  This is essentially the CMA procedure that is
   // defined in Plewa & Muller, 1999, A&A, 342, 179.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     Real sum = 0.0_rt;
@@ -598,7 +603,8 @@ Castro::scale_flux(const Box& bx,
   const int coord_type = geom.Coord();
 #endif
 
-  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  amrex::ParallelFor(bx, NUM_STATE,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
@@ -619,7 +625,8 @@ Castro::scale_rad_flux(const Box& bx,
                        Array4<Real const> area_arr,
                        const Real dt) {
 
-  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
+  amrex::ParallelFor(bx, Radiation::nGroups,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int g) noexcept
   {
     rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });

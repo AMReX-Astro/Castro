@@ -102,11 +102,19 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         Array4<Real> const flatn_arr = flatn.array();
 
         if (first_order_hydro == 1) {
-          AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
+          amrex::ParallelFor(obx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          {
+            flatn_arr(i,j,k) = 0.0;
+          });
         } else if (use_flattening == 1) {
           uflatten(obx, q_arr, flatn_arr, QPRES);
         } else {
-          AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
+          amrex::ParallelFor(obx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          {
+            flatn_arr(i,j,k) = 1.0;
+          });
         }
 
         // get the interface states and shock variable
@@ -129,7 +137,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           shock(obx, q_arr, shk_arr);
         }
         else {
-          AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
+          amrex::ParallelFor(obx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          {
+            shk_arr(i,j,k) = 0.0;
+          });
         }
 
         const Box& xbx = amrex::surroundingNodes(bx, 0);
@@ -255,8 +267,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             if (do_hydro == 0) {
               Array4<Real> const f_avg_arr = f_avg.array();
 
-              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
-                f_avg_arr(i,j,k,n) = 0.0;});
+              amrex::ParallelFor(nbx, NUM_STATE,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+              {
+                f_avg_arr(i,j,k,n) = 0.0;
+              });
 
             }
 
@@ -282,17 +297,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // since there is no face averaging
             Array4<Real> const flux_arr = (flux[0]).array();
 
-            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
-                flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);});
+            amrex::ParallelFor(nbx, NUM_STATE,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+            {
+              flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);
+            });
 
 #endif
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc
-            AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n, {
+            AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n,
+            {
                 bool test = (n == QGC) || (n == QTEMP);
 
-                if (test) continue;
+                if (test) return;
 
                 Real lap = 0.0;
                 int ncomp_f = n + 1;
@@ -314,8 +333,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             if (do_hydro == 0) {
 
-              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
-                f_arr(i,j,k,n) = 0.0;});
+              amrex::ParallelFor(nbx, NUM_STATE,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+              {
+                f_arr(i,j,k,n) = 0.0;
+              });
 
             }
 
@@ -336,7 +358,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // compute the final fluxes
             Array4<Real> const flux_arr = (flux[idir]).array();
 
-            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n,
+            {
 
                 Real lap = 0.0;
                 int ncomp_f = n + 1;
@@ -376,7 +399,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               Array4<Real const> const uin_arr = statein.array();
               Array4<Real const> const avis_arr = avis.array();
 
-              AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n, {
+              amrex::ParallelFor(nbx, NUM_STATE,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+              {
                   if (n == UTEMP) {
                     flux_arr(i,j,k,n) = 0.0;
 #ifdef SHOCK_VAR
@@ -500,13 +525,14 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               // set UTEMP and USHK fluxes to zero
               Array4<Real const> const uin_arr = Sborder.array(mfi);
 
-              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                    {
-                                      flux_arr(i,j,k,UTEMP) = 0.e0;
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
-                                      flux_arr(i,j,k,USHK) = 0.e0;
+                flux_arr(i,j,k,USHK) = 0.e0;
 #endif
-                                    });
+              });
 
 
               // apply artificial viscosity
@@ -653,19 +679,21 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
-              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                    {
-                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                    });
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+              });
             }
 #endif
 
 #if AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-              AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                                    {
-                                      pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
-                                    });
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+              {
+                pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
+              });
             }
 #endif
           }

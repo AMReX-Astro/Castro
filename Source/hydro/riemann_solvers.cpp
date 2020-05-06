@@ -638,7 +638,8 @@ Castro::riemannus(const Box& bx,
     qpass_map_p[n] = qpass_map[n];
   }
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -1118,7 +1119,8 @@ Castro::HLLC(const Box& bx,
 
   int coord = geom.Coord();
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
