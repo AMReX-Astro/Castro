@@ -99,7 +99,10 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // Calculate primitives based on conservatives
           bcc.resize(bx_gc, 3);
+
           q.resize(bx_gc, NQ);
+          auto q_arr = q.array();
+
           srcQ.resize(obx, NQSRC);
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
@@ -123,10 +126,10 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
-          srctoprim_mhd(lo1, hi1,
-                        BL_TO_FORTRAN_ANYD(q),
-                        BL_TO_FORTRAN_ANYD(source_in),
-                        BL_TO_FORTRAN_ANYD(srcQ));
+          auto src_q_arr = srcQ.array();
+          auto src_arr = source_in.array();
+
+          src_to_prim(obx, q_arr, src_arr, src_q_arr);
 
           check_for_mhd_cfl_violation(lo, hi,
                                       BL_TO_FORTRAN_ANYD(q),

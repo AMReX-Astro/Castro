@@ -20,12 +20,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(cy),
      BL_FORT_FAB_ARG_3D(cz));
 
-  void srctoprim_mhd
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(src),
-     BL_FORT_FAB_ARG_3D(srcq));
-
   void check_for_mhd_cfl_violation
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG_3D(q),
