@@ -1,13 +1,13 @@
 #ifndef _FOURTH_CENTER_AVERAGE_H_
 #define _FOURTH_CENTER_AVERAGE_H_
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
 Castro:: compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const a,
                            const int coord_type,
                            GpuArray<Real, AMREX_SPACEDIM> const& dx, GpuArray<Real, AMREX_SPACEDIM> const& problo,
-                           GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                           GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
                            GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   Real lapx = 0.0;
@@ -70,12 +70,12 @@ Castro:: compute_laplacian(int i, int j, int k, int n,
 
 }
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
 Castro::trans_laplacian(int i, int j, int k, int n,
                         int idir,
                         Array4<Real const> const a,
-                        GpuArray<bool, 3> const& lo_periodic, GpuArray<bool, 3> const& hi_periodic,
+                        GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   Real lapx = 0.0;

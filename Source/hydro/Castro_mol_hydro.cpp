@@ -291,9 +291,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             const int* lo_bc = phys_bc.lo();
             const int* hi_bc = phys_bc.hi();
 
-            GpuArray<bool, 3> lo_periodic;
-            GpuArray<bool, 3> hi_periodic;
-            for (int idir = 0; idir < 3; idir++) {
+            GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+            GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+            for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
               lo_periodic[idir] = lo_bc[idir] == Interior;
               hi_periodic[idir] = hi_bc[idir] == Interior;
             }
