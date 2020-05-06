@@ -998,7 +998,7 @@ Castro::initData ()
 #ifdef MHD
                    Bx_new, By_new, Bz_new,
 #endif
-                   S_new, cur_time, S_new.nGrow());
+                   S_new, cur_time, 0);
 
        ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
        ReduceData<int, int> reduce_data(reduce_op);
@@ -1397,12 +1397,6 @@ Castro::estTimeStep (Real dt_old)
 
     const MultiFab& stateMF = get_new_data(State_Type);
 
-#ifdef MHD
-    const MultiFab& bxMF = get_new_data(Mag_Type_x);
-    const MultiFab& byMF = get_new_data(Mag_Type_y);
-    const MultiFab& bzMF = get_new_data(Mag_Type_z);
-#endif
-
     Real time = state[State_Type].curTime();
 
     const Real* dx = geom.CellSize();
@@ -1455,28 +1449,7 @@ Castro::estTimeStep (Real dt_old)
 #endif
 
 #ifdef MHD
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-            {
-                Real dt = max_dt / cfl;
-
-                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-                {
-                    const Box& box = mfi.tilebox();
-
-                  ca_estdt_mhd(ARLIM_3D(box.loVect()), ARLIM_3D(box.hiVect()), 
-                               BL_TO_FORTRAN_3D(stateMF[mfi]),
-                               BL_TO_FORTRAN_3D(bxMF[mfi]),
-                               BL_TO_FORTRAN_3D(byMF[mfi]),
-                               BL_TO_FORTRAN_3D(bzMF[mfi]),
-                               ZFILL(dx),&dt);
-
-
-                }
-              estdt_hydro = std::min(estdt_hydro, dt);
-            }
+          estdt_hydro = estdt_mhd();
 #else
           estdt_hydro = estdt_cfl(time);
 #endif

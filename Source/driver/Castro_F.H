@@ -169,16 +169,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
 
-#ifdef MHD
-  void ca_estdt_mhd
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const BL_FORT_FAB_ARG_3D(Bx),
-     const BL_FORT_FAB_ARG_3D(By),
-     const BL_FORT_FAB_ARG_3D(Bz),
-     const amrex::Real* dx, amrex::Real* dt);
-#endif
-
 #ifdef RADIATION
   void ca_estdt_rad
     (const int lo[], const int hi[],

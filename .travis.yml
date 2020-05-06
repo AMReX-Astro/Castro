@@ -2,31 +2,6 @@ dist: bionic
 
 matrix:
   include:
-    - name: "deploy docs"
-      if: branch = development OR branch = master
-      language: python
-      python:
-        - "3.7-dev"
-      before_install:
-        - export PATH=$(echo $PATH | tr ':' "\n" | sed '/\/opt\/python/d' | tr "\n" ":" | sed "s|::|:|g")
-      addons:
-        apt:
-            packages:
-            - g++
-            - gfortran
-            - libgmp-dev
-            - libmpfr-dev
-            - pandoc
-            - doxygen
-      install:
-        - pip install -r requirements.txt
-      before_script:
-        - export AMREX_HOME=~/amrex
-      script:
-        - ls -l
-        - pwd
-        - ./deploy_docs.sh
-
     - name: "clang static analysis"
       if: type = pull_request OR type = api OR type = cron
       language: cpp

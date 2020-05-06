@@ -47,8 +47,6 @@
 @set: auxiliary NQAUX NQAUX
    gamma_c                QGAMC     None            1                   None
    sound-speed            QC        None            1                   None
-   dpdr                   QDPDR     None            1                   MHD
-   dpde                   QDPDE     None            1                   MHD 
    gamma_c-gas            QGAMCG    None            1                   RADIATION
    sound-speed-gas        QCG       None            1                   RADIATION
    flux-limiter           QLAMS     None          (ngroups, NGROUPS)    RADIATION

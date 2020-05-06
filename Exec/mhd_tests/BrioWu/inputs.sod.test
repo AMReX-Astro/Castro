@@ -1,5 +1,5 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
-max_step = 10
+max_step = 1000
 stop_time =  0.2
 
 # PROBLEM SIZE & GEOMETRY
@@ -7,7 +7,7 @@ geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0      0      0
 geometry.prob_hi     =  1  0.125  0.125
-amr.n_cell           =  32      4     4
+amr.n_cell           =  128      16     16
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -21,7 +21,7 @@ castro.hi_bc       =  2   4   4
 castro.do_hydro = 1
 castro.do_react = 0
 castro.ppm_type = 0
-castro.allow_negative_energy = 0
+
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
