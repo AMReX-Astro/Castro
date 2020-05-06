@@ -129,15 +129,23 @@ contains
 
        domega_dt = get_domegadt(time)
 
+       ! for axisymmetry, we store the data as (r, z, theta), since
+       ! the simulation plane is made up as r, z, but for the Coriolis
+       ! term, we need to use a right-handed coordinate system.  The
+       ! cross product function will do this for us.
+
        omegacrossr = cross_product(omega,r)
+
        omegacrossv = cross_product(omega,v)
 
        Sr = ZERO
 
+       ! centrifugal
        if (c1) then
           Sr = Sr - cross_product(omega, omegacrossr)
        endif
 
+       ! Coriolis
        if (c2) then
           Sr = Sr - TWO * omegacrossv
        endif
