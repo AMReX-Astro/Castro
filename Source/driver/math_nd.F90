@@ -8,6 +8,7 @@ contains
     ! Compute the standard cross-product of two three-vectors.
 
     use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only : coord_type
 
     implicit none
 
