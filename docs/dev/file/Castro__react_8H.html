@@ -228,18 +228,15 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt id="_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv311react_stateRN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv211react_stateRN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabEN5amrex4RealEN5amrex4RealEii"></span><span id="react_state__amrex::MultiFabR.amrex::MultiFabR.amrex::iMultiFabCR.amrex::Real.amrex::Real.i.i"></span><span class="target" id="Castro__react_8H_1a464996f5455bf7ee320bd7099e4ff9b9"></span>bool <code class="sig-name descname">react_state</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>reactions</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::iMultiFab &amp;<em>mask</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt_react</em>, int <em>strang_half</em>, int <em>ngrow</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabERKN5amrex9iMultiFabEN5amrex4RealEN5amrex4RealEii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv311react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv211react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="react_state__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1a959f4ff2cdd2d7f2a52e8b2d3b890d67"></span>bool <code class="sig-name descname">react_state</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>reactions</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>React state through a single reaction timestep, saving reaction source terms to <code class="docutils literal notranslate"><span class="pre">reactions</span></code> MultiFab. This is the CTU version.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reactions</span></code>: MultiFab to save reaction sources to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mask</span></code>: </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_react</span></code>: reaction timestep </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">strang_half</span></code>: Is this a Strang-split half timestep? </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: reaction timestep </p></li>
 </ul>
 </dd>
 </dl>
@@ -250,34 +247,6 @@
 <dt id="_CPPv411react_stateN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv311react_stateN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv211react_stateN5amrex4RealEN5amrex4RealE"></span><span id="react_state__amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1a1d1083a322ed578a27004e1ccf160c51"></span>bool <code class="sig-name descname">react_state</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411react_stateN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Simplified SDC version of react_state. Reacts the current state through a single timestep.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv423strang_react_first_halfN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv323strang_react_first_halfN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv223strang_react_first_halfN5amrex4RealEN5amrex4RealE"></span><span id="strang_react_first_half__amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1a7c643005ba7302caf10dc6a007319d63"></span>bool <code class="sig-name descname">strang_react_first_half</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv423strang_react_first_halfN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>React through first half timestep</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv424strang_react_second_halfN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv324strang_react_second_halfN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv224strang_react_second_halfN5amrex4RealEN5amrex4RealE"></span><span id="strang_react_second_half__amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1af9ce96b0571630cc17174b14a8f41624"></span>bool <code class="sig-name descname">strang_react_second_half</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv424strang_react_second_halfN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>React through second half stimestep</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
