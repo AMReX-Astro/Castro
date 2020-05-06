@@ -1,3 +1,14 @@
+# 20.06
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces, and for consistency, ensures
+     that the Coriolis force is computed in a right-handed manner
+     (since we internally order the coordinates as r, z, theta,
+     reflecting the fact that only r-z are in the simulation plane).
+     (#923)
+
 # 20.05
 
    * The parameter use_custom_knapsack_weights and its associated
