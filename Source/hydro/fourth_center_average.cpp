@@ -10,7 +10,7 @@ void
 Castro::make_cell_center(const Box& bx,
                          Array4<Real const> const& U,
                          Array4<Real> const& U_cc,
-                         GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take a cell-average state U and a convert it to a cell-center
   // state U_cc via U_cc = U - 1/24 L U
@@ -32,9 +32,9 @@ Castro::make_cell_center(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  GpuArray<bool, 3> lo_periodic;
-  GpuArray<bool, 3> hi_periodic;
-  for (int idir = 0; idir < 3; idir++) {
+  GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+  GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     lo_periodic[idir] = lo_bc[idir] == Interior;
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
@@ -54,7 +54,7 @@ void
 Castro::make_cell_center_in_place(const Box& bx,
                                   Array4<Real> const& U,
                                   Array4<Real> const& tmp,
-                                  GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                                  GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take a cell-average state U and make it cell-centered in place
   // via U <- U - 1/24 L U.  Note that this operation is not tile
@@ -65,9 +65,9 @@ Castro::make_cell_center_in_place(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  GpuArray<bool, 3> lo_periodic;
-  GpuArray<bool, 3> hi_periodic;
-  for (int idir = 0; idir < 3; idir++) {
+  GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+  GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     lo_periodic[idir] = lo_bc[idir] == Interior;
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
@@ -94,7 +94,7 @@ void
 Castro::compute_lap_term(const Box& bx,
                          Array4<Real const> const& U,
                          Array4<Real> const& lap, const int ncomp,
-                         GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Computes the h**2/24 L U term that is used in correcting
   // cell-center to averages (and back)
@@ -102,9 +102,9 @@ Castro::compute_lap_term(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  GpuArray<bool, 3> lo_periodic;
-  GpuArray<bool, 3> hi_periodic;
-  for (int idir = 0; idir < 3; idir++) {
+  GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+  GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     lo_periodic[idir] = lo_bc[idir] == Interior;
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
@@ -124,7 +124,7 @@ void
 Castro::make_fourth_average(const Box& bx,
                             Array4<Real> const& q,
                             Array4<Real const> const& q_bar,
-                            GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                            GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take the cell-center state q and another state q_bar (e.g.,
   // constructed from the cell-average U) and replace the cell-center
@@ -133,9 +133,9 @@ Castro::make_fourth_average(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  GpuArray<bool, 3> lo_periodic;
-  GpuArray<bool, 3> hi_periodic;
-  for (int idir = 0; idir < 3; idir++) {
+  GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+  GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     lo_periodic[idir] = lo_bc[idir] == Interior;
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
@@ -155,7 +155,7 @@ void
 Castro::make_fourth_in_place(const Box& bx,
                              Array4<Real> const& q,
                              Array4<Real> const& tmp,
-                             GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                             GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take the cell-center q and makes it a cell-average q, in place
   // (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -171,7 +171,7 @@ void
 Castro::make_fourth_in_place_n(const Box& bx,
                                Array4<Real> const& q, const int ncomp,
                                Array4<Real> const& tmp,
-                               GpuArray<int, 3>& domlo, GpuArray<int, 3>& domhi) {
+                               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // Take the cell-center q and makes it a cell-average q, in place
   // (e.g. q is overwritten by its average), q <- q + 1/24 L q.
@@ -183,9 +183,9 @@ Castro::make_fourth_in_place_n(const Box& bx,
   const int* lo_bc = phys_bc.lo();
   const int* hi_bc = phys_bc.hi();
 
-  GpuArray<bool, 3> lo_periodic;
-  GpuArray<bool, 3> hi_periodic;
-  for (int idir = 0; idir < 3; idir++) {
+  GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+  GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
     lo_periodic[idir] = lo_bc[idir] == Interior;
     hi_periodic[idir] = hi_bc[idir] == Interior;
   }
