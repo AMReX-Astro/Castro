@@ -109,6 +109,7 @@ enum sources { thermo_src = 0,
                sponge_src,
 #endif
                ext_src,
+               geom_src,
                num_src };
 
 

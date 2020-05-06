@@ -47,7 +47,7 @@ Castro::source_flag(int src)
             return true;
         else
             return false;
-#ifndef MHD     
+#ifndef MHD
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
           return true;
@@ -56,7 +56,14 @@ Castro::source_flag(int src)
 #else
     case thermo_src:
         return true;
-#endif  
+#endif
+
+    case geom_src:
+        if (geom.Coord() == 1) {
+          return true;
+        } else {
+          return false;
+        }
 
 #ifdef DIFFUSION
     case diff_src:
@@ -100,7 +107,7 @@ void
 Castro::do_old_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
+#endif
                 MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
@@ -131,7 +138,7 @@ Castro::do_old_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time + dt, 0);
 
             // Zero out the source MultiFab for the next source term.
@@ -157,7 +164,7 @@ Castro::do_old_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
         }
 
@@ -194,7 +201,7 @@ void
 Castro::do_new_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
+#endif
                 MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
@@ -230,7 +237,7 @@ Castro::do_new_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
 
             // Zero out the source MultiFab for the next source term.
@@ -256,7 +263,7 @@ Castro::do_new_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
         }
 
@@ -293,7 +300,7 @@ void
 Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_PROFILE("Castro::construct_old_source()");
-    
+
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -310,6 +317,10 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 
     case thermo_src:
         construct_old_thermo_source(source, state_in, time, dt);
+        break;
+
+    case geom_src:
+        construct_old_geom_source(source, state_in, time, dt);
         break;
 
 #ifdef DIFFUSION
@@ -370,6 +381,10 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
         break;
 #endif
 
+    case geom_src:
+        construct_new_geom_source(source, state_old, state_new, time, dt);
+        break;
+
 #ifdef DIFFUSION
     case diff_src:
         construct_new_diff_source(source, state_old, state_new, time, dt);
@@ -428,7 +443,7 @@ Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 {
 
   BL_PROFILE("Castro::evaluate_source_change()");
-    
+
   Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component
