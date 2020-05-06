@@ -36,6 +36,16 @@ Castro::do_advance_ctu(Real time,
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif 
+
     // Perform initialization steps.
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -127,7 +137,11 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_old_sources(old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+      do_old_sources(
+#ifdef MHD
+                      Bx_old, By_old, Bz_old,
+#endif                
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -149,6 +163,7 @@ Castro::do_advance_ctu(Real time,
 
     if (do_hydro)
     {
+#ifndef MHD
       // Construct the primitive variables.
       cons_to_prim(time);
 
@@ -164,6 +179,10 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
+#else
+      just_the_mhd(time, dt);
+      apply_source_to_state(S_new, hydro_source, dt, 0);
+#endif
 
       // Check for small/negative densities.
       // If we detect one, return immediately.
@@ -184,7 +203,11 @@ Castro::do_advance_ctu(Real time,
 
 
     // Sync up state after old sources and hydro source.
-    clean_state(S_new, cur_time, 0);
+    clean_state(
+#ifdef MHD
+                Bx_new, By_new, Bz_new,
+#endif
+                S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -224,7 +247,11 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_new_sources(new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+      do_new_sources(
+#ifdef MHD
+                              Bx_new, By_new, Bz_new,
+#endif  
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
     } else {
 
@@ -236,8 +263,13 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-        clean_state(S_new, cur_time, 0);
-        expand_state(S_new, cur_time, S_new.nGrow());
+      clean_state(
+#ifdef MHD
+                  Bx_new, By_new, Bz_new,
+#endif                
+                  S_new, cur_time, 0);
+
+      expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
@@ -259,33 +291,18 @@ Castro::do_advance_ctu(Real time,
     }
 #endif
 
-    // Check if this timestep violated our stability criteria.
+    // Check if this timestep violated our stability criteria. Our idea is,
+    // if the timestep created a velocity v and sound speed at the new time
+    // such that (v+c) * dt / dx < CFL / change_max, where CFL is the user's
+    // chosen timestep constraint and change_max is the factor that determines
+    // how much the timestep can change during an advance, consider the advance
+    // to have failed. This prevents the timestep from shrinking too much,
+    // whereas in computeNewDt change_max prevents the timestep from growing
+    // too much. The same reasoning applies for the other timestep limiters.
 
-    Real check_timestep_failure = 0.0_rt;
+    Real new_dt = estTimeStep(dt);
 
-    const Real* dx = geom.CellSize();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
-        const Box& bx = mfi.tilebox();
-
-#pragma gpu box(bx)
-        ca_check_timestep(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-#ifdef REACTIONS
-                          BL_TO_FORTRAN_ANYD(R_new[mfi]),
-#endif
-                          AMREX_REAL_ANYD(dx),
-                          dt, AMREX_MFITER_REDUCE_SUM(&check_timestep_failure));
-
-    }
-
-    ParallelDescriptor::ReduceRealSum(check_timestep_failure);
-
-    if (check_timestep_failure > 0.0_rt) {
+    if (castro::change_max * new_dt < dt) {
         status.success = false;
         status.reason = "timestep validity check failed";
     }
@@ -344,9 +361,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
                 Arena* old_arena = state[k].getArena();
                 state[k].setArena(The_Pinned_Arena());
 #endif
-
                 *prev_state[k] = state[k];
-
 #ifdef AMREX_USE_GPU
                 state[k].setArena(old_arena);
 #endif

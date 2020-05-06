@@ -22,6 +22,29 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real time, const int* bc);
 
+#ifdef MHD
+  void face_fillx
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const amrex::Real* dx, const amrex::Real* glo,
+     const amrex::Real time, const int* bc);
+
+  void face_filly
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const amrex::Real* dx, const amrex::Real* glo,
+     const amrex::Real time, const int* bc);
+
+  void face_fillz
+    (const int* lo, const int* hi,
+     BL_FORT_FAB_ARG_3D(state),
+     const int* dlo, const int* dhi,
+     const amrex::Real* dx, const amrex::Real* glo,
+     const amrex::Real time, const int* bc);
+#endif  
+
   inline void ca_nullfill
     (BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,

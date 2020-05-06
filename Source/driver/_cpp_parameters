@@ -89,9 +89,15 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
+#MHD 
+# plm slopes:
+# 0 zero slope
+# 1 vanleer
+# 2 centered, no limit
+mhd_plm_slope                int           1                  y             MHD
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y
+ppm_temp_fix                 int           0                  y 
 
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
@@ -381,6 +387,8 @@ disable_shock_burning        int           0                  y
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
 
+# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
+reactions_max_solve_level    int           100
 
 #-----------------------------------------------------------------------------
 # category: diffusion
