@@ -52,10 +52,9 @@
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
     void src_to_prim(const amrex::Box& bx,
-                     amrex::Array4<amrex::Real const> const q,
-                     amrex::Array4<amrex::Real const> const qaux,
-                     amrex::Array4<amrex::Real const> const src,
-                     amrex::Array4<amrex::Real> const srcQ);
+                     amrex::Array4<amrex::Real const> const& q,
+                     amrex::Array4<amrex::Real const> const& src,
+                     amrex::Array4<amrex::Real> const& srcQ);
 
     void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
