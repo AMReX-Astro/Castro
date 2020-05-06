@@ -82,7 +82,7 @@ void position(int i, int j, int k,
     Real offset[AMREX_SPACEDIM];
 
     const Real* problo = geomdata.ProbLo();
-    const Real* probhi = geomdata.ProbLo();
+    const Real* probhi = geomdata.ProbHi();
     const Real* dx     = geomdata.CellSize();
     const int*  domlo  = geomdata.domain.loVect();
     const int*  domhi  = geomdata.domain.hiVect();
