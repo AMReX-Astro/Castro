@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File hybrid.H" href="hybrid_8H.html" />
+    <link rel="next" title="File fourth_center_average.H" href="fourth__center__average_8H.html" />
     <link rel="prev" title="Hydro" href="../hydro_files.html" /> 
 </head>
 
@@ -137,6 +137,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_hydro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
@@ -605,6 +606,46 @@
 </p>
 </dd></dl>
 
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__hydro_8H_1a76c3a582ba2b41c4b42df8fc78098162"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real compute_laplacian (int i, int j, int k, int n, Array4&lt; Real const &gt; const a, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;lo_periodic, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;hi_periodic, GpuArray&lt; int, 3 &gt; const &amp;domlo, GpuArray&lt; int, 3 &gt; const &amp;domhi)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__hydro_8H_1ac1fc85708bbe7b8bc5efb95dd9c3ebcc"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real trans_laplacian (int i, int j, int k, int n, int idir, Array4&lt; Real const &gt; const a, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;lo_periodic, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;hi_periodic, GpuArray&lt; int, 3 &gt; const &amp;domlo, GpuArray&lt; int, 3 &gt; const &amp;domhi)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv416make_cell_centerRK3BoxRK6Array4IK4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv316make_cell_centerRK3BoxRK6Array4IK4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv216make_cell_centerRK3BoxRK6Array4IK4RealERK6Array4I4RealERK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="make_cell_center__BoxCR.Array4:RealC:CR.Array4:Real:CR.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1af5fcb931a6bd0643e63f959112f9ae5e"></span>void <code class="sig-name descname">make_cell_center</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>U</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>U_cc</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416make_cell_centerRK3BoxRK6Array4IK4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv425make_cell_center_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv325make_cell_center_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv225make_cell_center_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="make_cell_center_in_place__BoxCR.Array4:Real:CR.Array4:Real:CR.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1afcd55972cd297ed4ba4c01bff204bee8"></span>void <code class="sig-name descname">make_cell_center_in_place</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>U</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>tmp</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425make_cell_center_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv416compute_lap_termRK3BoxRK6Array4IK4RealERK6Array4I4RealEKiRK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv316compute_lap_termRK3BoxRK6Array4IK4RealERK6Array4I4RealEKiRK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv216compute_lap_termRK3BoxRK6Array4IK4RealERK6Array4I4RealEKiRK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="compute_lap_term__BoxCR.Array4:RealC:CR.Array4:Real:CR.iC.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1a6d3f225c27f99b34290dd2bd8c220847"></span>void <code class="sig-name descname">compute_lap_term</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>U</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>lap</em>, <em class="property">const</em> int <em>ncomp</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416compute_lap_termRK3BoxRK6Array4IK4RealERK6Array4I4RealEKiRK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv419make_fourth_averageRK3BoxRK6Array4I4RealERK6Array4IK4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv319make_fourth_averageRK3BoxRK6Array4I4RealERK6Array4IK4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv219make_fourth_averageRK3BoxRK6Array4I4RealERK6Array4IK4RealERK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="make_fourth_average__BoxCR.Array4:Real:CR.Array4:RealC:CR.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1a663c0a08b76ebfbf5bdc505feb00d67f"></span>void <code class="sig-name descname">make_fourth_average</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>q</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_bar</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419make_fourth_averageRK3BoxRK6Array4I4RealERK6Array4IK4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv420make_fourth_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv320make_fourth_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv220make_fourth_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="make_fourth_in_place__BoxCR.Array4:Real:CR.Array4:Real:CR.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1a763fc250d15bba899432a106e82e261c"></span>void <code class="sig-name descname">make_fourth_in_place</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>q</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>tmp</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420make_fourth_in_placeRK3BoxRK6Array4I4RealERK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv422make_fourth_in_place_nRK3BoxRK6Array4I4RealEKiRK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE">
+<span id="_CPPv322make_fourth_in_place_nRK3BoxRK6Array4I4RealEKiRK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE"></span><span id="_CPPv222make_fourth_in_place_nRK3BoxRK6Array4I4RealEKiRK6Array4I4RealERK8GpuArrayIiX3EERK8GpuArrayIiX3EE"></span><span id="make_fourth_in_place_n__BoxCR.Array4:Real:CR.iC.Array4:Real:CR.GpuArray:i.3:CR.GpuArray:i.3:CR"></span><span class="target" id="Castro__hydro_8H_1a96cafd4be2c6bbd8dce0909f4e366ad5"></span>void <code class="sig-name descname">make_fourth_in_place_n</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>q</em>, <em class="property">const</em> int <em>ncomp</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>tmp</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domlo</em>, GpuArray&lt;int, 3&gt; <em class="property">const</em> &amp;<em>domhi</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422make_fourth_in_place_nRK3BoxRK6Array4I4RealEKiRK6Array4I4RealERK8GpuArrayIiXL3EEERK8GpuArrayIiXL3EEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 
@@ -616,7 +657,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hybrid_8H.html" class="btn btn-neutral float-right" title="File hybrid.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fourth__center__average_8H.html" class="btn btn-neutral float-right" title="File fourth_center_average.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../hydro_files.html" class="btn btn-neutral float-left" title="Hydro" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
