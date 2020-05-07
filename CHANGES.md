@@ -1,3 +1,14 @@
+# 20.06
+
+   * The Reactions_Type StateData has been reworked so that its first
+     NumSpec components are rho * omegadot rather than omegadot; then,
+     the NumAux auxiliary components are stored, if the network has any
+     auxiliary variables; then, rho * enuc is stored (enuc itself is
+     removed), and finally the burn weights are stored. The checkpoint
+     version has been incremented, so this version of the code cannot
+     restart from checkpoints generated with earlier versions of the
+     code. (#927)
+
 # 20.05
 
    * The parameter use_custom_knapsack_weights and its associated

@@ -47,6 +47,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     }
 
+    // If we're not actually doing the burn, interpolate from the level below.
+
+    if (level > castro::reactions_max_solve_level && level > 0) {
+        FillCoarsePatch(r, 0, time, Reactions_Type, 0, r.nComp(), r.nGrow());
+    }
+
     const int ng = s.nGrow();
 
     if (verbose)
@@ -136,53 +142,32 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
                 if (do_burn) {
 
-                    // Note that we want to update the total energy by taking
-                    // the difference of the old rho*e and the new rho*e. If
-                    // the user wants to ensure that rho * E = rho * e + rho *
-                    // K, this reset should be enforced through an appropriate
-                    // choice for the dual energy formalism parameter
-                    // dual_energy_eta2 in reset_internal_energy.
-
-                    Real delta_e     = burn_state.e;
-                    Real delta_rho_e = burn_state.rho * delta_e;
-
                     // Add burning rates to reactions MultiFab, but be
                     // careful because the reactions and state MFs may
-                    // not have the same number of ghost cells. Note that
-                    // we must do this before we actually update the state
-                    // since we have not saved the old state.
+                    // not have the same number of ghost cells.
 
                     if (reactions.contains(i,j,k)) {
                         for (int n = 0; n < NumSpec; ++n) {
-                            reactions(i,j,k,n) = (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
+                            reactions(i,j,k,n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                         }
-                        reactions(i,j,k,NumSpec  ) = delta_e / dt;
-                        reactions(i,j,k,NumSpec+1) = delta_rho_e / dt;
-                        reactions(i,j,k,NumSpec+2) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
-                    }
-
-                    U(i,j,k,UEINT) += delta_rho_e;
-                    U(i,j,k,UEDEN) += delta_rho_e;
-
-                    for (int n = 0; n < NumSpec; ++n) {
-                        U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
-                    }
-
 #if naux > 0
-                    for (int n = 0; n < NumSpec; ++n) {
-                        U(i,j,k,UFX+n)  = U(i,j,k,URHO) * burn_state.aux[n];
-                    }
+                        for (int n = 0; n < NumAux; ++n) {
+                            reactions(i,j,k,n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
+                        }
 #endif
+                        reactions(i,j,k,NumSpec+NumAux  ) = U(i,j,k,URHO) * burn_state.e / dt;
+                        reactions(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    }
 
                 }
                 else {
 
                     if (reactions.contains(i,j,k)) {
-                        for (int n = 0; n < NumSpec+2; ++n) {
+                        for (int n = 0; n < NumSpec + NumAux + 1; ++n) {
                             reactions(i,j,k,n) = 0.0_rt;
                         }
 
-                        reactions(i,j,k,NumSpec+2) = 1.0_rt;
+                        reactions(i,j,k,NumSpec+NumAux+1) = 1.0_rt;
                     }
 
                 }
@@ -203,23 +188,25 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 #endif
 
         }
-        else {
 
-            // Use the interpolated reactions data to update the state.
+        // Now update the state with the reactions data.
 
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-            {
-                if (U.contains(i,j,k) && reactions.contains(i,j,k)) {
-                    for (int n = 0; n < NumSpec; ++n) {
-                        U(i,j,k,UFS+n) += reactions(i,j,k,n) * U(i,j,k,URHO) * dt;
-                    }
-                    U(i,j,k,UEINT) += reactions(i,j,k,NumSpec) * U(i,j,k,URHO) * dt;
-                    U(i,j,k,UEDEN) += reactions(i,j,k,NumSpec) * U(i,j,k,URHO) * dt;
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (U.contains(i,j,k) && reactions.contains(i,j,k)) {
+                for (int n = 0; n < NumSpec; ++n) {
+                    U(i,j,k,UFS+n) += reactions(i,j,k,n) * dt;
                 }
-            });
-
-        }
+#if naux > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    U(i,j,k,UFX+n) += reactions(i,j,k,n+NumSpec) * dt;
+                }
+#endif
+                U(i,j,k,UEINT) += reactions(i,j,k,NumSpec+NumAux) * dt;
+                U(i,j,k,UEDEN) += reactions(i,j,k,NumSpec+NumAux) * dt;
+            }
+        });
 
     }
 

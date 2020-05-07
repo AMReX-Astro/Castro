@@ -43,7 +43,7 @@ contains
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
     real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+3)
+    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+naux+2)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
