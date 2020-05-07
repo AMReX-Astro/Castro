@@ -1,5 +1,5 @@
-#ifndef _RAD_F_H_
-#define _RAD_F_H_
+#ifndef CASTRO_RAD_F_H
+#define CASTRO_RAD_F_H
 
 #include <AMReX_ArrayLim.H>
 
