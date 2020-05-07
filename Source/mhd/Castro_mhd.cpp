@@ -99,7 +99,10 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // Calculate primitives based on conservatives
           bcc.resize(bx_gc, 3);
+
           q.resize(bx_gc, NQ);
+          auto q_arr = q.array();
+
           srcQ.resize(obx, NQSRC);
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
@@ -123,10 +126,10 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
-          srctoprim_mhd(lo1, hi1,
-                        BL_TO_FORTRAN_ANYD(q),
-                        BL_TO_FORTRAN_ANYD(source_in),
-                        BL_TO_FORTRAN_ANYD(srcQ));
+          auto src_q_arr = srcQ.array();
+          auto src_arr = source_in.array();
+
+          src_to_prim(obx, q_arr, src_arr, src_q_arr);
 
           check_for_mhd_cfl_violation(lo, hi,
                                       BL_TO_FORTRAN_ANYD(q),
@@ -275,6 +278,11 @@ Castro::just_the_mhd(Real time, Real dt)
             flux0_arr(i,j,k,UMY) = flxx_arr(i,j,k,UMY);
             flux0_arr(i,j,k,UMZ) = flxx_arr(i,j,k,UMZ);
             flux0_arr(i,j,k,UEDEN) = flxx_arr(i,j,k,UEDEN);
+            flux0_arr(i,j,k,UEINT) = flxx_arr(i,j,k,UEINT);
+            flux0_arr(i,j,k,UTEMP) = 0.0;
+#ifdef SHOCK_VAR
+            flux0_arr(i,j,k,USHK) = 0.0;
+#endif
             for (int n = 0; n < NumSpec; n++) {
               flux0_arr(i,j,k,UFS+n) = flxx_arr(i,j,k,UFS+n);
             }
@@ -289,6 +297,11 @@ Castro::just_the_mhd(Real time, Real dt)
             flux1_arr(i,j,k,UMY) = flxy_arr(i,j,k,UMY);
             flux1_arr(i,j,k,UMZ) = flxy_arr(i,j,k,UMZ);
             flux1_arr(i,j,k,UEDEN) = flxy_arr(i,j,k,UEDEN);
+            flux1_arr(i,j,k,UEINT) = flxy_arr(i,j,k,UEINT);
+            flux1_arr(i,j,k,UTEMP) = 0.0;
+#ifdef SHOCK_VAR
+            flux1_arr(i,j,k,USHK) = 0.0;
+#endif
             for (int n = 0; n < NumSpec; n++) {
               flux1_arr(i,j,k,UFS+n) = flxy_arr(i,j,k,UFS+n);
             }
@@ -303,6 +316,11 @@ Castro::just_the_mhd(Real time, Real dt)
             flux2_arr(i,j,k,UMY) = flxz_arr(i,j,k,UMY);
             flux2_arr(i,j,k,UMZ) = flxz_arr(i,j,k,UMZ);
             flux2_arr(i,j,k,UEDEN) = flxz_arr(i,j,k,UEDEN);
+            flux2_arr(i,j,k,UEINT) = flxz_arr(i,j,k,UEINT);
+            flux2_arr(i,j,k,UTEMP) = 0.0;
+#ifdef SHOCK_VAR
+            flux2_arr(i,j,k,USHK) = 0.0;
+#endif
             for (int n = 0; n < NumSpec; n++) {
               flux2_arr(i,j,k,UFS+n) = flxz_arr(i,j,k,UFS+n);
             }

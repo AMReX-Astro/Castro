@@ -1,5 +1,6 @@
-#ifndef _Castro_rotation_F_H_
-#define _Castro_rotation_F_H_
+#ifndef CASTRO_ROTATION_F_H
+#define CASTRO_ROTATION_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
