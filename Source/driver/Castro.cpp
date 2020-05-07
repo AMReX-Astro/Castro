@@ -998,7 +998,7 @@ Castro::initData ()
 #ifdef MHD
                    Bx_new, By_new, Bz_new,
 #endif
-                   S_new, cur_time, S_new.nGrow());
+                   S_new, cur_time, 0);
 
        ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
        ReduceData<int, int> reduce_data(reduce_op);
@@ -1109,16 +1109,20 @@ Castro::initData ()
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
            // note: this cannot be tiled
-           const int* domain_lo = geom.Domain().loVect();
-           const int* domain_hi = geom.Domain().hiVect();
+           auto domain_lo = geom.Domain().loVect3d();
+           auto domain_hi = geom.Domain().hiVect3d();
+
+           FArrayBox tmp;
 
            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
              {
-               const Box& box     = mfi.validbox();
+               const Box& box = mfi.validbox();
 
-               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                       BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                       AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+               tmp.resize(box, 1);
+               Elixir elix_tmp = tmp.elixir();
+               auto tmp_arr = tmp.array();
+
+               make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
              }
 
            // now copy back the averages
@@ -1132,16 +1136,20 @@ Castro::initData ()
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
          // convert to centers -- not tile safe
-         const int* domain_lo = geom.Domain().loVect();
-         const int* domain_hi = geom.Domain().hiVect();
+         auto domain_lo = geom.Domain().loVect3d();
+         auto domain_hi = geom.Domain().hiVect3d();
+
+         FArrayBox tmp;
 
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box = mfi.growntilebox(2);
 
-             ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
-                                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+             tmp.resize(box, 1);
+             Elixir elix_tmp = tmp.elixir();
+             auto tmp_arr = tmp.array();
+
+             make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
            }
 
          // reset the energy -- do this in one ghost cell so we can average in place below
@@ -1184,9 +1192,11 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+             tmp.resize(box, 1);
+             Elixir elix_tmp = tmp.elixir();
+             auto tmp_arr = tmp.array();
+
+             make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
            }
 
          // now copy back the averages for UEINT and UTEMP only
@@ -3474,22 +3484,24 @@ Castro::computeTemp(
 
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
+
+    FArrayBox tmp;
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
       const int idx = mfi.tileIndex();
 
-      ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
-                          BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), UEINT,
-                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
+                       domain_lo, domain_hi);
 
-      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                                   AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      tmp.resize(bx, 1);
+      Elixir elix_tmp = tmp.elixir();
+      auto tmp_arr = tmp.array();
+
+      make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
 
     }
 
@@ -3581,19 +3593,22 @@ Castro::computeTemp(
     // cell-averages -- this is 4th-order and will be a no-op for
     // those zones where e wasn't changed.
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
+
+    FArrayBox tmp;
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
       const int idx = mfi.tileIndex();
 
-      // only temperature
-      ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), UTEMP,
-                                AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      tmp.resize(bx, 1);
+      Elixir elix_tmp = tmp.elixir();
+      auto tmp_arr = tmp.array();
 
+      // only temperature
+      make_fourth_in_place_n(bx, Stemp.array(mfi), UTEMP, tmp_arr, domain_lo, domain_hi);
     }
 
     // correct UEINT

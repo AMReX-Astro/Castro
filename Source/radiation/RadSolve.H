@@ -1,5 +1,5 @@
-#ifndef _RadSolve_H_
-#define _RadSolve_H_
+#ifndef CASTRO_RADSOLVE_H
+#define CASTRO_RADSOLVE_H
 
 #include <AMReX_Amr.H>
 

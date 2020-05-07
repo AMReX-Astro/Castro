@@ -26,8 +26,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     // for 4th order reactive SDC, we need to first compute the source, C
     // and do a ghost cell fill on it
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     // the timestep from m to m+1
     Real dt_m = (dt_sdc[m_end] - dt_sdc[m_start]) * dt;
@@ -123,6 +123,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
     FArrayBox C_center;
     FArrayBox U_new_center;
     FArrayBox R_new;
+    FArrayBox tlap;
 
     FArrayBox C2;
 
@@ -193,10 +194,10 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // convert the starting U to cell-centered on a fab-by-fab basis
             // -- including one ghost cell
             U_center.resize(bx1, NUM_STATE);
-            ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
-                                BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                BL_TO_FORTRAN_FAB(U_center),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+            Elixir elix_u_center = U_center.elixir();
+            auto U_center_arr = U_center.array();
+
+            make_cell_center(bx1, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
 
             // sometimes the Laplacian can make the species go negative near discontinuities
             ca_normalize_species(AMREX_INT_ANYD(bx1.loVect()), AMREX_INT_ANYD(bx1.hiVect()),
@@ -204,21 +205,20 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             // convert the C source to cell-centers
             C_center.resize(bx1, NUM_STATE);
-            ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
-                                BL_TO_FORTRAN_FAB(C_source[mfi]),
-                                BL_TO_FORTRAN_FAB(C_center),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+            Elixir elix_c_center = C_center.elixir();
+            auto C_center_arr = C_center.array();
+
+            make_cell_center(bx1, C_source.array(mfi), C_center_arr, domain_lo, domain_hi);
 
             // solve for the updated cell-center U using our cell-centered C -- we
             // need to do this with one ghost cell
             U_new_center.resize(bx1, NUM_STATE);
+            Elixir elix_u_new_center = U_new_center.elixir();
+            auto U_new_center_arr = U_new_center.array();
 
             // initialize U_new with our guess for the new state, stored as
             // an average in Sburn
-            ca_make_cell_center(BL_TO_FORTRAN_BOX(bx1),
-                                BL_TO_FORTRAN_FAB(Sburn[mfi]),
-                                BL_TO_FORTRAN_FAB(U_new_center),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+            make_cell_center(bx1, Sburn.array(mfi), U_new_center_arr, domain_lo, domain_hi);
 
             ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
                                      BL_TO_FORTRAN_3D(U_center),
@@ -230,15 +230,17 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // place (only for the interior)
             R_new.resize(bx1, NUM_STATE);
             Elixir elix_R_new = R_new.elixir();
-            Array4<const Real> const& R_new_arr=R_new.array();
+            Array4<Real> const& R_new_arr = R_new.array();
 
             ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
                                    BL_TO_FORTRAN_3D(U_new_center),
                                    BL_TO_FORTRAN_3D(R_new));
 
-            ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                    BL_TO_FORTRAN_FAB(R_new),
-                                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+            tlap.resize(bx, 1);
+            Elixir elix_tlap = tlap.elixir();
+            auto const tlap_arr = tlap.array();
+
+            make_fourth_in_place(bx, R_new_arr, tlap_arr, domain_lo, domain_hi);
 
             // now do the conservative update using this <R> to get <U>
             // We'll also need to pass in <C>
@@ -313,8 +315,8 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
     BL_PROFILE("Castro::construct_old_react_source()");
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     if (sdc_order == 4 && input_is_average)
     {
@@ -323,6 +325,7 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
         FArrayBox U_center;
         FArrayBox R_center;
+        FArrayBox tmp;
 
         for (MFIter mfi(U_state); mfi.isValid(); ++mfi)
         {
@@ -332,13 +335,16 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
             // Convert to centers
             U_center.resize(obx, NUM_STATE);
-            ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
-                                BL_TO_FORTRAN_FAB(U_state[mfi]),
-                                BL_TO_FORTRAN_FAB(U_center),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+            Elixir elix_u_center = U_center.elixir();
+            auto const U_center_arr = U_center.array();
+
+            make_cell_center(obx, U_state.array(mfi), U_center_arr, domain_lo, domain_hi);
 
             // burn, including one ghost cell
             R_center.resize(obx, NUM_STATE);
+            Elixir elix_r_center = R_center.elixir();
+            auto const R_center_arr = R_center.array();
+
             ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
                                    BL_TO_FORTRAN_3D(U_center),
                                    BL_TO_FORTRAN_3D(R_center));
@@ -349,9 +355,12 @@ Castro::construct_old_react_source(MultiFab& U_state,
             Sburn[mfi].copy(R_center, obx, 0, obx, 0, NUM_STATE);
 
             // convert R to averages (in place)
-            ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                    BL_TO_FORTRAN_FAB(R_center),
-                                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+            tmp.resize(bx, 1);
+            Elixir elix_tmp = tmp.elixir();
+            auto const tmp_arr = tmp.array();
+
+            make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
 
             // copy this to the center
             R_source[mfi].copy(R_center, bx, 0, bx, 0, NUM_STATE);

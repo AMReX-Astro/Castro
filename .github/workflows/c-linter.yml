@@ -1,0 +1,37 @@
+name: cpp-linter
+
+on: [pull_request]
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get submodules 
+        run: git submodule update --init
+
+      - name: Run cpp linter
+        uses: AMReX-Astro/cpp-linter-action@master
+        with: 
+          build_path: 'Exec/science/flame_wave'
+          make_options: '-j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
+          ignore_files: 'amrex|Microphysics'
+          header_filter: 'Castro'
+      
+      - name: Archive clang tidy report
+        uses: actions/upload-artifact@v1
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt
+      
+    #   - name: Archive clang format report
+    #     uses: actions/upload-artifact@v1
+    #     with:
+    #       name: clang-format-report
+    #       path: clang-format-report.txt
+      
+      - name: Archive cppcheck report
+        uses: actions/upload-artifact@v1
+        with:
+          name: cppcheck-report
+          path: cppcheck-report.txt

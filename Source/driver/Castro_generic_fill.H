@@ -1,5 +1,5 @@
-#ifndef _Castro_generic_fill_H_
-#define _Castro_generic_fill_H_
+#ifndef CASTRO_GENERIC_FILL_H
+#define CASTRO_GENERIC_FILL_H
 
 #include <AMReX_BLFort.H>
 #include <Castro.H>

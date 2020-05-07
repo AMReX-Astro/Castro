@@ -70,13 +70,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     // correct the fluxes using an HLL scheme if we are in a shock
     // and doing the hybrid approach
 
-    GpuArray<int, npassive> upass_map_p;
-    GpuArray<int, npassive> qpass_map_p;
-    for (int n = 0; n < npassive; ++n) {
-      upass_map_p[n] = upass_map[n];
-      qpass_map_p[n] = qpass_map[n];
-    }
-
     auto coord = geom.Coord();
 
     amrex::ParallelFor(bx,
@@ -126,7 +119,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         HLL(ql_zone, qr_zone, cl, cr,
             idir, coord,
-            upass_map_p, qpass_map_p,
             flx_zone);
 
         for (int n = 0; n < NUM_STATE; n++) {

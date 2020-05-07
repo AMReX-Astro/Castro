@@ -463,10 +463,9 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
 void
 Castro::src_to_prim(const Box& bx,
-                    Array4<Real const> const q_arr,
-                    Array4<Real const> const qaux_arr,
-                    Array4<Real const> const src,
-                    Array4<Real> const srcQ)
+                    Array4<Real const> const& q_arr,
+                    Array4<Real const> const& src,
+                    Array4<Real> const& srcQ)
 {
 
   amrex::ParallelFor(bx,

@@ -1,5 +1,5 @@
-#ifndef _RadTypes_H_
-#define _RadTypes_H_
+#ifndef CASTRO_RADTYPES_H
+#define CASTRO_RADTYPES_H
 
 enum RadNames  { Rad  = 0 };
 enum TestNames {                                      Test0  =  0,

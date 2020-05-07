@@ -7,6 +7,8 @@
 #include "diffusion_util.H"
 #endif
 
+#include "fourth_center_average.H"
+
 using namespace amrex;
 
 ///
@@ -41,8 +43,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   BL_PROFILE_VAR("Castro::advance_hydro_ca_umdrv()", CA_UMDRV);
 
-  const int* domain_lo = geom.Domain().loVect();
-  const int* domain_hi = geom.Domain().hiVect();
+  GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
+  GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -238,7 +240,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                    idir_f, ncomp_f,
                                    BL_TO_FORTRAN_ANYD(q[mfi]),
                                    BL_TO_FORTRAN_ANYD(q_int),
-                                   ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                                   ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
 
               // compute the limited interface states
               // operate on obx -- this loop is over cell-centers
@@ -249,7 +251,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                         BL_TO_FORTRAN_ANYD(flatn),
                         BL_TO_FORTRAN_ANYD(qm),
                         BL_TO_FORTRAN_ANYD(qp),
-                        ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                        ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
             }
 
             // get the face-averaged state and flux, <q> and F(<q>),
@@ -265,8 +267,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
             if (do_hydro == 0) {
-              Array4<Real> const f_avg_arr = f_avg.array();
-
               amrex::ParallelFor(nbx, NUM_STATE,
               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
               {
@@ -307,24 +307,29 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 #if AMREX_SPACEDIM >= 2
             // construct the face-center interface states q_fc
-            AMREX_PARALLEL_FOR_4D(nbx, NQ, i, j, k, n,
+            const int* lo_bc = phys_bc.lo();
+            const int* hi_bc = phys_bc.hi();
+
+            GpuArray<bool, AMREX_SPACEDIM> lo_periodic;
+            GpuArray<bool, AMREX_SPACEDIM> hi_periodic;
+            for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+              lo_periodic[idir] = lo_bc[idir] == Interior;
+              hi_periodic[idir] = hi_bc[idir] == Interior;
+            }
+
+            amrex::ParallelFor(nbx, NQ,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
-                bool test = (n == QGC) || (n == QTEMP);
+              bool test = (n == QGC) || (n == QTEMP);
 
-                if (test) continue;
+              if (test) return;
 
-                Real lap = 0.0;
-                int ncomp_f = n + 1;
+              Real lap = trans_laplacian(i, j, k, n, idir, q_avg_arr,
+                                         lo_periodic, hi_periodic, domain_lo, domain_hi);
 
-                trans_laplacian(i, j, k, ncomp_f,
-                                idir_f,
-                                BL_TO_FORTRAN_ANYD(q_avg), NQ,
-                                &lap,
-                                ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+              q_fc_arr(i,j,k,n) = q_avg_arr(i,j,k,n) - (1.0_rt/24.0_rt) * lap;
 
-                q_fc_arr(i,j,k,n) = q_avg_arr(i,j,k,n) - 1.0/24.0 * lap;
-
-              });
+            });
 
             // compute the face-center fluxes F(q_fc)
             Array4<Real> const f_arr = (flux[idir]).array();
@@ -358,21 +363,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // compute the final fluxes
             Array4<Real> const flux_arr = (flux[idir]).array();
 
-            AMREX_PARALLEL_FOR_4D(nbx, NUM_STATE, i, j, k, n,
+            amrex::ParallelFor(nbx, NUM_STATE,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
             {
 
-                Real lap = 0.0;
-                int ncomp_f = n + 1;
+              Real lap = trans_laplacian(i, j, k, n, idir, f_avg_arr,
+                                         lo_periodic, hi_periodic, domain_lo, domain_hi);
 
-                trans_laplacian(i, j, k, ncomp_f,
-                                idir_f,
-                                BL_TO_FORTRAN_ANYD(f_avg), NUM_STATE,
-                                &lap,
-                                ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+              flux_arr(i,j,k,n) += (1.0_rt/24.0_rt) * lap;
 
-                flux_arr(i,j,k,n) = flux_arr(i,j,k,n) + 1.0/24.0 * lap;
-
-              });
+            });
 
 #endif
 
@@ -490,7 +490,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
                 Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-                src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+                src_to_prim(qbx, q_arr, src_arr, src_q_arr);
 
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,

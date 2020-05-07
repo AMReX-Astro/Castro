@@ -299,7 +299,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-      src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+      src_to_prim(qbx, q_arr, src_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC

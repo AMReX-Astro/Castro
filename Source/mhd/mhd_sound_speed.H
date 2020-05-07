@@ -1,5 +1,5 @@
-#ifndef _MHD_SOUND_SPEED_H_
-#define _MHD_SOUND_SPEED_H_
+#ifndef CASTRO_MHD_SOUND_SPEED_H
+#define CASTRO_MHD_SOUND_SPEED_H
 
 #include "Castro_util.H"
 

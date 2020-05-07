@@ -1329,8 +1329,6 @@ void
 Castro::HLL(const Real* ql, const Real* qr,
             const Real cl, const Real cr,
             const int idir, const int coord,
-            const GpuArray<int, npassive>& upass_map_p,
-            const GpuArray<int, npassive>& qpass_map_p,
             Real* flux_hll) {
 
   // This is the HLLE solver.  We should apply it to zone averages
@@ -1462,8 +1460,8 @@ Castro::HLL(const Real* ql, const Real* qr,
 
   // passively-advected scalar fluxes
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
+    int n  = upassmap(ipassive);
+    int nqs = qpassmap(ipassive);
 
     fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
     fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
