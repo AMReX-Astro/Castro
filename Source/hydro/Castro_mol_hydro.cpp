@@ -466,7 +466,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
                 Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-                src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+                src_to_prim(qbx, q_arr, src_arr, src_q_arr);
 
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,
