@@ -374,8 +374,6 @@
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
              const int idir, const int coord,
-             const amrex::GpuArray<int, npassive>& upass_map_p,
-             const amrex::GpuArray<int, npassive>& qpass_map_p,
              amrex::Real* f);
 
     AMREX_GPU_HOST_DEVICE
