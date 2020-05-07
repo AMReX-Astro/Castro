@@ -228,7 +228,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                                    idir_f, ncomp_f,
                                    BL_TO_FORTRAN_ANYD(q[mfi]),
                                    BL_TO_FORTRAN_ANYD(q_int),
-                                   ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                                   ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
 
               // compute the limited interface states
               // operate on obx -- this loop is over cell-centers
@@ -239,7 +239,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                         BL_TO_FORTRAN_ANYD(flatn),
                         BL_TO_FORTRAN_ANYD(qm),
                         BL_TO_FORTRAN_ANYD(qp),
-                        ARLIM_3D(domain_lo), ARLIM_3D(domain_hi));
+                        ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
             }
 
             // get the face-averaged state and flux, <q> and F(<q>),
