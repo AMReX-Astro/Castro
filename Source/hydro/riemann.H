@@ -1,5 +1,5 @@
-#ifndef _riemann_H_
-#define _riemann_H_
+#ifndef CASTRO_RIEMANN_H
+#define CASTRO_RIEMANN_H
 
 using namespace amrex;
 

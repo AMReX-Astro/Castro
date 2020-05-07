@@ -1,5 +1,5 @@
-#ifndef _Gravity_H_
-#define _Gravity_H_
+#ifndef GRAVITY_H
+#define GRAVITY_H
 
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
