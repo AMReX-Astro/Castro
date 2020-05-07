@@ -40,7 +40,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
   }
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
 
@@ -99,7 +99,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (lo_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -120,7 +120,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (hi_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -143,7 +143,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (lo_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -164,7 +164,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (hi_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -188,7 +188,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (lo_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -209,7 +209,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     if (hi_bc_test) {
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
        // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -241,7 +241,7 @@ Castro::mol_ppm_reconstruct(const Box& bx,
                             Array4<Real> const qp) {
 
   amrex::ParallelFor(bx, NQ,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real s[5];

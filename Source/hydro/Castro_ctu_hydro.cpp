@@ -213,7 +213,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (first_order_hydro == 1) {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           flatn_arr(i,j,k) = 0.0;
         });
@@ -227,7 +227,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Real flatten_pp_thresh = radiation::flatten_pp_threshold;
 
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
@@ -245,7 +245,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           flatn_arr(i,j,k) = 1.0;
         });
@@ -282,7 +282,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
       else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           shk_arr(i,j,k) = 0.0;
         });
@@ -1161,7 +1161,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1312,7 +1312,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
                 amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
@@ -1322,7 +1322,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #if AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
                 amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });

@@ -639,7 +639,7 @@ Castro::riemannus(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -1120,7 +1120,7 @@ Castro::HLLC(const Box& bx,
   int coord = geom.Coord();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls

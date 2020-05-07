@@ -111,7 +111,7 @@ Castro::actual_trans_single(const Box& bx,
 #endif
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // We are handling the states at the interface of
@@ -517,7 +517,7 @@ Castro::actual_trans_final(const Box& bx,
 #endif
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // the normal state

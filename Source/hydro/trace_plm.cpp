@@ -73,7 +73,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   // Compute left and right traced states
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cc = qaux_arr(i,j,k,QC);

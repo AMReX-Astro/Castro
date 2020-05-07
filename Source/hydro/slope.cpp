@@ -43,7 +43,7 @@ Castro::uslope(const Box& bx, const int idir,
 
     // first order -- piecewise constant slopes
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
       dq(i,j,k,n) = 0.0;
     });
@@ -55,7 +55,7 @@ Castro::uslope(const Box& bx, const int idir,
     const int lplm_limiter = plm_limiter;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       if (lplm_limiter == 1) {
@@ -221,7 +221,7 @@ Castro::pslope(const Box& bx, const int idir,
 
     // first order -- piecewise constant slopes
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
      dq(i,j,k,QPRES) = 0.0_rt;
     });
@@ -229,7 +229,7 @@ Castro::pslope(const Box& bx, const int idir,
   } else {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
