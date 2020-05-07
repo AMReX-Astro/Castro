@@ -311,7 +311,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             {
                 bool test = (n == QGC) || (n == QTEMP);
 
-                if (test) return;
+                if (test) continue;
 
                 Real lap = 0.0;
                 int ncomp_f = n + 1;
