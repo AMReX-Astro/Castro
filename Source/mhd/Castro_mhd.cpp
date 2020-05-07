@@ -47,6 +47,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox bcc;
       FArrayBox q;
+      FArrayBox qaux;
       FArrayBox srcQ;
 
       FArrayBox flatn;
@@ -76,14 +77,21 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* hi = bx.hiVect();
 
           FArrayBox &statein  = Sborder[mfi];
+          auto u_arr = statein.array();
+
           FArrayBox &stateout = S_new[mfi];
 
           FArrayBox &source_in  = sources_for_hydro[mfi];
           FArrayBox &source_out = hydro_source[mfi];
 
           FArrayBox& Bx  = Bx_old_tmp[mfi];
+          auto Bx_arr = Bx.array();
+
           FArrayBox& By  = By_old_tmp[mfi];
+          auto By_arr = By.array();
+
           FArrayBox& Bz  = Bz_old_tmp[mfi];
+          auto Bz_arr = Bz.array();
 
           FArrayBox& Bxout = Bx_new[mfi];
           FArrayBox& Byout = By_new[mfi];
@@ -99,9 +107,13 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // Calculate primitives based on conservatives
           bcc.resize(bx_gc, 3);
+          auto bcc_arr = bcc.array();
 
           q.resize(bx_gc, NQ);
           auto q_arr = q.array();
+
+          qaux.resize(bx_gc, NQAUX);
+          auto qaux_arr = qaux.array();
 
           srcQ.resize(obx, NQSRC);
 
@@ -112,22 +124,27 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
 
-          ctoprim_mhd(lo_gc, hi_gc,
-                      BL_TO_FORTRAN_ANYD(statein),
-                      BL_TO_FORTRAN_ANYD(bcc),
-                      BL_TO_FORTRAN_ANYD(Bx),
-                      BL_TO_FORTRAN_ANYD(By),
-                      BL_TO_FORTRAN_ANYD(Bz),
-                      BL_TO_FORTRAN_ANYD(q),
-                      BL_TO_FORTRAN_ANYD(cs[0]),
-                      BL_TO_FORTRAN_ANYD(cs[1]),
-                      BL_TO_FORTRAN_ANYD(cs[2]));
+
+          ctoprim(bx_gc, time,
+                  u_arr,
+                  bcc_arr,
+                  Bx_arr, By_arr, Bz_arr,
+                  q_arr, qaux_arr);
+
+          auto cx_arr = (cs[0]).array();
+          auto cy_arr = (cs[1]).array();
+          auto cz_arr = (cs[2]).array();
+
+          mhd_speeds(bx_gc,
+                     Bx_arr, By_arr, Bz_arr,
+                     q_arr, qaux_arr,
+                     cx_arr, cy_arr, cz_arr);
 
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
-          auto src_q_arr = srcQ.array();
           auto src_arr = source_in.array();
+          auto src_q_arr = srcQ.array();
 
           src_to_prim(obx, q_arr, src_arr, src_q_arr);
 
