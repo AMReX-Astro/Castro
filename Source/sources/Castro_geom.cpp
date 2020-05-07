@@ -109,8 +109,8 @@ Castro::fill_geom_source (Real time, Real dt,
   // resulting from taking the divergence of (rho U U) in cylindrical
   // coordinates.  See the paper by Bernard-Champmartin
 
-  const Real* dx = geom.CellSize();
-  const Real* prob_lo = geom.ProbLo();
+  auto dx = geom.CellSizeArray();
+  auto prob_lo = geom.ProbLoArray();
 
   auto coord = geom.Coord(); 
 
@@ -126,7 +126,8 @@ Castro::fill_geom_source (Real time, Real dt,
     Array4<Real const> const new_state = state_new.array(mfi);
     Array4<Real> const src = geom_src.array(mfi);
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian
@@ -139,7 +140,7 @@ Castro::fill_geom_source (Real time, Real dt,
                                  (old_state(i,j,k,UMZ) + new_state(i,j,k,UMZ)) / (rho_half * r);
 
       // azimuthal momentum: F = - rho v_r v_phi / r
-      src(i,j,k,UMX) = -0.25_rt * (old_state(i,j,k,UMX) + new_state(i,j,k,UMX)) *
+      src(i,j,k,UMZ) = -0.25_rt * (old_state(i,j,k,UMX) + new_state(i,j,k,UMX)) *
                                   (old_state(i,j,k,UMZ) + new_state(i,j,k,UMZ)) / (rho_half * r);
 
     });
