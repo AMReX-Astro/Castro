@@ -365,13 +365,6 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    // For the ca_check_timestep routine, we need to have both the old
-    // and new burn defined, so we simply do a copy here
-    MultiFab& R_old = get_old_data(Reactions_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
-
-
     if (burn_success)
         return true;
     else
