@@ -54,7 +54,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
                         const Real gdot, const Real gmin, const Real gmax,
                         const int lcg_maxiter, const Real lcg_tol,
                         Real& pstar, Real& gamstar,
-                        bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
+                        bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra) {
 
   // we want to zero
   // f(p*) = u*_l(p*) - u*_r(p*)

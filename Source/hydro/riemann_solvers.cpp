@@ -97,13 +97,6 @@ Castro::riemanncg(const Box& bx,
 
   const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
   AMREX_PARALLEL_FOR_3D(bx, i, j, k,
   {
 
@@ -555,7 +548,7 @@ Castro::riemanncg(const Box& bx,
 
     // advected quantities -- only the contact matters
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
 
       if (ustar > 0.0_rt) {
         qint(i,j,k,nqp) = ql(i,j,k,nqp);
@@ -630,13 +623,6 @@ Castro::riemannus(const Box& bx,
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
-
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -1044,7 +1030,7 @@ Castro::riemannus(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
       qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
     }
 

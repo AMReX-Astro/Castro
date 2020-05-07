@@ -393,7 +393,7 @@
                     const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
                     const int lcg_maxiter, const amrex::Real lcg_tol,
                     amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
+                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra);
 
     AMREX_GPU_HOST_DEVICE
     void
