@@ -1,5 +1,5 @@
-#ifndef _HypreABec_H_
-#define _HypreABec_H_
+#ifndef CASTRO_HYPREABEC_H
+#define CASTRO_HYPREABEC_H
 
 #include <AMReX_Array.H>
 #include <AMReX_MultiFab.H>

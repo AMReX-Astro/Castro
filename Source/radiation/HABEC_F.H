@@ -1,5 +1,5 @@
-#ifndef _HABEC_F_H_
-#define _HABEC_F_H_
+#ifndef CASTRO_HABEC_F_H
+#define CASTRO_HABEC_F_H
 
 #include <AMReX_ArrayLim.H>
 #include <AMReX_BLFort.H>

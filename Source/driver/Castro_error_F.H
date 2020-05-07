@@ -1,5 +1,6 @@
-#ifndef _Castro_error_F_H_
-#define _Castro_error_F_H_
+#ifndef CASTRO_ERROR_F_H
+#define CASTRO_ERROR_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
