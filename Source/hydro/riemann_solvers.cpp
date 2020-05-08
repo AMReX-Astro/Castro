@@ -29,9 +29,6 @@ Castro::riemanncg(const Box& bx,
   constexpr Real weakwv = 1.e-3_rt;
 
 #ifndef AMREX_USE_CUDA
-  GpuArray<Real, HISTORY_SIZE> pstar_hist;
-  GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
-
   if (cg_maxiter > HISTORY_SIZE) {
     amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
   }
@@ -91,21 +88,13 @@ Castro::riemanncg(const Box& bx,
   const Real lsmall_temp = small_temp;
   const Real lsmall = small;
 
-  const int lcg_blend = cg_blend;
-  const int lcg_maxiter = cg_maxiter;
-  const Real lcg_tol = cg_tol;
-
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
+
+#ifndef AMREX_USE_CUDA
+    GpuArray<Real, HISTORY_SIZE> pstar_hist;
+#endif
 
 
     // deal with hard walls
@@ -137,7 +126,7 @@ Castro::riemanncg(const Box& bx,
     Real rel = ql(i,j,k,QREINT);
     Real gcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gcl = ql(i,j,k,QGC);
     }
 #endif
@@ -180,7 +169,7 @@ Castro::riemanncg(const Box& bx,
     Real rer = qr(i,j,k,QREINT);
     Real gcr = qaux_arr(i,j,k,QGAMC);
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gcr = qr(i,j,k,QGC);
     }
 #endif
@@ -285,7 +274,7 @@ Castro::riemanncg(const Box& bx,
     bool converged = false;
 
     int iter = 0;
-    while ((iter < lcg_maxiter && !converged) || iter < 2) {
+    while ((iter < cg_maxiter && !converged) || iter < 2) {
 
       wsqge(pl, taul, gamel, gdot, gamstar,
             gmin, gmax, clsql, pstar, wlsq);
@@ -327,7 +316,7 @@ Castro::riemanncg(const Box& bx,
       pstar = amrex::max(pstar, lsmall_pres);
 
       Real err = std::abs(pstar - pstar_old);
-      if (err < lcg_tol*pstar) {
+      if (err < cg_tol*pstar) {
         converged = true;
       }
 
@@ -346,11 +335,11 @@ Castro::riemanncg(const Box& bx,
 
     if (!converged) {
 
-      if (lcg_blend == 0) {
+      if (cg_blend == 0) {
 
 #ifndef AMREX_USE_CUDA
         std::cout <<  "pstar history: " << std::endl;
-        for (int iter_l=0; iter_l < lcg_maxiter; iter_l++) {
+        for (int iter_l=0; iter_l < cg_maxiter; iter_l++) {
           std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
         }
 
@@ -362,11 +351,11 @@ Castro::riemanncg(const Box& bx,
         amrex::Error("ERROR: non-convergence in the Riemann solver");
 #endif
 
-      } else if (lcg_blend == 1) {
+      } else if (cg_blend == 1) {
 
         pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr);
 
-      } else if (lcg_blend == 2) {
+      } else if (cg_blend == 2) {
 
         // we don't store the history if we are in CUDA, so
         // we can't do this
@@ -374,7 +363,7 @@ Castro::riemanncg(const Box& bx,
         // first try to find a reasonable bounds
         Real pstarl = 1.e200;
         Real pstaru = -1.e200;
-        for (int n = lcg_maxiter-6; n < lcg_maxiter; n++) {
+        for (int n = cg_maxiter-6; n < cg_maxiter; n++) {
           pstarl = amrex::min(pstarl, pstar_hist[n]);
           pstaru = amrex::max(pstaru, pstar_hist[n]);
         }
@@ -382,21 +371,23 @@ Castro::riemanncg(const Box& bx,
         pstarl = amrex::max(pstarl, lsmall_pres);
         pstaru = amrex::max(pstaru, lsmall_pres);
 
+        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
+
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,
                         ur, pr, taur, gamer, clsqr,
                         gdot, gmin, gmax,
-                        lcg_maxiter, lcg_tol, 
+                        cg_maxiter, cg_tol, 
                         pstar, gamstar, converged, pstar_hist_extra);
 
         if (!converged) {
 
           std::cout << "pstar history: " << std::endl;
-          for (int iter_l = 0; iter_l < lcg_maxiter; iter_l++) {
+          for (int iter_l = 0; iter_l < cg_maxiter; iter_l++) {
             std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
           }
           std::cout << "pstar extra history: " << std::endl;
-          for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*lcg_maxiter; iter_l++) {
+          for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*cg_maxiter; iter_l++) {
             std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
           }
 
@@ -555,7 +546,7 @@ Castro::riemanncg(const Box& bx,
 
     // advected quantities -- only the contact matters
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
 
       if (ustar > 0.0_rt) {
         qint(i,j,k,nqp) = ql(i,j,k,nqp);
@@ -623,7 +614,6 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
   const int luse_eos_in_riemann = use_eos_in_riemann;
 
   const Real lsmall = small;
@@ -631,14 +621,8 @@ Castro::riemannus(const Box& bx,
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -800,7 +784,7 @@ Castro::riemannus(const Box& bx,
       gamcr = eos_state.gam1;
 
 #ifdef TRUE_SDC
-    } else if (luse_reconstructed_gamma1 == 1) {
+    } else if (use_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
 #endif
@@ -1043,7 +1027,7 @@ Castro::riemannus(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
       qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
     }
 
@@ -1107,7 +1091,6 @@ Castro::HLLC(const Box& bx,
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lsmall = small;
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
 
   GpuArray<int, npassive> upass_map_p;
   GpuArray<int, npassive> qpass_map_p;
@@ -1118,7 +1101,8 @@ Castro::HLLC(const Box& bx,
 
   int coord = geom.Coord();
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -1168,7 +1152,7 @@ Castro::HLLC(const Box& bx,
     Real gamcr = qaux_arr(i,j,k,QGAMC);
 
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
     }

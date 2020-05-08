@@ -1072,7 +1072,7 @@ Castro::initData ()
          auto S_arr = S_new.array(mfi);
 
          amrex::ParallelFor(bx,
-         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
          {
            Real spec_sum = 0.0_rt;
            for (int n = 0; n < NumSpec; n++) {
@@ -1160,7 +1160,7 @@ Castro::initData ()
              auto S_arr = Sborder.array(mfi);
 
              amrex::ParallelFor(box,
-             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
              {
 
                Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
@@ -2889,7 +2889,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // Ensure the species mass fractions are between small_x and 1,
         // then normalize them so that they sum to 1.
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real rhoX_sum = 0.0_rt;
 
@@ -2935,7 +2936,7 @@ Castro::enforce_consistent_e (
 #endif
 
         ParallelFor(box,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
           Real u = S_arr(i,j,k,UMX) * rhoInv;
@@ -3318,7 +3319,8 @@ Castro::reset_internal_energy(const Box& bx,
     Real lsmall_temp = small_temp;
     Real ldual_energy_eta2 = dual_energy_eta2;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
         Real rhoInv = 1.0_rt / u(i,j,k,URHO);
         Real Up = u(i,j,k,UMX) * rhoInv;
@@ -3547,7 +3549,8 @@ Castro::computeTemp(
 
       Array4<Real> const u = u_fab.array();
 
-      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);

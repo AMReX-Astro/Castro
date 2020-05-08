@@ -138,7 +138,8 @@ Castro::trace_ppm(const Box& bx,
   }
 
   // Trace to left and right edges using upwind PPM
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real rho = q_arr(i,j,k,QRHO);

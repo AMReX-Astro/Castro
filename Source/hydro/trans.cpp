@@ -110,7 +110,8 @@ Castro::actual_trans_single(const Box& bx,
     int closure = Radiation::closure;
 #endif
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // We are handling the states at the interface of
@@ -515,7 +516,8 @@ Castro::actual_trans_final(const Box& bx,
     int closure = Radiation::closure;
 #endif
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // the normal state
