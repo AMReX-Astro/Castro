@@ -5,7 +5,7 @@ using namespace amrex;
 
 void
 Castro::reset_edge_state_thermo(const Box& bx,
-                                Array4<Real> const qedge)
+                                Array4<Real> const& qedge)
 {
 
     int use_eos = transverse_use_eos;
@@ -14,7 +14,8 @@ Castro::reset_edge_state_thermo(const Box& bx,
     Real small_t = small_temp;
     Real small_p = small_pres;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
 #ifdef RADIATION
@@ -74,13 +75,14 @@ Castro::reset_edge_state_thermo(const Box& bx,
 
 void
 Castro::edge_state_temp_to_pres(const Box& bx,
-                                Array4<Real> const qm,
-                                Array4<Real> const qp)
+                                Array4<Real> const& qm,
+                                Array4<Real> const& qp)
 {
 
     // use T to define p
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // We just got the extremes corresponding to a particular cell-center, but now

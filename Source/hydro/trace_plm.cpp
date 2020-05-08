@@ -15,15 +15,15 @@ using namespace amrex;
 
 void
 Castro::trace_plm(const Box& bx, const int idir,
-                  Array4<Real const> const q_arr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real const> const dq,
-                  Array4<Real> const qm,
-                  Array4<Real> const qp,
+                  Array4<Real const> const& q_arr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real const> const& dq,
+                  Array4<Real> const& qm,
+                  Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
-                  Array4<Real const> const dloga,
+                  Array4<Real const> const& dloga,
 #endif
-                  Array4<Real const> const srcQ,
+                  Array4<Real const> const& srcQ,
                   const Box& vbx,
                   const Real dt) {
 
@@ -69,7 +69,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 
   // Compute left and right traced states
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cc = qaux_arr(i,j,k,QC);
