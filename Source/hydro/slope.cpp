@@ -33,12 +33,6 @@ Castro::uslope(const Box& bx, const int idir,
   bool lo_bc_test = lo_bc[idir] == Symmetry;
   bool hi_bc_test = hi_bc[idir] == Symmetry;
 
-#ifdef GRAVITY
-  Real lconst_grav =  gravity->get_const_grav();
-#else
-  Real lconst_grav = 0.0_rt;
-#endif
-
   if (plm_iorder == 1) {
 
     // first order -- piecewise constant slopes
