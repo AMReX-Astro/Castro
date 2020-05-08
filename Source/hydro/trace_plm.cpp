@@ -34,9 +34,6 @@ Castro::trace_plm(const Box& bx, const int idir,
 
   const Real dtdx = dt/dx[idir];
 
-  auto lo = bx.loVect3d();
-  auto hi = bx.hiVect3d();
-
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
 

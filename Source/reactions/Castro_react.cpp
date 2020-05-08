@@ -54,7 +54,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
+#ifdef CXX_REACTIONS
     using ReduceTuple = typename decltype(reduce_data)::Type;
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
