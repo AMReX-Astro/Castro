@@ -15,14 +15,14 @@ using namespace amrex;
 void
 Castro::trace_ppm(const Box& bx,
                   const int idir,
-                  Array4<Real const> const q_arr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real const> const srcQ,
-                  Array4<Real const> const flatn,
-                  Array4<Real> const qm,
-                  Array4<Real> const qp,
+                  Array4<Real const> const& q_arr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real const> const& srcQ,
+                  Array4<Real const> const& flatn,
+                  Array4<Real> const& qm,
+                  Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                  Array4<Real const> const dloga,
+                  Array4<Real const> const& dloga,
 #endif
                   const Box& vbx,
                   const Real dt) {
@@ -138,7 +138,8 @@ Castro::trace_ppm(const Box& bx,
   }
 
   // Trace to left and right edges using upwind PPM
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real rho = q_arr(i,j,k,QRHO);

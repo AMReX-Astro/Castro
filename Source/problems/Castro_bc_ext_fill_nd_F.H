@@ -1,5 +1,5 @@
-#ifndef _Castro_bc_ext_fill_nd_F_H_
-#define _Castro_bc_ext_fill_nd_F_H_
+#ifndef CASTRO_BC_EXT_FILL_ND_F_H
+#define CASTRO_BC_EXT_FILL_ND_F_H
 
 #include <AMReX_BLFort.H>
 

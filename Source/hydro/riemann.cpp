@@ -13,17 +13,17 @@ using namespace amrex;
 
 void
 Castro::cmpflx_plus_godunov(const Box& bx,
-                            Array4<Real> const qm,
-                            Array4<Real> const qp,
-                            Array4<Real> const flx,
-                            Array4<Real> const qint,
+                            Array4<Real> const& qm,
+                            Array4<Real> const& qp,
+                            Array4<Real> const& flx,
+                            Array4<Real> const& qint,
 #ifdef RADIATION
-                            Array4<Real> const rflx,
-                            Array4<Real> const lambda_int,
+                            Array4<Real> const& rflx,
+                            Array4<Real> const& lambda_int,
 #endif
-                            Array4<Real> const qgdnv,
-                            Array4<Real const> const qaux_arr,
-                            Array4<Real const> const shk,
+                            Array4<Real> const& qgdnv,
+                            Array4<Real const> const& qaux_arr,
+                            Array4<Real const> const& shk,
                             const int idir) {
 
   // note: bx is not necessarily the limits of the valid (no ghost
@@ -70,16 +70,10 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     // correct the fluxes using an HLL scheme if we are in a shock
     // and doing the hybrid approach
 
-    GpuArray<int, npassive> upass_map_p;
-    GpuArray<int, npassive> qpass_map_p;
-    for (int n = 0; n < npassive; ++n) {
-      upass_map_p[n] = upass_map[n];
-      qpass_map_p[n] = qpass_map[n];
-    }
-
     auto coord = geom.Coord();
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       int is_shock = 0;
@@ -125,7 +119,6 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         HLL(ql_zone, qr_zone, cl, cr,
             idir, coord,
-            upass_map_p, qpass_map_p,
             flx_zone);
 
         for (int n = 0; n < NUM_STATE; n++) {
@@ -147,13 +140,13 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
 void
 Castro::riemann_state(const Box& bx,
-                      Array4<Real> const qm,
-                      Array4<Real> const qp,
-                      Array4<Real> const qint,
+                      Array4<Real> const& qm,
+                      Array4<Real> const& qp,
+                      Array4<Real> const& qint,
 #ifdef RADIATION
-                      Array4<Real> lambda_int,
+                      Array4<Real> const& lambda_int,
 #endif
-                      Array4<Real const> const qaux_arr,
+                      Array4<Real const> const& qaux_arr,
                       const int idir, const int compute_gammas) {
 
   // just compute the hydrodynamic state on the interfaces
@@ -194,7 +187,8 @@ Castro::riemann_state(const Box& bx,
 
     const Real lT_guess = T_guess;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
      eos_t eos_state;

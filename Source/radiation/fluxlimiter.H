@@ -1,5 +1,5 @@
-#ifndef _fluxlimiter_H_
-#define _fluxlimiter_H_
+#ifndef CASTRO_FLUXLIMITER_H
+#define CASTRO_FLUXLIMITER_H
 
 #include <AMReX_REAL.H>
 

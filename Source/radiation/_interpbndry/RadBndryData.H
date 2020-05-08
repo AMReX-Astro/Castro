@@ -1,5 +1,5 @@
-#ifndef _RAD_BNDRYDATA_H_
-#define _RAD_BNDRYDATA_H_
+#ifndef CASTRO_RAD_BNDRYDATA_H
+#define CASTRO_RAD_BNDRYDATA_H
 
 #include <AMReX_BLassert.H>
 #include <AMReX_BoxArray.H>
