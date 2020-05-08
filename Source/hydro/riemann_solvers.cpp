@@ -93,7 +93,7 @@ Castro::riemanncg(const Box& bx,
   {
 
 #ifndef AMREX_USE_CUDA
-    GpuArray<Real, HISTORY_SIZE> pstar_hist;
+    GpuArray<Real, HISTORY_SIZE> pstar_hist{};
 #endif
 
 
@@ -371,7 +371,7 @@ Castro::riemanncg(const Box& bx,
         pstarl = amrex::max(pstarl, lsmall_pres);
         pstaru = amrex::max(pstaru, lsmall_pres);
 
-        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
+        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra{};
 
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,
@@ -1092,8 +1092,8 @@ Castro::HLLC(const Box& bx,
   const Real lsmall_pres = small_pres;
   const Real lsmall = small;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
+  GpuArray<int, npassive> upass_map_p{};
+  GpuArray<int, npassive> qpass_map_p{};
   for (int n = 0; n < npassive; ++n) {
     upass_map_p[n] = upass_map[n];
     qpass_map_p[n] = qpass_map[n];
