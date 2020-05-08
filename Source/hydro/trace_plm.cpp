@@ -15,15 +15,15 @@ using namespace amrex;
 
 void
 Castro::trace_plm(const Box& bx, const int idir,
-                  Array4<Real const> const q_arr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real const> const dq,
-                  Array4<Real> const qm,
-                  Array4<Real> const qp,
+                  Array4<Real const> const& q_arr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real const> const& dq,
+                  Array4<Real> const& qm,
+                  Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
-                  Array4<Real const> const dloga,
+                  Array4<Real const> const& dloga,
 #endif
-                  Array4<Real const> const srcQ,
+                  Array4<Real const> const& srcQ,
                   const Box& vbx,
                   const Real dt) {
 
@@ -33,9 +33,6 @@ Castro::trace_plm(const Box& bx, const int idir,
   const auto dx = geom.CellSizeArray();
 
   const Real dtdx = dt/dx[idir];
-
-  auto lo = bx.loVect3d();
-  auto hi = bx.hiVect3d();
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();

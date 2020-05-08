@@ -58,7 +58,7 @@
 
     void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
-                 amrex::Array4<amrex::Real const> const uin,
+                 amrex::Array4<amrex::Real const> const& uin,
 #ifdef MHD
                  amrex::Array4<amrex::Real> const& bcc,
                  amrex::Array4<amrex::Real const> const& Bx,
@@ -66,314 +66,314 @@
                  amrex::Array4<amrex::Real const> const& Bz,
 #endif
 #ifdef RADIATION
-                 amrex::Array4<amrex::Real const> const Erin,
-                 amrex::Array4<amrex::Real const> const lam,
+                 amrex::Array4<amrex::Real const> const& Erin,
+                 amrex::Array4<amrex::Real const> const& lam,
 #endif
-                 amrex::Array4<amrex::Real> const q_arr,
-                 amrex::Array4<amrex::Real> const qaux_arr);
+                 amrex::Array4<amrex::Real> const& q_arr,
+                 amrex::Array4<amrex::Real> const& qaux_arr);
 
     void uflatten(const amrex::Box& bx,
-                  amrex::Array4<amrex::Real const> const q,
-                  amrex::Array4<amrex::Real> const flatn,
+                  amrex::Array4<amrex::Real const> const& q,
+                  amrex::Array4<amrex::Real> const& flatn,
                   const int pres_comp);
 
     void shock(const amrex::Box& bx,
-               amrex::Array4<amrex::Real const> const q,
-               amrex::Array4<amrex::Real> const shk);
+               amrex::Array4<amrex::Real const> const& q,
+               amrex::Array4<amrex::Real> const& shk);
 
     void divu(const amrex::Box& bx,
-              amrex::Array4<amrex::Real const> const q,
-              amrex::Array4<amrex::Real> const div);
+              amrex::Array4<amrex::Real const> const& q,
+              amrex::Array4<amrex::Real> const& div);
 
     void apply_av(const amrex::Box& bx,
                   const int idir,
-                  amrex::Array4<amrex::Real const> const div,
-                  amrex::Array4<amrex::Real const> const uin,
-                  amrex::Array4<amrex::Real> const flux);
+                  amrex::Array4<amrex::Real const> const& div,
+                  amrex::Array4<amrex::Real const> const& uin,
+                  amrex::Array4<amrex::Real> const& flux);
 
 #ifdef RADIATION
     void apply_av_rad(const amrex::Box& bx,
                       const int idir,
-                      amrex::Array4<amrex::Real const> const div,
-                      amrex::Array4<amrex::Real const> const Erin,
-                      amrex::Array4<amrex::Real> const radflux);
+                      amrex::Array4<amrex::Real const> const& div,
+                      amrex::Array4<amrex::Real const> const& Erin,
+                      amrex::Array4<amrex::Real> const& radflux);
 #endif
 
     void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
-                        amrex::Array4<amrex::Real const> const q,
-                        amrex::Array4<amrex::Real const> const flatn,
-                        amrex::Array4<amrex::Real const> const qaux,
-                        amrex::Array4<amrex::Real const> const srcQ,
-                        amrex::Array4<amrex::Real> const qxm,
-                        amrex::Array4<amrex::Real> const qxp,
+                        amrex::Array4<amrex::Real const> const& q,
+                        amrex::Array4<amrex::Real const> const& flatn,
+                        amrex::Array4<amrex::Real const> const& qaux,
+                        amrex::Array4<amrex::Real const> const& srcQ,
+                        amrex::Array4<amrex::Real> const& qxm,
+                        amrex::Array4<amrex::Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                        amrex::Array4<amrex::Real> const qym,
-                        amrex::Array4<amrex::Real> const qyp,
+                        amrex::Array4<amrex::Real> const& qym,
+                        amrex::Array4<amrex::Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                        amrex::Array4<amrex::Real> const qzm,
-                        amrex::Array4<amrex::Real> const qzp,
+                        amrex::Array4<amrex::Real> const& qzm,
+                        amrex::Array4<amrex::Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                        amrex::Array4<amrex::Real const> const dloga,
+                        amrex::Array4<amrex::Real const> const& dloga,
 #endif
                         const amrex::Real dt);
 
 #ifdef RADIATION
     void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
-                            amrex::Array4<amrex::Real const> const q,
-                            amrex::Array4<amrex::Real const> const flatn,
-                            amrex::Array4<amrex::Real const> const qaux,
-                            amrex::Array4<amrex::Real const> const srcQ,
-                            amrex::Array4<amrex::Real> const qxm,
-                            amrex::Array4<amrex::Real> const qxp,
+                            amrex::Array4<amrex::Real const> const& q,
+                            amrex::Array4<amrex::Real const> const& flatn,
+                            amrex::Array4<amrex::Real const> const& qaux,
+                            amrex::Array4<amrex::Real const> const& srcQ,
+                            amrex::Array4<amrex::Real> const& qxm,
+                            amrex::Array4<amrex::Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                            amrex::Array4<amrex::Real> const qym,
-                            amrex::Array4<amrex::Real> const qyp,
+                            amrex::Array4<amrex::Real> const& qym,
+                            amrex::Array4<amrex::Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                            amrex::Array4<amrex::Real> const qzm,
-                            amrex::Array4<amrex::Real> const qzp,
+                            amrex::Array4<amrex::Real> const& qzm,
+                            amrex::Array4<amrex::Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                            amrex::Array4<amrex::Real const> const dloga,
+                            amrex::Array4<amrex::Real const> const& dloga,
 #endif
                             const amrex::Real dt);
 #endif
 
     void mol_plm_reconstruct(const amrex::Box& bx,
                              const int idir,
-                             amrex::Array4<amrex::Real const> const q_arr,
-                             amrex::Array4<amrex::Real const> const flatn_arr,
-                             amrex::Array4<amrex::Real const> const src_q_arr,
-                             amrex::Array4<amrex::Real> const dq,
-                             amrex::Array4<amrex::Real> const qm,
-                             amrex::Array4<amrex::Real> const qp);
+                             amrex::Array4<amrex::Real const> const& q_arr,
+                             amrex::Array4<amrex::Real const> const& flatn_arr,
+                             amrex::Array4<amrex::Real const> const& src_q_arr,
+                             amrex::Array4<amrex::Real> const& dq,
+                             amrex::Array4<amrex::Real> const& qm,
+                             amrex::Array4<amrex::Real> const& qp);
 
      void mol_ppm_reconstruct(const amrex::Box& bx,
                               const int idir,
-                              amrex::Array4<amrex::Real const> const q_arr,
-                              amrex::Array4<amrex::Real const> const flatn_arr,
-                              amrex::Array4<amrex::Real> const qm,
-                              amrex::Array4<amrex::Real> const qp);
+                              amrex::Array4<amrex::Real const> const& q_arr,
+                              amrex::Array4<amrex::Real const> const& flatn_arr,
+                              amrex::Array4<amrex::Real> const& qm,
+                              amrex::Array4<amrex::Real> const& qp);
 
      void trans_single(const amrex::Box& bx,
                        int idir_t, int idir_n,
-                       amrex::Array4<amrex::Real const> const qm,
-                       amrex::Array4<amrex::Real> const qmo,
-                       amrex::Array4<amrex::Real const> const qp,
-                       amrex::Array4<amrex::Real> const qpo,
-                       amrex::Array4<amrex::Real const> const qaux,
-                       amrex::Array4<amrex::Real const> const flux_t,
+                       amrex::Array4<amrex::Real const> const& qm,
+                       amrex::Array4<amrex::Real> const& qmo,
+                       amrex::Array4<amrex::Real const> const& qp,
+                       amrex::Array4<amrex::Real> const& qpo,
+                       amrex::Array4<amrex::Real const> const& qaux,
+                       amrex::Array4<amrex::Real const> const& flux_t,
 #ifdef RADIATION
-                       amrex::Array4<amrex::Real const> const rflux_t,
+                       amrex::Array4<amrex::Real const> const& rflux_t,
 #endif
-                       amrex::Array4<amrex::Real const> const q_t,
+                       amrex::Array4<amrex::Real const> const& q_t,
 #if AMREX_SPACEDIM == 2
-                       amrex::Array4<amrex::Real const> const area_t,
-                       amrex::Array4<amrex::Real const> const vol,
+                       amrex::Array4<amrex::Real const> const& area_t,
+                       amrex::Array4<amrex::Real const> const& vol,
 #endif
                        amrex::Real hdt, amrex::Real cdtdx);
 
      void actual_trans_single(const amrex::Box& bx,
                               int idir_t, int idir_n, int d,
-                              amrex::Array4<amrex::Real const> const q_arr,
-                              amrex::Array4<amrex::Real> const qo_arr,
-                              amrex::Array4<amrex::Real const> const qaux,
-                              amrex::Array4<amrex::Real const> const flux_t,
+                              amrex::Array4<amrex::Real const> const& q_arr,
+                              amrex::Array4<amrex::Real> const& qo_arr,
+                              amrex::Array4<amrex::Real const> const& qaux,
+                              amrex::Array4<amrex::Real const> const& flux_t,
 #ifdef RADIATION
-                              amrex::Array4<amrex::Real const> const rflux_t,
+                              amrex::Array4<amrex::Real const> const& rflux_t,
 #endif
-                              amrex::Array4<amrex::Real const> const q_t,
+                              amrex::Array4<amrex::Real const> const& q_t,
 #if AMREX_SPACEDIM == 2
-                              amrex::Array4<amrex::Real const> const area_t,
-                              amrex::Array4<amrex::Real const> const vol,
+                              amrex::Array4<amrex::Real const> const& area_t,
+                              amrex::Array4<amrex::Real const> const& vol,
 #endif
                               amrex::Real hdt, amrex::Real cdtdx);
 
      void trans_final(const amrex::Box& bx,
                       int idir_n, int idir_t1, int idir_t2,
-                      amrex::Array4<amrex::Real const> const qm,
-                      amrex::Array4<amrex::Real> const qmo,
-                      amrex::Array4<amrex::Real const> const qp,
-                      amrex::Array4<amrex::Real> const qpo,
-                      amrex::Array4<amrex::Real const> const qaux,
-                      amrex::Array4<amrex::Real const> const flux_t1,
+                      amrex::Array4<amrex::Real const> const& qm,
+                      amrex::Array4<amrex::Real> const& qmo,
+                      amrex::Array4<amrex::Real const> const& qp,
+                      amrex::Array4<amrex::Real> const& qpo,
+                      amrex::Array4<amrex::Real const> const& qaux,
+                      amrex::Array4<amrex::Real const> const& flux_t1,
 #ifdef RADIATION
-                      amrex::Array4<amrex::Real const> const rflux_t1,
+                      amrex::Array4<amrex::Real const> const& rflux_t1,
 #endif
-                      amrex::Array4<amrex::Real const> const flux_t2,
+                      amrex::Array4<amrex::Real const> const& flux_t2,
 #ifdef RADIATION
-                      amrex::Array4<amrex::Real const> const rflux_t2,
+                      amrex::Array4<amrex::Real const> const& rflux_t2,
 #endif
-                      amrex::Array4<amrex::Real const> const q_t1,
-                      amrex::Array4<amrex::Real const> const q_t2,
+                      amrex::Array4<amrex::Real const> const& q_t1,
+                      amrex::Array4<amrex::Real const> const& q_t2,
                       amrex::Real hdt, amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
      void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
-                             amrex::Array4<amrex::Real const> const q_arr,
-                             amrex::Array4<amrex::Real> const qo_arr,
-                             amrex::Array4<amrex::Real const> const qaux,
-                             amrex::Array4<amrex::Real const> const flux_t1,
+                             amrex::Array4<amrex::Real const> const& q_arr,
+                             amrex::Array4<amrex::Real> const& qo_arr,
+                             amrex::Array4<amrex::Real const> const& qaux,
+                             amrex::Array4<amrex::Real const> const& flux_t1,
 #ifdef RADIATION
-                             amrex::Array4<amrex::Real const> const rflux_t1,
+                             amrex::Array4<amrex::Real const> const& rflux_t1,
 #endif
-                             amrex::Array4<amrex::Real const> const flux_t2,
+                             amrex::Array4<amrex::Real const> const& flux_t2,
 #ifdef RADIATION
-                             amrex::Array4<amrex::Real const> const rflux_t2,
+                             amrex::Array4<amrex::Real const> const& rflux_t2,
 #endif
-                             amrex::Array4<amrex::Real const> const q_t1,
-                             amrex::Array4<amrex::Real const> const q_t2,
+                             amrex::Array4<amrex::Real const> const& q_t1,
+                             amrex::Array4<amrex::Real const> const& q_t2,
                              amrex::Real hdt, amrex::Real cdtdx_n,
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
     void trace_ppm(const amrex::Box& bx,
                    const int idir,
-                   amrex::Array4<amrex::Real const> const q,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real const> const srcQ,
-                   amrex::Array4<amrex::Real const> const flatn,
-                   amrex::Array4<amrex::Real> const qm,
-                   amrex::Array4<amrex::Real> const qp,
+                   amrex::Array4<amrex::Real const> const& q,
+                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& srcQ,
+                   amrex::Array4<amrex::Real const> const& flatn,
+                   amrex::Array4<amrex::Real> const& qm,
+                   amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                   amrex::Array4<amrex::Real const> const dloga,
+                   amrex::Array4<amrex::Real const> const& dloga,
 #endif
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
 
     void uslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const q_arr, const int n,
-                amrex::Array4<amrex::Real const> const flatn,
-                amrex::Array4<amrex::Real> const dq);
+                amrex::Array4<amrex::Real const> const& q_arr, const int n,
+                amrex::Array4<amrex::Real const> const& flatn,
+                amrex::Array4<amrex::Real> const& dq);
 
     void pslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const q_arr,
-                amrex::Array4<amrex::Real const> const flatn_arr,
-                amrex::Array4<amrex::Real> const dq,
-                amrex::Array4<amrex::Real const> const src);
+                amrex::Array4<amrex::Real const> const& q_arr,
+                amrex::Array4<amrex::Real const> const& flatn_arr,
+                amrex::Array4<amrex::Real> const& dq,
+                amrex::Array4<amrex::Real const> const& src);
 
 
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
-                        amrex::Array4<amrex::Real const> const q_arr,
-                        amrex::Array4<amrex::Real const> const flatn,
-                        amrex::Array4<amrex::Real const> const qaux__arr,
-                        amrex::Array4<amrex::Real const> const srcQ,
-                        amrex::Array4<amrex::Real> const dq,
-                        amrex::Array4<amrex::Real> const qxm,
-                        amrex::Array4<amrex::Real> const qxp,
+                        amrex::Array4<amrex::Real const> const& q_arr,
+                        amrex::Array4<amrex::Real const> const& flatn,
+                        amrex::Array4<amrex::Real const> const& qaux__arr,
+                        amrex::Array4<amrex::Real const> const& srcQ,
+                        amrex::Array4<amrex::Real> const& dq,
+                        amrex::Array4<amrex::Real> const& qxm,
+                        amrex::Array4<amrex::Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                        amrex::Array4<amrex::Real> const qym,
-                        amrex::Array4<amrex::Real> const qyp,
+                        amrex::Array4<amrex::Real> const& qym,
+                        amrex::Array4<amrex::Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                        amrex::Array4<amrex::Real> const qzm,
-                        amrex::Array4<amrex::Real> const qzp,
+                        amrex::Array4<amrex::Real> const& qzm,
+                        amrex::Array4<amrex::Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                        amrex::Array4<amrex::Real const> const dloga,
+                        amrex::Array4<amrex::Real const> const& dloga,
 #endif
                         const amrex::Real dt);
 
     void trace_plm(const amrex::Box& bx,
                    const int idir,
-                   amrex::Array4<amrex::Real const> const q,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real const> const dq,
-                   amrex::Array4<amrex::Real> const qm,
-                   amrex::Array4<amrex::Real> const qp,
+                   amrex::Array4<amrex::Real const> const& q,
+                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& dq,
+                   amrex::Array4<amrex::Real> const& qm,
+                   amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                   amrex::Array4<amrex::Real const> const dloga,
+                   amrex::Array4<amrex::Real const> const& dloga,
 #endif
-                   amrex::Array4<amrex::Real const> const SrcQ,
+                   amrex::Array4<amrex::Real const> const& SrcQ,
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
     void trace_ppm_rad(const amrex::Box& bx,
                        const int idir,
-                       amrex::Array4<amrex::Real const> const q,
-                       amrex::Array4<amrex::Real const> const qaux,
-                       amrex::Array4<amrex::Real const> const srcQ,
-                       amrex::Array4<amrex::Real const> const flatn,
-                       amrex::Array4<amrex::Real> const qm,
-                       amrex::Array4<amrex::Real> const qp,
+                       amrex::Array4<amrex::Real const> const& q,
+                       amrex::Array4<amrex::Real const> const& qaux,
+                       amrex::Array4<amrex::Real const> const& srcQ,
+                       amrex::Array4<amrex::Real const> const& flatn,
+                       amrex::Array4<amrex::Real> const& qm,
+                       amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                       amrex::Array4<amrex::Real const> const dloga,
+                       amrex::Array4<amrex::Real const> const& dloga,
 #endif
                        const amrex::Box& vbx,
                        const amrex::Real dt);
 
     void consup_hydro(const amrex::Box& bx,
-                      amrex::Array4<amrex::Real const> const shk,
-                      amrex::Array4<amrex::Real> const update,
-                      amrex::Array4<amrex::Real> const flux0,
-                      amrex::Array4<amrex::Real const> const qx,
-                      amrex::Array4<amrex::Real const> const area0,
+                      amrex::Array4<amrex::Real const> const& shk,
+                      amrex::Array4<amrex::Real> const& update,
+                      amrex::Array4<amrex::Real> const& flux0,
+                      amrex::Array4<amrex::Real const> const& qx,
+                      amrex::Array4<amrex::Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
-                      amrex::Array4<amrex::Real> const flux1,
-                      amrex::Array4<amrex::Real const> const qy,
-                      amrex::Array4<amrex::Real const> const area1,
+                      amrex::Array4<amrex::Real> const& flux1,
+                      amrex::Array4<amrex::Real const> const& qy,
+                      amrex::Array4<amrex::Real const> const& area1,
 #endif
 #if AMREX_SPACEDIM == 3
-                      amrex::Array4<amrex::Real> const flux2,
-                      amrex::Array4<amrex::Real const> const qz,
-                      amrex::Array4<amrex::Real const> const area2,
+                      amrex::Array4<amrex::Real> const& flux2,
+                      amrex::Array4<amrex::Real const> const& qz,
+                      amrex::Array4<amrex::Real const> const& area2,
 #endif
-                      amrex::Array4<amrex::Real const> const vol,
+                      amrex::Array4<amrex::Real const> const& vol,
                       const amrex::Real dt);
 
 
 
     void cmpflx_plus_godunov(const amrex::Box& bx,
-                             amrex::Array4<amrex::Real> const qm,
-                             amrex::Array4<amrex::Real> const qp,
-                             amrex::Array4<amrex::Real> const flx,
-                             amrex::Array4<amrex::Real> const qint,
+                             amrex::Array4<amrex::Real> const& qm,
+                             amrex::Array4<amrex::Real> const& qp,
+                             amrex::Array4<amrex::Real> const& flx,
+                             amrex::Array4<amrex::Real> const& qint,
 #ifdef RADIATION
-                             amrex::Array4<amrex::Real> const rflx,
-                             amrex::Array4<amrex::Real> const lambda_int,
+                             amrex::Array4<amrex::Real> const& rflx,
+                             amrex::Array4<amrex::Real> const& lambda_int,
 #endif
-                             amrex::Array4<amrex::Real> const qgdnv,
-                             amrex::Array4<amrex::Real const> const qaux,
-                             amrex::Array4<amrex::Real const> const shk,
+                             amrex::Array4<amrex::Real> const& qgdnv,
+                             amrex::Array4<amrex::Real const> const& qaux,
+                             amrex::Array4<amrex::Real const> const& shk,
                              const int idir);
 
     void riemann_state(const amrex::Box& bx,
-                       amrex::Array4<amrex::Real> const qm,
-                       amrex::Array4<amrex::Real> const qp,
-                       amrex::Array4<amrex::Real> const qint,
+                       amrex::Array4<amrex::Real> const& qm,
+                       amrex::Array4<amrex::Real> const& qp,
+                       amrex::Array4<amrex::Real> const& qint,
 #ifdef RADIATION
-                       amrex::Array4<amrex::Real> lambda_int,
+                       amrex::Array4<amrex::Real> const& lambda_int,
 #endif
-                       amrex::Array4<amrex::Real const> const qaux,
+                       amrex::Array4<amrex::Real const> const& qaux,
                        const int idir, const int compute_gammas);
 
     void riemanncg(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const ql,
-                   amrex::Array4<amrex::Real> const qr,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real> const qint,
+                   amrex::Array4<amrex::Real> const& ql,
+                   amrex::Array4<amrex::Real> const& qr,
+                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real> const& qint,
                    const int idir);
 
     void riemannus(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const ql,
-                   amrex::Array4<amrex::Real> const qr,
-                   amrex::Array4<amrex::Real const> const qaux,
-                   amrex::Array4<amrex::Real> const qint,
+                   amrex::Array4<amrex::Real> const& ql,
+                   amrex::Array4<amrex::Real> const& qr,
+                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real> const& qint,
 #ifdef RADIATION
-                   amrex::Array4<amrex::Real> const lambda_int,
+                   amrex::Array4<amrex::Real> const& lambda_int,
 #endif
                    const int idir, const int compute_gammas);
 
 
     void HLLC(const amrex::Box& bx,
-              amrex::Array4<amrex::Real const> const ql,
-              amrex::Array4<amrex::Real const> const qr,
-              amrex::Array4<amrex::Real const> const qaux,
-              amrex::Array4<amrex::Real> const uflx,
-              amrex::Array4<amrex::Real> const qint,
+              amrex::Array4<amrex::Real const> const& ql,
+              amrex::Array4<amrex::Real const> const& qr,
+              amrex::Array4<amrex::Real const> const& qaux,
+              amrex::Array4<amrex::Real> const& uflx,
+              amrex::Array4<amrex::Real> const& qint,
               const int idir);
 
     AMREX_GPU_HOST_DEVICE
@@ -416,21 +416,21 @@
 
     void
     compute_flux_q(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real const> const qint,
-                   amrex::Array4<amrex::Real> const F,
+                   amrex::Array4<amrex::Real const> const& qint,
+                   amrex::Array4<amrex::Real> const& F,
 #ifdef RADIATION
-                   amrex::Array4<amrex::Real const> const lambda,
-                   amrex::Array4<amrex::Real> const rF,
+                   amrex::Array4<amrex::Real const> const& lambda,
+                   amrex::Array4<amrex::Real> const& rF,
 #endif
                    const int idir, const int enforce_eos);
 
     void
     store_godunov_state(const amrex::Box& bx,
-                        amrex::Array4<amrex::Real const> const qint,
+                        amrex::Array4<amrex::Real const> const& qint,
 #ifdef RADIATION
-                        amrex::Array4<amrex::Real const> const lambda,
+                        amrex::Array4<amrex::Real const> const& lambda,
 #endif
-                        amrex::Array4<amrex::Real> const qgdnv);
+                        amrex::Array4<amrex::Real> const& qgdnv);
 
     AMREX_GPU_HOST_DEVICE
     void
@@ -449,7 +449,7 @@
           const GpuArray<int, 3>& idx,
           GpuArray<Real, NUM_STATE>& flux);
 
-    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const flux);
+    void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 
     void
     limit_hydro_fluxes_on_small_dens(const amrex::Box& bx,
@@ -473,25 +473,25 @@
 
     void scale_flux(const amrex::Box& bx,
 #if AMREX_SPACEDIM == 1
-                    amrex::Array4<amrex::Real const> const qint,
+                    amrex::Array4<amrex::Real const> const& qint,
 #endif
-                    amrex::Array4<amrex::Real> const flux,
-                    amrex::Array4<amrex::Real const> const area,
+                    amrex::Array4<amrex::Real> const& flux,
+                    amrex::Array4<amrex::Real const> const& area,
                     const amrex::Real dt);
 
 #ifdef RADIATION
     void scale_rad_flux(const amrex::Box& bx,
-                        amrex::Array4<amrex::Real> const rflux,
-                        amrex::Array4<amrex::Real const> area,
+                        amrex::Array4<amrex::Real> const& rflux,
+                        amrex::Array4<amrex::Real const> const& area,
                         const amrex::Real dt);
 #endif
 
     void reset_edge_state_thermo(const amrex::Box& bx,
-                                 amrex::Array4<amrex::Real> const qedge);
+                                 amrex::Array4<amrex::Real> const& qedge);
 
     void edge_state_temp_to_pres(const Box& bx,
-                                 amrex::Array4<amrex::Real> const qm,
-                                 amrex::Array4<amrex::Real> const qp);
+                                 amrex::Array4<amrex::Real> const& qm,
+                                 amrex::Array4<amrex::Real> const& qp);
 
 #ifdef HYBRID_MOMENTUM
 
@@ -550,14 +550,14 @@
 #ifdef TRUE_SDC
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real compute_laplacian(int i, int j, int k, int n,
-                           Array4<Real const> const a,
+                           Array4<Real const> const& a,
                            GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
                            GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real trans_laplacian(int i, int j, int k, int n,
                          int idir,
-                         Array4<Real const> const a,
+                         Array4<Real const> const& a,
                          GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
                          GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 

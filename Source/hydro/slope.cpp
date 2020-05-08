@@ -18,9 +18,9 @@ using namespace amrex;
 
 void
 Castro::uslope(const Box& bx, const int idir,
-               Array4<Real const> const q_arr, const int n,
-               Array4<Real const> const flatn_arr,
-               Array4<Real> const dq) {
+               Array4<Real const> const& q_arr, const int n,
+               Array4<Real const> const& flatn_arr,
+               Array4<Real> const& dq) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -197,10 +197,10 @@ Castro::uslope(const Box& bx, const int idir,
 
 void
 Castro::pslope(const Box& bx, const int idir,
-               Array4<Real const> const q_arr,
-               Array4<Real const> const flatn_arr,
-               Array4<Real> const dq,
-               Array4<Real const> const src) {
+               Array4<Real const> const& q_arr,
+               Array4<Real const> const& flatn_arr,
+               Array4<Real> const& dq,
+               Array4<Real const> const& src) {
 
   const auto dx = geom.CellSizeArray();
 

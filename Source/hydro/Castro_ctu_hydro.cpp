@@ -30,12 +30,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   hydro_source.setVal(0.0);
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
   int coord = geom.Coord();
 
   const Real *dx = geom.CellSize();
-  auto dx_arr = geom.CellSizeArray();
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -534,10 +535,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto qgdnvtmp1_arr = qgdnvtmp1.array();
       fab_size += qgdnvtmp1.nBytes();
 
+#if AMREX_SPACEDIM == 3
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
       auto qgdnvtmp2_arr = qgdnvtmp2.array();
       fab_size += qgdnvtmp2.nBytes();
+#endif
 
       ql.resize(obx, NQ);
       Elixir elix_ql = ql.elixir();
@@ -1141,8 +1144,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-          int idir_f = idir + 1;
-
           Array4<Real> const flux_arr = (flux[idir]).array();
           Array4<Real const> const uin_arr = Sborder.array(mfi);
 
@@ -1223,6 +1224,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #ifdef HYBRID_MOMENTUM
+      auto dx_arr = geom.CellSizeArray();
+
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {

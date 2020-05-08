@@ -21,7 +21,7 @@ using namespace amrex;
 void
 Castro::ctoprim(const Box& bx,
                 const Real time,
-                Array4<Real const> const uin,
+                Array4<Real const> const& uin,
 #ifdef MHD
                 Array4<Real> const& bcc,
                 Array4<Real const> const& Bx,
@@ -29,11 +29,11 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real const> const& Bz,
 #endif
 #ifdef RADIATION
-                Array4<Real const> const Erin,
-                Array4<Real const> const lam,
+                Array4<Real const> const& Erin,
+                Array4<Real const> const& lam,
 #endif
-                Array4<Real> const q_arr,
-                Array4<Real> const qaux_arr) {
+                Array4<Real> const& q_arr,
+                Array4<Real> const& qaux_arr) {
 
 
   Real lsmall_dens = small_dens;
@@ -209,8 +209,8 @@ Castro::ctoprim(const Box& bx,
 
 void
 Castro::shock(const Box& bx,
-              Array4<Real const> const q_arr,
-              Array4<Real> const shk) {
+              Array4<Real const> const& q_arr,
+              Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
   // This implementation follows Flash, which in turn follows
@@ -367,8 +367,8 @@ Castro::shock(const Box& bx,
 
 void
 Castro::divu(const Box& bx,
-             Array4<Real const> const q_arr,
-             Array4<Real> const div) {
+             Array4<Real const> const& q_arr,
+             Array4<Real> const& div) {
   // this computes the *node-centered* divergence
 
   const auto dx = geom.CellSizeArray();
@@ -482,9 +482,9 @@ Castro::divu(const Box& bx,
 void
 Castro::apply_av(const Box& bx,
                  const int idir,
-                 Array4<Real const> const div,
-                 Array4<Real const> const uin,
-                 Array4<Real> const flux) {
+                 Array4<Real const> const& div,
+                 Array4<Real const> const& uin,
+                 Array4<Real> const& flux) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -532,9 +532,9 @@ Castro::apply_av(const Box& bx,
 void
 Castro::apply_av_rad(const Box& bx,
                      const int idir,
-                     Array4<Real const> const div,
-                     Array4<Real const> const Erin,
-                     Array4<Real> const radflux) {
+                     Array4<Real const> const& div,
+                     Array4<Real const> const& Erin,
+                     Array4<Real> const& radflux) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -575,7 +575,7 @@ Castro::apply_av_rad(const Box& bx,
 
 void
 Castro::normalize_species_fluxes(const Box& bx,
-                                 Array4<Real> const flux) {
+                                 Array4<Real> const& flux) {
 
   // Normalize the fluxes of the mass fractions so that
   // they sum to 0.  This is essentially the CMA procedure that is
@@ -605,10 +605,10 @@ Castro::normalize_species_fluxes(const Box& bx,
 void
 Castro::scale_flux(const Box& bx,
 #if AMREX_SPACEDIM == 1
-                   Array4<Real const> const qint,
+                   Array4<Real const> const& qint,
 #endif
-                   Array4<Real> const flux,
-                   Array4<Real const> const area_arr,
+                   Array4<Real> const& flux,
+                   Array4<Real const> const& area_arr,
                    const Real dt) {
 
 #if AMREX_SPACEDIM == 1
@@ -632,8 +632,8 @@ Castro::scale_flux(const Box& bx,
 #ifdef RADIATION
 void
 Castro::scale_rad_flux(const Box& bx,
-                       Array4<Real> const rflux,
-                       Array4<Real const> area_arr,
+                       Array4<Real> const& rflux,
+                       Array4<Real const> const& area_arr,
                        const Real dt) {
 
   AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
