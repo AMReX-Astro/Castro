@@ -1,3 +1,8 @@
+   * When using simplified SDC, we now pass the current SDC iteration number
+     and the total number of SDC iterations to the ODE integrator. The user may
+     now scale ODE solver tolerances with the SDC iteration number using the
+     extern parameter `sdc_burn_tol_factor`. Defaults to no scaling. (#903)
+
    * The reaction weights metric implemented in version 20.05 (#863) has been
      added to the simplified SDC reactions driver. (#930)
 
