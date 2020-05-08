@@ -343,13 +343,11 @@
 ///
 /// @param time     current time
 /// @param dt       timestep
-/// @param S_old    Old state
-/// @param S_new    New state
+/// @param S        state
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_geom_source(amrex::Real time, amrex::Real dt,
-                          amrex::MultiFab& S_old, amrex::MultiFab& S_new,
-                          amrex::MultiFab& ext_src);
+                          amrex::MultiFab& S, amrex::MultiFab& ext_src);
 
 
 #ifdef REACTIONS

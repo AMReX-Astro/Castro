@@ -89,7 +89,7 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-#MHD 
+# MHD 
 # plm slopes:
 # 0 zero slope
 # 1 vanleer
@@ -287,6 +287,9 @@ sdc_solve_for_rhoe           int           1                  y
 
 # do we use the analytic or numerical Jacobian?
 sdc_use_analytic_jac         int           1                  y
+
+# for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
+use_axisymmetric_geom_source int           1
 
 #-----------------------------------------------------------------------------
 # category: timestep control

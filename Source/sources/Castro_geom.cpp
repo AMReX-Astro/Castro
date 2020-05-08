@@ -11,13 +11,17 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
     amrex::Abort("this is only defined for axisymmetric geometry");
   }
 
+  if (use_axisymmetric_geom_source = 0) {
+    return;
+  }
+
   const Real strt_time = ParallelDescriptor::second();
 
   MultiFab geom_src(grids, dmap, source.nComp(), 0);
 
   geom_src.setVal(0.0);
 
-  fill_geom_source(time, dt, state_in, state_in, geom_src);
+  fill_geom_source(time, dt, state_in, geom_src);
 
   Real mult_factor = 1.0;
 
@@ -52,29 +56,33 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
     amrex::Abort("this is only defined for axisymmetric geometry");
   }
 
+  if (use_axisymmetric_geom_source = 0) {
+    return;
+  }
+
   const Real strt_time = ParallelDescriptor::second();
- 
+
   MultiFab geom_src(grids, dmap, source.nComp(), 0);
 
   geom_src.setVal(0.0);
 
-  //Substract off the old-time value first
+  // Subtract off the old-time value first
   Real old_time = time - dt;
 
-  fill_geom_source(old_time, dt, state_old, state_old, geom_src);
+  fill_geom_source(old_time, dt, state_old, geom_src);
 
   Real mult_factor = -0.5;
 
   MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
 
-  //Time center with the new data
-  
+  // Time center with the new data
+
   geom_src.setVal(0.0);
 
   mult_factor = 0.5;
-  
-  fill_geom_source(time, dt, state_old, state_new, geom_src);
-  
+
+  fill_geom_source(time, dt, state_new, geom_src);
+
   MultiFab::Saxpy(source, mult_factor, geom_src, 0, 0, source.nComp(), 0);
 
   if (verbose > 1)
@@ -101,8 +109,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 
 void
 Castro::fill_geom_source (Real time, Real dt,
-                          MultiFab& state_old, MultiFab& state_new,
-                          MultiFab& geom_src)
+                          MultiFab& state, MultiFab& geom_src)
 {
 
   // Compute the geometric source for axisymmetric coordinates
@@ -112,7 +119,7 @@ Castro::fill_geom_source (Real time, Real dt,
   auto dx = geom.CellSizeArray();
   auto prob_lo = geom.ProbLoArray();
 
-  auto coord = geom.Coord(); 
+  auto coord = geom.Coord();
 
 
 #ifdef _OPENMP
@@ -122,8 +129,8 @@ Castro::fill_geom_source (Real time, Real dt,
 
     const Box& bx = mfi.tilebox();
 
-    Array4<Real const> const old_state = state_old.array(mfi);
-    Array4<Real const> const new_state = state_new.array(mfi);
+    Array4<Real const> const U_arr = state.array(mfi);
+
     Array4<Real> const src = geom_src.array(mfi);
 
     amrex::ParallelFor(bx,
@@ -133,15 +140,11 @@ Castro::fill_geom_source (Real time, Real dt,
       // radius for non-Cartesian
       Real r = prob_lo[0] + (static_cast<Real>(i) + 0.5_rt)*dx[0];
 
-      Real rho_half = 0.5_rt*(old_state(i,j,k,URHO) + new_state(i,j,k,URHO));
-
       // radial momentum: F = rho v_phi**2 / r
-      src(i,j,k,UMX) = 0.25_rt * (old_state(i,j,k,UMZ) + new_state(i,j,k,UMZ)) *
-                                 (old_state(i,j,k,UMZ) + new_state(i,j,k,UMZ)) / (rho_half * r);
+      src(i,j,k,UMX) = U_arr(i,j,k,UMZ) * U_arr(i,j,k,UMZ) / (U_arr(i,j,k,URHO) * r);
 
       // azimuthal momentum: F = - rho v_r v_phi / r
-      src(i,j,k,UMZ) = -0.25_rt * (old_state(i,j,k,UMX) + new_state(i,j,k,UMX)) *
-                                  (old_state(i,j,k,UMZ) + new_state(i,j,k,UMZ)) / (rho_half * r);
+      src(i,j,k,UMZ) = - U_arr(i,j,k,UMX) * U_arr(i,j,k,UMZ) / (U_arr(i,j,k,URHO) * r);
 
     });
   }
