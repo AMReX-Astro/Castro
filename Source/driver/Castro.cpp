@@ -968,7 +968,6 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -981,6 +980,7 @@ Castro::initData ()
                       AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
@@ -1239,8 +1239,6 @@ Castro::initData ()
                  << i << std::endl;
           }
 
-          RealBox    gridloc(grids[mfi.index()],
-                             geom.CellSize(), geom.ProbLo());
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
@@ -1254,6 +1252,7 @@ Castro::initData ()
                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
               (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
@@ -1395,8 +1394,6 @@ Castro::estTimeStep (Real dt_old)
 
     Real estdt = max_dt;
 
-    const MultiFab& stateMF = get_new_data(State_Type);
-
     Real time = state[State_Type].curTime();
 
     const Real* dx = geom.CellSize();
@@ -1415,6 +1412,8 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
+
+            const MultiFab& stateMF = get_new_data(State_Type);
 
             // Compute radiation + hydro limited timestep.
 

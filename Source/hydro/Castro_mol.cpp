@@ -17,12 +17,12 @@ using namespace amrex;
 void
 Castro::mol_plm_reconstruct(const Box& bx,
                             const int idir,
-                            Array4<Real const> const q_arr,
-                            Array4<Real const> const flatn_arr,
-                            Array4<Real const> const src_q_arr,
-                            Array4<Real> const dq,
-                            Array4<Real> const qm,
-                            Array4<Real> const qp) {
+                            Array4<Real const> const& q_arr,
+                            Array4<Real const> const& flatn_arr,
+                            Array4<Real const> const& src_q_arr,
+                            Array4<Real> const& dq,
+                            Array4<Real> const& qm,
+                            Array4<Real> const& qp) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -235,10 +235,10 @@ Castro::mol_plm_reconstruct(const Box& bx,
 void
 Castro::mol_ppm_reconstruct(const Box& bx,
                             const int idir,
-                            Array4<Real const> const q_arr,
-                            Array4<Real const> const flatn_arr,
-                            Array4<Real> const qm,
-                            Array4<Real> const qp) {
+                            Array4<Real const> const& q_arr,
+                            Array4<Real const> const& flatn_arr,
+                            Array4<Real> const& qm,
+                            Array4<Real> const& qp) {
 
   amrex::ParallelFor(bx, NQ,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept

@@ -16,10 +16,10 @@ using namespace amrex;
 
 void
 Castro::riemanncg(const Box& bx,
-                  Array4<Real> const ql,
-                  Array4<Real> const qr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real> const qint,
+                  Array4<Real> const& ql,
+                  Array4<Real> const& qr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real> const& qint,
                   const int idir) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
@@ -565,12 +565,12 @@ Castro::riemanncg(const Box& bx,
 
 void
 Castro::riemannus(const Box& bx,
-                  Array4<Real> const ql,
-                  Array4<Real> const qr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real> const qint,
+                  Array4<Real> const& ql,
+                  Array4<Real> const& qr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real> const& qint,
 #ifdef RADIATION
-                  Array4<Real> const lambda_int,
+                  Array4<Real> const& lambda_int,
 #endif
                   const int idir, const int compute_gammas) {
 
@@ -1040,11 +1040,11 @@ Castro::riemannus(const Box& bx,
 
 void
 Castro::HLLC(const Box& bx,
-             Array4<Real const> const ql,
-             Array4<Real const> const qr,
-             Array4<Real const> const qaux_arr,
-             Array4<Real> const uflx,
-             Array4<Real> const qint,
+             Array4<Real const> const& ql,
+             Array4<Real const> const& qr,
+             Array4<Real const> const& qaux_arr,
+             Array4<Real> const& uflx,
+             Array4<Real> const& qint,
              const int idir) {
 
   // this is an implementation of the HLLC solver described in Toro's

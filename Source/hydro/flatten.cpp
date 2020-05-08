@@ -11,8 +11,8 @@ using namespace amrex;
 
 void
 Castro::uflatten(const Box& bx,
-                 Array4<Real const> const q_arr,
-                 Array4<Real> const flatn, const int pres_comp) {
+                 Array4<Real const> const& q_arr,
+                 Array4<Real> const& flatn, const int pres_comp) {
 
   constexpr Real small_pres = 1.e-200_rt;
 

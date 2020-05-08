@@ -941,11 +941,15 @@ extern "C"
         Real uhi = dat(i+1,j,k,1) / dat(i+1,j,k,0);
         Real ulo = dat(i-1,j,k,1) / dat(i-1,j,k,0);
 
+#if AMREX_SPACEDIM >= 2
         Real vhi = dat(i,j+dg1,k,2) / dat(i,j+dg1,k,0);
         Real vlo = dat(i,j-dg1,k,2) / dat(i,j-dg1,k,0);
+#endif
 
+#if AMREX_SPACEDIM == 3
         Real whi = dat(i,j,k+dg2,3) / dat(i,j,k+dg2,0);
         Real wlo = dat(i,j,k-dg2,3) / dat(i,j,k-dg2,0);
+#endif
 
         if (coord_type == 0) {
           // Cartesian divergence

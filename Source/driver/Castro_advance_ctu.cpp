@@ -321,8 +321,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
-    MultiFab& S_new = get_new_data(State_Type);
-
     bool do_retry = false;
 
     if (!status.success)

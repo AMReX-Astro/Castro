@@ -117,6 +117,7 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
 }
 
 
+#ifdef MHD
 static
 void
 set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
@@ -129,7 +130,7 @@ set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
         bc.setHi(i, mag_field_bc[hi_bc[i]]);
     }
 }
-
+#endif
 
 // In some cases we want to replace inflow boundaries with
 // first-order extrapolation boundaries. This is intended to
