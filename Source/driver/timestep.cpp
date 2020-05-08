@@ -17,11 +17,11 @@ Castro::estdt_cfl(const Real time)
 
   // Courant-condition limited timestep
 
-  GpuArray<Real, 3> center;
+  GpuArray<Real, 3> center{};
   ca_get_center(center.begin());
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
+  GpuArray<Real, 3> omega{};
   get_omega(time, omega.begin());
 #endif
 
@@ -53,7 +53,7 @@ Castro::estdt_cfl(const Real time)
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-      eos_t eos_state;
+      eos_t eos_state{};
       eos_state.rho = u(i,j,k,URHO);
       eos_state.T = u(i,j,k,UTEMP);
       eos_state.e = u(i,j,k,UEINT) * rhoInv;
@@ -181,7 +181,7 @@ Castro::estdt_mhd()
       Real uy = u_arr(i,j,k,UMY) * rhoInv;
       Real uz = u_arr(i,j,k,UMZ) * rhoInv;
 
-      eos_t eos_state;
+      eos_t eos_state{};
       eos_state.rho = u_arr(i,j,k,URHO);
       eos_state.e = u_arr(i,j,k,UEINT) * rhoInv;
       eos_state.T = u_arr(i,j,k,UTEMP);
@@ -289,7 +289,7 @@ Castro::estdt_temp_diffusion(void)
                        Real rho_inv = 1.0_rt/ustate(i,j,k,URHO);
 
                        // we need cv
-                       eos_t eos_state;
+                       eos_t eos_state{};
                        eos_state.rho = ustate(i,j,k,URHO);
                        eos_state.T = ustate(i,j,k,UTEMP);
                        eos_state.e = ustate(i,j,k,UEINT) * rho_inv;

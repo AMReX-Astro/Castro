@@ -1168,7 +1168,7 @@ Castro::initData ()
                Real v = S_arr(i,j,k,UMY) * rhoInv;
                Real w = S_arr(i,j,k,UMZ) * rhoInv;
 
-               eos_t eos_state;
+               eos_t eos_state{};
                eos_state.rho = S_arr(i,j,k,URHO);
                eos_state.T = S_arr(i,j,k,UTEMP);
                eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
@@ -3328,7 +3328,7 @@ Castro::reset_internal_energy(const Box& bx,
         Real Wp = u(i,j,k,UMZ) * rhoInv;
         Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
 
-        eos_t eos_state;
+        eos_t eos_state{};
 
         eos_state.rho = u(i,j,k,URHO);
         eos_state.T   = lsmall_temp;
@@ -3555,7 +3555,7 @@ Castro::computeTemp(
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_t eos_state{};
 
           eos_state.rho = u(i,j,k,URHO);
           eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS

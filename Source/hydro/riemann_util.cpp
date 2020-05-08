@@ -73,8 +73,8 @@ Castro::compute_flux_q(const Box& bx,
 
   const Real lT_guess = T_guess;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
+  GpuArray<int, npassive> upass_map_p{};
+  GpuArray<int, npassive> qpass_map_p{};
   for (int n = 0; n < npassive; ++n) {
     upass_map_p[n] = upass_map[n];
     qpass_map_p[n] = qpass_map[n];
@@ -82,7 +82,7 @@ Castro::compute_flux_q(const Box& bx,
 
   GeometryData geomdata = geom.data();
 
-  GpuArray<Real, 3> center;
+  GpuArray<Real, 3> center{};
   ca_get_center(center.begin());
 
   amrex::ParallelFor(bx,
@@ -95,7 +95,7 @@ Castro::compute_flux_q(const Box& bx,
     // if we are enforcing the EOS, then take rho, p, and X, and
     // compute rhoe
     if (enforce_eos == 1) {
-      eos_t eos_state;
+      eos_t eos_state{};
       eos_state.rho = qint(i,j,k,QRHO);
       eos_state.p = qint(i,j,k,QPRES);
       for (int n = 0; n < NumSpec; n++) {
@@ -159,7 +159,7 @@ Castro::compute_flux_q(const Box& bx,
 
 #ifdef HYBRID_MOMENTUM
     // the hybrid routine uses the Godunov indices, not the full NQ state
-    GpuArray<Real, NGDNV> qgdnv_zone;
+    GpuArray<Real, NGDNV> qgdnv_zone{};
     qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
     qgdnv_zone[GDU] = qint(i,j,k,QU);
     qgdnv_zone[GDV] = qint(i,j,k,QV);
@@ -171,7 +171,7 @@ Castro::compute_flux_q(const Box& bx,
         qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
     }
 #endif
-    GpuArray<Real, NUM_STATE> F_zone;
+    GpuArray<Real, NUM_STATE> F_zone{};
     for (int n = 0; n < NUM_STATE; n++) {
         F_zone[n] = F(i,j,k,n);
     }

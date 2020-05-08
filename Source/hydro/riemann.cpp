@@ -191,7 +191,7 @@ Castro::riemann_state(const Box& bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
-     eos_t eos_state;
+     eos_t eos_state{};
 
      // this is an initial guess for iterations, since we
      // can't be certain what temp is on interfaces
