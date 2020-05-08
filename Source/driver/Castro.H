@@ -1562,7 +1562,7 @@ inline
 Castro&
 Castro::getLevel (int lev)
 {
-    return *(Castro *) &parent->getLevel(lev);
+    return *dynamic_cast<Castro *>(&parent->getLevel(lev));
 }
 
 inline
