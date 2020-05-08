@@ -1390,7 +1390,7 @@ protected:
 /// The data.
 ///
     amrex::MultiFab             volume;
-    amrex::MultiFab             area[3];
+    amrex::Array<amrex::MultiFab,3> area;
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
 
@@ -1533,7 +1533,7 @@ inline
 amrex::MultiFab*
 Castro::Area ()
 {
-    return area;
+    return area.data();
 }
 
 
