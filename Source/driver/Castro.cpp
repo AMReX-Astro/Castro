@@ -968,7 +968,6 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -981,6 +980,7 @@ Castro::initData ()
                       AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
@@ -1072,7 +1072,7 @@ Castro::initData ()
          auto S_arr = S_new.array(mfi);
 
          amrex::ParallelFor(bx,
-         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
          {
            Real spec_sum = 0.0_rt;
            for (int n = 0; n < NumSpec; n++) {
@@ -1160,7 +1160,7 @@ Castro::initData ()
              auto S_arr = Sborder.array(mfi);
 
              amrex::ParallelFor(box,
-             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
              {
 
                Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
@@ -1239,8 +1239,6 @@ Castro::initData ()
                  << i << std::endl;
           }
 
-          RealBox    gridloc(grids[mfi.index()],
-                             geom.CellSize(), geom.ProbLo());
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
@@ -1254,6 +1252,7 @@ Castro::initData ()
                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
               (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
@@ -1395,8 +1394,6 @@ Castro::estTimeStep (Real dt_old)
 
     Real estdt = max_dt;
 
-    const MultiFab& stateMF = get_new_data(State_Type);
-
     Real time = state[State_Type].curTime();
 
     const Real* dx = geom.CellSize();
@@ -1415,6 +1412,8 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
+
+            const MultiFab& stateMF = get_new_data(State_Type);
 
             // Compute radiation + hydro limited timestep.
 
@@ -2890,7 +2889,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // Ensure the species mass fractions are between small_x and 1,
         // then normalize them so that they sum to 1.
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real rhoX_sum = 0.0_rt;
 
@@ -2936,7 +2936,7 @@ Castro::enforce_consistent_e (
 #endif
 
         ParallelFor(box,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
           Real u = S_arr(i,j,k,UMX) * rhoInv;
@@ -3319,7 +3319,8 @@ Castro::reset_internal_energy(const Box& bx,
     Real lsmall_temp = small_temp;
     Real ldual_energy_eta2 = dual_energy_eta2;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
         Real rhoInv = 1.0_rt / u(i,j,k,URHO);
         Real Up = u(i,j,k,UMX) * rhoInv;
@@ -3548,7 +3549,8 @@ Castro::computeTemp(
 
       Array4<Real> const u = u_fab.array();
 
-      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);

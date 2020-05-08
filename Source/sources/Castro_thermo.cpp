@@ -136,7 +136,8 @@ Castro::fill_thermo_source (Real time, Real dt,
     Array4<Real> const src = thermo_src.array(mfi);
 
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian

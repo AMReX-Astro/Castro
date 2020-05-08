@@ -400,6 +400,7 @@ contains
                    end do
                    reactions(i,j,k,nspec+1) = (unew(i,j,k,UEINT) * rhonInv - uold(i,j,k,UEINT) * rhooInv) / dt_react
                    reactions(i,j,k,nspec+2) = (unew(i,j,k,UEINT) - uold(i,j,k,UEINT)) / dt_react
+                   reactions(i,j,k,nspec+3) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
                 end if
 

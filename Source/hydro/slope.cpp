@@ -18,9 +18,9 @@ using namespace amrex;
 
 void
 Castro::uslope(const Box& bx, const int idir,
-               Array4<Real const> const q_arr, const int n,
-               Array4<Real const> const flatn_arr,
-               Array4<Real> const dq) {
+               Array4<Real const> const& q_arr, const int n,
+               Array4<Real const> const& flatn_arr,
+               Array4<Real> const& dq) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -42,7 +42,8 @@ Castro::uslope(const Box& bx, const int idir,
   if (plm_iorder == 1) {
 
     // first order -- piecewise constant slopes
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
       dq(i,j,k,n) = 0.0;
     });
@@ -53,7 +54,8 @@ Castro::uslope(const Box& bx, const int idir,
 
     const int lplm_limiter = plm_limiter;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       if (lplm_limiter == 1) {
@@ -197,10 +199,10 @@ Castro::uslope(const Box& bx, const int idir,
 
 void
 Castro::pslope(const Box& bx, const int idir,
-               Array4<Real const> const q_arr,
-               Array4<Real const> const flatn_arr,
-               Array4<Real> const dq,
-               Array4<Real const> const src) {
+               Array4<Real const> const& q_arr,
+               Array4<Real const> const& flatn_arr,
+               Array4<Real> const& dq,
+               Array4<Real const> const& src) {
 
   const auto dx = geom.CellSizeArray();
 
@@ -219,7 +221,7 @@ Castro::pslope(const Box& bx, const int idir,
 
     // first order -- piecewise constant slopes
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
      dq(i,j,k,QPRES) = 0.0_rt;
     });
@@ -227,7 +229,7 @@ Castro::pslope(const Box& bx, const int idir,
   } else {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       if (q_arr(i,j,k,QRHO) < lpslope_cutoff_density) {
