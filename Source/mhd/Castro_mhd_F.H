@@ -1,5 +1,6 @@
-#ifndef _Castro_mhd_F_H_
-#define _Castro_mhd_F_H_
+#ifndef CASTRO_MHD_F_H
+#define CASTRO_MHD_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -19,12 +20,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(cx),
      BL_FORT_FAB_ARG_3D(cy),
      BL_FORT_FAB_ARG_3D(cz));
-
-  void srctoprim_mhd
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(src),
-     BL_FORT_FAB_ARG_3D(srcq));
 
   void check_for_mhd_cfl_violation
     (const int lo[], const int hi[],

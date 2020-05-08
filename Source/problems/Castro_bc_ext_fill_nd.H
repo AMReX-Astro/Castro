@@ -1,5 +1,5 @@
-#ifndef _Castro_bc_ext_fill_nd_H_
-#define _Castro_bc_ext_fill_nd_H_
+#ifndef CASTRO_BC_EXT_FILL_ND_H
+#define CASTRO_BC_EXT_FILL_ND_H
 
 #include <AMReX_FArrayBox.H>
 #include <AMReX_Geometry.H>

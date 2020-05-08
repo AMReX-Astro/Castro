@@ -22,11 +22,11 @@ using namespace amrex;
 
 void
 Castro::compute_flux_q(const Box& bx,
-                       Array4<Real const> const qint,
-                       Array4<Real> const F,
+                       Array4<Real const> const& qint,
+                       Array4<Real> const& F,
 #ifdef RADIATION
-                       Array4<Real const> const lambda,
-                       Array4<Real> const rF,
+                       Array4<Real const> const& lambda,
+                       Array4<Real> const& rF,
 #endif
                        const int idir, const int enforce_eos) {
 
@@ -186,17 +186,18 @@ Castro::compute_flux_q(const Box& bx,
 
 void
 Castro::store_godunov_state(const Box& bx,
-                            Array4<Real const> const qint,
+                            Array4<Real const> const& qint,
 #ifdef RADIATION
-                            Array4<Real const> const lambda,
+                            Array4<Real const> const& lambda,
 #endif
-                            Array4<Real> const qgdnv) {
+                            Array4<Real> const& qgdnv) {
 
   // this copies the full interface state (NQ -- one for each primitive
   // variable) over to a smaller subset of size NGDNV for use later in the
   // hydro advancement.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // the hybrid routine uses the Godunov indices, not the full NQ state

@@ -1,6 +1,5 @@
-
-#ifndef _Castro_H_
-#define _Castro_H_
+#ifndef CASTRO_H
+#define CASTRO_H
 
 #include <state_indices.H>
 

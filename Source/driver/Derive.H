@@ -1,5 +1,6 @@
-#ifndef _Derive_H_
-#define _Derive_H_
+#ifndef CASTRO_DERIVE_H
+#define CASTRO_DERIVE_H
+
 #include <AMReX_BLFort.H>
 #include <AMReX_FArrayBox.H>
 #include <AMReX_Geometry.H>

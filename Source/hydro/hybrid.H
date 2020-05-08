@@ -1,5 +1,5 @@
-#ifndef _Castro_hybrid_H_
-#define _Castro_hybrid_H_
+#ifndef CASTRO_HYBRID_H
+#define CASTRO_HYBRID_H
 
 #include "Castro_util.H"
 
