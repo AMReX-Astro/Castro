@@ -18,7 +18,7 @@ fill_temp_cond(const Box& bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    eos_t eos_state;
+    eos_t eos_state{};
     eos_state.rho  = U_arr(i,j,k,URHO);
     Real rhoinv = 1.0_rt/eos_state.rho;
 
@@ -65,7 +65,7 @@ fill_temp_diff_coeff(const Box& bx,
   [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
   {
 
-    eos_t eos_state;
+    eos_t eos_state{};
     eos_state.rho  = U_arr(i,j,k,URHO);
     Real rhoinv = 1.0_rt/eos_state.rho;
 

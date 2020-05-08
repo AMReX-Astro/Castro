@@ -44,11 +44,11 @@ Castro::ctoprim(const Box& bx,
   int closure = Radiation::closure;
 #endif
 
-  GpuArray<Real, 3> center;
+  GpuArray<Real, 3> center{};
   ca_get_center(center.begin());
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
+  GpuArray<Real, 3> omega{};
   get_omega(time, omega.begin());
 #endif
 
@@ -131,7 +131,7 @@ Castro::ctoprim(const Box& bx,
     }
 
     // get gamc, p, T, c, csml using q state
-    eos_t eos_state;
+    eos_t eos_state{};
     eos_state.T = q_arr(i,j,k,QTEMP);
     eos_state.rho = q_arr(i,j,k,QRHO);
     eos_state.e = q_arr(i,j,k,QREINT);
@@ -680,7 +680,7 @@ Castro::dflux(const GpuArray<Real, NUM_STATE>& u,
 
 #ifdef HYBRID_MOMENTUM
     // Create a temporary edge-based q for this routine.
-    GpuArray<Real, NGDNV> qgdnv;
+    GpuArray<Real, NGDNV> qgdnv{};
     for (int n = 0; n < NGDNV; ++n) {
         qgdnv[n] = 0.0_rt;
     }
@@ -759,7 +759,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
+    GpuArray<Real, 3> center{};
     ca_get_center(center.begin());
 
     amrex::ParallelFor(bx,
@@ -769,12 +769,12 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // Grab the states on either side of the interface we are working with,
         // depending on which dimension we're currently calling this with.
 
-        GpuArray<Real, NUM_STATE> uR;
+        GpuArray<Real, NUM_STATE> uR{};
         for (int n = 0; n < NUM_STATE; ++n) {
             uR[n] = u(i,j,k,n);
         }
 
-        GpuArray<Real, NQ> qR;
+        GpuArray<Real, NQ> qR{};
         for (int n = 0; n < NQ; ++n) {
             qR[n] = q(i,j,k,n);
         }
@@ -783,10 +783,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         GpuArray<int, 3> idxR = {i,j,k};
 
-        GpuArray<Real, NUM_STATE> uL;
-        GpuArray<Real, NQ> qL;
+        GpuArray<Real, NUM_STATE> uL{};
+        GpuArray<Real, NQ> qL{};
         Real volL;
-        GpuArray<int, 3> idxL;
+        GpuArray<int, 3> idxL{};
 
         if (idir == 0) {
 
@@ -848,10 +848,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Construct cell-centered fluxes.
 
-        GpuArray<Real, NUM_STATE> fluxL;
+        GpuArray<Real, NUM_STATE> fluxL{};
         dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
 
-        GpuArray<Real, NUM_STATE> fluxR;
+        GpuArray<Real, NUM_STATE> fluxR{};
         dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
 
         // Construct the Lax-Friedrichs flux on the interface (Equation 12).
@@ -860,7 +860,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // lambda = dt/(dx * alpha); alpha = 1 in 1D and may be chosen somewhat
         // freely in multi-D as long as alpha_x + alpha_y + alpha_z = 1.
 
-        GpuArray<Real, NUM_STATE> fluxLF;
+        GpuArray<Real, NUM_STATE> fluxLF{};
         for (int n = 0; n < NUM_STATE; ++n) {
             fluxLF[n] = 0.5_rt * (fluxL[n] + fluxR[n] + (lcfl / dtdx / alpha) * (uL[n] - uR[n]));
         }
@@ -970,7 +970,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
+    GpuArray<Real, 3> center{};
     ca_get_center(center.begin());
 
     Real lspeed_limit = speed_limit / (2 * AMREX_SPACEDIM);
@@ -978,12 +978,12 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
-        GpuArray<Real, NUM_STATE> uR;
+        GpuArray<Real, NUM_STATE> uR{};
         for (int n = 0; n < NUM_STATE; ++n) {
             uR[n] = u(i,j,k,n);
         }
 
-        GpuArray<Real, NQ> qR;
+        GpuArray<Real, NQ> qR{};
         for (int n = 0; n < NQ; ++n) {
             qR[n] = q(i,j,k,n);
         }
@@ -992,10 +992,10 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
         GpuArray<int, 3> idxR = {i,j,k};
 
-        GpuArray<Real, NUM_STATE> uL;
-        GpuArray<Real, NQ> qL;
+        GpuArray<Real, NUM_STATE> uL{};
+        GpuArray<Real, NQ> qL{};
         Real volL;
-        GpuArray<int, 3> idxL;
+        GpuArray<int, 3> idxL{};
 
         if (idir == 0) {
 
@@ -1045,15 +1045,15 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
         // Construct cell-centered fluxes.
 
-         GpuArray<Real, NUM_STATE> fluxL;
+         GpuArray<Real, NUM_STATE> fluxL{};
          dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
 
-         GpuArray<Real, NUM_STATE> fluxR;
+         GpuArray<Real, NUM_STATE> fluxR{};
          dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
 
          // Construct the Lax-Friedrichs flux on the interface.
 
-         GpuArray<Real, NUM_STATE> fluxLF;
+         GpuArray<Real, NUM_STATE> fluxLF{};
          for (int n = 0; n < NUM_STATE; ++n) {
              fluxLF[n] = 0.5_rt * (fluxL[n] + fluxR[n] + (lcfl / dtdx / alpha) * (uL[n] - uR[n]));
          }
