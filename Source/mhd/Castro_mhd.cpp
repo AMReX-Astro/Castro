@@ -103,7 +103,7 @@ Castro::just_the_mhd(Real time, Real dt)
           q.resize(bx_gc, NQ);
           auto q_arr = q.array();
 
-          srcQ.resize(obx, NQSRC);
+          srcQ.resize(bx_gc, NQSRC);
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
             cs[idir].resize(bx_gc, 1);
@@ -129,7 +129,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto src_q_arr = srcQ.array();
           auto src_arr = source_in.array();
 
-          src_to_prim(obx, q_arr, src_arr, src_q_arr);
+          src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
           check_for_mhd_cfl_violation(lo, hi,
                                       BL_TO_FORTRAN_ANYD(q),
