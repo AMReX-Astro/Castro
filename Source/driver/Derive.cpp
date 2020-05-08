@@ -970,7 +970,7 @@ extern "C"
 
           der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]);
 #if AMREX_SPACEDIM >= 2
-          der(i,j,j,0) += 0.5_rt*(vhi - vlo) / dx[1];
+          der(i,j,k,0) += 0.5_rt*(vhi - vlo) / dx[1];
 #endif
 
         } else if (coord_type == 2) {
