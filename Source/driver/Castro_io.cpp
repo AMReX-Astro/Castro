@@ -293,7 +293,7 @@ Castro::restart (Amr&     papa,
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-           RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+
            const Real* prob_lo = geom.ProbLo();
            const Box& bx      = mfi.validbox();
            const int* lo      = bx.loVect();
@@ -309,6 +309,8 @@ Castro::restart (Amr&     papa,
                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+
+              RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
 
               Real cur_time = state[State_Type].curTime();
 
