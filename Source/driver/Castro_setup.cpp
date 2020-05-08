@@ -318,8 +318,9 @@ Castro::variableSetUp ()
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
 
-  if (ParallelDescriptor::IOProcessor())
+  if (ParallelDescriptor::IOProcessor()) {
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
+  }
 
   const Geometry& dgeom = DefaultGeometry();
 
@@ -340,8 +341,9 @@ Castro::variableSetUp ()
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
-  for (int i = 0; i < probin_file_length; i++)
+  for (int i = 0; i < probin_file_length; i++) {
     probin_file_name[i] = probin_file[i];
+  }
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
@@ -374,10 +376,12 @@ Castro::variableSetUp ()
     interp = &pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1)
+    if (lin_limit_state_interp == 1) {
       interp = &lincc_interp;
-    else
+    }
+    else {
       interp = &cell_cons_interp;
+    }
   }
 
   // Note that the default is state_data_extrap = false,
@@ -557,8 +561,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
-      for (int i = 0; i < NumSpec; i++)
+      for (int i = 0; i < NumSpec; i++) {
         std::cout << short_spec_names_cxx[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -578,8 +583,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
-      for (int i = 0; i < NumAux; i++)
+      for (int i = 0; i < NumAux; i++) {
         std::cout << aux_names[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -849,8 +855,9 @@ Castro::variableSetUp ()
   derive_lst.add("magvort",IndexType::TheCellType(),1,ca_dermagvort,grow_box_by_one);
   // Here we exploit the fact that UMX = URHO + 1
   //   in order to use the correct interpolation.
-  if (UMX != URHO+1)
+  if (UMX != URHO+1) {
     amrex::Error("We are assuming UMX = URHO + 1 in Castro_setup.cpp");
+  }
   derive_lst.addComponent("magvort",desc_lst,State_Type,URHO,4);
 
   //
