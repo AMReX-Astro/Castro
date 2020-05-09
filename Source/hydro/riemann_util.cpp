@@ -75,7 +75,7 @@ Castro::compute_flux_q(const Box& bx,
 
   GeometryData geomdata = geom.data();
 
-  GpuArray<Real, 3> center{};
+  GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
   amrex::ParallelFor(bx,
@@ -152,7 +152,7 @@ Castro::compute_flux_q(const Box& bx,
 
 #ifdef HYBRID_MOMENTUM
     // the hybrid routine uses the Godunov indices, not the full NQ state
-    GpuArray<Real, NGDNV> qgdnv_zone{};
+    GpuArray<Real, NGDNV> qgdnv_zone;
     qgdnv_zone[GDRHO] = qint(i,j,k,QRHO);
     qgdnv_zone[GDU] = qint(i,j,k,QU);
     qgdnv_zone[GDV] = qint(i,j,k,QV);
@@ -164,7 +164,7 @@ Castro::compute_flux_q(const Box& bx,
         qgdnv_zone[GDERADS+g] = qint(i,j,k,QRAD+g);
     }
 #endif
-    GpuArray<Real, NUM_STATE> F_zone{};
+    GpuArray<Real, NUM_STATE> F_zone;
     for (int n = 0; n < NUM_STATE; n++) {
         F_zone[n] = F(i,j,k,n);
     }
