@@ -266,8 +266,9 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
     for (int n = 0; n < NQ; n++) {
-      if (n == QTEMP)
+      if (n == QTEMP) {
         continue;
+      }
 
       uslope(bx, idir,
              q_arr, n,
