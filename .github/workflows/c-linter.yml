@@ -7,29 +7,30 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get submodules 
+      - name: Get submodules
         run: git submodule update --init
 
       - name: Run cpp linter
         uses: AMReX-Astro/cpp-linter-action@master
-        with: 
+        with:
           build_path: 'Exec/science/flame_wave'
           make_options: '-j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
           ignore_files: 'amrex|Microphysics'
           header_filter: 'Castro'
-      
+          checks: 'bugprone-*,performance-*,portability-*,modernize-*,clang-analyzer-*,cppcoreguidelines-*,readability-*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-clang-diagnostic-unknown-warning-option,-clang-diagnostic-unknown-pragmas,-readability-avoid-const-params-in-decls,-modernize-loop-convert'
+
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v1
         with:
           name: clang-tidy-report
           path: clang-tidy-report.txt
-      
+
     #   - name: Archive clang format report
     #     uses: actions/upload-artifact@v1
     #     with:
     #       name: clang-format-report
     #       path: clang-format-report.txt
-      
+
       - name: Archive cppcheck report
         uses: actions/upload-artifact@v1
         with:
