@@ -416,29 +416,11 @@ Castro::checkPoint(const std::string& dir,
                    bool dump_old_default)
 {
 
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToHost(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToHost(new_MF);
-  }
-
   const Real io_start_time = ParallelDescriptor::second();
 
   AmrLevel::checkPoint(dir, os, how, dump_old);
 
   const Real io_time = ParallelDescriptor::second() - io_start_time;
-
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToDevice(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToDevice(new_MF);
-  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -1208,8 +1190,6 @@ Castro::plotFileOutput(const std::string& dir,
         cnt += Radiation::nplotvar;
     }
 #endif
-
-    amrex::prefetchToHost(plotMF);
 
     //
     // Use the Full pathname when naming the MultiFab.
