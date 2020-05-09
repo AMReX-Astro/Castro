@@ -86,12 +86,12 @@ int          Castro::numBCThreadsMin[3] = {1, 1, 1};
 
 #ifdef GRAVITY
 // the gravity object
-Gravity*     Castro::gravity  = 0;
+Gravity*     Castro::gravity  = nullptr;
 #endif
 
 #ifdef DIFFUSION
 // the diffusion object
-Diffusion*    Castro::diffusion  = 0;
+Diffusion*    Castro::diffusion  = nullptr;
 #endif
 
 #ifdef RADIATION
@@ -105,14 +105,14 @@ Radiation*   Castro::radiation = 0;
 std::string  Castro::probin_file = "probin";
 
 
-#if BL_SPACEDIM == 1
+#if AMREX_SPACEDIM == 1
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024);
 #else
 IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
-#elif BL_SPACEDIM == 2
+#elif AMREX_SPACEDIM == 2
 #ifndef AMREX_USE_CUDA
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
@@ -146,32 +146,33 @@ void
 Castro::variableCleanUp ()
 {
 #ifdef GRAVITY
-  if (gravity != 0) {
+  if (gravity != nullptr) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
     delete gravity;
-    gravity = 0;
+    gravity = nullptr;
   }
 #endif
 
 #ifdef DIFFUSION
-  if (diffusion != 0) {
+  if (diffusion != nullptr) {
     if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
     delete diffusion;
-    diffusion = 0;
+    diffusion = nullptr;
   }
 #endif
 
 #ifdef RADIATION
-  if (radiation != 0) { int report = (verbose || radiation->verbose);
+  if (radiation != nullptr) {
+    int report = (verbose || radiation->verbose);
     if (report && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting radiation in variableCleanUp..." << '\n';
     }
     delete radiation;
-    radiation = 0;
+    radiation = nullptr;
     if (report && ParallelDescriptor::IOProcessor()) {
       std::cout << "                                        done" << std::endl;
     }
@@ -214,10 +215,10 @@ Castro::read_params ()
 #include <castro_queries.H>
 
     // Get boundary conditions
-    Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
-    pp.getarr("lo_bc",lo_bc,0,BL_SPACEDIM);
-    pp.getarr("hi_bc",hi_bc,0,BL_SPACEDIM);
-    for (int i = 0; i < BL_SPACEDIM; i++)
+    Vector<int> lo_bc(AMREX_SPACEDIM), hi_bc(AMREX_SPACEDIM);
+    pp.getarr("lo_bc",lo_bc,0,AMREX_SPACEDIM);
+    pp.getarr("hi_bc",hi_bc,0,AMREX_SPACEDIM);
+    for (int i = 0; i < AMREX_SPACEDIM; i++)
     {
         phys_bc.setLo(i,lo_bc[i]);
         phys_bc.setHi(i,hi_bc[i]);
@@ -234,7 +235,7 @@ Castro::read_params ()
         //
         // Do idiot check.  Periodic means interior in those directions.
         //
-        for (int dir = 0; dir<BL_SPACEDIM; dir++)
+        for (int dir = 0; dir<AMREX_SPACEDIM; dir++)
         {
             if (dgeom.isPeriodic(dir))
             {
@@ -260,7 +261,7 @@ Castro::read_params ()
         //
         // Do idiot check.  If not periodic, should be no interior.
         //
-        for (int dir=0; dir<BL_SPACEDIM; dir++)
+        for (int dir=0; dir<AMREX_SPACEDIM; dir++)
         {
             if (lo_bc[dir] == Interior)
             {
@@ -284,7 +285,7 @@ Castro::read_params ()
         amrex::Error();
     }
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
     if ( dgeom.IsSPHERICAL() )
     {
       if ( (lo_bc[0] != Symmetry) && (dgeom.ProbLo(0) == 0.0) )
@@ -293,12 +294,12 @@ Castro::read_params ()
         amrex::Error();
       }
     }
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
     if ( dgeom.IsSPHERICAL() )
       {
         amrex::Abort("We don't support spherical coordinate systems in 2D");
       }
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
     if ( dgeom.IsRZ() )
       {
         amrex::Abort("We don't support cylindrical coordinate systems in 3D");
@@ -326,11 +327,13 @@ Castro::read_params ()
 #endif
     // sanity checks
 
-    if (grown_factor < 1)
+    if (grown_factor < 1) {
        amrex::Error("grown_factor must be integer >= 1");
+    }
 
-    if (cfl <= 0.0 || cfl > 1.0)
+    if (cfl <= 0.0 || cfl > 1.0) {
       amrex::Error("Invalid CFL factor; must be between zero and one.");
+    }
 
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
@@ -364,7 +367,7 @@ Castro::read_params ()
     }
 #endif
 
-    if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
+    if (hybrid_riemann == 1 && AMREX_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
         amrex::Error();
@@ -409,19 +412,20 @@ Castro::read_params ()
 #endif
 
 #ifdef ROTATION
-    if (do_rotation) {
+    if (do_rotation == 1) {
       if (rotational_period <= 0.0) {
         std::cerr << "Error:Castro::Rotation enabled but rotation period less than zero\n";
         amrex::Error();
       }
     }
-    if (dgeom.IsRZ())
+    if (dgeom.IsRZ()) {
       rot_axis = 2;
-#if (BL_SPACEDIM == 1)
-      if (do_rotation) {
-        std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
-        amrex::Error();
-      }
+    }
+#if (AMREX_SPACEDIM == 1)
+    if (do_rotation) {
+      std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
+      amrex::Error();
+    }
 #endif
 #endif
 
@@ -445,10 +449,12 @@ Castro::read_params ()
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
 
-    Vector<int> tilesize(BL_SPACEDIM);
-    if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
+    Vector<int> tilesize(AMREX_SPACEDIM);
+    if (pp.queryarr("hydro_tile_size", tilesize, 0, AMREX_SPACEDIM) == 1)
     {
-        for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
+        for (int i=0; i<AMREX_SPACEDIM; i++) {
+          hydro_tile_size[i] = tilesize[i];
+        }
     }
 
     // Override Amr defaults. Note: this function is called after Amr::Initialize()
@@ -488,7 +494,7 @@ Castro::Castro (Amr&            papa,
 
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
-    if (do_hydro && do_reflux) {
+    if (do_hydro == 1 && do_reflux == 1) {
         for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
             if (parent->nErrorBuf(ilev) == 0) {
                 amrex::Error("n_error_buf = 0 is unsupported when using hydro.");
@@ -515,7 +521,7 @@ Castro::Castro (Amr&            papa,
 
 #ifdef GRAVITY
 
-    if (do_grav) {
+    if (do_grav == 1) {
       // gravity is a static object, only alloc if not already there
       if (gravity == 0)
         gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
@@ -528,7 +534,7 @@ Castro::Castro (Amr&            papa,
          // For 1D, we need to add ghost cells to the numpts
          // given to us by Castro.
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
          numpts_1d += 2 * NUM_GROW;
 #endif
 
@@ -628,13 +634,13 @@ Castro::buildMetrics ()
     volume.define(grids,dmap,1,NUM_GROW);
     geom.GetVolume(volume);
 
-    for (int dir = 0; dir < BL_SPACEDIM; dir++)
+    for (int dir = 0; dir < AMREX_SPACEDIM; dir++)
     {
         area[dir].clear();
         area[dir].define(getEdgeBoxArray(dir),dmap,1,NUM_GROW);
         geom.GetFaceArea(area[dir],dir);
     }
-    for (int dir = BL_SPACEDIM; dir < 3; dir++)
+    for (int dir = AMREX_SPACEDIM; dir < 3; dir++)
     {
         area[dir].clear();
         area[dir].define(grids, dmap, 1, 0);
@@ -642,11 +648,13 @@ Castro::buildMetrics ()
     }
 
     dLogArea[0].clear();
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
 #endif
 
-    if (level == 0) setGridInfo();
+    if (level == 0) {
+      setGridInfo();
+    }
 
     wall_time_start = 0.0;
 }
@@ -658,29 +666,34 @@ Castro::initMFs()
 {
     fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
         fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
+    for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
         fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+    }
 
     mass_fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
         mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
+    for (int dir = AMREX_SPACEDIM; dir < 3; ++dir) {
         mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+    }
 
-#if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
+#if (AMREX_SPACEDIM <= 2)
+    if (!Geom().IsCartesian()) {
         P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
+    }
 #endif
 
 #ifdef RADIATION
     if (Radiation::rad_hydro_combined) {
-        rad_fluxes.resize(BL_SPACEDIM);
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+        rad_fluxes.resize(AMREX_SPACEDIM);
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, Radiation::nGroups, 0));
         }
     }
@@ -691,7 +704,7 @@ Castro::initMFs()
         flux_reg.define(grids, dmap, crse_ratio, level, NUM_STATE);
         flux_reg.setVal(0.0);
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
         if (!Geom().IsCartesian()) {
             pres_reg.define(grids, dmap, crse_ratio, level, 1);
             pres_reg.setVal(0.0);
@@ -736,10 +749,10 @@ Castro::initMFs()
         // fluxes, we want the total refluxing contribution
         // over the full set of fine timesteps to equal P_radial.
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
         pres_crse_scale = -1.0;
         pres_fine_scale = 1.0;
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
         pres_crse_scale = -1.0;
         pres_fine_scale = 1.0 / crse_ratio[1];
 #endif
@@ -792,7 +805,7 @@ Castro::setGridInfo ()
       const int* domhi_coarse = geom.Domain().hiVect();
 
       for (int dir = 0; dir < 3; dir++) {
-          if (dir < BL_SPACEDIM) {
+          if (dir < AMREX_SPACEDIM) {
               dx_level[dir] = dx_coarse[dir];
 
               domlo_level[dir] = domlo_coarse[dir];
@@ -812,8 +825,9 @@ Castro::setGridInfo ()
         n_error_buf_to_f[nlevs-1] = 0;
       }
 
-      for (int lev = 0; lev <= max_level; lev++)
+      for (int lev = 0; lev <= max_level; lev++) {
         blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
+      }
 
       for (int lev = 1; lev <= max_level; lev++) {
         IntVect ref_ratio = parent->refRatio(lev-1);
@@ -824,7 +838,7 @@ Castro::setGridInfo ()
         // refined levels may not exist at the beginning of the simulation.
 
         for (int dir = 0; dir < 3; dir++)
-          if (dir < BL_SPACEDIM) {
+          if (dir < AMREX_SPACEDIM) {
             dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
             int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
             domlo_level[3 * lev + dir] = domlo_level[dir];
@@ -863,13 +877,13 @@ Castro::initData ()
     S_new.setVal(0.);
 
     // make sure dx = dy = dz -- that's all we guarantee to support
-#if (BL_SPACEDIM == 2)
+#if (AMREX_SPACEDIM == 2)
     const Real SMALL = 1.e-13;
     if (fabs(dx[0] - dx[1]) > SMALL*dx[0])
       {
         amrex::Abort("We don't support dx != dy");
       }
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
     const Real SMALL = 1.e-13;
     if ( (fabs(dx[0] - dx[1]) > SMALL*dx[0]) || (fabs(dx[0] - dx[2]) > SMALL*dx[0]) )
       {
@@ -1269,7 +1283,7 @@ Castro::initData ()
 
 
 #ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
@@ -1315,7 +1329,7 @@ Castro::init (AmrLevel &old)
 {
     BL_PROFILE("Castro::init(old)");
 
-    Castro* oldlev = (Castro*) &old;
+    Castro* oldlev = dynamic_cast<Castro*>(&old);
 
     //
     // Create new grid data by fillpatching from old.
@@ -1353,7 +1367,7 @@ Castro::init ()
     // If we just triggered a regrid, we need to account for the fact that
     // the data on the coarse level has already been advanced.
 
-    if (getLevel(level-1).post_step_regrid)
+    if (getLevel(level-1).post_step_regrid = 1)
         time = prev_time;
 
     setTimeLevel(time,dt_old,dt);
@@ -1387,8 +1401,9 @@ Castro::estTimeStep (Real dt_old)
 {
     BL_PROFILE("Castro::estTimeStep()");
 
-    if (fixed_dt > 0.0)
+    if (fixed_dt > 0.0) {
         return fixed_dt;
+    }
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
@@ -1963,7 +1978,7 @@ Castro::post_restart ()
             // Passing numpts_1d at level 0
             int numpts_1d = get_numpts ();
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
             numpts_1d += 2 * NUM_GROW;
 #endif
 
@@ -2150,7 +2165,7 @@ Castro::post_regrid (int lbase,
     if (do_grav)
     {
 
-        if (use_post_step_regrid && getLevel(lbase).post_step_regrid && gravity->get_gravity_type() == "PoissonGrav") {
+        if (use_post_step_regrid  == 1 && getLevel(lbase).post_step_regrid == 1 && gravity->get_gravity_type() == "PoissonGrav") {
 
            if (level > lbase) {
 
@@ -2178,7 +2193,7 @@ Castro::post_regrid (int lbase,
 
                const Vector<BCRec>& gp_bcs = getLevel(level).get_desc_lst()[Gravity_Type].getBCs();
 
-               for (int n = 0; n < BL_SPACEDIM; ++n) {
+               for (int n = 0; n < AMREX_SPACEDIM; ++n) {
                    amrex::InterpFromCoarseLevel(*grad_phi_fine[n], time, *grad_phi_coarse[n],
                                                 0, 0, 1,
                                                 parent->Geom(level-1), parent->Geom(level),
@@ -2484,18 +2499,21 @@ Castro::FluxRegCrseInit() {
 
     Castro& fine_level = getLevel(level+1);
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
+    for (int i = 0; i < AMREX_SPACEDIM; ++i)
         fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
 
-#if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
+#if (AMREX_SPACEDIM <= 2)
+    if (!Geom().IsCartesian()) {
         fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
+    if (Radiation::rad_hydro_combined) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+        }
+    }
 #endif
 
 }
@@ -2508,18 +2526,21 @@ Castro::FluxRegFineAdd() {
 
     if (level == 0) return;
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
+    for (int i = 0; i < AMREX_SPACEDIM; ++i)
         flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
 
-#if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
+#if (AMREX_SPACEDIM <= 2)
+    if (!Geom().IsCartesian()) {
         getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
+    if (Radiation::rad_hydro_combined) {
+        for (int i = 0; i < AMREX_SPACEDIM; ++i) {
             getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+        }
+    }
 #endif
 
 }
@@ -2597,7 +2618,7 @@ Castro::reflux(int crse_level, int fine_level)
 
         if (update_sources_after_reflux) {
 
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 temp_fluxes[i].reset(new MultiFab(crse_lev.fluxes[i]->boxArray(),
                                                   crse_lev.fluxes[i]->DistributionMap(),
                                                   crse_lev.fluxes[i]->nComp(), crse_lev.fluxes[i]->nGrow()));
@@ -2608,7 +2629,7 @@ Castro::reflux(int crse_level, int fine_level)
                 int idir = fi().coordDir();
                 fs.copyTo(*temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir]->nComp());
             }
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
                 MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], URHO, 0, 1, 0);
                 temp_fluxes[i].reset();
@@ -2620,7 +2641,7 @@ Castro::reflux(int crse_level, int fine_level)
 
         reg->setVal(0.0);
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
 
             reg = &getLevel(lev).pres_reg;
@@ -2672,7 +2693,7 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (update_sources_after_reflux) {
 
-                for (int i = 0; i < BL_SPACEDIM; ++i) {
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                     temp_fluxes[i].reset(new MultiFab(crse_lev.rad_fluxes[i]->boxArray(),
                                                       crse_lev.rad_fluxes[i]->DistributionMap(),
                                                       crse_lev.rad_fluxes[i]->nComp(), crse_lev.rad_fluxes[i]->nGrow()));
@@ -2683,7 +2704,7 @@ Castro::reflux(int crse_level, int fine_level)
                     int idir = fi().coordDir();
                     fs.copyTo(*temp_fluxes[idir], 0, 0, 0, temp_fluxes[idir]->nComp());
                 }
-                for (int i = 0; i < BL_SPACEDIM; ++i) {
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                     MultiFab::Add(*crse_lev.rad_fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.rad_fluxes[i]->nComp(), 0);
                     temp_fluxes[i].reset();
                 }
@@ -2707,7 +2728,7 @@ Castro::reflux(int crse_level, int fine_level)
             // 37 in the Castro I paper. The dimensions of dphi are therefore actually
             // phi / cm**2, which makes it correct for the RHS of the Poisson equation.
 
-            for (int i = 0; i < BL_SPACEDIM; ++i) {
+            for (int i = 0; i < AMREX_SPACEDIM; ++i) {
                 reg->CrseInit(*(gravity->get_grad_phi_curr(lev-1)[i]), crse_lev.area[i], i, 0, 0, 1, -1.0);
                 reg->FineAdd(*(gravity->get_grad_phi_curr(lev)[i]), fine_lev.area[i], i, 0, 0, 1, 1.0);
             }
@@ -3747,13 +3768,13 @@ Castro::get_numpts ()
      Box bx(geom.Domain());
      long nx = bx.size()[0];
 
-#if (BL_SPACEDIM == 1)
+#if (AMREX_SPACEDIM == 1)
      numpts_1d = nx;
-#elif (BL_SPACEDIM == 2)
+#elif (AMREX_SPACEDIM == 2)
      long ny = bx.size()[1];
      Real ndiagsq = Real(nx*nx + ny*ny);
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
-#elif (BL_SPACEDIM == 3)
+#elif (AMREX_SPACEDIM == 3)
      long ny = bx.size()[1];
      long nz = bx.size()[2];
      Real ndiagsq = Real(nx*nx + ny*ny + nz*nz);
@@ -3769,7 +3790,7 @@ Castro::get_numpts ()
 void
 Castro::make_radial_data(int is_new)
 {
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
 
    BL_PROFILE("Castro::make_radial_data()");
 
@@ -3889,8 +3910,8 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
-    int mi[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
+    int mi[AMREX_SPACEDIM];
+    for (int i = 0; i < AMREX_SPACEDIM; i++) mi[i] = max_index[i];
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
@@ -3898,7 +3919,7 @@ Castro::define_new_center(MultiFab& S, Real time)
         ca_find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
     }
     // Now broadcast to everyone else.
-    ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
+    ParallelDescriptor::Bcast(&center[0], AMREX_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
     if ( Geom().IsRZ() ) center[0] = 0;
@@ -3930,10 +3951,10 @@ Castro::write_center ()
            data_logc << std::setw( 8) <<  nstep;
            data_logc << std::setw(14) <<  std::setprecision(6) <<  time;
            data_logc << std::setw(14) <<  std::setprecision(6) << center[0];
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
            data_logc << std::setw(14) <<  std::setprecision(6) << center[1];
 #endif
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
            data_logc << std::setw(14) <<  std::setprecision(6) << center[2];
 #endif
            data_logc << std::endl;

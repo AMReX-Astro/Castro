@@ -80,7 +80,9 @@ Castro::compute_flux_q(const Box& bx,
     qpass_map_p[n] = qpass_map[n];
   }
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());

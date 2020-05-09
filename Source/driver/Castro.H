@@ -761,14 +761,14 @@ public:
 ///
 /// Error estimation for regridding.
 ///
-/// @param tb           TagBoxArray of tags
+/// @param tags         TagBoxArray of tags
 /// @param clearval     integer
 /// @param tagval       integer
 /// @param time         current time
 /// @param n_error_buf  integer
 /// @param ngrow        Number of ghost cells
 ///
-    void errorEst (amrex::TagBoxArray& tb,
+    void errorEst (amrex::TagBoxArray& tags,
                    int          clearval,
                    int          tagval,
                    amrex::Real  time,
@@ -846,7 +846,7 @@ public:
 ///
 /// Reset the internal energy
 ///
-/// @param State    Current state (MultiFab)
+/// @param S_new    Current state (MultiFab)
 /// @param ng       number of ghost cells
 ///
     void reset_internal_energy (
@@ -855,7 +855,7 @@ public:
                                 amrex::MultiFab& By,
                                 amrex::MultiFab& Bz,
 #endif
-                                amrex::MultiFab& State, int ng);
+                                amrex::MultiFab& S_new, int ng);
 
 
 ///
