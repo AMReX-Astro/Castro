@@ -95,7 +95,7 @@ Castro::compute_flux_q(const Box& bx,
     // if we are enforcing the EOS, then take rho, p, and X, and
     // compute rhoe
     if (enforce_eos == 1) {
-      eos_t eos_state{};
+      eos_t eos_state;
       eos_state.rho = qint(i,j,k,QRHO);
       eos_state.p = qint(i,j,k,QPRES);
       for (int n = 0; n < NumSpec; n++) {

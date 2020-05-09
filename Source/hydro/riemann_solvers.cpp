@@ -145,7 +145,7 @@ Castro::riemanncg(const Box& bx,
       std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << rel << " " << pl << " " << lsmall_pres << std::endl;
 #endif
 
-      eos_t eos_state{};
+      eos_t eos_state;
       eos_state.T = lsmall_temp;
       eos_state.rho = rl;
       for (int n = 0; n < NumSpec; n++) {
@@ -183,7 +183,7 @@ Castro::riemanncg(const Box& bx,
 #ifndef AMREX_USE_CUDA
       std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << rer << " " << pr << " " << lsmall_pres << std::endl;
 #endif
-      eos_t eos_state{};
+      eos_t eos_state;
 
       eos_state.T = lsmall_temp;
       eos_state.rho = rr;
@@ -754,7 +754,7 @@ Castro::riemannus(const Box& bx,
 
       // we come in with a good p, rho, and X on the interfaces
       // -- use this to find the gamma used in the sound speed
-      eos_t eos_state{};
+      eos_t eos_state;
       eos_state.p = pl;
       eos_state.rho = rl;
       for (int n = 0; n < NumSpec; n++) {
@@ -1002,7 +1002,7 @@ Castro::riemannus(const Box& bx,
     if (luse_eos_in_riemann == 1) {
       // we need to know the species -- they only jump across
       // the contact
-      eos_t eos_state{};
+      eos_t eos_state;
 
       eos_state.rho = qint(i,j,k,QRHO);
       eos_state.p = qint(i,j,k,QPRES);

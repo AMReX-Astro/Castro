@@ -481,7 +481,7 @@ Castro::src_to_prim(const Box& bx,
       Real rhoinv = 1.0_rt / q_arr(i,j,k,QRHO);
 
       // get the needed derivatives
-      eos_t eos_state{};
+      eos_t eos_state;
       eos_state.T = q_arr(i,j,k,QTEMP);
       eos_state.rho = q_arr(i,j,k,QRHO);
       eos_state.e = q_arr(i,j,k,QREINT) * rhoinv;
