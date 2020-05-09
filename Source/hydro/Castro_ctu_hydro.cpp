@@ -1244,7 +1244,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
 
-          GpuArray<Real, 3> loc{};
+          GpuArray<Real, 3> loc;
 
           position(i, j, k, geomdata, loc);
 

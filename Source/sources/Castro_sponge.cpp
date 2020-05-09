@@ -171,7 +171,7 @@ Castro::apply_sponge(const Box& bx,
       src[n] = 0.0;
     }
 
-    GpuArray<Real, 3> r{};
+    GpuArray<Real, 3> r;
 
     r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
     r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
@@ -289,7 +289,7 @@ Castro::apply_sponge(const Box& bx,
 
 
     // now compute the source
-    GpuArray<Real, 3> Sr{};
+    GpuArray<Real, 3> Sr;
     for (int n = 0; n < 3; n++) {
       Sr[n] = (state(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
       src[UMX+n] = Sr[n];
@@ -308,7 +308,7 @@ Castro::apply_sponge(const Box& bx,
     src[UEDEN] = SrE;
 
 #ifdef HYBRID_MOMENTUM
-    GpuArray<Real, 3> Sr_hybrid{};
+    GpuArray<Real, 3> Sr_hybrid;
     set_hybrid_momentum_source(r, Sr, Sr_hybrid);
     for (int n = 0; n < 3; n++) {
       src[UMR+n] = Sr_hybrid[n];

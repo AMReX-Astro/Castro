@@ -93,7 +93,7 @@ Castro::riemanncg(const Box& bx,
   {
 
 #ifndef AMREX_USE_CUDA
-    GpuArray<Real, HISTORY_SIZE> pstar_hist{};
+    GpuArray<Real, HISTORY_SIZE> pstar_hist;
 #endif
 
 
@@ -371,7 +371,7 @@ Castro::riemanncg(const Box& bx,
         pstarl = amrex::max(pstarl, lsmall_pres);
         pstaru = amrex::max(pstaru, lsmall_pres);
 
-        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra{};
+        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
 
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,

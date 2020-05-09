@@ -99,7 +99,7 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            GpuArray<Real, 3> loc{};
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
@@ -144,19 +144,19 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            GpuArray<Real, 3> loc{};
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
                 loc[dir] -= center[dir];
 
-            GpuArray<Real, 3> linear_mom{};
+            GpuArray<Real, 3> linear_mom;
 
             for (int dir = 0; dir < 3; ++dir)
                 linear_mom[dir] = u(i,j,k,UMX+dir);
 
-            GpuArray<Real, 3> hybrid_mom{};
+            GpuArray<Real, 3> hybrid_mom;
 
             linear_to_hybrid(loc, linear_mom, hybrid_mom);
 
@@ -193,19 +193,19 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
-            GpuArray<Real, 3> loc{};
+            GpuArray<Real, 3> loc;
 
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
                 loc[dir] -= center[dir];
 
-            GpuArray<Real, 3> hybrid_mom{};
+            GpuArray<Real, 3> hybrid_mom;
 
             for (int dir = 0; dir < 3; ++dir)
                 hybrid_mom[dir] = u(i,j,k,UMR+dir);
 
-            GpuArray<Real, 3> linear_mom{};
+            GpuArray<Real, 3> linear_mom;
 
             hybrid_to_linear(loc, hybrid_mom, linear_mom);
 
