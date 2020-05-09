@@ -1199,7 +1199,11 @@ Castro::plotFileOutput(const std::string& dir,
 
     const Real io_start_time = ParallelDescriptor::second();
 
-    VisMF::Write(plotMF,TheFullPath,how,true);
+    if (amrex::AsyncOut::UseAsyncOut()) {
+        VisMF::AsyncWrite(std::move(plotMF),TheFullPath);
+    } else {
+        VisMF::Write(plotMF,TheFullPath,how,true);
+    }
 
     const Real io_time = ParallelDescriptor::second() - io_start_time;
 
