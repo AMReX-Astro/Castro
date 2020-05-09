@@ -36,27 +36,30 @@ Castro::source_flag(int src)
 
 #ifdef SPONGE
     case sponge_src:
-        if (do_sponge)
+        if (do_sponge == 1) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     case ext_src:
-        if (add_ext_src)
+        if (add_ext_src == 1) {
             return true;
-        else
+        } else {
             return false;
-#ifndef MHD     
+        }
+#ifndef MHD
     case thermo_src:
-        if (time_integration_method == SpectralDeferredCorrections)
+        if (time_integration_method == SpectralDeferredCorrections) {
           return true;
-        else
+        } else {
           return false;
+        }
 #else
     case thermo_src:
         return true;
-#endif  
+#endif
 
 #ifdef DIFFUSION
     case diff_src:
@@ -76,18 +79,20 @@ Castro::source_flag(int src)
 
 #ifdef GRAVITY
     case grav_src:
-        if (do_grav)
+        if (do_grav == 1) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
 #ifdef ROTATION
     case rot_src:
-        if (do_rotation)
+        if (do_rotation == 1) {
             return true;
-        else
+        } else {
             return false;
+        }
 #endif
 
     default:
@@ -100,7 +105,7 @@ void
 Castro::do_old_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
+#endif
                 MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
@@ -114,7 +119,7 @@ Castro::do_old_sources(
 
     MultiFab temp_source;
 
-    if (apply_sources_consecutively && apply_to_state) {
+    if (apply_sources_consecutively == 1 && apply_to_state == 1) {
         temp_source.define(grids, dmap, NSRC, NUM_GROW);
         temp_source.setVal(0.0, NUM_GROW);
     }
@@ -131,7 +136,7 @@ Castro::do_old_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time + dt, 0);
 
             // Zero out the source MultiFab for the next source term.
@@ -148,16 +153,16 @@ Castro::do_old_sources(
 
     }
 
-    if (apply_to_state) {
+    if (apply_to_state == 1) {
 
-        if (apply_sources_consecutively) {
+        if (apply_sources_consecutively == 1) {
             MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
         } else {
             apply_source_to_state(state_new, source, dt, 0);
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
         }
 
@@ -181,8 +186,9 @@ Castro::do_old_sources(
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
+        if (ParallelDescriptor::IOProcessor()) {
           std::cout << "Castro::do_old_sources() time = " << run_time << "\n" << "\n";
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -194,7 +200,7 @@ void
 Castro::do_new_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
-#endif          
+#endif
                 MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
@@ -230,7 +236,7 @@ Castro::do_new_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
 
             // Zero out the source MultiFab for the next source term.
@@ -256,7 +262,7 @@ Castro::do_new_sources(
             clean_state(
 #ifdef MHD
                             Bx, By, Bz,
-#endif                      
+#endif
                             state_new, time, 0);
         }
 
@@ -293,7 +299,7 @@ void
 Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_PROFILE("Castro::construct_old_source()");
-    
+
     BL_ASSERT(src >= 0 && src < num_src);
 
     switch(src) {
@@ -428,7 +434,7 @@ Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
 {
 
   BL_PROFILE("Castro::evaluate_source_change()");
-    
+
   Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component

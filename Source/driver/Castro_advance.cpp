@@ -79,7 +79,7 @@ Castro::advance (Real time,
 
     cfl_violation = 0;
 
-    if (use_post_step_regrid) {
+    if (use_post_step_regrid == 1) {
         check_for_post_regrid(time + dt);
     }
 
@@ -130,7 +130,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 #ifdef RADIATION
     // make sure these are filled to avoid check/plot file errors:
-    if (do_radiation) {
+    if (do_radiation == 1) {
       get_old_data(Rad_Type).setBndry(0.0);
       get_new_data(Rad_Type).setBndry(0.0);
     }
@@ -142,7 +142,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     // Reset the grid loss tracking.
 
-    if (track_grid_losses) {
+    if (track_grid_losses == 1) {
       for (int i = 0; i < n_lost; i++) {
         material_lost_through_boundary_temp[i] = 0.0;
       }
@@ -216,7 +216,7 @@ Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycl
     BL_PROFILE("Castro::finalize_do_advance()");
 
 #ifdef RADIATION
-    if (!do_hydro && Radiation::rad_hydro_combined) {
+    if (do_hydro == 0 && Radiation::rad_hydro_combined == 1) {
         MultiFab& Er_old = get_old_data(Rad_Type);
         MultiFab& Er_new = get_new_data(Rad_Type);
         Er_new.copy(Er_old);
@@ -251,9 +251,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     lastDtFromRetry = 1.e200;
     in_retry = false;
 
-    if (use_post_step_regrid && level > 0) {
+    if (use_post_step_regrid == 1 && level > 0) {
 
-        if (getLevel(level-1).post_step_regrid && amr_iteration == 1) {
+        if (getLevel(level-1).post_step_regrid == 1 && amr_iteration == 1) {
 
             // If the level below this just triggered a special regrid,
             // the coarse contribution to this level's FluxRegister
@@ -275,7 +275,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // before the swap.
 
 #ifdef RADIATION
-    if (do_radiation) {
+    if (do_radiation == 1) {
         radiation->pre_timestep(level);
     }
 
@@ -309,7 +309,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     swap_state_time_levels(dt);
 
 #ifdef GRAVITY
-    if (do_grav) {
+    if (do_grav == 1) {
         gravity->swapTimeLevels(level);
     }
 #endif
@@ -436,7 +436,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Add the material lost in this timestep to the cumulative losses.
 
-    if (track_grid_losses) {
+    if (track_grid_losses == 1) {
 
       ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
 
@@ -445,7 +445,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     }
 
-    if (do_reflux) {
+    if (do_reflux == 1) {
         FluxRegCrseInit();
         FluxRegFineAdd();
     }
