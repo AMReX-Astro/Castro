@@ -25,8 +25,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   // this constructs the hydrodynamic source (essentially the flux
   // divergence) using the CTU framework for unsplit hydrodynamics
 
-  if (verbose && ParallelDescriptor::IOProcessor())
+  if (verbose != 0 && ParallelDescriptor::IOProcessor()) {
     std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
   hydro_source.setVal(0.0);
 
@@ -1508,10 +1509,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #else
   // Flush Fortran output
 
-  if (verbose)
+  if (verbose != 0) {
     flush_output();
+  }
 
-  if (track_grid_losses)
+  if (track_grid_losses == 1)
     {
       material_lost_through_boundary_temp[0] += mass_lost;
       material_lost_through_boundary_temp[1] += xmom_lost;
@@ -1523,7 +1525,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       material_lost_through_boundary_temp[7] += zang_lost;
     }
 
-  if (print_update_diagnostics)
+  if (print_update_diagnostics == 1)
     {
 
       bool local = true;
@@ -1545,8 +1547,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     }
 #endif
 
-  if (verbose && ParallelDescriptor::IOProcessor())
+  if (verbose != 0 && ParallelDescriptor::IOProcessor()) {
     std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
+  }
 
   if (verbose > 0)
     {

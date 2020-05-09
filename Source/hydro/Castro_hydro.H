@@ -253,7 +253,7 @@
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
                         amrex::Array4<amrex::Real const> const& q_arr,
                         amrex::Array4<amrex::Real const> const& flatn,
-                        amrex::Array4<amrex::Real const> const& qaux__arr,
+                        amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
                         amrex::Array4<amrex::Real> const& dq,
                         amrex::Array4<amrex::Real> const& qxm,

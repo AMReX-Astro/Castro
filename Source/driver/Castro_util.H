@@ -103,7 +103,7 @@ void position(int i, int j, int k,
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
 
-        if (geomdata.isPeriodic(dir)) {
+        if (geomdata.isPeriodic(dir) != 0) {
             if (idx[dir] < domlo[dir]) {
                 offset[dir] += probhi[dir] - problo[dir];
             }

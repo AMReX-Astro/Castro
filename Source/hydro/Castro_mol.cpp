@@ -24,8 +24,6 @@ Castro::mol_plm_reconstruct(const Box& bx,
                             Array4<Real> const& qm,
                             Array4<Real> const& qp) {
 
-  const auto dx = geom.CellSizeArray();
-
   for (int n = 0; n < NQ; n++) {
     // piecewise linear slopes
     uslope(bx, idir,

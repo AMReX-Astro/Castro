@@ -18,7 +18,7 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
 
     // Fill the rotation data.
 
-    if (!do_rotation) {
+    if (do_rotation == 0) {
 
         phirot_old.setVal(0.0);
         rot_old.setVal(0.0);
@@ -61,8 +61,9 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
+        if (ParallelDescriptor::IOProcessor()) {
             std::cout << "Castro::construct_old_rotation_source() time = " << run_time << "\n" << "\n";
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -86,7 +87,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 
     // Fill the rotation data.
 
-    if (!do_rotation) {
+    if (do_rotation == 0) {
 
         phirot_new.setVal(0.);
         rot_new.setVal(0.);
@@ -178,8 +179,9 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
 
     ng = state_in.nGrow();
 
-    if (ng > rot.nGrow())
+    if (ng > rot.nGrow()) {
         amrex::Error("State MF has more ghost cells than rotation MF.");
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel
