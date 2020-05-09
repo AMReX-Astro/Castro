@@ -147,7 +147,7 @@ Castro::variableCleanUp ()
 {
 #ifdef GRAVITY
   if (gravity != nullptr) {
-    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
+    if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting gravity in variableCleanUp..." << '\n';
     }
     delete gravity;
@@ -157,7 +157,7 @@ Castro::variableCleanUp ()
 
 #ifdef DIFFUSION
   if (diffusion != nullptr) {
-    if (verbose > 1 && ParallelDescriptor::IOProcessor()) {
+    if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting diffusion in variableCleanUp..." << '\n';
     }
     delete diffusion;
@@ -167,7 +167,7 @@ Castro::variableCleanUp ()
 
 #ifdef RADIATION
   if (radiation != nullptr) {
-    int report = (verbose || radiation->verbose);
+    int report = (verbose >= 1 || radiation->verbose);
     if (report && ParallelDescriptor::IOProcessor()) {
       std::cout << "Deleting radiation in variableCleanUp..." << '\n';
     }
@@ -523,8 +523,9 @@ Castro::Castro (Amr&            papa,
 
     if (do_grav == 1) {
       // gravity is a static object, only alloc if not already there
-      if (gravity == 0)
+      if (gravity == 0) {
         gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+      }
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -543,8 +544,9 @@ Castro::Castro (Amr&            papa,
 
       gravity->install_level(level,this,volume,area.data());
 
-      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
+      if (verbose >= 1 && level == 0 &&  ParallelDescriptor::IOProcessor()) {
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+      }
 
 #ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
@@ -893,8 +895,9 @@ Castro::initData ()
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
+    if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
        std::cout << "Initializing the data at level " << level << std::endl;
+    }
 
 #ifdef MHD
    MultiFab& Bx_new   = get_new_data(Mag_Type_x);
@@ -1320,8 +1323,9 @@ Castro::initData ()
     AMREX_GPU_SAFE_CALL(cudaProfilerStart());
 #endif
 
-    if (verbose && ParallelDescriptor::IOProcessor())
+    if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
        std::cout << "Done initializing the level " << level << " data " << std::endl;
+    }
 }
 
 void
@@ -1474,7 +1478,7 @@ Castro::estTimeStep (Real dt_old)
 
         ParallelDescriptor::ReduceRealMin(estdt_hydro);
         estdt_hydro *= cfl;
-        if (verbose) {
+        if (verbose >= 1) {
             amrex::Print() << "...estimated hydro-limited timestep at level " << level << ": " << estdt_hydro << std::endl;
         }
 
@@ -1501,7 +1505,7 @@ Castro::estTimeStep (Real dt_old)
 
     ParallelDescriptor::ReduceRealMin(estdt_diffusion);
     estdt_diffusion *= cfl;
-    if (verbose) {
+    if (verbose >= 1) {
         amrex::Print() << "...estimated diffusion-limited timestep at level " << level << ": " << estdt_diffusion << std::endl;
     }
 
@@ -1547,7 +1551,7 @@ Castro::estTimeStep (Real dt_old)
 
         ParallelDescriptor::ReduceRealMin(estdt_burn);
 
-        if (verbose && estdt_burn < max_dt) {
+        if (verbose >= 1 && estdt_burn < max_dt) {
             amrex::Print() << "...estimated burning-limited timestep at level " << level << ": " << estdt_burn << std::endl;
         }
 
@@ -1564,7 +1568,7 @@ Castro::estTimeStep (Real dt_old)
     if (do_radiation) radiation->EstTimeStep(estdt, level);
 #endif
 
-    if (verbose) {
+    if (verbose >= 1) {
         amrex::Print() << "Castro::estTimeStep (" << limiter << "-limited) at level " << level << ":  estdt = " << estdt << '\n' << std::endl;
     }
 
@@ -1587,8 +1591,9 @@ Castro::computeNewDt (int                   finest_level,
     // We are at the start of a coarse grid timecycle.
     // Compute the timesteps for the next iteration.
     //
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     Real dt_0 = 1.0e+100;
     int n_factor = 1;
@@ -1629,7 +1634,7 @@ Castro::computeNewDt (int                   finest_level,
 
               for (int i = 0; i <= finest_level; i++)
               {
-                  if (verbose && ParallelDescriptor::IOProcessor())
+                  if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
                       if (dt_min[i] > change_max*dt_level[i])
                       {
                           std::cout << "Castro::compute_new_dt : limiting dt at level "
@@ -1640,6 +1645,7 @@ Castro::computeNewDt (int                   finest_level,
                                     << change_max * dt_level[i] << " = " << change_max
                                     << " * " << dt_level[i] << '\n';
                       }
+                  }
                   dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
               }
 
@@ -1655,7 +1661,7 @@ Castro::computeNewDt (int                   finest_level,
     for (int i = 0; i <= finest_level; ++i) {
         if (getLevel(i).lastDtRetryLimited == 1) {
             if (getLevel(i).lastDtFromRetry < dt_min[i]) {
-                if (verbose && ParallelDescriptor::IOProcessor()) {
+                if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
                     std::cout << " ... limiting dt at level " << i << " to: "
                               << getLevel(i).lastDtFromRetry << " = retry-limited timestep\n";
                 }
@@ -1713,8 +1719,9 @@ Castro::computeNewDt (int                   finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
+                if (verbose >= 1) {
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                }
             }
 
         }
@@ -1750,8 +1757,9 @@ Castro::computeNewDt (int                   finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
+                if (verbose >= 1) {
                     amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next smallplot interval.\n";
+                }
             }
 
         }
@@ -1766,8 +1774,9 @@ Castro::computeNewDt (int                   finest_level,
     if (stop_time >= 0.0) {
         if ((cur_time + dt_0) >= (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
-            if (verbose)
+            if (verbose >= 1) {
                 amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the stop_time.\n";
+            }
         }
     }
 
@@ -1792,8 +1801,9 @@ Castro::computeInitialDt (int                   finest_level,
     //
     // Grids have been constructed, compute dt for all levels.
     //
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     int i;
 
@@ -1813,8 +1823,9 @@ Castro::computeInitialDt (int                   finest_level,
     const Real eps = 0.001*dt_0;
     Real cur_time  = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps))
+        if ((cur_time + dt_0) > (stop_time - eps)) {
             dt_0 = stop_time - cur_time;
+        }
     }
 
     n_factor = 1;
@@ -1884,8 +1895,9 @@ Castro::post_timestep (int iteration)
 
     // Flush Fortran output
 
-    if (verbose)
+    if (verbose >= 1) {
         flush_output();
+    }
 
 #ifdef DO_PROBLEM_POST_TIMESTEP
 
@@ -1920,16 +1932,20 @@ Castro::post_timestep (int iteration)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-        if (moving_center) write_center();
+        if (moving_center) {
+          write_center();
+        }
 #endif
     }
 
@@ -2233,8 +2249,9 @@ Castro::post_init (Real stop_time)
 {
     BL_PROFILE("Castro::post_init()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     //
     // Average data down from finer levels
@@ -2351,17 +2368,20 @@ Castro::post_init (Real stop_time)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-    if (level == 0 && moving_center == 1)
+    if (level == 0 && moving_center == 1) {
        write_center();
+    }
 #endif
 }
 
@@ -2371,11 +2391,12 @@ Castro::post_grown_restart ()
 
     BL_PROFILE("Castro::post_grown_restart()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
 #ifdef GRAVITY
-    if (do_grav) {
+    if (do_grav == 1) {
         int finest_level = parent->finestLevel();
         Real cur_time = state[State_Type].curTime();
 
@@ -2444,20 +2465,23 @@ Castro::post_grown_restart ()
 int
 Castro::okToContinue ()
 {
-    if (level > 0)
+    if (level > 0) {
         return 1;
+    }
 
     int test = 1;
 
     if (signalStopJob) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
+      }
     }
     else if (parent->dtLevel(level) < dt_cutoff * parent->cumTime()) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run because dt < dt_cutoff * time." << std::endl;
+      }
     }
 
     return test;
@@ -2469,8 +2493,9 @@ Castro::advance_aux(Real time, Real dt)
 {
     BL_PROFILE("Castro::advance_aux()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
+    if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
         std::cout << "... special update for auxiliary variables \n";
+    }
 
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
@@ -2561,7 +2586,7 @@ Castro::reflux(int crse_level, int fine_level)
     Vector<std::unique_ptr<MultiFab> > drho(nlevs);
     Vector<std::unique_ptr<MultiFab> > dphi(nlevs);
 
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+    if (do_grav == 1 && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
         for (int lev = crse_level; lev <= fine_level; ++lev) {
 
@@ -2605,7 +2630,7 @@ Castro::reflux(int crse_level, int fine_level)
 #ifdef GRAVITY
         int ilev = lev - crse_level - 1;
 
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+        if (do_grav == 1 && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
             reg->Reflux(*drho[ilev], crse_lev.volume, 1.0, 0, URHO, 1, crse_lev.geom);
             amrex::average_down(*drho[ilev + 1], *drho[ilev], 0, 1, getLevel(lev).crse_ratio);
         }
@@ -2718,7 +2743,7 @@ Castro::reflux(int crse_level, int fine_level)
 #endif
 
 #ifdef GRAVITY
-        if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
+        if (do_grav == 1 && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
             reg = &getLevel(lev).phi_reg;
 
@@ -2747,7 +2772,7 @@ Castro::reflux(int crse_level, int fine_level)
     // Do the sync solve across all levels.
 
 #ifdef GRAVITY
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
+    if (do_grav == 1 && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
         gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
 #endif
 
@@ -2861,7 +2886,7 @@ Castro::reflux(int crse_level, int fine_level)
 
     }
 
-    if (verbose)
+    if (verbose >= 1)
     {
         const int IOProc = ParallelDescriptor::IOProcessorNumber();
         Real      end    = ParallelDescriptor::second() - strt;
@@ -2870,8 +2895,9 @@ Castro::reflux(int crse_level, int fine_level)
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
+        if (ParallelDescriptor::IOProcessor()) {
             std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -3781,8 +3807,9 @@ Castro::get_numpts ()
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
-     if (verbose && ParallelDescriptor::IOProcessor())
+     if (verbose >= 1 && ParallelDescriptor::IOProcessor()) {
          std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     }
 
      return numpts_1d;
 }
