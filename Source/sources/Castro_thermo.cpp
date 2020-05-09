@@ -178,7 +178,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       // we now need the pressure -- we will assume that the
       // temperature is consistent with the input state
-      eos_t eos_state_old{};
+      eos_t eos_state_old;
       eos_state_old.rho = old_state(i,j,k,URHO);
       eos_state_old.T = old_state(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
@@ -190,7 +190,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       eos(eos_input_rt, eos_state_old);
 
-      eos_t eos_state_new{};
+      eos_t eos_state_new;
       eos_state_new.rho = new_state(i,j,k,URHO);
       eos_state_new.T = new_state(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
