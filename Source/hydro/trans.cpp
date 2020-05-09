@@ -99,6 +99,8 @@ Castro::actual_trans_single(const Box& bx,
 
     int coord = geom.Coord();
 
+    bool reset_density = transverse_reset_density;
+    bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
 #ifdef RADIATION
@@ -348,7 +350,7 @@ Castro::actual_trans_single(const Box& bx,
 
         // Reset to original value if adding transverse terms made density negative
         bool reset_state = false;
-        if (transverse_reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density == 1 && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;
@@ -376,7 +378,7 @@ Castro::actual_trans_single(const Box& bx,
         if (!reset_state) {
             // do the transverse terms for p, gamma, and rhoe, as necessary
 
-            if (transverse_reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating (rho e).
 #if AMREX_SPACEDIM == 2
@@ -503,6 +505,8 @@ Castro::actual_trans_final(const Box& bx,
                            Real hdt, Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
 {
 
+    bool reset_density = transverse_reset_density;
+    bool reset_rhoe = transverse_reset_rhoe;
     Real small_p = small_pres;
 
 #ifdef RADIATION
@@ -771,7 +775,7 @@ Castro::actual_trans_final(const Box& bx,
         // Reset to original value if adding transverse terms
         // made density negative
         bool reset_state = false;
-        if (transverse_reset_density == 1 && rrnewn < 0.0_rt) {
+        if (reset_density == 1 && rrnewn < 0.0_rt) {
             rrnewn = rrn;
             runewn = run;
             rvnewn = rvn;
@@ -795,7 +799,7 @@ Castro::actual_trans_final(const Box& bx,
         qo_arr(i,j,k,QREINT) = renewn - rhoekenn;
 
         if (!reset_state) {
-            if (transverse_reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
+            if (reset_rhoe == 1 && qo_arr(i,j,k,QREINT) <= 0.0_rt) {
                 // If it is negative, reset the internal energy by
                 // using the discretized expression for updating
                 // (rho e).
