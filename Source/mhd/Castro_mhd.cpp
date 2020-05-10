@@ -172,7 +172,29 @@ Castro::just_the_mhd(Real time, Real dt)
           qp.resize(bx_gc, NQ * AMREX_SPACEDIM);
           qm.resize(bx_gc, NQ * AMREX_SPACEDIM);
 
-          plm(lo, hi,
+          plm(lo, hi, 1,
+              BL_TO_FORTRAN_ANYD(q),
+              BL_TO_FORTRAN_ANYD(flatn),
+              BL_TO_FORTRAN_ANYD(Bx),
+              BL_TO_FORTRAN_ANYD(By),
+              BL_TO_FORTRAN_ANYD(Bz),
+              BL_TO_FORTRAN_ANYD(qp),
+              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(srcQ),
+              dx, dt);
+
+          plm(lo, hi, 2,
+              BL_TO_FORTRAN_ANYD(q),
+              BL_TO_FORTRAN_ANYD(flatn),
+              BL_TO_FORTRAN_ANYD(Bx),
+              BL_TO_FORTRAN_ANYD(By),
+              BL_TO_FORTRAN_ANYD(Bz),
+              BL_TO_FORTRAN_ANYD(qp),
+              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(srcQ),
+              dx, dt);
+
+          plm(lo, hi, 3,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
