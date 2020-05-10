@@ -968,8 +968,10 @@ extern "C"
           Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
           Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]) +
-            0.5_rt*(vhi - vlo) / dx[1];
+          der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]);
+#if AMREX_SPACEDIM >= 2
+          der(i,j,k,0) += 0.5_rt*(vhi - vlo) / dx[1];
+#endif
 
         } else if (coord_type == 2) {
 
