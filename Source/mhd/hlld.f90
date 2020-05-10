@@ -6,8 +6,8 @@ module hlld_solver
 contains
 
 subroutine hlld(work_lo, work_hi, &
-                qm, qm_lo, qm_hi, &
-                qp, qp_lo, qp_hi, &
+                qright, qr_lo, qr_hi, &
+                qleft, ql_lo, ql_hi, &
                 flx, flx_lo, flx_hi, &
                 dir)
 
@@ -21,14 +21,14 @@ subroutine hlld(work_lo, work_hi, &
    use eos_type_module, only: eos_t, eos_input_rp
    use network, only : nspec
 
-   integer, intent(in)   :: qm_lo(3), qm_hi(3)
-   integer, intent(in)   :: qp_lo(3), qp_hi(3)
+   integer, intent(in)   :: ql_lo(3), ql_hi(3)
+   integer, intent(in)   :: qr_lo(3), qr_hi(3)
    integer, intent(in)   :: work_lo(3), work_hi(3)
    integer, intent(in)   :: flx_lo(3), flx_hi(3)
    integer, intent(in)   :: dir
 
-   real(rt), intent(in)  :: qm(qm_lo(1):qm_hi(1),qm_lo(2):qm_hi(2),qm_lo(3):qm_hi(3),NQ,3)
-   real(rt), intent(in)  :: qp(qp_lo(1):qp_hi(1),qp_lo(2):qp_hi(2),qp_lo(3):qp_hi(3),NQ,3)
+   real(rt), intent(in)  :: qleft(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ,3)
+   real(rt), intent(in)  :: qright(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ,3)
    real(rt), intent(out) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR+3)
 
    real(rt)       :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL
@@ -107,14 +107,14 @@ subroutine hlld(work_lo, work_hi, &
 
       
       if (dir .eq. 1) then
-         qL(:) = qp(i-1,j,k,:,dir)
+         qL(:) = qleft(i-1,j,k,:,dir)
       else if (dir .eq. 2) then
-         qL(:) = qp(i,j-1,k,:,dir)
+         qL(:) = qleft(i,j-1,k,:,dir)
       else if (dir .eq. 3) then
-         qL(:) = qp(i,j,k-1,:,dir)
+         qL(:) = qleft(i,j,k-1,:,dir)
       end if
 
-      qR(:) = qm(i,j,k,:,dir)
+      qR(:) = qright(i,j,k,:,dir)
 
       flx(i,j,k,:) = 0.d0  
       FL  = 0.d0; FR = 0.d0; UsL = 0.d0; UsR = 0.d0; FsL = 0.d0; FsR = 0.d0; UssL = 0.d0; UssR = 0.d0; FssL = 0.d0; FssR = 0.d0
