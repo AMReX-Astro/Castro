@@ -69,19 +69,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(fluxz),
      const amrex::Real dx[], const amrex::Real dt);
 
-  void magup
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(bxin),
-     const BL_FORT_FAB_ARG_3D(byin),
-     const BL_FORT_FAB_ARG_3D(bzin),
-     BL_FORT_FAB_ARG_3D(bxout),
-     BL_FORT_FAB_ARG_3D(byout),
-     BL_FORT_FAB_ARG_3D(bzout),
-     const BL_FORT_FAB_ARG_3D(Ex),
-     const BL_FORT_FAB_ARG_3D(Ey),
-     const BL_FORT_FAB_ARG_3D(Ez),
-     const amrex::Real* dx, const amrex::Real dt);
-
 #ifdef __cplusplus
 }
 #endif
