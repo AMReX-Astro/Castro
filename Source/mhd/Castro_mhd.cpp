@@ -13,7 +13,9 @@ Castro::just_the_mhd(Real time, Real dt)
 
       const int finest_level = parent->finestLevel();
 
-      const Real *dx = geom.CellSize();
+      const auto dx = geom.CellSizeArray();
+      const Real* dx_f = geom.CellSize();
+
       Real courno = -1.0e+200;
 
       const int*  domain_lo = geom.Domain().loVect();
@@ -153,7 +155,7 @@ Castro::just_the_mhd(Real time, Real dt)
                                       BL_TO_FORTRAN_ANYD(cs[0]),
                                       BL_TO_FORTRAN_ANYD(cs[1]),
                                       BL_TO_FORTRAN_ANYD(cs[2]),
-                                      courno, dx, dt);
+                                      courno, dx_f, dt);
 
           flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();
@@ -203,7 +205,7 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qp),
               BL_TO_FORTRAN_ANYD(qm),
               BL_TO_FORTRAN_ANYD(srcQ),
-              dx, dt);
+              dx_f, dt);
 
 
           // Corner Couple and find the correct fluxes + electric fields
@@ -258,7 +260,7 @@ Castro::just_the_mhd(Real time, Real dt)
                            BL_TO_FORTRAN_ANYD(Extmp),
                            BL_TO_FORTRAN_ANYD(Eytmp),
                            BL_TO_FORTRAN_ANYD(Eztmp),
-                           dx, dt);
+                           dx_f, dt);
 
           // Conservative update
           consup(lo, hi,
@@ -268,43 +270,37 @@ Castro::just_the_mhd(Real time, Real dt)
                  BL_TO_FORTRAN_ANYD(flxx),
                  BL_TO_FORTRAN_ANYD(flxy),
                  BL_TO_FORTRAN_ANYD(flxz),
-                 dx, dt);
+                 dx_f, dt);
 
 
           // magnetic update
+          auto Ex_arr = Extmp.array();
+          auto Ey_arr = Eytmp.array();
+          auto Ez_arr = Eztmp.array();
 
           auto Bxo_arr = Bxout.array();
           amrex::ParallelFor(nbx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bxo_arr(i,j,k) = 0.0_rt;
+            Bxo_arr(i,j,k) = Bx_arr(i,j,k) + dt/dx[0] *
+              ((Ey_arr(i,j,k+1) - Ey_arr(i,j,k)) - (Ez_arr(i,j+1,k) - Ez_arr(i,j,k)));
           });
 
           auto Byo_arr = Byout.array();
           amrex::ParallelFor(nby,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Byo_arr(i,j,k) = 0.0_rt;
+            Byo_arr(i,j,k) = By_arr(i,j,k) + dt/dx[1] *
+              ((Ez_arr(i+1,j,k) - Ez_arr(i,j,k)) - (Ex_arr(i,j,k+1) - Ex_arr(i,j,k)));
           });
 
           auto Bzo_arr = Bzout.array();
           amrex::ParallelFor(nbz,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bzo_arr(i,j,k) = 0.0_rt;
+            Bzo_arr(i,j,k) = Bz_arr(i,j,k) + dt/dx[2] *
+              ((Ex_arr(i,j+1,k) - Ex_arr(i,j,k)) - (Ey_arr(i+1,j,k) - Ey_arr(i,j,k)));
           });
-
-          magup(lo, hi,
-                BL_TO_FORTRAN_ANYD(Bx),
-                BL_TO_FORTRAN_ANYD(By),
-                BL_TO_FORTRAN_ANYD(Bz),
-                BL_TO_FORTRAN_ANYD(Bxout),
-                BL_TO_FORTRAN_ANYD(Byout),
-                BL_TO_FORTRAN_ANYD(Bzout),
-                BL_TO_FORTRAN_ANYD(Extmp),
-                BL_TO_FORTRAN_ANYD(Eytmp),
-                BL_TO_FORTRAN_ANYD(Eztmp),
-                dx, dt);
 
 
           // store the fluxes -- it looks like we don't need these temporary fluxes?
