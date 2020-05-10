@@ -96,16 +96,6 @@ contains
        do j = s_lo(2)+1, s_hi(2)-1
           do i = s_lo(1)+1, s_hi(1)-1
 
-             !=========================== X Direction ========================
-             summ_p = 0.d0
-             summ_m = 0.d0
-
-             dW = 0.d0
-             reig = 0.d0
-             leig = 0.d0
-             lam = 0.d0
-
-
              if (idir == 1) then
                 ! we use a reduced eigensystem, the normal B field
                 ! component (Bx) is omitted
@@ -220,6 +210,9 @@ contains
 
              ! Perform the characteristic projection.  Since we are using
              ! Using HLLD, we sum over all eigenvalues -- see the discussion after Eq. 31
+             summ_p = 0.d0
+             summ_m = 0.d0
+
              do ii = 1, NEIGN
                 dL = dot_product(leig(ii,:), dQL)
                 dR = dot_product(leig(ii,:), dQR)
@@ -234,7 +227,7 @@ contains
              Ip(i,j,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
              Ip(i,j,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
              Ip(i,j,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-             Ip(i,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(5))
+             Ip(i,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
              if (idir == 1) then
                 Ip(i,j,k,QMAGX,idir) = bx(i+1,j,k) !! Bx stuff
