@@ -218,8 +218,9 @@ Castro::restart (Amr&     papa,
         int len = dir.size();
 
         Vector<int> int_dir_name(len);
-        for (int j = 0; j < len; j++)
+        for (int j = 0; j < len; j++) {
           int_dir_name[j] = (int) dir_for_pass[j];
+        }
 
         problem_restart(int_dir_name.dataPtr(), &len);
 
@@ -238,9 +239,9 @@ Castro::restart (Amr&     papa,
 
     if (grown_factor > 1 && level == 0)
     {
-       if (verbose && ParallelDescriptor::IOProcessor())
-          std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
-
+       if (verbose && ParallelDescriptor::IOProcessor()) {
+         std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
+       }
        MultiFab& S_new = get_new_data(State_Type);
 
        Box orig_domain;
@@ -251,8 +252,9 @@ Castro::restart (Amr&     papa,
           Box domain(geom.Domain());
           int lo=0, hi=0;
           if (geom.IsRZ()) {
-             if (grown_factor != 2) 
+             if (grown_factor != 2) {
                 amrex::Abort("Must have grown_factor = 2");
+             }
 
              int d = 0;
              int dlen =  domain.size()[d];
@@ -286,8 +288,9 @@ Castro::restart (Amr&     papa,
              }
           }
        } else {
-          if (ParallelDescriptor::IOProcessor())
+          if (ParallelDescriptor::IOProcessor()) {
              std::cout << "... invalid value of star_at_center: " << star_at_center << std::endl;
+          }
           amrex::Abort();
        }
 
@@ -1133,9 +1136,11 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
-    if (ParallelDescriptor::IOProcessor())
-        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+    if (ParallelDescriptor::IOProcessor()) {
+        if (!amrex::UtilCreateDirectory(FullPath, 0755)) {
             amrex::CreateDirectoryFailed(FullPath);
+        }
+    }
     //
     // Force other processors to wait till directory is built.
     //
