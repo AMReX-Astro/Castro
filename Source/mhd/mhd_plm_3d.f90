@@ -1,7 +1,7 @@
 module mhd_plm_module
 
-  !Module that gives a piecewise linear interpolation for the primitive variables
-  !They are projected onto the characteristic variables for tracing.
+  ! Module that gives a piecewise linear interpolation for the primitive variables
+  ! They are projected onto the characteristic variables for tracing.
 
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module
@@ -11,14 +11,19 @@ module mhd_plm_module
 
   public plm
 
-contains
+  integer, parameter :: NEIGN = 7
 
-  !
-  ! characteristics based on u
-  !
-  !===========================================================================
-  ! This is called from within threaded loops in advance_mhd_tile so *no* OMP here ...
-  !===========================================================================
+  integer, parameter :: IEIGN_RHO = 1
+  integer, parameter :: IEIGN_U = 2
+  integer, parameter :: IEIGN_V = 3
+  integer, parameter :: IEIGN_W = 4
+  integer, parameter :: IEIGN_P = 5
+
+  ! perpendicular magnetic field components
+  integer, parameter :: IEIGN_BT = 6
+  integer, parameter :: IEIGN_BTT = 7
+
+contains
 
   subroutine plm(lo, hi, &
                  s, s_lo, s_hi, &
@@ -67,94 +72,104 @@ contains
     real(rt) :: dQL(7), dQR(7), dW, dL, dR, leig(7,7), reig(7,7), lam(7), summ_p(7), summ_m(7)
     real(rt) :: smhd(7)
     real(rt) :: dt_over_a
-    integer  :: ii,ibx,iby,ibz, i , j, k, n, idir
+    integer  :: ii, i , j, k, n, idir
 
     type(eos_t) :: eos_state
 
     ! Ip and Im are the interface states in each dimension (the last index '3' is the
     ! direction
 
-    ibx = 6
-    iby = 7
-    ibz = 8
+    Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),:,:) = 0.d0
+    Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),:,:) = 0.d0
 
-    dt_over_a = dt
-    Ip = 0.d0
-    Im = 0.d0
+    ! these loops are over cell-centers and for each cell-center, we find the left and
+    ! right interface states
 
-
-
+    dtdx = dt/dx(1)
 
     !=========================== PLM =========================================
-    do k = s_lo(3)+1,s_hi(3)-1
+    do k = s_lo(3)+1, s_hi(3)-1
        do j = s_lo(2)+1, s_hi(2)-1
           do i = s_lo(1)+1, s_hi(1)-1
 
              !=========================== X Direction ========================
              summ_p = 0.d0
              summ_m = 0.d0
-             smhd = 0.d0
-             dQL = 0.d0
-             dQR = 0.d0
+
              dW = 0.d0
              reig = 0.d0
              leig = 0.d0
              lam = 0.d0
-             !Skip Bx
-             dQL(1) = s(i,j,k,QRHO) - s(i-1,j,k,QRHO)
-             dQL(2) = s(i,j,k,QU) - s(i-1,j,k,QU)
-             dQL(3) = s(i,j,k,QV) - s(i-1,j,k,QV)
-             dQL(4) = s(i,j,k,QW) - s(i-1,j,k,QW)
-             dQL(5) = s(i,j,k,QPRES)-s(i-1,j,k,QPRES)
-             dQL(6) = s(i,j,k,QMAGY)-s(i-1,j,k,QMAGY)
-             dQL(7) = s(i,j,k,QMAGZ)-s(i-1,j,k,QMAGZ)
 
-             dQR(1) = s(i+1,j,k,QRHO) - s(i,j,k,QRHO)
-             dQR(2) = s(i+1,j,k,QU) - s(i,j,k,QU)
-             dQR(3) = s(i+1,j,k,QV) - s(i,j,k,QV)
-             dQR(4) = s(i+1,j,k,QW) - s(i,j,k,QW)
-             dQR(5) = s(i+1,j,k,QPRES)-s(i,j,k,QPRES)
-             dQR(6) = s(i+1,j,k,QMAGY)-s(i,j,k,QMAGY)
-             dQR(7) = s(i+1,j,k,QMAGZ)-s(i,j,k,QMAGZ)
+             ! we use a reduced eigensystem, the normal B field
+             ! component (Bx) is omitted
+
+             dQL(IEIGN_RHO) = s(i,j,k,QRHO) - s(i-1,j,k,QRHO)
+             dQL(IEIGN_U) = s(i,j,k,QU) - s(i-1,j,k,QU)
+             dQL(IEIGN_V) = s(i,j,k,QV) - s(i-1,j,k,QV)
+             dQL(IEIGN_W) = s(i,j,k,QW) - s(i-1,j,k,QW)
+             dQL(IEIGN_P) = s(i,j,k,QPRES) - s(i-1,j,k,QPRES)
+             dQL(IEIGN_BT) = s(i,j,k,QMAGY) - s(i-1,j,k,QMAGY)
+             dQL(IEIGN_BTT) = s(i,j,k,QMAGZ) - s(i-1,j,k,QMAGZ)
+
+             dQR(IEIGN_RHO) = s(i+1,j,k,QRHO) - s(i,j,k,QRHO)
+             dQR(IEIGN_U) = s(i+1,j,k,QU) - s(i,j,k,QU)
+             dQR(IEIGN_V) = s(i+1,j,k,QV) - s(i,j,k,QV)
+             dQR(IEIGN_W) = s(i+1,j,k,QW) - s(i,j,k,QW)
+             dQR(IEIGN_P) = s(i+1,j,k,QPRES) - s(i,j,k,QPRES)
+             dQR(IEIGN_BT) = s(i+1,j,k,QMAGY) - s(i,j,k,QMAGY)
+             dQR(IEIGN_BTT) = s(i+1,j,k,QMAGZ) - s(i,j,k,QMAGZ)
+
+             ! compute the eigenvectors and eigenvalues for this coordinate direction
+
+             call evals(lam, s(i,j,k,:), 1)
+             call lvecx(leig,s(i,j,k,:))
+             call rvecx(reig,s(i,j,k,:))
+
+             ! MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
+             smhd(IEIGN_RHO) = 0.0d0
+             smhd(IEIGN_U) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
+             smhd(IEIGN_V) = s(i,j,k,QMAGY)/s(i,j,k,QRHO)
+             smhd(IEIGN_W) = s(i,j,k,QMAGZ)/s(i,j,k,QRHO)
+             smhd(IEIGN_P) = s(i,j,k,QMAGX)*s(i,j,k,QU) + &
+                             s(i,j,k,QMAGY)*s(i,j,k,QV) + &
+                             s(i,j,k,QMAGZ)*s(i,j,k,QW)
+             smhd(IEIGN_BT) = s(i,j,k,QV)
+             smhd(IEIGN_BTT) = s(i,j,k,QW)
+
+             ! cross-talk of normal magnetic field direction
+             smhd(:) = smhd(:)*(bx(i+1,j,k) - bx(i,j,k))/dx(1)
 
 
-             call evals(lam, s(i,j,k,:), 1) !!X dir eigenvalues
-             call lvecx(leig,s(i,j,k,:))    !!left eigenvectors
-             call rvecx(reig,s(i,j,k,:))    !!right eigenvectors
-             !MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
-             smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
-             smhd(3) = s(i,j,k,QMAGY)/s(i,j,k,QRHO)
-             smhd(4) = s(i,j,k,QMAGZ)/s(i,j,k,QRHO)
-             smhd(5) = s(i,j,k,QMAGX)*s(i,j,k,QU) + s(i,j,k,QMAGY)*s(i,j,k,QV) + s(i,j,k,QMAGZ)*s(i,j,k,QW)
-             smhd(6) = s(i,j,k,QV)
-             smhd(7) = s(i,j,k,QW)
-             smhd       = smhd*(bx(i+1,j,k) - bx(i,j,k))/dx(1) !cross-talk of normal magnetic field direction
-            !Interpolate
-             !Plus
-             !!Using HLLD so sum over all eigenvalues -- see the discussion after Eq. 31
-             do ii = 1,7
-                dL = dot_product(leig(ii,:),dQL)
-                dR = dot_product(leig(ii,:),dQR)
-                call slope(dW,dL,dR, flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(1)*lam(ii))*dW*reig(:,ii)
+             ! Perform the characteristic projection.  Since we are using
+             ! Using HLLD, we sum over all eigenvalues -- see the discussion after Eq. 31
+             do ii = 1, NEIGN
+                dL = dot_product(leig(ii,:), dQL)
+                dR = dot_product(leig(ii,:), dQR)
+                call slope(dW, dL, dR, flatn(i,j,k))
+                summ_p(:) = summ_p(:) + (1.0d0 - dtdx*lam(ii)) * dW * reig(:,ii)
+                summ_m(:) = summ_m(:) - (1.0d0 + dtdx*lam(ii)) * dW * reig(:,ii)
              enddo
-             Ip(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1))
-             Ip(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,1) = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,1) = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
+
+             ! left state at i+1/2
+             Ip(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+             Ip(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+             Ip(i,j,k,QV,1) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+             Ip(i,j,k,QW,1) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+             Ip(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(5))
 
              Ip(i,j,k,QMAGX,1) = bx(i+1,j,k) !! Bx stuff
-             Ip(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGY,1) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+             Ip(i,j,k,QMAGZ,1) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
-             !species
+             ! species
              do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i-1,j,k,ii)
                dR = s(i+1,j,k,ii) - s(i,j,k,ii)
-               call slope(dW,dL,dR, flatn(i,j,k))
-               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx(1)*s(i,j,k,QU))*dW
-               Im(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(- 1 - dt_over_a/dx(1)*s(i,j,k,QU))*dW
+               call slope(dW, dL, dR, flatn(i,j,k))
+
+               Ip(i,j,k,ii,1) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*s(i,j,k,QU)) * dW
+               Im(i,j,k,ii,1) = s(i,j,k,ii) - 0.5d0*(1.0d0 + dtdx*s(i,j,k,QU)) * dW
              enddo
 
              eos_state % rho = Ip(i,j,k,QRHO,1)
@@ -165,15 +180,16 @@ contains
              call eos(eos_input_rp, eos_state)
              Ip(i,j,k,QREINT,1) = eos_state % e * eos_state % rho
 
-             !Minus
-             Im(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) +0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1))
-             Im(i,j,k,QU,1) = s(i,j,k,QU) +0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,1) = s(i,j,k,QV) +0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,1) = s(i,j,k,QW) +0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) +0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
+             ! right state at i-1/2
+             Im(i,j,k,QRHO,1) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+             Im(i,j,k,QU,1) = s(i,j,k,QU) + 0.5d0*summ_m(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+             Im(i,j,k,QV,1) = s(i,j,k,QV) + 0.5d0*summ_m(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+             Im(i,j,k,QW,1) = s(i,j,k,QW) + 0.5d0*summ_m(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+             Im(i,j,k,QPRES,1) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
-             Im(i,j,k,QMAGX,1)  = bx(i,j,k) !! Bx stuff
-             Im(i,j,k,QMAGY:QMAGZ,1)  = s(i,j,k,QMAGY:QMAGZ) +0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Im(i,j,k,QMAGX,1) = bx(i,j,k) !! Bx stuff
+             Im(i,j,k,QMAGY,1) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+             Im(i,j,k,QMAGZ,1) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
 
              eos_state % rho = Im(i,j,k,QRHO,1)
@@ -222,8 +238,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR,flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(2)*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(2)*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt/dx(2)*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt/dx(2)*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
@@ -237,23 +253,23 @@ contains
 
 
              !Interpolate
-             Ip(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) +0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
-             Ip(i,j,k,QU,2)   = s(i,j,k,QU) +0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,2) = s(i,j,k,QV) +0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,2) = s(i,j,k,QW) +0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) +0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
+             Ip(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) +0.5d0*summ_p(1) + 0.5d0*dt*smhd(1)) !!GAS
+             Ip(i,j,k,QU,2)   = s(i,j,k,QU) +0.5d0*summ_p(2) + 0.5d0*dt*smhd(2)
+             Ip(i,j,k,QV,2) = s(i,j,k,QV) +0.5d0*summ_p(3) + 0.5d0*dt*smhd(3)
+             Ip(i,j,k,QW,2) = s(i,j,k,QW) +0.5d0*summ_p(4) + 0.5d0*dt*smhd(4)
+             Ip(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) +0.5d0*summ_p(5) + 0.5d0*dt*smhd(5))
 
-             Ip(i,j,k,QMAGX,2)  = s(i,j,k,QMAGX) + 0.5d0*summ_p(6) + 0.5d0*dt_over_a*smhd(6)
+             Ip(i,j,k,QMAGX,2)  = s(i,j,k,QMAGX) + 0.5d0*summ_p(6) + 0.5d0*dt*smhd(6)
              Ip(i,j,k,QMAGY,2)  = by(i,j+1,k) !! By stuff
-             Ip(i,j,k,QMAGZ,2)  = s(i,j,k,QMAGZ) + 0.5d0*summ_p(7) + 0.5d0*dt_over_a*smhd(7)
+             Ip(i,j,k,QMAGZ,2)  = s(i,j,k,QMAGZ) + 0.5d0*summ_p(7) + 0.5d0*dt*smhd(7)
 
              !species
              do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i,j-1,k,ii)
                dR = s(i,j+1,k,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR, flatn(i,j,k))
-               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt_over_a/dx(2)*s(i,j,k,QV))*dW
-               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dx(2)*s(i,j,k,QV))*dW
+               Ip(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(1-dt/dx(2)*s(i,j,k,QV))*dW
+               Im(i,j,k,ii,2) = s(i,j,k,ii) + 0.5d0*(-1 - dt/dx(2)*s(i,j,k,QV))*dW
              enddo
 
 
@@ -265,15 +281,15 @@ contains
              Ip(i,j,k,QREINT,2) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
-             Im(i,j,k,QU,2)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,2)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,2) = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
+             Im(i,j,k,QRHO,2) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt*smhd(1)) !!GAS
+             Im(i,j,k,QU,2)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt*smhd(2)
+             Im(i,j,k,QV,2)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt*smhd(3)
+             Im(i,j,k,QW,2) = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt*smhd(4)
+             Im(i,j,k,QPRES,2) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt*smhd(5))
 
-             Im(i,j,k,QMAGX,2) = s(i,j,k,QMAGX) + 0.5d0*summ_m(6) + 0.5d0*dt_over_a*smhd(6)
+             Im(i,j,k,QMAGX,2) = s(i,j,k,QMAGX) + 0.5d0*summ_m(6) + 0.5d0*dt*smhd(6)
              Im(i,j,k,QMAGY,2) = by(i,j,k) !! By stuff
-             Im(i,j,k,QMAGZ,2) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(7) + 0.5d0*dt_over_a*smhd(7)
+             Im(i,j,k,QMAGZ,2) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(7) + 0.5d0*dt*smhd(7)
 
 
 
@@ -322,8 +338,8 @@ contains
                 dL = dot_product(leig(ii,:),dQL)
                 dR = dot_product(leig(ii,:),dQR)
                 call slope(dW,dL,dR, flatn(i,j,k))
-                summ_p(:) = summ_p(:) + (1 - dt_over_a/dx(3)*lam(ii))*dW*reig(:,ii)
-                summ_m(:) = summ_m(:) + (- 1 - dt_over_a/dx(3)*lam(ii))*dW*reig(:,ii)
+                summ_p(:) = summ_p(:) + (1 - dt/dx(3)*lam(ii))*dW*reig(:,ii)
+                summ_m(:) = summ_m(:) + (- 1 - dt/dx(3)*lam(ii))*dW*reig(:,ii)
              enddo
              !MHD Source Terms
              smhd(2) = s(i,j,k,QMAGX)/s(i,j,k,QRHO)
@@ -334,21 +350,21 @@ contains
              smhd(7) = s(i,j,k,QV)
              smhd  = smhd*(bz(i,j,k+1) - bz(i,j,k))/dx(3) !cross-talk of normal magnetic field direction
              !Interpolate
-             Ip(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
-             Ip(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt_over_a*smhd(2)
-             Ip(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt_over_a*smhd(3)
-             Ip(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt_over_a*smhd(4)
-             Ip(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt_over_a*smhd(5))
+             Ip(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(1) + 0.5d0*dt*smhd(1)) !!GAS
+             Ip(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_p(2) + 0.5d0*dt*smhd(2)
+             Ip(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_p(3) + 0.5d0*dt*smhd(3)
+             Ip(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_p(4) + 0.5d0*dt*smhd(4)
+             Ip(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(5) + 0.5d0*dt*smhd(5))
 
-             Ip(i,j,k,QMAGX:QMAGY,3)    = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Ip(i,j,k,QMAGX:QMAGY,3)    = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_p(6:7) + 0.5d0*dt*smhd(6:7)
              Ip(i,j,k,QMAGZ,3)          = bz(i,j,k+1) !! Bz stuff
              !species
              do ii = QFS, QFS+nspec-1
                dL = s(i,j,k,ii) - s(i,j,k-1,ii)
                dR = s(i,j,k+1,ii) - s(i,j,k,ii)
                call slope(dW,dL,dR,flatn(i,j,k))
-               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt_over_a/dx(3)*s(i,j,k,QW))*dW
-               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt_over_a/dx(3)*s(i,j,k,QW))*dW
+               Ip(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(1 - dt/dx(3)*s(i,j,k,QW))*dW
+               Im(i,j,k,ii,3) = s(i,j,k,ii) + 0.5d0*(-1 - dt/dx(3)*s(i,j,k,QW))*dW
              enddo
 
              eos_state % rho = Ip(i,j,k,QRHO,3)
@@ -359,13 +375,13 @@ contains
              Ip(i,j,k,QREINT,3) = eos_state % e * eos_state % rho
 
 
-             Im(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt_over_a*smhd(1)) !!GAS
-             Im(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt_over_a*smhd(2)
-             Im(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt_over_a*smhd(3)
-             Im(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt_over_a*smhd(4)
-             Im(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt_over_a*smhd(5))
+             Im(i,j,k,QRHO,3) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(1) + 0.5d0*dt*smhd(1)) !!GAS
+             Im(i,j,k,QU,3)   = s(i,j,k,QU) + 0.5d0*summ_m(2) + 0.5d0*dt*smhd(2)
+             Im(i,j,k,QV,3)   = s(i,j,k,QV) + 0.5d0*summ_m(3) + 0.5d0*dt*smhd(3)
+             Im(i,j,k,QW,3)   = s(i,j,k,QW) + 0.5d0*summ_m(4) + 0.5d0*dt*smhd(4)
+             Im(i,j,k,QPRES,3) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(5) + 0.5d0*dt*smhd(5))
 
-             Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt_over_a*smhd(6:7)
+             Im(i,j,k,QMAGX:QMAGY,3) = s(i,j,k,QMAGX:QMAGY) + 0.5d0*summ_m(6:7) + 0.5d0*dt*smhd(6:7)
              Im(i,j,k,QMAGZ,3) = bz(i,j,k) !! Bz stuff
 
 
@@ -390,47 +406,47 @@ contains
        do j = lo(2)-3, hi(2)+3
           do i = lo(1)-3, hi(1)+3
 
-             Ip(i,j,k,QRHO,1) = max(small_dens, Ip(i,j,k,QRHO,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Ip(i,j,k,QU,1) = Ip(i,j,k,QU,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,1) = Ip(i,j,k,QV,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,1) = Ip(i,j,k,QW,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,1) = Ip(i,j,k,QPRES,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-             Ip(i,j,k,QREINT,1) = Ip(i,j,k,QREINT,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Ip(i,j,k,QRHO,1) = max(small_dens, Ip(i,j,k,QRHO,1) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Ip(i,j,k,QU,1) = Ip(i,j,k,QU,1) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Ip(i,j,k,QV,1) = Ip(i,j,k,QV,1) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Ip(i,j,k,QW,1) = Ip(i,j,k,QW,1) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Ip(i,j,k,QPRES,1) = Ip(i,j,k,QPRES,1) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             Ip(i,j,k,QREINT,1) = Ip(i,j,k,QREINT,1) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             Ip(i,j,k,QRHO,2) = max(small_dens, Ip(i,j,k,QRHO,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Ip(i,j,k,QU,2) = Ip(i,j,k,QU,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,2) = Ip(i,j,k,QV,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,2) = Ip(i,j,k,QW,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,2) = Ip(i,j,k,QPRES,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-             Ip(i,j,k,QREINT,2) = Ip(i,j,k,QREINT,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Ip(i,j,k,QRHO,2) = max(small_dens, Ip(i,j,k,QRHO,2) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Ip(i,j,k,QU,2) = Ip(i,j,k,QU,2) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Ip(i,j,k,QV,2) = Ip(i,j,k,QV,2) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Ip(i,j,k,QW,2) = Ip(i,j,k,QW,2) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Ip(i,j,k,QPRES,2) = Ip(i,j,k,QPRES,2) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             Ip(i,j,k,QREINT,2) = Ip(i,j,k,QREINT,2) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             Ip(i,j,k,QRHO,3) = max(small_dens, Ip(i,j,k,QRHO,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Ip(i,j,k,QU,3) = Ip(i,j,k,QU,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Ip(i,j,k,QV,3) = Ip(i,j,k,QV,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Ip(i,j,k,QW,3) = Ip(i,j,k,QW,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Ip(i,j,k,QPRES,3) = Ip(i,j,k,QPRES,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)  
-             Ip(i,j,k,QREINT,3) = Ip(i,j,k,QREINT,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Ip(i,j,k,QRHO,3) = max(small_dens, Ip(i,j,k,QRHO,3) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Ip(i,j,k,QU,3) = Ip(i,j,k,QU,3) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Ip(i,j,k,QV,3) = Ip(i,j,k,QV,3) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Ip(i,j,k,QW,3) = Ip(i,j,k,QW,3) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Ip(i,j,k,QPRES,3) = Ip(i,j,k,QPRES,3) + 0.5d0*dt*srcQ(i,j,k,QPRES)  
+             Ip(i,j,k,QREINT,3) = Ip(i,j,k,QREINT,3) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             Im(i,j,k,QRHO,1) = max(small_dens, Im(i,j,k,QRHO,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Im(i,j,k,QU,1) = Im(i,j,k,QU,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,1) = Im(i,j,k,QV,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,1) = Im(i,j,k,QW,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,1) = Im(i,j,k,QPRES,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-             Im(i,j,k,QREINT,1) = Im(i,j,k,QREINT,1) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Im(i,j,k,QRHO,1) = max(small_dens, Im(i,j,k,QRHO,1) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Im(i,j,k,QU,1) = Im(i,j,k,QU,1) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Im(i,j,k,QV,1) = Im(i,j,k,QV,1) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Im(i,j,k,QW,1) = Im(i,j,k,QW,1) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Im(i,j,k,QPRES,1) = Im(i,j,k,QPRES,1) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             Im(i,j,k,QREINT,1) = Im(i,j,k,QREINT,1) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             Im(i,j,k,QRHO,2) = max(small_dens, Im(i,j,k,QRHO,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Im(i,j,k,QU,2) = Im(i,j,k,QU,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,2) = Im(i,j,k,QV,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,2) = Im(i,j,k,QW,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,2) = Im(i,j,k,QPRES,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-             Im(i,j,k,QREINT,2) = Im(i,j,k,QREINT,2) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Im(i,j,k,QRHO,2) = max(small_dens, Im(i,j,k,QRHO,2) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Im(i,j,k,QU,2) = Im(i,j,k,QU,2) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Im(i,j,k,QV,2) = Im(i,j,k,QV,2) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Im(i,j,k,QW,2) = Im(i,j,k,QW,2) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Im(i,j,k,QPRES,2) = Im(i,j,k,QPRES,2) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             Im(i,j,k,QREINT,2) = Im(i,j,k,QREINT,2) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             Im(i,j,k,QRHO,3) = max(small_dens, Im(i,j,k,QRHO,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QRHO))
-             Im(i,j,k,QU,3) = Im(i,j,k,QU,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QU)
-             Im(i,j,k,QV,3) = Im(i,j,k,QV,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QV)
-             Im(i,j,k,QW,3) = Im(i,j,k,QW,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QW)
-             Im(i,j,k,QPRES,3) = Im(i,j,k,QPRES,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QPRES)
-             Im(i,j,k,QREINT,3) = Im(i,j,k,QREINT,3) + 0.5d0*dt_over_a*srcQ(i,j,k,QREINT)
+             Im(i,j,k,QRHO,3) = max(small_dens, Im(i,j,k,QRHO,3) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             Im(i,j,k,QU,3) = Im(i,j,k,QU,3) + 0.5d0*dt*srcQ(i,j,k,QU)
+             Im(i,j,k,QV,3) = Im(i,j,k,QV,3) + 0.5d0*dt*srcQ(i,j,k,QV)
+             Im(i,j,k,QW,3) = Im(i,j,k,QW,3) + 0.5d0*dt*srcQ(i,j,k,QW)
+             Im(i,j,k,QPRES,3) = Im(i,j,k,QPRES,3) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             Im(i,j,k,QREINT,3) = Im(i,j,k,QREINT,3) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
           enddo
        enddo
