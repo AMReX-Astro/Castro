@@ -7,7 +7,7 @@ module mhd_plm_module
   use meth_params_module
   implicit none
 
-  private centerdif,vanleer, lvecx, lvecy, lvecz, rvecx, rvecy, rvecz, evals, slope
+  private centerdif, vanleer, evecx, evecy, evecz, evals, slope
 
   public plm
 
@@ -163,16 +163,13 @@ contains
              call evals(lam,  s(i,j,k,:), idir)
 
              if (idir == 1) then
-                call lvecx(leig, s(i,j,k,:))
-                call rvecx(reig, s(i,j,k,:))
+                call evecx(leig, reig, s(i,j,k,:))
 
              else if (idir == 2) then
-                call lvecy(leig, s(i,j,k,:))
-                call rvecy(reig, s(i,j,k,:))
+                call evecy(leig, reig, s(i,j,k,:))
 
              else
-                call lvecz(leig, s(i,j,k,:))
-                call rvecz(reig, s(i,j,k,:))
+                call evecz(leig, reig, s(i,j,k,:))
              end if
 
              ! MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
@@ -514,7 +511,7 @@ contains
   !====================================== Left Eigenvectors ===============================================
 
   !x direction
-  subroutine lvecx(leig, Q)
+  subroutine evecx(leig, reig, Q)
     use amrex_fort_module, only : rt => amrex_real
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_rp
@@ -524,7 +521,7 @@ contains
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
     real(rt), intent(in)  ::Q(NQ)
-    real(rt), intent(out) ::leig(7,7)
+    real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfx, cax, csx, ca, as, S, N
@@ -582,11 +579,20 @@ contains
     leig(6,:) = (/0.d0,  0.d0, 0.5d0*betz, -0.5d0*bety, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*bety*S/(sqrt(Q(QRHO)))/) !u + cAx
     leig(7,:) = (/0.d0, N*Cff, -N*Qs*bety, -N*Qs*betz, N*alf/Q(QRHO), N*AAs*bety/Q(QRHO), N*AAs*betz/Q(QRHO)/) !u + cf
 
+    !   u - cf       u - Cax      u - cs   u    u + cs   u + Cax   u + cf
+    reig(IEIGN_RHO,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
+    reig(IEIGN_U,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0, cff/)
+    reig(IEIGN_V,:) = (/Qs*bety, -betz, -Qf*bety, 0.d0, Qf*bety, betz, -Qs*bety/)
+    reig(IEIGN_W,:) = (/Qs*betz, bety, -Qf*betz, 0.d0, Qf*betz, -bety, -Qs*betz/)
+    reig(IEIGN_P,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
+    reig(IEIGN_BT,:) = (/AAs*bety, -betz*S*sqrt(Q(QRHO)), -AAf*bety, 0.d0  , -AAf*bety, -betz*S*sqrt(Q(QRHO)), AAs*bety/)
+    reig(IEIGN_BTT,:) = (/AAs*betz, bety*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, bety*S*sqrt(Q(QRHO)), AAs*betz/)
 
-  end subroutine lvecx
+
+  end subroutine evecx
 
   !y direction
-  subroutine lvecy(leig, Q)
+  subroutine evecy(leig, reig, Q)
     use amrex_fort_module, only : rt => amrex_real
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_rp
@@ -595,8 +601,8 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in) ::Q(NQ)
-    real(rt), intent(out) ::leig(7,7)
+    real(rt), intent(in) :: Q(NQ)
+    real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfy, cay, csy, ca, as, S, N
@@ -656,11 +662,19 @@ contains
     leig(6,:) = (/0.d0, 0.5d0*betz, 0.d0,  -0.5d0*betx, 0.d0, -0.5d0*betz*S/(sqrt(Q(QRHO))), 0.5d0*betx*S/(sqrt(Q(QRHO)))/) ! v + cAy
     leig(7,:) = (/0.d0, -N*Qs*betx, N*Cff, -N*Qs*betz, N*alf/Q(QRHO), N*AAs*betx/Q(QRHO), N*AAs*betz/Q(QRHO)/) ! v + cf
 
+    !   v - cf   v - Cay   v - cs   v   v + cs   v + Cay   v + cf
+    reig(IEIGN_RHO,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
+    reig(IEIGN_V,:) = (/-cff, 0.d0, -css, 0.d0  , css, 0.d0, cff/)
+    reig(IEIGN_U,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betx/)
+    reig(IEIGN_W,:) = (/Qs*betz, betx, -Qf*betz, 0.d0  , Qf*betz, -betx , -Qs*betz/)
+    reig(IEIGN_P,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
+    reig(IEIGN_BT,:) = (/AAs*betx, -betz*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0  , -AAf*betx, -betz*S*sqrt(Q(QRHO)) , AAs*betx/)
+    reig(IEIGN_BTT,:) = (/AAs*betz, betx*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, betx*S*sqrt(Q(QRHO)), AAs*betz/)
 
-  end subroutine lvecy
+  end subroutine evecy
 
   !z direction
-  subroutine lvecz(leig, Q)
+  subroutine evecz(leig, reig, Q)
     use amrex_fort_module, only : rt => amrex_real
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_rp
@@ -669,8 +683,8 @@ contains
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
-    real(rt), intent(in)  ::Q(NQ)
-    real(rt), intent(out) ::leig(7,7)
+    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt)  :: cfz, caz, csz, ca, as, S, N
@@ -730,211 +744,6 @@ contains
     leig(5,:) = (/0.d0, N*Qf*betx, N*Qf*bety, N*Css, N*als/Q(QRHO) , -N*AAf*betx/Q(QRHO), -N*AAf*bety/Q(QRHO)/) !w + cs
     leig(6,:) = (/0.d0, 0.5d0*bety , -0.5d0*betx, 0.0d0, 0.d0 , -0.5d0*bety*S/(sqrt(Q(QRHO))) , 0.5d0*betx*S/(sqrt(Q(QRHO)))  /) !w + cAz
     leig(7,:) = (/0.d0, -N*Qs*betx, -N*Qs*bety, N*Cff , N*alf/Q(QRHO) , N*AAs*betx/Q(QRHO) , N*AAs*bety/Q(QRHO) /) !w + cf
-  end subroutine lvecz
-
-  !====================================== Right Eigenvectors ===============================================
-  !x direction
-  subroutine rvecx(reig, Q)
-    use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
-    use network, only : nspec
-
-    implicit none
-
-    !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in)   ::Q(NQ)
-    real(rt), intent(out)  ::reig(7,7)
-
-    !The characteristic speeds of the system
-    real(rt)  :: cfx, cax, csx, ca, as, S
-    real(rt)  :: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
-
-    type(eos_t) :: eos_state
-
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
-    ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
-    cax = (Q(QMAGX)**2)/Q(QRHO)
-
-    !Sloooooooooow
-    csx = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cax))
-
-    !Fassssst
-    cfx = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cax))
-
-    !useful constants
-    alf = sqrt((as - csx)/(cfx - csx))
-    als = sqrt((cfx - as)/(cfx - csx))
-
-    if(cfx - as .lt. 0.d0) als = 0.d0
-
-    if(as - csx .lt. 0.d0) alf = 0.d0
-
-    if(abs(Q(QMAGY)).le. 1.d-14 .and.abs(Q(QMAGZ)).le. 1.d-14) then
-       bety = 1.d0/sqrt(2.d0)
-       betz = bety
-    else
-       bety = Q(QMAGY)/(sqrt(Q(QMAGY)**2 + Q(QMAGZ)**2))
-       betz = Q(QMAGZ)/(sqrt(Q(QMAGY)**2 + Q(QMAGZ)**2))
-    endif
-
-    cff = sqrt(cfx)*alf
-    css = sqrt(csx)*als
-    S = sign(1.0d0, Q(QMAGX))
-    Qf = sqrt(cfx)*alf*S
-    Qs = sqrt(csx)*als*S
-    AAf = sqrt(as)*alf*sqrt(Q(QRHO))
-    AAs = sqrt(as)*als*sqrt(Q(QRHO))
-
-    !   u - cf       u - Cax      u - cs   u    u + cs   u + Cax   u + cf
-    reig(IEIGN_RHO,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
-    reig(IEIGN_U,:) = (/-cff , 0.d0, -css, 0.d0, css, 0.d0, cff/)
-    reig(IEIGN_V,:) = (/Qs*bety, -betz, -Qf*bety, 0.d0, Qf*bety, betz, -Qs*bety/)
-    reig(IEIGN_W,:) = (/Qs*betz, bety, -Qf*betz, 0.d0, Qf*betz, -bety, -Qs*betz/)
-    reig(IEIGN_P,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
-    reig(IEIGN_BT,:) = (/AAs*bety, -betz*S*sqrt(Q(QRHO)), -AAf*bety, 0.d0  , -AAf*bety, -betz*S*sqrt(Q(QRHO)), AAs*bety/)
-    reig(IEIGN_BTT,:) = (/AAs*betz, bety*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, bety*S*sqrt(Q(QRHO)), AAs*betz/)
-
-
-  end subroutine rvecx
-
-  !y direction
-  subroutine rvecy(reig, Q)
-    use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
-    use network, only : nspec
-
-    implicit none
-
-    !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in)  ::Q(NQ)
-    real(rt), intent(out) ::reig(7,7)
-
-    !The characteristic speeds of the system
-    real(rt) :: cfy, cay, csy, ca, as, S
-    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
-
-    type (eos_t) :: eos_state
-
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-    !Alfven
-    ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
-    cay = (Q(QMAGY)**2)/Q(QRHO)
-    !Sloooooooooow
-    csy = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cay))
-    !Fassssst
-    cfy = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cay))
-    !useful constants
-    alf = sqrt((as - csy)/(cfy - csy))
-    if(as - csy .lt. 0.d0) alf = 0.d0
-    als = sqrt((cfy - as)/(cfy - csy))
-    if(cfy - as .lt. 0.d0) als = 0.d0
-    if(abs(Q(QMAGX)).le. 1.d-14 .and.abs(Q(QMAGZ)).le. 1.d-14) then
-       betx = 1.d0/sqrt(2.d0)
-       betz = betx
-    else
-       betx = Q(QMAGX)/(sqrt(Q(QMAGX)**2 + Q(QMAGZ)**2))
-       betz = Q(QMAGZ)/(sqrt(Q(QMAGX)**2 + Q(QMAGZ)**2))
-    endif
-    cff = sqrt(cfy)*alf
-    css = sqrt(csy)*als
-    S = sign(1.0d0, Q(QMAGY))
-    Qf = sqrt(cfy)*alf*S
-    Qs = sqrt(csy)*als*S
-    AAf = sqrt(as)*alf*sqrt(Q(QRHO))
-    AAs = sqrt(as)*als*sqrt(Q(QRHO))
-
-    !   v - cf   v - Cay   v - cs   v   v + cs   v + Cay   v + cf
-    reig(IEIGN_RHO,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
-    reig(IEIGN_V,:) = (/-cff, 0.d0, -css, 0.d0  , css, 0.d0, cff/)
-    reig(IEIGN_U,:) = (/Qs*betx, -betz, -Qf*betx, 0.d0  , Qf*betx, betz, -Qs*betx/)
-    reig(IEIGN_W,:) = (/Qs*betz, betx, -Qf*betz, 0.d0  , Qf*betz, -betx , -Qs*betz/)
-    reig(IEIGN_P,:) = (/Q(QRHO)*as*alf, 0.d0, Q(QRHO)*as*als, 0.d0  , Q(QRHO)*as*als, 0.d0, Q(QRHO)*as*alf/)
-    reig(IEIGN_BT,:) = (/AAs*betx, -betz*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0  , -AAf*betx, -betz*S*sqrt(Q(QRHO)) , AAs*betx/)
-    reig(IEIGN_BTT,:) = (/AAs*betz, betx*S*sqrt(Q(QRHO)), -AAf*betz, 0.d0, -AAf*betz, betx*S*sqrt(Q(QRHO)), AAs*betz/)
-
-
-  end subroutine rvecy
-
-  !z direction
-  subroutine rvecz(reig, Q)
-    use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
-    use network, only : nspec
-
-    implicit none
-
-    !returnes reig, where the cols are the right eigenvectors of the characteristic matrix Az
-    real(rt), intent(in)  ::Q(NQ)
-    real(rt), intent(out) ::reig(7,7)
-
-    !The characteristic speeds of the system
-    real(rt) :: cfz, caz, csz, ca, as, S
-    real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
-
-    type(eos_t) :: eos_state
-
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
-    ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
-    caz = (Q(QMAGZ)**2)/Q(QRHO)
-
-    !Sloooooooooow
-    csz = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*caz))
-
-    !Fassssst
-    cfz = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*caz))
-
-    !useful constants
-    alf = sqrt((as - csz)/(cfz - csz))
-    als = sqrt((cfz - as)/(cfz - csz))
-
-    if(cfz - as .lt. 0.d0) als = 0.d0
-
-    if(abs(Q(QMAGX)).le. 1.d-14 .and.abs(Q(QMAGY)).le. 1.d-14) then
-       betx = 1.d0/sqrt(2.d0)
-       bety = betx
-    else
-       betx = Q(QMAGX)/(sqrt(Q(QMAGX)**2 + Q(QMAGY)**2))
-       bety = Q(QMAGY)/(sqrt(Q(QMAGX)**2 + Q(QMAGY)**2))
-    endif
-
-    cff = sqrt(cfz)*alf
-    css = sqrt(csz)*als
-    S = sign(1.0d0, Q(QMAGZ))
-    Qf = sqrt(cfz)*alf*S
-    Qs = sqrt(csz)*als*S
-    AAf = sqrt(as)*alf*sqrt(Q(QRHO))
-    AAs = sqrt(as)*als*sqrt(Q(QRHO))
 
     !   w - cf    w - Caz     w - cs     w    w + cs    w + Caz     w + cf
     reig(IEIGN_RHO,:) = (/Q(QRHO)*alf, 0.d0, Q(QRHO)*als, 1.d0, Q(QRHO)*als, 0.d0, Q(QRHO)*alf/)
@@ -945,6 +754,6 @@ contains
     reig(IEIGN_BT,:) = (/AAs*betx, -bety*S*sqrt(Q(QRHO)), -AAf*betx, 0.d0, -AAf*betx, -bety*S*sqrt(Q(QRHO)), AAs*betx/)
     reig(IEIGN_BTT,:) = (/AAs*bety, betx*S*sqrt(Q(QRHO)), -AAf*bety, 0.d0, -AAf*bety, betx*S*sqrt(Q(QRHO)), AAs*bety/)
 
-  end subroutine rvecz
+  end subroutine evecz
 
 end module mhd_plm_module
