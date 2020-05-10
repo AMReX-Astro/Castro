@@ -309,8 +309,7 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_thermo_source(amrex::Real time, amrex::Real dt,
-                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
-                            amrex::MultiFab& ext_src);
+                            amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
 #ifdef REACTIONS
