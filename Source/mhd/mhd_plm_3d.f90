@@ -83,8 +83,8 @@ contains
     ! Ip and Im are the interface states in each dimension (the last index '3' is the
     ! direction
 
-    Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),:,:) = 0.d0
-    Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),:,:) = 0.d0
+    Ip(Ip_lo(1):Ip_hi(1),Ip_lo(2):Ip_hi(2),Ip_lo(3):Ip_hi(3),:,idir) = 0.d0
+    Im(Im_lo(1):Im_hi(1),Im_lo(2):Im_hi(2),Im_lo(3):Im_hi(3),:,idir) = 0.d0
 
     ! these loops are over cell-centers and for each cell-center, we find the left and
     ! right interface states
