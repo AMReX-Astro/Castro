@@ -391,7 +391,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#if defined(RADIATION) || defined(MHD)
+#if defined(RADIATION) 
   // Radiation should always have at least one ghost zone.
   int ngrow_state = std::max(1, state_nghost);
 #else
@@ -409,17 +409,17 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
   desc_lst.addDescriptor(Mag_Type_x, xface,
-                         StateDescriptor::Point, 1, 1, 
+                         StateDescriptor::Point, 0, 1, 
                          interp, state_data_extrap,
                          store_in_checkpoint);
   IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
   desc_lst.addDescriptor(Mag_Type_y, yface,
-                         StateDescriptor::Point, 1, 1,
+                         StateDescriptor::Point, 0, 1,
                          interp, state_data_extrap,
                          store_in_checkpoint);
   IndexType zface(IntVect{AMREX_D_DECL(0,0,1)});
   desc_lst.addDescriptor(Mag_Type_z, zface,
-                         StateDescriptor::Point, 1, 1,
+                         StateDescriptor::Point, 0, 1,
                          interp, state_data_extrap,
                          store_in_checkpoint);
 #endif

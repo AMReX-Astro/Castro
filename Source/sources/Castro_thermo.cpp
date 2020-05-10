@@ -75,7 +75,11 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
   mult_factor = 0.5;
   
-  fill_thermo_source(time, dt, state_old, state_new, thermo_src);
+  //state_new needs ghost cell  
+  FillPatchIterator fpi(*this, state_new, 1, time, State_Type, 0, NUM_STATE);
+  MultiFab& grown_state = fpi.get_mf();
+  
+  fill_thermo_source(time, dt, grown_state, grown_state, thermo_src);
   
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
 
