@@ -11,7 +11,7 @@ Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real tim
     amrex::Abort("this is only defined for axisymmetric geometry");
   }
 
-  if (use_axisymmetric_geom_source = 0) {
+  if (use_axisymmetric_geom_source == 0) {
     return;
   }
 
@@ -56,7 +56,7 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
     amrex::Abort("this is only defined for axisymmetric geometry");
   }
 
-  if (use_axisymmetric_geom_source = 0) {
+  if (use_axisymmetric_geom_source == 0) {
     return;
   }
 
