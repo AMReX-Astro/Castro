@@ -71,15 +71,17 @@ Castro::advance (Real time,
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && !use_retry)
+    if (cfl_violation && !use_retry) {
         amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
+    }
 
     // If we didn't kill the job, reset the violation counter.
 
     cfl_violation = 0;
 
-    if (use_post_step_regrid)
+    if (use_post_step_regrid) {
         check_for_post_regrid(time + dt);
+    }
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
@@ -97,8 +99,9 @@ Castro::advance (Real time,
 
 #ifdef GRAVITY
     // Update the point mass.
-    if (use_point_mass)
+    if (use_point_mass) {
         pointmass_update(time, dt);
+    }
 #endif
 
 #ifdef RADIATION
@@ -139,13 +142,16 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
     // Reset the grid loss tracking.
 
-    if (track_grid_losses)
-      for (int i = 0; i < n_lost; i++)
+    if (track_grid_losses) {
+      for (int i = 0; i < n_lost; i++) {
         material_lost_through_boundary_temp[i] = 0.0;
+      }
+    }
 
 #ifdef GRAVITY
-    if (moving_center == 1)
+    if (moving_center == 1) {
         define_new_center(get_old_data(State_Type), time);
+    }
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
@@ -269,8 +275,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // before the swap.
 
 #ifdef RADIATION
-    if (do_radiation)
+    if (do_radiation) {
         radiation->pre_timestep(level);
+    }
 
     Erborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
     lamborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
@@ -302,8 +309,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     swap_state_time_levels(dt);
 
 #ifdef GRAVITY
-    if (do_grav)
+    if (do_grav) {
         gravity->swapTimeLevels(level);
+    }
 #endif
 
     // Ensure data is valid before beginning advance. This addresses
@@ -325,8 +333,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
 
-    for (int k = 0; k < num_state_type; ++k)
+    for (int k = 0; k < num_state_type; ++k) {
         prev_state[k].reset(new StateData());
+    }
 
     // This array holds the hydrodynamics update.
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -397,21 +406,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Zero out the current fluxes.
 
-    for (int dir = 0; dir < 3; ++dir)
+    for (int dir = 0; dir < 3; ++dir) {
         fluxes[dir]->setVal(0.0);
-
-    for (int dir = 0; dir < 3; ++dir)
         mass_fluxes[dir]->setVal(0.0);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
+    if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+    if (Radiation::rad_hydro_combined) {
+        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
+        }
+    }
 #endif
 
 }
@@ -463,8 +474,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     source_corrector.clear();
     sources_for_hydro.clear();
 
-    if (!keep_prev_state)
+    if (!keep_prev_state) {
         amrex::FillNull(prev_state);
+    }
 
 #ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
@@ -480,7 +492,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Record how many zones we have advanced.
 
-    num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+    num_zones_advanced += static_cast<Real>(grids.numPts()) / getLevel(0).grids.numPts();
 
     Real wall_time = ParallelDescriptor::second() - wall_time_start;
     Real fom_advance = grids.numPts() / wall_time / 1.e6;
