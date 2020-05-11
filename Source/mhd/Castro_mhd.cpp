@@ -183,7 +183,7 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qp),
               BL_TO_FORTRAN_ANYD(qm),
               BL_TO_FORTRAN_ANYD(srcQ),
-              dx, dt);
+              dx_f, dt);
 
           plm(lo, hi, 2,
               BL_TO_FORTRAN_ANYD(q),
@@ -194,7 +194,7 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qp),
               BL_TO_FORTRAN_ANYD(qm),
               BL_TO_FORTRAN_ANYD(srcQ),
-              dx, dt);
+              dx_f, dt);
 
           plm(lo, hi, 3,
               BL_TO_FORTRAN_ANYD(q),
