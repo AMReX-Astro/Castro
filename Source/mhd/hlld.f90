@@ -6,8 +6,8 @@ module hlld_solver
 contains
 
 subroutine hlld(work_lo, work_hi, &
-                qright, qr_lo, qr_hi, &
                 qleft, ql_lo, ql_hi, &
+                qright, qr_lo, qr_hi, &
                 flx, flx_lo, flx_hi, &
                 dir)
 

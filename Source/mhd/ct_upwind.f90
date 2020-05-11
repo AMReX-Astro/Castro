@@ -881,8 +881,8 @@ contains
 
   !====================================================== Final Conservative Corrections================================================================
   subroutine half_step(w_lo, w_hi, &
-                       ur_out, ulo_lo, ulo_hi, &
-                       ul_out, uro_lo, uro_hi, &
+                       ur_out, uro_lo, uro_hi, &
+                       ul_out, ulo_lo, ulo_hi, &
                        ur, ur_lo, ur_hi, &
                        ul, ul_lo, ul_hi, &
                        flxd1, flxd1_lo, flxd1_hi, &
@@ -1003,8 +1003,8 @@ contains
 
   !================================================= Final Magnetic Corrections ========================================================================
   subroutine half_step_mag(w_lo, w_hi, &
-                           ur_out, ulo_lo, ulo_hi, &
-                           ul_out, uro_lo, uro_hi, &
+                           ur_out, uro_lo, uro_hi, &
+                           ul_out, ulo_lo, ulo_hi, &
                            ur, ur_lo, ur_hi, &
                            ul, ul_lo, ul_hi, &
                            Ed, ed_lo, ed_hi, &
