@@ -10,8 +10,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: get commit message
-    run: |
-       echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
+      run: |
+        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
 
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@v2.0.2
