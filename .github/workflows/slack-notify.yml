@@ -12,7 +12,7 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Get commit message
-      runs: |
+      run: |
         echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1)
 
     - name: Slack Notification 
