@@ -8,10 +8,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
+    - name: get commit message
+    run: |
+       echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
+
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@v2.0.2
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_CHANNEL: castro
-        SLACK_USERNAME: PR action 
-        SLACK_ICON_EMOJI: ':cookie:'
+        SLACK_USERNAME: Pull-request notification 
+        SLACK_ICON: 'https://github.com/AMReX-Astro/Castro/blob/slack_action/.github/workflows/200px-Octicons-git-pull-request.svg.png?raw=true'
+        SLACK_MESSAGE: ${{ COMMIT_MSG }}
