@@ -20,4 +20,4 @@ jobs:
         SLACK_CHANNEL: castro
         SLACK_USERNAME: Pull-request notification 
         SLACK_ICON: 'https://github.com/AMReX-Astro/Castro/blob/slack_action/.github/workflows/200px-Octicons-git-pull-request.svg.png?raw=true'
-        SLACK_MESSAGE: ${{ COMMIT_MSG }}
+        SLACK_MESSAGE: '${COMMIT_MSG}'
