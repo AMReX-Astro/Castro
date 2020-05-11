@@ -11,7 +11,8 @@ jobs:
 
     - name: get commit message
       run: |
-        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
+        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1)
+        echo $COMMIT_MSG
 
     - name: Slack Notification 
       uses: AMReX-Astro/slack-action@master
