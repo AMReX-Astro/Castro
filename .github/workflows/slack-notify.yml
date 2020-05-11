@@ -20,6 +20,9 @@ jobs:
       run: |
         MSG=$(git log --format=%B -n 1)
         echo "::set-env name=COMMIT_MSG::$MSG"
+        PR_LINK=${{ github.event.pull_request._links.commits }}
+        PR_LINK=$PR_LINK/$GITHUB_SHA
+        echo "::set-env name=PR_LINK::$PR_LINK"
 
     - name: Slack Notification 
       uses: AMReX-Astro/slack-action@master
@@ -27,3 +30,4 @@ jobs:
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
         slack_channel: castro
         message: ${{ env.COMMIT_MSG }}
+        pr_link: ${{ env.PR_LINK }}
