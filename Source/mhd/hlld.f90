@@ -388,6 +388,7 @@ subroutine hlld(work_lo, work_hi, &
            choice = "FR"
         endif
 
+        flx(i,j,k,UTEMP) = 0.0d0
 
    end do
    end do
@@ -438,6 +439,7 @@ subroutine PToC(q, u)
   do n = 1, nspec
      u(UFS-1+n) = u(URHO)*q(QFS-1+n)
   enddo
+  u(UTEMP) = eos_state % T
 
 end subroutine PToC
 

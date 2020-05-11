@@ -13,6 +13,15 @@ module ct_upwind
   integer, parameter :: UMAGY = NVAR+2
   integer, parameter :: UMAGZ = NVAR+3
 
+  ! note: in this module, we use left and right to mean with respect
+  ! to the interface.  So qleft, uleft, ul, ... are the left state on
+  ! an interface and qright, uright, ur, ... are the right state on an
+  ! interface.
+
+  ! Miniati and Martin use + and - with respect to a zone center, so
+  ! u+ would be on the right edge of a zone, which is the left state
+  ! to an interface.
+
 contains
 
 
@@ -88,29 +97,29 @@ contains
 
     integer  :: i, work_lo(3), work_hi(3)
 
-    ur = 0.d0
-    ul = 0.d0
-    cons_temp_r = 0.d0
-    cons_temp_l = 0.d0
-    q_temp_r = 0.d0
-    q_temp_l = 0.d0
-    cons_half_r = 0.d0
-    cons_half_l = 0.d0
-    q_half_r = 0.d0
-    q_half_l = 0.d0
-    q2D = 0.d0
+    !ur = 0.d0
+    !ul = 0.d0
+    !cons_temp_r = 0.d0
+    !cons_temp_l = 0.d0
+    !q_temp_r = 0.d0
+    !q_temp_l = 0.d0
+    !cons_half_r = 0.d0
+    !cons_half_l = 0.d0
+    !q_half_r = 0.d0
+    !q_half_l = 0.d0
+    !q2D = 0.d0
 
-    flxx1D = 0.d0
-    flxy1D = 0.d0
-    flxz1D = 0.d0
+    !flxx1D = 0.d0
+    !flxy1D = 0.d0
+    !flxz1D = 0.d0
 
     flxx2D = 0.d0
     flxy2D = 0.d0
     flxz2D = 0.d0
 
-    Ex = 0.d0
-    Ey = 0.d0
-    Ez = 0.d0
+    !Ex = 0.d0
+    !Ey = 0.d0
+    !Ez = 0.d0
 
     !Calculate Flux 1D, eq.35
     !x-dir
@@ -617,8 +626,9 @@ contains
                   + 0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))
 
              u(i,j,k,UEINT) = eos_state % rho * eos_state % e
+             u(i,j,k,UTEMP) = eos_state % T
 
-             u(i,j,k,NVAR+1:NVAR+3) = q(i,j,k,QMAGX:QMAGZ)
+             u(i,j,k,UMAGX:UMAGZ) = q(i,j,k,QMAGX:QMAGZ)
 
              ! species
              u(i,j,k,UFS:UFS-1+nspec) = q(i,j,k,QRHO) * q(i,j,k,QFS:QFS-1+nspec)
@@ -1209,6 +1219,8 @@ contains
           qflx(QMAGX) = flx(UMAGX)
           qflx(QMAGY) = flx(UMAGY)
           qflx(QMAGZ) = flx(UMAGZ)
+
+          qflx(QTEMP) = 0.0_rt
 
   end subroutine qflux
 
