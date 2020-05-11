@@ -12,6 +12,6 @@ jobs:
       uses: rtCamp/action-slack-notify@v2.0.2
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: harpolea
+        SLACK_CHANNEL: castro
         SLACK_USERNAME: PR action 
         SLACK_ICON_EMOJI: ':cookie:'
