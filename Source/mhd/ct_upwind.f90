@@ -647,7 +647,6 @@ contains
     real(rt), intent(out) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3),NQ)
 
     integer :: i ,j ,k
-    integer :: UMAGX, UMAGZ
 
     type (eos_t) :: eos_state
 
@@ -807,7 +806,6 @@ contains
     real(rt) :: dx, dt
     integer :: i ,j ,k
     integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
-    integer :: UMAGX, UMAGY, UMAGZ
 
     d   = 0
     a1  = 0
@@ -1043,7 +1041,6 @@ contains
 
     integer :: i ,j ,k
     integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
-    integer      :: UMAGX, UMAGY, UMAGZ
 
     a1 = 0
     a2 = 0
@@ -1184,8 +1181,6 @@ contains
    real(rt), intent(in)           ::flx(NVAR+3), q(NQ)
    real(rt), intent(out)          ::qflx(NQ)
    real(rt) :: dedp, dedrho, totalE
-
-   integer :: UMAGX, UMAGY, UMAGZ
 
    type (eos_t) :: eos_state
 
