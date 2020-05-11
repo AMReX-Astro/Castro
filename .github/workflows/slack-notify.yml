@@ -27,6 +27,7 @@ jobs:
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
         slack_channel: castro
         message: ${{ env.COMMIT_MSG }}
-        pr_link: ${{ github.event.pull_request.html_url }}
+        pr_link: ${{ github.event.pull_request.head.repo.html_url }}
         author_avatar: ${{ github.event.pull_request.user.avatar_url }}
         commit_sha: ${{ github.event.pull_request.head.sha }}
+        before_sha: ${{ github.event.before }}
