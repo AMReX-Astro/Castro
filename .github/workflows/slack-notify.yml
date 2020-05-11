@@ -1,0 +1,18 @@
+on: 
+  pull_request:
+    types: synchronize
+name: Slack Notification Demo
+jobs:
+  slackNotification:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2.0.2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_CHANNEL: harpolea
+        SLACK_USERNAME: PR action 
+        SLACK_ICON_EMOJI: ':cookie:'
+        SLACK_COLOR: 'blue'
