@@ -9,13 +9,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: get commit message
-      run: |
-        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 $GITHUB_SHA | head -1)
-
     - name: Slack Notification 
       uses: AMReX-Astro/slack-action@master
       with:
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
         slack_channel: castro
-        message: ${{ env.COMMIT_MSG }}
