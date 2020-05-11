@@ -18,4 +18,4 @@ jobs:
       with:
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
         slack_channel: castro
-        message: ${{ env.COMMIT_MSG }}
+        message: ${{ env.COMMIT_MSG }} 
