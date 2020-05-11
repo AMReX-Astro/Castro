@@ -16,7 +16,7 @@ jobs:
 
     - name: Slack Notification 
       uses: AMReX-Astro/slack-action@master
-      with: 
+      with:
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
         slack_channel: castro
         message: ${{ env.COMMIT_MSG }}
