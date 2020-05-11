@@ -30,7 +30,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   eos_state%rho = rho
   eos_state%p = p
   eos_state%T = 100000.e0_rt  ! initial guess
-  eos_state%xn(:) = xn_zone(:)
+  eos_state%xn(:) = xn(:)
 
   call eos(eos_input_rp, eos_state)
 
