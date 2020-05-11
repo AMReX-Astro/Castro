@@ -97,29 +97,6 @@ contains
 
     integer  :: i, work_lo(3), work_hi(3)
 
-    !ur = 0.d0
-    !ul = 0.d0
-    !cons_temp_r = 0.d0
-    !cons_temp_l = 0.d0
-    !q_temp_r = 0.d0
-    !q_temp_l = 0.d0
-    !cons_half_r = 0.d0
-    !cons_half_l = 0.d0
-    !q_half_r = 0.d0
-    !q_half_l = 0.d0
-    !q2D = 0.d0
-
-    !flxx1D = 0.d0
-    !flxy1D = 0.d0
-    !flxz1D = 0.d0
-
-    flxx2D = 0.d0
-    flxy2D = 0.d0
-    flxz2D = 0.d0
-
-    !Ex = 0.d0
-    !Ey = 0.d0
-    !Ez = 0.d0
 
     !Calculate Flux 1D, eq.35
     !x-dir
@@ -835,7 +812,8 @@ contains
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
-             !Left State
+
+             ! right state on the interface
 
              ! d1 -direction
              ! affected by dir2 flux
@@ -863,7 +841,8 @@ contains
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
-             !Right State
+
+             ! left state on the interface
 
              !d1 -direction
              !-> Affected by dir2 flux
@@ -1080,10 +1059,10 @@ contains
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
-             !---------------------------------------left state-----------------------------------------------------
 
              !d-Direction
-             !Bd eq.45 in Miniati for -
+
+             ! right state on the interface (Bd eq.45 in Miniati for -)
              ur_out(i,j,k,UMAGD,d) = ur(i,j,k,UMAGD,d) + sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
                   - (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
              !Bd1 eq.46 in Miniati
@@ -1100,10 +1079,7 @@ contains
              ur_out(i,j,k,UEINT,d) = ur_out(i,j,k,UEINT,d) - 0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ,d),ur_out(i,j,k,UMAGX:UMAGZ,d))
 
 
-             !---------------------------------------right state-----------------------------------------------------
-
-             !d-Direction
-             !Bd eq. 45 in Miniati for +
+             ! left state on the interface (Bd eq. 45 in Miniati for +)
              ! for the + case, the shifts mentioned above in b6, b5, and b4
              ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely
              ul_out(i,j,k,UMAGD,d) = ul(i,j,k,UMAGD,d) + sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
