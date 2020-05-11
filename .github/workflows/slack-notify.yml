@@ -13,7 +13,7 @@ jobs:
       run: |
         echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1 ${{ github.event.after }})
 
-    - name: Slack Notification
+    - name: Slack Notification 
       uses: AMReX-Astro/slack-action@master
       with: 
         slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
