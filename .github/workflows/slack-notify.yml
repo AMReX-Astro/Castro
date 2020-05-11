@@ -11,7 +11,7 @@ jobs:
 
     - name: get commit message
       run: |
-        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 1)
+        echo ::set-env name=COMMIT_MSG::$(git log --format=%B -n 2 | tail -2 | head -1)
         echo $COMMIT_MSG
 
     - name: Slack Notification 
