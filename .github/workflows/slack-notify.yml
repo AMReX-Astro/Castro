@@ -15,4 +15,3 @@ jobs:
         SLACK_CHANNEL: harpolea
         SLACK_USERNAME: PR action 
         SLACK_ICON_EMOJI: ':cookie:'
-        SLACK_COLOR: 'blue'
