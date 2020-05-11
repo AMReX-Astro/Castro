@@ -20,9 +20,11 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
     Vector<int> bcrs(2 * AMREX_SPACEDIM * numcomp);
 
-    for (int n = 0; n < numcomp; ++n)
-        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k)
+    for (int n = 0; n < numcomp; ++n) {
+        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k) {
             bcrs[2 * AMREX_SPACEDIM * n + k] = bcr[n].vect()[k];
+        }
+    }
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);

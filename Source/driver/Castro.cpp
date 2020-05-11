@@ -535,7 +535,7 @@ Castro::Castro (Amr&            papa,
          gravity->set_numpts_in_gravity(numpts_1d);
       }
 
-      gravity->install_level(level,this,volume,area);
+      gravity->install_level(level,this,volume,area.data());
 
       if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
          std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
@@ -557,7 +557,7 @@ Castro::Castro (Amr&            papa,
       if (diffusion == 0)
         diffusion = new Diffusion(parent,&phys_bc);
 
-      diffusion->install_level(level,this,volume,area);
+      diffusion->install_level(level,this,volume,area.data());
 #endif
 
 #ifdef RADIATION

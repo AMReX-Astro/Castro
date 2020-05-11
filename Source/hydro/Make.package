@@ -1,6 +1,9 @@
 # sources used with hydro
 
-CEXE_sources += Castro_hydro.cpp
+ifneq ($(USE_MHD),TRUE)
+  CEXE_sources += Castro_hydro.cpp
+endif
+
 CEXE_sources += Castro_ctu.cpp
 CEXE_sources += Castro_mol.cpp
 CEXE_sources += advection_util.cpp

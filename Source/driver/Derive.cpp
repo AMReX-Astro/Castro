@@ -596,7 +596,7 @@ extern "C"
                        });
   }
 
-  void ca_derangmomx (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomx (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -610,7 +610,7 @@ extern "C"
     ca_get_center(center.begin());
 
     auto const dat = datfab.array();
-    auto const L = Lfab.array();
+    auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -652,7 +652,7 @@ extern "C"
 
   }
 
-  void ca_derangmomy (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomy (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -665,7 +665,7 @@ extern "C"
     ca_get_center(center.begin());
 
     auto const dat = datfab.array();
-    auto const L = Lfab.array();
+    auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -703,7 +703,7 @@ extern "C"
 
   }
 
-  void ca_derangmomz (const Box& bx, FArrayBox& Lfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomz (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -716,7 +716,7 @@ extern "C"
     ca_get_center(center.begin());
 
     auto const dat = datfab.array();
-    auto const L = Lfab.array();
+    auto const L = derfab.array();
 
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -755,13 +755,13 @@ extern "C"
 
   }
 
-  void ca_derkineng (const Box& bx, FArrayBox& kinengfab, int dcomp, int /*ncomp*/,
+  void ca_derkineng (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
     auto const dat = datfab.array();
-    auto const kineng = kinengfab.array();
+    auto const kineng = derfab.array();
 
     amrex::ParallelFor(bx,
                        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -968,8 +968,10 @@ extern "C"
           Real rm1 = (static_cast<Real>(i) - 0.5_rt)*dx[0] + problo[0];
           Real rp1 = (static_cast<Real>(i) + 1.5_rt)*dx[0] + problo[0];
 
-          der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]) +
-            0.5_rt*(vhi - vlo) / dx[1];
+          der(i,j,k,0) = 0.5_rt * (rp1*uhi - rm1*ulo) / (r*dx[0]);
+#if AMREX_SPACEDIM >= 2
+          der(i,j,k,0) += 0.5_rt*(vhi - vlo) / dx[1];
+#endif
 
         } else if (coord_type == 2) {
 

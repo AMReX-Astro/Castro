@@ -40,8 +40,9 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
+        if (ParallelDescriptor::IOProcessor()) {
             std::cout << "Castro::construct_old_sponge_source() time = " << run_time << "\n" << "\n";
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -98,8 +99,9 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 #endif
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
+        if (ParallelDescriptor::IOProcessor()) {
             std::cout << "Castro::construct_new_sponge_source() time = " << run_time << "\n" << "\n";
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -195,15 +197,15 @@ Castro::apply_sponge(const Box& bx,
     Real sponge_factor = 0.0_rt;
 
     if (lsponge_lower_radius >= 0.0_rt && lsponge_upper_radius > lsponge_lower_radius) {
-      Real radius = std::sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
+      Real rad = std::sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
 
-      if (radius < lsponge_lower_radius) {
+      if (rad < lsponge_lower_radius) {
         sponge_factor = lsponge_lower_factor;
 
-      } else if (radius >= lsponge_lower_radius && radius <= lsponge_upper_radius) {
+      } else if (rad >= lsponge_lower_radius && rad <= lsponge_upper_radius) {
         sponge_factor = lsponge_lower_factor +
           0.5_rt * (lsponge_upper_factor - lsponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (radius - lsponge_lower_radius) / delta_r));
+          (1.0_rt - std::cos(M_PI * (rad - lsponge_lower_radius) / delta_r));
 
       } else {
         sponge_factor = lsponge_upper_factor;
