@@ -961,13 +961,13 @@ contains
 
   !====================================================== Final Conservative Corrections================================================================
   subroutine half_step(w_lo, w_hi, &
-       ur_out, uro_lo, uro_hi, &
-       ul_out, ulo_lo, ulo_hi, &
-       ur, ur_lo, ur_hi, &
-       ul, ul_lo, ul_hi, &
-       flxd1, flxd1_lo, flxd1_hi, &
-       flxd2, flxd2_lo, flxd2_hi, &
-       dir, d1, d2, dx, dt)
+                       ur_out, uro_lo, uro_hi, &
+                       ul_out, ulo_lo, ulo_hi, &
+                       ur, ur_lo, ur_hi, &
+                       ul, ul_lo, ul_hi, &
+                       flxd1, flxd1_lo, flxd1_hi, &
+                       flxd2, flxd2_lo, flxd2_hi, &
+                       dir, d1, d2, dx, dt)
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, URHO, UEINT, UFS
@@ -998,28 +998,12 @@ contains
     real(rt) :: u, v, w
     integer  :: i ,j ,k, n
     integer  :: d(3), d_2(3) !for the shift in i,j,k
-    integer  :: flxd1c, flxd2c !last component of flxd1 and flxd2
 
     d = 0
     d_2 = 0
 
     d(d1) = 1   ! add +1 to the d1 direction in the first flxd1 term of the substraction
     d_2(d2) = 1 ! add +1 to the d2 direction in the first flxd2 term of the substraction
-
-    if (dir .eq. 1) then  !d=x, d1=y and d2=z
-       flxd1c = 2  !Fy, z
-       flxd2c = 2  !Fz, y
-    endif
-
-    if (dir .eq. 2) then !d=y, d1=x  and d2=z
-       flxd1c = 2 !Fx, z
-       flxd2c = 1 !Fz, x
-    endif
-
-    if (dir .eq. 3)  then !d=z, d1=x and d2=y
-       flxd1c = 1 !Fy, x
-       flxd2c = 1 !Fx, y
-    endif
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
