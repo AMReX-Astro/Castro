@@ -781,7 +781,7 @@ contains
     integer, intent(in) :: w_lo(3), w_hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
     integer, intent(in) :: u_lo(3), u_hi(3)
-    real(rt), intent(in) :: u(q_lo(1):q_hi(1), q_lo(2):q_hi(2),q_lo(3):q_hi(3),NVAR+3)
+    real(rt), intent(in) :: u(u_lo(1):u_hi(1), u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR+3)
     real(rt), intent(out) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3),NQ)
 
     integer :: i ,j ,k
@@ -793,8 +793,6 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
              q(i,j,k,QRHO)  = u(i,j,k,URHO)
-             print *, "here", i,j,k, q(i,j,k,QRHO)
-             print *, u(i,j,k,UMX)
              q(i,j,k,QU)    = u(i,j,k,UMX)/q(i,j,k,QRHO)
              q(i,j,k,QV)    = u(i,j,k,UMY)/q(i,j,k,QRHO)
              q(i,j,k,QW)    = u(i,j,k,UMZ)/q(i,j,k,QRHO)
@@ -865,10 +863,6 @@ contains
     ! update the state in direction d1 with the flux in direction dir2
 
     d = 0
-
-    print *, "in corner_couple", w_lo, w_hi
-    print *, ur_lo, ur_hi
-    print *, ul_lo, ul_hi
 
     !the first term of the flxd2 substraction is shifted by 1 on the direction d2
     d(d2) = 1
