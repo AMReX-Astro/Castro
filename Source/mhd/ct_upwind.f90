@@ -80,11 +80,12 @@ contains
     real(rt), pointer :: utmp_left(:,:,:,:)
     real(rt), pointer :: utmp_right(:,:,:,:)
 
+    real(rt), pointer :: qtmp_left(:,:,:,:)
+    real(rt), pointer :: qtmp_right(:,:,:,:)
+
     real(rt)  :: cons_half_r(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NVAR+3,3) !Flux Corrected Conservative Vars
     real(rt)  :: cons_half_l(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NVAR+3,3)
 
-    real(rt)  :: q_temp_r(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3,2) !2D Temporary Primitive Vars
-    real(rt)  :: q_temp_l(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3,2) !2D Temporary Primitive Vars
     real(rt)  :: q_half_r(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3) !Flux Corrected Primitive Vars
     real(rt)  :: q_half_l(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3) !Flux Corrected Primitive Vars
 
@@ -129,8 +130,10 @@ contains
 
     call bl_allocate(flxx1D, fx_lo, fx_hi, NVAR+3)
 
-    call hlld(fx_lo, fx_hi, qleft, ql_lo, ql_hi, qright, qr_lo, qr_hi, &
-         flxx1D(:,:,:,:), fx_lo, fx_hi, 1)
+    call hlld(fx_lo, fx_hi, &
+              qleft(:,:,:,:,1), ql_lo, ql_hi, &
+              qright(:,:,:,:,1), qr_lo, qr_hi, &
+              flxx1D, fx_lo, fx_hi, 1)
 
     !y-dir
     ![lo(1)-3, lo(2)-2, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
@@ -139,8 +142,10 @@ contains
 
     call bl_allocate(flxy1D, fy_lo, fy_hi, NVAR+3)
 
-    call hlld(fy_lo, fy_hi, qleft, ql_lo, ql_hi, qright, qr_lo, qr_hi, &
-         flxy1D(:,:,:,:), fy_lo, fy_hi, 2)
+    call hlld(fy_lo, fy_hi, &
+              qleft(:,:,:,:,2), ql_lo, ql_hi, &
+              qright(:,:,:,:,2), qr_lo, qr_hi, &
+              flxy1D, fy_lo, fy_hi, 2)
 
     !z-dir
     ![lo(1)-3, lo(2)-3, lo(3)-2] [hi(1)+3, hi(2)+3, hi(3)+3]
@@ -149,8 +154,10 @@ contains
 
     call bl_allocate(flxz1D, fz_lo, fz_hi, NVAR+3)
 
-    call hlld(fz_lo, fz_hi, qleft, ql_lo, ql_hi, qright, qr_lo, qr_hi, &
-         flxz1D(:,:,:,:), fz_lo, fz_hi, 3)
+    call hlld(fz_lo, fz_hi, &
+              qleft(:,:,:,:,3), ql_lo, ql_hi, &
+              qright(:,:,:,:,3), qr_lo, qr_hi, &
+              flxz1D, fz_lo, fz_hi, 3)
 
     !Prim to Cons
     u_lo = [lo(1)-2, lo(2)-2, lo(3)-2]
@@ -238,13 +245,26 @@ contains
                            !x,y,z,dir2=1, sgn=+, UMAGD1, UMAGD2, UMAGD3
                            1, 2, 3, 1, 1, UMAGX, UMAGY, UMAGZ, dx(1), dt)
 
-    call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,1,1), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+    call bl_allocate(qtmp_left, ut_lo, ut_hi, NQ)
+    call bl_allocate(qtmp_right, ut_lo, ut_hi, NQ)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,1,1), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
+
+    call ConsToPrim(work_lo, work_hi, &
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
+
+    !Calculate Flux 2D eq. 40
+    ![lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
+    fxy_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
+    fxy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
+    !x-dir
+
+    call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
+
+    call hlld(fxy_lo, fxy_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_xy, fxy_lo, fxy_hi, 1) !F^{x|y}
 
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
@@ -266,12 +286,20 @@ contains
                            1, 3, 2, 2, -1, UMAGX, UMAGZ, UMAGY, dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,1,2), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,1,2), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
+
+    fxz_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
+    fxz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
+
+    call bl_allocate(flx_xz, fxz_lo, fxz_hi, NVAR+3)
+
+    call hlld(fxz_lo, fxz_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_xz, fxz_lo, fxz_hi, 1) !F^{x|z}
+
 
     !Y direction
     ! affected by X Flux
@@ -298,12 +326,22 @@ contains
                            2, 1, 3, 1, -1, UMAGY, UMAGX, UMAGZ, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,2,1), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,2,1), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
+
+
+    ![lo(1)-2, lo(2)-1, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
+    fyx_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
+    fyx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
+
+    call bl_allocate(flx_yx, fyx_lo, fyx_hi, NVAR+3)
+
+    call hlld(fyx_lo, fyx_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_yx, fyx_lo, fyx_hi, 2) !F^{y|x}
+
 
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
@@ -325,12 +363,19 @@ contains
                            2, 3, 1, 2, 1, UMAGY, UMAGZ, UMAGX, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,2,2), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,2,2), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
+
+    fyz_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
+    fyz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
+
+    call bl_allocate(flx_yz, fyz_lo, fyz_hi, NVAR+3)
+
+    call hlld(fyz_lo, fyz_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_yz, fyz_lo, fyz_hi, 2) !F^{y|z}
 
     !Z direction
     ! affected by X Flux
@@ -356,12 +401,21 @@ contains
                            3, 1, 2, 1, 1, UMAGZ, UMAGX, UMAGY, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,3,1), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,3,1), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
+
+
+    ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
+    fzx_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
+    fzx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
+
+    call bl_allocate(flx_zx, fzx_lo, fzx_hi, NVAR+3)
+
+    call hlld(fzx_lo, fzx_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_zx, fzx_lo, fzx_hi, 3) !F^{z|x}
 
     ! affected by Y Flux
     call corner_couple(work_lo, work_hi, &
@@ -383,70 +437,11 @@ contains
                            3, 2, 1, 2, -1, UMAGZ, UMAGY, UMAGX, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_l(:,:,:,:,3,2), q_lo, q_hi, &
-                    utmp_left, ut_lo, ut_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_temp_r(:,:,:,:,3,2), q_lo, q_hi, &
-                    utmp_right, ut_lo, ut_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
 
-    !Calculate Flux 2D eq. 40
-    ![lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-    fxy_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
-    fxy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-    !x-dir
-
-    call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
-
-    call hlld(fxy_lo, fxy_hi, &
-              q_temp_l(:,:,:,:,:,1), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,1), q_lo, q_hi, &
-              flx_xy(:,:,:,:), fxy_lo, fxy_hi, 1) !F^{x|y}
-
-
-    fxz_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
-    fxz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_xz, fxz_lo, fxz_hi, NVAR+3)
-
-    call hlld(fxz_lo, fxz_hi, &
-              q_temp_l(:,:,:,:,:,2), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,2), q_lo, q_hi, &
-              flx_xz(:,:,:,:), fxz_lo, fxz_hi, 1) !F^{x|z}
-
-    !y-dir
-    ![lo(1)-2, lo(2)-1, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-    fyx_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
-    fyx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_yx, fyx_lo, fyx_hi, NVAR+3)
-
-    call hlld(fyx_lo, fyx_hi, &
-              q_temp_l(:,:,:,:,:,1), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,1), q_lo, q_hi, &
-              flx_yx(:,:,:,:), fyx_lo, fyx_hi, 2) !F^{y|x}
-
-    fyz_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
-    fyz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_yz, fyz_lo, fyz_hi, NVAR+3)
-
-    call hlld(fyz_lo, fyz_hi, &
-              q_temp_l(:,:,:,:,:,2), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,2), q_lo, q_hi, &
-              flx_yz(:,:,:,:), fyz_lo, fyz_hi, 2) !F^{y|z}
-
-    !z-dir
-    ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
-    fzx_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
-    fzx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_zx, fzx_lo, fzx_hi, NVAR+3)
-
-    call hlld(fzx_lo, fzx_hi, &
-              q_temp_l(:,:,:,:,:,1), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,1), q_lo, q_hi, &
-              flx_zx(:,:,:,:), fzx_lo, fzx_hi, 3) !F^{z|x}
 
     fzy_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     fzy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
@@ -454,9 +449,8 @@ contains
     call bl_allocate(flx_zy, fzy_lo, fzy_hi, NVAR+3)
 
     call hlld(fzy_lo, fzy_hi, &
-              q_temp_l(:,:,:,:,:,2), q_lo, q_hi, &
-              q_temp_r(:,:,:,:,:,2), q_lo, q_hi, &
-              flx_zy(:,:,:,:), fzy_lo, fzy_hi, 3) !F^{z|y}
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
 
 
     !Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
@@ -621,8 +615,8 @@ contains
     work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
-              q_half_l, q_lo, q_hi, &
-              q_half_r, q_lo, q_hi, &
+              q_half_l(:,:,:,:,1), q_lo, q_hi, &
+              q_half_r(:,:,:,:,1), q_lo, q_hi, &
               flxx, flxx_lo, flxx_hi, 1)
 
 
@@ -631,8 +625,8 @@ contains
     work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
-              q_half_l, q_lo, q_hi, &
-              q_half_r, q_lo, q_hi, &
+              q_half_l(:,:,:,:,2), q_lo, q_hi, &
+              q_half_r(:,:,:,:,2), q_lo, q_hi, &
               flxy, flxy_lo, flxy_hi, 2)
 
     !z-dir
@@ -640,8 +634,8 @@ contains
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
-              q_half_l, q_lo, q_hi, &
-              q_half_r, q_lo, q_hi, &
+              q_half_l(:,:,:,:,3), q_lo, q_hi, &
+              q_half_r(:,:,:,:,3), q_lo, q_hi, &
               flxz, flxz_lo, flxz_hi, 3)
 
     !Primitive update eq. 48
@@ -707,6 +701,9 @@ contains
 
     call bl_deallocate(utmp_left)
     call bl_deallocate(utmp_right)
+
+    call bl_deallocate(qtmp_left)
+    call bl_deallocate(qtmp_right)
 
   end subroutine corner_transport
 
