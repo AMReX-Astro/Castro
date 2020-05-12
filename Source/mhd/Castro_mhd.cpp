@@ -232,23 +232,6 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxz_arr = flxz.array();
           Eztmp.resize(nbzf);
 
-          amrex::ParallelFor(nbxf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxx_arr(i,j,k,n) = 0.0_rt;
-          });
-
-          amrex::ParallelFor(nbyf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxy_arr(i,j,k,n) = 0.0_rt;
-          });
-
-          amrex::ParallelFor(nbzf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxz_arr(i,j,k,n) = 0.0_rt;
-          });
 
           corner_transport(lo, hi,
                            BL_TO_FORTRAN_ANYD(q),
