@@ -77,18 +77,12 @@ contains
     real(rt), pointer :: uz_left(:,:,:,:)
     real(rt), pointer :: uz_right(:,:,:,:)
 
+    ! temporary conserved variables
     real(rt), pointer :: utmp_left(:,:,:,:)
     real(rt), pointer :: utmp_right(:,:,:,:)
 
     real(rt), pointer :: qtmp_left(:,:,:,:)
     real(rt), pointer :: qtmp_right(:,:,:,:)
-
-    real(rt)  :: cons_half_r(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NVAR+3,3) !Flux Corrected Conservative Vars
-    real(rt)  :: cons_half_l(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NVAR+3,3)
-
-    real(rt)  :: q_half_r(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3) !Flux Corrected Primitive Vars
-    real(rt)  :: q_half_l(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3) ,NQ,3) !Flux Corrected Primitive Vars
-
 
     integer :: fx_lo(3), fx_hi(3)
     integer :: fy_lo(3), fy_hi(3)
@@ -441,16 +435,16 @@ contains
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
-
-
+    
+    
     fzy_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     fzy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
     call bl_allocate(flx_zy, fzy_lo, fzy_hi, NVAR+3)
 
     call hlld(fzy_lo, fzy_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
+         qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+         flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
 
 
     !Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
@@ -484,38 +478,39 @@ contains
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+2, hi(3)+2 /)
     call electric_edge_x(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ex, ex_lo, ex_hi, &
-                         flxy1D, fy_lo, fy_hi, &
-                         flxz1D, fz_lo, fz_hi)
+         q, q_lo, q_hi, &
+         Ex, ex_lo, ex_hi, &
+         flxy1D, fy_lo, fy_hi, &
+         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+1, hi(3)+2 /)
     call electric_edge_y(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ey, ey_lo, ey_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxz1D, fz_lo, fz_hi)
+         q, q_lo, q_hi, &
+         Ey, ey_lo, ey_hi, &
+         flxx1D, fx_lo, fx_hi, &
+         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+1 /)
     call electric_edge_z(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ez, ez_lo, ez_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxy1D, fy_lo, fy_hi)
+         q, q_lo, q_hi, &
+         Ez, ez_lo, ez_hi, &
+         flxx1D, fx_lo, fx_hi, &
+         flxy1D, fy_lo, fy_hi)
 
-    !Half Step conservative vars eq.44, eq.45, eq.46
+    ! Half Step conservative vars eq.44, eq.45, eq.46
+    ! Here we reuse utmp_left/right to denote the half-time conservative state
 
     !for x direction
     ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call half_step(work_lo, work_hi, &
-                   cons_half_r, q_lo, q_hi, &
-                   cons_half_l, q_lo, q_hi, &
+                   utmp_right, ut_lo, ut_hi, &
+                   utmp_left, ut_lo, ut_hi, &
                    ux_right, u_lo, u_hi, &
                    ux_left, u_lo, u_hi, &
                    flx_yz, fyz_lo, fyz_hi, &
@@ -524,8 +519,8 @@ contains
                    1, 2, 3, dx(1), dt)
 
     call half_step_mag(work_lo, work_hi, &
-                       cons_half_r, q_lo, q_hi, &
-                       cons_half_l, q_lo, q_hi, &
+                       utmp_right, ut_lo, ut_hi, &
+                       utmp_left, ut_lo, ut_hi, &
                        ux_right, u_lo, u_hi, &
                        ux_left, u_lo, u_hi, &
                        Ex, ex_lo, ex_hi, &
@@ -536,9 +531,21 @@ contains
                        dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_r(:,:,:,:,1), q_lo, q_hi, cons_half_r(:,:,:,:,1), q_lo, q_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_l(:,:,:,:,1), q_lo, q_hi, cons_half_l(:,:,:,:,1), q_lo, q_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
+
+    ! Final Fluxes eq.47
+
+    ! We need to compute these on a box 1 larger in the transverse directions
+    ! than we'd need for hydro alone due to the electric update
+
+    ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
+    work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
+    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
+    call hlld(work_lo, work_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flxx, flxx_lo, flxx_hi, 1)
 
 
     !for y direction
@@ -546,8 +553,8 @@ contains
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call half_step(work_lo, work_hi, &
-                   cons_half_r, q_lo, q_hi, &
-                   cons_half_l, q_lo, q_hi, &
+                   utmp_right, ut_lo, ut_hi, &
+                   utmp_left, ut_lo, ut_hi, &
                    uy_right, u_lo, u_hi, &
                    uy_left, u_lo, u_hi, &
                    flx_xz, fxz_lo, fxz_hi, &
@@ -555,8 +562,8 @@ contains
                    2, 1, 3, dx(2), dt)
 
     call half_step_mag(work_lo, work_hi, &
-                       cons_half_r, q_lo, q_hi, &
-                       cons_half_l, q_lo, q_hi, &
+                       utmp_right, ut_lo, ut_hi, &
+                       utmp_left, ut_lo, ut_hi, &
                        uy_right, u_lo, u_hi, &
                        uy_left, u_lo, u_hi, &
                        Ey, ey_lo, ey_hi, &
@@ -567,17 +574,24 @@ contains
                        dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_r(:,:,:,:,2), q_lo, q_hi, cons_half_r(:,:,:,:,2), q_lo, q_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_l(:,:,:,:,2), q_lo, q_hi, cons_half_l(:,:,:,:,2), q_lo, q_hi)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
+
+    ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
+    work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
+    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
+    call hlld(work_lo, work_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
+              flxy, flxy_lo, flxy_hi, 2)
 
     !for z direction
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call half_step(work_lo, work_hi, &
-                   cons_half_r, q_lo, q_hi, &
-                   cons_half_l, q_lo, q_hi, &
+                   utmp_right, ut_lo, ut_hi, &
+                   utmp_left, ut_lo, ut_hi, &
                    uz_right, u_lo, u_hi, &
                    uz_left, u_lo, u_hi, &
                    flx_xy, fxy_lo, fxy_hi, &
@@ -585,8 +599,8 @@ contains
                    3, 1, 2, dx(3), dt)
 
     call half_step_mag(work_lo, work_hi, &
-                       cons_half_r, q_lo, q_hi, &
-                       cons_half_l, q_lo, q_hi, &
+                       utmp_right, ut_lo, ut_hi, &
+                       utmp_left, ut_lo, ut_hi, &
                        uz_right, u_lo, u_hi, &
                        uz_left, u_lo, u_hi, &
                        Ez, ez_lo, ez_hi, &
@@ -597,46 +611,18 @@ contains
                        dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_r(:,:,:,:,3), q_lo, q_hi, &
-                    cons_half_r(:,:,:,:,3), q_lo, q_hi)
+                    qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
     call ConsToPrim(work_lo, work_hi, &
-                    q_half_l(:,:,:,:,3), q_lo, q_hi, &
-                    cons_half_l(:,:,:,:,3), q_lo, q_hi)
-
-
-    ! Final Fluxes eq.47
-
-    ! We need to compute these on a box 1 larger in the transverse directions
-    ! than we'd need for hydro alone due to the electric update
-
-
-    !x-dir
-    ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call hlld(work_lo, work_hi, &
-              q_half_l(:,:,:,:,1), q_lo, q_hi, &
-              q_half_r(:,:,:,:,1), q_lo, q_hi, &
-              flxx, flxx_lo, flxx_hi, 1)
-
-
-    !y-dir
-    ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call hlld(work_lo, work_hi, &
-              q_half_l(:,:,:,:,2), q_lo, q_hi, &
-              q_half_r(:,:,:,:,2), q_lo, q_hi, &
-              flxy, flxy_lo, flxy_hi, 2)
+                    qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     !z-dir
     ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
-              q_half_l(:,:,:,:,3), q_lo, q_hi, &
-              q_half_r(:,:,:,:,3), q_lo, q_hi, &
+              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flxz, flxz_lo, flxz_hi, 3)
+
 
     !Primitive update eq. 48
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
@@ -1040,8 +1026,8 @@ contains
     integer, intent(in) :: flxd1_lo(3), flxd1_hi(3)
     integer, intent(in) :: flxd2_lo(3), flxd2_hi(3)
 
-    real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3,3)
-    real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3,3)
+    real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
+    real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
     real(rt), intent(in)    :: ur(ur_lo(1):ur_hi(1), ur_lo(2):ur_hi(2), ur_lo(3):ur_hi(3), NVAR+3)
     real(rt), intent(in)    :: ul(ul_lo(1):ul_hi(1), ul_lo(2):ul_hi(2), ul_lo(3):ul_hi(3), NVAR+3)
 
@@ -1068,49 +1054,49 @@ contains
              ! eq. 44 of Miniati paper for + and -
 
   !left state
-             ur_out(i,j,k,URHO,dir) = ur(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
+             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX,dir) = ur(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
+             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY,dir) = ur(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
+             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ,dir) = ur(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
+             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN,dir) = ur(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
+             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1,dir) = ur(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
+             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
                   - flxd1(i,j,k,UFS:UFS+nspec-1)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
                   - flxd2(i,j,k,UFS:UFS+nspec-1))
 
 
-             u = ur_out(i,j,k,UMX,dir)/ur_out(i,j,k,URHO,dir)
-             v = ur_out(i,j,k,UMY,dir)/ur_out(i,j,k,URHO,dir)
-             w = ur_out(i,j,k,UMZ,dir)/ur_out(i,j,k,URHO,dir)
+             u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
+             v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
+             w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
 
-             ur_out(i,j,k,UEINT,dir) = ur_out(i,j,k,UEDEN,dir) - 0.5d0*ur_out(i,j,k,URHO,dir)*(u**2 + v**2 + w**2)
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
              !right state
-             ul_out(i,j,k,URHO,dir) = ul(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
+             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX,dir) = ul(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
+             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY,dir) = ul(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
+             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ,dir) = ul(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
+             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN,dir) = ul(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
+             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1,dir) = ul(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
+             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
                   - flxd1(i,j,k,UFS:UFS+nspec-1)) &
                   - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
                                                                  - flxd2(i,j,k,UFS:UFS+nspec-1))
 
 
-             u = ul_out(i,j,k,UMX,dir)/ul_out(i,j,k,URHO,dir)
-             v = ul_out(i,j,k,UMY,dir)/ul_out(i,j,k,URHO,dir)
-             w = ul_out(i,j,k,UMZ,dir)/ul_out(i,j,k,URHO,dir)
-             ul_out(i,j,k,UEINT,dir) = ul_out(i,j,k,UEDEN,dir) - 0.5d0*ul_out(i,j,k,URHO,dir)*(u**2 + v**2 + w**2)
+             u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
+             v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
+             w = ul_out(i,j,k,UMZ)/ul_out(i,j,k,URHO)
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - 0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
           enddo
        enddo
