@@ -26,12 +26,8 @@ contains
     ! system.  We want to compute any forces as it we had a
     ! right-handed system.  Fun fact: the cross product for the
     ! correct (r, theta, z) order is just the negative of our internal
-    ! (r, z, theta) ordering.
-    if (coord_type == 1) then
-       C(1) = -C(1)
-       C(2) = -C(2)
-       C(3) = -C(3)
-    end if
+    ! (r, z, theta) ordering.  But we pick up another minus because
+    ! the cross product in a left handed system has a minus too.
 
   end function cross_product
 
