@@ -225,8 +225,8 @@ contains
                        ux_right, u_lo, u_hi, &
                        ux_left, u_lo, u_hi, &
                        flxy1D, fy_lo, fy_hi, &
-                       !d1 = x, d2 = y, dir2 = 1 last component in the cons_temp arrays
-                       1 , 2, 1, &
+                       !d1 = x, d2 = y
+                       1, 2, &
                        dx(1), dt) !qmpxy
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -236,8 +236,8 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ez, ez_lo, ez_hi, &
-                           !x,y,z,dir2=1, sgn=+, UMAGD1, UMAGD2, UMAGD3
-                           1, 2, 3, 1, 1, UMAGX, UMAGY, UMAGZ, dx(1), dt)
+                           !x,y,z, sgn=+, UMAGD1, UMAGD2, UMAGD3
+                           1, 2, 3, 1, dx(1), dt)
 
     call bl_allocate(qtmp_left, ut_lo, ut_hi, NQ)
     call bl_allocate(qtmp_right, ut_lo, ut_hi, NQ)
@@ -267,7 +267,7 @@ contains
                        ux_right, u_lo, u_hi, &
                        ux_left, u_lo, u_hi, &
                        flxz1D, fz_lo, fz_hi, &
-                       1, 3, 2, &
+                       1, 3, &
                        dx(1), dt) !qrpxz
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -277,7 +277,7 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ey, ey_lo, ey_hi, &
-                           1, 3, 2, 2, -1, UMAGX, UMAGZ, UMAGY, dx(1), dt)
+                           1, 3, 2, -1, dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -307,7 +307,7 @@ contains
                        uy_right, u_lo, u_hi, &
                        uy_left, u_lo, u_hi, &
                        flxx1D, fx_lo, fx_hi, &
-                       2, 1, 1, &
+                       2, 1, &
                        dx(2), dt) !qrpyx
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -317,7 +317,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ez, ez_lo, ez_hi, &
-                           2, 1, 3, 1, -1, UMAGY, UMAGX, UMAGZ, dx(2), dt)
+                           2, 1, 3, -1, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -344,7 +344,7 @@ contains
                        uy_right, u_lo, u_hi, &
                        uy_left, u_lo, u_hi, &
                        flxz1D, fz_lo, fz_hi, &
-                       2, 3, 2, &
+                       2, 3, &
                        dx(2), dt) !qrpyz
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -354,7 +354,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ex, ex_lo, ex_hi, &
-                           2, 3, 1, 2, 1, UMAGY, UMAGZ, UMAGX, dx(2), dt)
+                           2, 3, 1, 1, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -382,7 +382,7 @@ contains
                        uz_right, u_lo, u_hi, &
                        uz_left, u_lo, u_hi, &
                        flxx1D, fx_lo, fx_hi, &
-                       3, 1, 1, &
+                       3, 1, &
                        dx(3), dt) !qrpzx
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -392,7 +392,7 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ey, ey_lo, ey_hi, &
-                           3, 1, 2, 1, 1, UMAGZ, UMAGX, UMAGY, dx(3), dt)
+                           3, 1, 2, 1, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -418,7 +418,7 @@ contains
                        uz_right, u_lo, u_hi, &
                        uz_left, u_lo, u_hi, &
                        flxy1D, fy_lo, fy_hi, &
-                       3, 2, 2, &
+                       3, 2, &
                        dx(3), dt) !qrpzy
 
     call corner_couple_mag(work_lo, work_hi, &
@@ -428,7 +428,7 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ex, ex_lo, ex_hi, &
-                           3, 2, 1, 2, -1, UMAGZ, UMAGY, UMAGX, dx(3), dt)
+                           3, 2, 1, -1, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -527,7 +527,7 @@ contains
                        Ey, ey_lo, ey_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d=x, d1=y, d2=z, UMAGD UMAGD1, UMAGD2, sgn,
-                       1, 2, 3, UMAGX, UMAGY, UMAGZ, -1, &
+                       1, 2, 3, -1, &
                        dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -570,7 +570,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       2, 1, 3, UMAGY, UMAGX, UMAGZ, 1, &
+                       2, 1, 3, 1, &
                        dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -607,7 +607,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       3, 1, 2, UMAGZ, UMAGX, UMAGY, -1, &
+                       3, 1, 2, -1, &
                        dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -807,7 +807,7 @@ contains
                            ur, ur_lo, ur_hi, &
                            ul, ul_lo, ul_hi, &
                            flxd2, flxd2_lo, flxd2_hi, &
-                           d1, d2, dir2, &
+                           d1, d2, &
                            dx, dt)
 
     ! take conservative interface states ul and ur and update them with
@@ -825,7 +825,7 @@ contains
     integer, intent(in) :: ur_lo(3), ur_hi(3)
     integer, intent(in) :: ul_lo(3), ul_hi(3)
     integer, intent(in) :: flxd2_lo(3), flxd2_hi(3)
-    integer, intent(in) :: d1, d2, dir2
+    integer, intent(in) :: d1, d2
     real(rt), intent(in) :: dx, dt
 
     real(rt), intent(in) :: ur(ur_lo(1):ur_hi(1), ur_lo(2):ur_hi(2), ur_lo(3):ur_hi(3), NVAR+3)
@@ -836,19 +836,21 @@ contains
     real(rt), intent(out) :: ur_out(uro_lo(1):uro_hi(1),uro_lo(2):uro_hi(2),uro_lo(3):uro_hi(3),NVAR+3)
     real(rt), intent(out) :: ul_out(ulo_lo(1):ulo_hi(1),ulo_lo(2):ulo_hi(2),ulo_lo(3):ulo_hi(3),NVAR+3)
 
-    real(rt) :: u, v, w
+    real(rt) :: u, v, w, cdtdx
     integer  :: i ,j ,k
     integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
 
-    ur_out(:,:,:,:) = ur(:,:,:,:)
-    ul_out(:,:,:,:) = ul(:,:,:,:)
+    !ur_out(:,:,:,:) = ur(:,:,:,:)
+    !ul_out(:,:,:,:) = ul(:,:,:,:)
 
-    ! update the state in direction d1 with the flux in direction dir2
+    ! update the state in direction d1 with the input flux
 
     d = 0
 
     !the first term of the flxd2 substraction is shifted by 1 on the direction d2
     d(d2) = 1
+
+    cdtdx = dt/(3.d0*dx)
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
@@ -857,13 +859,19 @@ contains
              ! eq. 37 from Miniati paper, for both + and -
 
              ! right corrected states
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd2(i,j,k,UFS:UFS+nspec-1))
+             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
+                                                          flxd2(i,j,k,URHO))
+             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
+                                                        flxd2(i,j,k,UMX))
+             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
+                                                        flxd2(i,j,k,UMY))
+             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
+                                                        flxd2(i,j,k,UMZ))
+             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
+                                                            flxd2(i,j,k,UEDEN))
+             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - &
+                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
+                         flxd2(i,j,k,UFS:UFS+nspec-1))
 
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
@@ -873,13 +881,19 @@ contains
 
 
              ! left corrected statges
-             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - dt/(3.d0*dx)*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd2(i,j,k,UFS:UFS+nspec-1))
+             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
+                                                          flxd2(i,j,k,URHO))
+             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
+                                                        flxd2(i,j,k,UMX))
+             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
+                                                        flxd2(i,j,k,UMY))
+             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
+                                                        flxd2(i,j,k,UMZ))
+             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
+                                                            flxd2(i,j,k,UEDEN))
+             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - &
+                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
+                         flxd2(i,j,k,UFS:UFS+nspec-1))
 
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
@@ -900,7 +914,7 @@ contains
                                ul, ul_lo, ul_hi, &
                                Ed1, ed1_lo, ed1_hi, &
                                Ed3, ed3_lo, ed3_hi, &
-                               d1, d2, d3, dir2, sgn, UMAGD1, UMAGD2, UMAGD3, &
+                               d1, d2, d3, sgn, &
                                dx, dt)
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
@@ -915,7 +929,7 @@ contains
     integer, intent(in) :: ul_lo(3), ul_hi(3)
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed3_lo(3), ed3_hi(3)
-    integer, intent(in) :: d1, d2, d3, dir2, sgn, UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to dir2
+    integer, intent(in) :: d1, d2, d3, sgn
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -928,6 +942,12 @@ contains
     real(rt) :: dx, dt
     integer :: i ,j ,k
     integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
+
+    integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
+
+    UMAGD1 = UMAGX - 1 + d1
+    UMAGD2 = UMAGX - 1 + d2
+    UMAGD3 = UMAGX - 1 + d3
 
     d   = 0
     a1  = 0
@@ -951,7 +971,6 @@ contains
              ! right state on the interface
 
              ! d1 -direction
-             ! affected by dir2 flux
 
              ! eq. 38 and 39 of Miniati for -
 
@@ -980,7 +999,6 @@ contains
              ! left state on the interface
 
              !d1 -direction
-             !-> Affected by dir2 flux
 
              ! eq. 38 and 39 of Miniati for +
 
@@ -1113,7 +1131,7 @@ contains
                            Ed, ed_lo, ed_hi, &
                            Ed1, ed1_lo, ed1_hi, &
                            Ed2, ed2_lo, ed2_hi, &
-                           d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn, &
+                           d, d1, d2, sgn, &
                            dx, dt)
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1131,7 +1149,7 @@ contains
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed2_lo(3), ed2_hi(3)
 
-    integer, intent(in)   :: d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn
+    integer, intent(in)   :: d, d1, d2, sgn
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -1146,6 +1164,12 @@ contains
 
     integer :: i ,j ,k
     integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
+
+    integer :: UMAGD, UMAGD1, UMAGD2
+
+    UMAGD = UMAGX - 1 + d
+    UMAGD1 = UMAGX - 1 + d1
+    UMAGD2 = UMAGX - 1 + d2
 
     a1 = 0
     a2 = 0
