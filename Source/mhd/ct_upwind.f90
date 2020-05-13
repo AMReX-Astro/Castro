@@ -802,12 +802,14 @@ contains
 
   !======================================= Update the Temporary Conservative Variables with Transverse 1D Fluxes ========================
   subroutine corner_couple(w_lo, w_hi, &
-                           ur_out, uro_lo, uro_hi, &
-                           ul_out, ulo_lo, ulo_hi, &
+                           qr_out, qro_lo, qro_hi, &
+                           ql_out, qlo_lo, qlo_hi, &
                            ur, ur_lo, ur_hi, &
                            ul, ul_lo, ul_hi, &
                            flxd2, flxd2_lo, flxd2_hi, &
-                           d1, d2, &
+                           Ed1, ed1_lo, ed1_hi, &
+                           Ed3, ed3_lo, ed3_hi, &
+                           d1, d2, d3, sgn, &
                            dx, dt)
 
     ! take conservative interface states ul and ur and update them with
@@ -820,11 +822,14 @@ contains
     implicit none
 
     integer, intent(in) :: w_lo(3), w_hi(3)
-    integer, intent(in) :: ulo_lo(3), ulo_hi(3)
-    integer, intent(in) :: uro_lo(3), uro_hi(3)
+    integer, intent(in) :: qlo_lo(3), qlo_hi(3)
+    integer, intent(in) :: qro_lo(3), qro_hi(3)
     integer, intent(in) :: ur_lo(3), ur_hi(3)
     integer, intent(in) :: ul_lo(3), ul_hi(3)
     integer, intent(in) :: flxd2_lo(3), flxd2_hi(3)
+    integer, intent(in) :: ed1_lo(3), ed1_hi(3)
+    integer, intent(in) :: ed3_lo(3), ed3_hi(3)
+
     integer, intent(in) :: d1, d2
     real(rt), intent(in) :: dx, dt
 
@@ -833,22 +838,32 @@ contains
 
     real(rt), intent(out) :: flxd2(flxd2_lo(1):flxd2_hi(1),flxd2_lo(2):flxd2_hi(2),flxd2_lo(3):flxd2_hi(3),NVAR+3)
 
-    real(rt), intent(out) :: ur_out(uro_lo(1):uro_hi(1),uro_lo(2):uro_hi(2),uro_lo(3):uro_hi(3),NVAR+3)
-    real(rt), intent(out) :: ul_out(ulo_lo(1):ulo_hi(1),ulo_lo(2):ulo_hi(2),ulo_lo(3):ulo_hi(3),NVAR+3)
+    real(rt), intent(out) :: qr_out(qro_lo(1):qro_hi(1),qro_lo(2):qro_hi(2),qro_lo(3):qro_hi(3),NVAR+3)
+    real(rt), intent(out) :: ql_out(qlo_lo(1):qlo_hi(1),qlo_lo(2):qlo_hi(2),qlo_lo(3):qlo_hi(3),NVAR+3)
 
     real(rt) :: u, v, w, cdtdx
     integer  :: i ,j ,k
     integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
-
-    !ur_out(:,:,:,:) = ur(:,:,:,:)
-    !ul_out(:,:,:,:) = ul(:,:,:,:)
+    integer :: a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
 
     ! update the state in direction d1 with the input flux
 
     d = 0
 
-    !the first term of the flxd2 substraction is shifted by 1 on the direction d2
+    a1  = 0
+    a2  = 0
+    a3  = 0
+    d_2 = 0
+
+    ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
+    ! for E, for example if d2 = y, j+1 on Ed3
     d(d2) = 1
+
+    a1(d2) = 1   !j+1 on first and third term of addition Ed1
+    a3(d2) = 1
+
+    a1(d3) = 1
+    a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k
 
     cdtdx = dt/(3.d0*dx)
 
@@ -873,11 +888,12 @@ contains
                   cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
                          flxd2(i,j,k,UFS:UFS+nspec-1))
 
-
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
              w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
+
+
 
 
              ! left corrected statges
@@ -941,7 +957,7 @@ contains
 
     real(rt) :: dx, dt
     integer :: i ,j ,k
-    integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
+    integer :: d(3)
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
 
@@ -949,19 +965,7 @@ contains
     UMAGD2 = UMAGX - 1 + d2
     UMAGD3 = UMAGX - 1 + d3
 
-    d   = 0
-    a1  = 0
-    a2  = 0
-    a3  = 0
-    d_2 = 0
 
-
-    d(d2)  = 1   !for example if d2 = y, j+1 on Ed3
-    a1(d2) = 1   !j+1 on first and third term of addition Ed1
-    a3(d2) = 1
-
-    a1(d3) = 1
-    a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k
 
 
     do k = w_lo(3), w_hi(3)
