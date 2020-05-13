@@ -17,7 +17,7 @@ USE_PROB_PARAMS = TRUE
 CASTRO_HOME  := ../../..
 
 # This sets the EOS directory in Castro/EOS
-EOS_DIR     := gamma_law
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in Castro/Networks
 NETWORK_DIR := general_null
