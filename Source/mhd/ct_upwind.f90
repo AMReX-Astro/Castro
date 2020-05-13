@@ -527,7 +527,7 @@ contains
                        Ey, ey_lo, ey_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d=x, d1=y, d2=z, UMAGD UMAGD1, UMAGD2, sgn,
-                       1, 2, 3, UMAGX, UMAGY, UMAGZ, -1, &
+                       1, 2, 3, -1, &
                        dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -570,7 +570,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       2, 1, 3, UMAGY, UMAGX, UMAGZ, 1, &
+                       2, 1, 3, 1, &
                        dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -607,7 +607,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       3, 1, 2, UMAGZ, UMAGX, UMAGY, -1, &
+                       3, 1, 2, -1, &
                        dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -1131,7 +1131,7 @@ contains
                            Ed, ed_lo, ed_hi, &
                            Ed1, ed1_lo, ed1_hi, &
                            Ed2, ed2_lo, ed2_hi, &
-                           d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn, &
+                           d, d1, d2, sgn, &
                            dx, dt)
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1149,7 +1149,7 @@ contains
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed2_lo(3), ed2_hi(3)
 
-    integer, intent(in)   :: d, d1, d2, UMAGD, UMAGD1, UMAGD2, sgn
+    integer, intent(in)   :: d, d1, d2, sgn
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -1164,6 +1164,12 @@ contains
 
     integer :: i ,j ,k
     integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
+
+    integer :: UMAGD, UMAGD1, UMAGD2
+
+    UMAGD = UMAGX - 1 + d
+    UMAGD1 = UMAGX - 1 + d1
+    UMAGD2 = UMAGX - 1 + d2
 
     a1 = 0
     a2 = 0
