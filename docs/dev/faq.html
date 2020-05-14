@@ -294,12 +294,12 @@ in C are consistent with their implementations in Fortran?</em></p>
 <ol class="arabic">
 <li><p><em>Castro crashes with a floating point exception—how can
 I get more information?</em></p>
-<p>The best thing to do is to recompile the code with TEST=TRUE
-set in the GNUmakefile. This will have AMReX catch the
+<p>The best thing to do is to recompile the code with <code class="docutils literal notranslate"><span class="pre">TEST=TRUE</span></code>
+set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
 signals raised in both C and Fortran functions. Behind the
-scenes, this defines the AMREX_TESTING preprocessor flag, which
+scenes, this defines the <code class="docutils literal notranslate"><span class="pre">AMREX_TESTING</span></code> preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
-signaling NaNs (sNaN), and use the BLBackTrace::handler()
+signaling NaNs (sNaN), and use the <code class="docutils literal notranslate"><span class="pre">BLBackTrace::handler()</span></code>
 function to handle various signals raised in both C and Fortran
 functions. This is a Linux/UNIX capability. This gives us a chance
 to print out backtrace information. The signals include seg fault,
@@ -307,21 +307,21 @@ floating point exceptions (NaNs, divided by zero and overflow), and
 interruption by the user and system. What signals are handed to
 AMReX are controlled by AMReX(e.g., using interruption by the
 user, this was once used to find an MPI deadlock.) It also includes
-the BL_ASSERTION statements if USE_ASSERTION=TRUE or
+the <code class="docutils literal notranslate"><span class="pre">AMREX_ASSERTION</span></code> statements if <code class="docutils literal notranslate"><span class="pre">USE_ASSERTION=TRUE</span></code> or
 DEBUG=TRUE.</p>
 <p>The AMReX parameters that affect the behavior are:</p>
 <ul class="simple">
-<li><p>amrex.fpe_trap_invalid</p></li>
-<li><p>amrex.fpe_trap_zero</p></li>
-<li><p>amrex.fpe_trap_overflow</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_invalid</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_zero</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_overflow</span></code></p></li>
 </ul>
-<p>For further capabilities, defining BACKTRACE=TRUE enables you
+<p>For further capabilities, defining <code class="docutils literal notranslate"><span class="pre">BACKTRACE=TRUE</span></code> enables you
 to get more information than the backtrace of the call stack info by
 instrumenting the code. (This is in C code only). Here is an
-example. You know the line “Real rho = state(cell,0);” is
+example. You know the line “<code class="docutils literal notranslate"><span class="pre">Real</span> <span class="pre">rho</span> <span class="pre">=</span> <span class="pre">state(cell,0);</span></code>” is
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
-it hits the segfault. With BACKTRACE, you could do</p>
+it hits the segfault. With <code class="docutils literal notranslate"><span class="pre">BACKTRACE</span></code>, you could do</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#ifdef AMREX_BACKTRACING
    std::ostringstream ss;
    ss &lt;&lt; ``state.box() = `` &lt;&lt; state.box() &lt;&lt; `` cell = `` &lt;&lt; cell;
@@ -341,7 +341,7 @@ at various points in the evolution?</em></p>
 </pre></div>
 </div>
 <p>Here, the IntVect has the dimension that we were compiled with
-(and this is handled through the preprocessor D_DECL). In
+(and this is handled through the preprocessor <code class="docutils literal notranslate"><span class="pre">D_DECL</span></code>). In
 this case, we are inspecting zone (10, 20, 30), in the global index
 space. Note that since a multifab exists only on a single level, the
 integer indices here refer to the global index space on that level.</p>
@@ -407,7 +407,7 @@ is overridden in the checkpoint code in AMReX).</p>
 </li>
 <li><p><em>How can I check the compilation parameters of a Castro executable?</em></p>
 <p>The build information (including git hashes, modules, EoS, network, etc.) can be displayed by running the executable as</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro</span><span class="o">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">display</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">Castro</span><span class="o">.</span><span class="n">exe</span> <span class="o">--</span><span class="n">describe</span>
 </pre></div>
 </div>
 </li>
@@ -420,7 +420,7 @@ is overridden in the checkpoint code in AMReX).</p>
 and crashes.</em></p>
 <p>This can occur due to CFL violations or negative densities.  If
 there are density resets, try running with
-<code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span></code> = 1.  This will use a flux
+<code class="docutils literal notranslate"><span class="pre">castro.limit_fluxes_on_small_dens</span> <span class="pre">=</span> <span class="pre">1</span></code>.  This will use a flux
 limiter to prevent the density from going negative.</p>
 </li>
 </ol>
