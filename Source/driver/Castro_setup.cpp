@@ -930,7 +930,14 @@ Castro::variableSetUp ()
   //
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+
+  //
+  // Nuclear energy generation rate
+  //
+  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
+  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
