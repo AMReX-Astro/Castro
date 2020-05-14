@@ -77,11 +77,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
 #ifdef CXX_REACTIONS
 
-            Real lreact_T_min = castro::react_T_min;
-            Real lreact_T_max = castro::react_T_max;
-            Real lreact_rho_min = castro::react_rho_min;
-            Real lreact_rho_max = castro::react_rho_max;
-
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
             {
@@ -125,8 +120,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
                 // Don't burn if we're outside of the relevant (rho, T) range.
 
-                if (burn_state.T < lreact_T_min || burn_state.T > lreact_T_max ||
-                    burn_state.rho < lreact_rho_min || burn_state.rho > lreact_rho_max) {
+                if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
+                    burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
                     do_burn = false;
                 }
 
