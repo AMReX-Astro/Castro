@@ -7,6 +7,10 @@ Outputting
 Restart Capability
 ------------------
 
+.. index:: amr.check_file, amr.check_int, amr.check_per, amr.restart
+.. index:: amr.checkpoint_files_output, amr.check_nfiles, amr.checkpoint_on_restart
+.. index:: castro.grown_factor
+
 Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
@@ -39,7 +43,7 @@ checkpoint files (which are really directories):
   * ``amr.check_nfiles``: how parallel is the writing of
     the checkpoint files? (Integer :math:`\geq 1`; default: 64)
 
-    See the chapter :ref:`ch:io` for more details on parallel I/O and the
+    See the section :ref:`sec:parallel_io` for more details on parallel I/O and the
     ``amr.check_nfiles`` parameter.
 
   * ``amr.checkpoint_on_restart``: should we write a
@@ -89,6 +93,8 @@ To restart from ``chk_run00061``, for example, then set::
 Plotfile Outputting
 -------------------
 
+.. index:: amr.plot_files_output, amr.plotfile_on_restart, amr.write_plotfile_with_checkpoint
+
 Castro has two levels of plotfiles, `regular` plotfiles and `small`
 plotfiles.  The idea behind this distinction is that we can output a
 small number of variables very frequently in the small plotfiles and
@@ -96,7 +102,6 @@ output a large number (or all variables) less frequently.  This helps
 keep the data sizes down while allowing for fine-grained temporal
 analysis of important quantities.
 
-.. index:: amr.plot_files_output, amr.plotfile_on_restart, amr.write_plotfile_with_checkpoint
 
 A few general controls determines whether we want to output plotfiles and when:
 
@@ -516,6 +521,8 @@ can be plotted very easily to monitor the time step.
 
 Parallel I/O
 ------------
+
+.. _sec:parallel_io:
 
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
