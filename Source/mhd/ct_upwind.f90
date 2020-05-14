@@ -830,7 +830,7 @@ contains
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed3_lo(3), ed3_hi(3)
 
-    integer, intent(in) :: d1, d2
+    integer, intent(in) :: d1, d2, d3
     real(rt), intent(in) :: dx, dt
 
     real(rt), intent(in) :: ur(ur_lo(1):ur_hi(1), ur_lo(2):ur_hi(2), ur_lo(3):ur_hi(3), NVAR+3)
@@ -846,18 +846,28 @@ contains
     integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
     integer :: a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
 
-    ! update the state in direction d1 with the input flux
+    ! This updates the flux on face d1 with one of the transverse fluxes, in direction d2
+    ! This is Equation 37 in Miniati and Martin
 
-    d = 0
+    ! Consider the x direction, with the flux in y, then
+    ! U_{i+1/2,L} and U_{i-1/2,R} will both see the same flux difference,
+    ! F_{i,j+1/2,k} - F_{i,j-1/2,k}
+
+    ! Here, flxd2 is the flux in direction d2 -- the transverse direction.
+
+    ! we will use dt and db to be the offsets in the fluxes for the
+    ! top and bottom (e.g. j+1/2 and j-1/2 fluxes)
+
+    dt(:) = 0
+    db(:) = 0
+
+    dt(d2) = 1
 
     a1  = 0
     a2  = 0
     a3  = 0
     d_2 = 0
 
-    ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
-    ! for E, for example if d2 = y, j+1 on Ed3
-    d(d2) = 1
 
     a1(d2) = 1   !j+1 on first and third term of addition Ed1
     a3(d2) = 1
@@ -871,22 +881,19 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! eq. 37 from Miniati paper, for both + and -
-
              ! right corrected states
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
-                                                          flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
-                                                        flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
-                                                        flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
-                                                        flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
-                                                            flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - &
-                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
-                         flxd2(i,j,k,UFS:UFS+nspec-1))
+
+             ! This is the transverse flux difference on the conserved fluid state
+
+             do n = 1, NUM_STATE
+
+                if (n == UTEMP) cycle
+
+                ur_out(i,j,k,n) = ur(i,j,k,n) - cdtdx*(flxd2(i+dt(1),j+dt(2),k+dt(3),n) - &
+                                                       flxd2(i+db(1),j+db(2),k+db(3),n))
+             end do
+
+             ! fix up the internal energy
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
@@ -894,6 +901,7 @@ contains
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
 
+             ! now the magnetic components
 
 
              ! left corrected statges
@@ -960,6 +968,16 @@ contains
     integer :: d(3)
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
+
+    UMAGD1 = UMAGX - 1 + d1
+    UMAGD2 = UMAGX - 1 + d2
+    UMAGD3 = UMAGX - 1 + d3
+
+    d   = 0
+    a1  = 0
+    a2  = 0
+    a3  = 0
+    d_2 = 0
 
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2

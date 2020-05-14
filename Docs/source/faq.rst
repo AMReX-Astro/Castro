@@ -98,12 +98,12 @@ Debugging
 #. *Castro crashes with a floating point exception—how can
    I get more information?*
 
-   The best thing to do is to recompile the code with TEST=TRUE
-   set in the GNUmakefile. This will have AMReX catch the
+   The best thing to do is to recompile the code with ``TEST=TRUE``
+   set in the ``GNUmakefile``. This will have AMReX catch the
    signals raised in both C and Fortran functions. Behind the
-   scenes, this defines the AMREX_TESTING preprocessor flag, which
+   scenes, this defines the ``AMREX_TESTING`` preprocessor flag, which
    will initialize memory allocated in fabs or multifabs to
-   signaling NaNs (sNaN), and use the BLBackTrace::handler()
+   signaling NaNs (sNaN), and use the ``BLBackTrace::handler()``
    function to handle various signals raised in both C and Fortran
    functions. This is a Linux/UNIX capability. This gives us a chance
    to print out backtrace information. The signals include seg fault,
@@ -111,24 +111,24 @@ Debugging
    interruption by the user and system. What signals are handed to
    AMReX are controlled by AMReX(e.g., using interruption by the
    user, this was once used to find an MPI deadlock.) It also includes
-   the BL_ASSERTION statements if USE_ASSERTION=TRUE or
+   the ``AMREX_ASSERTION`` statements if ``USE_ASSERTION=TRUE`` or
    DEBUG=TRUE.
 
    The AMReX parameters that affect the behavior are:
 
-   -  amrex.fpe_trap_invalid
+   -  ``amrex.fpe_trap_invalid``
 
-   -  amrex.fpe_trap_zero
+   -  ``amrex.fpe_trap_zero``
 
-   -  amrex.fpe_trap_overflow
+   -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, defining BACKTRACE=TRUE enables you
+   For further capabilities, defining ``BACKTRACE=TRUE`` enables you
    to get more information than the backtrace of the call stack info by
    instrumenting the code. (This is in C code only). Here is an
-   example. You know the line “Real rho = state(cell,0);” is
+   example. You know the line “``Real rho = state(cell,0);``” is
    causing a segfault. You could add a print statement before that.
    But it might print out thousands (or even millions) of line before
-   it hits the segfault. With BACKTRACE, you could do
+   it hits the segfault. With ``BACKTRACE``, you could do
 
    ::
 
@@ -153,7 +153,7 @@ Debugging
            print_state(mf, IntVect(D_DECL(10, 20, 30)));
 
    Here, the IntVect has the dimension that we were compiled with
-   (and this is handled through the preprocessor D_DECL). In
+   (and this is handled through the preprocessor ``D_DECL``). In
    this case, we are inspecting zone (10, 20, 30), in the global index
    space. Note that since a multifab exists only on a single level, the
    integer indices here refer to the global index space on that level.
@@ -234,7 +234,7 @@ Managing Runs
 
    ::
 
-       ./Castro.exe --display
+       ./Castro.exe --describe
 
 .. _ch:faq:vis:
 
@@ -246,7 +246,7 @@ Runtime Errors
 
    This can occur due to CFL violations or negative densities.  If
    there are density resets, try running with
-   ``castro.limit_fluxes_on_small_dens`` = 1.  This will use a flux
+   ``castro.limit_fluxes_on_small_dens = 1``.  This will use a flux
    limiter to prevent the density from going negative.
 
 Visualization
