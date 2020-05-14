@@ -527,7 +527,7 @@ namespace: ``castro``
 
 **diagnostics, I/O**
 
-.. index:: castro.v, castro.dump_old, castro.print_fortran_warnings, castro.print_update_diagnostics, castro.track_grid_losses, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
+.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_fortran_warnings, castro.print_update_diagnostics, castro.track_grid_losses, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -536,6 +536,11 @@ namespace: ``castro``
 | ``v``                                  | verbosity level (higher numbers mean more output)       | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``dump_old``                           | do we dump the old state into the checkpoint files too? | false         |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``domain_is_plane_parallel``           | do we assume the domain is plane parallel when          | false         |
+|                                        | computing some of the derived quantities (e.g. radial   |               |
+|                                        | velocity).  Note: this will always assume that the last |               |
+|                                        | spatial dimension is vertical                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
 +----------------------------------------+---------------------------------------------------------+---------------+

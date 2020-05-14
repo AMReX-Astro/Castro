@@ -545,7 +545,7 @@ own variable)</p></td>
 </div>
 <div class="section" id="derived-variables">
 <h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this headline">¶</a></h3>
-<table class="docutils align-default">
+<table class="docutils align-default" id="index-5">
 <colgroup>
 <col style="width: 22%" />
 <col style="width: 33%" />
@@ -684,49 +684,57 @@ and radiation (for non radhydro problems)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">radvel</span></code></p></td>
 <td><p>Radial velocity (measured with respect to
-<cite>center</cite>),
+<code class="docutils literal notranslate"><span class="pre">center</span></code> or vertical axis if
+<code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is set)
 <span class="math notranslate nohighlight">\((xu + yv + zw)/r\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">circvel</span></code></p></td>
+<td><p>Circumferential velocity (perpendicular to
+<code class="docutils literal notranslate"><span class="pre">radvel</span></code>.  If <code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is
+set, then this is in the x-y plane</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
 <td><p>Sound speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dersoundspeed</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
 <td><p>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dercond</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-1}~s^{-1}~K^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
 <td></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derenuctimescale</span></code></p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
 <td><p>(only for 1D) x-velocity <span class="math notranslate nohighlight">\(-\)</span> sound
 speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">deruminusc</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
 <td><p>(only for 1D) x-velocity + sound speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">deruplusc</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
 <td><p>Mass fraction of species q
 <span class="math notranslate nohighlight">\(X_k = (\rho X_k)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derspec</span></code></p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
 <code class="docutils literal notranslate"><span class="pre">y_velocity</span></code>,
 <code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></p></td>
 <td><p>Fluid velocity,
