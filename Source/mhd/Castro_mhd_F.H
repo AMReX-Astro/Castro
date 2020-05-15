@@ -38,6 +38,7 @@ extern "C"
     (const int lo[], const int hi[],
      const int idir,
      const BL_FORT_FAB_ARG_3D(s),
+     const BL_FORT_FAB_ARG_3D(qaux),
      const BL_FORT_FAB_ARG_3D(flatn),
      const BL_FORT_FAB_ARG_3D(bx),
      const BL_FORT_FAB_ARG_3D(by),
