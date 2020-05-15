@@ -61,7 +61,7 @@ castro.react_T_min = 6.e7
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.use_retry      = 1
 castro.max_subcycles = 16
 
@@ -83,11 +83,11 @@ amr.check_file      = flame_wave_chk        # root name of checkpoint file
 amr.check_int       = 1000        # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file        = flame_wave_H_He_30cm_plt        # root name of plotfile
+amr.plot_file        = flame_wave_H_He_1000Hz_plt        # root name of plotfile
 amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
-amr.small_plot_file        = flame_wave_H_He_30cm_smallplt        # root name of plotfile
+amr.small_plot_file        = flame_wave_H_He_1000Hz_smallplt        # root name of plotfile
 amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(h1) X(he4)
