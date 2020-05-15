@@ -3,15 +3,12 @@ module ct_upwind
   use amrex_fort_module, only : rt => amrex_real
   use hlld_solver, only : hlld
   use meth_params_module
+  use mhd_state_module
 
   implicit none
 
   private primtocons
   public corner_transport
-
-  integer, parameter :: UMAGX = NVAR+1
-  integer, parameter :: UMAGY = NVAR+2
-  integer, parameter :: UMAGZ = NVAR+3
 
   ! note: in this module, we use left and right to mean with respect
   ! to the interface.  So qleft, uleft, ul, ... are the left state on

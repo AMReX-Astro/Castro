@@ -20,6 +20,7 @@ subroutine hlld(work_lo, work_hi, &
    use eos_module, only : eos
    use eos_type_module, only: eos_t, eos_input_rp
    use network, only : nspec
+   use mhd_state_module
 
    integer, intent(in)   :: ql_lo(3), ql_hi(3)
    integer, intent(in)   :: qr_lo(3), qr_hi(3)
@@ -46,16 +47,10 @@ subroutine hlld(work_lo, work_hi, &
    integer           :: QMAGN, QMAGP1, QMAGP2
    integer           :: UMN  , UMP1  , UMP2
    integer           :: UMAGN, UMAGP1, UMAGP2
-   integer           :: UMAGX, UMAGY, UMAGZ
    integer           :: i,j,k
    character(len=10) :: choice
 
    type (eos_t) :: eos_state
-
-   ! in the conserved part, let's have magx, magy and magz at end
-   UMAGX = NVAR+1
-   UMAGY = NVAR+2
-   UMAGZ = NVAR+3
  
    ! `n` here is the normal
    ! `p` are the perpendicular
