@@ -28,6 +28,7 @@ contains
   subroutine plm(lo, hi, &
                  idir, &
                  s, s_lo, s_hi, &
+                 qaux, qa_lo, qa_hi, &
                  flatn, f_lo, f_hi, &
                  bx, bxlo, bxhi, &
                  by, bylo, byhi, &
@@ -47,6 +48,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: bxlo(3), bxhi(3)
     integer, intent(in) :: bylo(3), byhi(3)
@@ -56,6 +58,7 @@ contains
     integer, intent(in) :: srcq_lo(3), srcq_hi(3)
 
     real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
 
    ! face-centered magnetic fields
     real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))
@@ -162,16 +165,16 @@ contains
 
              ! compute the eigenvectors and eigenvalues for this coordinate direction
 
-             call evals(lam,  s(i,j,k,:), idir)
+             call evals(lam,  qaux(i,j,k,:), s(i,j,k,:), idir)
 
              if (idir == 1) then
-                call evecx(leig, reig, s(i,j,k,:))
+                call evecx(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
 
              else if (idir == 2) then
-                call evecy(leig, reig, s(i,j,k,:))
+                call evecy(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
 
              else
-                call evecz(leig, reig, s(i,j,k,:))
+                call evecz(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
              end if
 
              ! MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
@@ -433,44 +436,34 @@ contains
 
   !=========================================== Evals =========================================================
 
-  subroutine evals(lam, Q, dir)
+  subroutine evals(lam, qaux, Q, dir)
 
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only: nspec
     implicit none
 
-    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(in)  :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: lam(NEIGN) !7 waves
     integer, intent(in)   :: dir !Choose direction, 1 for x, 2 for y, 3 for z
 
     !The characteristic speeds of the system
     real(rt)  :: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
-    type(eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-    eos_state % T   = Q(QTEMP)
+    ! speeds
+    as = qaux(QC) * qaux(QC)
 
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca  = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cax = (Q(QMAGX)**2)/Q(QRHO)
     cay = (Q(QMAGY)**2)/Q(QRHO)
     caz = (Q(QMAGZ)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csx = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cax))
     csy = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cay))
     csz = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*caz))
 
-    !Fassssst
+    ! Fast
     cfx = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cax))
     cfy = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cay))
     cfz = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*caz))
@@ -514,40 +507,32 @@ contains
   !====================================== Left Eigenvectors ===============================================
 
   !x direction
-  subroutine evecx(leig, reig, Q)
+  subroutine evecx(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(in)  ::Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfx, cax, csx, ca, as, S, N
     real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
-    type (eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
+    ! Speeds
 
-    call eos(eos_input_rp, eos_state)
+    as = qaux(QC) * qaux(QC)
 
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cax = (Q(QMAGX)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csx = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cax))
 
-    !Fassssst
+    ! Fast
     cfx = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cax))
 
     !useful constants
@@ -595,42 +580,32 @@ contains
   end subroutine evecx
 
   !y direction
-  subroutine evecy(leig, reig, Q)
+  subroutine evecy(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in) :: Q(NQ)
+    real(rt), intent(in) :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfy, cay, csy, ca, as, S, N
     real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
-    type (eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
+    ! Speeds
+    as = qaux(QC) * qaux(QC)
 
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cay = (Q(QMAGY)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csy = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cay))
 
-    !Fassssst
+    ! Fast
     cfy = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cay))
 
     !useful constants
@@ -677,43 +652,31 @@ contains
   end subroutine evecy
 
   !z direction
-  subroutine evecz(leig, reig, Q)
+  subroutine evecz(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
-    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(in)  :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt)  :: cfz, caz, csz, ca, as, S, N
     real(rt)  :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
-    type (eos_t) :: eos_state
+    ! Speeds
+    as = qaux(QC) * qaux(QC)
 
-    !Speeeeeeeedssssss
-
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     caz = (Q(QMAGZ)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csz = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*caz))
 
-    !Fassssst
+    ! Fast
     cfz = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*caz))
 
     !useful constants
