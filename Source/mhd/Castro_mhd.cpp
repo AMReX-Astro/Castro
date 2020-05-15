@@ -16,8 +16,6 @@ Castro::just_the_mhd(Real time, Real dt)
       const auto dx = geom.CellSizeArray();
       const Real* dx_f = geom.CellSize();
 
-      Real courno = -1.0e+200;
-
       const int*  domain_lo = geom.Domain().loVect();
       const int*  domain_hi = geom.Domain().hiVect();
 
@@ -40,7 +38,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:mass:courno)
+#pragma omp parallel
 #endif
     {
 
@@ -136,12 +134,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
-          check_for_mhd_cfl_violation(lo, hi,
-                                      BL_TO_FORTRAN_ANYD(q),
-                                      BL_TO_FORTRAN_ANYD(cs[0]),
-                                      BL_TO_FORTRAN_ANYD(cs[1]),
-                                      BL_TO_FORTRAN_ANYD(cs[2]),
-                                      courno, dx_f, dt);
+          check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
           flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();

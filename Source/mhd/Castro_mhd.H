@@ -1,12 +1,6 @@
     void just_the_mhd(amrex::Real time, amrex::Real dt);
 
     void
-    mhd_speeds(const amrex::Box& bx,
-               amrex::Array4<amrex::Real const> const& Bx,
-               amrex::Array4<amrex::Real const> const& By,
-               amrex::Array4<amrex::Real const> const& Bz,
-               amrex::Array4<amrex::Real const> const& q_arr,
-               amrex::Array4<amrex::Real const> const& qaux_arr,
-               amrex::Array4<amrex::Real> const& cx,
-               amrex::Array4<amrex::Real> const& cy,
-               amrex::Array4<amrex::Real> const& cz);
+    check_for_mhd_cfl_violation(const amrex::Box& bx, const amrex::Real dt,
+                                amrex::Array4<amrex::Real const> const& q_arr,
+                                amrex::Array4<amrex::Real const> const& qaux_arr);

@@ -9,6 +9,7 @@ using namespace amrex;
 
 void
 Castro::check_for_mhd_cfl_violation(const Box& bx,
+                                    const Real dt,
                                     Array4<Real const> const& q_arr,
                                     Array4<Real const> const& qaux_arr) {
 
