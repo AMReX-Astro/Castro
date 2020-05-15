@@ -45,7 +45,6 @@ Castro::just_the_mhd(Real time, Real dt)
     {
 
       FArrayBox flux[AMREX_SPACEDIM], E[AMREX_SPACEDIM];
-      FArrayBox cs[AMREX_SPACEDIM];
 
       FArrayBox bcc;
       FArrayBox q;
@@ -119,10 +118,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
           srcQ.resize(bx_gc, NQSRC);
 
-          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-            cs[idir].resize(bx_gc, 1);
-          }
-
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
 
@@ -132,15 +127,6 @@ Castro::just_the_mhd(Real time, Real dt)
                   bcc_arr,
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
-
-          auto cx_arr = (cs[0]).array();
-          auto cy_arr = (cs[1]).array();
-          auto cz_arr = (cs[2]).array();
-
-          mhd_speeds(bx_gc,
-                     Bx_arr, By_arr, Bz_arr,
-                     q_arr, qaux_arr,
-                     cx_arr, cy_arr, cz_arr);
 
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
