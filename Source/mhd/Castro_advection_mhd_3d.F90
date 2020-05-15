@@ -119,7 +119,6 @@ end subroutine check_for_mhd_cfl_violation
 subroutine consup(lo, hi, &
                   uin, uin_lo, uin_hi, &
                   uout, uout_lo, uout_hi, &
-                  bcc, bcc_lo, bcc_hi, &
                   fluxx, flux1_lo, flux1_hi, &
                   fluxy, flux2_lo, flux2_hi, &
                   fluxz, flux3_lo, flux3_hi, &
@@ -133,14 +132,12 @@ subroutine consup(lo, hi, &
 
   integer, intent(in)  :: uin_lo(3), uin_hi(3)
   integer, intent(in)  :: uout_lo(3), uout_hi(3)
-  integer, intent(in)  :: bcc_lo(3), bcc_hi(3)
   integer, intent(in)  :: flux1_lo(3), flux1_hi(3)
   integer, intent(in)  :: flux2_lo(3), flux2_hi(3)
   integer, intent(in)  :: flux3_lo(3), flux3_hi(3)
   integer, intent(in)   :: lo(3), hi(3)
 
   real(rt), intent(in)  :: uin(uin_lo(1):uin_hi(1), uin_lo(2):uin_hi(2), uin_lo(3):uin_hi(3), NVAR)
-  real(rt), intent(inout)  :: bcc(bcc_lo(1):bcc_hi(1), bcc_lo(2):bcc_hi(2), bcc_lo(3):bcc_hi(3), 3)
   real(rt), intent(in)  :: fluxx(flux1_lo(1):flux1_hi(1),flux1_lo(2):flux1_hi(2),flux1_lo(3):flux1_hi(3),NVAR+3)
   real(rt), intent(in)  :: fluxy(flux2_lo(1):flux2_hi(1),flux2_lo(2):flux2_hi(2),flux2_lo(3):flux2_hi(3),NVAR+3)
   real(rt), intent(in)  :: fluxz(flux3_lo(1):flux3_hi(1),flux3_lo(2):flux3_hi(2),flux3_lo(3):flux3_hi(3),NVAR+3)
@@ -182,9 +179,6 @@ subroutine consup(lo, hi, &
                 - 1.0/dx(2)*(fluxy(i,j+1,k,UFS:UFS+nspec-1) - fluxy(i,j,k,UFS:UFS+nspec-1)) &
                 - 1.0/dx(3)*(fluxz(i,j,k+1,UFS:UFS+nspec-1) - fluxz(i,j,k,UFS:UFS+nspec-1))
 
-           bcc(i,j,k,:) = bcc(i,j,k,:) - dt/dx(1)*(fluxx(i+1, j, k, NVAR+1:NVAR+3)- fluxx(i,j,k, NVAR+1:NVAR+3)) &
-                                       - dt/dx(2)*(fluxy(i, j+1, k, NVAR+1:NVAR+3)- fluxy(i,j,k, NVAR+1:NVAR+3)) &
-                                       - dt/dx(3)*(fluxz(i, j, k+1, NVAR+1:NVAR+3)- fluxz(i,j,k, NVAR+1:NVAR+3))
         enddo
      enddo
   enddo

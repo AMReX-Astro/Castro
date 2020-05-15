@@ -12,7 +12,6 @@ extern "C"
   void ctoprim_mhd
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(bcc),
      const BL_FORT_FAB_ARG_3D(Bx),
      const BL_FORT_FAB_ARG_3D(By),
      const BL_FORT_FAB_ARG_3D(Bz),
@@ -65,7 +64,6 @@ extern "C"
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG_3D(uin),
      BL_FORT_FAB_ARG_3D(uout),
-     BL_FORT_FAB_ARG_3D(bcc),
      const BL_FORT_FAB_ARG_3D(fluxx),
      const BL_FORT_FAB_ARG_3D(fluxy),
      const BL_FORT_FAB_ARG_3D(fluxz),

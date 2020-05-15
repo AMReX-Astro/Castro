@@ -47,7 +47,6 @@ Castro::just_the_mhd(Real time, Real dt)
       FArrayBox flux[AMREX_SPACEDIM], E[AMREX_SPACEDIM];
       FArrayBox cs[AMREX_SPACEDIM];
 
-      FArrayBox bcc;
       FArrayBox q;
       FArrayBox qaux;
       FArrayBox srcQ;
@@ -108,9 +107,6 @@ Castro::just_the_mhd(Real time, Real dt)
           }
 
           // Calculate primitives based on conservatives
-          bcc.resize(bx_gc, 3);
-          auto bcc_arr = bcc.array();
-
           q.resize(bx_gc, NQ);
           auto q_arr = q.array();
 
@@ -129,7 +125,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
           ctoprim(bx_gc, time,
                   u_arr,
-                  bcc_arr,
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
 
@@ -252,7 +247,6 @@ Castro::just_the_mhd(Real time, Real dt)
           consup(lo, hi,
                  BL_TO_FORTRAN_ANYD(statein),
                  BL_TO_FORTRAN_ANYD(source_out),
-                 BL_TO_FORTRAN_ANYD(bcc),
                  BL_TO_FORTRAN_ANYD(flxx),
                  BL_TO_FORTRAN_ANYD(flxy),
                  BL_TO_FORTRAN_ANYD(flxz),
