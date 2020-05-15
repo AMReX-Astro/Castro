@@ -238,6 +238,18 @@ Castro::check_for_cfl_violation(const Real dt)
 
     auto dx = geom.CellSizeArray();
 
+    Real dtdx = dt / dx[0];
+
+    Real dtdy = 0.0_rt;
+    if (AMREX_SPACEDIM >= 2) {
+      dtdy = dt / dx[1];
+    }
+
+    Real dtdz = 0.0_rt;
+    if (AMREX_SPACEDIM == 3) {
+      dtdz = dt / dx[2];
+    }
+
     MultiFab& S_new = get_new_data(State_Type);
 
     int ltime_integration_method = time_integration_method;
@@ -261,27 +273,11 @@ Castro::check_for_cfl_violation(const Real dt)
         {
             // Compute running max of Courant number over grids
 
-            Real dtdx = dt / dx[0];
-
-            Real dtdy = 0.0_rt;
-            if (AMREX_SPACEDIM >= 2) {
-                dtdy = dt / dx[1];
-            }
-
-            Real dtdz = 0.0_rt;
-            if (AMREX_SPACEDIM == 3) {
-                dtdz = dt / dx[2];
-            }
-
             Real courx = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QU))) * dtdx;
             Real coury = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QV))) * dtdy;
             Real courz = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QW))) * dtdz;
 
             if (ltime_integration_method == 0) {
-
-                // CTU integration constraint
-
-                return {amrex::max(courx, coury, courz)};
 
 #ifndef AMREX_USE_CUDA
                 if (verbose == 1) {
@@ -315,6 +311,11 @@ Castro::check_for_cfl_violation(const Real dt)
 
                 }
 #endif
+
+                // CTU integration constraint
+
+                return {amrex::max(courx, coury, courz)};
+
             }
             else {
 
