@@ -208,13 +208,17 @@ subroutine electric_edge_y(work_lo, work_hi, &
            ! Compute Ey(i-1/2, j, k-1/2)
 
            ! dEy/dz i-1/2, j, k-3/4
+
+           ! first compute dEy/dz_{i-1,j,k-3/4}
            call electric(q(i-1,j,k-1,:), Ecen, 2)
            a = 2.d0 * (-flxz(i-1,j,k,UMAGX) - Ecen)
 
+           ! now compute dEy/dz_{i,j,k-3/4}
            call electric(q(i,j,k-1,:), Ecen, 2)
            b = 2.d0 * (-flxz(i,j,k,UMAGX) - Ecen)
 
            ! upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
+           ! using u_{i-1/2,j,k-1}
            if (flxx(i,j,k-1,URHO) .gt. 0.d0) then
               d1 = a
            else if (flxx(i,j,k-1,URHO) .lt. 0.d0) then
@@ -224,13 +228,17 @@ subroutine electric_edge_y(work_lo, work_hi, &
            endif
 
            ! dEy/dz i-1/2, j, k-1/4
+
+           ! first compute dEy/dz_{i-1,j,k-1/4}
            call electric(q(i-1,j,k,:), Ecen, 2)
            a = 2.d0 * (Ecen + flxz(i-1,j,k,UMAGX))
 
+           ! now compute dEy/dz_{i,j,k-1/4}
            call electric(q(i,j,k,:), Ecen, 2)
            b = 2.d0 * (Ecen + flxz(i,j,k,UMAGX))
 
            ! upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
+           ! using u_{i-1/2.j,k}
            if (flxx(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
            else if (flxx(i,j,k,URHO) .lt. 0.d0) then
@@ -244,14 +252,18 @@ subroutine electric_edge_y(work_lo, work_hi, &
            dd1 = 0.125d0*(d1-d2)
 
 
-           ! dEy/dx i -3/4, j, k - 1/2
+           ! dEy/dx i-3/4, j, k-1/2
+
+           ! first compute dEy/dz_{i-3/4,j,k-1}
            call electric(q(i-1,j,k-1,:), Ecen, 2)
            a = 2.d0*(flxx(i,j,k-1,UMAGZ) - Ecen)
 
-           call electric(q(i-1,j, k, :), Ecen, 2)
+           ! next compute dEy/dz_{i-3/4,j,k}
+           call electric(q(i-1,j,k, :), Ecen, 2)
            b = 2.d0*(flxx(i,j,k,UMAGZ) - Ecen)
 
-           ! upwind in the z direction to get dEy/dx i-3/4, j, k -1/2
+           ! upwind in the z direction to get dEy/dx i-3/4, j, k-1/2
+           ! using w_{i-1,j,k-1/2}
            if (flxz(i-1,j,k,URHO) .gt. 0.d0) then
               d1 = a
            else if (flxz(i-1,j,k,URHO) .lt. 0.d0) then
@@ -261,13 +273,17 @@ subroutine electric_edge_y(work_lo, work_hi, &
            endif
 
            ! dEy/dx i-1/4, j, k-1/2
+
+           ! first compute dEy/dx_{i-1/4,j,k-1}
            call electric(q(i,j,k-1,:), Ecen, 2)
            a = 2.d0*(Ecen - flxx(i,j,k-1,UMAGZ))
 
+           ! next compute dEy/dx_{i-1/4,j,k}
            call electric(q(i,j,k,:), Ecen, 2)
            b = 2.d0*(Ecen - flxx(i,j,k,UMAGZ))
 
-           ! upwind in the z direction for i-1/2,j,k-1/2
+           ! upwind in the z direction for i-1/4, j, k-1/2
+           ! using w_{i,j,k-1/2}
            if (flxz(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
            else if (flxz(i,j,k,URHO) .lt. 0.d0) then
