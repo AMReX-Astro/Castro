@@ -17,7 +17,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
   thermo_src.setVal(0.0);
 
-  fill_thermo_source(time, dt, state_in, state_in, thermo_src);
+  fill_thermo_source(time, dt, state_in, thermo_src);
 
   Real mult_factor = 1.0;
 
@@ -55,7 +55,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 #else
 
   const Real strt_time = ParallelDescriptor::second();
- 
+
   MultiFab thermo_src(grids, dmap, source.nComp(), 0);
 
   thermo_src.setVal(0.0);
@@ -63,20 +63,24 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
   //Substract off the old-time value first
   Real old_time = time - dt;
 
-  fill_thermo_source(old_time, dt, state_old, state_old, thermo_src);
+  fill_thermo_source(old_time, dt, state_old, thermo_src);
 
   Real mult_factor = -0.5;
 
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
 
   //Time center with the new data
-  
+
   thermo_src.setVal(0.0);
 
   mult_factor = 0.5;
-  
-  fill_thermo_source(time, dt, state_old, state_new, thermo_src);
-  
+
+  //state_new needs ghost cell
+  FillPatchIterator fpi(*this, state_new, 1, time, State_Type, 0, NUM_STATE);
+  MultiFab& grown_state = fpi.get_mf();
+
+  fill_thermo_source(time, dt, grown_state, thermo_src);
+
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
 
   if (verbose > 1)
@@ -104,8 +108,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
 void
 Castro::fill_thermo_source (Real time, Real dt,
-                            MultiFab& state_old, MultiFab& state_new,
-                            MultiFab& thermo_src)
+                            MultiFab& state, MultiFab& thermo_src)
 {
 
   // Compute thermodynamic sources for the internal energy equation.
@@ -117,7 +120,7 @@ Castro::fill_thermo_source (Real time, Real dt,
   const Real* dx = geom.CellSize();
   const Real* prob_lo = geom.ProbLo();
 
-  auto coord = geom.Coord(); 
+  auto coord = geom.Coord();
 
 
 #ifdef _OPENMP
@@ -127,12 +130,12 @@ Castro::fill_thermo_source (Real time, Real dt,
 
     const Box& bx = mfi.tilebox();
 
-    Array4<Real const> const old_state = state_old.array(mfi);
-    Array4<Real const> const new_state = state_new.array(mfi);
+    Array4<Real const> const U = state.array(mfi);
     Array4<Real> const src = thermo_src.array(mfi);
 
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
       // radius for non-Cartesian
@@ -142,67 +145,45 @@ Castro::fill_thermo_source (Real time, Real dt,
 
       // compute -div{U}
       if (coord == 0) {
-        src(i,j,k,UEINT) = -0.25_rt*((old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
-                                      new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
-                                     (old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
-                                      new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/dx[0];
+        src(i,j,k,UEINT) = -0.5_rt*(U(i+1,j,k,UMX)/U(i+1,j,k,URHO)  -
+                                    U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/dx[0];
 
       } else if (coord == 1) {
         // axisymmetric
-        src(i,j,k,UEINT) = -0.25_rt*(rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
-                                         new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
-                                     rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
-                                         new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*dx[0]);
+        src(i,j,k,UEINT) = -0.5_rt*(rp*U(i+1,j,k,UMX)/U(i+1,j,k,URHO) -
+                                    rm*U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/(r*dx[0]);
 
       } else if (coord == 2) {
         // spherical
-        src(i,j,k,UEINT) = -0.25_rt*(rp*rp*(old_state(i+1,j,k,UMX)/old_state(i+1,j,k,URHO) +
-                                            new_state(i+1,j,k,UMX)/new_state(i+1,j,k,URHO)) -
-                                     rm*rm*(old_state(i-1,j,k,UMX)/old_state(i-1,j,k,URHO) +
-                                            new_state(i-1,j,k,UMX)/new_state(i-1,j,k,URHO)))/(r*r*dx[0]);
+        src(i,j,k,UEINT) = -0.5_rt*(rp*rp*U(i+1,j,k,UMX)/U(i+1,j,k,URHO) -
+                                    rm*rm*U(i-1,j,k,UMX)/U(i-1,j,k,URHO))/(r*r*dx[0]);
       }
 
 #if BL_SPACEDIM >= 2
-      src(i,j,k,UEINT) += -0.25_rt*((old_state(i,j+1,k,UMY)/old_state(i,j+1,k,URHO) +
-                                     new_state(i,j+1,k,UMY)/new_state(i,j+1,k,URHO)) -
-                                    (old_state(i,j-1,k,UMY)/old_state(i,j-1,k,URHO) +
-                                     new_state(i,j-1,k,UMY)/new_state(i,j-1,k,URHO)))/dx[1];
+      src(i,j,k,UEINT) += -0.5_rt*(U(i,j+1,k,UMY)/U(i,j+1,k,URHO) -
+                                   U(i,j-1,k,UMY)/U(i,j-1,k,URHO))/dx[1];
 #endif
 #if BL_SPACEDIM == 3
-      src(i,j,k,UEINT) += -0.25_rt*((old_state(i,j,k+1,UMZ)/old_state(i,j,k+1,URHO) +
-                                     new_state(i,j,k+1,UMZ)/new_state(i,j,k+1,URHO)) -
-                                    (old_state(i,j,k-1,UMZ)/old_state(i,j,k-1,URHO) +
-                                     new_state(i,j,k-1,UMZ)/new_state(i,j,k-1,URHO)))/dx[2];
+      src(i,j,k,UEINT) += -0.5_rt*(U(i,j,k+1,UMZ)/U(i,j,k+1,URHO) -
+                                   U(i,j,k-1,UMZ)/U(i,j,k-1,URHO))/dx[2];
 #endif
 
       // we now need the pressure -- we will assume that the
       // temperature is consistent with the input state
-      eos_t eos_state_old;
-      eos_state_old.rho = old_state(i,j,k,URHO);
-      eos_state_old.T = old_state(i,j,k,UTEMP);
+      eos_t eos_state;
+      eos_state.rho = U(i,j,k,URHO);
+      eos_state.T = U(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
-        eos_state_old.xn[n] = old_state(i,j,k,UFS+n)/old_state(i,j,k,URHO);
+        eos_state.xn[n] = U(i,j,k,UFS+n)/U(i,j,k,URHO);
       }
       for (int n = 0; n < NumAux; n++) {
-        eos_state_old.aux[n] = old_state(i,j,k,UFX+n)/old_state(i,j,k,URHO);
+        eos_state.aux[n] = U(i,j,k,UFX+n)/U(i,j,k,URHO);
       }
 
-      eos(eos_input_rt, eos_state_old);
-
-      eos_t eos_state_new;
-      eos_state_new.rho = new_state(i,j,k,URHO);
-      eos_state_new.T = new_state(i,j,k,UTEMP);
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state_new.xn[n] = new_state(i,j,k,UFS+n)/new_state(i,j,k,URHO);
-      }
-      for (int n = 0; n < NumAux; n++) {
-        eos_state_new.aux[n] = new_state(i,j,k,UFX+n)/new_state(i,j,k,URHO);
-      }
-
-      eos(eos_input_rt, eos_state_new);
+      eos(eos_input_rt, eos_state);
 
       // final source term, -p div{U}
-      src(i,j,k,UEINT) = 0.5_rt*(eos_state_old.p + eos_state_new.p)*src(i,j,k,UEINT);
+      src(i,j,k,UEINT) = eos_state.p * src(i,j,k,UEINT);
 
     });
   }
