@@ -16,8 +16,6 @@ Castro::just_the_mhd(Real time, Real dt)
       const auto dx = geom.CellSizeArray();
       const Real* dx_f = geom.CellSize();
 
-      Real courno = -1.0e+200;
-
       const int*  domain_lo = geom.Domain().loVect();
       const int*  domain_hi = geom.Domain().hiVect();
 
@@ -40,12 +38,11 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:mass:courno)
+#pragma omp parallel
 #endif
     {
 
       FArrayBox flux[AMREX_SPACEDIM], E[AMREX_SPACEDIM];
-      FArrayBox cs[AMREX_SPACEDIM];
 
       FArrayBox q;
       FArrayBox qaux;
@@ -129,10 +126,6 @@ Castro::just_the_mhd(Real time, Real dt)
           auto src_q_arr = srcQ.array();
           auto elix_src_q = srcQ.elixir();
 
-          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-            cs[idir].resize(bx_gc, 1);
-          }
-
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
 
@@ -142,27 +135,13 @@ Castro::just_the_mhd(Real time, Real dt)
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
 
-          auto cx_arr = (cs[0]).array();
-          auto cy_arr = (cs[1]).array();
-          auto cz_arr = (cs[2]).array();
-
-          mhd_speeds(bx_gc,
-                     Bx_arr, By_arr, Bz_arr,
-                     q_arr, qaux_arr,
-                     cx_arr, cy_arr, cz_arr);
-
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
 
           src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
-          check_for_mhd_cfl_violation(lo, hi,
-                                      BL_TO_FORTRAN_ANYD(q),
-                                      BL_TO_FORTRAN_ANYD(cs[0]),
-                                      BL_TO_FORTRAN_ANYD(cs[1]),
-                                      BL_TO_FORTRAN_ANYD(cs[2]),
-                                      courno, dx_f, dt);
+          check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
           flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();
