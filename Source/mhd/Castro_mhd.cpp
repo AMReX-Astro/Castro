@@ -68,7 +68,6 @@ Castro::just_the_mhd(Real time, Real dt)
         {
 
           const Box& bx = mfi.tilebox();
-
           const Box& obx = amrex::grow(bx, 1);
 
           // box with NUM_GROW ghost cells for PPM stuff
@@ -83,20 +82,31 @@ Castro::just_the_mhd(Real time, Real dt)
           FArrayBox &stateout = S_new[mfi];
 
           FArrayBox &source_in  = sources_for_hydro[mfi];
-          FArrayBox &source_out = hydro_source[mfi];
+          auto src_arr = source_in.array();
+
+          FArrayBox &hydro_update = hydro_source[mfi];
+          auto update_arr = hydro_update.array();
 
           FArrayBox& Bx  = Bx_old_tmp[mfi];
           auto Bx_arr = Bx.array();
+          auto elix_Bx = Bx.elixir();
 
           FArrayBox& By  = By_old_tmp[mfi];
           auto By_arr = By.array();
+          auto elix_By = By.elixir();
 
           FArrayBox& Bz  = Bz_old_tmp[mfi];
           auto Bz_arr = Bz.array();
+          auto elix_Bz = Bz.elixir();
 
           FArrayBox& Bxout = Bx_new[mfi];
+          auto Bxo_arr = Bxout.array();
+
           FArrayBox& Byout = By_new[mfi];
+          auto Byo_arr = Byout.array();
+
           FArrayBox& Bzout = Bz_new[mfi];
+          auto Bzo_arr = Bzout.array();
 
 
           // allocate fabs for fluxes
@@ -109,11 +119,15 @@ Castro::just_the_mhd(Real time, Real dt)
           // Calculate primitives based on conservatives
           q.resize(bx_gc, NQ);
           auto q_arr = q.array();
+          auto elix_q = q.elixir();
 
           qaux.resize(bx_gc, NQAUX);
           auto qaux_arr = qaux.array();
+          auto elix_qaux = qaux.elixir();
 
           srcQ.resize(bx_gc, NQSRC);
+          auto src_q_arr = srcQ.array();
+          auto elix_src_q = srcQ.elixir();
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
             cs[idir].resize(bx_gc, 1);
@@ -140,8 +154,6 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
-          auto src_arr = source_in.array();
-          auto src_q_arr = srcQ.array();
 
           src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
@@ -154,6 +166,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
           flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();
+          auto elix_flatn = flatn.elixir();
+
           amrex::ParallelFor(obx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
@@ -220,16 +234,27 @@ Castro::just_the_mhd(Real time, Real dt)
 
           flxx.resize(nbxf, NUM_STATE+3);
           auto flxx_arr = flxx.array();
+          auto elix_flxx = flxx.elixir();
+
           Extmp.resize(nbxf);
+          auto Ex_arr = Extmp.array();
+          auto elix_Ex = Extmp.elixir();
 
           flxy.resize(nbyf, NUM_STATE+3);
           auto flxy_arr = flxy.array();
+          auto elix_flxy = flxy.elixir();
+
           Eytmp.resize(nbyf);
+          auto Ey_arr = Eytmp.array();
+          auto elix_Ey = Eytmp.elixir();
 
           flxz.resize(nbzf, NUM_STATE+3);
           auto flxz_arr = flxz.array();
-          Eztmp.resize(nbzf);
+          auto elix_flxz = flxz.elixir();
 
+          Eztmp.resize(nbzf);
+          auto Ez_arr = Eztmp.array();
+          auto elix_Ez = Eztmp.elixir();
 
           corner_transport(lo, hi,
                            BL_TO_FORTRAN_ANYD(q),
@@ -244,21 +269,11 @@ Castro::just_the_mhd(Real time, Real dt)
                            dx_f, dt);
 
           // Conservative update
-          consup(lo, hi,
-                 BL_TO_FORTRAN_ANYD(statein),
-                 BL_TO_FORTRAN_ANYD(source_out),
-                 BL_TO_FORTRAN_ANYD(flxx),
-                 BL_TO_FORTRAN_ANYD(flxy),
-                 BL_TO_FORTRAN_ANYD(flxz),
-                 dx_f, dt);
 
+          consup_mhd(bx, update_arr, flxx_arr, flxy_arr, flxz_arr);
 
           // magnetic update
-          auto Ex_arr = Extmp.array();
-          auto Ey_arr = Eytmp.array();
-          auto Ez_arr = Eztmp.array();
 
-          auto Bxo_arr = Bxout.array();
           amrex::ParallelFor(nbx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
@@ -266,7 +281,6 @@ Castro::just_the_mhd(Real time, Real dt)
               ((Ey_arr(i,j,k+1) - Ey_arr(i,j,k)) - (Ez_arr(i,j+1,k) - Ez_arr(i,j,k)));
           });
 
-          auto Byo_arr = Byout.array();
           amrex::ParallelFor(nby,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
@@ -274,7 +288,6 @@ Castro::just_the_mhd(Real time, Real dt)
               ((Ez_arr(i+1,j,k) - Ez_arr(i,j,k)) - (Ex_arr(i,j,k+1) - Ex_arr(i,j,k)));
           });
 
-          auto Bzo_arr = Bzout.array();
           amrex::ParallelFor(nbz,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {

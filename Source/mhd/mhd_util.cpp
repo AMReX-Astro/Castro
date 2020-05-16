@@ -47,3 +47,42 @@ Castro::mhd_speeds(const Box& bx,
   });
 
 }
+
+
+void
+Castro::consup_mhd(const Box& bx,
+                   Array4<Real> const& update,
+                   Array4<Real const> const& flux0,
+                   Array4<Real const> const& flux1,
+                   Array4<Real const> const& flux2) {
+
+  // do the conservative update and store - div{F} in update.  Note,
+  // in contrast to the CTU hydro case, we don't add the pdivu term to
+  // (rho e) here, because we included that in the hydro source terms.
+
+  const auto dx = geom.CellSizeArray();
+
+  Real dxinv = 1.0_rt/dx[0];
+  Real dyinv = 1.0_rt/dx[1];
+  Real dzinv = 1.0_rt/dx[2];
+
+  amrex::ParallelFor(bx, NUM_STATE,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+  {
+
+    if (n == UTEMP) {
+      update(i,j,k,n) = 0.0_rt;
+#ifdef SHOCK_VAR
+    } else if (n == USHK) {
+      update(i,j,k,n) = 0.0_rt;
+#endif
+    } else {
+      update(i,j,k,n) =
+        (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv +
+        (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv +
+        (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
+    }
+
+  });
+
+}

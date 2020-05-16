@@ -60,15 +60,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(Ez),
      const amrex::Real dx[], const amrex::Real dt);
 
-  void consup
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(uin),
-     BL_FORT_FAB_ARG_3D(uout),
-     const BL_FORT_FAB_ARG_3D(fluxx),
-     const BL_FORT_FAB_ARG_3D(fluxy),
-     const BL_FORT_FAB_ARG_3D(fluxz),
-     const amrex::Real dx[], const amrex::Real dt);
-
 #ifdef __cplusplus
 }
 #endif
