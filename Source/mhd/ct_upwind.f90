@@ -112,9 +112,10 @@ contains
 
     integer  :: i, j, k, work_lo(3), work_hi(3)
 
+    ! MM CTU Step 1
+    ! Calculate Flux 1D, eq.35
 
-    !Calculate Flux 1D, eq.35
-    !x-dir
+    ! x-dir
     ![lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
     fx_lo = (/ lo(1)-2, lo(2)-3, lo(3)-3 /)
     fx_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
@@ -172,7 +173,9 @@ contains
     call PrimToCons(u_lo, u_hi, qleft(:,:,:,:,3), ql_lo, ql_hi, uz_left, u_lo, u_hi)
     call PrimToCons(u_lo, u_hi, qright(:,:,:,:,3), qr_lo, qr_hi, uz_right, u_lo, u_hi)
 
-    !Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
+
+    ! MM CTU Step 2
+    ! Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
 
     ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+2, hi(2)+3, hi(3)+3]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -201,10 +204,11 @@ contains
                          flxx1D, fx_lo, fx_hi, &
                          flxy1D, fy_lo, fy_hi)
 
-
+    ! MM CTU Steps 3, 4, and 5
     ! Corner Couple, eq. 37, 38 and 39 Correct Conservative vars using Transverse Fluxes
 
-    !X direction
+    ! X direction
+
     ! affected by Y Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
     work_lo = (/ lo(1)-2 , lo(2)-2, lo(3)-2 /)
@@ -245,11 +249,10 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
 
-    !Calculate Flux 2D eq. 40
-    ![lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
+    ! Calculate Flux 2D eq. 40
+    ! [lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
     fxy_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
     fxy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-    !x-dir
 
     call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
 
@@ -293,6 +296,7 @@ contains
 
 
     !Y direction
+
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -369,6 +373,7 @@ contains
               flx_yz, fyz_lo, fyz_hi, 2) !F^{y|z}
 
     !Z direction
+
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -432,8 +437,7 @@ contains
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
-    
-    
+
     fzy_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     fzy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
@@ -444,8 +448,10 @@ contains
          flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
 
 
-    !Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
-    ! eq.  42 and 43 ?
+    ! MM CTU Step 6
+    ! Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
+    ! eq. 42 and 43
+
     do k = lo(3)-2, hi(3)+2
        do j = lo(2)-2, hi(2)+2
           do i = lo(1)-1, hi(1)+2
@@ -470,34 +476,35 @@ contains
        end do
     end do
 
-    !eq. 41
+    ! eq. 41
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+2, hi(3)+2 /)
     call electric_edge_x(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ex, ex_lo, ex_hi, &
-         flxy1D, fy_lo, fy_hi, &
-         flxz1D, fz_lo, fz_hi)
+                         q, q_lo, q_hi, &
+                         Ex, ex_lo, ex_hi, &
+                         flxy1D, fy_lo, fy_hi, &
+                         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+1, hi(3)+2 /)
     call electric_edge_y(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ey, ey_lo, ey_hi, &
-         flxx1D, fx_lo, fx_hi, &
-         flxz1D, fz_lo, fz_hi)
+                         q, q_lo, q_hi, &
+                         Ey, ey_lo, ey_hi, &
+                         flxx1D, fx_lo, fx_hi, &
+                         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+1 /)
     call electric_edge_z(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ez, ez_lo, ez_hi, &
-         flxx1D, fx_lo, fx_hi, &
-         flxy1D, fy_lo, fy_hi)
+                         q, q_lo, q_hi, &
+                         Ez, ez_lo, ez_hi, &
+                         flxx1D, fx_lo, fx_hi, &
+                         flxy1D, fy_lo, fy_hi)
 
+    ! MM CTU Step 7, 8, and 9
     ! Half Step conservative vars eq.44, eq.45, eq.46
     ! Here we reuse utmp_left/right to denote the half-time conservative state
 
@@ -546,6 +553,7 @@ contains
 
 
     !for y direction
+
     ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -583,6 +591,7 @@ contains
               flxy, flxy_lo, flxy_hi, 2)
 
     !for z direction
+
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -612,7 +621,6 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
-    !z-dir
     ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -621,7 +629,8 @@ contains
               flxz, flxz_lo, flxz_hi, 3)
 
 
-    !Primitive update eq. 48
+    ! MM CTU Step 10
+    ! Primitive update eq. 48
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
