@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 10000
-stop_time =  0.1
+stop_time =  1.41
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1  1  1 
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0      0      0
-geometry.prob_hi     =  1     0.0625  0.0625   #0.015625  0.015625
-amr.n_cell           =  64      4     4
+geometry.prob_hi     =  1      0.25  0.25   #0.015625  0.015625
+amr.n_cell           =  16     4     4
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -25,14 +25,15 @@ castro.ppm_type = 0
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
 
-castro.small_temp = 1.e-5
+#castro.small_temp = 1.e-5
 castro.small_dens = 1.e-6
 castro.small_pres = 1.e-10
 
 # TIME STEP CONTROL
-castro.cfl            = 0.9     # cfl number for hyperbolic system
-castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.05    # scale back initial timestep
+castro.fixed_dt  = 0.02
+castro.cfl       = 0.8     # cfl number for hyperbolic system
+#castro.init_shrink    = 0.1     # scale back initial timestep
+#castro.change_max     = 1.05    # scale back initial timestep
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -50,15 +51,15 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = sod_x_chk  # root name of checkpoint file
-amr.check_int       = 10         # number of timesteps between checkpoints
+amr.check_int       = 100         # number of timesteps between checkpoints
 
 # PLOTFILES
 #amr.plot_files_output = 0
 amr.checkpoint_files_output = 0
 
-amr.plot_file       = sod_x_plt  # root name of plotfile
+amr.plot_file       = alfven_plt  # root name of plotfile
 amr.plot_int        = 100       # number of timesteps between plotfiles
 amr.derive_plot_vars = density x_velocity y_velocity z_velocity eden Temp pressure B_x B_y B_z # these variables appear in the plotfile
 
 #PROBIN FILENAME
-amr.probin_file = probin-sod-x
+amr.probin_file = probin-1_0

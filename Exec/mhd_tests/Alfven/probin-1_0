@@ -5,9 +5,9 @@
   u_z = 0.0
   rho_0 = 1.0
 
-  idir = 1
-  frac = 0.5
-
+  k_x = 1.0 
+  k_y = 0.0
+ 
 /
 
 &tagging
@@ -27,5 +27,5 @@
 &extern
 
   eos_assume_neutral = T
-  eos_gamma = 5.0/3.0
+  eos_gamma = 1.67
 /
