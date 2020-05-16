@@ -230,6 +230,7 @@ contains
                        1, 2, &
                        dx(1), dt) !qmpxy
 
+    ! magnetic field components on x interface affected by y fluxes
     call corner_couple_mag(work_lo, work_hi, &
                            utmp_right, ut_lo, ut_hi, &
                            utmp_left, ut_lo, ut_hi, &
@@ -806,7 +807,6 @@ contains
     enddo
   end subroutine ConsToPrim
 
-  !======================================= Update the Temporary Conservative Variables with Transverse 1D Fluxes ========================
   subroutine corner_couple(w_lo, w_hi, &
                            ur_out, uro_lo, uro_hi, &
                            ul_out, ulo_lo, ulo_hi, &
@@ -816,8 +816,13 @@ contains
                            d1, d2, &
                            dx, dt)
 
-    ! take conservative interface states ul and ur and update them with
-    ! corner coupling to produce ul_out and ur_out
+    ! take conservative interface states ul and ur and update them
+    ! with with the transverse flux difference (corner coupling) to
+    ! produce ul_out and ur_out
+    !
+    ! This implements MM step 3 of the CTU algorithm.
+    ! the normal direction (for the interface states) is d1
+    ! the transverse direction (for the flux difference) is d2
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module
@@ -843,17 +848,16 @@ contains
     real(rt), intent(out) :: ul_out(ulo_lo(1):ulo_hi(1),ulo_lo(2):ulo_hi(2),ulo_lo(3):ulo_hi(3),NVAR+3)
 
     real(rt) :: u, v, w, cdtdx
-    integer  :: i ,j ,k
+    integer  :: i, j, k, n
     integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
 
-    !ur_out(:,:,:,:) = ur(:,:,:,:)
-    !ul_out(:,:,:,:) = ul(:,:,:,:)
+    ! update the state on interface direction d1 with the input flux in direction d2
 
-    ! update the state in direction d1 with the input flux
+    ! for the flux difference, F_r - F_l, we need to shift the indices in the first flux (F_r)
+    ! to get a difference across the interface.  d(:) will hold this shift.
+    d(:) = 0
 
-    d = 0
-
-    !the first term of the flxd2 substraction is shifted by 1 on the direction d2
+    ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
     d(d2) = 1
 
     cdtdx = dt/(3.d0*dx)
@@ -862,23 +866,17 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! eq. 37 from Miniati paper, for both + and -
+             ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
+             ! MM Eq. 37
 
-             ! right corrected states
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
-                                                          flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
-                                                        flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
-                                                        flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
-                                                        flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
-                                                            flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - &
-                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
-                         flxd2(i,j,k,UFS:UFS+nspec-1))
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
 
+                ur_out(i,j,k,n) = ur(i,j,k,n) - &
+                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+             end do
+
+             ! now fix up the internal energy
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
@@ -886,21 +884,16 @@ contains
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
 
-             ! left corrected statges
-             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
-                                                          flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
-                                                        flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
-                                                        flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
-                                                        flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
-                                                            flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - &
-                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
-                         flxd2(i,j,k,UFS:UFS+nspec-1))
+             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
 
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
+
+                ul_out(i,j,k,n) = ul(i,j,k,n) - &
+                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+             end do
+
+             ! fix up the internal energy
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
              v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
