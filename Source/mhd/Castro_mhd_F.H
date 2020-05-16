@@ -20,14 +20,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(cy),
      BL_FORT_FAB_ARG_3D(cz));
 
-  void check_for_mhd_cfl_violation
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(cx),
-     const BL_FORT_FAB_ARG_3D(cy),
-     const BL_FORT_FAB_ARG_3D(cz),
-     amrex::Real& courno, const amrex::Real dx[], const amrex::Real dt);
-
   void mhd_flatten
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG_3D(q),
