@@ -86,9 +86,6 @@ contains
     ! qleft and qright are the interface states in each dimension (the last index '3' is the
     ! direction
 
-    qleft(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),:,idir) = 0.d0
-    qright(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),:,idir) = 0.d0
-
     ! these loops are over cell-centers and for each cell-center, we find the left and
     ! right interface states
 
