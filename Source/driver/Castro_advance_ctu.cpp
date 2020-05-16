@@ -305,6 +305,7 @@ Castro::do_advance_ctu(Real time,
     if (castro::change_max * new_dt < dt) {
         status.success = false;
         status.reason = "timestep validity check failed";
+        return status;
     }
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
