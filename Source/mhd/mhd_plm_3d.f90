@@ -92,9 +92,9 @@ contains
     dtdx = dt/dx(idir)
 
     !=========================== PLM =========================================
-    do k = s_lo(3)+1, s_hi(3)-1
-       do j = s_lo(2)+1, s_hi(2)-1
-          do i = s_lo(1)+1, s_hi(1)-1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              ! compute the 1-sided differences used for the slopes
 

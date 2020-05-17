@@ -162,7 +162,13 @@ Castro::just_the_mhd(Real time, Real dt)
           qp.resize(bx_gc, NQ * AMREX_SPACEDIM);
           qm.resize(bx_gc, NQ * AMREX_SPACEDIM);
 
-          plm(lo, hi, 1,
+          const Box& nbx = amrex::surroundingNodes(bx, 0);
+          const Box& nby = amrex::surroundingNodes(bx, 1);
+          const Box& nbz = amrex::surroundingNodes(bx, 2);
+
+          const Box& nbxi = amrex::grow(nbx, IntVect(2, 3, 3));
+
+          plm(nbxi.loVect(), nbxi.hiVect(), 1,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
@@ -174,7 +180,9 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          plm(lo, hi, 2,
+          const Box& nbyi = amrex::grow(nby, IntVect(3, 2, 3));
+
+          plm(nbyi.loVect(), nbyi.hiVect(), 2,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
@@ -186,7 +194,9 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          plm(lo, hi, 3,
+          const Box& nbzi = amrex::grow(nbz, IntVect(3, 3, 2));
+
+          plm(nbzi.loVect(), nbzi.hiVect(), 3,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
@@ -202,13 +212,8 @@ Castro::just_the_mhd(Real time, Real dt)
           // Corner Couple and find the correct fluxes + electric fields
 
           // need to revisit these box sizes
-          const Box& nbx = amrex::surroundingNodes(bx, 0);
           const Box& nbxf = amrex::grow(nbx, IntVect(2, 3, 3));
-
-          const Box& nby = amrex::surroundingNodes(bx, 1);
           const Box& nbyf = amrex::grow(nby, IntVect(3, 2, 3));
-
-          const Box& nbz = amrex::surroundingNodes(bx, 2);
           const Box& nbzf = amrex::grow(nbz, IntVect(3, 3, 2));
 
           flxx.resize(nbxf, NUM_STATE+3);
