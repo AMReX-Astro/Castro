@@ -973,7 +973,7 @@ contains
 
              ! eq. 38 and 39 of Miniati for -
 
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
              ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)* &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
@@ -1001,7 +1001,7 @@ contains
 
              ! eq. 38 and 39 of Miniati for +
 
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
              ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)*&
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
@@ -1202,7 +1202,7 @@ contains
              !d-Direction
 
              ! right state on the interface (Bd eq.45 in Miniati for -)
-             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) + sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
+             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
                   - (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
              !Bd1 eq.46 in Miniati
              ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
@@ -1221,7 +1221,7 @@ contains
              ! left state on the interface (Bd eq. 45 in Miniati for +)
              ! for the + case, the shifts mentioned above in b6, b5, and b4
              ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely
-             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) + sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
+             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
                   - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
              !Bd1 eq. 46 in Miniati
              ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
