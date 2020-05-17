@@ -38,7 +38,7 @@ contains
     real(rt), intent(out) :: flx(flx_lo(1):flx_hi(1),flx_lo(2):flx_hi(2),flx_lo(3):flx_hi(3),NVAR+3)
 
     real(rt)       :: cfL2, cfR, sL, sR, sM, ssL, ssR, pst, caL, canL, BL2, BR2
-    real(rt)       :: caR, canR, asL, asR, ptL, ptR, eintL, eintR
+    real(rt)       :: caR, canR, asL, asR, ptL, ptR
     real(rt)       :: QL(NQ), QR(NQ)
     real(rt)       :: FL(NVAR+3), FR(NVAR+3)
     real(rt)       :: uL(NVAR+3), uR(NVAR+3)
@@ -127,8 +127,6 @@ contains
 
              call PToC(qL, uL, gam1_L)
 
-             eintL = UL(UEINT)/UL(URHO)
-
              ! Compute the fluxes.  Here use total p not just p_g eq.11 in Miniati
              ! Also note that Miniati has an overall sign error in the B fluxes
              BL2 = dot_product(qL(QMAGX:QMAGZ), qL(QMAGX:QMAGZ))
@@ -143,12 +141,10 @@ contains
              FL(UMAGP1) = qL(QVELN)*qL(QMAGP1) - qL(QVELP1)*qL(QMAGN)
              FL(UMAGP2) = qL(QVELN)*qL(QMAGP2) - qL(QVELP2)*qL(QMAGN)
              FL(UFS:UFS+nspec-1) = qL(QVELN) * UL(UFS:UFS+nspec-1)
-             FL(UEINT) = qL(QRHO)*qL(QVELN)*eintL
+             FL(UEINT) = qL(QVELN)*UL(UEINT)
              FL(UTEMP) = 0.0_rt
 
              call PToC(qR, uR, gam1_R)
-
-             eintR = UR(UEINT)/UR(URHO)
 
              BR2 = dot_product(qR(QMAGX:QMAGZ), qR(QMAGX:QMAGZ))
 
@@ -162,7 +158,7 @@ contains
              FR(UMAGP1) = qR(QVELN)*qR(QMAGP1) - qR(QVELP1)*qR(QMAGN)
              FR(UMAGP2) = qR(QVELN)*qR(QMAGP2) - qR(QVELP2)*qR(QMAGN)
              FR(UFS:UFS+nspec-1) = qR(QVELN)*UR(UFS:UFS+nspec-1)
-             FR(UEINT) = qR(QRHO)*qR(QVELN)*eintR
+             FR(UEINT) = qR(QVELN)*UR(UEINT)
              FR(UTEMP) = 0.0_rt
 
              ! From Miyoshi and Kusano paper eq.(3)
@@ -210,8 +206,8 @@ contains
              UsR(UFS:UFS+nspec-1) = qR(QFS:QFS+nspec-1)*UsR(URHO)
 
              ! e
-             UsL(UEINT) = eintL * UsL(URHO)
-             UsR(UEINT) = eintR * UsR(URHO)
+             UsL(UEINT) = UL(UEINT) / UL(URHO) * UsL(URHO)
+             UsR(UEINT) = UR(UEINT) / UR(URHO) * UsR(URHO)
 
              ! Vel * states
 
