@@ -112,9 +112,10 @@ contains
 
     integer  :: i, j, k, work_lo(3), work_hi(3)
 
+    ! MM CTU Step 1
+    ! Calculate Flux 1D, eq.35
 
-    !Calculate Flux 1D, eq.35
-    !x-dir
+    ! x-dir
     ![lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
     fx_lo = (/ lo(1)-2, lo(2)-3, lo(3)-3 /)
     fx_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
@@ -172,7 +173,9 @@ contains
     call PrimToCons(u_lo, u_hi, qleft(:,:,:,:,3), ql_lo, ql_hi, uz_left, u_lo, u_hi)
     call PrimToCons(u_lo, u_hi, qright(:,:,:,:,3), qr_lo, qr_hi, uz_right, u_lo, u_hi)
 
-    !Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
+
+    ! MM CTU Step 2
+    ! Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
 
     ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+2, hi(2)+3, hi(3)+3]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -201,10 +204,11 @@ contains
                          flxx1D, fx_lo, fx_hi, &
                          flxy1D, fy_lo, fy_hi)
 
-
+    ! MM CTU Steps 3, 4, and 5
     ! Corner Couple, eq. 37, 38 and 39 Correct Conservative vars using Transverse Fluxes
 
-    !X direction
+    ! X direction
+
     ! affected by Y Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
     work_lo = (/ lo(1)-2 , lo(2)-2, lo(3)-2 /)
@@ -226,6 +230,7 @@ contains
                        1, 2, &
                        dx(1), dt) !qmpxy
 
+    ! magnetic field components on x interface affected by y fluxes
     call corner_couple_mag(work_lo, work_hi, &
                            utmp_right, ut_lo, ut_hi, &
                            utmp_left, ut_lo, ut_hi, &
@@ -245,11 +250,10 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
 
-    !Calculate Flux 2D eq. 40
-    ![lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
+    ! Calculate Flux 2D eq. 40
+    ! [lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
     fxy_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
     fxy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-    !x-dir
 
     call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
 
@@ -293,6 +297,7 @@ contains
 
 
     !Y direction
+
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -369,6 +374,7 @@ contains
               flx_yz, fyz_lo, fyz_hi, 2) !F^{y|z}
 
     !Z direction
+
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
@@ -432,8 +438,7 @@ contains
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
-    
-    
+
     fzy_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     fzy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
@@ -444,8 +449,10 @@ contains
          flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
 
 
-    !Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
-    ! eq.  42 and 43 ?
+    ! MM CTU Step 6
+    ! Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
+    ! eq. 42 and 43
+
     do k = lo(3)-2, hi(3)+2
        do j = lo(2)-2, hi(2)+2
           do i = lo(1)-1, hi(1)+2
@@ -470,34 +477,35 @@ contains
        end do
     end do
 
-    !eq. 41
+    ! eq. 41
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+2, hi(3)+2 /)
     call electric_edge_x(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ex, ex_lo, ex_hi, &
-         flxy1D, fy_lo, fy_hi, &
-         flxz1D, fz_lo, fz_hi)
+                         q, q_lo, q_hi, &
+                         Ex, ex_lo, ex_hi, &
+                         flxy1D, fy_lo, fy_hi, &
+                         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+1, hi(3)+2 /)
     call electric_edge_y(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ey, ey_lo, ey_hi, &
-         flxx1D, fx_lo, fx_hi, &
-         flxz1D, fz_lo, fz_hi)
+                         q, q_lo, q_hi, &
+                         Ey, ey_lo, ey_hi, &
+                         flxx1D, fx_lo, fx_hi, &
+                         flxz1D, fz_lo, fz_hi)
 
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+1 /)
     call electric_edge_z(work_lo, work_hi, &
-         q, q_lo, q_hi, &
-         Ez, ez_lo, ez_hi, &
-         flxx1D, fx_lo, fx_hi, &
-         flxy1D, fy_lo, fy_hi)
+                         q, q_lo, q_hi, &
+                         Ez, ez_lo, ez_hi, &
+                         flxx1D, fx_lo, fx_hi, &
+                         flxy1D, fy_lo, fy_hi)
 
+    ! MM CTU Step 7, 8, and 9
     ! Half Step conservative vars eq.44, eq.45, eq.46
     ! Here we reuse utmp_left/right to denote the half-time conservative state
 
@@ -546,6 +554,7 @@ contains
 
 
     !for y direction
+
     ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -583,6 +592,7 @@ contains
               flxy, flxy_lo, flxy_hi, 2)
 
     !for z direction
+
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -612,7 +622,6 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
-    !z-dir
     ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -621,7 +630,8 @@ contains
               flxz, flxz_lo, flxz_hi, 3)
 
 
-    !Primitive update eq. 48
+    ! MM CTU Step 10
+    ! Primitive update eq. 48
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
     work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
@@ -797,7 +807,6 @@ contains
     enddo
   end subroutine ConsToPrim
 
-  !======================================= Update the Temporary Conservative Variables with Transverse 1D Fluxes ========================
   subroutine corner_couple(w_lo, w_hi, &
                            ur_out, uro_lo, uro_hi, &
                            ul_out, ulo_lo, ulo_hi, &
@@ -807,8 +816,13 @@ contains
                            d1, d2, &
                            dx, dt)
 
-    ! take conservative interface states ul and ur and update them with
-    ! corner coupling to produce ul_out and ur_out
+    ! take conservative interface states ul and ur and update them
+    ! with with the transverse flux difference (corner coupling) to
+    ! produce ul_out and ur_out
+    !
+    ! This implements MM step 3 of the CTU algorithm.
+    ! the normal direction (for the interface states) is d1
+    ! the transverse direction (for the flux difference) is d2
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module
@@ -834,17 +848,16 @@ contains
     real(rt), intent(out) :: ul_out(ulo_lo(1):ulo_hi(1),ulo_lo(2):ulo_hi(2),ulo_lo(3):ulo_hi(3),NVAR+3)
 
     real(rt) :: u, v, w, cdtdx
-    integer  :: i ,j ,k
+    integer  :: i, j, k, n
     integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
 
-    !ur_out(:,:,:,:) = ur(:,:,:,:)
-    !ul_out(:,:,:,:) = ul(:,:,:,:)
+    ! update the state on interface direction d1 with the input flux in direction d2
 
-    ! update the state in direction d1 with the input flux
+    ! for the flux difference, F_r - F_l, we need to shift the indices in the first flux (F_r)
+    ! to get a difference across the interface.  d(:) will hold this shift.
+    d(:) = 0
 
-    d = 0
-
-    !the first term of the flxd2 substraction is shifted by 1 on the direction d2
+    ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
     d(d2) = 1
 
     cdtdx = dt/(3.d0*dx)
@@ -853,23 +866,17 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! eq. 37 from Miniati paper, for both + and -
+             ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
+             ! MM Eq. 37
 
-             ! right corrected states
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
-                                                          flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
-                                                        flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
-                                                        flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
-                                                        flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
-                                                            flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - &
-                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
-                         flxd2(i,j,k,UFS:UFS+nspec-1))
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
 
+                ur_out(i,j,k,n) = ur(i,j,k,n) - &
+                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+             end do
+
+             ! now fix up the internal energy
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
@@ -877,21 +884,16 @@ contains
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
 
-             ! left corrected statges
-             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),URHO) - &
-                                                          flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMX) - &
-                                                        flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMY) - &
-                                                        flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UMZ) - &
-                                                        flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UEDEN) - &
-                                                            flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - &
-                  cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) - &
-                         flxd2(i,j,k,UFS:UFS+nspec-1))
+             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
 
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
+
+                ul_out(i,j,k,n) = ul(i,j,k,n) - &
+                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+             end do
+
+             ! fix up the internal energy
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
              v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
