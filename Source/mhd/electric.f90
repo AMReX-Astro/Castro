@@ -1,31 +1,34 @@
 module electric_field
 
-implicit none
+  use mhd_state_module
+  implicit none
 
 contains
 
-subroutine electric(Q, E, comp) !Use ideal Ohm's Law
+  subroutine electric(Q, E, comp)
 
-  use amrex_fort_module, only : rt => amrex_real
-  use meth_params_module, only : NQ, QU,QV, QW, QMAGX, QMAGY, QMAGZ
+    ! this takes the cell-center primitive state, Q, and computes the cell-center
+    ! electric field, E, using Faraday's law:
+    ! E = -v X B
 
-  implicit none
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : NQ, QU,QV, QW, QMAGX, QMAGY, QMAGZ
 
-  real(rt), intent(in)   ::Q(NQ)
-  real(rt), intent(out)  ::E
-  integer, intent(in)    ::comp
+    implicit none
 
-  !E = -v X B
-  if(comp.eq. 1) then
-     E       = -Q(QV)*Q(QMAGZ) + Q(QW)*Q(QMAGY)
-  elseif(comp.eq. 2) then
-     E       = -Q(QW)*Q(QMAGX) + Q(QU)*Q(QMAGZ)
-  elseif(comp.eq. 3) then
-     E       = -Q(QU)*Q(QMAGY) + Q(QV)*Q(QMAGX)
-  else
-  endif
+    real(rt), intent(in)   :: Q(NQ)
+    real(rt), intent(out)  ::E
+    integer, intent(in)    ::comp
 
-end subroutine electric
+    if(comp == 1) then
+       E = -Q(QV) * Q(QMAGZ) + Q(QW) * Q(QMAGY)
+    else if (comp == 2) then
+       E = -Q(QW) * Q(QMAGX) + Q(QU) * Q(QMAGZ)
+    else if (comp == 3) then
+       E = -Q(QU) * Q(QMAGY) + Q(QV) * Q(QMAGX)
+    end if
+
+  end subroutine electric
 
 subroutine electric_edge_x(work_lo, work_hi, &
                            q, q_lo, q_hi, &
@@ -33,6 +36,7 @@ subroutine electric_edge_x(work_lo, work_hi, &
                            flxy, flxy_lo, flxy_hi, &
                            flxz, flxz_lo, flxz_hi)
 
+  ! Compute Ex on an edge.  This will compute Ex(i, j-1/2, k-1/2)
 
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module
@@ -56,90 +60,110 @@ subroutine electric_edge_x(work_lo, work_hi, &
   real(rt) :: a ,b ,d1 ,d2 ,dd1 ,dd2
 
   integer :: i ,j ,k
-  integer :: UMAGX, UMAGY, UMAGZ
 
-  UMAGX = NVAR+1
-  UMAGY = NVAR+2
-  UMAGZ = NVAR+3
-
-  E = 0.d0
   do k = work_lo(3), work_hi(3)
      do j = work_lo(2), work_hi(2)
         do i = work_lo(1), work_hi(1)
 
-           !===================================Ex i, j -1/2, k -1/2 ====================================
+           ! Compute Ex(i, j-1/2, k-1/2) using MM Eq. 50
 
-           !-------------------Y derivatives -----------------
-           !dEx/dy i,j-3/4, k-1/2
-           call electric(q(i,j-1,k-1,:),Ecen,1)
+           ! dEx/dy (Eq. 49), located at (i, j-3/4, k-1/2)
+
+           ! first compute dEx/dy_{i,j-3/4,k-1} using MM Eq. 49
+           ! note that the face value Ex_{i,j-1/2,k-1} = -F_{i,j-1/2,k-1}(Bz) 
+           ! via Faraday's law (MM Eq. 15)
+           call electric(q(i,j-1,k-1,:), Ecen,1)
            a = 2.d0*( -flxy(i,j,k-1,UMAGZ) - Ecen )
-           call electric(q(i,j-1,k,:),Ecen,1)
+
+           ! now compute dEx/dy_{i,j-3/4,k}
+           call electric(q(i,j-1,k,:), Ecen,1)
            b = 2.d0*( -flxy(i,j,k,UMAGZ) - Ecen )
 
-           !Upwind in the z direction to get dEx/dy i, j-3/4, k-1/2
-           if(flxz(i,j-1,k,URHO) .gt. 0.d0) then !recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
+           ! Upwind in the z direction to get dEx/dy i, j-3/4, k-1/2
+           ! using w_{i,j-1,k-1/2}
+           ! recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
+           if (flxz(i,j-1,k,URHO) .gt. 0.d0) then 
               d1 = a
-           else if(flxz(i,j-1,k,URHO) .lt. 0.d0) then
+           else if (flxz(i,j-1,k,URHO) .lt. 0.d0) then
               d1 = b
            else
               d1 = 0.5d0*(a + b)
            endif
 
-           !dEx/dy i,j-1/4, k-1/2
-           call electric(q(i,j,k-1,:),Ecen, 1)
-           a = 2.d0*( Ecen + flxy(i,j,k-1,UMAGZ) )
-           call electric(q(i,j,k,:),Ecen, 1)
-           b = 2.d0*( Ecen + flxy(i,j,k,UMAGZ) )
+           ! dEx/dy located at (i, j-1/4, k-1/2)
 
-           !Upwind in the z direction to get dEx/dy i, j-1/4, k-1/2
-           if(flxz(i,j,k,URHO) .gt. 0.d0) then
-              d2 = a
-           else if(flxz(i,j,k,URHO) .lt. 0.d0) then
-              d2 = b
-           else
-              d2 = 0.5d0*(a+b)
-           endif
+           ! first compute dEx/dy_{i,j-1/4,k-1}
+           call electric(q(i,j,k-1,:), Ecen, 1)
+           a = 2.d0 * (Ecen + flxy(i,j,k-1,UMAGZ) )
 
-           !Calculate the "second derivative" in the y direction for d^2Ex/dy^2 i, j-1/2, k-1/2
-           dd1 = 0.125d0*(d1 - d2)
-
-           !------------------ Z derivatives --------------------
-           !dEx/dz i, j-1/2, k - 3/4
-           call electric(q(i,j-1,k-1,:),Ecen,1)
-           a = 2.d0*( flxz(i,j-1,k,UMAGY) - Ecen )
-           call electric(q(i,j, k-1, :), Ecen, 1)
-           b = 2.d0*( flxz(i,j,k,UMAGY) - Ecen )
-
-           !upwind in the y direction to get dEx/dz i, j-1/2, k -3/4
-           if(flxy(i,j,k-1,URHO).gt.0.d0) then
-                    d1 = a
-           elseif(flxy(i,j,k-1,URHO).lt.0.d0) then
-                    d1 = b
-           else
-                    d1 = 0.5d0*(a + b)
-           endif
-
-           !dEx/dz i, j-1/2, k-1/4
-           call electric(q(i,j-1,k,:), Ecen, 1)
-           a = 2.d0*( Ecen - flxz(i,j-1,k,UMAGY) )
+           ! now compute dEx/dy_{i,j-1/4,k}
            call electric(q(i,j,k,:), Ecen, 1)
-           b = 2.d0*( Ecen - flxz(i,j,k,UMAGY) )
+           b = 2.d0 * (Ecen + flxy(i,j,k,UMAGZ) )
 
-           !Upwind in the y direction for i,j-1/2,k-1/2
-           if(flxy(i,j,k,URHO).gt.0.d0) then
+           ! finally upwind in the z direction to get dEx/dy i, j-1/4, k-1/2
+           ! using w_{i,j,k-1/2}
+           if (flxz(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
-           elseif(flxy(i,j,k,URHO).lt.0.d0) then
+           else if (flxz(i,j,k,URHO) .lt. 0.d0) then
               d2 = b
            else
               d2 = 0.5d0*(a + b)
            endif
 
-           !calculate second derivative
+           ! Calculate the "second derivative" in the y direction for
+           ! d^2Ex/dy^2 i, j-1/2, k-1/2 (this is one of the terms in Eq. 50)
+           ! note: Stone 08 Eq. 79 has the signs backwards for this term.
+           dd1 = 0.125d0*(d1 - d2)
+
+
+           ! now dEx/dz located at (i, j-1/2, k-3/4)
+
+           ! first compute dEx/dz_{i,j-1,k-3/4}
+           ! note that the face value of Ex_{i,j-1,k-1/2} = F_{i,j-1,k-1/2}(By)
+           call electric(q(i,j-1,k-1,:), Ecen, 1)
+           a = 2.d0 * (flxz(i,j-1,k,UMAGY) - Ecen )
+
+           ! now compute dEx/dz_{i,j,k-3/4}
+           call electric(q(i,j, k-1, :), Ecen, 1)
+           b = 2.d0 * (flxz(i,j,k,UMAGY) - Ecen)
+
+           ! upwind in the y direction to get dEx/dz i, j-1/2, k-3/4
+           ! using v_{i,j-1/2,k-1}
+           if (flxy(i,j,k-1,URHO) .gt. 0.d0) then
+              d1 = a
+           else if (flxy(i,j,k-1,URHO) .lt. 0.d0) then
+              d1 = b
+           else
+              d1 = 0.5d0*(a + b)
+           endif
+
+           ! dEx/dz located at (i, j-1/2, k-1/4)
+
+           ! first compute dEx/dz_{i,j-1,k-1/4}
+           call electric(q(i,j-1,k,:), Ecen, 1)
+           a = 2.d0 * (Ecen - flxz(i,j-1,k,UMAGY) )
+
+           ! now compute dEx/dz_{i,j,k-1/4}
+           call electric(q(i,j,k,:), Ecen, 1)
+           b = 2.d0 * (Ecen - flxz(i,j,k,UMAGY) )
+
+           ! upwind in the y direction to get dEx/dz i, j-1/2, k-1/4
+           ! using v_{i,j-1/2,k}
+           if (flxy(i,j,k,URHO) .gt. 0.d0) then
+              d2 = a
+           else if (flxy(i,j,k,URHO) .lt. 0.d0) then
+              d2 = b
+           else
+              d2 = 0.5d0*(a + b)
+           endif
+
+           ! calculate second derivative
            dd2 = 0.125d0*(d1 - d2)
 
-           !----------------------Prescribe Ex i, j -1/2, k -1/2 ------------------------
-           E(i,j,k) = 0.25d0*(-flxy(i,j,k,UMAGZ) - flxy(i,j,k-1,UMAGZ) + flxz(i,j-1,k,UMAGY) + flxz(i,j,k,UMAGY)) + dd1 + dd2
+           ! now the final Ex_{i,j-1/2,k-1/2}, using MM Eq. 50 (shifted to j-1/2, k-1/2)
 
+           E(i,j,k) = 0.25d0*(-flxy(i,j,k,UMAGZ) - flxy(i,j,k-1,UMAGZ) + &
+                              flxz(i,j-1,k,UMAGY) + flxz(i,j,k,UMAGY)) + dd1 + dd2
 
         enddo
      enddo
@@ -176,89 +200,104 @@ subroutine electric_edge_y(work_lo, work_hi, &
   real(rt)  :: a ,b ,d1 ,d2 ,dd1 ,dd2
 
   integer   :: i ,j ,k
-  integer :: UMAGX, UMAGY, UMAGZ
 
-  UMAGX = NVAR+1
-  UMAGY = NVAR+2
-  UMAGZ = NVAR+3
-
-  E = 0.d0
   do k = work_lo(3), work_hi(3)
      do j = work_lo(2), work_hi(2)
         do i = work_lo(1), work_hi(1)
 
-           !====================================== Ey i-1/2, j, k-1/2 ============================================
-           !-------------------Z derivatives -----------------
-           !dEy/dz i-1/2,j, k-3/4
-           call electric(q(i-1,j,k-1,:),Ecen,2)
-           a = 2.d0*( -flxz(i-1,j,k,UMAGX) - Ecen )
-           call electric(q(i,j,k-1,:),Ecen,2)
-           b = 2.d0*( -flxz(i,j,k,UMAGX) - Ecen )
+           ! Compute Ey(i-1/2, j, k-1/2)
 
-           !Upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
-           if(flxx(i,j,k-1,URHO) .gt. 0.d0) then
+           ! dEy/dz i-1/2, j, k-3/4
+
+           ! first compute dEy/dz_{i-1,j,k-3/4}
+           call electric(q(i-1,j,k-1,:), Ecen, 2)
+           a = 2.d0 * (-flxz(i-1,j,k,UMAGX) - Ecen)
+
+           ! now compute dEy/dz_{i,j,k-3/4}
+           call electric(q(i,j,k-1,:), Ecen, 2)
+           b = 2.d0 * (-flxz(i,j,k,UMAGX) - Ecen)
+
+           ! upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
+           ! using u_{i-1/2,j,k-1}
+           if (flxx(i,j,k-1,URHO) .gt. 0.d0) then
               d1 = a
-           else if(flxx(i,j,k-1,URHO) .lt. 0.d0) then
+           else if (flxx(i,j,k-1,URHO) .lt. 0.d0) then
               d1 = b
            else
               d1 = 0.5d0*(a + b)
            endif
 
-           !dEy/dz i-1/2,j, k-1/4
-           call electric(q(i-1,j,k,:),Ecen, 2)
-           a = 2.d0*( Ecen + flxz(i-1,j,k,UMAGX) )
-           call electric(q(i,j,k,:),Ecen, 2)
-           b = 2.d0*( Ecen + flxz(i,j,k,UMAGX) )
+           ! dEy/dz i-1/2, j, k-1/4
 
-           !Upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
-           if(flxx(i,j,k,URHO) .gt. 0.d0) then
+           ! first compute dEy/dz_{i-1,j,k-1/4}
+           call electric(q(i-1,j,k,:), Ecen, 2)
+           a = 2.d0 * (Ecen + flxz(i-1,j,k,UMAGX))
+
+           ! now compute dEy/dz_{i,j,k-1/4}
+           call electric(q(i,j,k,:), Ecen, 2)
+           b = 2.d0 * (Ecen + flxz(i,j,k,UMAGX))
+
+           ! upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
+           ! using u_{i-1/2.j,k}
+           if (flxx(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
-           else if(flxx(i,j,k,URHO) .lt. 0.d0) then
+           else if (flxx(i,j,k,URHO) .lt. 0.d0) then
               d2 = b
            else
               d2 = 0.5d0*(a+b)
            endif
 
-           !Calculate the "second derivative" in the y direction for d^2Ey/dz^2 i-1/2, j, k-1/2
+           ! calculate the "second derivative" in the y direction for
+           ! d^2Ey/dz^2 i-1/2, j, k-1/2
            dd1 = 0.125d0*(d1-d2)
 
-         !------------------ X derivatives --------------------
-           !dEy/dx i -3/4, j, k - 1/2
-           call electric(q(i-1,j,k-1,:),Ecen,2)
-           a = 2.d0*( flxx(i,j,k-1,UMAGZ) - Ecen )
-           call electric(q(i-1,j, k, :), Ecen, 2)
-           b = 2.d0*( flxx(i,j,k,UMAGZ) - Ecen )
 
-           !upwind in the z direction to get dEy/dx i-3/4, j, k -1/2
-           if(flxz(i-1,j,k,URHO).gt.0.d0) then
-                    d1 = a
-           elseif(flxz(i-1,j,k,URHO).lt.0.d0) then
-                    d1 = b
+           ! dEy/dx i-3/4, j, k-1/2
+
+           ! first compute dEy/dz_{i-3/4,j,k-1}
+           call electric(q(i-1,j,k-1,:), Ecen, 2)
+           a = 2.d0*(flxx(i,j,k-1,UMAGZ) - Ecen)
+
+           ! next compute dEy/dz_{i-3/4,j,k}
+           call electric(q(i-1,j,k, :), Ecen, 2)
+           b = 2.d0*(flxx(i,j,k,UMAGZ) - Ecen)
+
+           ! upwind in the z direction to get dEy/dx i-3/4, j, k-1/2
+           ! using w_{i-1,j,k-1/2}
+           if (flxz(i-1,j,k,URHO) .gt. 0.d0) then
+              d1 = a
+           else if (flxz(i-1,j,k,URHO) .lt. 0.d0) then
+              d1 = b
            else
-                    d1 = 0.5d0*(a + b)
+              d1 = 0.5d0*(a + b)
            endif
 
-           !dEy/dx i-1/4, j, k-1/2
-           call electric(q(i,j,k-1,:), Ecen, 2)
-           a = 2.d0*( Ecen - flxx(i,j,k-1,UMAGZ) )
-           call electric(q(i,j,k,:), Ecen, 2)
-           b = 2.d0*( Ecen - flxx(i,j,k,UMAGZ) )
+           ! dEy/dx i-1/4, j, k-1/2
 
-           !Upwind in the z direction for i-1/2,j,k-1/2
-           if(flxz(i,j,k,URHO).gt.0.d0) then
+           ! first compute dEy/dx_{i-1/4,j,k-1}
+           call electric(q(i,j,k-1,:), Ecen, 2)
+           a = 2.d0*(Ecen - flxx(i,j,k-1,UMAGZ))
+
+           ! next compute dEy/dx_{i-1/4,j,k}
+           call electric(q(i,j,k,:), Ecen, 2)
+           b = 2.d0*(Ecen - flxx(i,j,k,UMAGZ))
+
+           ! upwind in the z direction for i-1/4, j, k-1/2
+           ! using w_{i,j,k-1/2}
+           if (flxz(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
-           elseif(flxz(i,j,k,URHO).lt.0.d0) then
+           else if (flxz(i,j,k,URHO) .lt. 0.d0) then
               d2 = b
            else
               d2 = 0.5d0*(a + b)
            endif
 
-           !calculate second derivative
+           ! calculate second derivative
            dd2 = 0.125d0*(d1-d2)
 
-           !----------------------Prescribe Ex i-1/2, j , k -1/2 ------------------------
-           E(i,j,k) = 0.25d0*(-flxz(i,j,k,UMAGX) - flxz(i-1,j,k,UMAGX) + flxx(i,j,k-1,UMAGZ) + flxx(i,j,k,UMAGZ)) + dd1 + dd2
-
+           ! now the final Ey_{i-1/2, j, k-1/2}
+           E(i,j,k) = 0.25d0*(-flxz(i,j,k,UMAGX) - flxz(i-1,j,k,UMAGX) + &
+                              flxx(i,j,k-1,UMAGZ) + flxx(i,j,k,UMAGZ)) + dd1 + dd2
 
         enddo
      enddo
@@ -293,92 +332,105 @@ subroutine electric_edge_z(work_lo, work_hi, &
   real(rt)  :: Ecen, u_face, v_face
   real(rt)  :: a ,b ,d1 ,d2 ,dd1 ,dd2
   integer   :: i ,j ,k
-  integer   :: UMAGX, UMAGY, UMAGZ
-
-  UMAGX = NVAR+1
-  UMAGY = NVAR+2
-  UMAGZ = NVAR+3
-
-  E = 0.d0
 
   do k = work_lo(3), work_hi(3)
      do j = work_lo(2), work_hi(2)
         do i = work_lo(1), work_hi(1)
 
-           !===================================Ez i- 1/2, j -1/2, k  ====================================
+           ! Compute Ez(i-1/2, j-1/2, k)
 
-           !-------------------X derivatives -----------------
-           !dEz/dx i-3/4 ,j-1/2, k
-           call electric(q(i-1,j-1,k,:),Ecen,3)
-           a = 2.d0*( -flxx(i,j-1,k,UMAGY) - Ecen )
-           call electric(q(i-1,j,k,:),Ecen,3)
-           b = 2.d0*( -flxx(i,j,k,UMAGY) - Ecen )
 
-           !Upwind in the y direction to get dEz/dx i-3/4, j-1/2, k
-           if(flxy(i-1,j,k,URHO) .gt. 0.d0) then
+           ! dEz/dx i-3/4, j-1/2, k
+
+           ! first compute dEz/dx_{i-3/4,j-1,k}
+           call electric(q(i-1,j-1,k,:), Ecen, 3)
+           a = 2.d0 * (-flxx(i,j-1,k,UMAGY) - Ecen)
+
+           ! next dEz/dx_{i-3/4,j,k}
+           call electric(q(i-1,j,k,:), Ecen, 3)
+           b = 2.d0 * (-flxx(i,j,k,UMAGY) - Ecen)
+
+           ! upwind in the y direction to get dEz/dx i-3/4, j-1/2, k
+           ! using v_{i-1,j-1/2,k}
+           if ( flxy(i-1,j,k,URHO) .gt. 0.d0) then
               d1 = a
-           else if(flxy(i-1,j,k,URHO) .lt. 0.d0) then
+           else if (flxy(i-1,j,k,URHO) .lt. 0.d0) then
               d1 = b
            else
               d1 = 0.5d0*(a + b)
            endif
 
-           !dEz/dx i-1/4,j-1/2, k
-           call electric(q(i,j-1,k,:),Ecen, 3)
-           a = 2.d0*( Ecen + flxx(i,j-1,k,UMAGY) )
-           call electric(q(i,j,k,:),Ecen, 3)
-           b = 2.d0*( Ecen + flxx(i,j,k,UMAGY) )
+           ! dEz/dx i-1/4, j-1/2, k
 
-           !Upwind in the y direction to get dEz/dx i-1/4, j-1/2, k
-           if(flxy(i,j,k,URHO) .gt. 0.d0) then
+           ! first compute dEz/dx_{i-1/4,j-1,k}
+           call electric(q(i,j-1,k,:), Ecen, 3)
+           a = 2.d0 * (Ecen + flxx(i,j-1,k,UMAGY))
+
+           ! next dEz/dx_{i-1/4,j,k}
+           call electric(q(i,j,k,:), Ecen, 3)
+           b = 2.d0 * (Ecen + flxx(i,j,k,UMAGY))
+
+           ! upwind in the y direction to get dEz/dx i-1/4, j-1/2, k
+           ! using v_{i,j-1/2,k}
+           if (flxy(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
-           else if(flxy(i,j,k,URHO) .lt. 0.d0) then
+           else if (flxy(i,j,k,URHO) .lt. 0.d0) then
               d2 = b
            else
               d2 = 0.5d0*(a+b)
            endif
 
-           !Calculate the "second derivative" in the x direction for d^2Ez/dx^2 i-1/2, j-1/2, k
+           ! Calculate the "second derivative" in the x direction for
+           ! d^2Ez/dx^2 i-1/2, j-1/2, k
            dd1 = 0.125d0*(d1-d2)
 
-           !------------------ Y derivatives --------------------
-           !dEz/dy i-1/2, j-3/4, k
-           call electric(q(i-1,j-1,k,:),Ecen,3)
-           a = 2.d0*( flxy(i-1,j,k,UMAGX) - Ecen )
-           call electric(q(i,j-1, k, :), Ecen, 3)
-           b = 2.d0*( flxy(i,j,k,UMAGX) - Ecen )
 
-           !upwind in the x direction to get dEz/dy i-1/2, j-3/4, k
-           if(flxx(i,j-1,k,URHO).gt.0.d0) then
-                    d1 = a
-           elseif(flxx(i,j-1,k,URHO).lt.0.d0) then
-                    d1 = b
+           ! dEz/dy i-1/2, j-3/4, k
+
+           ! first compute dEz/dy_{i-1,j-3/4,k}
+           call electric(q(i-1,j-1,k,:), Ecen, 3)
+           a = 2.d0 * (flxy(i-1,j,k,UMAGX) - Ecen)
+
+           ! now compute dEz/dy_{i,j-3/4,k}
+           call electric(q(i,j-1, k, :), Ecen, 3)
+           b = 2.d0 * (flxy(i,j,k,UMAGX) - Ecen)
+
+           ! upwind in the x direction to get dEz/dy i-1/2, j-3/4, k
+           ! using u_{i-1/2,j-1,k}
+           if (flxx(i,j-1,k,URHO) .gt. 0.d0) then
+              d1 = a
+           else if (flxx(i,j-1,k,URHO) .lt. 0.d0) then
+              d1 = b
            else
-                    d1 = 0.5d0*(a + b)
+              d1 = 0.5d0*(a + b)
            endif
 
-           !dEz/dy i-1/2, j-1/4, k
-           call electric(q(i-1,j,k,:), Ecen, 3)
-           a = 2.d0*( Ecen - flxy(i-1,j,k,UMAGX) )
-           call electric(q(i,j,k,:), Ecen, 3)
-           b = 2.d0*( Ecen - flxy(i,j,k,UMAGX) )
+           ! dEz/dy i-1/2, j-1/4, k
 
-           !Upwind in the x direction for i-1/2,j-1/2,k
-           if(flxx(i,j,k,URHO).gt.0.d0) then
+           ! first compute dEz/dy_{i-1,j-1/4,k}
+           call electric(q(i-1,j,k,:), Ecen, 3)
+           a = 2.d0 * (Ecen - flxy(i-1,j,k,UMAGX))
+
+           ! now compute dEz/dy_{i,j-1/4,k}
+           call electric(q(i,j,k,:), Ecen, 3)
+           b = 2.d0 * (Ecen - flxy(i,j,k,UMAGX)) 
+
+           ! Upwind in the x direction for i-1/2, j-1/4, k
+           ! using u_{i-1/2,j,k}
+           if (flxx(i,j,k,URHO) .gt. 0.d0) then
               d2 = a
-           elseif(flxx(i,j,k,URHO).lt.0.d0) then
+           else if (flxx(i,j,k,URHO) .lt. 0.d0) then
               d2 = b
            else
               d2 = 0.5d0*(a + b)
            endif
 
-           !calculate second derivative
+           ! calculate second derivative
            dd2 = 0.125d0*(d1-d2)
 
-           !----------------------Prescribe Ez i -1/2, j -1/2, k ------------------------
-           E(i,j,k) = 0.25d0*(-flxx(i,j,k,UMAGY) - flxx(i,j-1,k,UMAGY) + flxy(i-1,j,k,UMAGX) + flxy(i,j,k,UMAGX)) + dd1 + dd2
-
-
+           ! compute Ez i-1/2, j-1/2, k
+           E(i,j,k) = 0.25d0*(-flxx(i,j,k,UMAGY) - flxx(i,j-1,k,UMAGY) + &
+                              flxy(i-1,j,k,UMAGX) + flxy(i,j,k,UMAGX)) + dd1 + dd2
 
         enddo
      enddo
