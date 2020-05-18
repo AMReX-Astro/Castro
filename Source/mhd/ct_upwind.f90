@@ -1105,7 +1105,7 @@ contains
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,URHO)) - &
+                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
                      hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
 
              end do

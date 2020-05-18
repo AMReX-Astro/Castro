@@ -8,5 +8,9 @@ module mhd_state_module
   integer, parameter :: UMAGY = NVAR+2
   integer, parameter :: UMAGZ = NVAR+3
 
+contains
+
+  pure function epsilon_ijk(
+
 end module mhd_state_module
 
