@@ -106,14 +106,10 @@ contains
        do j = work_lo(2), work_hi(2)
           do i = work_lo(1), work_hi(1)
 
-             if (dir .eq. 1) then
-                qL(:) = qleft(i-1,j,k,:)
-             else if (dir .eq. 2) then
-                qL(:) = qleft(i,j-1,k,:)
-             else if (dir .eq. 3) then
-                qL(:) = qleft(i,j,k-1,:)
-             end if
+             ! this is a loop over interfaces, so, e.g., for dir = 1 (x), we are seeing
+             ! q_{i-1/2,j,k,L} and q_{i-1/2,j,k,R}
 
+             qL(:) = qleft(i,j,k,:)
              qR(:) = qright(i,j,k,:)
 
              !flx(i,j,k,:) = 0.d0
