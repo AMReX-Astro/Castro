@@ -1057,9 +1057,12 @@ contains
     real(rt) :: u, v, w
     integer  :: i ,j ,k, n
     integer  :: d(3), d_2(3) !for the shift in i,j,k
+    real(rt) :: hdtdx
 
-    d = 0
-    d_2 = 0
+    hdtdx = 0.5_rt * dt/dx
+
+    d(:) = 0
+    d_2(:) = 0
 
     d(d1) = 1   ! add +1 to the d1 direction in the first flxd1 term of the substraction
     d_2(d2) = 1 ! add +1 to the d2 direction in the first flxd2 term of the substraction
@@ -1068,24 +1071,17 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! eq. 44 of Miniati paper for + and -
+             ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
+             ! MM Eq. 44
 
-  !left state
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd1(i,j,k,UFS:UFS+nspec-1)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
-                  - flxd2(i,j,k,UFS:UFS+nspec-1))
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
 
+                ur_out(i,j,k,n) = ur(i,j,k,n) - &
+                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,URHO)) - &
+                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+
+             end do
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
@@ -1093,22 +1089,16 @@ contains
 
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
-             !right state
-             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd1(i,j,k,UFS:UFS+nspec-1)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
-                                                                 - flxd2(i,j,k,UFS:UFS+nspec-1))
+             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
 
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
+
+                ul_out(i,j,k,n) = ul(i,j,k,n) - &
+                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+
+             end do
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
              v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
