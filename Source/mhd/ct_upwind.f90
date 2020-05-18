@@ -944,6 +944,17 @@ contains
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
 
+    ! update the magnetic field components on the d1 face with the
+    ! flux in the d2 direction.
+    !
+    ! There are 3 components here:
+    !
+    !  * B_d1 is perpendicular to the face and it is updated by the
+    !    transverse flux difference d2 on the face.
+    !  * B_d2 is unchanged, since it points in the direction d2
+    !  * B_d3 is in the plane of the face, but perpendicular to d2,
+    !    and is updated by a d2 flux difference inside the cell
+
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
     UMAGD3 = UMAGX - 1 + d3
@@ -967,20 +978,39 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! right state on the interface
+             ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
 
-             ! d1 -direction
+             ! d1 -- this is perpendicular to the face, MM Eq. 38
+             ! (note MM Eq. 38 has a sign error) e.g., for d1 = x and
+             ! d2 = y, this gets updated as
+             !
+             ! Bx|y_{i-1/2,j,k,R} = Bx_{i-1/2,j,k) -
+             !     dt/3dx (Ez_{i-1/2,j+1/2,k) - Ez_{i-1/2,j-1/2,k})
+             !
+             ! we use d(:) to captured the j+1/2 indexing into Ez
 
-             ! eq. 38 and 39 of Miniati for -
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx) * &
+                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
 
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
-             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)* &
+             ! d3 -- this is in the plane of the face, MM Eq. 39
+             ! e.g.,g for d1 = x, and d2 = y, this gets updated as
+             !
+             ! Bz|y_{i-1/2,j,k,R} = Bz_{i-1/2,j,k} + 1/2 dt/3dx
+             !     (Ex_{i,j+1/2,k+1/2} - Ex_{i,j-1/2,k+1/2} +
+             !      Ex_{i,j+1/2,k-1/2} - Ex_{i,j-1/2,k-1/2})
+             !
+             ! we use a1(:) for the first E term, a2(:) for the
+             ! second, and a3(:) for the third
+
+             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx) * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                  (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
 
+             ! the component pointing in the transverse update direction, d2, is unchanged
              ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2)
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) -0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ),ur_out(i,j,k,UMAGX:UMAGZ))
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
 
           enddo
        enddo
@@ -995,22 +1025,19 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! left state on the interface
+             ! left state on the interface (e.g. B_{i+1/2,j,k,L} or `+` in MM notation)
 
-             !d1 -direction
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx) * &
+                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
 
-             ! eq. 38 and 39 of Miniati for +
-
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
-             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)*&
+             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx) * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                  (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
-
+                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
 
              ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2)
 
-
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) -0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ),ul_out(i,j,k,UMAGX:UMAGZ))
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
 
           enddo
        enddo
