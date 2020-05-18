@@ -905,7 +905,7 @@ contains
     enddo
   end subroutine corner_couple
 
-  !================================== Use 1D Electric Fields to Transverse correct the Temporary Magnetic Fields ===========================
+
   subroutine corner_couple_mag(w_lo, w_hi, &
                                ur_out, uro_lo, uro_hi, &
                                ul_out, ulo_lo, ulo_hi, &
@@ -918,7 +918,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
 
-    !Correction using Faraday's Law
+    ! Use 1D Electric Fields to Transverse correct the Temporary Magnetic Fields
+    ! Correction using Faraday's Law
+
     implicit none
 
     integer, intent(in) :: w_lo(3), w_hi(3)
@@ -944,6 +946,7 @@ contains
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
     integer :: sgn
+    real(rt) :: cdtdx
 
     ! update the magnetic field components on the d1 face with the
     ! flux in the d2 direction.
@@ -955,8 +958,9 @@ contains
     !  * B_d2 is unchanged, since it points in the direction d2
     !  * B_d3 is in the plane of the face, but perpendicular to d2,
     !    and is updated by a d2 flux difference inside the cell
-
+    
     sgn = epsilon_ijk(d1, d2, d3)
+    cdtdx = dt/(3.d0*dx)
 
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
@@ -992,7 +996,7 @@ contains
              !
              ! we use d(:) to captured the j+1/2 indexing into Ez
 
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx) * &
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn * cdtdx * &
                   (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
 
              ! d3 -- this is in the plane of the face, MM Eq. 39
@@ -1005,7 +1009,7 @@ contains
              ! we use a1(:) for the first E term, a2(:) for the
              ! second, and a3(:) for the third
 
-             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx) * &
+             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
                    (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
 
@@ -1030,10 +1034,10 @@ contains
 
              ! left state on the interface (e.g. B_{i+1/2,j,k,L} or `+` in MM notation)
 
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx) * &
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn * cdtdx * &
                   (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
 
-             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx) * &
+             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
                    (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
 
@@ -1048,7 +1052,7 @@ contains
 
   end subroutine corner_couple_mag
 
-  !====================================================== Final Conservative Corrections================================================================
+
   subroutine half_step(w_lo, w_hi, &
                        ur_out, uro_lo, uro_hi, &
                        ul_out, ulo_lo, ulo_hi, &
@@ -1057,6 +1061,8 @@ contains
                        flxd1, flxd1_lo, flxd1_hi, &
                        flxd2, flxd2_lo, flxd2_hi, &
                        dir, d1, d2, dx, dt)
+
+    ! Final transverse flux corrections to the conservative state
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, URHO, UEINT, UFS
@@ -1108,8 +1114,8 @@ contains
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     0.5d0*dt/dx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     0.5d0*dt/dx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
 
              end do
 
@@ -1117,7 +1123,8 @@ contains
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
              w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - &
+                  0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
              ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
 
@@ -1125,15 +1132,16 @@ contains
                 if (n == UTEMP) cycle
 
                 ul_out(i,j,k,n) = ul(i,j,k,n) - &
-                     0.5d0*dt/dx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     0.5d0*dt/dx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
 
              end do
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
              v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
              w = ul_out(i,j,k,UMZ)/ul_out(i,j,k,URHO)
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - 0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - &
+                  0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
           enddo
        enddo
@@ -1141,7 +1149,7 @@ contains
 
   end subroutine
 
-  !================================================= Final Magnetic Corrections ========================================================================
+
   subroutine half_step_mag(w_lo, w_hi, &
                            ur_out, uro_lo, uro_hi, &
                            ul_out, ulo_lo, ulo_hi, &
@@ -1152,6 +1160,8 @@ contains
                            Ed2, ed2_lo, ed2_hi, &
                            d, d1, d2, &
                            dx, dt)
+
+    ! Final Magnetic Corrections
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
@@ -1187,6 +1197,10 @@ contains
     integer :: UMAGD, UMAGD1, UMAGD2
     integer :: sgn
 
+    real(rt) :: hdtdx
+
+    hdtdx = 0.5_rt * dt/dx
+
     sgn = -1 * epsilon_ijk(d, d1, d2)
 
     UMAGD = UMAGX - 1 + d
@@ -1202,18 +1216,23 @@ contains
     b5 = 0
     b6 = 0
 
-    !for Bd
-    a1(d2) = 1 !shift on first term of Ed1 substraction, in d2 component
-    a2(d1) = 1 !shift on first term of Ed2 substraction, in d1 component
+    ! for Bd
+    a1(d2) = 1 ! shift on first term of Ed1 substraction, in d2 direction
+    a2(d1) = 1 ! shift on first term of Ed2 substraction, in d1 direction
 
-    !for Bd1 and Bd2
-    b1(d1) = 1 !shift on 1st term for Bd1 and Bd2
+    ! for Bd1 and Bd2
+    b1(d1) = 1 ! shift on 1st term for Bd1 and Bd2
     b1(d2) = 1 ! in d1 and d2 components
+
     b2(d1) = 1 !shift on 2nd and 6th term for Bd1, and 3rd term for Bd2
+
     b3(d2) = 1 !shift on 3rd term for Bd1, and 2nd and 6th term for Bd2
+
     b4(d)  = 1 !shift on 5th term for Bd1, on d and d1 components
     b4(d1) = 1
+
     b5(d)  = 1 !shift on 7th term for Bd1 and Bd2
+
     b6(d)  = 1 !shift on 5th term for Bd2, on d and d2 components
     b6(d2) = 1
 
@@ -1222,41 +1241,67 @@ contains
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             !d-Direction
+             ! d-faces
 
-             ! right state on the interface (Bd eq.45 in Miniati for -)
-             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
-                  - (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
-             !Bd1 eq.46 in Miniati
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
-                  + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
-                  - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
-             !Bd2 eq. 46 in Miniati
-             ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2) - sgn* 0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
-                  + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
-                  - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
-                  - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+             ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - 0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
+             ! Bd -- this is perpendicular to the face. Note MM eq.45
+             ! in Miniati has a sign error in the epsilon term
+
+             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) - sgn * hdtdx * &
+                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
+                   (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
+
+             ! Bd1 -- this is one of the components of B in the plane of the face d
+             ! Eq.46 in Miniati
+
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
+                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) - &
+                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
+                   (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+
+             ! Bd2 -- this is the other component of B in the plane of the face d
+             ! Eq. 46 in Miniati
+
+             ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2) - sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
+                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) - &
+                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
+                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+
+             ! correct the energy
+
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
 
 
-             ! left state on the interface (Bd eq. 45 in Miniati for +)
+             ! left state on the interface (e.g., B_{i+1/2,j,k,L} or `+` in MM notation)
+
              ! for the + case, the shifts mentioned above in b6, b5, and b4
              ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely
-             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
-             !Bd1 eq. 46 in Miniati
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
-                  + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
-                  - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
-             !Bd2 eq. 46 in Miniati
-             ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2) - sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
-                  + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
-                  - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
-                  - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) -0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
+
+             ! Bd -- this is perpendicular to the face (MM Eq. 45 with sign fix)
+             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn * hdtdx * &
+                  ((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) - &
+                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
+
+             ! Bd1 -- first component on face d, eq. 46 in Miniati
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
+                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) - &
+                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
+                  ( Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+
+             ! Bd2 -- second component on face d, eq. 46 in Miniati
+             ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2) - sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
+                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) - &
+                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
+                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
 
           enddo
        enddo
@@ -1264,7 +1309,6 @@ contains
 
   end subroutine half_step_mag
 
-  !================================== Find the 2D corrected primitive variables =======================================
   subroutine prim_half(w_lo, w_hi, &
                        q2D, q2_lo, q2_hi, &
                        q, q_lo, q_hi, &
@@ -1273,92 +1317,103 @@ contains
                        flxz, flxz_lo, flxz_hi, &
                        dx, dy, dz, dt)
 
-   use amrex_fort_module, only : rt => amrex_real
-   use meth_params_module, only : NVAR
+    ! Find the 2D corrected primitive variables
 
-   implicit none
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : NVAR
 
-   integer, intent(in) :: w_lo(3), w_hi(3)
-   integer, intent(in) :: q_lo(3), q_hi(3)
-   integer, intent(in) :: q2_lo(3), q2_hi(3)
-   integer, intent(in) :: flxx_lo(3), flxx_hi(3)
-   integer, intent(in) :: flxy_lo(3), flxy_hi(3)
-   integer, intent(in) :: flxz_lo(3), flxz_hi(3)
+    implicit none
 
-   real(rt), intent(in)  :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-   real(rt), intent(in)  :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3),NVAR+3)
-   real(rt), intent(in)  :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3),NVAR+3)
-   real(rt), intent(in)  :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3),NVAR+3)
+    integer, intent(in) :: w_lo(3), w_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: flxx_lo(3), flxx_hi(3)
+    integer, intent(in) :: flxy_lo(3), flxy_hi(3)
+    integer, intent(in) :: flxz_lo(3), flxz_hi(3)
 
-   real(rt), intent(out) :: q2D(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
+    real(rt), intent(in)  :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in)  :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3),NVAR+3)
+    real(rt), intent(in)  :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3),NVAR+3)
+    real(rt), intent(in)  :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3),NVAR+3)
 
-   real(rt)  :: flx_sum(NVAR+3)
-   real(rt)  :: qflx(NQ)
-   real(rt)  :: dx, dy, dz, dt
-   integer   :: i, j, k
+    real(rt), intent(out) :: q2D(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
 
-   do k = w_lo(3),w_hi(3)
-      do j = w_lo(2),w_hi(2)
-         do i = w_lo(1),w_hi(1)
-            flx_sum = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) + (flxy(i,j+1,k,:) - flxy(i,j,k,:)) + (flxz(i,j,k+1,:) - flxz(i,j,k,:))
-            call qflux(qflx,flx_sum,q(i,j,k,:))
-            !Right below eq. 48
-            q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt/dx*qflx
-         enddo
-      enddo
-   enddo
+    real(rt)  :: divF(NVAR+3)
+    real(rt)  :: divF_q(NQ)
+    real(rt)  :: dx, dy, dz, dt
+    integer   :: i, j, k
+
+    do k = w_lo(3),w_hi(3)
+       do j = w_lo(2),w_hi(2)
+          do i = w_lo(1),w_hi(1)
+
+             divF(:) = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) / dx + &
+                       (flxy(i,j+1,k,:) - flxy(i,j,k,:)) / dy + &
+                       (flxz(i,j,k+1,:) - flxz(i,j,k,:)) / dz
+
+             ! that is a flux of conserved variables -- transform it to primitive
+             call qflux(divF_q, divF, q(i,j,k,:))
+
+             ! Right below eq. 48
+             q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt * divF_q
+
+          enddo
+       enddo
+    enddo
   end subroutine prim_half
 
 
-  !================================= Calculate the C to P Jacobian applied to the fluxes ===================================
-
   subroutine qflux(qflx,flx,q)
-   use amrex_fort_module, only : rt => amrex_real
-   use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
-   use eos_module, only : eos
-   use eos_type_module, only: eos_t, eos_input_rp
-   use network, only : nspec
 
-   implicit none
+    ! Calculate the C to P Jacobian applied to the fluxes
 
-   ! this is step 10 in the paper, just after Eq. 48
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
+    use eos_module, only : eos
+    use eos_type_module, only: eos_t, eos_input_rp
+    use network, only : nspec
 
-   ! this seems to implement dW/dU . qflux, where dW/dU is the Jacobian of
-   ! the primitive quantities (W) with respect to conserved quantities (U)
+    implicit none
 
-   real(rt), intent(in)           ::flx(NVAR+3), q(NQ)
-   real(rt), intent(out)          ::qflx(NQ)
-   real(rt) :: dedp, dedrho, totalE
+    ! this is step 10 in the paper, just after Eq. 48
 
-   type (eos_t) :: eos_state
+    ! this implements dW/dU . qflux, where dW/dU is the Jacobian of
+    ! the primitive quantities (W) with respect to conserved quantities (U)
 
-          qflx = 0.d0
-          qflx(QRHO)  = flx(URHO)
-          qflx(QU)    = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
-          qflx(QV)    = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
-          qflx(QW)    = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
+    real(rt), intent(in) :: flx(NVAR+3), q(NQ)
+    real(rt), intent(out) :: qflx(NQ)
+    real(rt) :: dedp, dedrho, totalE
 
-          qflx(QFS:QFS+nspec-1)  = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
+    type (eos_t) :: eos_state
 
-          eos_state % rho = q(QRHO)
-          eos_state % p   = q(QPRES)
-          eos_state % T   = 100.d0 !dummy initial guess
-          eos_state % xn  = q(QFS:QFS+nspec-1)
+    qflx = 0.d0
+    qflx(QRHO) = flx(URHO)
+    qflx(QU) = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
+    qflx(QV) = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
+    qflx(QW) = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
 
-          call eos(eos_input_rp, eos_state)
+    qflx(QFS:QFS+nspec-1) = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
 
-          dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
-          dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
+    eos_state % rho = q(QRHO)
+    eos_state % p   = q(QPRES)
+    eos_state % T   = 100.d0 !dummy initial guess
+    eos_state % xn  = q(QFS:QFS+nspec-1)
 
-          qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
-                           flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
-                           flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
-                           eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
-          qflx(QMAGX) = flx(UMAGX)
-          qflx(QMAGY) = flx(UMAGY)
-          qflx(QMAGZ) = flx(UMAGZ)
+    call eos(eos_input_rp, eos_state)
 
-          qflx(QTEMP) = 0.0_rt
+    dedrho = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
+    dedp = eos_state % dedT * 1.0d0/eos_state % dPdT
+
+    qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
+         flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
+         flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
+         eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
+
+    qflx(QMAGX) = flx(UMAGX)
+    qflx(QMAGY) = flx(UMAGY)
+    qflx(QMAGZ) = flx(UMAGZ)
+
+    qflx(QTEMP) = 0.0_rt
 
   end subroutine qflux
 
