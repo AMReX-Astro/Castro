@@ -166,7 +166,7 @@ Castro::just_the_mhd(Real time, Real dt)
           const Box& nby = amrex::surroundingNodes(bx, 1);
           const Box& nbz = amrex::surroundingNodes(bx, 2);
 
-          const Box& nbxi = amrex::grow(nbx, IntVect(2, 3, 3));
+          const Box& nbxi = amrex::grow(bx, IntVect(3, 3, 3));
 
           plm(nbxi.loVect(), nbxi.hiVect(), 1,
               BL_TO_FORTRAN_ANYD(q),
@@ -180,7 +180,7 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          const Box& nbyi = amrex::grow(nby, IntVect(3, 2, 3));
+          const Box& nbyi = amrex::grow(bx, IntVect(3, 3, 3));
 
           plm(nbyi.loVect(), nbyi.hiVect(), 2,
               BL_TO_FORTRAN_ANYD(q),
@@ -194,7 +194,7 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          const Box& nbzi = amrex::grow(nbz, IntVect(3, 3, 2));
+          const Box& nbzi = amrex::grow(bx, IntVect(3, 3, 3));
 
           plm(nbzi.loVect(), nbzi.hiVect(), 3,
               BL_TO_FORTRAN_ANYD(q),
