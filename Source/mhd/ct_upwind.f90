@@ -24,8 +24,8 @@ contains
 
   subroutine corner_transport(lo, hi, &
                               q, q_lo, q_hi, &
-                              qright, qr_lo, qr_hi, &
                               qleft, ql_lo, ql_hi, &
+                              qright, qr_lo, qr_hi, &
                               flxx, flxx_lo , flxx_hi, &
                               flxy, flxy_lo , flxy_hi, &
                               flxz, flxz_lo , flxz_hi, &

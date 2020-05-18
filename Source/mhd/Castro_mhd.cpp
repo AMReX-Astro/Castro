@@ -50,8 +50,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox flatn;
 
-      FArrayBox qm;
-      FArrayBox qp;
+      FArrayBox qleft;
+      FArrayBox qright;
 
       FArrayBox flxx;
       FArrayBox flxy;
@@ -159,8 +159,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
           // Interpolate Cell centered values to faces
-          qp.resize(bx_gc, NQ * AMREX_SPACEDIM);
-          qm.resize(bx_gc, NQ * AMREX_SPACEDIM);
+          qleft.resize(bx_gc, NQ * AMREX_SPACEDIM);
+          qright.resize(bx_gc, NQ * AMREX_SPACEDIM);
 
           const Box& nbx = amrex::surroundingNodes(bx, 0);
           const Box& nby = amrex::surroundingNodes(bx, 1);
@@ -175,8 +175,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -189,8 +189,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -203,8 +203,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -242,8 +242,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
           corner_transport(lo, hi,
                            BL_TO_FORTRAN_ANYD(q),
-                           BL_TO_FORTRAN_ANYD(qm),
-                           BL_TO_FORTRAN_ANYD(qp),
+                           BL_TO_FORTRAN_ANYD(qleft),
+                           BL_TO_FORTRAN_ANYD(qright),
                            BL_TO_FORTRAN_ANYD(flxx),
                            BL_TO_FORTRAN_ANYD(flxy),
                            BL_TO_FORTRAN_ANYD(flxz),
