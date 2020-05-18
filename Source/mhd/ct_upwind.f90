@@ -1105,8 +1105,8 @@ contains
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     0.5d0*dt/dx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
+                     0.5d0*dt/dx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
 
              end do
 
@@ -1122,8 +1122,8 @@ contains
                 if (n == UTEMP) cycle
 
                 ul_out(i,j,k,n) = ul(i,j,k,n) - &
-                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     0.5d0*dt/dx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
+                     0.5d0*dt/dx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
 
              end do
 
