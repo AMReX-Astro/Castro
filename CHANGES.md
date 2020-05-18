@@ -1,3 +1,9 @@
+# 20.06
+
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
+
    * The reaction weights metric implemented in version 20.05 (#863) has been
      added to the simplified SDC reactions driver. (#930)
 
