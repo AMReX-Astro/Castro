@@ -238,8 +238,8 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ez, ez_lo, ez_hi, &
-                           !x,y,z, sgn=+, UMAGD1, UMAGD2, UMAGD3
-                           1, 2, 3, 1, dx(1), dt)
+                           !x,y,z
+                           1, 2, 3, dx(1), dt)
 
     call bl_allocate(qtmp_left, ut_lo, ut_hi, NQ)
     call bl_allocate(qtmp_right, ut_lo, ut_hi, NQ)
@@ -278,7 +278,7 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ey, ey_lo, ey_hi, &
-                           1, 3, 2, -1, dx(1), dt)
+                           1, 3, 2, dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -319,7 +319,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ez, ez_lo, ez_hi, &
-                           2, 1, 3, -1, dx(2), dt)
+                           2, 1, 3, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -356,7 +356,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ex, ex_lo, ex_hi, &
-                           2, 3, 1, 1, dx(2), dt)
+                           2, 3, 1, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -395,7 +395,7 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ey, ey_lo, ey_hi, &
-                           3, 1, 2, 1, dx(3), dt)
+                           3, 1, 2, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -431,7 +431,7 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ex, ex_lo, ex_hi, &
-                           3, 2, 1, -1, dx(3), dt)
+                           3, 2, 1, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -531,8 +531,8 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        Ez, ez_lo, ez_hi, &
-                       !d=x, d1=y, d2=z, UMAGD UMAGD1, UMAGD2, sgn,
-                       1, 2, 3, -1, &
+                       !d=x, d1=y, d2=z,
+                       1, 2, 3, &
                        dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -576,7 +576,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       2, 1, 3, 1, &
+                       2, 1, 3, &
                        dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -614,7 +614,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       3, 1, 2, -1, &
+                       3, 1, 2, &
                        dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -913,7 +913,7 @@ contains
                                ul, ul_lo, ul_hi, &
                                Ed1, ed1_lo, ed1_hi, &
                                Ed3, ed3_lo, ed3_hi, &
-                               d1, d2, d3, sgn, &
+                               d1, d2, d3, &
                                dx, dt)
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
@@ -928,7 +928,7 @@ contains
     integer, intent(in) :: ul_lo(3), ul_hi(3)
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed3_lo(3), ed3_hi(3)
-    integer, intent(in) :: d1, d2, d3, sgn
+    integer, intent(in) :: d1, d2, d3
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -943,6 +943,7 @@ contains
     integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
+    integer :: sgn
 
     ! update the magnetic field components on the d1 face with the
     ! flux in the d2 direction.
@@ -954,6 +955,8 @@ contains
     !  * B_d2 is unchanged, since it points in the direction d2
     !  * B_d3 is in the plane of the face, but perpendicular to d2,
     !    and is updated by a d2 flux difference inside the cell
+
+    sgn = epsilon_ijk(d1, d2, d3)
 
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
@@ -1147,7 +1150,7 @@ contains
                            Ed, ed_lo, ed_hi, &
                            Ed1, ed1_lo, ed1_hi, &
                            Ed2, ed2_lo, ed2_hi, &
-                           d, d1, d2, sgn, &
+                           d, d1, d2, &
                            dx, dt)
 
     use amrex_fort_module, only : rt => amrex_real
@@ -1165,7 +1168,7 @@ contains
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed2_lo(3), ed2_hi(3)
 
-    integer, intent(in)   :: d, d1, d2, sgn
+    integer, intent(in)   :: d, d1, d2
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -1182,6 +1185,9 @@ contains
     integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
 
     integer :: UMAGD, UMAGD1, UMAGD2
+    integer :: sgn
+
+    sgn = -1 * epsilon_ijk(d, d1, d2)
 
     UMAGD = UMAGX - 1 + d
     UMAGD1 = UMAGX - 1 + d1
