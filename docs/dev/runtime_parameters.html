@@ -741,14 +741,20 @@ change the internal energy of a zone. The timestep is
 equal to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(e / \dot{e})\)</span>.</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_T</span></code></p></td>
+<td><p>Limit the timestep based on how much the burning can
+change the temperature of a zone. The timestep is equal
+to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(T / \dot{T})\)</span>.</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></p></td>
 <td><p>Limit the timestep based on how much the burning can
 change the species mass fractions of a zone. The
 timestep is equal to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(X /
 \dot{X})\)</span>.</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></p></td>
 <td><p>If we are using the timestep limiter based on changes
 in $X$, set a threshold on the species abundance below
 which the limiter is not applied. This helps prevent
@@ -756,41 +762,41 @@ the timestep from becoming very small due to changes in
 trace species.</p></td>
 <td><p>1.e-3</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
 <td><p>permits reactions to be turned on and off – mostly for
 efficiency’s sake</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
 <td><p>minimum temperature for allowing reactions to occur in
 a zone</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></p></td>
 <td><p>maximum temperature for allowing reactions to occur in
 a zone</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></p></td>
 <td><p>minimum density for allowing reactions to occur in a
 zone</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></p></td>
 <td><p>maximum density for allowing reactions to occur in a
 zone</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></p></td>
 <td><p>disable burning inside hydrodynamic shock regions</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">T_guess</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">T_guess</span></code></p></td>
 <td><p>initial guess for the temperature when inverting the
 EoS (e.g. when calling eos_input_re)</p></td>
 <td><p>1.e8</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reactions_max_solve_level</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reactions_max_solve_level</span></code></p></td>
 <td><p>maximum level to do an explicit burn on (above this, we
 interpolate the reactions source)</p></td>
 <td><p>100</p></td>

@@ -321,7 +321,7 @@ namespace: ``castro``
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
+.. index:: castro.dtnuc_e, castro.dtnuc_T, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -330,6 +330,10 @@ namespace: ``castro``
 | ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
 |                                        | change the internal energy of a zone. The timestep is   |               |
 |                                        | equal to ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``dtnuc_T``                            | Limit the timestep based on how much the burning can    | 1.e200        |
+|                                        | change the temperature of a zone. The timestep is equal |               |
+|                                        | to ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
 |                                        | change the species mass fractions of a zone. The        |               |
