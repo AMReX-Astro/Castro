@@ -570,9 +570,10 @@ contains
 
   end subroutine corner_transport
 
-  !================================================= Calculate the Conservative Variables ===============================================
 
   subroutine PrimToCons(lo, hi, q, q_lo, q_hi, u, u_lo, u_hi)
+
+    ! calculate the conserved variables from the primitive
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module
@@ -626,9 +627,10 @@ contains
     enddo
   end subroutine PrimToCons
 
-  !================================================= Calculate the Primitve Variables ===============================================
 
   subroutine ConsToPrim(q, u)
+
+    ! calculate the primitive variables from the conserved
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module
@@ -715,13 +717,19 @@ contains
     real(rt), intent(out) :: qr_out(qro_lo(1):qro_hi(1),qro_lo(2):qro_hi(2),qro_lo(3):qro_hi(3),NQ)
     real(rt), intent(out) :: ql_out(qlo_lo(1):qlo_hi(1),qlo_lo(2):qlo_hi(2),qlo_lo(3):qlo_hi(3),NQ)
 
-    real(rt) :: u, v, w, cdtdx
+    real(rt) :: cdtdx
     integer  :: i, j, k, n
 
-    ! for the addition of +1 to either i,j,k depending on d2
-    integer :: dl(3), dr(3)
-    integer :: a1(3), a2(3), a3(3), a4(3)
+    ! cl and cr are the offsets to the indices for the conserved state fluxes
+    ! they will be offset in d2 to capture the flux difference
+    integer :: cl(3), cr(3)
+
+    ! b is for indexing into the magnetic field that is in the d1
+    ! (normal) direction
     integer :: b(3)
+
+    ! for indexing the electric field
+    integer :: err(3), elr(3), erl(3), ell(3)
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
     integer :: sgn
@@ -732,29 +740,36 @@ contains
 
     ! for the flux difference, F_r - F_l, we need to shift the indices in the first flux (F_r)
     ! in d2 to get a difference across the interface.  We also need to shift by a zone in d1
-    ! for the left interface.  dr(:) and dl(:) will hold these shifts.
-    dr(:) = 0
-    dl(:) = 0
-
-    a1(:) = 0
-    a2(:) = 0
-    a3(:) = 0
-    a4(:) = 0
-
-    b(:) = 0
-
-    a1(d2) = 1   !j+1 on first and third term of addition Ed1
-    a1(d3) = 1
-
-    a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k
-
-    a3(d2) = 1
+    ! for the left interface.  cr(:) and cl(:) will hold these shifts.
+    cr(:) = 0
+    cl(:) = 0
 
     ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
-    dr(d2) = 1
+    cr(d2) = 1
 
     ! for the normal B component
+    b(:) = 0
     b(d2) = 1
+
+    ! err will capture the right state in both transverse directions
+    ! (e.g. Ez_{i+1/2,j+1/2,k})
+    err(:) = 0
+    err(d2) = 1
+    err(d3) = 1
+
+    ! elr will capture the right state in the second transverse direction
+    ! (e.g. Ez_{i-1/2,j+1/2,k})
+    elr(:) = 0
+    elr(d3) = 1
+
+    ! erl will capture the right state in the first transverse direction
+    ! (e.g. Ez_{i+1/2,j-1/2,k})
+    erl(:) = 0
+    erl(d2) = 1
+
+    ! ell is the lower-left E in both directions
+    ! (e.g. Ez_{i-1/2,j-1/2,k})
+    ell(:) = 0
 
     sgn = epsilon_ijk(d1, d2, d3)
     cdtdx = dt/(3.d0*dx)
@@ -776,7 +791,7 @@ contains
                 if (n == UTEMP) cycle
 
                 utmp(n) = ur(i,j,k,n) - &
-                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - flxd2(i,j,k,n))
+                     cdtdx*(flxd2(i+cr(1),j+cr(2),k+cr(3),n) - flxd2(i,j,k,n))
              end do
 
              ! now magnetic fields
@@ -790,7 +805,7 @@ contains
              ! Bx|y_{i-1/2,j,k,R} = Bx_{i-1/2,j,k) -
              !     dt/3dx (Ez_{i-1/2,j+1/2,k) - Ez_{i-1/2,j-1/2,k})
              !
-             ! we use dr(:) to captured the j+1/2 indexing into Ez
+             ! we use b(:) to captured the j+1/2 indexing into Ez
 
              utmp(UMAGD1) = ur(i,j,k,UMAGD1) - sgn * cdtdx * &
                   (Ed3(i+b(1),j+b(2),k+b(3)) - Ed3(i,j,k))
@@ -802,12 +817,12 @@ contains
              !     (Ex_{i,j+1/2,k+1/2} - Ex_{i,j-1/2,k+1/2} +
              !      Ex_{i,j+1/2,k-1/2} - Ex_{i,j-1/2,k-1/2})
              !
-             ! we use a1(:) for the first E term, a2(:) for the
-             ! second, and a3(:) for the third
+             ! we use err(:) for the first E term, elr(:) for the
+             ! second, and erl(:) for the third
 
              utmp(UMAGD3) = ur(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
-                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                  ((Ed1(i+err(1),j+err(2),k+err(3)) - Ed1(i+elr(1),j+elr(2),k+elr(3))) + &
+                   (Ed1(i+erl(1),j+erl(2),k+erl(3)) - Ed1(i,j,k)))
 
              ! the component pointing in the transverse update direction, d2, is unchanged
              utmp(UMAGD2) = ur(i,j,k,UMAGD2)
@@ -821,15 +836,15 @@ contains
 
     ! left interface (e.g., U_{i-1/2,j,k,L} or the "+" state in MM notation)
     ! note: this uses information one zone to the left in d1
-    dl(d1) = -1
-    dr(d1) = -1
+    cl(d1) = -1
+    cr(d1) = -1
 
     ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
     ! in direction d1
-    a1(d1) = -1
-    a2(d1) = -1
-    a3(d1) = -1
-    a4(d1) = -1
+    err(d1) = -1
+    elr(d1) = -1
+    elr(d1) = -1
+    ell(d1) = -1
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
@@ -841,8 +856,8 @@ contains
                 if (n == UTEMP) cycle
 
                 utmp(n) = ul(i,j,k,n) - &
-                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - &
-                            flxd2(i+dl(1),j+dl(2),k+dl(3),n))
+                     cdtdx*(flxd2(i+cr(1),j+cr(2),k+cr(3),n) - &
+                            flxd2(i+cl(1),j+cl(2),k+cl(3),n))
              end do
 
              ! left state on the interface (e.g. B_{i-1/2,j,k,L} or `+` in MM notation)
@@ -851,8 +866,8 @@ contains
                   (Ed3(i+b(1),j+b(2),k+b(3)) - Ed3(i,j,k))
 
              utmp(UMAGD3) = ul(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
-                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i+a4(1),j+a4(2),k+a4(3))))
+                  ((Ed1(i+err(1),j+err(2),k+err(3)) - Ed1(i+elr(1),j+elr(2),k+elr(3))) + &
+                   (Ed1(i+erl(1),j+erl(2),k+erl(3)) - Ed1(i+ell(1),j+ell(2),k+ell(3))))
 
              utmp(UMAGD2) = ul(i,j,k,UMAGD2)
 
@@ -915,7 +930,9 @@ contains
     integer  :: i ,j ,k, n
 
     ! for the shift in i,j,k
-    integer  :: dl_1(3), dr_1(3), dl_2(3), dr_2(3)
+
+    ! c1l, c1r are for indexing flxd1 offsets, c2l, c2r are for flxd2
+    integer  :: c1l(3), c1r(3), c2l(3), c2r(3)
     integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3), b7(3)
 
     real(rt) :: hdtdx
@@ -931,13 +948,13 @@ contains
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
 
-    dl_1(:) = 0
-    dr_1(:) = 0
-    dl_2(:) = 0
-    dr_2(:) = 0
+    c1l(:) = 0
+    c1r(:) = 0
+    c2l(:) = 0
+    c2r(:) = 0
 
-    dr_1(d1) = 1  ! add +1 to the d1 direction in the first flxd1 term of the subtraction
-    dr_2(d2) = 1  ! add +1 to the d2 direction in the first flxd2 term of the subtraction
+    c1r(d1) = 1  ! add +1 to the d1 direction in the first flxd1 term of the subtraction
+    c2r(d2) = 1  ! add +1 to the d2 direction in the first flxd2 term of the subtraction
 
 
     a1(:) = 0
@@ -983,8 +1000,8 @@ contains
                 if (n == UTEMP) cycle
 
                 utmp(n) = ur(i,j,k,n) - &
-                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - flxd1(i,j,k,n)) - &
-                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - flxd2(i,j,k,n))
+                     hdtdx * (flxd1(i+c1r(1),j+c1r(2),k+c1r(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+c2r(1),j+c2r(2),k+c2r(3),n) - flxd2(i,j,k,n))
 
              end do
 
@@ -1026,10 +1043,10 @@ contains
 
     ! for the left state U components on the face dir, the flux
     ! difference is in the zone to the left
-    dr_1(d) = -1
-    dl_1(d) = -1
-    dr_2(d) = -1
-    dl_2(d) = -1
+    c1r(d) = -1
+    c1l(d) = -1
+    c2r(d) = -1
+    c2l(d) = -1
 
     ! left state on the interface (e.g., B_{i-1/2,j,k,L} or `+` in MM notation)
 
@@ -1055,10 +1072,10 @@ contains
                 if (n == UTEMP) cycle
 
                 utmp(n) = ul(i,j,k,n) - &
-                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - &
-                              flxd1(i+dl_1(1),j+dl_1(2),k+dl_1(3),n)) - &
-                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - &
-                              flxd2(i+dl_2(1),j+dl_2(2),k+dl_2(3),n))
+                     hdtdx * (flxd1(i+c1r(1),j+c1r(2),k+c1r(3),n) - &
+                              flxd1(i+c1l(1),j+c1l(2),k+c1l(3),n)) - &
+                     hdtdx * (flxd2(i+c2r(1),j+c2r(2),k+c2r(3),n) - &
+                              flxd2(i+c2l(1),j+c2l(2),k+c2l(3),n))
 
              end do
 
