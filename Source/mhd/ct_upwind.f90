@@ -462,25 +462,25 @@ contains
     ! Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
     ! eq. 42 and 43
 
-    do k = lo(3)-1, hi(3)+2
-       do j = lo(2)-1, hi(2)+2
+    do k = lo(3)-2, hi(3)+2
+       do j = lo(2)-2, hi(2)+2
           do i = lo(1)-1, hi(1)+2
              flxx1D(i,j,k,:) = 0.5d0*(flx_xy(i,j,k,:) + flx_xz(i,j,k,:))
           end do
        end do
     end do
 
-    do k = lo(3)-1, hi(3)+2
+    do k = lo(3)-2, hi(3)+2
        do j = lo(2)-1, hi(2)+2
-          do i = lo(1)-1, hi(1)+2
+          do i = lo(1)-2, hi(1)+2
              flxy1D(i,j,k,:) = 0.5d0*(flx_yx(i,j,k,:) + flx_yz(i,j,k,:))
           end do
        end do
     end do
 
     do k = lo(3)-1, hi(3)+2
-       do j = lo(2)-1, hi(2)+2
-          do i = lo(1)-1, hi(1)+2
+       do j = lo(2)-2, hi(2)+2
+          do i = lo(1)-2, hi(1)+2
              flxz1D(i,j,k,:) = 0.5d0*(flx_zx(i,j,k,:) + flx_zy(i,j,k,:))
           end do
        end do
