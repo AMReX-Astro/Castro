@@ -31,8 +31,8 @@ extern "C"
   void corner_transport
     (const int lo[], const int hi[],
      const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(qm),
-     const BL_FORT_FAB_ARG_3D(qp),
+     const BL_FORT_FAB_ARG_3D(qleft),
+     const BL_FORT_FAB_ARG_3D(qright),
      BL_FORT_FAB_ARG_3D(flxx),
      BL_FORT_FAB_ARG_3D(flxy),
      BL_FORT_FAB_ARG_3D(flxz),

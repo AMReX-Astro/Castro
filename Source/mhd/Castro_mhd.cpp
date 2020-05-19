@@ -50,8 +50,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox flatn;
 
-      FArrayBox qm;
-      FArrayBox qp;
+      FArrayBox qleft;
+      FArrayBox qright;
 
       FArrayBox flxx;
       FArrayBox flxy;
@@ -159,42 +159,52 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
           // Interpolate Cell centered values to faces
-          qp.resize(bx_gc, NQ * AMREX_SPACEDIM);
-          qm.resize(bx_gc, NQ * AMREX_SPACEDIM);
+          qleft.resize(bx_gc, NQ * AMREX_SPACEDIM);
+          qright.resize(bx_gc, NQ * AMREX_SPACEDIM);
 
-          plm(lo, hi, 1,
+          const Box& nbx = amrex::surroundingNodes(bx, 0);
+          const Box& nby = amrex::surroundingNodes(bx, 1);
+          const Box& nbz = amrex::surroundingNodes(bx, 2);
+
+          const Box& nbxi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbxi.loVect(), nbxi.hiVect(), 1,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          plm(lo, hi, 2,
+          const Box& nbyi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbyi.loVect(), nbyi.hiVect(), 2,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
-          plm(lo, hi, 3,
+          const Box& nbzi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbzi.loVect(), nbzi.hiVect(), 3,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qp),
-              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(qleft),
+              BL_TO_FORTRAN_ANYD(qright),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -202,20 +212,19 @@ Castro::just_the_mhd(Real time, Real dt)
           // Corner Couple and find the correct fluxes + electric fields
 
           // need to revisit these box sizes
-          const Box& nbx = amrex::surroundingNodes(bx, 0);
-          const Box& nbxf = amrex::grow(nbx, IntVect(2, 3, 3));
+          const Box& nbxf = amrex::grow(nbx, IntVect(0, 1, 1));
+          const Box& nbyf = amrex::grow(nby, IntVect(1, 0, 1));
+          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 0));
 
-          const Box& nby = amrex::surroundingNodes(bx, 1);
-          const Box& nbyf = amrex::grow(nby, IntVect(3, 2, 3));
-
-          const Box& nbz = amrex::surroundingNodes(bx, 2);
-          const Box& nbzf = amrex::grow(nbz, IntVect(3, 3, 2));
+          const Box& nbxe = amrex::grow(nbx, IntVect(2, 3, 3));
+          const Box& nbye = amrex::grow(nby, IntVect(3, 2, 3));
+          const Box& nbze = amrex::grow(nbz, IntVect(3, 3, 2));
 
           flxx.resize(nbxf, NUM_STATE+3);
           auto flxx_arr = flxx.array();
           auto elix_flxx = flxx.elixir();
 
-          Extmp.resize(nbxf);
+          Extmp.resize(nbxe);
           auto Ex_arr = Extmp.array();
           auto elix_Ex = Extmp.elixir();
 
@@ -223,7 +232,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxy_arr = flxy.array();
           auto elix_flxy = flxy.elixir();
 
-          Eytmp.resize(nbyf);
+          Eytmp.resize(nbye);
           auto Ey_arr = Eytmp.array();
           auto elix_Ey = Eytmp.elixir();
 
@@ -231,14 +240,14 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxz_arr = flxz.array();
           auto elix_flxz = flxz.elixir();
 
-          Eztmp.resize(nbzf);
+          Eztmp.resize(nbze);
           auto Ez_arr = Eztmp.array();
           auto elix_Ez = Eztmp.elixir();
 
           corner_transport(lo, hi,
                            BL_TO_FORTRAN_ANYD(q),
-                           BL_TO_FORTRAN_ANYD(qm),
-                           BL_TO_FORTRAN_ANYD(qp),
+                           BL_TO_FORTRAN_ANYD(qleft),
+                           BL_TO_FORTRAN_ANYD(qright),
                            BL_TO_FORTRAN_ANYD(flxx),
                            BL_TO_FORTRAN_ANYD(flxy),
                            BL_TO_FORTRAN_ANYD(flxz),

@@ -24,8 +24,8 @@ contains
 
   subroutine corner_transport(lo, hi, &
                               q, q_lo, q_hi, &
-                              qright, qr_lo, qr_hi, &
                               qleft, ql_lo, ql_hi, &
+                              qright, qr_lo, qr_hi, &
                               flxx, flxx_lo , flxx_hi, &
                               flxy, flxy_lo , flxy_hi, &
                               flxz, flxz_lo , flxz_hi, &
@@ -211,11 +211,11 @@ contains
 
     ! affected by Y Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
-    work_lo = (/ lo(1)-2 , lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-1 , lo(2)-2, lo(3)-2 /)
     work_hi = (/ hi(1)+2 , hi(2)+2, hi(3)+2 /)
 
-    ut_lo = work_lo
-    ut_hi = work_hi
+    ut_lo = [lo(1)-2, lo(2)-2, lo(3)-2]
+    ut_hi = [hi(1)+2, hi(2)+2, hi(3)+2]
 
     call bl_allocate(utmp_left, ut_lo, ut_hi, NVAR+3)
     call bl_allocate(utmp_right, ut_lo, ut_hi, NVAR+3)
@@ -238,8 +238,8 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ez, ez_lo, ez_hi, &
-                           !x,y,z, sgn=+, UMAGD1, UMAGD2, UMAGD3
-                           1, 2, 3, 1, dx(1), dt)
+                           !x,y,z
+                           1, 2, 3, dx(1), dt)
 
     call bl_allocate(qtmp_left, ut_lo, ut_hi, NQ)
     call bl_allocate(qtmp_right, ut_lo, ut_hi, NQ)
@@ -261,6 +261,7 @@ contains
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flx_xy, fxy_lo, fxy_hi, 1) !F^{x|y}
 
+
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
                        utmp_right, ut_lo, ut_hi, &
@@ -278,7 +279,7 @@ contains
                            ux_left, u_lo, u_hi, &
                            Ex, ex_lo, ex_hi, &
                            Ey, ey_lo, ey_hi, &
-                           1, 3, 2, -1, dx(1), dt)
+                           1, 3, 2, dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -300,7 +301,7 @@ contains
 
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
     call corner_couple(work_lo, work_hi, &
@@ -319,7 +320,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ez, ez_lo, ez_hi, &
-                           2, 1, 3, -1, dx(2), dt)
+                           2, 1, 3, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -338,7 +339,6 @@ contains
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flx_yx, fyx_lo, fyx_hi, 2) !F^{y|x}
 
-
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
                        utmp_right, ut_lo, ut_hi, &
@@ -356,7 +356,7 @@ contains
                            uy_left, u_lo, u_hi, &
                            Ey, ey_lo, ey_hi, &
                            Ex, ex_lo, ex_hi, &
-                           2, 3, 1, 1, dx(2), dt)
+                           2, 3, 1, dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -377,7 +377,7 @@ contains
 
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2/)
     call corner_couple(work_lo, work_hi, &
                        utmp_right, ut_lo, ut_hi, &
@@ -395,14 +395,13 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ey, ey_lo, ey_hi, &
-                           3, 1, 2, 1, dx(3), dt)
+                           3, 1, 2, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
-
 
     ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
     fzx_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
@@ -431,7 +430,7 @@ contains
                            uz_left, u_lo, u_hi, &
                            Ez, ez_lo, ez_hi, &
                            Ex, ex_lo, ex_hi, &
-                           3, 2, 1, -1, dx(3), dt)
+                           3, 2, 1, dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
@@ -476,6 +475,7 @@ contains
           end do
        end do
     end do
+
 
     ! eq. 41
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
@@ -531,8 +531,8 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        Ez, ez_lo, ez_hi, &
-                       !d=x, d1=y, d2=z, UMAGD UMAGD1, UMAGD2, sgn,
-                       1, 2, 3, -1, &
+                       !d=x, d1=y, d2=z,
+                       1, 2, 3, &
                        dx(1), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -576,7 +576,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ez, ez_lo, ez_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       2, 1, 3, 1, &
+                       2, 1, 3, &
                        dx(2), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -614,7 +614,7 @@ contains
                        Ex, ex_lo, ex_hi, &
                        Ey, ey_lo, ey_hi, &
                        !d, d1, d2, UMAGD UMAGD1, UMAGD2, sgn,
-                       3, 1, 2, -1, &
+                       3, 1, 2, &
                        dx(3), dt)
 
     call ConsToPrim(work_lo, work_hi, &
@@ -849,16 +849,18 @@ contains
 
     real(rt) :: u, v, w, cdtdx
     integer  :: i, j, k, n
-    integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
+    integer  :: dl(3), dr(3) !for the addition of +1 to either i,j,k depending on d2
 
     ! update the state on interface direction d1 with the input flux in direction d2
 
     ! for the flux difference, F_r - F_l, we need to shift the indices in the first flux (F_r)
-    ! to get a difference across the interface.  d(:) will hold this shift.
-    d(:) = 0
+    ! in d2 to get a difference across the interface.  We also need to shift by a zone in d1
+    ! for the left interface.  dr(:) and dl(:) will hold these shifts.
+    dr(:) = 0
+    dl(:) = 0
 
     ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
-    d(d2) = 1
+    dr(d2) = 1
 
     cdtdx = dt/(3.d0*dx)
 
@@ -873,7 +875,7 @@ contains
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - flxd2(i,j,k,n))
              end do
 
              ! now fix up the internal energy
@@ -883,14 +885,26 @@ contains
              w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
+          end do
+       end do
+    end do
 
-             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
+
+    ! left interface (e.g., U_{i-1/2,j,k,L} or the "+" state in MM notation)
+    ! note: this uses information one zone to the left in d1
+    dl(d1) = -1
+    dr(d1) = -1
+
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
 
              do n = 1, NVAR
                 if (n == UTEMP) cycle
 
                 ul_out(i,j,k,n) = ul(i,j,k,n) - &
-                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - &
+                            flxd2(i+dl(1),j+dl(2),k+dl(3),n))
              end do
 
              ! fix up the internal energy
@@ -905,7 +919,7 @@ contains
     enddo
   end subroutine corner_couple
 
-  !================================== Use 1D Electric Fields to Transverse correct the Temporary Magnetic Fields ===========================
+
   subroutine corner_couple_mag(w_lo, w_hi, &
                                ur_out, uro_lo, uro_hi, &
                                ul_out, ulo_lo, ulo_hi, &
@@ -913,12 +927,14 @@ contains
                                ul, ul_lo, ul_hi, &
                                Ed1, ed1_lo, ed1_hi, &
                                Ed3, ed3_lo, ed3_hi, &
-                               d1, d2, d3, sgn, &
+                               d1, d2, d3, &
                                dx, dt)
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
 
-    !Correction using Faraday's Law
+    ! Use 1D Electric Fields to Transverse correct the Temporary Magnetic Fields
+    ! Correction using Faraday's Law
+
     implicit none
 
     integer, intent(in) :: w_lo(3), w_hi(3)
@@ -928,7 +944,7 @@ contains
     integer, intent(in) :: ul_lo(3), ul_hi(3)
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed3_lo(3), ed3_hi(3)
-    integer, intent(in) :: d1, d2, d3, sgn
+    integer, intent(in) :: d1, d2, d3
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -940,77 +956,111 @@ contains
 
     real(rt) :: dx, dt
     integer :: i ,j ,k
-    integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
+    integer :: d(3), a1(3), a2(3), a3(3), a4(3) !for the additions of +1 to i,j,k
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
+    integer :: sgn
+    real(rt) :: cdtdx
+
+    ! update the magnetic field components on the d1 face with the
+    ! flux in the d2 direction.
+    !
+    ! There are 3 components here:
+    !
+    !  * B_d1 is perpendicular to the face and it is updated by the
+    !    transverse flux difference d2 on the face.
+    !  * B_d2 is unchanged, since it points in the direction d2
+    !  * B_d3 is in the plane of the face, but perpendicular to d2,
+    !    and is updated by a d2 flux difference inside the cell
+
+    sgn = epsilon_ijk(d1, d2, d3)
+    cdtdx = dt/(3.d0*dx)
 
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
     UMAGD3 = UMAGX - 1 + d3
 
-    d   = 0
-    a1  = 0
-    a2  = 0
-    a3  = 0
-    d_2 = 0
-
+    d(:) = 0
+    a1(:) = 0
+    a2(:) = 0
+    a3(:) = 0
+    a4(:) = 0
 
     d(d2)  = 1   !for example if d2 = y, j+1 on Ed3
-    a1(d2) = 1   !j+1 on first and third term of addition Ed1
-    a3(d2) = 1
 
+    a1(d2) = 1   !j+1 on first and third term of addition Ed1
     a1(d3) = 1
+
     a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k
 
+    a3(d2) = 1
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! right state on the interface
+             ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
 
-             ! d1 -direction
+             ! d1 -- this is perpendicular to the face, MM Eq. 38
+             ! (note MM Eq. 38 has a sign error) e.g., for d1 = x and
+             ! d2 = y, this gets updated as
+             !
+             ! Bx|y_{i-1/2,j,k,R} = Bx_{i-1/2,j,k) -
+             !     dt/3dx (Ez_{i-1/2,j+1/2,k) - Ez_{i-1/2,j-1/2,k})
+             !
+             ! we use d(:) to captured the j+1/2 indexing into Ez
 
-             ! eq. 38 and 39 of Miniati for -
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn * cdtdx * &
+                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
 
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
-             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)* &
+             ! d3 -- this is in the plane of the face, MM Eq. 39
+             ! e.g.,g for d1 = x, and d2 = y, this gets updated as
+             !
+             ! Bz|y_{i-1/2,j,k,R} = Bz_{i-1/2,j,k} + 1/2 dt/3dx
+             !     (Ex_{i,j+1/2,k+1/2} - Ex_{i,j-1/2,k+1/2} +
+             !      Ex_{i,j+1/2,k-1/2} - Ex_{i,j-1/2,k-1/2})
+             !
+             ! we use a1(:) for the first E term, a2(:) for the
+             ! second, and a3(:) for the third
+
+             ur_out(i,j,k,UMAGD3) = ur(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                  (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
 
+             ! the component pointing in the transverse update direction, d2, is unchanged
              ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2)
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) -0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ),ur_out(i,j,k,UMAGX:UMAGZ))
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
 
           enddo
        enddo
     enddo
 
-
-    d(d1)  = 1
-    d_2(d1) = 1
-
+    ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
+    ! in direction d1
+    a1(d1) = -1
+    a2(d1) = -1
+    a3(d1) = -1
+    a4(d1) = -1
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! left state on the interface
+             ! left state on the interface (e.g. B_{i-1/2,j,k,L} or `+` in MM notation)
 
-             !d1 -direction
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn * cdtdx * &
+                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
 
-             ! eq. 38 and 39 of Miniati for +
-
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn*dt/(3.d0*dx)*(Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
-             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn*dt/(6.d0*dx)*&
+             ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                  (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
-
+                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i+a4(1),j+a4(2),k+a4(3))))
 
              ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2)
 
-
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) -0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ),ul_out(i,j,k,UMAGX:UMAGZ))
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
 
           enddo
        enddo
@@ -1018,7 +1068,7 @@ contains
 
   end subroutine corner_couple_mag
 
-  !====================================================== Final Conservative Corrections================================================================
+
   subroutine half_step(w_lo, w_hi, &
                        ur_out, uro_lo, uro_hi, &
                        ul_out, ulo_lo, ulo_hi, &
@@ -1027,6 +1077,8 @@ contains
                        flxd1, flxd1_lo, flxd1_hi, &
                        flxd2, flxd2_lo, flxd2_hi, &
                        dir, d1, d2, dx, dt)
+
+    ! Final transverse flux corrections to the conservative state
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, URHO, UEINT, UFS
@@ -1056,72 +1108,83 @@ contains
 
     real(rt) :: u, v, w
     integer  :: i ,j ,k, n
-    integer  :: d(3), d_2(3) !for the shift in i,j,k
+    integer  :: dl_1(3), dr_1(3), dl_2(3), dr_2(3) !for the shift in i,j,k
+    real(rt) :: hdtdx
 
-    d = 0
-    d_2 = 0
+    hdtdx = 0.5_rt * dt/dx
 
-    d(d1) = 1   ! add +1 to the d1 direction in the first flxd1 term of the substraction
-    d_2(d2) = 1 ! add +1 to the d2 direction in the first flxd2 term of the substraction
+    dl_1(:) = 0
+    dr_1(:) = 0
+    dl_2(:) = 0
+    dr_2(:) = 0
+
+    dr_1(d1) = 1  ! add +1 to the d1 direction in the first flxd1 term of the subtraction
+    dr_2(d2) = 1  ! add +1 to the d2 direction in the first flxd2 term of the subtraction
+
+
+    ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
+    ! MM Eq. 44
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! eq. 44 of Miniati paper for + and -
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
 
-  !left state
-             ur_out(i,j,k,URHO) = ur(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ur_out(i,j,k,UMX) = ur(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ur_out(i,j,k,UMY) = ur(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ur_out(i,j,k,UMZ) = ur(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ur_out(i,j,k,UEDEN) = ur(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ur_out(i,j,k,UFS:UFS+nspec-1) = ur(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd1(i,j,k,UFS:UFS+nspec-1)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
-                  - flxd2(i,j,k,UFS:UFS+nspec-1))
+                ur_out(i,j,k,n) = ur(i,j,k,n) - &
+                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - flxd2(i,j,k,n))
 
+             end do
 
              u = ur_out(i,j,k,UMX)/ur_out(i,j,k,URHO)
              v = ur_out(i,j,k,UMY)/ur_out(i,j,k,URHO)
              w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - &
+                  0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
-             !right state
-             ul_out(i,j,k,URHO) = ul(i,j,k,URHO) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),URHO) - flxd1(i,j,k,URHO)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),URHO) - flxd2(i,j,k,URHO))
-             ul_out(i,j,k,UMX) = ul(i,j,k,UMX) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMX) - flxd1(i,j,k,UMX)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMX) - flxd2(i,j,k,UMX))
-             ul_out(i,j,k,UMY) = ul(i,j,k,UMY) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMY) - flxd1(i,j,k,UMY)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMY) - flxd2(i,j,k,UMY))
-             ul_out(i,j,k,UMZ) = ul(i,j,k,UMZ) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UMZ) - flxd1(i,j,k,UMZ)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UMZ) - flxd2(i,j,k,UMZ))
-             ul_out(i,j,k,UEDEN) = ul(i,j,k,UEDEN) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UEDEN) - flxd1(i,j,k,UEDEN)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UEDEN) - flxd2(i,j,k,UEDEN))
-             ul_out(i,j,k,UFS:UFS+nspec-1) = ul(i,j,k,UFS:UFS+nspec-1) - 0.5d0*dt/dx*(flxd1(i+d(1),j+d(2),k+d(3),UFS:UFS+nspec-1) &
-                  - flxd1(i,j,k,UFS:UFS+nspec-1)) &
-                  - 0.5d0*dt/dx*(flxd2(i+d_2(1),j+d_2(2),k+d_2(3),UFS:UFS+nspec-1) &
-                                                                 - flxd2(i,j,k,UFS:UFS+nspec-1))
+          end do
+       end do
+    end do
 
+    ! for the left state B components on the face dir, the flux
+    ! difference is in the zone to the left
+    dr_1(dir) = -1
+    dl_1(dir) = -1
+    dr_2(dir) = -1
+    dl_2(dir) = -1
+
+    ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
+
+             do n = 1, NVAR
+                if (n == UTEMP) cycle
+
+                ul_out(i,j,k,n) = ul(i,j,k,n) - &
+                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - &
+                              flxd1(i+dl_1(1),j+dl_1(2),k+dl_1(3),n)) - &
+                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - &
+                              flxd2(i+dl_2(1),j+dl_2(2),k+dl_2(3),n))
+
+             end do
 
              u = ul_out(i,j,k,UMX)/ul_out(i,j,k,URHO)
              v = ul_out(i,j,k,UMY)/ul_out(i,j,k,URHO)
              w = ul_out(i,j,k,UMZ)/ul_out(i,j,k,URHO)
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - 0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - &
+                  0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
   end subroutine
 
-  !================================================= Final Magnetic Corrections ========================================================================
+
   subroutine half_step_mag(w_lo, w_hi, &
                            ur_out, uro_lo, uro_hi, &
                            ul_out, ulo_lo, ulo_hi, &
@@ -1130,8 +1193,10 @@ contains
                            Ed, ed_lo, ed_hi, &
                            Ed1, ed1_lo, ed1_hi, &
                            Ed2, ed2_lo, ed2_hi, &
-                           d, d1, d2, sgn, &
+                           d, d1, d2, &
                            dx, dt)
+
+    ! Final Magnetic Corrections
 
     use amrex_fort_module, only : rt => amrex_real
     use meth_params_module, only : NVAR, UEINT
@@ -1148,7 +1213,7 @@ contains
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed2_lo(3), ed2_hi(3)
 
-    integer, intent(in)   :: d, d1, d2, sgn
+    integer, intent(in)   :: d, d1, d2
 
     real(rt), intent(inout) :: ur_out(uro_lo(1):uro_hi(1), uro_lo(2):uro_hi(2), uro_lo(3):uro_hi(3), NVAR+3)
     real(rt), intent(inout) :: ul_out(ulo_lo(1):ulo_hi(1), ulo_lo(2):ulo_hi(2), ulo_lo(3):ulo_hi(3), NVAR+3)
@@ -1162,86 +1227,147 @@ contains
     real(rt), intent(in)  :: dx, dt
 
     integer :: i ,j ,k
-    integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
+
+    !to manage the +1 shifts on  i,j,k
+    integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3), b7(3)
 
     integer :: UMAGD, UMAGD1, UMAGD2
+    integer :: sgn
+
+    real(rt) :: hdtdx
+
+    hdtdx = 0.5_rt * dt/dx
+
+    sgn = -1 * epsilon_ijk(d, d1, d2)
 
     UMAGD = UMAGX - 1 + d
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
 
-    a1 = 0
-    a2 = 0
-    b1 = 0
-    b2 = 0
-    b3 = 0
-    b4 = 0
-    b5 = 0
-    b6 = 0
+    a1(:) = 0
+    a2(:) = 0
+    b1(:) = 0
+    b2(:) = 0
+    b3(:) = 0
+    b4(:) = 0
+    b5(:) = 0
+    b6(:) = 0
+    b7(:) = 0
 
-    !for Bd
-    a1(d2) = 1 !shift on first term of Ed1 substraction, in d2 component
-    a2(d1) = 1 !shift on first term of Ed2 substraction, in d1 component
+    ! for Bd
+    a1(d2) = 1 ! shift on first term of Ed1 substraction, in d2 direction
+    a2(d1) = 1 ! shift on first term of Ed2 substraction, in d1 direction
 
-    !for Bd1 and Bd2
-    b1(d1) = 1 !shift on 1st term for Bd1 and Bd2
+    ! for Bd1 and Bd2
+    b1(d1) = 1 ! shift on 1st term for Bd1 and Bd2
     b1(d2) = 1 ! in d1 and d2 components
+
     b2(d1) = 1 !shift on 2nd and 6th term for Bd1, and 3rd term for Bd2
+
     b3(d2) = 1 !shift on 3rd term for Bd1, and 2nd and 6th term for Bd2
+
     b4(d)  = 1 !shift on 5th term for Bd1, on d and d1 components
     b4(d1) = 1
+
     b5(d)  = 1 !shift on 7th term for Bd1 and Bd2
+
     b6(d)  = 1 !shift on 5th term for Bd2, on d and d2 components
     b6(d2) = 1
 
+
+    ! d-faces
+
+    ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             !d-Direction
+             ! Bd -- this is perpendicular to the face. Note MM eq.45
+             ! in Miniati has a sign error in the epsilon term
 
-             ! right state on the interface (Bd eq.45 in Miniati for -)
-             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) &
-                  - (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
-             !Bd1 eq.46 in Miniati
-             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
-                  + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
-                  - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
-             !Bd2 eq. 46 in Miniati
-             ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2) - sgn* 0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
-                  + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
-                  - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
-                  - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+             ur_out(i,j,k,UMAGD) = ur(i,j,k,UMAGD) - sgn * hdtdx * &
+                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
+                   (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
 
-             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - 0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
+             ! Bd1 -- this is one of the components of B in the plane of the face d
+             ! Eq.46 in Miniati
+
+             ur_out(i,j,k,UMAGD1) = ur(i,j,k,UMAGD1) + sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
+                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) - &
+                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
+                   (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+
+             ! Bd2 -- this is the other component of B in the plane of the face d
+             ! Eq. 46 in Miniati
+
+             ur_out(i,j,k,UMAGD2) = ur(i,j,k,UMAGD2) - sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
+                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) - &
+                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
+                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+
+             ! correct the energy
+
+             ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
 
 
-             ! left state on the interface (Bd eq. 45 in Miniati for +)
+          end do
+       end do
+    end do
+
+    ! left state on the interface (e.g., B_{i-1/2,j,k,L} or `+` in MM notation)
+
+    ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
+    ! in direction d1
+
+    b1(d) = b1(d) - 1
+    b2(d) = b2(d) - 1
+    b3(d) = b3(d) - 1
+    b4(d) = b4(d) - 1
+    b5(d) = b5(d) - 1
+    b6(d) = b6(d) - 1
+    b7(d) = b7(d) - 1
+
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
+
              ! for the + case, the shifts mentioned above in b6, b5, and b4
              ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely
-             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn*0.5d0*dt/dx*((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
-             !Bd1 eq. 46 in Miniati
-             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) &
-                  + (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) &
-                  - (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) &
-                  - (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
-             !Bd2 eq. 46 in Miniati
-             ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2) - sgn*0.5d0*dt/dx*((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) &
-                  + (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) &
-                  - (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) &
-                  - (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
-             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) -0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
 
-          enddo
-       enddo
-    enddo
+             ! Bd -- this is perpendicular to the face (MM Eq. 45 with sign fix)
+
+             ! this is the same face as the right state, so the update the identical
+             ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn * hdtdx * &
+                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
+                   (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
+
+             ! Bd1 -- first component on face d, eq. 46 in Miniati
+             ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
+                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
+                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
+                  ( Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i+b7(1),j+b7(2),k+b7(3))))
+
+             ! Bd2 -- second component on face d, eq. 46 in Miniati
+             ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2) - sgn * hdtdx * &
+                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
+                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
+                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
+                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i+b7(1),j+b7(2),k+b7(3))))
+
+             ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) - &
+                  0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
+
+          end do
+       end do
+    end do
 
   end subroutine half_step_mag
 
-  !================================== Find the 2D corrected primitive variables =======================================
   subroutine prim_half(w_lo, w_hi, &
                        q2D, q2_lo, q2_hi, &
                        q, q_lo, q_hi, &
@@ -1250,92 +1376,103 @@ contains
                        flxz, flxz_lo, flxz_hi, &
                        dx, dy, dz, dt)
 
-   use amrex_fort_module, only : rt => amrex_real
-   use meth_params_module, only : NVAR
+    ! Find the 2D corrected primitive variables
 
-   implicit none
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module, only : NVAR
 
-   integer, intent(in) :: w_lo(3), w_hi(3)
-   integer, intent(in) :: q_lo(3), q_hi(3)
-   integer, intent(in) :: q2_lo(3), q2_hi(3)
-   integer, intent(in) :: flxx_lo(3), flxx_hi(3)
-   integer, intent(in) :: flxy_lo(3), flxy_hi(3)
-   integer, intent(in) :: flxz_lo(3), flxz_hi(3)
+    implicit none
 
-   real(rt), intent(in)  :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-   real(rt), intent(in)  :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3),NVAR+3)
-   real(rt), intent(in)  :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3),NVAR+3)
-   real(rt), intent(in)  :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3),NVAR+3)
+    integer, intent(in) :: w_lo(3), w_hi(3)
+    integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: q2_lo(3), q2_hi(3)
+    integer, intent(in) :: flxx_lo(3), flxx_hi(3)
+    integer, intent(in) :: flxy_lo(3), flxy_hi(3)
+    integer, intent(in) :: flxz_lo(3), flxz_hi(3)
 
-   real(rt), intent(out) :: q2D(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
+    real(rt), intent(in)  :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
+    real(rt), intent(in)  :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3),NVAR+3)
+    real(rt), intent(in)  :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3),NVAR+3)
+    real(rt), intent(in)  :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3),NVAR+3)
 
-   real(rt)  :: flx_sum(NVAR+3)
-   real(rt)  :: qflx(NQ)
-   real(rt)  :: dx, dy, dz, dt
-   integer   :: i, j, k
+    real(rt), intent(out) :: q2D(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
 
-   do k = w_lo(3),w_hi(3)
-      do j = w_lo(2),w_hi(2)
-         do i = w_lo(1),w_hi(1)
-            flx_sum = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) + (flxy(i,j+1,k,:) - flxy(i,j,k,:)) + (flxz(i,j,k+1,:) - flxz(i,j,k,:))
-            call qflux(qflx,flx_sum,q(i,j,k,:))
-            !Right below eq. 48
-            q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt/dx*qflx
-         enddo
-      enddo
-   enddo
+    real(rt)  :: divF(NVAR+3)
+    real(rt)  :: divF_q(NQ)
+    real(rt)  :: dx, dy, dz, dt
+    integer   :: i, j, k
+
+    do k = w_lo(3),w_hi(3)
+       do j = w_lo(2),w_hi(2)
+          do i = w_lo(1),w_hi(1)
+
+             divF(:) = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) / dx + &
+                       (flxy(i,j+1,k,:) - flxy(i,j,k,:)) / dy + &
+                       (flxz(i,j,k+1,:) - flxz(i,j,k,:)) / dz
+
+             ! that is a flux of conserved variables -- transform it to primitive
+             call qflux(divF_q, divF, q(i,j,k,:))
+
+             ! Right below eq. 48
+             q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt * divF_q
+
+          enddo
+       enddo
+    enddo
   end subroutine prim_half
 
 
-  !================================= Calculate the C to P Jacobian applied to the fluxes ===================================
-
   subroutine qflux(qflx,flx,q)
-   use amrex_fort_module, only : rt => amrex_real
-   use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
-   use eos_module, only : eos
-   use eos_type_module, only: eos_t, eos_input_rp
-   use network, only : nspec
 
-   implicit none
+    ! Calculate the C to P Jacobian applied to the fluxes
 
-   ! this is step 10 in the paper, just after Eq. 48
+    use amrex_fort_module, only : rt => amrex_real
+    use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
+    use eos_module, only : eos
+    use eos_type_module, only: eos_t, eos_input_rp
+    use network, only : nspec
 
-   ! this seems to implement dW/dU . qflux, where dW/dU is the Jacobian of
-   ! the primitive quantities (W) with respect to conserved quantities (U)
+    implicit none
 
-   real(rt), intent(in)           ::flx(NVAR+3), q(NQ)
-   real(rt), intent(out)          ::qflx(NQ)
-   real(rt) :: dedp, dedrho, totalE
+    ! this is step 10 in the paper, just after Eq. 48
 
-   type (eos_t) :: eos_state
+    ! this implements dW/dU . qflux, where dW/dU is the Jacobian of
+    ! the primitive quantities (W) with respect to conserved quantities (U)
 
-          qflx = 0.d0
-          qflx(QRHO)  = flx(URHO)
-          qflx(QU)    = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
-          qflx(QV)    = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
-          qflx(QW)    = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
+    real(rt), intent(in) :: flx(NVAR+3), q(NQ)
+    real(rt), intent(out) :: qflx(NQ)
+    real(rt) :: dedp, dedrho, totalE
 
-          qflx(QFS:QFS+nspec-1)  = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
+    type (eos_t) :: eos_state
 
-          eos_state % rho = q(QRHO)
-          eos_state % p   = q(QPRES)
-          eos_state % T   = 100.d0 !dummy initial guess
-          eos_state % xn  = q(QFS:QFS+nspec-1)
+    qflx = 0.d0
+    qflx(QRHO) = flx(URHO)
+    qflx(QU) = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
+    qflx(QV) = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
+    qflx(QW) = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
 
-          call eos(eos_input_rp, eos_state)
+    qflx(QFS:QFS+nspec-1) = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
 
-          dedrho  = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
-          dedp    = eos_state % dedT * 1.0d0/eos_state % dPdT
+    eos_state % rho = q(QRHO)
+    eos_state % p   = q(QPRES)
+    eos_state % T   = 100.d0 !dummy initial guess
+    eos_state % xn  = q(QFS:QFS+nspec-1)
 
-          qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
-                           flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
-                           flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
-                           eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
-          qflx(QMAGX) = flx(UMAGX)
-          qflx(QMAGY) = flx(UMAGY)
-          qflx(QMAGZ) = flx(UMAGZ)
+    call eos(eos_input_rp, eos_state)
 
-          qflx(QTEMP) = 0.0_rt
+    dedrho = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
+    dedp = eos_state % dedT * 1.0d0/eos_state % dPdT
+
+    qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
+         flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
+         flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
+         eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
+
+    qflx(QMAGX) = flx(UMAGX)
+    qflx(QMAGY) = flx(UMAGY)
+    qflx(QMAGZ) = flx(UMAGZ)
+
+    qflx(QTEMP) = 0.0_rt
 
   end subroutine qflux
 

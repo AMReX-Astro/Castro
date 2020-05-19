@@ -355,6 +355,11 @@ sdc_iters                    int           2
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
 
+# Limit the timestep based on how much the burning can change the temperature
+# of a zone. The timestep is equal to
+# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
+dtnuc_T                      Real          1.e200             y
+
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.
