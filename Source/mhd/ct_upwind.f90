@@ -843,7 +843,7 @@ contains
     ! in direction d1
     err(d1) = -1
     elr(d1) = -1
-    elr(d1) = -1
+    erl(d1) = -1
     ell(d1) = -1
 
     do k = w_lo(3), w_hi(3)
