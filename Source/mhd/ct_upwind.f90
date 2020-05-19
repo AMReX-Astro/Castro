@@ -211,11 +211,11 @@ contains
 
     ! affected by Y Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
-    work_lo = (/ lo(1)-2 , lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-1 , lo(2)-2, lo(3)-2 /)
     work_hi = (/ hi(1)+2 , hi(2)+2, hi(3)+2 /)
 
-    ut_lo = work_lo
-    ut_hi = work_hi
+    ut_lo = [lo(1)-2, lo(2)-2, lo(3)-2]
+    ut_hi = [hi(1)+2, hi(2)+2, hi(3)+2]
 
     call bl_allocate(utmp_left, ut_lo, ut_hi, NVAR+3)
     call bl_allocate(utmp_right, ut_lo, ut_hi, NVAR+3)
@@ -257,9 +257,12 @@ contains
 
     call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
 
+    print *, "calling hlld"
     call hlld(fxy_lo, fxy_hi, &
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flx_xy, fxy_lo, fxy_hi, 1) !F^{x|y}
+
+    print *, "done"
 
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
@@ -298,9 +301,11 @@ contains
 
     !Y direction
 
+    print *, "here"
+
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
     call corner_couple(work_lo, work_hi, &
@@ -338,6 +343,7 @@ contains
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flx_yx, fyx_lo, fyx_hi, 2) !F^{y|x}
 
+    print *, "z direction"
 
     ! affected by Z Flux
     call corner_couple(work_lo, work_hi, &
@@ -364,6 +370,8 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
 
+    print *, "here2"
+
     fyz_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
     fyz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
 
@@ -377,7 +385,7 @@ contains
 
     ! affected by X Flux
     ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
+    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
     work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2/)
     call corner_couple(work_lo, work_hi, &
                        utmp_right, ut_lo, ut_hi, &
@@ -403,6 +411,7 @@ contains
     call ConsToPrim(work_lo, work_hi, &
                     qtmp_right, ut_lo, ut_hi, utmp_right, ut_lo, ut_hi)
 
+    print *, "fxz"
 
     ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
     fzx_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
@@ -453,29 +462,32 @@ contains
     ! Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
     ! eq. 42 and 43
 
-    do k = lo(3)-2, hi(3)+2
-       do j = lo(2)-2, hi(2)+2
+    do k = lo(3)-1, hi(3)+2
+       do j = lo(2)-1, hi(2)+2
           do i = lo(1)-1, hi(1)+2
              flxx1D(i,j,k,:) = 0.5d0*(flx_xy(i,j,k,:) + flx_xz(i,j,k,:))
           end do
        end do
     end do
 
-    do k = lo(3)-2, hi(3)+2
+    do k = lo(3)-1, hi(3)+2
        do j = lo(2)-1, hi(2)+2
-          do i = lo(1)-2, hi(1)+2
+          do i = lo(1)-1, hi(1)+2
              flxy1D(i,j,k,:) = 0.5d0*(flx_yx(i,j,k,:) + flx_yz(i,j,k,:))
           end do
        end do
     end do
 
     do k = lo(3)-1, hi(3)+2
-       do j = lo(2)-2, hi(2)+2
-          do i = lo(1)-2, hi(1)+2
+       do j = lo(2)-1, hi(2)+2
+          do i = lo(1)-1, hi(1)+2
              flxz1D(i,j,k,:) = 0.5d0*(flx_zx(i,j,k,:) + flx_zy(i,j,k,:))
           end do
        end do
     end do
+
+
+    print *, "after flux averaging"
 
     ! eq. 41
     ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
@@ -508,6 +520,8 @@ contains
     ! MM CTU Step 7, 8, and 9
     ! Half Step conservative vars eq.44, eq.45, eq.46
     ! Here we reuse utmp_left/right to denote the half-time conservative state
+
+    print *, "x half step"
 
     !for x direction
     ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
@@ -546,12 +560,14 @@ contains
     ! than we'd need for hydro alone due to the electric update
 
     ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
+    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flxx, flxx_lo, flxx_hi, 1)
 
+
+    print *, "y half step"
 
     !for y direction
 
@@ -585,11 +601,13 @@ contains
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
+    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
               flxy, flxy_lo, flxy_hi, 2)
+
+    print *, "z half step"
 
     !for z direction
 
@@ -623,7 +641,7 @@ contains
                     qtmp_left, ut_lo, ut_hi, utmp_left, ut_lo, ut_hi)
 
     ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
+    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
