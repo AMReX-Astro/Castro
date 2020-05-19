@@ -212,15 +212,19 @@ Castro::just_the_mhd(Real time, Real dt)
           // Corner Couple and find the correct fluxes + electric fields
 
           // need to revisit these box sizes
-          const Box& nbxf = amrex::grow(nbx, IntVect(2, 3, 3));
-          const Box& nbyf = amrex::grow(nby, IntVect(3, 2, 3));
-          const Box& nbzf = amrex::grow(nbz, IntVect(3, 3, 2));
+          const Box& nbxf = amrex::grow(nbx, IntVect(1, 1, 1));
+          const Box& nbyf = amrex::grow(nby, IntVect(1, 1, 1));
+          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 1));
+
+          const Box& nbxe = amrex::grow(nbx, IntVect(2, 3, 3));
+          const Box& nbye = amrex::grow(nby, IntVect(3, 2, 3));
+          const Box& nbze = amrex::grow(nbz, IntVect(3, 3, 2));
 
           flxx.resize(nbxf, NUM_STATE+3);
           auto flxx_arr = flxx.array();
           auto elix_flxx = flxx.elixir();
 
-          Extmp.resize(nbxf);
+          Extmp.resize(nbxe);
           auto Ex_arr = Extmp.array();
           auto elix_Ex = Extmp.elixir();
 
@@ -228,7 +232,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxy_arr = flxy.array();
           auto elix_flxy = flxy.elixir();
 
-          Eytmp.resize(nbyf);
+          Eytmp.resize(nbye);
           auto Ey_arr = Eytmp.array();
           auto elix_Ey = Eytmp.elixir();
 
@@ -236,7 +240,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxz_arr = flxz.array();
           auto elix_flxz = flxz.elixir();
 
-          Eztmp.resize(nbzf);
+          Eztmp.resize(nbze);
           auto Ez_arr = Eztmp.array();
           auto elix_Ez = Eztmp.elixir();
 
