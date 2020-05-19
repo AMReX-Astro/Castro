@@ -712,8 +712,8 @@ contains
     real(rt), intent(in) :: Ed1(ed1_lo(1):ed1_hi(1),ed1_lo(2):ed1_hi(2),ed1_lo(3):ed1_hi(3))
     real(rt), intent(in) :: Ed3(ed3_lo(1):ed3_hi(1),ed3_lo(2):ed3_hi(2),ed3_lo(3):ed3_hi(3))
 
-    real(rt), intent(out) :: qr_out(qro_lo(1):qro_hi(1),qro_lo(2):qro_hi(2),qro_lo(3):qro_hi(3),NVAR+3)
-    real(rt), intent(out) :: ql_out(qlo_lo(1):qlo_hi(1),qlo_lo(2):qlo_hi(2),qlo_lo(3):qlo_hi(3),NVAR+3)
+    real(rt), intent(out) :: qr_out(qro_lo(1):qro_hi(1),qro_lo(2):qro_hi(2),qro_lo(3):qro_hi(3),NQ)
+    real(rt), intent(out) :: ql_out(qlo_lo(1):qlo_hi(1),qlo_lo(2):qlo_hi(2),qlo_lo(3):qlo_hi(3),NQ)
 
     real(rt) :: u, v, w, cdtdx
     integer  :: i, j, k, n
@@ -721,6 +721,7 @@ contains
     ! for the addition of +1 to either i,j,k depending on d2
     integer :: dl(3), dr(3)
     integer :: a1(3), a2(3), a3(3), a4(3)
+    integer :: b(3)
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
     integer :: sgn
@@ -740,6 +741,8 @@ contains
     a3(:) = 0
     a4(:) = 0
 
+    b(:) = 0
+
     a1(d2) = 1   !j+1 on first and third term of addition Ed1
     a1(d3) = 1
 
@@ -749,6 +752,9 @@ contains
 
     ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
     dr(d2) = 1
+
+    ! for the normal B component
+    b(d2) = 1
 
     sgn = epsilon_ijk(d1, d2, d3)
     cdtdx = dt/(3.d0*dx)
@@ -787,7 +793,7 @@ contains
              ! we use dr(:) to captured the j+1/2 indexing into Ez
 
              utmp(UMAGD1) = ur(i,j,k,UMAGD1) - sgn * cdtdx * &
-                  (Ed3(i+dr(1),j+dr(2),k+dr(3)) - Ed3(i,j,k))
+                  (Ed3(i+b(1),j+b(2),k+b(3)) - Ed3(i,j,k))
 
              ! d3 -- this is in the plane of the face, MM Eq. 39
              ! e.g.,g for d1 = x, and d2 = y, this gets updated as
@@ -842,7 +848,7 @@ contains
              ! left state on the interface (e.g. B_{i-1/2,j,k,L} or `+` in MM notation)
 
              utmp(UMAGD1) = ul(i,j,k,UMAGD1) - sgn * cdtdx * &
-                  (Ed3(i+dr(1),j+dr(2),k+dr(3)) - Ed3(i,j,k))
+                  (Ed3(i+b(1),j+b(2),k+b(3)) - Ed3(i,j,k))
 
              utmp(UMAGD3) = ul(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
@@ -890,8 +896,8 @@ contains
     integer, intent(in) :: flxd1_lo(3), flxd1_hi(3)
     integer, intent(in) :: flxd2_lo(3), flxd2_hi(3)
 
-    real(rt), intent(inout) :: qr_out(qro_lo(1):qro_hi(1), qro_lo(2):qro_hi(2), qro_lo(3):qro_hi(3), NVAR+3)
-    real(rt), intent(inout) :: ql_out(qlo_lo(1):qlo_hi(1), qlo_lo(2):qlo_hi(2), qlo_lo(3):qlo_hi(3), NVAR+3)
+    real(rt), intent(inout) :: qr_out(qro_lo(1):qro_hi(1), qro_lo(2):qro_hi(2), qro_lo(3):qro_hi(3), NQ)
+    real(rt), intent(inout) :: ql_out(qlo_lo(1):qlo_hi(1), qlo_lo(2):qlo_hi(2), qlo_lo(3):qlo_hi(3), NQ)
     real(rt), intent(in)    :: ur(ur_lo(1):ur_hi(1), ur_lo(2):ur_hi(2), ur_lo(3):ur_hi(3), NVAR+3)
     real(rt), intent(in)    :: ul(ul_lo(1):ul_hi(1), ul_lo(2):ul_hi(2), ul_lo(3):ul_hi(3), NVAR+3)
 
