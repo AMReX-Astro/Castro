@@ -926,7 +926,6 @@ contains
     real(rt), intent(in)  :: flxd1(flxd1_lo(1):flxd1_hi(1),flxd1_lo(2):flxd1_hi(2),flxd1_lo(3):flxd1_hi(3),NVAR+3)
     real(rt), intent(in)  :: flxd2(flxd2_lo(1):flxd2_hi(1),flxd2_lo(2):flxd2_hi(2),flxd2_lo(3):flxd2_hi(3),NVAR+3)
 
-    real(rt) :: u, v, w
     integer  :: i ,j ,k, n
 
     ! for the shift in i,j,k
@@ -1113,10 +1112,9 @@ contains
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
                    (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
 
-
              ! Bd1 -- first component on face d, eq. 46 in Miniati
 
-             utmp(UMAGD1) = ur(i,j,k,UMAGD1) + sgn * hdtdx * &
+             utmp(UMAGD1) = ul(i,j,k,UMAGD1) + sgn * hdtdx * &
                   ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+erl(1),j+erl(2),k+erl(3))) + &
                    (Ed(i+elr(1),j+elr(2),k+elr(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
                    (Ed2(i+e2rr(1),j+e2rr(2),k+e2rr(3)) - Ed2(i+e2lr(1),j+e2lr(2),k+e2lr(3))) - &
@@ -1124,7 +1122,7 @@ contains
 
              ! Bd2 -- second component on face d, eq. 46 in Miniati
 
-             utmp(UMAGD2) = ur(i,j,k,UMAGD2) - sgn * hdtdx * &
+             utmp(UMAGD2) = ul(i,j,k,UMAGD2) - sgn * hdtdx * &
                   ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+elr(1),j+elr(2),k+elr(3))) + &
                    (Ed(i+erl(1),j+erl(2),k+erl(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
                    (Ed1(i+e1rr(1),j+e1rr(2),k+e1rr(3)) - Ed1(i+e1lr(1),j+e1lr(2),k+e1lr(3))) - &
