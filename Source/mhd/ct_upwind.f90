@@ -546,7 +546,7 @@ contains
     ! than we'd need for hydro alone due to the electric update
 
     ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
+    work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
     work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
     call hlld(work_lo, work_hi, &
               qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &

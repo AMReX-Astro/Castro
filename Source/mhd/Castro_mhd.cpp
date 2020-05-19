@@ -212,9 +212,9 @@ Castro::just_the_mhd(Real time, Real dt)
           // Corner Couple and find the correct fluxes + electric fields
 
           // need to revisit these box sizes
-          const Box& nbxf = amrex::grow(nbx, IntVect(1, 1, 1));
-          const Box& nbyf = amrex::grow(nby, IntVect(1, 1, 1));
-          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 1));
+          const Box& nbxf = amrex::grow(nbx, IntVect(0, 1, 1));
+          const Box& nbyf = amrex::grow(nby, IntVect(1, 0, 1));
+          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 0));
 
           const Box& nbxe = amrex::grow(nbx, IntVect(2, 3, 3));
           const Box& nbye = amrex::grow(nby, IntVect(3, 2, 3));
