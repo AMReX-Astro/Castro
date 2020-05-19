@@ -305,6 +305,7 @@ Castro::do_advance_ctu(Real time,
     if (castro::change_max * new_dt < dt) {
         status.success = false;
         status.reason = "timestep validity check failed";
+        return status;
     }
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -320,8 +321,6 @@ bool
 Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
-
-    MultiFab& S_new = get_new_data(State_Type);
 
     bool do_retry = false;
 

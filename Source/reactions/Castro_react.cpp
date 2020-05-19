@@ -55,12 +55,15 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     const int ng = s.nGrow();
 
-    if (verbose)
+    if (verbose) {
         amrex::Print() << "... Entering burner and doing half-timestep of burning." << std::endl << std::endl;
+    }
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
+#ifdef CXX_REACTIONS
     using ReduceTuple = typename decltype(reduce_data)::Type;
+#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -210,7 +213,9 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
     Real burn_failed = amrex::get<0>(hv);
 #endif
 
-    if (burn_failed != 0.0) burn_success = 0;
+    if (burn_failed != 0.0) {
+      burn_success = 0;
+    }
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
@@ -218,13 +223,15 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
         Real e_added = r.sum(NumSpec + 1);
 
-        if (e_added != 0.0)
+        if (e_added != 0.0) {
             amrex::Print() << "... (rho e) added from burning: " << e_added << std::endl << std::endl;
+        }
 
     }
 
-    if (verbose)
+    if (verbose) {
         amrex::Print() << "... Leaving burner after completing half-timestep of burning." << std::endl << std::endl;
+    }
 
     if (verbose > 0)
     {
@@ -261,8 +268,9 @@ Castro::react_state(Real time, Real dt)
 
     const Real strt_time = ParallelDescriptor::second();
 
-    if (verbose)
+    if (verbose) {
         amrex::Print() << "... Entering burner and doing full timestep of burning." << std::endl << std::endl;
+    }
 
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
@@ -316,8 +324,9 @@ Castro::react_state(Real time, Real dt)
 
     ParallelDescriptor::ReduceIntMin(burn_success);
 
-    if (ng > 0)
+    if (ng > 0) {
         S_new.FillBoundary(geom.periodicity());
+    }
 
     if (print_update_diagnostics) {
 
@@ -347,17 +356,11 @@ Castro::react_state(Real time, Real dt)
 
     }
 
-    // For the ca_check_timestep routine, we need to have both the old
-    // and new burn defined, so we simply do a copy here
-    MultiFab& R_old = get_old_data(Reactions_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-    MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
-
-
-    if (burn_success)
+    if (burn_success) {
         return true;
-    else
+    } else {
         return false;
+    }
 
 }
 
@@ -386,7 +389,9 @@ Castro::valid_zones_to_burn(MultiFab& State)
 
     bool limit = limit_rho || limit_T;
 
-    if (!limit) return true;
+    if (!limit) {
+      return true;
+    }
 
     // Now, if we're limiting on rho, collect the
     // minimum and/or maximum and compare.
@@ -471,8 +476,9 @@ Castro::valid_zones_to_burn(MultiFab& State)
     // If we got to this point, we did not survive the limiters,
     // so there are no zones to burn.
 
-    if (verbose > 1)
+    if (verbose > 1) {
         amrex::Print() << "  No valid zones to burn, skipping react_state()." << std::endl;
+    }
 
     return false;
 

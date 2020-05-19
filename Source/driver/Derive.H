@@ -107,6 +107,11 @@ extern "C"
      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
      amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
+  void ca_dercircvel
+    (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
+     const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,
+     amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
+
   void ca_dermagmom
     (const amrex::Box& bx, amrex::FArrayBox& derfab, int dcomp, int /*ncomp*/,
      const amrex::FArrayBox& datfab, const amrex::Geometry& geomdata,

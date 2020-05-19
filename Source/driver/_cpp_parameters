@@ -355,6 +355,11 @@ sdc_iters                    int           2
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
 
+# Limit the timestep based on how much the burning can change the temperature
+# of a zone. The timestep is equal to
+# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
+dtnuc_T                      Real          1.e200             y
+
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.
@@ -534,6 +539,11 @@ spherical_star               int           0
 
 # do we dump the old state into the checkpoint files too?
 dump_old                     bool          false
+
+# do we assume the domain is plane parallel when computing some of the derived
+# quantities (e.g. radial velocity).  Note: this will always assume that the
+# last spatial dimension is vertical
+domain_is_plane_parallel     bool          false
 
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)

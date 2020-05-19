@@ -9,6 +9,16 @@
      restart from checkpoints generated with earlier versions of the
      code. (#927)
 
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
+
+   * The reaction weights metric implemented in version 20.05 (#863) has been
+     added to the simplified SDC reactions driver. (#930)
+
+   * When using the simplified SDC integration scheme, we now save new-time
+     Reactions_Type data to plotfiles. (#929)
+
 # 20.05
 
    * The parameter use_custom_knapsack_weights and its associated

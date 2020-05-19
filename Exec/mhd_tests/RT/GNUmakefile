@@ -20,7 +20,7 @@ USE_PROB_PARAMS = TRUE
 CASTRO_HOME  := ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
-EOS_DIR     := gamma_law
+EOS_DIR     := gamma_law_general
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/Networks
 NETWORK_DIR := general_null

@@ -13,8 +13,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       const int finest_level = parent->finestLevel();
 
-      const Real *dx = geom.CellSize();
-      Real courno = -1.0e+200;
+      const auto dx = geom.CellSizeArray();
+      const Real* dx_f = geom.CellSize();
 
       const int*  domain_lo = geom.Domain().loVect();
       const int*  domain_hi = geom.Domain().hiVect();
@@ -38,15 +38,14 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:mass:courno)
+#pragma omp parallel
 #endif
     {
 
       FArrayBox flux[AMREX_SPACEDIM], E[AMREX_SPACEDIM];
-      FArrayBox cs[AMREX_SPACEDIM];
 
-      FArrayBox bcc;
       FArrayBox q;
+      FArrayBox qaux;
       FArrayBox srcQ;
 
       FArrayBox flatn;
@@ -66,7 +65,6 @@ Castro::just_the_mhd(Real time, Real dt)
         {
 
           const Box& bx = mfi.tilebox();
-
           const Box& obx = amrex::grow(bx, 1);
 
           // box with NUM_GROW ghost cells for PPM stuff
@@ -76,18 +74,36 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* hi = bx.hiVect();
 
           FArrayBox &statein  = Sborder[mfi];
+          auto u_arr = statein.array();
+
           FArrayBox &stateout = S_new[mfi];
 
           FArrayBox &source_in  = sources_for_hydro[mfi];
-          FArrayBox &source_out = hydro_source[mfi];
+          auto src_arr = source_in.array();
+
+          FArrayBox &hydro_update = hydro_source[mfi];
+          auto update_arr = hydro_update.array();
 
           FArrayBox& Bx  = Bx_old_tmp[mfi];
+          auto Bx_arr = Bx.array();
+          auto elix_Bx = Bx.elixir();
+
           FArrayBox& By  = By_old_tmp[mfi];
+          auto By_arr = By.array();
+          auto elix_By = By.elixir();
+
           FArrayBox& Bz  = Bz_old_tmp[mfi];
+          auto Bz_arr = Bz.array();
+          auto elix_Bz = Bz.elixir();
 
           FArrayBox& Bxout = Bx_new[mfi];
+          auto Bxo_arr = Bxout.array();
+
           FArrayBox& Byout = By_new[mfi];
+          auto Byo_arr = Byout.array();
+
           FArrayBox& Bzout = Bz_new[mfi];
+          auto Bzo_arr = Bzout.array();
 
 
           // allocate fabs for fluxes
@@ -98,48 +114,39 @@ Castro::just_the_mhd(Real time, Real dt)
           }
 
           // Calculate primitives based on conservatives
-          bcc.resize(bx_gc, 3);
-
           q.resize(bx_gc, NQ);
           auto q_arr = q.array();
+          auto elix_q = q.elixir();
 
-          srcQ.resize(obx, NQSRC);
+          qaux.resize(bx_gc, NQAUX);
+          auto qaux_arr = qaux.array();
+          auto elix_qaux = qaux.elixir();
 
-          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-            cs[idir].resize(bx_gc, 1);
-          }
+          srcQ.resize(bx_gc, NQSRC);
+          auto src_q_arr = srcQ.array();
+          auto elix_src_q = srcQ.elixir();
 
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
 
-          ctoprim_mhd(lo_gc, hi_gc,
-                      BL_TO_FORTRAN_ANYD(statein),
-                      BL_TO_FORTRAN_ANYD(bcc),
-                      BL_TO_FORTRAN_ANYD(Bx),
-                      BL_TO_FORTRAN_ANYD(By),
-                      BL_TO_FORTRAN_ANYD(Bz),
-                      BL_TO_FORTRAN_ANYD(q),
-                      BL_TO_FORTRAN_ANYD(cs[0]),
-                      BL_TO_FORTRAN_ANYD(cs[1]),
-                      BL_TO_FORTRAN_ANYD(cs[2]));
+
+          ctoprim(bx_gc, time,
+                  u_arr,
+                  Bx_arr, By_arr, Bz_arr,
+                  q_arr, qaux_arr);
 
           const int* lo1 = obx.loVect();
           const int* hi1 = obx.hiVect();
 
-          auto src_q_arr = srcQ.array();
-          auto src_arr = source_in.array();
 
-          src_to_prim(obx, q_arr, src_arr, src_q_arr);
+          src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
-          check_for_mhd_cfl_violation(lo, hi,
-                                      BL_TO_FORTRAN_ANYD(q),
-                                      BL_TO_FORTRAN_ANYD(cs[0]),
-                                      BL_TO_FORTRAN_ANYD(cs[1]),
-                                      BL_TO_FORTRAN_ANYD(cs[2]),
-                                      courno, dx, dt);
+          check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
           flatn.resize(bx_gc, 1);
           auto flatn_arr = flatn.array();
+          auto elix_flatn = flatn.elixir();
+
           amrex::ParallelFor(obx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
@@ -155,8 +162,15 @@ Castro::just_the_mhd(Real time, Real dt)
           qp.resize(bx_gc, NQ * AMREX_SPACEDIM);
           qm.resize(bx_gc, NQ * AMREX_SPACEDIM);
 
-          plm(lo, hi,
+          const Box& nbx = amrex::surroundingNodes(bx, 0);
+          const Box& nby = amrex::surroundingNodes(bx, 1);
+          const Box& nbz = amrex::surroundingNodes(bx, 2);
+
+          const Box& nbxi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbxi.loVect(), nbxi.hiVect(), 1,
               BL_TO_FORTRAN_ANYD(q),
+              BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
@@ -164,50 +178,67 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(qp),
               BL_TO_FORTRAN_ANYD(qm),
               BL_TO_FORTRAN_ANYD(srcQ),
-              dx, dt);
+              dx_f, dt);
+
+          const Box& nbyi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbyi.loVect(), nbyi.hiVect(), 2,
+              BL_TO_FORTRAN_ANYD(q),
+              BL_TO_FORTRAN_ANYD(qaux),
+              BL_TO_FORTRAN_ANYD(flatn),
+              BL_TO_FORTRAN_ANYD(Bx),
+              BL_TO_FORTRAN_ANYD(By),
+              BL_TO_FORTRAN_ANYD(Bz),
+              BL_TO_FORTRAN_ANYD(qp),
+              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(srcQ),
+              dx_f, dt);
+
+          const Box& nbzi = amrex::grow(bx, IntVect(3, 3, 3));
+
+          plm(nbzi.loVect(), nbzi.hiVect(), 3,
+              BL_TO_FORTRAN_ANYD(q),
+              BL_TO_FORTRAN_ANYD(qaux),
+              BL_TO_FORTRAN_ANYD(flatn),
+              BL_TO_FORTRAN_ANYD(Bx),
+              BL_TO_FORTRAN_ANYD(By),
+              BL_TO_FORTRAN_ANYD(Bz),
+              BL_TO_FORTRAN_ANYD(qp),
+              BL_TO_FORTRAN_ANYD(qm),
+              BL_TO_FORTRAN_ANYD(srcQ),
+              dx_f, dt);
 
 
           // Corner Couple and find the correct fluxes + electric fields
 
           // need to revisit these box sizes
-          const Box& nbx = amrex::surroundingNodes(bx, 0);
           const Box& nbxf = amrex::grow(nbx, IntVect(2, 3, 3));
-
-          const Box& nby = amrex::surroundingNodes(bx, 1);
           const Box& nbyf = amrex::grow(nby, IntVect(3, 2, 3));
-
-          const Box& nbz = amrex::surroundingNodes(bx, 2);
           const Box& nbzf = amrex::grow(nbz, IntVect(3, 3, 2));
 
           flxx.resize(nbxf, NUM_STATE+3);
           auto flxx_arr = flxx.array();
+          auto elix_flxx = flxx.elixir();
+
           Extmp.resize(nbxf);
+          auto Ex_arr = Extmp.array();
+          auto elix_Ex = Extmp.elixir();
 
           flxy.resize(nbyf, NUM_STATE+3);
           auto flxy_arr = flxy.array();
+          auto elix_flxy = flxy.elixir();
+
           Eytmp.resize(nbyf);
+          auto Ey_arr = Eytmp.array();
+          auto elix_Ey = Eytmp.elixir();
 
           flxz.resize(nbzf, NUM_STATE+3);
           auto flxz_arr = flxz.array();
+          auto elix_flxz = flxz.elixir();
+
           Eztmp.resize(nbzf);
-
-          amrex::ParallelFor(nbxf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxx_arr(i,j,k,n) = 0.0_rt;
-          });
-
-          amrex::ParallelFor(nbyf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxy_arr(i,j,k,n) = 0.0_rt;
-          });
-
-          amrex::ParallelFor(nbzf, NUM_STATE+3,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
-          {
-            flxz_arr(i,j,k,n) = 0.0_rt;
-          });
+          auto Ez_arr = Eztmp.array();
+          auto elix_Ez = Eztmp.elixir();
 
           corner_transport(lo, hi,
                            BL_TO_FORTRAN_ANYD(q),
@@ -219,53 +250,34 @@ Castro::just_the_mhd(Real time, Real dt)
                            BL_TO_FORTRAN_ANYD(Extmp),
                            BL_TO_FORTRAN_ANYD(Eytmp),
                            BL_TO_FORTRAN_ANYD(Eztmp),
-                           dx, dt);
+                           dx_f, dt);
 
           // Conservative update
-          consup(lo, hi,
-                 BL_TO_FORTRAN_ANYD(statein),
-                 BL_TO_FORTRAN_ANYD(source_out),
-                 BL_TO_FORTRAN_ANYD(bcc),
-                 BL_TO_FORTRAN_ANYD(flxx),
-                 BL_TO_FORTRAN_ANYD(flxy),
-                 BL_TO_FORTRAN_ANYD(flxz),
-                 dx, dt);
 
+          consup_mhd(bx, update_arr, flxx_arr, flxy_arr, flxz_arr);
 
           // magnetic update
 
-          auto Bxo_arr = Bxout.array();
           amrex::ParallelFor(nbx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bxo_arr(i,j,k) = 0.0_rt;
+            Bxo_arr(i,j,k) = Bx_arr(i,j,k) + dt/dx[0] *
+              ((Ey_arr(i,j,k+1) - Ey_arr(i,j,k)) - (Ez_arr(i,j+1,k) - Ez_arr(i,j,k)));
           });
 
-          auto Byo_arr = Byout.array();
           amrex::ParallelFor(nby,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Byo_arr(i,j,k) = 0.0_rt;
+            Byo_arr(i,j,k) = By_arr(i,j,k) + dt/dx[1] *
+              ((Ez_arr(i+1,j,k) - Ez_arr(i,j,k)) - (Ex_arr(i,j,k+1) - Ex_arr(i,j,k)));
           });
 
-          auto Bzo_arr = Bzout.array();
           amrex::ParallelFor(nbz,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bzo_arr(i,j,k) = 0.0_rt;
+            Bzo_arr(i,j,k) = Bz_arr(i,j,k) + dt/dx[2] *
+              ((Ex_arr(i,j+1,k) - Ex_arr(i,j,k)) - (Ey_arr(i+1,j,k) - Ey_arr(i,j,k)));
           });
-
-          magup(lo, hi,
-                BL_TO_FORTRAN_ANYD(Bx),
-                BL_TO_FORTRAN_ANYD(By),
-                BL_TO_FORTRAN_ANYD(Bz),
-                BL_TO_FORTRAN_ANYD(Bxout),
-                BL_TO_FORTRAN_ANYD(Byout),
-                BL_TO_FORTRAN_ANYD(Bzout),
-                BL_TO_FORTRAN_ANYD(Extmp),
-                BL_TO_FORTRAN_ANYD(Eytmp),
-                BL_TO_FORTRAN_ANYD(Eztmp),
-                dx, dt);
 
 
           // store the fluxes -- it looks like we don't need these temporary fluxes?
