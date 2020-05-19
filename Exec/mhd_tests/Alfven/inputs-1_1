@@ -1,0 +1,63 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 10000
+stop_time =  1.41
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 1  1  1 
+geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     =  0      0      0
+geometry.prob_hi     =  1      1     0.25  
+amr.n_cell           =  16     16     4    
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  0   0   0 
+castro.hi_bc       =  0   0   0 
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 0
+castro.ppm_type = 0
+
+castro.mhd_plm_slope = 1
+castro.use_flattening = 0
+
+castro.small_temp = 1.e-10
+castro.small_dens = 1.e-6
+castro.small_pres = 1.e-10
+
+# TIME STEP CONTROL
+castro.fixed_dt  = 0.021
+castro.cfl       = 0.8     # cfl number for hyperbolic system
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+#amr.grid_log         = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = alfven_chk  # root name of checkpoint file
+amr.check_int       = 100         # number of timesteps between checkpoints
+
+# PLOTFILES
+#amr.plot_files_output = 0
+amr.checkpoint_files_output = 0
+
+amr.plot_file       = alfven_plt  # root name of plotfile
+amr.plot_int        = 100       # number of timesteps between plotfiles
+amr.derive_plot_vars = density x_velocity y_velocity z_velocity eden Temp pressure B_x B_y B_z # these variables appear in the plotfile
+
+#PROBIN FILENAME
+amr.probin_file = probin-1_1
