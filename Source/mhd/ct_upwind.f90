@@ -933,7 +933,10 @@ contains
 
     ! c1l, c1r are for indexing flxd1 offsets, c2l, c2r are for flxd2
     integer  :: c1l(3), c1r(3), c2l(3), c2r(3)
-    integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3), b7(3)
+    integer :: a1(3), a2(3)
+    integer :: err(3), erl(3), elr(3), ell(3)
+    integer :: e1rr(3), e1rl(3), e1lr(3)
+    integer :: e2rr(3), e2rl(3), e2lr(3)
 
     real(rt) :: hdtdx
     integer :: UMAGD, UMAGD1, UMAGD2
@@ -956,36 +959,49 @@ contains
     c1r(d1) = 1  ! add +1 to the d1 direction in the first flxd1 term of the subtraction
     c2r(d2) = 1  ! add +1 to the d2 direction in the first flxd2 term of the subtraction
 
+    ! for Ed
+    err(:) = 0
+    err(d1) = 1
+    err(d2) = 1
 
+    erl(:) = 0
+    erl(d1) = 1
+
+    elr(:) = 0
+    elr(d2) = 1
+
+    ell(:) = 0
+
+    ! for Ed1
+    e1rr(:) = 0
+    e1rr(d) = 1
+    e1rr(d2) = 1
+
+    e1lr(:) = 0
+    e1lr(d2) = 1
+
+    e1rl(:) = 0
+    e1rl(d) = 1
+
+    ! for Ed2
+    e2rr(:) = 0
+    e2rr(d) = 1
+    e2rr(d1) = 1
+
+    e2lr(:) = 0
+    e2lr(d1) = 1
+
+    e2rl(:) = 0
+    e2rl(d) = 1
+
+
+    ! for the normal component of B
     a1(:) = 0
     a2(:) = 0
-    b1(:) = 0
-    b2(:) = 0
-    b3(:) = 0
-    b4(:) = 0
-    b5(:) = 0
-    b6(:) = 0
-    b7(:) = 0
 
-    ! for Bd
     a1(d2) = 1 ! shift on first term of Ed1 substraction, in d2 direction
     a2(d1) = 1 ! shift on first term of Ed2 substraction, in d1 direction
 
-    ! for Bd1 and Bd2
-    b1(d1) = 1 ! shift on 1st term for Bd1 and Bd2
-    b1(d2) = 1 ! in d1 and d2 components
-
-    b2(d1) = 1 !shift on 2nd and 6th term for Bd1, and 3rd term for Bd2
-
-    b3(d2) = 1 !shift on 3rd term for Bd1, and 2nd and 6th term for Bd2
-
-    b4(d)  = 1 !shift on 5th term for Bd1, on d and d1 components
-    b4(d1) = 1
-
-    b5(d)  = 1 !shift on 7th term for Bd1 and Bd2
-
-    b6(d)  = 1 !shift on 5th term for Bd2, on d and d2 components
-    b6(d2) = 1
 
     ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
     ! MM Eq. 44
@@ -1020,19 +1036,19 @@ contains
              ! Eq.46 in Miniati
 
              utmp(UMAGD1) = ur(i,j,k,UMAGD1) + sgn * hdtdx * &
-                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
-                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) - &
-                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
-                   (Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+                  ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+erl(1),j+erl(2),k+erl(3))) + &
+                   (Ed(i+elr(1),j+elr(2),k+elr(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
+                   (Ed2(i+e2rr(1),j+e2rr(2),k+e2rr(3)) - Ed2(i+e2lr(1),j+e2lr(2),k+e2lr(3))) - &
+                   (Ed2(i+e2rl(1),j+e2rl(2),k+e2rl(3)) - Ed2(i+ell(1),j+ell(2),k+ell(3))))
 
              ! Bd2 -- this is the other component of B in the plane of the face d
              ! Eq. 46 in Miniati
 
              utmp(UMAGD2) = ur(i,j,k,UMAGD2) - sgn * hdtdx * &
-                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
-                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) - &
-                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
-                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+                  ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+elr(1),j+elr(2),k+elr(3))) + &
+                   (Ed(i+erl(1),j+erl(2),k+erl(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
+                   (Ed1(i+e1rr(1),j+e1rr(2),k+e1rr(3)) - Ed1(i+e1lr(1),j+e1lr(2),k+e1lr(3))) - &
+                   (Ed1(i+e1rl(1),j+e1rl(2),k+e1rl(3)) - Ed1(i+ell(1),j+ell(2),k+ell(3))))
 
              ! convert to primitive
              call ConsToPrim(qr_out(i,j,k,:), utmp)
@@ -1053,13 +1069,19 @@ contains
     ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
     ! in direction d1
 
-    b1(d) = b1(d) - 1
-    b2(d) = b2(d) - 1
-    b3(d) = b3(d) - 1
-    b4(d) = b4(d) - 1
-    b5(d) = b5(d) - 1
-    b6(d) = b6(d) - 1
-    b7(d) = b7(d) - 1
+    err(d) = err(d) - 1
+    erl(d) = erl(d) - 1
+    elr(d) = elr(d) - 1
+    ell(d) = ell(d) - 1
+
+    e1rr(d) = e1rr(d) - 1
+    e1rl(d) = e1rl(d) - 1
+    e1lr(d) = e1lr(d) - 1
+
+    e2rr(d) = e2rr(d) - 1
+    e2rl(d) = e2rl(d) - 1
+    e2lr(d) = e2lr(d) - 1
+
 
     ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
     do k = w_lo(3), w_hi(3)
@@ -1091,19 +1113,22 @@ contains
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
                    (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
 
+
              ! Bd1 -- first component on face d, eq. 46 in Miniati
-             utmp(UMAGD1) = ul(i,j,k,UMAGD1) + sgn * hdtdx * &
-                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
-                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
-                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
-                  ( Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i+b7(1),j+b7(2),k+b7(3))))
+
+             utmp(UMAGD1) = ur(i,j,k,UMAGD1) + sgn * hdtdx * &
+                  ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+erl(1),j+erl(2),k+erl(3))) + &
+                   (Ed(i+elr(1),j+elr(2),k+elr(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
+                   (Ed2(i+e2rr(1),j+e2rr(2),k+e2rr(3)) - Ed2(i+e2lr(1),j+e2lr(2),k+e2lr(3))) - &
+                   (Ed2(i+e2rl(1),j+e2rl(2),k+e2rl(3)) - Ed2(i+ell(1),j+ell(2),k+ell(3))))
 
              ! Bd2 -- second component on face d, eq. 46 in Miniati
-             utmp(UMAGD2) = ul(i,j,k,UMAGD2) - sgn * hdtdx * &
-                  ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
-                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
-                   (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
-                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i+b7(1),j+b7(2),k+b7(3))))
+
+             utmp(UMAGD2) = ur(i,j,k,UMAGD2) - sgn * hdtdx * &
+                  ((Ed(i+err(1),j+err(2),k+err(3)) - Ed(i+elr(1),j+elr(2),k+elr(3))) + &
+                   (Ed(i+erl(1),j+erl(2),k+erl(3)) - Ed(i+ell(1),j+ell(2),k+ell(3))) - &
+                   (Ed1(i+e1rr(1),j+e1rr(2),k+e1rr(3)) - Ed1(i+e1lr(1),j+e1lr(2),k+e1lr(3))) - &
+                   (Ed1(i+e1rl(1),j+e1rl(2),k+e1rl(3)) - Ed1(i+ell(1),j+ell(2),k+ell(3))))
 
              ! convert to primitive
              call ConsToPrim(ql_out(i,j,k,:), utmp)
