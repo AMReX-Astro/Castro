@@ -349,7 +349,7 @@ contains
              qright(i,j,k,QREINT,idir) = eos_state % e * eos_state % rho
 
              ! add source terms
-             if (dir == 1) then
+             if (idir == 1) then
                 qleft(i+1,j,k,QRHO,idir) = max(small_dens, qleft(i+1,j,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
                 qleft(i+1,j,k,QU,idir) = qleft(i+1,j,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
                 qleft(i+1,j,k,QV,idir) = qleft(i+1,j,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
@@ -357,7 +357,7 @@ contains
                 qleft(i+1,j,k,QPRES,idir) = qleft(i+1,j,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
                 qleft(i+1,j,k,QREINT,idir) = qleft(i+1,j,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             else if (dir == 2) then
+             else if (idir == 2) then
                 qleft(i,j+1,k,QRHO,idir) = max(small_dens, qleft(i,j+1,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
                 qleft(i,j+1,k,QU,idir) = qleft(i,j+1,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
                 qleft(i,j+1,k,QV,idir) = qleft(i,j+1,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)

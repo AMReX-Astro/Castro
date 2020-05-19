@@ -849,16 +849,18 @@ contains
 
     real(rt) :: u, v, w, cdtdx
     integer  :: i, j, k, n
-    integer  :: d(3) !for the addition of +1 to either i,j,k depending on d2
+    integer  :: dl(3), dr(3) !for the addition of +1 to either i,j,k depending on d2
 
     ! update the state on interface direction d1 with the input flux in direction d2
 
     ! for the flux difference, F_r - F_l, we need to shift the indices in the first flux (F_r)
-    ! to get a difference across the interface.  d(:) will hold this shift.
-    d(:) = 0
+    ! in d2 to get a difference across the interface.  We also need to shift by a zone in d1
+    ! for the left interface.  dr(:) and dl(:) will hold these shifts.
+    dr(:) = 0
+    dl(:) = 0
 
     ! the first term of the flxd2 substraction is shifted by 1 on the direction d2
-    d(d2) = 1
+    dr(d2) = 1
 
     cdtdx = dt/(3.d0*dx)
 
@@ -873,7 +875,7 @@ contains
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - flxd2(i,j,k,n))
              end do
 
              ! now fix up the internal energy
@@ -883,14 +885,26 @@ contains
              w = ur_out(i,j,k,UMZ)/ur_out(i,j,k,URHO)
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - 0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
+          end do
+       end do
+    end do
 
-             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
+
+    ! left interface (e.g., U_{i-1/2,j,k,L} or the "+" state in MM notation)
+    ! note: this uses information one zone to the left in d1
+    dl(d1) = -1
+    dr(d1) = -1
+
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
 
              do n = 1, NVAR
                 if (n == UTEMP) cycle
 
                 ul_out(i,j,k,n) = ul(i,j,k,n) - &
-                     cdtdx*(flxd2(i+d(1),j+d(2),k+d(3),n) - flxd2(i,j,k,n))
+                     cdtdx*(flxd2(i+dr(1),j+dr(2),k+dr(3),n) - &
+                            flxd2(i+dl(1),j+dl(2),k+dl(3),n))
              end do
 
              ! fix up the internal energy
@@ -942,7 +956,7 @@ contains
 
     real(rt) :: dx, dt
     integer :: i ,j ,k
-    integer :: d(3), a1(3), a2(3), a3(3), d_2(3) !for the additions of +1 to i,j,k
+    integer :: d(3), a1(3), a2(3), a3(3), a4(3) !for the additions of +1 to i,j,k
 
     integer :: UMAGD1, UMAGD2, UMAGD3   !UMAGD1 corresponds to d1, and UMAGD2 to d2, UMAGD3 to d3
     integer :: sgn
@@ -958,7 +972,7 @@ contains
     !  * B_d2 is unchanged, since it points in the direction d2
     !  * B_d3 is in the plane of the face, but perpendicular to d2,
     !    and is updated by a d2 flux difference inside the cell
-    
+
     sgn = epsilon_ijk(d1, d2, d3)
     cdtdx = dt/(3.d0*dx)
 
@@ -966,20 +980,20 @@ contains
     UMAGD2 = UMAGX - 1 + d2
     UMAGD3 = UMAGX - 1 + d3
 
-    d   = 0
-    a1  = 0
-    a2  = 0
-    a3  = 0
-    d_2 = 0
-
+    d(:) = 0
+    a1(:) = 0
+    a2(:) = 0
+    a3(:) = 0
+    a4(:) = 0
 
     d(d2)  = 1   !for example if d2 = y, j+1 on Ed3
-    a1(d2) = 1   !j+1 on first and third term of addition Ed1
-    a3(d2) = 1
 
+    a1(d2) = 1   !j+1 on first and third term of addition Ed1
     a1(d3) = 1
+
     a2(d3) = 1   !the second term of addition Ed1 increments by 1 the i,j,k
 
+    a3(d2) = 1
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
@@ -1023,23 +1037,25 @@ contains
        enddo
     enddo
 
-
-    d(d1)  = 1
-    d_2(d1) = 1
-
+    ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
+    ! in direction d1
+    a1(d1) = -1
+    a2(d1) = -1
+    a3(d1) = -1
+    a4(d1) = -1
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! left state on the interface (e.g. B_{i+1/2,j,k,L} or `+` in MM notation)
+             ! left state on the interface (e.g. B_{i-1/2,j,k,L} or `+` in MM notation)
 
              ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) - sgn * cdtdx * &
-                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i+d_2(1),j+d_2(2),k+d_2(3)))
+                  (Ed3(i+d(1),j+d(2),k+d(3)) - Ed3(i,j,k))
 
              ul_out(i,j,k,UMAGD3) = ul(i,j,k,UMAGD3) + sgn * 0.5_rt * cdtdx * &
                   ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i+a2(1),j+a2(2),k+a2(3))) + &
-                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i,j,k)))
+                   (Ed1(i+a3(1),j+a3(2),k+a3(3)) - Ed1(i+a4(1),j+a4(2),k+a4(3))))
 
              ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2)
 
@@ -1092,30 +1108,33 @@ contains
 
     real(rt) :: u, v, w
     integer  :: i ,j ,k, n
-    integer  :: d(3), d_2(3) !for the shift in i,j,k
+    integer  :: dl_1(3), dr_1(3), dl_2(3), dr_2(3) !for the shift in i,j,k
     real(rt) :: hdtdx
 
     hdtdx = 0.5_rt * dt/dx
 
-    d(:) = 0
-    d_2(:) = 0
+    dl_1(:) = 0
+    dr_1(:) = 0
+    dl_2(:) = 0
+    dr_2(:) = 0
 
-    d(d1) = 1   ! add +1 to the d1 direction in the first flxd1 term of the substraction
-    d_2(d2) = 1 ! add +1 to the d2 direction in the first flxd2 term of the substraction
+    dr_1(d1) = 1  ! add +1 to the d1 direction in the first flxd1 term of the subtraction
+    dr_2(d2) = 1  ! add +1 to the d2 direction in the first flxd2 term of the subtraction
+
+
+    ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
+    ! MM Eq. 44
 
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
 
-             ! right interface (e.g. U_{i-1/2,j,k,R} or the "-" state in MM notation)
-             ! MM Eq. 44
-
              do n = 1, NVAR
                 if (n == UTEMP) cycle
 
                 ur_out(i,j,k,n) = ur(i,j,k,n) - &
-                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - flxd1(i,j,k,n)) - &
+                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - flxd2(i,j,k,n))
 
              end do
 
@@ -1126,14 +1145,30 @@ contains
              ur_out(i,j,k,UEINT) = ur_out(i,j,k,UEDEN) - &
                   0.5d0*ur_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
-             ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
+          end do
+       end do
+    end do
+
+    ! for the left state B components on the face dir, the flux
+    ! difference is in the zone to the left
+    dr_1(dir) = -1
+    dl_1(dir) = -1
+    dr_2(dir) = -1
+    dl_2(dir) = -1
+
+    ! left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
 
              do n = 1, NVAR
                 if (n == UTEMP) cycle
 
                 ul_out(i,j,k,n) = ul(i,j,k,n) - &
-                     hdtdx * (flxd1(i+d(1),j+d(2),k+d(3),n) - flxd1(i,j,k,n)) - &
-                     hdtdx * (flxd2(i+d_2(1),j+d_2(2),k+d_2(3),n) - flxd2(i,j,k,n))
+                     hdtdx * (flxd1(i+dr_1(1),j+dr_1(2),k+dr_1(3),n) - &
+                              flxd1(i+dl_1(1),j+dl_1(2),k+dl_1(3),n)) - &
+                     hdtdx * (flxd2(i+dr_2(1),j+dr_2(2),k+dr_2(3),n) - &
+                              flxd2(i+dl_2(1),j+dl_2(2),k+dl_2(3),n))
 
              end do
 
@@ -1143,9 +1178,9 @@ contains
              ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEDEN) - &
                   0.5d0*ul_out(i,j,k,URHO)*(u**2 + v**2 + w**2)
 
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
   end subroutine
 
@@ -1192,7 +1227,9 @@ contains
     real(rt), intent(in)  :: dx, dt
 
     integer :: i ,j ,k
-    integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3) !to manage the +1 shifts on  i,j,k
+
+    !to manage the +1 shifts on  i,j,k
+    integer :: a1(3), a2(3), b1(3), b2(3), b3(3), b4(3), b5(3), b6(3), b7(3)
 
     integer :: UMAGD, UMAGD1, UMAGD2
     integer :: sgn
@@ -1207,14 +1244,15 @@ contains
     UMAGD1 = UMAGX - 1 + d1
     UMAGD2 = UMAGX - 1 + d2
 
-    a1 = 0
-    a2 = 0
-    b1 = 0
-    b2 = 0
-    b3 = 0
-    b4 = 0
-    b5 = 0
-    b6 = 0
+    a1(:) = 0
+    a2(:) = 0
+    b1(:) = 0
+    b2(:) = 0
+    b3(:) = 0
+    b4(:) = 0
+    b5(:) = 0
+    b6(:) = 0
+    b7(:) = 0
 
     ! for Bd
     a1(d2) = 1 ! shift on first term of Ed1 substraction, in d2 direction
@@ -1237,13 +1275,13 @@ contains
     b6(d2) = 1
 
 
+    ! d-faces
+
+    ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
+
     do k = w_lo(3), w_hi(3)
        do j = w_lo(2), w_hi(2)
           do i = w_lo(1), w_hi(1)
-
-             ! d-faces
-
-             ! right state on the interface (e.g. B_{i-1/2,j,k,R} or `-` in MM notation)
 
              ! Bd -- this is perpendicular to the face. Note MM eq.45
              ! in Miniati has a sign error in the epsilon term
@@ -1276,36 +1314,57 @@ contains
                   0.5d0*dot_product(ur_out(i,j,k,UMAGX:UMAGZ), ur_out(i,j,k,UMAGX:UMAGZ))
 
 
-             ! left state on the interface (e.g., B_{i+1/2,j,k,L} or `+` in MM notation)
+          end do
+       end do
+    end do
+
+    ! left state on the interface (e.g., B_{i-1/2,j,k,L} or `+` in MM notation)
+
+    ! The in-plane B component at B_{i-1/2,j,k,L} uses the information one zone to the left
+    ! in direction d1
+
+    b1(d) = b1(d) - 1
+    b2(d) = b2(d) - 1
+    b3(d) = b3(d) - 1
+    b4(d) = b4(d) - 1
+    b5(d) = b5(d) - 1
+    b6(d) = b6(d) - 1
+    b7(d) = b7(d) - 1
+
+    do k = w_lo(3), w_hi(3)
+       do j = w_lo(2), w_hi(2)
+          do i = w_lo(1), w_hi(1)
 
              ! for the + case, the shifts mentioned above in b6, b5, and b4
              ! also correspond to the 1st, 2nd and 4th, and 3rd term respectevely
 
              ! Bd -- this is perpendicular to the face (MM Eq. 45 with sign fix)
+
+             ! this is the same face as the right state, so the update the identical
              ul_out(i,j,k,UMAGD) = ul(i,j,k,UMAGD) - sgn * hdtdx * &
-                  ((Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b5(1),j+b5(2),k+b5(3))) - &
-                   (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b5(1),j+b5(2),k+b5(3))))
+                  ((Ed1(i+a1(1),j+a1(2),k+a1(3)) - Ed1(i,j,k)) - &
+                   (Ed2(i+a2(1),j+a2(2),k+a2(3)) - Ed2(i,j,k)))
 
              ! Bd1 -- first component on face d, eq. 46 in Miniati
              ul_out(i,j,k,UMAGD1) = ul(i,j,k,UMAGD1) + sgn * hdtdx * &
                   ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b2(1),j+b2(2),k+b2(3))) + &
-                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i,j,k)) - &
+                   (Ed(i+b3(1),j+b3(2),k+b3(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
                    (Ed2(i+b4(1),j+b4(2),k+b4(3)) - Ed2(i+b2(1),j+b2(2),k+b2(3))) - &
-                  ( Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i,j,k)))
+                  ( Ed2(i+b5(1),j+b5(2),k+b5(3)) - Ed2(i+b7(1),j+b7(2),k+b7(3))))
 
              ! Bd2 -- second component on face d, eq. 46 in Miniati
              ul_out(i,j,k,UMAGD2) = ul(i,j,k,UMAGD2) - sgn * hdtdx * &
                   ((Ed(i+b1(1),j+b1(2),k+b1(3)) - Ed(i+b3(1),j+b3(2),k+b3(3))) + &
-                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i,j,k)) - &
+                   (Ed(i+b2(1),j+b2(2),k+b2(3)) - Ed(i+b7(1),j+b7(2),k+b7(3))) - &
                    (Ed1(i+b6(1),j+b6(2),k+b6(3)) - Ed1(i+b3(1),j+b3(2),k+b3(3))) - &
-                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i,j,k)))
+                   (Ed1(i+b5(1),j+b5(2),k+b5(3)) - Ed1(i+b7(1),j+b7(2),k+b7(3))))
 
              ul_out(i,j,k,UEINT) = ul_out(i,j,k,UEINT) - &
                   0.5d0*dot_product(ul_out(i,j,k,UMAGX:UMAGZ), ul_out(i,j,k,UMAGX:UMAGZ))
 
-          enddo
-       enddo
-    enddo
+          end do
+       end do
+    end do
 
   end subroutine half_step_mag
 
