@@ -515,6 +515,7 @@ Castro::just_the_mhd(Real time, Real dt)
                BL_TO_FORTRAN_ANYD(flx_yx), 2);
 
           // affected by Z Flux
+
           corner_couple(ccby.loVect(), ccby.hiVect(),
                         BL_TO_FORTRAN_ANYD(qtmp_right),
                         BL_TO_FORTRAN_ANYD(qtmp_left),
@@ -539,7 +540,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // affected by X Flux
           // [lo(1)-2, lo(2)-2, lo(3)-1] [hi(1)+2, hi(2)+2, hi(3)+2]
-          const Box& ccbz = amrex::grow(nby, IntVect(2, 2, 1));
+          const Box& ccbz = amrex::grow(nbz, IntVect(2, 2, 1));
 
           corner_couple(ccbz.loVect(), ccbz.hiVect(),
                         BL_TO_FORTRAN_ANYD(qtmp_right),
@@ -562,6 +563,7 @@ Castro::just_the_mhd(Real time, Real dt)
                BL_TO_FORTRAN_ANYD(flx_zx), 3);
 
           // affected by Y Flux
+
           corner_couple(ccbz.loVect(), ccbz.hiVect(),
                         BL_TO_FORTRAN_ANYD(qtmp_right),
                         BL_TO_FORTRAN_ANYD(qtmp_left),
@@ -662,6 +664,7 @@ Castro::just_the_mhd(Real time, Real dt)
           // We need to compute these on a box 1 larger in the transverse directions
           // than we'd need for hydro alone due to the electric update
 
+
           // [lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
           const Box& nbx1 = amrex::grow(nbx, IntVect(0, 1, 1));
           hlld(nbx1.loVect(), nbx1.hiVect(),
@@ -683,7 +686,8 @@ Castro::just_the_mhd(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(Eztmp),
                     2, 1, 3, dx[1], dt);
 
-          const Box& nby1 = amrex::grow(nbx, IntVect(1, 0, 1));
+
+          const Box& nby1 = amrex::grow(nby, IntVect(1, 0, 1));
           hlld(nby1.loVect(), nby1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
@@ -703,7 +707,8 @@ Castro::just_the_mhd(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(Eytmp),
                     3, 1, 2, dx[2], dt);
 
-          const Box& nbz1 = amrex::grow(nbx, IntVect(1, 1, 0));
+
+          const Box& nbz1 = amrex::grow(nbz, IntVect(1, 1, 0));
           hlld(nbz1.loVect(), nbz1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
@@ -728,8 +733,10 @@ Castro::just_the_mhd(Real time, Real dt)
           // Final Electric Field Update eq.48
 
           // [lo(1), lo(2), lo(3)][hi(1), hi(2)+1, hi(3)+1]
-          Box eebxf = amrex::grow(bx, 1);
-          eebxf.growHi(0, -1);
+          Box eebxf = mfi.tilebox();
+          eebxf.growHi(1, 1);
+          eebxf.growHi(2, 1);
+
 
           electric_edge_x(eebxf.loVect(), eebxf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
@@ -738,8 +745,10 @@ Castro::just_the_mhd(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(flxz));
 
           // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2), hi(3)+1]
-          Box eebyf = amrex::grow(bx, 1);
-          eebyf.growHi(1, -1);
+          Box eebyf = mfi.tilebox();
+          eebyf.growHi(0, 1);
+          eebyf.growHi(2, 1);
+
 
           electric_edge_y(eebyf.loVect(), eebyf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
@@ -748,8 +757,10 @@ Castro::just_the_mhd(Real time, Real dt)
                           BL_TO_FORTRAN_ANYD(flxz));
 
           // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2)+1 ,hi(3)]
-          Box eebzf = amrex::grow(bx, 1);
-          eebzf.growHi(2, -1);
+          Box eebzf = mfi.tilebox();
+          eebzf.growHi(0, 1);
+          eebzf.growHi(1, 1);
+
 
           electric_edge_z(eebzf.loVect(), eebzf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
