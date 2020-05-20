@@ -72,7 +72,7 @@ extern "C"
                  const BL_FORT_FAB_ARG_3D(Ed1),
                  const BL_FORT_FAB_ARG_3D(Ed2),
                  const int d, const int d1, const int d2,
-                 const Real dx, const int dt);
+                 const Real dx, const Real dt);
 
   void prim_half(const int lo[], const int hi[],
                  BL_FORT_FAB_ARG_3D(q2D),
