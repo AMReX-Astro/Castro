@@ -46,10 +46,6 @@ extern "C"
                        BL_FORT_FAB_ARG_3D(flxx),
                        BL_FORT_FAB_ARG_3D(flxy));
 
-  void PrimToCons(const int lo[], const int hi[],
-                  const BL_FORT_FAB_ARG_3D(q),
-                  BL_FORT_FAB_ARG_3D(u));
-
   void corner_couple(const int lo[], const int hi[],
                      BL_FORT_FAB_ARG_3D(qr_out),
                      BL_FORT_FAB_ARG_3D(ql_out),
@@ -73,14 +69,6 @@ extern "C"
                  const BL_FORT_FAB_ARG_3D(Ed2),
                  const int d, const int d1, const int d2,
                  const Real dx, const Real dt);
-
-  void prim_half(const int lo[], const int hi[],
-                 BL_FORT_FAB_ARG_3D(q2D),
-                 const BL_FORT_FAB_ARG_3D(q),
-                 const BL_FORT_FAB_ARG_3D(flxx),
-                 const BL_FORT_FAB_ARG_3D(flxy),
-                 const BL_FORT_FAB_ARG_3D(flxz),
-                 const Real dx, const Real dy, const Real dz, const Real dt);
 
   void hlld(const int lo[], const int hi[],
             const BL_FORT_FAB_ARG_3D(qleft),
