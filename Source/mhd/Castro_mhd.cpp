@@ -57,17 +57,9 @@ Castro::just_the_mhd(Real time, Real dt)
       FArrayBox qz_left;
       FArrayBox qz_right;
 
-      FArrayBox flxx;
-      FArrayBox flxy;
-      FArrayBox flxz;
-
       FArrayBox flxx1D;
       FArrayBox flxy1D;
       FArrayBox flxz1D;
-
-      FArrayBox Extmp;
-      FArrayBox Eytmp;
-      FArrayBox Eztmp;
 
       FArrayBox ux_left;
       FArrayBox ux_right;
@@ -136,12 +128,45 @@ Castro::just_the_mhd(Real time, Real dt)
           auto Bzo_arr = Bzout.array();
 
 
-          // allocate fabs for fluxes
-          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-            const Box& bxtmp = amrex::surroundingNodes(bx, idir);
-            flux[idir].resize(bxtmp, NUM_STATE);
-            E[idir].resize(bxtmp, NUM_STATE);
-          }
+          // allocate fabs for fluxes and electric field
+
+          const Box& nbx = amrex::surroundingNodes(bx, 0);
+          const Box& nby = amrex::surroundingNodes(bx, 1);
+          const Box& nbz = amrex::surroundingNodes(bx, 2);
+
+          const Box& nbxf = amrex::grow(nbx, IntVect(0, 1, 1));
+          const Box& nbyf = amrex::grow(nby, IntVect(1, 0, 1));
+          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 0));
+
+          // need to revisit these box sizes
+          const Box& nbxe = amrex::grow(nbx, IntVect(2, 3, 3));
+          const Box& nbye = amrex::grow(nby, IntVect(3, 2, 3));
+          const Box& nbze = amrex::grow(nbz, IntVect(3, 3, 2));
+
+          flux[0].resize(nbxf, NUM_STATE+3);
+          auto flxx_arr = flux[0].array();
+          auto elix_flxx = flux[0].elixir();
+
+          E[0].resize(nbxe);
+          auto Ex_arr = E[0].array();
+          auto elix_Ex = E[0].elixir();
+
+          flux[1].resize(nbyf, NUM_STATE+3);
+          auto flxy_arr = flux[1].array();
+          auto elix_flxy = flux[1].elixir();
+
+          E[1].resize(nbye);
+          auto Ey_arr = E[1].array();
+          auto elix_Ey = E[1].elixir();
+
+          flux[2].resize(nbzf, NUM_STATE+3);
+          auto flxz_arr = flux[2].array();
+          auto elix_flxz = flux[2].elixir();
+
+          E[2].resize(nbze);
+          auto Ez_arr = E[2].array();
+          auto elix_Ez = E[2].elixir();
+
 
           // Calculate primitives based on conservatives
           q.resize(bx_gc, NQ);
@@ -213,10 +238,6 @@ Castro::just_the_mhd(Real time, Real dt)
           auto qz_right_arr = qz_right.array();
           auto elix_qz_right = qz_right.elixir();
 
-          const Box& nbx = amrex::surroundingNodes(bx, 0);
-          const Box& nby = amrex::surroundingNodes(bx, 1);
-          const Box& nbz = amrex::surroundingNodes(bx, 2);
-
           const Box& nbxi = amrex::grow(bx, IntVect(3, 3, 3));
 
           plm(nbxi.loVect(), nbxi.hiVect(), 1,
@@ -261,40 +282,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
           // Corner Couple and find the correct fluxes + electric fields
-
-          // need to revisit these box sizes
-          const Box& nbxf = amrex::grow(nbx, IntVect(0, 1, 1));
-          const Box& nbyf = amrex::grow(nby, IntVect(1, 0, 1));
-          const Box& nbzf = amrex::grow(nbz, IntVect(1, 1, 0));
-
-          const Box& nbxe = amrex::grow(nbx, IntVect(2, 3, 3));
-          const Box& nbye = amrex::grow(nby, IntVect(3, 2, 3));
-          const Box& nbze = amrex::grow(nbz, IntVect(3, 3, 2));
-
-          flxx.resize(nbxf, NUM_STATE+3);
-          auto flxx_arr = flxx.array();
-          auto elix_flxx = flxx.elixir();
-
-          Extmp.resize(nbxe);
-          auto Ex_arr = Extmp.array();
-          auto elix_Ex = Extmp.elixir();
-
-          flxy.resize(nbyf, NUM_STATE+3);
-          auto flxy_arr = flxy.array();
-          auto elix_flxy = flxy.elixir();
-
-          Eytmp.resize(nbye);
-          auto Ey_arr = Eytmp.array();
-          auto elix_Ey = Eytmp.elixir();
-
-          flxz.resize(nbzf, NUM_STATE+3);
-          auto flxz_arr = flxz.array();
-          auto elix_flxz = flxz.elixir();
-
-          Eztmp.resize(nbze);
-          auto Ez_arr = Eztmp.array();
-          auto elix_Ez = Eztmp.elixir();
-
 
           // Do the corner coupling and the CT updates
 
@@ -402,7 +389,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_x(eebx.loVect(), eebx.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Extmp),
+                          BL_TO_FORTRAN_ANYD(E[0]),
                           BL_TO_FORTRAN_ANYD(flxy1D),
                           BL_TO_FORTRAN_ANYD(flxz1D));
 
@@ -413,7 +400,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_y(eeby.loVect(), eeby.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Eytmp),
+                          BL_TO_FORTRAN_ANYD(E[1]),
                           BL_TO_FORTRAN_ANYD(flxx1D),
                           BL_TO_FORTRAN_ANYD(flxz1D));
 
@@ -424,7 +411,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_z(eebz.loVect(), eebz.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Eztmp),
+                          BL_TO_FORTRAN_ANYD(E[2]),
                           BL_TO_FORTRAN_ANYD(flxx1D),
                           BL_TO_FORTRAN_ANYD(flxy1D));
 
@@ -451,8 +438,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(ux_right),
                         BL_TO_FORTRAN_ANYD(ux_left),
                         BL_TO_FORTRAN_ANYD(flxy1D),
-                        BL_TO_FORTRAN_ANYD(Extmp),
-                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        BL_TO_FORTRAN_ANYD(E[0]),
+                        BL_TO_FORTRAN_ANYD(E[2]),
                         1, 2, 3, dx[1], dt);
 
           // Calculate Flux 2D eq. 40
@@ -473,8 +460,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(ux_right),
                         BL_TO_FORTRAN_ANYD(ux_left),
                         BL_TO_FORTRAN_ANYD(flxz1D),
-                        BL_TO_FORTRAN_ANYD(Extmp),
-                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        BL_TO_FORTRAN_ANYD(E[0]),
+                        BL_TO_FORTRAN_ANYD(E[1]),
                         1, 3, 2, dx[2], dt);
 
           // F^{x|z}
@@ -500,8 +487,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(uy_right),
                         BL_TO_FORTRAN_ANYD(uy_left),
                         BL_TO_FORTRAN_ANYD(flxx1D),
-                        BL_TO_FORTRAN_ANYD(Eytmp),
-                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        BL_TO_FORTRAN_ANYD(E[1]),
+                        BL_TO_FORTRAN_ANYD(E[2]),
                         2, 1, 3, dx[0], dt);
 
           // F^{y|x}
@@ -522,8 +509,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(uy_right),
                         BL_TO_FORTRAN_ANYD(uy_left),
                         BL_TO_FORTRAN_ANYD(flxz1D),
-                        BL_TO_FORTRAN_ANYD(Eytmp),
-                        BL_TO_FORTRAN_ANYD(Extmp),
+                        BL_TO_FORTRAN_ANYD(E[1]),
+                        BL_TO_FORTRAN_ANYD(E[0]),
                         2, 3, 1, dx[2], dt);
 
           // F^{y|z}
@@ -548,8 +535,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(uz_right),
                         BL_TO_FORTRAN_ANYD(uz_left),
                         BL_TO_FORTRAN_ANYD(flxx1D),
-                        BL_TO_FORTRAN_ANYD(Eztmp),
-                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        BL_TO_FORTRAN_ANYD(E[2]),
+                        BL_TO_FORTRAN_ANYD(E[1]),
                         3, 1, 2, dx[0], dt);
 
           // F^{z|x}
@@ -570,8 +557,8 @@ Castro::just_the_mhd(Real time, Real dt)
                         BL_TO_FORTRAN_ANYD(uz_right),
                         BL_TO_FORTRAN_ANYD(uz_left),
                         BL_TO_FORTRAN_ANYD(flxy1D),
-                        BL_TO_FORTRAN_ANYD(Eztmp),
-                        BL_TO_FORTRAN_ANYD(Extmp),
+                        BL_TO_FORTRAN_ANYD(E[2]),
+                        BL_TO_FORTRAN_ANYD(E[0]),
                         3, 2, 1, dx[1], dt);
 
           // F^{z|y}
@@ -616,7 +603,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_x(eebx2.loVect(), eebx2.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Extmp),
+                          BL_TO_FORTRAN_ANYD(E[0]),
                           BL_TO_FORTRAN_ANYD(flxy1D),
                           BL_TO_FORTRAN_ANYD(flxz1D));
 
@@ -627,7 +614,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_y(eeby2.loVect(), eeby2.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Eytmp),
+                          BL_TO_FORTRAN_ANYD(E[1]),
                           BL_TO_FORTRAN_ANYD(flxx1D),
                           BL_TO_FORTRAN_ANYD(flxz1D));
 
@@ -638,7 +625,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_z(eebz2.loVect(), eebz2.hiVect(),
                           BL_TO_FORTRAN_ANYD(q),
-                          BL_TO_FORTRAN_ANYD(Eztmp),
+                          BL_TO_FORTRAN_ANYD(E[2]),
                           BL_TO_FORTRAN_ANYD(flxx1D),
                           BL_TO_FORTRAN_ANYD(flxy1D));
 
@@ -654,9 +641,9 @@ Castro::just_the_mhd(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(ux_left),
                     BL_TO_FORTRAN_ANYD(flx_yz),
                     BL_TO_FORTRAN_ANYD(flx_zy),
-                    BL_TO_FORTRAN_ANYD(Extmp),
-                    BL_TO_FORTRAN_ANYD(Eytmp),
-                    BL_TO_FORTRAN_ANYD(Eztmp),
+                    BL_TO_FORTRAN_ANYD(E[0]),
+                    BL_TO_FORTRAN_ANYD(E[1]),
+                    BL_TO_FORTRAN_ANYD(E[2]),
                     1, 2, 3, dx[0], dt);
 
           // Final Fluxes eq.47
@@ -670,7 +657,7 @@ Castro::just_the_mhd(Real time, Real dt)
           hlld(nbx1.loVect(), nbx1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flxx), 1);
+               BL_TO_FORTRAN_ANYD(flux[0]), 1);
 
           // for y direction
 
@@ -681,9 +668,9 @@ Castro::just_the_mhd(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(uy_left),
                     BL_TO_FORTRAN_ANYD(flx_xz),
                     BL_TO_FORTRAN_ANYD(flx_zx),
-                    BL_TO_FORTRAN_ANYD(Eytmp),
-                    BL_TO_FORTRAN_ANYD(Extmp),
-                    BL_TO_FORTRAN_ANYD(Eztmp),
+                    BL_TO_FORTRAN_ANYD(E[1]),
+                    BL_TO_FORTRAN_ANYD(E[0]),
+                    BL_TO_FORTRAN_ANYD(E[2]),
                     2, 1, 3, dx[1], dt);
 
 
@@ -691,7 +678,7 @@ Castro::just_the_mhd(Real time, Real dt)
           hlld(nby1.loVect(), nby1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flxy), 2);
+               BL_TO_FORTRAN_ANYD(flux[1]), 2);
 
           // for z direction
 
@@ -702,9 +689,9 @@ Castro::just_the_mhd(Real time, Real dt)
                     BL_TO_FORTRAN_ANYD(uz_left),
                     BL_TO_FORTRAN_ANYD(flx_xy),
                     BL_TO_FORTRAN_ANYD(flx_yx),
-                    BL_TO_FORTRAN_ANYD(Eztmp),
-                    BL_TO_FORTRAN_ANYD(Extmp),
-                    BL_TO_FORTRAN_ANYD(Eytmp),
+                    BL_TO_FORTRAN_ANYD(E[2]),
+                    BL_TO_FORTRAN_ANYD(E[0]),
+                    BL_TO_FORTRAN_ANYD(E[1]),
                     3, 1, 2, dx[2], dt);
 
 
@@ -712,7 +699,7 @@ Castro::just_the_mhd(Real time, Real dt)
           hlld(nbz1.loVect(), nbz1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flxz), 3);
+               BL_TO_FORTRAN_ANYD(flux[2]), 3);
 
 
           // MM CTU Step 10
@@ -740,9 +727,9 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_x(eebxf.loVect(), eebxf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
-                          BL_TO_FORTRAN_ANYD(Extmp),
-                          BL_TO_FORTRAN_ANYD(flxy),
-                          BL_TO_FORTRAN_ANYD(flxz));
+                          BL_TO_FORTRAN_ANYD(E[0]),
+                          BL_TO_FORTRAN_ANYD(flux[1]),
+                          BL_TO_FORTRAN_ANYD(flux[2]));
 
           // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2), hi(3)+1]
           Box eebyf = mfi.tilebox();
@@ -752,9 +739,9 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_y(eebyf.loVect(), eebyf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
-                          BL_TO_FORTRAN_ANYD(Eytmp),
-                          BL_TO_FORTRAN_ANYD(flxx),
-                          BL_TO_FORTRAN_ANYD(flxz));
+                          BL_TO_FORTRAN_ANYD(E[1]),
+                          BL_TO_FORTRAN_ANYD(flux[0]),
+                          BL_TO_FORTRAN_ANYD(flux[2]));
 
           // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2)+1 ,hi(3)]
           Box eebzf = mfi.tilebox();
@@ -764,9 +751,9 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_z(eebzf.loVect(), eebzf.hiVect(),
                           BL_TO_FORTRAN_ANYD(q2D),
-                          BL_TO_FORTRAN_ANYD(Eztmp),
-                          BL_TO_FORTRAN_ANYD(flxx),
-                          BL_TO_FORTRAN_ANYD(flxy));
+                          BL_TO_FORTRAN_ANYD(E[2]),
+                          BL_TO_FORTRAN_ANYD(flux[0]),
+                          BL_TO_FORTRAN_ANYD(flux[1]));
 
 
           // Conservative update
@@ -796,64 +783,6 @@ Castro::just_the_mhd(Real time, Real dt)
               ((Ex_arr(i,j+1,k) - Ex_arr(i,j,k)) - (Ey_arr(i+1,j,k) - Ey_arr(i,j,k)));
           });
 
-
-          // store the fluxes -- it looks like we don't need these temporary fluxes?
-          auto flux0_arr = flux[0].array();
-          amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-          {
-            flux0_arr(i,j,k,URHO) = flxx_arr(i,j,k,URHO);
-            flux0_arr(i,j,k,UMX) = flxx_arr(i,j,k,UMX);
-            flux0_arr(i,j,k,UMY) = flxx_arr(i,j,k,UMY);
-            flux0_arr(i,j,k,UMZ) = flxx_arr(i,j,k,UMZ);
-            flux0_arr(i,j,k,UEDEN) = flxx_arr(i,j,k,UEDEN);
-            flux0_arr(i,j,k,UEINT) = flxx_arr(i,j,k,UEINT);
-            flux0_arr(i,j,k,UTEMP) = 0.0;
-#ifdef SHOCK_VAR
-            flux0_arr(i,j,k,USHK) = 0.0;
-#endif
-            for (int n = 0; n < NumSpec; n++) {
-              flux0_arr(i,j,k,UFS+n) = flxx_arr(i,j,k,UFS+n);
-            }
-          });
-
-          auto flux1_arr = flux[1].array();
-          amrex::ParallelFor(nby,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-          {
-            flux1_arr(i,j,k,URHO) = flxy_arr(i,j,k,URHO);
-            flux1_arr(i,j,k,UMX) = flxy_arr(i,j,k,UMX);
-            flux1_arr(i,j,k,UMY) = flxy_arr(i,j,k,UMY);
-            flux1_arr(i,j,k,UMZ) = flxy_arr(i,j,k,UMZ);
-            flux1_arr(i,j,k,UEDEN) = flxy_arr(i,j,k,UEDEN);
-            flux1_arr(i,j,k,UEINT) = flxy_arr(i,j,k,UEINT);
-            flux1_arr(i,j,k,UTEMP) = 0.0;
-#ifdef SHOCK_VAR
-            flux1_arr(i,j,k,USHK) = 0.0;
-#endif
-            for (int n = 0; n < NumSpec; n++) {
-              flux1_arr(i,j,k,UFS+n) = flxy_arr(i,j,k,UFS+n);
-            }
-          });
-
-          auto flux2_arr = flux[2].array();
-          amrex::ParallelFor(nbz,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-          {
-            flux2_arr(i,j,k,URHO) = flxz_arr(i,j,k,URHO);
-            flux2_arr(i,j,k,UMX) = flxz_arr(i,j,k,UMX);
-            flux2_arr(i,j,k,UMY) = flxz_arr(i,j,k,UMY);
-            flux2_arr(i,j,k,UMZ) = flxz_arr(i,j,k,UMZ);
-            flux2_arr(i,j,k,UEDEN) = flxz_arr(i,j,k,UEDEN);
-            flux2_arr(i,j,k,UEINT) = flxz_arr(i,j,k,UEINT);
-            flux2_arr(i,j,k,UTEMP) = 0.0;
-#ifdef SHOCK_VAR
-            flux2_arr(i,j,k,USHK) = 0.0;
-#endif
-            for (int n = 0; n < NumSpec; n++) {
-              flux2_arr(i,j,k,UFS+n) = flxz_arr(i,j,k,UFS+n);
-            }
-          });
 
           // not sure if this is needed
 
