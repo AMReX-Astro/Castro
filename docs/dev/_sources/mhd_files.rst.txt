@@ -5,5 +5,5 @@ Mhd
    :maxdepth: 2
 
    file/Castro__mhd_8H
-   file/mhd__sound__speed_8H
+   file/mhd__util_8H
    
