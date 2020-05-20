@@ -34,7 +34,7 @@ subroutine electric_edge_x(work_lo, work_hi, &
                            q, q_lo, q_hi, &
                            E, ex_lo, ex_hi, &
                            flxy, flxy_lo, flxy_hi, &
-                           flxz, flxz_lo, flxz_hi)
+                           flxz, flxz_lo, flxz_hi) bind(C, name="electric_edge_x")
 
   ! Compute Ex on an edge.  This will compute Ex(i, j-1/2, k-1/2)
 
@@ -175,7 +175,7 @@ subroutine electric_edge_y(work_lo, work_hi, &
                            q, q_lo, q_hi, &
                            E, ey_lo, ey_hi, &
                            flxx, flxx_lo, flxx_hi, &
-                           flxz, flxz_lo, flxz_hi)
+                           flxz, flxz_lo, flxz_hi) bind(C, name="electric_edge_y")
 
 
   use amrex_fort_module, only : rt => amrex_real
@@ -309,7 +309,7 @@ subroutine electric_edge_z(work_lo, work_hi, &
                            q, q_lo, q_hi, &
                            E, ez_lo, ez_hi, &
                            flxx, flxx_lo, flxx_hi, &
-                           flxy, flxy_lo, flxy_hi)
+                           flxy, flxy_lo, flxy_hi) bind(C, name="electric_edge_z")
 
   use amrex_fort_module, only : rt => amrex_real
   use meth_params_module
