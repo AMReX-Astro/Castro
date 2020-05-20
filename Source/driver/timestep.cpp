@@ -6,7 +6,7 @@
 #endif
 
 #ifdef MHD
-#include "mhd_sound_speed.H"
+#include "mhd_util.H"
 #endif
 
 using namespace amrex;

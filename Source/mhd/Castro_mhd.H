@@ -12,3 +12,21 @@
                amrex::Array4<amrex::Real const> const& flux1,
                amrex::Array4<amrex::Real const> const& flux2);
 
+    void
+    PrimToCons(const amrex::Box& bx,
+               amrex::Array4<amrex::Real const> const& q_arr,
+               amrex::Array4<amrex::Real> const& u_arr);
+
+    void
+    prim_half(const amrex::Box& bx,
+              amrex::Array4<amrex::Real> const& q2D,
+              amrex::Array4<amrex::Real const> const& q_arr,
+              amrex::Array4<amrex::Real const> const& flxx,
+              amrex::Array4<amrex::Real const> const& flxy,
+              amrex::Array4<amrex::Real const> const& flxz,
+              const amrex::Real dt);
+
+
+    void
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    qflux(amrex::Real* qflx, amrex::Real* flx, amrex::Real* q_zone);

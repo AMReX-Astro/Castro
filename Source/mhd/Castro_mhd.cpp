@@ -338,13 +338,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto ux_right_arr = ux_right.array();
           auto elix_ux_right = ux_right.elixir();
 
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qx_left),
-                     BL_TO_FORTRAN_ANYD(ux_left));
-
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qx_right),
-                     BL_TO_FORTRAN_ANYD(ux_right));
+          PrimToCons(gbx, qx_left_arr, ux_left_arr);
+          PrimToCons(gbx, qx_right_arr, ux_right_arr);
 
           uy_left.resize(gbx, NUM_STATE+3);
           auto uy_left_arr = uy_left.array();
@@ -354,13 +349,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto uy_right_arr = uy_right.array();
           auto elix_uy_right = uy_right.elixir();
 
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qy_left),
-                     BL_TO_FORTRAN_ANYD(uy_left));
-
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qy_right),
-                     BL_TO_FORTRAN_ANYD(uy_right));
+          PrimToCons(gbx, qy_left_arr, uy_left_arr);
+          PrimToCons(gbx, qy_right_arr, uy_right_arr);
 
           uz_left.resize(gbx, NUM_STATE+3);
           auto uz_left_arr = uz_left.array();
@@ -370,14 +360,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto uz_right_arr = uz_right.array();
           auto elix_uz_right = uz_right.elixir();
 
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qz_left),
-                     BL_TO_FORTRAN_ANYD(uz_left));
-
-          PrimToCons(gbx.loVect(), gbx.hiVect(),
-                     BL_TO_FORTRAN_ANYD(qz_right),
-                     BL_TO_FORTRAN_ANYD(uz_right));
-
+          PrimToCons(gbx, qz_left_arr, uz_left_arr);
+          PrimToCons(gbx, qz_right_arr, uz_right_arr);
 
           // MM CTU Step 2
           // Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
@@ -708,14 +692,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto q2D_arr = q2D.array();
           auto elix_q2D = q2D.elixir();
 
-          prim_half(obx.loVect(), obx.hiVect(),
-                    BL_TO_FORTRAN_ANYD(q2D),
-                    BL_TO_FORTRAN_ANYD(q),
-                    BL_TO_FORTRAN_ANYD(flxx1D),
-                    BL_TO_FORTRAN_ANYD(flxy1D),
-                    BL_TO_FORTRAN_ANYD(flxz1D),
-                    dx[0], dx[1], dx[2], dt);
-
+          prim_half(obx, q2D_arr, q_arr,
+                    flxx1D_arr, flxy1D_arr, flxz1D_arr, dt);
 
           // Final Electric Field Update eq.48
 

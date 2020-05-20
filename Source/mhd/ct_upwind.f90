@@ -7,8 +7,6 @@ module ct_upwind
 
   implicit none
 
-  private primtocons
-
   ! note: in this module, we use left and right to mean with respect
   ! to the interface.  So qleft, uleft, ul, ... are the left state on
   ! an interface and qright, uright, ur, ... are the right state on an
@@ -19,62 +17,6 @@ module ct_upwind
   ! to an interface.
 
 contains
-
-  subroutine PrimToCons(lo, hi, q, q_lo, q_hi, u, u_lo, u_hi) bind(C, name="PrimToCons")
-
-    ! calculate the conserved variables from the primitive
-
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module
-    use eos_type_module, only : eos_t, eos_input_rp
-    use eos_module, only: eos
-    use network, only: nspec
-
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: u_lo(3), u_hi(3)
-
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt), intent(out) :: u(u_lo(1):u_hi(1), u_lo(2):u_hi(2), u_lo(3):u_hi(3), NVAR+3)
-
-    integer :: i ,j ,k
-
-    type(eos_t) :: eos_state
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             u(i,j,k,URHO)  = q(i,j,k,QRHO)
-             u(i,j,k,UMX)    = q(i,j,k,QRHO)*q(i,j,k,QU)
-             u(i,j,k,UMY)    = q(i,j,k,QRHO)*q(i,j,k,QV)
-             u(i,j,k,UMZ)    = q(i,j,k,QRHO)*q(i,j,k,QW)
-
-             eos_state % rho = q(i, j, k, QRHO)
-             eos_state % p   = q(i, j, k, QPRES)
-             eos_state % T   = 100.d0 !dummy initial g.
-             eos_state % xn  = q(i, j, k, QFS:QFS+nspec-1)
-
-             call eos(eos_input_rp, eos_state)
-
-             u(i,j,k,UEDEN) = eos_state % rho * eos_state % e &
-                  + 0.5d0*q(i,j,k,QRHO)*dot_product(q(i,j,k,QU:QW),q(i,j,k,QU:QW)) &
-                  + 0.5d0*(dot_product(q(i,j,k,QMAGX:QMAGZ),q(i,j,k,QMAGX:QMAGZ)))
-
-             u(i,j,k,UEINT) = eos_state % rho * eos_state % e
-             u(i,j,k,UTEMP) = eos_state % T
-
-             u(i,j,k,UMAGX:UMAGZ) = q(i,j,k,QMAGX:QMAGZ)
-
-             ! species
-             u(i,j,k,UFS:UFS-1+nspec) = q(i,j,k,QRHO) * q(i,j,k,QFS:QFS-1+nspec)
-
-          enddo
-       enddo
-    enddo
-  end subroutine PrimToCons
 
 
   subroutine ConsToPrim(q, u)
@@ -586,115 +528,5 @@ contains
     end do
 
   end subroutine
-
-
-  subroutine prim_half(w_lo, w_hi, &
-                       q2D, q2_lo, q2_hi, &
-                       q, q_lo, q_hi, &
-                       flxx, flxx_lo, flxx_hi, &
-                       flxy, flxy_lo, flxy_hi, &
-                       flxz, flxz_lo, flxz_hi, &
-                       dx, dy, dz, dt) bind(C, name="prim_half")
-
-    ! Find the 2D corrected primitive variables
-
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : NVAR
-
-    implicit none
-
-    integer, intent(in) :: w_lo(3), w_hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: q2_lo(3), q2_hi(3)
-    integer, intent(in) :: flxx_lo(3), flxx_hi(3)
-    integer, intent(in) :: flxy_lo(3), flxy_hi(3)
-    integer, intent(in) :: flxz_lo(3), flxz_hi(3)
-
-    real(rt), intent(in)  :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt), intent(in)  :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3),NVAR+3)
-    real(rt), intent(in)  :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3),NVAR+3)
-    real(rt), intent(in)  :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3),NVAR+3)
-
-    real(rt), intent(out) :: q2D(q2_lo(1):q2_hi(1),q2_lo(2):q2_hi(2),q2_lo(3):q2_hi(3),NQ)
-
-    real(rt)  :: divF(NVAR+3)
-    real(rt)  :: divF_q(NQ)
-    real(rt), value  :: dx, dy, dz, dt
-
-    integer   :: i, j, k
-
-    do k = w_lo(3),w_hi(3)
-       do j = w_lo(2),w_hi(2)
-          do i = w_lo(1),w_hi(1)
-
-             divF(:) = (flxx(i+1,j,k,:) - flxx(i,j,k,:)) / dx + &
-                       (flxy(i,j+1,k,:) - flxy(i,j,k,:)) / dy + &
-                       (flxz(i,j,k+1,:) - flxz(i,j,k,:)) / dz
-
-             ! that is a flux of conserved variables -- transform it to primitive
-             call qflux(divF_q, divF, q(i,j,k,:))
-
-             ! Right below eq. 48
-             q2D(i,j,k,:) = q(i,j,k,:) - 0.5d0*dt * divF_q
-
-          enddo
-       enddo
-    enddo
-  end subroutine prim_half
-
-
-  subroutine qflux(qflx,flx,q)
-
-    ! Calculate the C to P Jacobian applied to the fluxes
-
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module !,only : QRHO, QU, QV, QW, QPRES, QMAGX, QMAGY, QMAGZ, QVAR, NVAR
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
-    use network, only : nspec
-
-    implicit none
-
-    ! this is step 10 in the paper, just after Eq. 48
-
-    ! this implements dW/dU . qflux, where dW/dU is the Jacobian of
-    ! the primitive quantities (W) with respect to conserved quantities (U)
-
-    real(rt), intent(in) :: flx(NVAR+3), q(NQ)
-    real(rt), intent(out) :: qflx(NQ)
-    real(rt) :: dedp, dedrho, totalE
-
-    type (eos_t) :: eos_state
-
-    qflx = 0.d0
-    qflx(QRHO) = flx(URHO)
-    qflx(QU) = ( flx(UMX) - flx(URHO) * q(QU) )/q(QRHO)
-    qflx(QV) = ( flx(UMY) - flx(URHO) * q(QV) )/q(QRHO)
-    qflx(QW) = ( flx(UMZ) - flx(URHO) * q(QW) )/q(QRHO)
-
-    qflx(QFS:QFS+nspec-1) = ( flx(UFS:UFS+nspec-1) - flx(URHO) * q(QFS:QFS+nspec-1) )/q(QRHO)
-
-    eos_state % rho = q(QRHO)
-    eos_state % p   = q(QPRES)
-    eos_state % T   = 100.d0 !dummy initial guess
-    eos_state % xn  = q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    dedrho = eos_state % dedr - eos_state % dedT * eos_state % dPdr * 1.0d0/eos_state % dPdT
-    dedp = eos_state % dedT * 1.0d0/eos_state % dPdT
-
-    qflx(QPRES) = ( -q(QMAGX)*flx(UMAGX) - q(QMAGY)*flx(UMAGY) - q(QMAGZ)*flx(UMAGZ) + &
-         flx(UEDEN) - flx(UMX)*q(QU) - flx(UMY)*q(QV) - &
-         flx(UMZ)*q(QW) + flx(URHO)*(0.5*(q(QU)**2+q(QV)**2+q(QW)**2) - &
-         eos_state % e -q(QRHO)*dedrho) ) / ( dedp * q(QRHO))
-
-    qflx(QMAGX) = flx(UMAGX)
-    qflx(QMAGY) = flx(UMAGY)
-    qflx(QMAGZ) = flx(UMAGZ)
-
-    qflx(QTEMP) = 0.0_rt
-
-  end subroutine qflux
 
 end module ct_upwind
