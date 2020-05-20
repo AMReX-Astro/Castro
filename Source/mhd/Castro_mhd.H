@@ -30,3 +30,29 @@
     void
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE
     qflux(amrex::Real* qflx, amrex::Real* flx, amrex::Real* q_zone);
+
+    void
+    electric_edge_x(const amrex::Box& bx,
+                    amrex::Array4<amrex::Real const> const& q_arr,
+                    amrex::Array4<amrex::Real> const& E,
+                    amrex::Array4<amrex::Real const> const& flxy,
+                    amrex::Array4<amrex::Real const> const& flxz);
+
+    void
+    electric_edge_y(const amrex::Box& bx,
+                    amrex::Array4<amrex::Real const> const& q_arr,
+                    amrex::Array4<amrex::Real> const& E,
+                    amrex::Array4<amrex::Real const> const& flxx,
+                    amrex::Array4<amrex::Real const> const& flxz);
+
+    void
+    electric_edge_z(const amrex::Box& bx,
+                    amrex::Array4<amrex::Real const> const& q_arr,
+                    amrex::Array4<amrex::Real> const& E,
+                    amrex::Array4<amrex::Real const> const& flxx,
+                    amrex::Array4<amrex::Real const> const& flxy);
+
+    void
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    electric(amrex::Real* q_zone, amrex::Real& E_zone, const int comp);
+

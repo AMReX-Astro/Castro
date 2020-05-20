@@ -72,5 +72,26 @@ Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 
   qflx[QTEMP] = 0.0_rt;
 }
-#endif
 
+
+void
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
+
+  // this takes the cell-center primitive state, q_zone, and computes the cell-center
+  // electric field, E_zone, using Faraday's law:
+  // E = -v X B
+
+  if (comp == 0) {
+    E_zone = -q_zone[QV] * q_zone[QMAGZ] + q_zone[QW] * q_zone[QMAGY];
+
+  } else if (comp == 1) {
+    E_zone = -q_zone[QW] * q_zone[QMAGX] + q_zone[QU] * q_zone[QMAGZ];
+
+  } else {
+    E_zone = -q_zone[QU] * q_zone[QMAGY] + q_zone[QV] * q_zone[QMAGX];
+  }
+
+}
+
+#endif
