@@ -8,7 +8,6 @@ module ct_upwind
   implicit none
 
   private primtocons
-  public corner_transport
 
   ! note: in this module, we use left and right to mean with respect
   ! to the interface.  So qleft, uleft, ul, ... are the left state on
@@ -21,557 +20,7 @@ module ct_upwind
 
 contains
 
-
-  subroutine corner_transport(lo, hi, &
-                              q, q_lo, q_hi, &
-                              qleft, ql_lo, ql_hi, &
-                              qright, qr_lo, qr_hi, &
-                              flxx, flxx_lo , flxx_hi, &
-                              flxy, flxy_lo , flxy_hi, &
-                              flxz, flxz_lo , flxz_hi, &
-                              Ex, ex_lo, ex_hi, &
-                              Ey, ey_lo, ey_hi, &
-                              Ez, ez_lo, ez_hi, &
-                              dx, dt) bind(C, name="corner_transport")
-
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module, only : NQ
-    use electric_field
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-    integer, intent(in) :: qr_lo(3), qr_hi(3)
-    integer, intent(in) :: ql_lo(3), ql_hi(3)
-
-    integer, intent(in) :: ex_lo(3), ex_hi(3)
-    integer, intent(in) :: ey_lo(3), ey_hi(3)
-    integer, intent(in) :: ez_lo(3), ez_hi(3)
-
-    integer, intent(in) :: flxx_lo(3), flxx_hi(3)
-    integer, intent(in) :: flxy_lo(3), flxy_hi(3)
-    integer, intent(in) :: flxz_lo(3), flxz_hi(3)
-
-    real(rt), intent(in) :: q(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt), intent(in) :: qright(qr_lo(1):qr_hi(1), qr_lo(2):qr_hi(2), qr_lo(3):qr_hi(3), NQ, 3)
-    real(rt), intent(in) :: qleft(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ, 3)
-
-    ! fluxes should be NVAR+3
-    real(rt), intent(out) :: flxx(flxx_lo(1):flxx_hi(1),flxx_lo(2):flxx_hi(2),flxx_lo(3):flxx_hi(3), NVAR+3)   !Half Step Fluxes
-    real(rt), intent(out) :: flxy(flxy_lo(1):flxy_hi(1),flxy_lo(2):flxy_hi(2),flxy_lo(3):flxy_hi(3), NVAR+3)   !Half Step Fluxes
-    real(rt), intent(out) :: flxz(flxz_lo(1):flxz_hi(1),flxz_lo(2):flxz_hi(2),flxz_lo(3):flxz_hi(3), NVAR+3)   !Half Step Fluxes
-
-    real(rt), intent(out)  :: Ex(ex_lo(1):ex_hi(1), ex_lo(2):ex_hi(2), ex_lo(3):ex_hi(3))
-    real(rt), intent(out)  :: Ey(ey_lo(1):ey_hi(1), ey_lo(2):ey_hi(2), ey_lo(3):ey_hi(3))
-    real(rt), intent(out)  :: Ez(ez_lo(1):ez_hi(1), ez_lo(2):ez_hi(2), ez_lo(3):ez_hi(3))
-
-    ! these are conserved + magnetic field (cell centered)
-
-    real(rt), pointer :: ux_left(:,:,:,:)
-    real(rt), pointer :: ux_right(:,:,:,:)
-    real(rt), pointer :: uy_left(:,:,:,:)
-    real(rt), pointer :: uy_right(:,:,:,:)
-    real(rt), pointer :: uz_left(:,:,:,:)
-    real(rt), pointer :: uz_right(:,:,:,:)
-
-    ! temporary primitive state
-    real(rt), pointer :: qtmp_left(:,:,:,:)
-    real(rt), pointer :: qtmp_right(:,:,:,:)
-
-    integer :: fx_lo(3), fx_hi(3)
-    integer :: fy_lo(3), fy_hi(3)
-    integer :: fz_lo(3), fz_hi(3)
-
-    integer :: fxy_lo(3), fxy_hi(3)
-    integer :: fyx_lo(3), fyx_hi(3)
-    integer :: fxz_lo(3), fxz_hi(3)
-    integer :: fzx_lo(3), fzx_hi(3)
-    integer :: fyz_lo(3), fyz_hi(3)
-    integer :: fzy_lo(3), fzy_hi(3)
-
-    integer :: u_lo(3), u_hi(3)
-    integer :: ut_lo(3), ut_hi(3)
-
-    real(rt), pointer :: flxx1D(:,:,:,:)
-    real(rt), pointer :: flxy1D(:,:,:,:)
-    real(rt), pointer :: flxz1D(:,:,:,:)
-
-    real(rt), pointer :: flx_xy(:,:,:,:)
-    real(rt), pointer :: flx_xz(:,:,:,:)
-    real(rt), pointer :: flx_yx(:,:,:,:)
-    real(rt), pointer :: flx_yz(:,:,:,:)
-    real(rt), pointer :: flx_zx(:,:,:,:)
-    real(rt), pointer :: flx_zy(:,:,:,:)
-
-    real(rt)  :: q2D(q_lo(1):q_hi(1), q_lo(2):q_hi(2), q_lo(3):q_hi(3), NQ)
-    real(rt)  :: dx(3)
-    real(rt), intent(in), value :: dt
-
-    integer  :: i, j, k, work_lo(3), work_hi(3)
-
-    ! MM CTU Step 1
-    ! Calculate Flux 1D, eq.35
-
-    ! x-dir
-    ![lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
-    fx_lo = (/ lo(1)-2, lo(2)-3, lo(3)-3 /)
-    fx_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
-
-    call bl_allocate(flxx1D, fx_lo, fx_hi, NVAR+3)
-
-    call hlld(fx_lo, fx_hi, &
-              qleft(:,:,:,:,1), ql_lo, ql_hi, &
-              qright(:,:,:,:,1), qr_lo, qr_hi, &
-              flxx1D, fx_lo, fx_hi, 1)
-
-    !y-dir
-    ![lo(1)-3, lo(2)-2, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
-    fy_lo = (/ lo(1)-3, lo(2)-2, lo(3)-3 /)
-    fy_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
-
-    call bl_allocate(flxy1D, fy_lo, fy_hi, NVAR+3)
-
-    call hlld(fy_lo, fy_hi, &
-              qleft(:,:,:,:,2), ql_lo, ql_hi, &
-              qright(:,:,:,:,2), qr_lo, qr_hi, &
-              flxy1D, fy_lo, fy_hi, 2)
-
-    !z-dir
-    ![lo(1)-3, lo(2)-3, lo(3)-2] [hi(1)+3, hi(2)+3, hi(3)+3]
-    fz_lo = (/ lo(1)-3, lo(2)-3, lo(3)-2 /)
-    fz_hi = (/ hi(1)+3, hi(2)+3, hi(3)+3 /)
-
-    call bl_allocate(flxz1D, fz_lo, fz_hi, NVAR+3)
-
-    call hlld(fz_lo, fz_hi, &
-              qleft(:,:,:,:,3), ql_lo, ql_hi, &
-              qright(:,:,:,:,3), qr_lo, qr_hi, &
-              flxz1D, fz_lo, fz_hi, 3)
-
-    !Prim to Cons
-    u_lo = [lo(1)-2, lo(2)-2, lo(3)-2]
-    u_hi = [hi(1)+2, hi(2)+2, hi(3)+2]
-
-    call bl_allocate(ux_left, u_lo, u_hi, NVAR+3)
-    call bl_allocate(ux_right, u_lo, u_hi, NVAR+3)
-
-    call bl_allocate(uy_left, u_lo, u_hi, NVAR+3)
-    call bl_allocate(uy_right, u_lo, u_hi, NVAR+3)
-
-    call bl_allocate(uz_left, u_lo, u_hi, NVAR+3)
-    call bl_allocate(uz_right, u_lo, u_hi, NVAR+3)
-
-    call PrimToCons(u_lo, u_hi, qleft(:,:,:,:,1), ql_lo, ql_hi, ux_left, u_lo, u_hi)
-    call PrimToCons(u_lo, u_hi, qright(:,:,:,:,1), qr_lo, qr_hi, ux_right, u_lo, u_hi)
-
-    call PrimToCons(u_lo, u_hi, qleft(:,:,:,:,2), ql_lo, ql_hi, uy_left, u_lo, u_hi)
-    call PrimToCons(u_lo, u_hi, qright(:,:,:,:,2), qr_lo, qr_hi, uy_right, u_lo, u_hi)
-
-    call PrimToCons(u_lo, u_hi, qleft(:,:,:,:,3), ql_lo, ql_hi, uz_left, u_lo, u_hi)
-    call PrimToCons(u_lo, u_hi, qright(:,:,:,:,3), qr_lo, qr_hi, uz_right, u_lo, u_hi)
-
-
-    ! MM CTU Step 2
-    ! Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
-
-    ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+2, hi(2)+3, hi(3)+3]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
-    work_hi = (/ hi(1)+2, hi(2)+3, hi(3)+3 /)
-    call electric_edge_x(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ex, ex_lo, ex_hi, &
-                         flxy1D, fy_lo, fy_hi, &
-                         flxz1D, fz_lo, fz_hi)
-
-    ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+2, hi(3)+3]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
-    work_hi = (/ hi(1)+3, hi(2)+2, hi(3)+3 /)
-    call electric_edge_y(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ey, ey_lo, ey_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxz1D, fz_lo, fz_hi)
-
-    ![lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+3, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-2 /)
-    work_hi = (/ hi(1)+3, hi(2)+3, hi(3)+2 /)
-    call electric_edge_z(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ez, ez_lo, ez_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxy1D, fy_lo, fy_hi)
-
-    ! MM CTU Steps 3, 4, and 5
-    ! Corner Couple, eq. 37, 38 and 39 Correct Conservative vars using Transverse Fluxes
-
-    ! X direction
-
-    ! affected by Y Flux
-    ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
-    work_lo = (/ lo(1)-1 , lo(2)-2, lo(3)-2 /)
-    work_hi = (/ hi(1)+2 , hi(2)+2, hi(3)+2 /)
-
-    ut_lo = [lo(1)-2, lo(2)-2, lo(3)-2]
-    ut_hi = [hi(1)+2, hi(2)+2, hi(3)+2]
-
-    call bl_allocate(qtmp_left, ut_lo, ut_hi, NQ)
-    call bl_allocate(qtmp_right, ut_lo, ut_hi, NQ)
-
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       ux_right, u_lo, u_hi, &
-                       ux_left, u_lo, u_hi, &
-                       flxy1D, fy_lo, fy_hi, &
-                       Ex, ex_lo, ex_hi, &
-                       Ez, ez_lo, ez_hi, &
-                       !d1 = x, d2 = y, d3 = z
-                       1, 2, 3, &
-                       dx(1), dt) !qmpxy
-
-
-    ! Calculate Flux 2D eq. 40
-    ! [lo(1)-1, lo(2)-2, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-    fxy_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
-    fxy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_xy, fxy_lo, fxy_hi, NVAR+3)
-
-    call hlld(fxy_lo, fxy_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_xy, fxy_lo, fxy_hi, 1) !F^{x|y}
-
-
-    ! affected by Z Flux
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       ux_right, u_lo, u_hi, &
-                       ux_left, u_lo, u_hi, &
-                       flxz1D, fz_lo, fz_hi, &
-                       Ex, ex_lo, ex_hi, &
-                       Ey, ey_lo, ey_hi, &
-                       1, 3, 2, &
-                       dx(1), dt) !qrpxz
-
-    fxz_lo = (/ lo(1)-1, lo(2)-2, lo(3)-2 /)
-    fxz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_xz, fxz_lo, fxz_hi, NVAR+3)
-
-    call hlld(fxz_lo, fxz_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_xz, fxz_lo, fxz_hi, 1) !F^{x|z}
-
-
-    !Y direction
-
-    ! affected by X Flux
-    ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
-    work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       uy_right, u_lo, u_hi, &
-                       uy_left, u_lo, u_hi, &
-                       flxx1D, fx_lo, fx_hi, &
-                       Ey, ey_lo, ey_hi, &
-                       Ez, ez_lo, ez_hi, &
-                       2, 1, 3, &
-                       dx(2), dt) !qrpyx
-
-    ![lo(1)-2, lo(2)-1, lo(3)-2][hi(1)+2,hi(2)+2,hi(3)+2]
-    fyx_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
-    fyx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_yx, fyx_lo, fyx_hi, NVAR+3)
-
-    call hlld(fyx_lo, fyx_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_yx, fyx_lo, fyx_hi, 2) !F^{y|x}
-
-    ! affected by Z Flux
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       uy_right, u_lo, u_hi, &
-                       uy_left, u_lo, u_hi, &
-                       flxz1D, fz_lo, fz_hi, &
-                       Ey, ey_lo, ey_hi, &
-                       Ex, ex_lo, ex_hi, &
-                       2, 3, 1, &
-                       dx(2), dt) !qrpyz
-
-    fyz_lo = (/ lo(1)-2, lo(2)-1, lo(3)-2 /)
-    fyz_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_yz, fyz_lo, fyz_hi, NVAR+3)
-
-    call hlld(fyz_lo, fyz_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_yz, fyz_lo, fyz_hi, 2) !F^{y|z}
-
-    !Z direction
-
-    ! affected by X Flux
-    ![lo(1)-2, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
-    work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2/)
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       uz_right, u_lo, u_hi, &
-                       uz_left, u_lo, u_hi, &
-                       flxx1D, fx_lo, fx_hi, &
-                       Ez, ez_lo, ez_hi, &
-                       Ey, ey_lo, ey_hi, &
-                       3, 1, 2, &
-                       dx(3), dt) !qrpzx
-
-
-    ![lo(1)-2,lo(2)-2,lo(3)-1][h1(1)+2, h1(2)+2, h1(3)+2]
-    fzx_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
-    fzx_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_zx, fzx_lo, fzx_hi, NVAR+3)
-
-    call hlld(fzx_lo, fzx_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flx_zx, fzx_lo, fzx_hi, 3) !F^{z|x}
-
-    ! affected by Y Flux
-    call corner_couple(work_lo, work_hi, &
-                       qtmp_right, ut_lo, ut_hi, &
-                       qtmp_left, ut_lo, ut_hi, &
-                       uz_right, u_lo, u_hi, &
-                       uz_left, u_lo, u_hi, &
-                       flxy1D, fy_lo, fy_hi, &
-                       Ez, ez_lo, ez_hi, &
-                       Ex, ex_lo, ex_hi, &
-                       3, 2, 1, &
-                       dx(3), dt) !qrpzy
-
-    fzy_lo = (/ lo(1)-2, lo(2)-2, lo(3)-1 /)
-    fzy_hi = (/ hi(1)+2, hi(2)+2, hi(3)+2 /)
-
-    call bl_allocate(flx_zy, fzy_lo, fzy_hi, NVAR+3)
-
-    call hlld(fzy_lo, fzy_hi, &
-         qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-         flx_zy, fzy_lo, fzy_hi, 3) !F^{z|y}
-
-
-    ! MM CTU Step 6
-    ! Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
-    ! eq. 42 and 43
-
-    do k = lo(3)-2, hi(3)+2
-       do j = lo(2)-2, hi(2)+2
-          do i = lo(1)-1, hi(1)+2
-             flxx1D(i,j,k,:) = 0.5d0*(flx_xy(i,j,k,:) + flx_xz(i,j,k,:))
-          end do
-       end do
-    end do
-
-    do k = lo(3)-2, hi(3)+2
-       do j = lo(2)-1, hi(2)+2
-          do i = lo(1)-2, hi(1)+2
-             flxy1D(i,j,k,:) = 0.5d0*(flx_yx(i,j,k,:) + flx_yz(i,j,k,:))
-          end do
-       end do
-    end do
-
-    do k = lo(3)-1, hi(3)+2
-       do j = lo(2)-2, hi(2)+2
-          do i = lo(1)-2, hi(1)+2
-             flxz1D(i,j,k,:) = 0.5d0*(flx_zx(i,j,k,:) + flx_zy(i,j,k,:))
-          end do
-       end do
-    end do
-
-
-    ! eq. 41
-    ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+2, hi(3)+2 /)
-    call electric_edge_x(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ex, ex_lo, ex_hi, &
-                         flxy1D, fy_lo, fy_hi, &
-                         flxz1D, fz_lo, fz_hi)
-
-    ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+2, hi(2)+1, hi(3)+2 /)
-    call electric_edge_y(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ey, ey_lo, ey_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxz1D, fz_lo, fz_hi)
-
-    ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+2, hi(2)+2, hi(3)+1 /)
-    call electric_edge_z(work_lo, work_hi, &
-                         q, q_lo, q_hi, &
-                         Ez, ez_lo, ez_hi, &
-                         flxx1D, fx_lo, fx_hi, &
-                         flxy1D, fy_lo, fy_hi)
-
-    ! MM CTU Step 7, 8, and 9
-    ! Half Step conservative vars eq.44, eq.45, eq.46
-    ! Here we reuse qtmp_left/right to denote the half-time conservative state
-
-    !for x direction
-    ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call half_step(work_lo, work_hi, &
-                   qtmp_right, ut_lo, ut_hi, &
-                   qtmp_left, ut_lo, ut_hi, &
-                   ux_right, u_lo, u_hi, &
-                   ux_left, u_lo, u_hi, &
-                   flx_yz, fyz_lo, fyz_hi, &
-                   flx_zy, fzy_lo, fzy_hi, &
-                   Ex, ex_lo, ex_hi, &
-                   Ey, ey_lo, ey_hi, &
-                   Ez, ez_lo, ez_hi, &
-                   !dir = x, d1 =y, d2 =z
-                   1, 2, 3, dx(1), dt)
-
-    ! Final Fluxes eq.47
-
-    ! We need to compute these on a box 1 larger in the transverse directions
-    ! than we'd need for hydro alone due to the electric update
-
-    ![lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1), lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call hlld(work_lo, work_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flxx, flxx_lo, flxx_hi, 1)
-
-
-    !for y direction
-
-    ![lo(1)-1,lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call half_step(work_lo, work_hi, &
-                   qtmp_right, ut_lo, ut_hi, &
-                   qtmp_left, ut_lo, ut_hi, &
-                   uy_right, u_lo, u_hi, &
-                   uy_left, u_lo, u_hi, &
-                   flx_xz, fxz_lo, fxz_hi, &
-                   flx_zx, fzx_lo, fzx_hi, &
-                   Ey, ey_lo, ey_hi, &
-                   Ex, ex_lo, ex_hi, &
-                   Ez, ez_lo, ez_hi, &
-                   2, 1, 3, dx(2), dt)
-
-    ![lo(1)-1, lo(2), lo(3)-1][hi(1)+1,hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2), lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call hlld(work_lo, work_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flxy, flxy_lo, flxy_hi, 2)
-
-    !for z direction
-
-    ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call half_step(work_lo, work_hi, &
-                   qtmp_right, ut_lo, ut_hi, &
-                   qtmp_left, ut_lo, ut_hi, &
-                   uz_right, u_lo, u_hi, &
-                   uz_left, u_lo, u_hi, &
-                   flx_xy, fxy_lo, fxy_hi, &
-                   flx_yx, fyx_lo, fyx_hi, &
-                   Ez, ez_lo, ez_hi, &
-                   Ex, ex_lo, ex_hi, &
-                   Ey, ey_lo, ey_hi, &
-                   3, 1, 2, dx(3), dt)
-
-    ![lo(1)-1,lo(2)-1,lo(3)][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3) /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call hlld(work_lo, work_hi, &
-              qtmp_left, ut_lo, ut_hi, qtmp_right, ut_lo, ut_hi, &
-              flxz, flxz_lo, flxz_hi, 3)
-
-
-    ! MM CTU Step 10
-    ! Primitive update eq. 48
-    ![lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1)-1, lo(2)-1, lo(3)-1 /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3)+1 /)
-    call prim_half(work_lo, work_hi, &
-                   q2D, q_lo, q_hi, &
-                   q, q_lo, q_hi, &
-                   flxx1D, fx_lo, fx_hi, &
-                   flxy1D, fy_lo, fy_hi, &
-                   flxz1D, fz_lo, fz_hi, &
-                   dx(1), dx(2), dx(3), dt)
-
-    !Final Electric Field Update eq.48
-    ![lo(1), lo(2), lo(3)][hi(1), hi(2)+1, hi(3)+1]
-    work_lo = (/ lo(1), lo(2), lo(3) /)
-    work_hi = (/ hi(1), hi(2)+1, hi(3)+1 /)
-    call electric_edge_x(work_lo, work_hi, &
-                         q2D, q_lo, q_hi, &
-                         Ex, ex_lo, ex_hi, &
-                         flxy, flxy_lo, flxy_hi, &
-                         flxz, flxz_lo, flxz_hi)
-
-    ![lo(1), lo(2), lo(3)][hi(1)+1, hi(2), hi(3)+1]
-    work_lo = (/ lo(1), lo(2), lo(3) /)
-    work_hi = (/ hi(1)+1, hi(2), hi(3)+1 /)
-    call electric_edge_y(work_lo, work_hi, &
-                         q2D, q_lo, q_hi, &
-                         Ey, ey_lo, ey_hi, &
-                         flxx, flxx_lo, flxx_hi, &
-                         flxz, flxz_lo, flxz_hi)
-
-    ![lo(1), lo(2), lo(3)][hi(1)+1, hi(2)+1 ,hi(3)]
-    work_lo = (/ lo(1), lo(2), lo(3) /)
-    work_hi = (/ hi(1)+1, hi(2)+1, hi(3) /)
-    call electric_edge_z(work_lo, work_hi, &
-                         q2D, q_lo, q_hi, &
-                         Ez, ez_lo, ez_hi, &
-                         flxx, flxx_lo, flxx_hi, &
-                         flxy, flxy_lo, flxy_hi)
-
-
-    call bl_deallocate(flxx1D)
-    call bl_deallocate(flxy1D)
-    call bl_deallocate(flxz1D)
-
-    call bl_deallocate(flx_xy)
-    call bl_deallocate(flx_xz)
-    call bl_deallocate(flx_yx)
-    call bl_deallocate(flx_yz)
-    call bl_deallocate(flx_zx)
-    call bl_deallocate(flx_zy)
-
-    call bl_deallocate(ux_left)
-    call bl_deallocate(ux_right)
-
-    call bl_deallocate(uy_left)
-    call bl_deallocate(uy_right)
-
-    call bl_deallocate(uz_left)
-    call bl_deallocate(uz_right)
-
-    call bl_deallocate(qtmp_left)
-    call bl_deallocate(qtmp_right)
-
-  end subroutine corner_transport
-
-
-  subroutine PrimToCons(lo, hi, q, q_lo, q_hi, u, u_lo, u_hi)
+  subroutine PrimToCons(lo, hi, q, q_lo, q_hi, u, u_lo, u_hi) bind(C, name="PrimToCons")
 
     ! calculate the conserved variables from the primitive
 
@@ -679,7 +128,7 @@ contains
                            Ed1, ed1_lo, ed1_hi, &
                            Ed3, ed3_lo, ed3_hi, &
                            d1, d2, d3, &
-                           dx, dt)
+                           dx, dt) bind(C, name="corner_couple")
 
     ! take conservative interface states ul and ur and update them
     ! with with the transverse flux difference (corner coupling) to
@@ -703,8 +152,9 @@ contains
     integer, intent(in) :: flxd2_lo(3), flxd2_hi(3)
     integer, intent(in) :: ed1_lo(3), ed1_hi(3)
     integer, intent(in) :: ed3_lo(3), ed3_hi(3)
-    integer, intent(in) :: d1, d2, d3
-    real(rt), intent(in) :: dx, dt
+    integer, intent(in), value :: d1, d2, d3
+    real(rt), intent(in), value :: dx
+    real(rt), intent(in), value :: dt
 
     real(rt), intent(in) :: ur(ur_lo(1):ur_hi(1), ur_lo(2):ur_hi(2), ur_lo(3):ur_hi(3), NVAR+3)
     real(rt), intent(in) :: ul(ul_lo(1):ul_hi(1), ul_lo(2):ul_hi(2), ul_lo(3):ul_hi(3), NVAR+3)
@@ -889,7 +339,7 @@ contains
                        Ed, ed_lo, ed_hi, &
                        Ed1, ed1_lo, ed1_hi, &
                        Ed2, ed2_lo, ed2_hi, &
-                       d, d1, d2, dx, dt)
+                       d, d1, d2, dx, dt) bind(C, name="half_step")
 
     ! Final transverse flux corrections to the conservative state
 
@@ -920,8 +370,8 @@ contains
     real(rt), intent(in) :: Ed1(ed1_lo(1):ed1_hi(1),ed1_lo(2):ed1_hi(2),ed1_lo(3):ed1_hi(3))
     real(rt), intent(in) :: Ed2(ed2_lo(1):ed2_hi(1),ed2_lo(2):ed2_hi(2),ed2_lo(3):ed2_hi(3))
 
-    real(rt), intent(in)  :: dx, dt !dx will be dx, dy or dz
-    integer, intent(in)   :: d, d1, d2 ! following notation of eq. 44
+    real(rt), intent(in), value :: dx, dt !dx will be dx, dy or dz
+    integer, intent(in), value :: d, d1, d2 ! following notation of eq. 44
 
     real(rt), intent(in)  :: flxd1(flxd1_lo(1):flxd1_hi(1),flxd1_lo(2):flxd1_hi(2),flxd1_lo(3):flxd1_hi(3),NVAR+3)
     real(rt), intent(in)  :: flxd2(flxd2_lo(1):flxd2_hi(1),flxd2_lo(2):flxd2_hi(2),flxd2_lo(3):flxd2_hi(3),NVAR+3)
@@ -1144,7 +594,7 @@ contains
                        flxx, flxx_lo, flxx_hi, &
                        flxy, flxy_lo, flxy_hi, &
                        flxz, flxz_lo, flxz_hi, &
-                       dx, dy, dz, dt)
+                       dx, dy, dz, dt) bind(C, name="prim_half")
 
     ! Find the 2D corrected primitive variables
 
@@ -1169,7 +619,8 @@ contains
 
     real(rt)  :: divF(NVAR+3)
     real(rt)  :: divF_q(NQ)
-    real(rt)  :: dx, dy, dz, dt
+    real(rt), value  :: dx, dy, dz, dt
+
     integer   :: i, j, k
 
     do k = w_lo(3),w_hi(3)

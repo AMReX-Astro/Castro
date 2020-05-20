@@ -50,22 +50,52 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox flatn;
 
-      FArrayBox qleft;
-      FArrayBox qright;
+      FArrayBox qx_left;
+      FArrayBox qx_right;
+      FArrayBox qy_left;
+      FArrayBox qy_right;
+      FArrayBox qz_left;
+      FArrayBox qz_right;
 
       FArrayBox flxx;
       FArrayBox flxy;
       FArrayBox flxz;
 
+      FArrayBox flxx1D;
+      FArrayBox flxy1D;
+      FArrayBox flxz1D;
+
       FArrayBox Extmp;
       FArrayBox Eytmp;
       FArrayBox Eztmp;
+
+      FArrayBox ux_left;
+      FArrayBox ux_right;
+      FArrayBox uy_left;
+      FArrayBox uy_right;
+      FArrayBox uz_left;
+      FArrayBox uz_right;
+
+      FArrayBox qtmp_left;
+      FArrayBox qtmp_right;
+
+      FArrayBox flx_xy;
+      FArrayBox flx_xz;
+
+      FArrayBox flx_yx;
+      FArrayBox flx_yz;
+
+      FArrayBox flx_zx;
+      FArrayBox flx_zy;
+
+      FArrayBox q2D;
 
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
         {
 
           const Box& bx = mfi.tilebox();
           const Box& obx = amrex::grow(bx, 1);
+          const Box& gbx = amrex::grow(bx, 2);
 
           // box with NUM_GROW ghost cells for PPM stuff
           const Box& bx_gc = amrex::grow(bx, NUM_GROW);
@@ -159,8 +189,29 @@ Castro::just_the_mhd(Real time, Real dt)
 
 
           // Interpolate Cell centered values to faces
-          qleft.resize(bx_gc, NQ * AMREX_SPACEDIM);
-          qright.resize(bx_gc, NQ * AMREX_SPACEDIM);
+          qx_left.resize(bx_gc, NQ);
+          auto qx_left_arr = qx_left.array();
+          auto elix_qx_left = qx_left.elixir();
+
+          qx_right.resize(bx_gc, NQ);
+          auto qx_right_arr = qx_right.array();
+          auto elix_qx_right = qx_right.elixir();
+
+          qy_left.resize(bx_gc, NQ);
+          auto qy_left_arr = qy_left.array();
+          auto elix_qy_left = qy_left.elixir();
+
+          qy_right.resize(bx_gc, NQ);
+          auto qy_right_arr = qy_right.array();
+          auto elix_qy_right = qy_right.elixir();
+
+          qz_left.resize(bx_gc, NQ);
+          auto qz_left_arr = qz_left.array();
+          auto elix_qz_left = qz_left.elixir();
+
+          qz_right.resize(bx_gc, NQ);
+          auto qz_right_arr = qz_right.array();
+          auto elix_qz_right = qz_right.elixir();
 
           const Box& nbx = amrex::surroundingNodes(bx, 0);
           const Box& nby = amrex::surroundingNodes(bx, 1);
@@ -175,8 +226,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qleft),
-              BL_TO_FORTRAN_ANYD(qright),
+              BL_TO_FORTRAN_ANYD(qx_left),
+              BL_TO_FORTRAN_ANYD(qx_right),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -189,8 +240,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qleft),
-              BL_TO_FORTRAN_ANYD(qright),
+              BL_TO_FORTRAN_ANYD(qy_left),
+              BL_TO_FORTRAN_ANYD(qy_right),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -203,8 +254,8 @@ Castro::just_the_mhd(Real time, Real dt)
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qleft),
-              BL_TO_FORTRAN_ANYD(qright),
+              BL_TO_FORTRAN_ANYD(qz_left),
+              BL_TO_FORTRAN_ANYD(qz_right),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
 
@@ -244,17 +295,468 @@ Castro::just_the_mhd(Real time, Real dt)
           auto Ez_arr = Eztmp.array();
           auto elix_Ez = Eztmp.elixir();
 
-          corner_transport(lo, hi,
-                           BL_TO_FORTRAN_ANYD(q),
-                           BL_TO_FORTRAN_ANYD(qleft),
-                           BL_TO_FORTRAN_ANYD(qright),
-                           BL_TO_FORTRAN_ANYD(flxx),
-                           BL_TO_FORTRAN_ANYD(flxy),
-                           BL_TO_FORTRAN_ANYD(flxz),
-                           BL_TO_FORTRAN_ANYD(Extmp),
-                           BL_TO_FORTRAN_ANYD(Eytmp),
-                           BL_TO_FORTRAN_ANYD(Eztmp),
-                           dx_f, dt);
+
+          // Do the corner coupling and the CT updates
+
+          // MM CTU Step 1
+          // Calculate Flux 1D, eq.35
+
+          // x-dir
+          // [lo(1)-2, lo(2)-3, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
+          const Box& bfx = amrex::grow(nbx, IntVect(2, 3, 3));
+
+          flxx1D.resize(bfx, NUM_STATE+3);
+          auto flxx1D_arr = flxx1D.array();
+          auto elix_flxx1D = flxx1D.elixir();
+
+          hlld(bfx.loVect(), bfx.hiVect(),
+               BL_TO_FORTRAN_ANYD(qx_left),
+               BL_TO_FORTRAN_ANYD(qx_right),
+               BL_TO_FORTRAN_ANYD(flxx1D), 1);
+
+          // y-dir
+          // [lo(1)-3, lo(2)-2, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
+          const Box& bfy = amrex::grow(nby, IntVect(3, 2, 3));
+
+          flxy1D.resize(bfy, NUM_STATE+3);
+          auto flxy1D_arr = flxy1D.array();
+          auto elix_flxy1D = flxy1D.elixir();
+
+          hlld(bfy.loVect(), bfy.hiVect(),
+               BL_TO_FORTRAN_ANYD(qy_left),
+               BL_TO_FORTRAN_ANYD(qy_right),
+               BL_TO_FORTRAN_ANYD(flxy1D), 2);
+
+          // z-dir
+          // [lo(1)-3, lo(2)-3, lo(3)-2] [hi(1)+3, hi(2)+3, hi(3)+3]
+          const Box& bfz = amrex::grow(nbz, IntVect(3, 3, 2));
+
+          flxz1D.resize(bfz, NUM_STATE+3);
+          auto flxz1D_arr = flxz1D.array();
+          auto elix_flxz1D = flxz1D.elixir();
+
+          hlld(bfz.loVect(), bfz.hiVect(),
+               BL_TO_FORTRAN_ANYD(qz_left),
+               BL_TO_FORTRAN_ANYD(qz_right),
+               BL_TO_FORTRAN_ANYD(flxz1D), 3);
+
+
+          // Prim to Cons
+
+          ux_left.resize(gbx, NUM_STATE+3);
+          auto ux_left_arr = ux_left.array();
+          auto elix_ux_left = ux_left.elixir();
+
+          ux_right.resize(gbx, NUM_STATE+3);
+          auto ux_right_arr = ux_right.array();
+          auto elix_ux_right = ux_right.elixir();
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qx_left),
+                     BL_TO_FORTRAN_ANYD(ux_left));
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qx_right),
+                     BL_TO_FORTRAN_ANYD(ux_right));
+
+          uy_left.resize(gbx, NUM_STATE+3);
+          auto uy_left_arr = uy_left.array();
+          auto elix_uy_left = uy_left.elixir();
+
+          uy_right.resize(gbx, NUM_STATE+3);
+          auto uy_right_arr = uy_right.array();
+          auto elix_uy_right = uy_right.elixir();
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qy_left),
+                     BL_TO_FORTRAN_ANYD(uy_left));
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qy_right),
+                     BL_TO_FORTRAN_ANYD(uy_right));
+
+          uz_left.resize(gbx, NUM_STATE+3);
+          auto uz_left_arr = uz_left.array();
+          auto elix_uz_left = uz_left.elixir();
+
+          uz_right.resize(gbx, NUM_STATE+3);
+          auto uz_right_arr = uz_right.array();
+          auto elix_uz_right = uz_right.elixir();
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qz_left),
+                     BL_TO_FORTRAN_ANYD(uz_left));
+
+          PrimToCons(gbx.loVect(), gbx.hiVect(),
+                     BL_TO_FORTRAN_ANYD(qz_right),
+                     BL_TO_FORTRAN_ANYD(uz_right));
+
+
+          // MM CTU Step 2
+          // Use "1D" fluxes To interpolate Temporary Edge Centered Electric Fields, eq.36
+
+          // [lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+2, hi(2)+3, hi(3)+3]
+          Box eebx = amrex::grow(bx, 2);
+          eebx.growHi(1);
+          eebx.growHi(2);
+
+          electric_edge_x(eebx.loVect(), eebx.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Extmp),
+                          BL_TO_FORTRAN_ANYD(flxy1D),
+                          BL_TO_FORTRAN_ANYD(flxz1D));
+
+          // [lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+2, hi(3)+3]
+          Box eeby = amrex::grow(bx, 2);
+          eeby.growHi(0);
+          eeby.growHi(2);
+
+          electric_edge_y(eeby.loVect(), eeby.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Eytmp),
+                          BL_TO_FORTRAN_ANYD(flxx1D),
+                          BL_TO_FORTRAN_ANYD(flxz1D));
+
+          // [lo(1)-2, lo(2)-2, lo(3)-2][hi(1)+3, hi(2)+3, hi(3)+2]
+          Box eebz = amrex::grow(bx, 2);
+          eebz.growHi(0);
+          eebz.growHi(1);
+
+          electric_edge_z(eebz.loVect(), eebz.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Eztmp),
+                          BL_TO_FORTRAN_ANYD(flxx1D),
+                          BL_TO_FORTRAN_ANYD(flxy1D));
+
+          // MM CTU Steps 3, 4, and 5
+          // Corner Couple, eq. 37, 38 and 39 Correct Conservative vars using Transverse Fluxes
+
+          // X direction
+
+          // affected by Y Flux
+          // [lo(1)-1, lo(2)-2, lo(3)-2] [hi(1)+2, hi(2)+2, hi(2)+2]
+          const Box& ccbx = amrex::grow(nbx, IntVect(1, 2, 2));
+
+          qtmp_left.resize(gbx, NQ);
+          auto qtmp_left_arr = qtmp_left.array();
+          auto elix_qtmp_left = qtmp_left.elixir();
+
+          qtmp_right.resize(gbx, NQ);
+          auto qtmp_right_arr = qtmp_right.array();
+          auto elix_qtmp_right = qtmp_right.elixir();
+
+          corner_couple(ccbx.loVect(), ccbx.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(ux_right),
+                        BL_TO_FORTRAN_ANYD(ux_left),
+                        BL_TO_FORTRAN_ANYD(flxy1D),
+                        BL_TO_FORTRAN_ANYD(Extmp),
+                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        1, 2, 3, dx[1], dt);
+
+          // Calculate Flux 2D eq. 40
+          // F^{x|y}
+          flx_xy.resize(ccbx, NUM_STATE+3);
+          auto flx_xy_arr = flx_xy.array();
+          auto elix_flx_xy = flx_xy.elixir();
+
+          hlld(ccbx.loVect(), ccbx.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_xy), 1);
+
+          // affected by Z Flux
+          corner_couple(ccbx.loVect(), ccbx.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(ux_right),
+                        BL_TO_FORTRAN_ANYD(ux_left),
+                        BL_TO_FORTRAN_ANYD(flxz1D),
+                        BL_TO_FORTRAN_ANYD(Extmp),
+                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        1, 3, 2, dx[2], dt);
+
+          // F^{x|z}
+          flx_xz.resize(ccbx, NUM_STATE+3);
+          auto flx_xz_arr = flx_xz.array();
+          auto elix_flx_xz = flx_xz.elixir();
+
+          hlld(ccbx.loVect(), ccbx.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_xz), 1);
+
+
+          // Y direction
+
+          // affected by X Flux
+          // [lo(1)-2, lo(2)-1, lo(3)-2] [hi(1)+2, hi(2)+2, hi(3)+2]
+          const Box& ccby = amrex::grow(nby, IntVect(2, 1, 2));
+
+          corner_couple(ccby.loVect(), ccby.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(uy_right),
+                        BL_TO_FORTRAN_ANYD(uy_left),
+                        BL_TO_FORTRAN_ANYD(flxx1D),
+                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        2, 1, 3, dx[0], dt);
+
+          // F^{y|x}
+          flx_yx.resize(ccby, NUM_STATE+3);
+          auto flx_yx_arr = flx_yx.array();
+          auto elix_flx_yx = flx_yx.elixir();
+
+          hlld(ccby.loVect(), ccby.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_yx), 2);
+
+          // affected by Z Flux
+          corner_couple(ccby.loVect(), ccby.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(uy_right),
+                        BL_TO_FORTRAN_ANYD(uy_left),
+                        BL_TO_FORTRAN_ANYD(flxz1D),
+                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        BL_TO_FORTRAN_ANYD(Extmp),
+                        2, 3, 1, dx[2], dt);
+
+          // F^{y|z}
+          flx_yz.resize(ccby, NUM_STATE+3);
+          auto flx_yz_arr = flx_yz.array();
+          auto elix_flx_yz = flx_yz.elixir();
+
+          hlld(ccby.loVect(), ccby.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_yz), 2);
+
+          // Z direction
+
+          // affected by X Flux
+          // [lo(1)-2, lo(2)-2, lo(3)-1] [hi(1)+2, hi(2)+2, hi(3)+2]
+          const Box& ccbz = amrex::grow(nby, IntVect(2, 2, 1));
+
+          corner_couple(ccbz.loVect(), ccbz.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(uz_right),
+                        BL_TO_FORTRAN_ANYD(uz_left),
+                        BL_TO_FORTRAN_ANYD(flxx1D),
+                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        BL_TO_FORTRAN_ANYD(Eytmp),
+                        3, 1, 2, dx[0], dt);
+
+          // F^{z|x}
+          flx_zx.resize(ccbz, NUM_STATE+3);
+          auto flx_zx_arr = flx_zx.array();
+          auto elix_flx_zx = flx_zx.elixir();
+
+          hlld(ccbz.loVect(), ccbz.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_zx), 3);
+
+          // affected by Y Flux
+          corner_couple(ccbz.loVect(), ccbz.hiVect(),
+                        BL_TO_FORTRAN_ANYD(qtmp_right),
+                        BL_TO_FORTRAN_ANYD(qtmp_left),
+                        BL_TO_FORTRAN_ANYD(uz_right),
+                        BL_TO_FORTRAN_ANYD(uz_left),
+                        BL_TO_FORTRAN_ANYD(flxy1D),
+                        BL_TO_FORTRAN_ANYD(Eztmp),
+                        BL_TO_FORTRAN_ANYD(Extmp),
+                        3, 2, 1, dx[1], dt);
+
+          // F^{z|y}
+          flx_zy.resize(ccbz, NUM_STATE+3);
+          auto flx_zy_arr = flx_zy.array();
+          auto elix_flx_zy = flx_zy.elixir();
+
+          hlld(ccbz.loVect(), ccbz.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flx_zy), 3);
+
+
+          // MM CTU Step 6
+          // Use Averaged 2D fluxes to interpolate temporary Edge Centered Electric Fields, reuse "flx1D"
+          // eq. 42 and 43
+
+          amrex::ParallelFor(ccbx, NUM_STATE+3,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+          {
+            flxx1D_arr(i,j,k,n) = 0.5_rt * (flx_xy_arr(i,j,k,n) + flx_xz_arr(i,j,k,n));
+          });
+
+          amrex::ParallelFor(ccby, NUM_STATE+3,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+          {
+            flxy1D_arr(i,j,k,n) = 0.5_rt * (flx_yx_arr(i,j,k,n) + flx_yz_arr(i,j,k,n));
+          });
+
+          amrex::ParallelFor(ccbz, NUM_STATE+3,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+          {
+            flxz1D_arr(i,j,k,n) = 0.5_rt * (flx_zx_arr(i,j,k,n) + flx_zy_arr(i,j,k,n));
+          });
+
+
+          // eq. 41
+          // [lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+2, hi(3)+2]
+          Box eebx2 = amrex::grow(bx, 1);
+          eebx2.growHi(1);
+          eebx2.growHi(2);
+
+          electric_edge_x(eebx2.loVect(), eebx2.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Extmp),
+                          BL_TO_FORTRAN_ANYD(flxy1D),
+                          BL_TO_FORTRAN_ANYD(flxz1D));
+
+          // [lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+1, hi(3)+2]
+          Box eeby2 = amrex::grow(bx, 1);
+          eeby2.growHi(0);
+          eeby2.growHi(2);
+
+          electric_edge_y(eeby2.loVect(), eeby2.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Eytmp),
+                          BL_TO_FORTRAN_ANYD(flxx1D),
+                          BL_TO_FORTRAN_ANYD(flxz1D));
+
+          // [lo(1)-1, lo(2)-1, lo(3)-1][hi(1)+2, hi(2)+2, hi(3)+1]
+          Box eebz2 = amrex::grow(bx, 1);
+          eebz2.growHi(0);
+          eebz2.growHi(1);
+
+          electric_edge_z(eebz2.loVect(), eebz2.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q),
+                          BL_TO_FORTRAN_ANYD(Eztmp),
+                          BL_TO_FORTRAN_ANYD(flxx1D),
+                          BL_TO_FORTRAN_ANYD(flxy1D));
+
+          // MM CTU Step 7, 8, and 9
+          // Half Step conservative vars eq.44, eq.45, eq.46
+          // Here we reuse qtmp_left/right to denote the half-time conservative state
+
+          // for x direction
+          half_step(obx.loVect(), obx.hiVect(),
+                    BL_TO_FORTRAN_ANYD(qtmp_right),
+                    BL_TO_FORTRAN_ANYD(qtmp_left),
+                    BL_TO_FORTRAN_ANYD(ux_right),
+                    BL_TO_FORTRAN_ANYD(ux_left),
+                    BL_TO_FORTRAN_ANYD(flx_yz),
+                    BL_TO_FORTRAN_ANYD(flx_zy),
+                    BL_TO_FORTRAN_ANYD(Extmp),
+                    BL_TO_FORTRAN_ANYD(Eytmp),
+                    BL_TO_FORTRAN_ANYD(Eztmp),
+                    1, 2, 3, dx[0], dt);
+
+          // Final Fluxes eq.47
+
+          // We need to compute these on a box 1 larger in the transverse directions
+          // than we'd need for hydro alone due to the electric update
+
+          // [lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
+          const Box& nbx1 = amrex::grow(nbx, IntVect(0, 1, 1));
+          hlld(nbx1.loVect(), nbx1.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flxx), 1);
+
+          // for y direction
+
+          half_step(obx.loVect(), obx.hiVect(),
+                    BL_TO_FORTRAN_ANYD(qtmp_right),
+                    BL_TO_FORTRAN_ANYD(qtmp_left),
+                    BL_TO_FORTRAN_ANYD(uy_right),
+                    BL_TO_FORTRAN_ANYD(uy_left),
+                    BL_TO_FORTRAN_ANYD(flx_xz),
+                    BL_TO_FORTRAN_ANYD(flx_zx),
+                    BL_TO_FORTRAN_ANYD(Eytmp),
+                    BL_TO_FORTRAN_ANYD(Extmp),
+                    BL_TO_FORTRAN_ANYD(Eztmp),
+                    2, 1, 3, dx[1], dt);
+
+          const Box& nby1 = amrex::grow(nbx, IntVect(1, 0, 1));
+          hlld(nby1.loVect(), nby1.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flxy), 2);
+
+          // for z direction
+
+          half_step(obx.loVect(), obx.hiVect(),
+                    BL_TO_FORTRAN_ANYD(qtmp_right),
+                    BL_TO_FORTRAN_ANYD(qtmp_left),
+                    BL_TO_FORTRAN_ANYD(uz_right),
+                    BL_TO_FORTRAN_ANYD(uz_left),
+                    BL_TO_FORTRAN_ANYD(flx_xy),
+                    BL_TO_FORTRAN_ANYD(flx_yx),
+                    BL_TO_FORTRAN_ANYD(Eztmp),
+                    BL_TO_FORTRAN_ANYD(Extmp),
+                    BL_TO_FORTRAN_ANYD(Eytmp),
+                    3, 1, 2, dx[2], dt);
+
+          const Box& nbz1 = amrex::grow(nbx, IntVect(1, 1, 0));
+          hlld(nbz1.loVect(), nbz1.hiVect(),
+               BL_TO_FORTRAN_ANYD(qtmp_left),
+               BL_TO_FORTRAN_ANYD(qtmp_right),
+               BL_TO_FORTRAN_ANYD(flxz), 3);
+
+
+          // MM CTU Step 10
+          // Primitive update eq. 48
+          q2D.resize(obx, NQ);
+          auto q2D_arr = q2D.array();
+          auto elix_q2D = q2D.elixir();
+
+          prim_half(obx.loVect(), obx.hiVect(),
+                    BL_TO_FORTRAN_ANYD(q2D),
+                    BL_TO_FORTRAN_ANYD(q),
+                    BL_TO_FORTRAN_ANYD(flxx1D),
+                    BL_TO_FORTRAN_ANYD(flxy1D),
+                    BL_TO_FORTRAN_ANYD(flxz1D),
+                    dx[0], dx[1], dx[2], dt);
+
+
+          // Final Electric Field Update eq.48
+
+          // [lo(1), lo(2), lo(3)][hi(1), hi(2)+1, hi(3)+1]
+          Box eebxf = amrex::grow(bx, 1);
+          eebxf.growHi(0, -1);
+
+          electric_edge_x(eebxf.loVect(), eebxf.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q2D),
+                          BL_TO_FORTRAN_ANYD(Extmp),
+                          BL_TO_FORTRAN_ANYD(flxy),
+                          BL_TO_FORTRAN_ANYD(flxz));
+
+          // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2), hi(3)+1]
+          Box eebyf = amrex::grow(bx, 1);
+          eebyf.growHi(1, -1);
+
+          electric_edge_y(eebyf.loVect(), eebyf.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q2D),
+                          BL_TO_FORTRAN_ANYD(Eytmp),
+                          BL_TO_FORTRAN_ANYD(flxx),
+                          BL_TO_FORTRAN_ANYD(flxz));
+
+          // [lo(1), lo(2), lo(3)][hi(1)+1, hi(2)+1 ,hi(3)]
+          Box eebzf = amrex::grow(bx, 1);
+          eebzf.growHi(2, -1);
+
+          electric_edge_z(eebzf.loVect(), eebzf.hiVect(),
+                          BL_TO_FORTRAN_ANYD(q2D),
+                          BL_TO_FORTRAN_ANYD(Eztmp),
+                          BL_TO_FORTRAN_ANYD(flxx),
+                          BL_TO_FORTRAN_ANYD(flxy));
+
 
           // Conservative update
 

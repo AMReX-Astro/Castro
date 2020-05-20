@@ -68,8 +68,8 @@ contains
     real(rt), intent(in) :: srcQ(srcq_lo(1):srcq_hi(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
-    real(rt), intent(out) :: qleft(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ, 3)
-    real(rt), intent(out) :: qright(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ, 3)
+    real(rt), intent(out) :: qleft(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
+    real(rt), intent(out) :: qright(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
 
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in), value :: dt
@@ -82,9 +82,6 @@ contains
     real(rt) :: un, dtdx
 
     type(eos_t) :: eos_state
-
-    ! qleft and qright are the interface states in each dimension (the last index '3' is the
-    ! direction
 
     ! these loops are over cell-centers and for each cell-center, we find the left and
     ! right interface states
@@ -225,60 +222,60 @@ contains
 
 
              if (idir == 1) then
-                qleft(i+1,j,k,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-                qleft(i+1,j,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-                qleft(i+1,j,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-                qleft(i+1,j,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-                qleft(i+1,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+                qleft(i+1,j,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i+1,j,k,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i+1,j,k,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i+1,j,k,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i+1,j,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
-                qleft(i+1,j,k,QMAGX,idir) = bx(i+1,j,k) !! Bx stuff
-                qleft(i+1,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i+1,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i+1,j,k,QMAGX) = bx(i+1,j,k) !! Bx stuff
+                qleft(i+1,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i+1,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else if (idir == 2) then
-                qleft(i,j+1,k,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-                qleft(i,j+1,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-                qleft(i,j+1,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-                qleft(i,j+1,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-                qleft(i,j+1,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+                qleft(i,j+1,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i,j+1,k,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i,j+1,k,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i,j+1,k,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i,j+1,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
-                qleft(i,j+1,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i,j+1,k,QMAGY,idir) = by(i,j+1,k) !! By stuff
-                qleft(i,j+1,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i,j+1,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i,j+1,k,QMAGY) = by(i,j+1,k) !! By stuff
+                qleft(i,j+1,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else
-                qleft(i,j,k+1,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-                qleft(i,j,k+1,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-                qleft(i,j,k+1,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-                qleft(i,j,k+1,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-                qleft(i,j,k+1,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+                qleft(i,j,k+1,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i,j,k+1,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i,j,k+1,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i,j,k+1,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i,j,k+1,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
-                qleft(i,j,k+1,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i,j,k+1,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
-                qleft(i,j,k+1,QMAGZ,idir) = bz(i,j,k+1) !! Bz stuff
+                qleft(i,j,k+1,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i,j,k+1,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i,j,k+1,QMAGZ) = bz(i,j,k+1) !! Bz stuff
              end if
 
              ! right state at i-1/2
-             qright(i,j,k,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-             qright(i,j,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_m(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-             qright(i,j,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_m(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-             qright(i,j,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_m(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-             qright(i,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+             qright(i,j,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+             qright(i,j,k,QU) = s(i,j,k,QU) + 0.5d0*summ_m(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+             qright(i,j,k,QV) = s(i,j,k,QV) + 0.5d0*summ_m(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+             qright(i,j,k,QW) = s(i,j,k,QW) + 0.5d0*summ_m(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+             qright(i,j,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
              if (idir == 1) then
-                qright(i,j,k,QMAGX,idir) = bx(i,j,k) !! Bx stuff
-                qright(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGX) = bx(i,j,k) !! Bx stuff
+                qright(i,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else if (idir == 2) then
-                qright(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGY,idir) = by(i,j,k) !! By stuff
-                qright(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGY) = by(i,j,k) !! By stuff
+                qright(i,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else
-                qright(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
-                qright(i,j,k,QMAGZ,idir) = bz(i,j,k) !! Bz stuff
+                qright(i,j,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGZ) = bz(i,j,k) !! Bz stuff
              endif
 
              ! species
@@ -302,84 +299,84 @@ contains
                call slope(dW, dL, dR, flatn(i,j,k))
 
                if (idir == 1) then
-                  qleft(i+1,j,k,ii,idir) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+                  qleft(i+1,j,k,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
                else if (idir == 2) then
-                  qleft(i,j+1,k,ii,idir) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+                  qleft(i,j+1,k,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
                else
-                  qleft(i,j,k+1,ii,idir) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+                  qleft(i,j,k+1,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
                endif
-               qright(i,j,k,ii,idir) = s(i,j,k,ii) - 0.5d0*(1.0d0 + dtdx*un) * dW
+               qright(i,j,k,ii) = s(i,j,k,ii) - 0.5d0*(1.0d0 + dtdx*un) * dW
              enddo
 
              ! rho e
              if (idir == 1) then
-                eos_state % rho = qleft(i+1,j,k,QRHO,idir)
-                eos_state % p   = qleft(i+1,j,k,QPRES,idir)
+                eos_state % rho = qleft(i+1,j,k,QRHO)
+                eos_state % p   = qleft(i+1,j,k,QPRES)
                 eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
-                eos_state % xn  = qleft(i+1,j,k,QFS:QFS+nspec-1,idir)
+                eos_state % xn  = qleft(i+1,j,k,QFS:QFS+nspec-1)
 
                 call eos(eos_input_rp, eos_state)
-                qleft(i+1,j,k,QREINT,idir) = eos_state % e * eos_state % rho
+                qleft(i+1,j,k,QREINT) = eos_state % e * eos_state % rho
 
              else if (idir == 2) then
-                eos_state % rho = qleft(i,j+1,k,QRHO,idir)
-                eos_state % p   = qleft(i,j+1,k,QPRES,idir)
+                eos_state % rho = qleft(i,j+1,k,QRHO)
+                eos_state % p   = qleft(i,j+1,k,QPRES)
                 eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
-                eos_state % xn  = qleft(i,j+1,k,QFS:QFS+nspec-1,idir)
+                eos_state % xn  = qleft(i,j+1,k,QFS:QFS+nspec-1)
 
                 call eos(eos_input_rp, eos_state)
-                qleft(i,j+1,k,QREINT,idir) = eos_state % e * eos_state % rho
+                qleft(i,j+1,k,QREINT) = eos_state % e * eos_state % rho
 
              else
-                eos_state % rho = qleft(i,j,k+1,QRHO,idir)
-                eos_state % p   = qleft(i,j,k+1,QPRES,idir)
+                eos_state % rho = qleft(i,j,k+1,QRHO)
+                eos_state % p   = qleft(i,j,k+1,QPRES)
                 eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
-                eos_state % xn  = qleft(i,j,k+1,QFS:QFS+nspec-1,idir)
+                eos_state % xn  = qleft(i,j,k+1,QFS:QFS+nspec-1)
 
                 call eos(eos_input_rp, eos_state)
-                qleft(i,j,k+1,QREINT,idir) = eos_state % e * eos_state % rho
+                qleft(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
 
              end if
 
-             eos_state % rho = qright(i,j,k,QRHO,idir)
-             eos_state % p   = qright(i,j,k,QPRES,idir)
-             eos_state % xn  = qright(i,j,k,QFS:QFS+nspec-1,idir)
+             eos_state % rho = qright(i,j,k,QRHO)
+             eos_state % p   = qright(i,j,k,QPRES)
+             eos_state % xn  = qright(i,j,k,QFS:QFS+nspec-1)
 
              call eos(eos_input_rp, eos_state)
-             qright(i,j,k,QREINT,idir) = eos_state % e * eos_state % rho
+             qright(i,j,k,QREINT) = eos_state % e * eos_state % rho
 
              ! add source terms
              if (idir == 1) then
-                qleft(i+1,j,k,QRHO,idir) = max(small_dens, qleft(i+1,j,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-                qleft(i+1,j,k,QU,idir) = qleft(i+1,j,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-                qleft(i+1,j,k,QV,idir) = qleft(i+1,j,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-                qleft(i+1,j,k,QW,idir) = qleft(i+1,j,k,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-                qleft(i+1,j,k,QPRES,idir) = qleft(i+1,j,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-                qleft(i+1,j,k,QREINT,idir) = qleft(i+1,j,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+                qleft(i+1,j,k,QRHO) = max(small_dens, qleft(i+1,j,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i+1,j,k,QU) = qleft(i+1,j,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i+1,j,k,QV) = qleft(i+1,j,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i+1,j,k,QW) = qleft(i+1,j,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i+1,j,k,QPRES) = qleft(i+1,j,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i+1,j,k,QREINT) = qleft(i+1,j,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
              else if (idir == 2) then
-                qleft(i,j+1,k,QRHO,idir) = max(small_dens, qleft(i,j+1,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-                qleft(i,j+1,k,QU,idir) = qleft(i,j+1,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-                qleft(i,j+1,k,QV,idir) = qleft(i,j+1,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-                qleft(i,j+1,k,QW,idir) = qleft(i,j+1,k,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-                qleft(i,j+1,k,QPRES,idir) = qleft(i,j+1,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-                qleft(i,j+1,k,QREINT,idir) = qleft(i,j+1,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+                qleft(i,j+1,k,QRHO) = max(small_dens, qleft(i,j+1,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i,j+1,k,QU) = qleft(i,j+1,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i,j+1,k,QV) = qleft(i,j+1,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i,j+1,k,QW) = qleft(i,j+1,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i,j+1,k,QPRES) = qleft(i,j+1,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i,j+1,k,QREINT) = qleft(i,j+1,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
              else
-                qleft(i,j,k+1,QRHO,idir) = max(small_dens, qleft(i,j,k+1,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-                qleft(i,j,k+1,QU,idir) = qleft(i,j,k+1,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-                qleft(i,j,k+1,QV,idir) = qleft(i,j,k+1,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-                qleft(i,j,k+1,QW,idir) = qleft(i,j,k+1,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-                qleft(i,j,k+1,QPRES,idir) = qleft(i,j,k+1,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-                qleft(i,j,k+1,QREINT,idir) = qleft(i,j,k+1,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+                qleft(i,j,k+1,QRHO) = max(small_dens, qleft(i,j,k+1,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i,j,k+1,QU) = qleft(i,j,k+1,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i,j,k+1,QV) = qleft(i,j,k+1,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i,j,k+1,QW) = qleft(i,j,k+1,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i,j,k+1,QPRES) = qleft(i,j,k+1,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i,j,k+1,QREINT) = qleft(i,j,k+1,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
              end if
 
-             qright(i,j,k,QRHO,idir) = max(small_dens, qright(i,j,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-             qright(i,j,k,QU,idir) = qright(i,j,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-             qright(i,j,k,QV,idir) = qright(i,j,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-             qright(i,j,k,QW,idir) = qright(i,j,k,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-             qright(i,j,k,QPRES,idir) = qright(i,j,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-             qright(i,j,k,QREINT,idir) = qright(i,j,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+             qright(i,j,k,QRHO) = max(small_dens, qright(i,j,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             qright(i,j,k,QU) = qright(i,j,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+             qright(i,j,k,QV) = qright(i,j,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+             qright(i,j,k,QW) = qright(i,j,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+             qright(i,j,k,QPRES) = qright(i,j,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             qright(i,j,k,QREINT) = qright(i,j,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
           enddo
        enddo
