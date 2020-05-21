@@ -129,11 +129,6 @@ contains
 
        domega_dt = get_domegadt(time)
 
-       ! for axisymmetry, we store the data as (r, z, theta), since
-       ! the simulation plane is made up as r, z, but for the Coriolis
-       ! term, we need to use a right-handed coordinate system.  The
-       ! cross product function will do this for us.
-
        omegacrossr = cross_product(omega,r)
 
        omegacrossv = cross_product(omega,v)

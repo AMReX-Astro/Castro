@@ -23,11 +23,9 @@ contains
 
     ! for axisymmetry, we store the coordinates as (r, z, theta),
     ! since the simulation plane is r-z.  But this is a left-handed
-    ! system.  We want to compute any forces as it we had a
-    ! right-handed system.  Fun fact: the cross product for the
-    ! correct (r, theta, z) order is just the negative of our internal
-    ! (r, z, theta) ordering.  But we pick up another minus because
-    ! the cross product in a left handed system has a minus too.
+    ! system.  However because of the ordering of our state, we get a
+    ! Coriolis force that has the correct signs for a right-handed
+    ! system, so no change is needed.
 
   end function cross_product
 
