@@ -12,7 +12,7 @@ contains
                   qleft, ql_lo, ql_hi, &
                   qright, qr_lo, qr_hi, &
                   flx, flx_lo, flx_hi, &
-                  dir)
+                  dir) bind(C, name="hlld")
 
     ! Riemann solve:
 
@@ -31,7 +31,7 @@ contains
     integer, intent(in)   :: qr_lo(3), qr_hi(3)
     integer, intent(in)   :: work_lo(3), work_hi(3)
     integer, intent(in)   :: flx_lo(3), flx_hi(3)
-    integer, intent(in)   :: dir
+    integer, intent(in), value :: dir
 
     real(rt), intent(in)  :: qleft(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
     real(rt), intent(in)  :: qright(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)

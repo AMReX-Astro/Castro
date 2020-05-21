@@ -28,18 +28,54 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(srcq),
      const amrex::Real dx[], const amrex::Real dt);
 
-  void corner_transport
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(qleft),
-     const BL_FORT_FAB_ARG_3D(qright),
-     BL_FORT_FAB_ARG_3D(flxx),
-     BL_FORT_FAB_ARG_3D(flxy),
-     BL_FORT_FAB_ARG_3D(flxz),
-     BL_FORT_FAB_ARG_3D(Ex),
-     BL_FORT_FAB_ARG_3D(Ey),
-     BL_FORT_FAB_ARG_3D(Ez),
-     const amrex::Real dx[], const amrex::Real dt);
+  void electric_edge_x(const int lo[], const int hi[],
+                       const BL_FORT_FAB_ARG_3D(q),
+                       BL_FORT_FAB_ARG_3D(E),
+                       BL_FORT_FAB_ARG_3D(flxy),
+                       BL_FORT_FAB_ARG_3D(flxz));
+
+  void electric_edge_y(const int lo[], const int hi[],
+                       const BL_FORT_FAB_ARG_3D(q),
+                       BL_FORT_FAB_ARG_3D(E),
+                       BL_FORT_FAB_ARG_3D(flxx),
+                       BL_FORT_FAB_ARG_3D(flxz));
+
+  void electric_edge_z(const int lo[], const int hi[],
+                       const BL_FORT_FAB_ARG_3D(q),
+                       BL_FORT_FAB_ARG_3D(E),
+                       BL_FORT_FAB_ARG_3D(flxx),
+                       BL_FORT_FAB_ARG_3D(flxy));
+
+  void corner_couple(const int lo[], const int hi[],
+                     BL_FORT_FAB_ARG_3D(qr_out),
+                     BL_FORT_FAB_ARG_3D(ql_out),
+                     const BL_FORT_FAB_ARG_3D(ur),
+                     const BL_FORT_FAB_ARG_3D(ul),
+                     const BL_FORT_FAB_ARG_3D(flxd2),
+                     const BL_FORT_FAB_ARG_3D(Ed1),
+                     const BL_FORT_FAB_ARG_3D(Ed3),
+                     const int d1, const int d2, const int d3,
+                     const Real dx, const Real dt);
+
+  void half_step(const int lo[], const int hi[],
+                 BL_FORT_FAB_ARG_3D(qr_out),
+                 BL_FORT_FAB_ARG_3D(ql_out),
+                 const BL_FORT_FAB_ARG_3D(ur),
+                 const BL_FORT_FAB_ARG_3D(ul),
+                 const BL_FORT_FAB_ARG_3D(flxd1),
+                 const BL_FORT_FAB_ARG_3D(flxd2),
+                 const BL_FORT_FAB_ARG_3D(Ed),
+                 const BL_FORT_FAB_ARG_3D(Ed1),
+                 const BL_FORT_FAB_ARG_3D(Ed2),
+                 const int d, const int d1, const int d2,
+                 const Real dx, const Real dt);
+
+  void hlld(const int lo[], const int hi[],
+            const BL_FORT_FAB_ARG_3D(qleft),
+            const BL_FORT_FAB_ARG_3D(qright),
+            BL_FORT_FAB_ARG_3D(flx),
+            const int dir);
+
 
 #ifdef __cplusplus
 }
