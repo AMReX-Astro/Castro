@@ -8,8 +8,8 @@ CEXE_sources += mhd_util.cpp
 CEXE_headers += mhd_util.H
 
 ca_F90EXE_sources += flatten_mhd.F90
-ca_f90EXE_sources += ct_upwind.f90
-ca_f90EXE_sources += electric.f90
+CEXE_sources += ct_upwind.cpp
+CEXE_sources += electric.cpp
 ca_f90EXE_sources += hlld.f90
 ca_f90EXE_sources += mhd_plm_3d.f90
 ca_F90EXE_sources += mhd_state.F90
