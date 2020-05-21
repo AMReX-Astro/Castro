@@ -576,7 +576,10 @@ Castro::just_the_mhd(Real time, Real dt)
           // Here we reuse qtmp_left/right to denote the half-time conservative state
 
           // for x direction
-          half_step(obx,
+          // [lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
+          const Box& nbx1 = amrex::grow(nbx, IntVect(0, 1, 1));
+
+          half_step(nbx1,
                     qtmp_right_arr, qtmp_left_arr,
                     ux_right_arr, ux_left_arr,
                     flx_yz_arr, flx_zy_arr,
@@ -588,41 +591,36 @@ Castro::just_the_mhd(Real time, Real dt)
           // We need to compute these on a box 1 larger in the transverse directions
           // than we'd need for hydro alone due to the electric update
 
-
-          // [lo(1), lo(2)-1, lo(3)-1][hi(1)+1, hi(2)+1, hi(3)+1]
-          const Box& nbx1 = amrex::grow(nbx, IntVect(0, 1, 1));
           hlld(nbx1.loVect(), nbx1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
                BL_TO_FORTRAN_ANYD(flux[0]), 1);
 
           // for y direction
+          const Box& nby1 = amrex::grow(nby, IntVect(1, 0, 1));
 
-          half_step(obx,
+          half_step(nby1,
                     qtmp_right_arr, qtmp_left_arr,
                     uy_right_arr, uy_left_arr,
                     flx_xz_arr, flx_zx_arr,
                     Ey_arr, Ex_arr, Ez_arr,
                     1, 0, 2, dt);
 
-
-          const Box& nby1 = amrex::grow(nby, IntVect(1, 0, 1));
           hlld(nby1.loVect(), nby1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
                BL_TO_FORTRAN_ANYD(flux[1]), 2);
 
           // for z direction
+          const Box& nbz1 = amrex::grow(nbz, IntVect(1, 1, 0));
 
-          half_step(obx,
+          half_step(nbz1,
                     qtmp_right_arr, qtmp_left_arr,
                     uz_right_arr, uz_left_arr,
                     flx_xy_arr, flx_yx_arr,
                     Ez_arr, Ex_arr, Ey_arr,
                     2, 0, 1, dt);
 
-
-          const Box& nbz1 = amrex::grow(nbz, IntVect(1, 1, 0));
           hlld(nbz1.loVect(), nbz1.hiVect(),
                BL_TO_FORTRAN_ANYD(qtmp_left),
                BL_TO_FORTRAN_ANYD(qtmp_right),
