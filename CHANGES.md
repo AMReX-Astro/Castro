@@ -3,11 +3,14 @@
    * In axisymmetric geometry, there are additional forces that arise
      due to the changing direction of the unit vectors in the div{rho
      U U} term. The paper by Bernand-Champmartin discusses this. See
-     issue #913. This adds those forces, and for consistency, ensures
-     that the Coriolis force is computed in a right-handed manner
-     (since we internally order the coordinates as r, z, theta,
-     reflecting the fact that only r-z are in the simulation plane).
-     (#923)
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
+
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
 
    * The reaction weights metric implemented in version 20.05 (#863) has been
      added to the simplified SDC reactions driver. (#930)

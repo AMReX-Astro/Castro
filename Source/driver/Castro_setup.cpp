@@ -941,6 +941,10 @@ Castro::variableSetUp ()
   derive_lst.addComponent("radvel",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("radvel",desc_lst,State_Type,UMX,3);
 
+  derive_lst.add("circvel",IndexType::TheCellType(),1,ca_dercircvel,the_same_box);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,UMX,3);
+
   derive_lst.add("magmom",IndexType::TheCellType(),1,ca_dermagmom,the_same_box);
   derive_lst.addComponent("magmom",desc_lst,State_Type,UMX,3);
 

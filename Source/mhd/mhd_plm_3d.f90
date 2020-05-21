@@ -28,6 +28,7 @@ contains
   subroutine plm(lo, hi, &
                  idir, &
                  s, s_lo, s_hi, &
+                 qaux, qa_lo, qa_hi, &
                  flatn, f_lo, f_hi, &
                  bx, bxlo, bxhi, &
                  by, bylo, byhi, &
@@ -47,6 +48,7 @@ contains
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in), value :: idir
     integer, intent(in) :: s_lo(3), s_hi(3)
+    integer, intent(in) :: qa_lo(3), qa_hi(3)
     integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: bxlo(3), bxhi(3)
     integer, intent(in) :: bylo(3), byhi(3)
@@ -56,6 +58,7 @@ contains
     integer, intent(in) :: srcq_lo(3), srcq_hi(3)
 
     real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NQ)
+    real(rt), intent(in) :: qaux(qa_lo(1):qa_hi(1), qa_lo(2):qa_hi(2), qa_lo(3):qa_hi(3), NQAUX)
 
    ! face-centered magnetic fields
     real(rt), intent(in   ) ::  bx(bxlo(1):bxhi(1), bxlo(2):bxhi(2), bxlo(3):bxhi(3))
@@ -65,8 +68,8 @@ contains
     real(rt), intent(in) :: srcQ(srcq_lo(1):srcq_hi(1), srcq_lo(2):srcq_hi(2), srcq_lo(3):srcq_hi(3), NQSRC)
     real(rt), intent(in) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
-    real(rt), intent(out) :: qleft(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ, 3)
-    real(rt), intent(out) :: qright(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ, 3)
+    real(rt), intent(out) :: qleft(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
+    real(rt), intent(out) :: qright(ql_lo(1):ql_hi(1), ql_lo(2):ql_hi(2), ql_lo(3):ql_hi(3), NQ)
 
     real(rt), intent(in   ) :: dx(3)
     real(rt), intent(in), value :: dt
@@ -80,21 +83,15 @@ contains
 
     type(eos_t) :: eos_state
 
-    ! qleft and qright are the interface states in each dimension (the last index '3' is the
-    ! direction
-
-    qleft(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),:,idir) = 0.d0
-    qright(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),:,idir) = 0.d0
-
     ! these loops are over cell-centers and for each cell-center, we find the left and
     ! right interface states
 
     dtdx = dt/dx(idir)
 
     !=========================== PLM =========================================
-    do k = s_lo(3)+1, s_hi(3)-1
-       do j = s_lo(2)+1, s_hi(2)-1
-          do i = s_lo(1)+1, s_hi(1)-1
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
 
              ! compute the 1-sided differences used for the slopes
 
@@ -162,16 +159,16 @@ contains
 
              ! compute the eigenvectors and eigenvalues for this coordinate direction
 
-             call evals(lam,  s(i,j,k,:), idir)
+             call evals(lam,  qaux(i,j,k,:), s(i,j,k,:), idir)
 
              if (idir == 1) then
-                call evecx(leig, reig, s(i,j,k,:))
+                call evecx(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
 
              else if (idir == 2) then
-                call evecy(leig, reig, s(i,j,k,:))
+                call evecy(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
 
              else
-                call evecz(leig, reig, s(i,j,k,:))
+                call evecz(leig, reig, qaux(i,j,k,:), s(i,j,k,:))
              end if
 
              ! MHD Source Terms -- from the Miniati paper, Eq. 32 and 33
@@ -223,49 +220,62 @@ contains
 
              ! left state at i+1/2
 
-             qleft(i,j,k,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-             qleft(i,j,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-             qleft(i,j,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-             qleft(i,j,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-             qleft(i,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
              if (idir == 1) then
-                qleft(i,j,k,QMAGX,idir) = bx(i+1,j,k) !! Bx stuff
-                qleft(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i+1,j,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i+1,j,k,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i+1,j,k,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i+1,j,k,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i+1,j,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+
+                qleft(i+1,j,k,QMAGX) = bx(i+1,j,k) !! Bx stuff
+                qleft(i+1,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i+1,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else if (idir == 2) then
-                qleft(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i,j,k,QMAGY,idir) = by(i,j+1,k) !! By stuff
-                qleft(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i,j+1,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i,j+1,k,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i,j+1,k,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i,j+1,k,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i,j+1,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+
+                qleft(i,j+1,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i,j+1,k,QMAGY) = by(i,j+1,k) !! By stuff
+                qleft(i,j+1,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else
-                qleft(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qleft(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
-                qleft(i,j,k,QMAGZ,idir) = bz(i,j,k+1) !! Bz stuff
+                qleft(i,j,k+1,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_p(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+                qleft(i,j,k+1,QU) = s(i,j,k,QU) + 0.5d0*summ_p(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+                qleft(i,j,k+1,QV) = s(i,j,k,QV) + 0.5d0*summ_p(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+                qleft(i,j,k+1,QW) = s(i,j,k,QW) + 0.5d0*summ_p(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+                qleft(i,j,k+1,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_p(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+
+                qleft(i,j,k+1,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_p(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qleft(i,j,k+1,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_p(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qleft(i,j,k+1,QMAGZ) = bz(i,j,k+1) !! Bz stuff
              end if
 
              ! right state at i-1/2
-             qright(i,j,k,QRHO,idir) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
-             qright(i,j,k,QU,idir) = s(i,j,k,QU) + 0.5d0*summ_m(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
-             qright(i,j,k,QV,idir) = s(i,j,k,QV) + 0.5d0*summ_m(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
-             qright(i,j,k,QW,idir) = s(i,j,k,QW) + 0.5d0*summ_m(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
-             qright(i,j,k,QPRES,idir) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
+             qright(i,j,k,QRHO) = max(small_dens, s(i,j,k,QRHO) + 0.5d0*summ_m(IEIGN_RHO) + 0.5d0*dt*smhd(IEIGN_RHO))
+             qright(i,j,k,QU) = s(i,j,k,QU) + 0.5d0*summ_m(IEIGN_U) + 0.5d0*dt*smhd(IEIGN_U)
+             qright(i,j,k,QV) = s(i,j,k,QV) + 0.5d0*summ_m(IEIGN_V) + 0.5d0*dt*smhd(IEIGN_V)
+             qright(i,j,k,QW) = s(i,j,k,QW) + 0.5d0*summ_m(IEIGN_W) + 0.5d0*dt*smhd(IEIGN_W)
+             qright(i,j,k,QPRES) = max(small_pres, s(i,j,k,QPRES) + 0.5d0*summ_m(IEIGN_P) + 0.5d0*dt*smhd(IEIGN_P))
 
              if (idir == 1) then
-                qright(i,j,k,QMAGX,idir) = bx(i,j,k) !! Bx stuff
-                qright(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGX) = bx(i,j,k) !! Bx stuff
+                qright(i,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else if (idir == 2) then
-                qright(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGY,idir) = by(i,j,k) !! By stuff
-                qright(i,j,k,QMAGZ,idir) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGY) = by(i,j,k) !! By stuff
+                qright(i,j,k,QMAGZ) = s(i,j,k,QMAGZ) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
 
              else
-                qright(i,j,k,QMAGX,idir) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
-                qright(i,j,k,QMAGY,idir) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
-                qright(i,j,k,QMAGZ,idir) = bz(i,j,k) !! Bz stuff
+                qright(i,j,k,QMAGX) = s(i,j,k,QMAGX) + 0.5d0*summ_m(IEIGN_BT) + 0.5d0*dt*smhd(IEIGN_BT)
+                qright(i,j,k,QMAGY) = s(i,j,k,QMAGY) + 0.5d0*summ_m(IEIGN_BTT) + 0.5d0*dt*smhd(IEIGN_BTT)
+                qright(i,j,k,QMAGZ) = bz(i,j,k) !! Bz stuff
              endif
 
              ! species
@@ -288,40 +298,85 @@ contains
 
                call slope(dW, dL, dR, flatn(i,j,k))
 
-               qleft(i,j,k,ii,idir) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
-               qright(i,j,k,ii,idir) = s(i,j,k,ii) - 0.5d0*(1.0d0 + dtdx*un) * dW
+               if (idir == 1) then
+                  qleft(i+1,j,k,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+               else if (idir == 2) then
+                  qleft(i,j+1,k,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+               else
+                  qleft(i,j,k+1,ii) = s(i,j,k,ii) + 0.5d0*(1.0d0 - dtdx*un) * dW
+               endif
+               qright(i,j,k,ii) = s(i,j,k,ii) - 0.5d0*(1.0d0 + dtdx*un) * dW
              enddo
 
              ! rho e
-             eos_state % rho = qleft(i,j,k,QRHO,idir)
-             eos_state % p   = qleft(i,j,k,QPRES,idir)
-             eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
-             eos_state % xn  = qleft(i,j,k,QFS:QFS+nspec-1,idir)
+             if (idir == 1) then
+                eos_state % rho = qleft(i+1,j,k,QRHO)
+                eos_state % p   = qleft(i+1,j,k,QPRES)
+                eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
+                eos_state % xn  = qleft(i+1,j,k,QFS:QFS+nspec-1)
+
+                call eos(eos_input_rp, eos_state)
+                qleft(i+1,j,k,QREINT) = eos_state % e * eos_state % rho
+
+             else if (idir == 2) then
+                eos_state % rho = qleft(i,j+1,k,QRHO)
+                eos_state % p   = qleft(i,j+1,k,QPRES)
+                eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
+                eos_state % xn  = qleft(i,j+1,k,QFS:QFS+nspec-1)
+
+                call eos(eos_input_rp, eos_state)
+                qleft(i,j+1,k,QREINT) = eos_state % e * eos_state % rho
+
+             else
+                eos_state % rho = qleft(i,j,k+1,QRHO)
+                eos_state % p   = qleft(i,j,k+1,QPRES)
+                eos_state % T   = s(i,j,k,QTEMP) !some initial guess?
+                eos_state % xn  = qleft(i,j,k+1,QFS:QFS+nspec-1)
+
+                call eos(eos_input_rp, eos_state)
+                qleft(i,j,k+1,QREINT) = eos_state % e * eos_state % rho
+
+             end if
+
+             eos_state % rho = qright(i,j,k,QRHO)
+             eos_state % p   = qright(i,j,k,QPRES)
+             eos_state % xn  = qright(i,j,k,QFS:QFS+nspec-1)
 
              call eos(eos_input_rp, eos_state)
-             qleft(i,j,k,QREINT,idir) = eos_state % e * eos_state % rho
-
-             eos_state % rho = qright(i,j,k,QRHO,idir)
-             eos_state % p   = qright(i,j,k,QPRES,idir)
-             eos_state % xn  = qright(i,j,k,QFS:QFS+nspec-1,idir)
-
-             call eos(eos_input_rp, eos_state)
-             qright(i,j,k,QREINT,idir) = eos_state % e * eos_state % rho
+             qright(i,j,k,QREINT) = eos_state % e * eos_state % rho
 
              ! add source terms
-             qleft(i,j,k,QRHO,idir) = max(small_dens, qleft(i,j,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-             qleft(i,j,k,QU,idir) = qleft(i,j,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-             qleft(i,j,k,QV,idir) = qleft(i,j,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-             qleft(i,j,k,QW,idir) = qleft(i,j,k,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-             qleft(i,j,k,QPRES,idir) = qleft(i,j,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-             qleft(i,j,k,QREINT,idir) = qleft(i,j,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+             if (idir == 1) then
+                qleft(i+1,j,k,QRHO) = max(small_dens, qleft(i+1,j,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i+1,j,k,QU) = qleft(i+1,j,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i+1,j,k,QV) = qleft(i+1,j,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i+1,j,k,QW) = qleft(i+1,j,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i+1,j,k,QPRES) = qleft(i+1,j,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i+1,j,k,QREINT) = qleft(i+1,j,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
-             qright(i,j,k,QRHO,idir) = max(small_dens, qright(i,j,k,QRHO,idir) + 0.5d0*dt*srcQ(i,j,k,QRHO))
-             qright(i,j,k,QU,idir) = qright(i,j,k,QU,idir) + 0.5d0*dt*srcQ(i,j,k,QU)
-             qright(i,j,k,QV,idir) = qright(i,j,k,QV,idir) + 0.5d0*dt*srcQ(i,j,k,QV)
-             qright(i,j,k,QW,idir) = qright(i,j,k,QW,idir) + 0.5d0*dt*srcQ(i,j,k,QW)
-             qright(i,j,k,QPRES,idir) = qright(i,j,k,QPRES,idir) + 0.5d0*dt*srcQ(i,j,k,QPRES)
-             qright(i,j,k,QREINT,idir) = qright(i,j,k,QREINT,idir) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+             else if (idir == 2) then
+                qleft(i,j+1,k,QRHO) = max(small_dens, qleft(i,j+1,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i,j+1,k,QU) = qleft(i,j+1,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i,j+1,k,QV) = qleft(i,j+1,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i,j+1,k,QW) = qleft(i,j+1,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i,j+1,k,QPRES) = qleft(i,j+1,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i,j+1,k,QREINT) = qleft(i,j+1,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+
+             else
+                qleft(i,j,k+1,QRHO) = max(small_dens, qleft(i,j,k+1,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+                qleft(i,j,k+1,QU) = qleft(i,j,k+1,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+                qleft(i,j,k+1,QV) = qleft(i,j,k+1,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+                qleft(i,j,k+1,QW) = qleft(i,j,k+1,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+                qleft(i,j,k+1,QPRES) = qleft(i,j,k+1,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+                qleft(i,j,k+1,QREINT) = qleft(i,j,k+1,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
+             end if
+
+             qright(i,j,k,QRHO) = max(small_dens, qright(i,j,k,QRHO) + 0.5d0*dt*srcQ(i,j,k,QRHO))
+             qright(i,j,k,QU) = qright(i,j,k,QU) + 0.5d0*dt*srcQ(i,j,k,QU)
+             qright(i,j,k,QV) = qright(i,j,k,QV) + 0.5d0*dt*srcQ(i,j,k,QV)
+             qright(i,j,k,QW) = qright(i,j,k,QW) + 0.5d0*dt*srcQ(i,j,k,QW)
+             qright(i,j,k,QPRES) = qright(i,j,k,QPRES) + 0.5d0*dt*srcQ(i,j,k,QPRES)
+             qright(i,j,k,QREINT) = qright(i,j,k,QREINT) + 0.5d0*dt*srcQ(i,j,k,QREINT)
 
           enddo
        enddo
@@ -433,44 +488,34 @@ contains
 
   !=========================================== Evals =========================================================
 
-  subroutine evals(lam, Q, dir)
+  subroutine evals(lam, qaux, Q, dir)
 
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only: nspec
     implicit none
 
-    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(in)  :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: lam(NEIGN) !7 waves
     integer, intent(in)   :: dir !Choose direction, 1 for x, 2 for y, 3 for z
 
     !The characteristic speeds of the system
     real(rt)  :: cfx, cfy, cfz, cax, cay, caz, csx, csy, csz, ca, as
-    type(eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-    eos_state % T   = Q(QTEMP)
+    ! speeds
+    as = qaux(QC) * qaux(QC)
 
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca  = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cax = (Q(QMAGX)**2)/Q(QRHO)
     cay = (Q(QMAGY)**2)/Q(QRHO)
     caz = (Q(QMAGZ)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csx = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cax))
     csy = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cay))
     csz = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*caz))
 
-    !Fassssst
+    ! Fast
     cfx = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cax))
     cfy = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cay))
     cfz = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*caz))
@@ -514,40 +559,32 @@ contains
   !====================================== Left Eigenvectors ===============================================
 
   !x direction
-  subroutine evecx(leig, reig, Q)
+  subroutine evecx(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
-    real(rt), intent(in)  ::Q(NQ)
+    real(rt), intent(in)  ::Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfx, cax, csx, ca, as, S, N
     real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, bety, betz
-    type (eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
+    ! Speeds
 
-    call eos(eos_input_rp, eos_state)
+    as = qaux(QC) * qaux(QC)
 
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cax = (Q(QMAGX)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csx = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cax))
 
-    !Fassssst
+    ! Fast
     cfx = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cax))
 
     !useful constants
@@ -595,42 +632,32 @@ contains
   end subroutine evecx
 
   !y direction
-  subroutine evecy(leig, reig, Q)
+  subroutine evecy(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
-    real(rt), intent(in) :: Q(NQ)
+    real(rt), intent(in) :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt) :: cfy, cay, csy, ca, as, S, N
     real(rt) :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, betz
 
-    type (eos_t) :: eos_state
 
-    !Speeeeeeeedssssss
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
+    ! Speeds
+    as = qaux(QC) * qaux(QC)
 
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     cay = (Q(QMAGY)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csy = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*cay))
 
-    !Fassssst
+    ! Fast
     cfy = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*cay))
 
     !useful constants
@@ -677,43 +704,31 @@ contains
   end subroutine evecy
 
   !z direction
-  subroutine evecz(leig, reig, Q)
+  subroutine evecz(leig, reig, qaux, Q)
     use amrex_fort_module, only : rt => amrex_real
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
     use network, only : nspec
 
     implicit none
 
     !returnes Leig, where the rows are the left eigenvectors of the characteristic matrix Az
-    real(rt), intent(in)  :: Q(NQ)
+    real(rt), intent(in)  :: Q(NQ), qaux(NQAUX)
     real(rt), intent(out) :: leig(NEIGN,NEIGN), reig(NEIGN,NEIGN)
 
     !The characteristic speeds of the system
     real(rt)  :: cfz, caz, csz, ca, as, S, N
     real(rt)  :: cff, css, Qf, Qs, AAf, AAs, alf, als, betx, bety
 
-    type (eos_t) :: eos_state
+    ! Speeds
+    as = qaux(QC) * qaux(QC)
 
-    !Speeeeeeeedssssss
-
-    eos_state % rho = Q(QRHO)
-    eos_state % p   = Q(QPRES)
-    eos_state % T   = Q(QTEMP)
-    eos_state % xn  = Q(QFS:QFS+nspec-1)
-
-    call eos(eos_input_rp, eos_state)
-
-    as = eos_state % gam1 * Q(QPRES)/Q(QRHO)
-
-    !Alfven
+    ! Alfven
     ca = (Q(QMAGX)**2 + Q(QMAGY)**2 + Q(QMAGZ)**2)/Q(QRHO)
     caz = (Q(QMAGZ)**2)/Q(QRHO)
 
-    !Sloooooooooow
+    ! Slow
     csz = 0.5d0*((as + ca) - sqrt((as + ca)**2 - 4.0d0*as*caz))
 
-    !Fassssst
+    ! Fast
     cfz = 0.5d0*((as + ca) + sqrt((as + ca)**2 - 4.0d0*as*caz))
 
     !useful constants

@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 1.84320e5     3.072e4
-amr.n_cell           = 1152       192
+geometry.prob_hi     = 2.4576e5     3.072e4
+amr.n_cell           = 1024         128
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -73,13 +73,13 @@ amr.v                 = 1       # verbosity in Amr.cpp
 amr.max_level       = 2       # maximum level number allowed
 amr.ref_ratio       = 4 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
-amr.blocking_factor = 16       # block factor in grid generation
+amr.blocking_factor = 32       # block factor in grid generation
 amr.max_grid_size   = 128
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
 amr.check_file      = flame_wave_chk        # root name of checkpoint file
-amr.check_int       = 500        # number of timesteps between checkpoints
+amr.check_int       = 1000        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = flame_wave_H_He_500Hz_plt        # root name of plotfile
@@ -87,7 +87,7 @@ amr.plot_per         = 2.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_H_He_500Hz_smallplt        # root name of plotfile
-amr.small_plot_per         = 1.e-4      # number of seconds between plotfiles
+amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(h1) X(he4)
 
