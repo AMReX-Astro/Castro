@@ -321,7 +321,7 @@ Castro::half_step(const Box& bx,
     utmp[UMAGD1] = ur(i,j,k,UMAGD1) + sgn * hdtdx *
       ((Ed(i+err[0],j+err[1],k+err[2]) - Ed(i+erl[0],j+erl[1],k+erl[2])) +
        (Ed(i+elr[0],j+elr[1],k+elr[2]) - Ed(i+ell[0],j+ell[1],k+ell[2])) -
-       (Ed2(i+e2rr[0],j+e2rr[1],k+e2rr[2]) - Ed2(i+e2lr[0],j+e2lr[1],k+e2lr[1])) -
+       (Ed2(i+e2rr[0],j+e2rr[1],k+e2rr[2]) - Ed2(i+e2lr[0],j+e2lr[1],k+e2lr[2])) -
        (Ed2(i+e2rl[0],j+e2rl[1],k+e2rl[2]) - Ed2(i+ell[0],j+ell[1],k+ell[2])));
 
     // Bd2 -- this is the other component of B in the plane of the face d
