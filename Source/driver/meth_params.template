@@ -15,12 +15,6 @@ module meth_params_module
 
   implicit none
 
-  ! number of ghost cells for the hyperbolic solver
-  integer, parameter     :: NHYP    = 4
-#ifdef MHD
-  integer, parameter     :: NMAG    = 3
-#endif
-
 #ifdef RADIATION
   integer,  allocatable, save :: fspace_type
   logical,  allocatable, save :: do_inelastic_scattering
