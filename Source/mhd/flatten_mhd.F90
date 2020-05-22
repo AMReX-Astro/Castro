@@ -9,9 +9,6 @@ module flatten_module_mhd
   private
 
   public :: uflatten
-#ifdef RADIATION
-  public :: rad_flatten
-#endif
 #ifdef MHD
   public :: mhd_flatten 
 #endif
@@ -21,7 +18,7 @@ contains
 ! ::: ------------------------------------------------------------------
 ! :::
 
-  subroutine uflatten(lo, hi, q, flatn, q_lo, q_hi, ipres)
+  subroutine uflatten(lo, hi, q, q_lo, q_hi, flatn, f_lo, f_hi, ipres)
 
     ! here, ipres is the pressure variable we want to consider jumps on
     ! passing it in allows
@@ -34,10 +31,11 @@ contains
 
     integer, intent(in) :: lo(3), hi(3)
     integer, intent(in) :: q_lo(3), q_hi(3)
+    integer, intent(in) :: f_lo(3), f_hi(3)
     integer, intent(in) :: ipres
 
     real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ+1)
-    real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
+    real(rt)        , intent(inout) :: flatn(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
 
     integer :: i, j, k, ishft
 
@@ -169,55 +167,6 @@ contains
 
   end subroutine uflatten
 
-#ifdef RADIATION
-  subroutine rad_flatten(lo, hi, q, flatn, q_lo, q_hi)
-
-    use meth_params_module, only : QPRES, QU, QV, QW, flatten_pp_threshold, QPTOT, NQ
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: q_lo(3), q_hi(3)
-
-    real(rt)        , intent(in) :: q(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3),NQ)
-    real(rt)        , intent(inout) :: flatn(q_lo(1):q_hi(1),q_lo(2):q_hi(2),q_lo(3):q_hi(3))
-
-    integer :: i, j, k
-
-    real(rt)        , pointer :: flatg(:,:,:)
-
-    call uflatten(lo, hi, q, flatn, q_lo, q_hi, QPTOT)
-
-    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflatten(lo, hi, q, flatg, q_lo, q_hi, QPRES)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             flatn(i,j,k) = flatn(i,j,k) * flatg(i,j,k)
-
-             if (flatten_pp_threshold > ZERO) then
-                if ( q(i-1,j,k,QU) + q(i,j-1,k,QV) + q(i,j,k-1,QW) > &
-                     q(i+1,j,k,QU) + q(i,j+1,k,QV) + q(i,j,k+1,QW) ) then
-
-                   if (q(i,j,k,QPRES) < flatten_pp_threshold * q(i,j,k,QPTOT)) then
-                      flatn(i,j,k) = ZERO
-                   end if
-
-                end if
-             endif
-
-          end do
-       end do
-    end do
-
-    call bl_deallocate(flatg)
-
-  end subroutine rad_flatten
-#endif
-
 #ifdef MHD
   subroutine mhd_flatten(lo, hi, &
                          q, q_lo, q_hi, &
@@ -246,10 +195,10 @@ contains
     q2(:,:,:,1:NQ) = q(:,:,:,:)
     q2(:,:,:,QPTOT) = q(:,:,:,QPRES) + 0.5d0 * ( q(:,:,:,QMAGX)**2 + q(:,:,:,QMAGY)**2 + q(:,:,:,QMAGZ)**2 )
 
-    call uflatten(lo, hi, q2, flatn, q_lo, q_hi, QPTOT)
+    call uflatten(lo, hi, q2, q_lo, q_hi, flatn, f_lo, f_hi, QPTOT)
 
-    call bl_allocate(flatg, q_lo(1), q_hi(1), q_lo(2), q_hi(2), q_lo(3), q_hi(3))
-    call uflatten(lo, hi, q2, flatg, q_lo, q_hi, QPRES)
+    call bl_allocate(flatg, f_lo, f_hi)
+    call uflatten(lo, hi, q2, q_lo, q_hi, flatg, f_lo, f_hi, QPRES)
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
