@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-
+#include <iostream>
 using namespace amrex;
 
 void
@@ -34,7 +34,7 @@ Castro::just_the_mhd(Real time, Real dt)
       //}
 
 
-      BL_ASSERT(NUM_GROW == 4);
+      BL_ASSERT(NUM_GROW == 6);
 
 
 #ifdef _OPENMP
@@ -183,7 +183,6 @@ Castro::just_the_mhd(Real time, Real dt)
 
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
-
 
           ctoprim(bx_gc, time,
                   u_arr,
@@ -705,3 +704,4 @@ Castro::just_the_mhd(Real time, Real dt)
     }
 
 }
+
