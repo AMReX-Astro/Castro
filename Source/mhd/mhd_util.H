@@ -11,15 +11,15 @@ constexpr int UMAGZ = NUM_STATE+2;
 
 constexpr int NEIGN = 7;
 
-constexpr int IEIGN_RHO = 1;
-constexpr int IEIGN_U = 2;
-constexpr int IEIGN_V = 3;
-constexpr int IEIGN_W = 4;
-constexpr int IEIGN_P = 5;
+constexpr int IEIGN_RHO = 0;
+constexpr int IEIGN_U = 1;
+constexpr int IEIGN_V = 2;
+constexpr int IEIGN_W = 3;
+constexpr int IEIGN_P = 4;
 
 // perpendicular magnetic field components
-constexpr int IEIGN_BT = 6;
-constexpr int IEIGN_BTT = 7;
+constexpr int IEIGN_BT = 5;
+constexpr int IEIGN_BTT = 6;
 
 // sound speed calc for ideal MHD
 void
