@@ -34,7 +34,7 @@ Castro::just_the_mhd(Real time, Real dt)
       //}
 
 
-      BL_ASSERT(NUM_GROW == 4);
+      BL_ASSERT(NUM_GROW == 6);
 
 
 #ifdef _OPENMP
