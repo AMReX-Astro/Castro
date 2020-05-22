@@ -201,7 +201,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flatn_arr = flatn.array();
           auto elix_flatn = flatn.elixir();
 
-          amrex::ParallelFor(obx,
+          amrex::ParallelFor(bx_gc,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
             flatn_arr(i,j,k) = 0.0;
