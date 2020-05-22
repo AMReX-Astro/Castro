@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-
+#include <iostream>
 using namespace amrex;
 
 void
@@ -184,6 +184,14 @@ Castro::just_the_mhd(Real time, Real dt)
           const int* lo_gc = bx_gc.loVect();
           const int* hi_gc = bx_gc.hiVect();
 
+
+          std::cout << "working on ctoprim" << std::endl;
+          std::cout << "u_arr: " << Sborder.nGrow() << std::endl;
+          std::cout << "NUM_GROW = " << NUM_GROW << std::endl;
+          //std::cout << "q = " << q.nGrow() << std::endl;
+          std::cout << "bx_gc = " << bx_gc << std::endl;
+
+          //std::cout << "q_arr ng = " << q.ngrow << std::endl;
 
           ctoprim(bx_gc, time,
                   u_arr,
@@ -705,3 +713,4 @@ Castro::just_the_mhd(Real time, Real dt)
     }
 
 }
+
