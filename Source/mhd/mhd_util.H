@@ -9,6 +9,18 @@ constexpr int UMAGX = NUM_STATE;
 constexpr int UMAGY = NUM_STATE+1;
 constexpr int UMAGZ = NUM_STATE+2;
 
+constexpr int NEIGN = 7;
+
+constexpr int IEIGN_RHO = 1;
+constexpr int IEIGN_U = 2;
+constexpr int IEIGN_V = 3;
+constexpr int IEIGN_W = 4;
+constexpr int IEIGN_P = 5;
+
+// perpendicular magnetic field components
+constexpr int IEIGN_BT = 6;
+constexpr int IEIGN_BTT = 7;
+
 // sound speed calc for ideal MHD
 void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
