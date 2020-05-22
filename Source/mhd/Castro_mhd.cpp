@@ -49,13 +49,10 @@ Castro::just_the_mhd(Real time, Real dt)
       FArrayBox srcQ;
 
       FArrayBox flatn;
+      FArrayBox flatg;
 
-      FArrayBox qx_left;
-      FArrayBox qx_right;
-      FArrayBox qy_left;
-      FArrayBox qy_right;
-      FArrayBox qz_left;
-      FArrayBox qz_right;
+      FArrayBox qleft[AMREX_SPACEDIM];
+      FArrayBox qright[AMREX_SPACEDIM];
 
       FArrayBox flxx1D;
       FArrayBox flxy1D;
@@ -198,90 +195,81 @@ Castro::just_the_mhd(Real time, Real dt)
 
           check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
-          flatn.resize(bx_gc, 1);
-          auto flatn_arr = flatn.array();
-          auto elix_flatn = flatn.elixir();
-
           // we need to compute the flattening coefficient for every zone
           // center where we do reconstruction
 
-          amrex::ParallelFor(obx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-          {
-            flatn_arr(i,j,k) = 0.0;
-          });
+          const Box& nbi = amrex::grow(bx, IntVect(3, 3, 3));
 
-          mhd_flatten(lo1, hi1,
-                      BL_TO_FORTRAN_ANYD(q),
-                      BL_TO_FORTRAN_ANYD(flatn));
+          flatn.resize(nbi, 1);
+          auto flatn_arr = flatn.array();
+          auto elix_flatn = flatn.elixir();
 
+          flatg.resize(nbi, 1);
+          auto flatg_arr = flatg.array();
+          auto elix_flatg = flatg.elixir();
+
+          if (use_flattening == 0) {
+            amrex::ParallelFor(nbi,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+              flatn_arr(i,j,k) = 0.0;
+            });
+
+          } else {
+
+            uflatten(bxi, q_arr, flatn_arr, QPRES);
+            uflatten(bxi, q_arr, flatg_arr, QPTOT);
+
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+              flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
+            });
+
+          }
 
           // Interpolate Cell centered values to faces
-          qx_left.resize(bx_gc, NQ);
+          qleft[0].resize(bx_gc, NQ);
           auto qx_left_arr = qx_left.array();
           auto elix_qx_left = qx_left.elixir();
 
-          qx_right.resize(bx_gc, NQ);
+          qxright[0].resize(bx_gc, NQ);
           auto qx_right_arr = qx_right.array();
           auto elix_qx_right = qx_right.elixir();
 
-          qy_left.resize(bx_gc, NQ);
+          qleft[1].resize(bx_gc, NQ);
           auto qy_left_arr = qy_left.array();
           auto elix_qy_left = qy_left.elixir();
 
-          qy_right.resize(bx_gc, NQ);
+          qright[1].resize(bx_gc, NQ);
           auto qy_right_arr = qy_right.array();
           auto elix_qy_right = qy_right.elixir();
 
-          qz_left.resize(bx_gc, NQ);
+          qleft[2].resize(bx_gc, NQ);
           auto qz_left_arr = qz_left.array();
           auto elix_qz_left = qz_left.elixir();
 
-          qz_right.resize(bx_gc, NQ);
+          qright[2].resize(bx_gc, NQ);
           auto qz_right_arr = qz_right.array();
           auto elix_qz_right = qz_right.elixir();
 
-          const Box& nbxi = amrex::grow(bx, IntVect(3, 3, 3));
 
-          plm(nbxi.loVect(), nbxi.hiVect(), 1,
+          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+            const int idir_f = idir + 1;
+
+            plm(nbi.loVect(), nbi.hiVect(), idir_f,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
               BL_TO_FORTRAN_ANYD(Bx),
               BL_TO_FORTRAN_ANYD(By),
               BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qx_left),
-              BL_TO_FORTRAN_ANYD(qx_right),
+              BL_TO_FORTRAN_ANYD(qleft[idir]),
+              BL_TO_FORTRAN_ANYD(qright[idir]),
               BL_TO_FORTRAN_ANYD(srcQ),
               dx_f, dt);
-
-          const Box& nbyi = amrex::grow(bx, IntVect(3, 3, 3));
-
-          plm(nbyi.loVect(), nbyi.hiVect(), 2,
-              BL_TO_FORTRAN_ANYD(q),
-              BL_TO_FORTRAN_ANYD(qaux),
-              BL_TO_FORTRAN_ANYD(flatn),
-              BL_TO_FORTRAN_ANYD(Bx),
-              BL_TO_FORTRAN_ANYD(By),
-              BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qy_left),
-              BL_TO_FORTRAN_ANYD(qy_right),
-              BL_TO_FORTRAN_ANYD(srcQ),
-              dx_f, dt);
-
-          const Box& nbzi = amrex::grow(bx, IntVect(3, 3, 3));
-
-          plm(nbzi.loVect(), nbzi.hiVect(), 3,
-              BL_TO_FORTRAN_ANYD(q),
-              BL_TO_FORTRAN_ANYD(qaux),
-              BL_TO_FORTRAN_ANYD(flatn),
-              BL_TO_FORTRAN_ANYD(Bx),
-              BL_TO_FORTRAN_ANYD(By),
-              BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qz_left),
-              BL_TO_FORTRAN_ANYD(qz_right),
-              BL_TO_FORTRAN_ANYD(srcQ),
-              dx_f, dt);
+          }
 
 
           // Corner Couple and find the correct fluxes + electric fields
@@ -300,8 +288,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto elix_flxx1D = flxx1D.elixir();
 
           hlld(bfx.loVect(), bfx.hiVect(),
-               BL_TO_FORTRAN_ANYD(qx_left),
-               BL_TO_FORTRAN_ANYD(qx_right),
+               BL_TO_FORTRAN_ANYD(qleft[0]),
+               BL_TO_FORTRAN_ANYD(qright[0]),
                BL_TO_FORTRAN_ANYD(flxx1D), 1);
 
           // y-dir
@@ -313,8 +301,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto elix_flxy1D = flxy1D.elixir();
 
           hlld(bfy.loVect(), bfy.hiVect(),
-               BL_TO_FORTRAN_ANYD(qy_left),
-               BL_TO_FORTRAN_ANYD(qy_right),
+               BL_TO_FORTRAN_ANYD(qleft[1]),
+               BL_TO_FORTRAN_ANYD(qright[1]),
                BL_TO_FORTRAN_ANYD(flxy1D), 2);
 
           // z-dir
@@ -326,8 +314,8 @@ Castro::just_the_mhd(Real time, Real dt)
           auto elix_flxz1D = flxz1D.elixir();
 
           hlld(bfz.loVect(), bfz.hiVect(),
-               BL_TO_FORTRAN_ANYD(qz_left),
-               BL_TO_FORTRAN_ANYD(qz_right),
+               BL_TO_FORTRAN_ANYD(qleft[2]),
+               BL_TO_FORTRAN_ANYD(qright[2]),
                BL_TO_FORTRAN_ANYD(flxz1D), 3);
 
 
