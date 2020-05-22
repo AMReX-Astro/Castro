@@ -202,6 +202,9 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flatn_arr = flatn.array();
           auto elix_flatn = flatn.elixir();
 
+          // we need to compute the flattening coefficient for every zone
+          // center where we do reconstruction
+
           amrex::ParallelFor(obx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
