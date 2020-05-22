@@ -198,18 +198,18 @@ Castro::just_the_mhd(Real time, Real dt)
           // we need to compute the flattening coefficient for every zone
           // center where we do reconstruction
 
-          const Box& nbi = amrex::grow(bx, IntVect(3, 3, 3));
+          const Box& bxi = amrex::grow(bx, IntVect(3, 3, 3));
 
-          flatn.resize(nbi, 1);
+          flatn.resize(bxi, 1);
           auto flatn_arr = flatn.array();
           auto elix_flatn = flatn.elixir();
 
-          flatg.resize(nbi, 1);
+          flatg.resize(bxi, 1);
           auto flatg_arr = flatg.array();
           auto elix_flatg = flatg.elixir();
 
           if (use_flattening == 0) {
-            amrex::ParallelFor(nbi,
+            amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
               flatn_arr(i,j,k) = 0.0;
@@ -230,35 +230,35 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // Interpolate Cell centered values to faces
           qleft[0].resize(bx_gc, NQ);
-          auto qx_left_arr = qx_left.array();
-          auto elix_qx_left = qx_left.elixir();
+          auto qx_left_arr = qleft[0].array();
+          auto elix_qx_left = qleft[0].elixir();
 
-          qxright[0].resize(bx_gc, NQ);
-          auto qx_right_arr = qx_right.array();
-          auto elix_qx_right = qx_right.elixir();
+          qright[0].resize(bx_gc, NQ);
+          auto qx_right_arr = qright[0].array();
+          auto elix_qx_right = qright[0].elixir();
 
           qleft[1].resize(bx_gc, NQ);
-          auto qy_left_arr = qy_left.array();
-          auto elix_qy_left = qy_left.elixir();
+          auto qy_left_arr = qleft[1].array();
+          auto elix_qy_left = qleft[1].elixir();
 
           qright[1].resize(bx_gc, NQ);
-          auto qy_right_arr = qy_right.array();
-          auto elix_qy_right = qy_right.elixir();
+          auto qy_right_arr = qright[1].array();
+          auto elix_qy_right = qright[1].elixir();
 
           qleft[2].resize(bx_gc, NQ);
-          auto qz_left_arr = qz_left.array();
-          auto elix_qz_left = qz_left.elixir();
+          auto qz_left_arr = qleft[2].array();
+          auto elix_qz_left = qleft[2].elixir();
 
           qright[2].resize(bx_gc, NQ);
-          auto qz_right_arr = qz_right.array();
-          auto elix_qz_right = qz_right.elixir();
+          auto qz_right_arr = qright[2].array();
+          auto elix_qz_right = qright[2].elixir();
 
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
             const int idir_f = idir + 1;
 
-            plm(nbi.loVect(), nbi.hiVect(), idir_f,
+            plm(bxi.loVect(), bxi.hiVect(), idir_f,
               BL_TO_FORTRAN_ANYD(q),
               BL_TO_FORTRAN_ANYD(qaux),
               BL_TO_FORTRAN_ANYD(flatn),
