@@ -734,7 +734,7 @@ contains
     !useful constants
     alf = sqrt((as - csz)/(cfz - csz))
     als = sqrt((cfz - as)/(cfz - csz))
-
+    if(as - csz .lt. 0.d0) alf = 0.d0
     if(cfz - as .lt. 0.d0) als = 0.d0
 
     if(abs(Q(QMAGX)).le. 1.d-14 .and.abs(Q(QMAGY)).le. 1.d-14) then
