@@ -2,16 +2,13 @@
 #define CASTRO_MHD_SOUND_SPEED_H
 
 #include "Castro_util.H"
+#include "mhd_sizes.H"
 
 using namespace amrex;
 
-constexpr int UMAGX = NUM_STATE;
-constexpr int UMAGY = NUM_STATE+1;
-constexpr int UMAGZ = NUM_STATE+2;
-
 // sound speed calc for ideal MHD
-void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+void
 eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
 
   // inputs:
@@ -24,8 +21,8 @@ eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
   c = std::sqrt(c);
 }
 
-void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+void
 Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 
   // Calculate the C to P Jacobian applied to the fluxes
@@ -74,8 +71,8 @@ Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 }
 
 
-void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+void
 Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
 
   // this takes the cell-center primitive state, q_zone, and computes the cell-center
@@ -95,8 +92,8 @@ Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
 }
 
 
-void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+void
 Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 
   // calculate the primitive variables from the conserved
@@ -187,8 +184,8 @@ Castro::PToC(Array1D<Real, 0, NQ>& q,
 }
 
 
-int
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+int
 epsilon_ijk(const int i, const int j, const int k) {
 
   int val;
