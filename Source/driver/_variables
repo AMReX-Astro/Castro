@@ -39,6 +39,7 @@
    species                QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
    auxiliary              QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
    total-pressure         QPTOT     None                                    1                 RADIATION
+   total-pressure         QPTOT     None                                    1                 MHD
    total-reint            QREITOT   None                                    1                 RADIATION
    radiation              QRAD      None                                  (ngroups, NGROUPS)  RADIATION
 

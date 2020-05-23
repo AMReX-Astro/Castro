@@ -12,7 +12,7 @@ contains
                   qleft, ql_lo, ql_hi, &
                   qright, qr_lo, qr_hi, &
                   flx, flx_lo, flx_hi, &
-                  dir)
+                  dir) bind(C, name="hlld")
 
     ! Riemann solve:
 
@@ -31,7 +31,7 @@ contains
     integer, intent(in)   :: qr_lo(3), qr_hi(3)
     integer, intent(in)   :: work_lo(3), work_hi(3)
     integer, intent(in)   :: flx_lo(3), flx_hi(3)
-    integer, intent(in)   :: dir
+    integer, intent(in), value :: dir
 
     real(rt), intent(in)  :: qleft(ql_lo(1):ql_hi(1),ql_lo(2):ql_hi(2),ql_lo(3):ql_hi(3),NQ)
     real(rt), intent(in)  :: qright(qr_lo(1):qr_hi(1),qr_lo(2):qr_hi(2),qr_lo(3):qr_hi(3),NQ)
@@ -106,14 +106,10 @@ contains
        do j = work_lo(2), work_hi(2)
           do i = work_lo(1), work_hi(1)
 
-             if (dir .eq. 1) then
-                qL(:) = qleft(i-1,j,k,:)
-             else if (dir .eq. 2) then
-                qL(:) = qleft(i,j-1,k,:)
-             else if (dir .eq. 3) then
-                qL(:) = qleft(i,j,k-1,:)
-             end if
+             ! this is a loop over interfaces, so, e.g., for dir = 1 (x), we are seeing
+             ! q_{i-1/2,j,k,L} and q_{i-1/2,j,k,R}
 
+             qL(:) = qleft(i,j,k,:)
              qR(:) = qright(i,j,k,:)
 
              !flx(i,j,k,:) = 0.d0
