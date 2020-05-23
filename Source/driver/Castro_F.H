@@ -33,8 +33,6 @@ extern "C"
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
 
-  void ca_get_method_params(int* HYP_GROW);
-
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 #ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
