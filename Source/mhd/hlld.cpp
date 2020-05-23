@@ -1,3 +1,10 @@
+#include "Castro.H"
+#include "Castro_F.H"
+
+#include "mhd_util.H"
+
+using namespace amrex;
+
 void
 Castro::hlld(const Box& bx,
              Array4<Real const> const& qleft,
@@ -426,55 +433,3 @@ Castro::hlld(const Box& bx,
   });
 }
 
-
-  subroutine PToC(q, U, gam1)
-
-    use amrex_fort_module, only : rt => amrex_real
-    use meth_params_module
-    use eos_module, only : eos
-    use eos_type_module, only: eos_t, eos_input_rp
-    use network, only : nspec
-
-    implicit none
-
-    real(rt), intent(in)  ::q(NQ)
-    real(rt), intent(out) ::U(NVAR+3)
-    real(rt), intent(out) :: gam1
-
-    type (eos_t) :: eos_state
-
-    integer :: n
-
-    real(rt) :: B2
-
-    ! first the conserved state
-    U(URHO)       = q(QRHO)
-    U(UMX)        = q(QRHO)*q(QU)
-    U(UMY)        = q(QRHO)*q(QV)
-    U(UMZ)        = q(QRHO)*q(QW)
-
-    eos_state % rho = q(QRHO)
-    eos_state % p   = q(QPRES)
-    eos_state % xn  = q(QFS:QFS+nspec-1)
-    eos_state % T   = 100.0   ! dummy initial guess
-
-    call eos(eos_input_rp, eos_state)
-
-    B2 = dot_product(q(QMAGX:QMAGZ), q(QMAGX:QMAGZ))
-
-    U(UEINT) = eos_state % rho * eos_state % e
-    U(UEDEN) = U(UEINT) + &
-         0.5d0 * q(QRHO) * dot_product(q(QU:QW), q(QU:QW)) + 0.5d0 * B2
-    U(UMAGX:UMAGZ) = q(QMAGX:QMAGZ)
-
-    do n = 1, nspec
-       u(UFS-1+n) = u(URHO)*q(QFS-1+n)
-    enddo
-
-    u(UTEMP) = eos_state % T
-
-    gam1 = eos_state % gam1
-
-  end subroutine PToC
-
-end module hlld_solver
