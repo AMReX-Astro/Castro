@@ -6,6 +6,45 @@
                                 amrex::Array4<amrex::Real const> const& qaux_arr);
 
     void
+    plm(const amrex::Box& bx,
+        const int idir,
+        amrex::Array4<amrex::Real const> const& s,
+        amrex::Array4<amrex::Real const> const& qaux,
+        amrex::Array4<amrex::Real const> const& flatn,
+        amrex::Array4<amrex::Real const> const& bx,
+        amrex::Array4<amrex::Real const> const& by,
+        amrex::Array4<amrex::Real const> const& bz,
+        amrex::Array4<amrex::Real> const& qleft,
+        amrex::Array4<amrex::Real> const& qright,
+        amrex::Array4<amrex::Real const> const& srcQ,
+        const amrex::Real dt);
+
+    void
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    evals(amrex::Real* lam, const amrex::Real as_in, amrex::Real* Q, const int dir);
+
+    void
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    evecx(amrex::Array2d<amrex::Real> const& leig,
+          amrex::Array2d<amrex::Real> const& reig,
+          const amrex::Real as_in,
+          amrex::Real* Q);
+
+    void
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    evecy(amrex::Array2d<amrex::Real> const& leig,
+          amrex::Array2d<amrex::Real> const& reig,
+          const amrex::Real as_in,
+          amrex::Real* Q);
+
+    void
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    evecz(amrex::Array2d<amrex::Real> const& leig,
+          amrex::Array2d<amrex::Real> const& reig,
+          const amrex::Real as_in,
+          amrex::Real* Q);
+
+    void
     consup_mhd(const amrex::Box& bx,
                amrex::Array4<amrex::Real> const& update,
                amrex::Array4<amrex::Real const> const& flux0,

@@ -1,3 +1,10 @@
+#include "Castro.H"
+#include "Castro_F.H"
+
+using namespace amrex;
+
+#include "mhd_eigen.H"
+#include "mhd_slope.H"
 
 void
 Castro::plm(const Box& bx,
@@ -109,6 +116,9 @@ Castro::plm(const Box& bx,
 
     evals(lam, as, q_zone, idir);
 
+    Array2d<Real, 0, NEIGN-1, 0, NEIGN-1> leig;
+    Array2d<Real, 0, NEIGN-1, 0, NEIGN-1> reig;
+
     if (idir == 0) {
       evecx(leig, reig, as, q_zone);
 
@@ -164,12 +174,12 @@ Castro::plm(const Box& bx,
     Real summ_m[NEIGN] = {0.0_rt};
 
     for (int ii = 0; ii < NEIGN; ii++) {
-      Real dL[NEIGN] = {0.0_rt};
-      Real dR[NEIGN] = {0.0_rt};
+      Real dL = 0.0;
+      Real dR = 0.0;
 
       for (int n = 0; n < NEIGN; n++) {
-        dL[n] = leig(ii,n) * dQL[n];
-        dR[n] = leig(ii,n) * dQR[n];
+        dL += leig(ii,n) * dQL[n];
+        dR += leig(ii,n) * dQR[n];
       }
 
       Real dW;
@@ -364,106 +374,3 @@ Castro::plm(const Box& bx,
   });
 }
 
-
-  !======================================== Minmod TVD slope limiter =========================================
-  subroutine minmod(dW, WR, WL)
-
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: WR, WL
-    real(rt), intent(out) :: dW
-    dW = 0.d0
-
-    if (abs(WR) < abs(WL) .and. WR*WL > 0.d0) then
-       dW = WR
-    else if (abs(WL) < abs(WR) .and. WR*WL > 0.d0) then
-       dW = WL
-    endif
-
-  end subroutine minmod
-
-
-  !========================================= VanLeer TVD slope limiter =======================================
-  subroutine vanleer(dW, WR, WL)
-
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in )       ::  WR, WL
-    real(rt), intent(out)       ::  dW
-    dW = 0.0d0
-
-    if( WR*WL .gt. 0.0d0 ) then
-       dW = 2.0d0*WR*WL/(WR + WL)
-    endif
-
-  end subroutine vanleer
-
-  !========================================== centered difference ===========================================
-  subroutine centerdif(dW, WR, WL)
-
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in )    :: WR, WL
-    real(rt), intent(out)    :: dW
-
-    dW = (WR+WL)/2.0d0
-
-  end subroutine centerdif
-
-  !================================== second order MC ==============================
-  subroutine secondMC(dW, WR, WL)
-
-    use amrex_fort_module, only : rt => amrex_real
-    use amrex_constants_module, only : ZERO, HALF, ONE, TWO
-
-    implicit none
-
-    real(rt), intent(in  )    :: WR, WL
-    real(rt), intent(out )    :: dW
-
-    real(rt)  :: dlim
-
-    if (WR * WL .ge. ZERO) then
-       dlim = TWO * min(abs(WR), abs(WL))
-    else
-       dlim = ZERO
-    endif
-
-    dW = min(HALF * abs(WR + WL), dlim ) * sign(ONE, WR + WL)
-
-
-  end subroutine secondMC
-
-
-
-  !================================================================
-  subroutine slope(dW, WR, WL, flat)
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-    real(rt), intent(in )    :: flat
-    real(rt), intent(in )    :: WR, WL
-    real(rt), intent(out)    :: dW
-
-    if  (mhd_plm_slope == 0)  then
-       dW = 0.0
-    elseif (mhd_plm_slope == 1) then
-       call vanleer(dW,WR,WL)
-    elseif (mhd_plm_slope == 2) then
-       call centerdif(dW,WR,WL)
-    elseif (mhd_plm_slope == 3) then
-       call secondMC(dW,WR,WL)
-    endif
-
-    if (use_flattening == 1) then
-        dW = flat * dW
-    endif
-
-  end subroutine slope
-end module mhd_plm_module

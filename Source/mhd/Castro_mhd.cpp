@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include <iostream>
+
 using namespace amrex;
 
 void
