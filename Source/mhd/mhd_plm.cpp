@@ -180,7 +180,7 @@ Castro::plm(const Box& bx,
         dR += leig(ii,n) * dQR[n];
       }
 
-      Real dW;
+      Real dW = 0.0;
       slope(dW, dL, dR, flatn(i,j,k));
 
       for (int n = 0; n < NEIGN; n++) {
@@ -261,7 +261,7 @@ Castro::plm(const Box& bx,
       Real dL;
       Real dR;
       Real un;
-      Real dW;
+      Real dW = 0.0;
 
       if (idir == 0) {
         dL = s(i,j,k,QFS+n) - s(i-1,j,k,QFS+n);

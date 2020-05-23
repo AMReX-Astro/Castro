@@ -178,7 +178,7 @@ Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
   leig(6, IEIGN_W) = -N*Qs*betz;
   leig(6, IEIGN_P) = N*alf/Q[QRHO];
   leig(6, IEIGN_BT) = N*AAs*bety/Q[QRHO];
-  leig(7, IEIGN_BTT) = N*AAs*betz/Q[QRHO];
+  leig(6, IEIGN_BTT) = N*AAs*betz/Q[QRHO];
 
   // u - cf ; u - Cax ; u - cs ; u ; u + cs ; u + Cax ; u + cf
 
