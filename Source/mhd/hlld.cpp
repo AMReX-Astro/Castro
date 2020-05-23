@@ -106,14 +106,14 @@ Castro::hlld(const Box& bx,
     FL(UMN) = qL(QRHO) * qL(QVELN) * qL(QVELN) + (qL(QPRES) + 0.5_rt * BL2) - qL(QMAGN) * qL(QMAGN);
     FL(UMP1) = qL(QRHO) * qL(QVELN) * qL(QVELP1) - qL(QMAGN) * qL(QMAGP1);
     FL(UMP2) = qL(QRHO) * qL(QVELN) * qL(QVELP2) - qL(QMAGN) * qL(QMAGP2);
-    FL(UEDEN) = qL(QVELN) * (UL(UEDEN) + (qL(QPRES) + 0.5_rt * BL2)) - qL(QMAGN) * UB;
+    FL(UEDEN) = qL(QVELN) * (uL(UEDEN) + (qL(QPRES) + 0.5_rt * BL2)) - qL(QMAGN) * UBL;
     FL(UMAGN) = 0.0;
     FL(UMAGP1) = qL(QVELN) * qL(QMAGP1) - qL(QVELP1) * qL(QMAGN);
     FL(UMAGP2) = qL(QVELN) * qL(QMAGP2) - qL(QVELP2) * qL(QMAGN);
     for (int n = 0; n < NumSpec; n++) {
-      FL(UFS+n) = qL(QVELN) * UL(UFS+n);
+      FL(UFS+n) = qL(QVELN) * uL(UFS+n);
     }
-    FL(UEINT) = qL(QVELN) * UL(UEINT);
+    FL(UEINT) = qL(QVELN) * uL(UEINT);
     FL(UTEMP) = 0.0_rt;
 
     Array1D<Real, 0, NUM_STATE+2> uR;
@@ -124,18 +124,20 @@ Castro::hlld(const Box& bx,
     Real BR2 = qR(QMAGX) * qR(QMAGX) + qR(QMAGY) * qR(QMAGY) + qR(QMAGZ) * qR(QMAGZ);
     Real UBR = qR(QMAGX) * qR(QU) + qR(QMAGY) * qR(QV) + qR(QMAGZ) * qR(QW);
 
+    Array1D<Real, 0, NUM_STATE+2> FR;
+
     FR(URHO) = qR(QRHO) * qR(QVELN);
     FR(UMN) = qR(QRHO) * qR(QVELN) * qR(QVELN) + (qR(QPRES) + 0.5_rt * BR2) - qR(QMAGN) * qR(QMAGN);
     FR(UMP1) = qR(QRHO) * qR(QVELN) * qR(QVELP1) - qR(QMAGN) * qR(QMAGP1);
     FR(UMP2) = qR(QRHO) * qR(QVELN) * qR(QVELP2) - qR(QMAGN) * qR(QMAGP2);
-    FR(UEDEN) = qR(QVELN) * (UR(UEDEN) + (qR(QPRES) + 0.5d0 * BR2)) - qR(QMAGN) * UBR;
+    FR(UEDEN) = qR(QVELN) * (uR(UEDEN) + (qR(QPRES) + 0.5_rt * BR2)) - qR(QMAGN) * UBR;
     FR(UMAGN) = 0.0;
     FR(UMAGP1) = qR(QVELN) * qR(QMAGP1) - qR(QVELP1) * qR(QMAGN);
     FR(UMAGP2) = qR(QVELN) * qR(QMAGP2) - qR(QVELP2) * qR(QMAGN);
     for (int n = 0; n < NumSpec; n++) {
-      FR(UFS+n) = qR(QVELN) * UR(UFS+n);
+      FR(UFS+n) = qR(QVELN) * uR(UFS+n);
     }
-    FR(UEINT) = qR(QVELN) * UR(UEINT);
+    FR(UEINT) = qR(QVELN) * uR(UEINT);
     FR(UTEMP) = 0.0_rt;
 
     // From Miyoshi and Kusano paper eq.(3)
@@ -197,8 +199,8 @@ Castro::hlld(const Box& bx,
 
     // e
 
-    UsL(UEINT) = UL(UEINT) / UL(URHO) * UsL(URHO);
-    UsR(UEINT) = UR(UEINT) / UR(URHO) * UsR(URHO);
+    UsL(UEINT) = uL(UEINT) / uL(URHO) * UsL(URHO);
+    UsR(UEINT) = uR(UEINT) / uR(URHO) * UsR(URHO);
 
     // Vel * states
 
@@ -288,11 +290,11 @@ Castro::hlld(const Box& bx,
 
     // Energy, eq.(48)
 
-    UsL(UEDEN) = (sL - qL(QVELN)) * UL(UEDEN) - ptL * qL(QVELN) + pst * sM +
+    UsL(UEDEN) = (sL - qL(QVELN)) * uL(UEDEN) - ptL * qL(QVELN) + pst * sM +
       qL(QMAGN) * (UBL - (UsL(UMX) * UsL(UMAGX) + UsL(UMY) * UsL(UMAGY) + UsL(UMZ) * UsL(UMAGZ)) / UsL(URHO));
     UsL(UEDEN) = UsL(UEDEN) / (sL - sM);
 
-    UsR(UEDEN) = (sR - qR(QVELN)) * UR(UEDEN) - ptR * qR(QVELN) + pst * sM +
+    UsR(UEDEN) = (sR - qR(QVELN)) * uR(UEDEN) - ptR * qR(QVELN) + pst * sM +
       qR(QMAGN) * (UBR - (UsR(UMX) * UsR(UMAGX) + UsR(UMY) * UsR(UMAGY) + UsR(UMZ) * UsR(UMAGZ)) / UsR(URHO));
     UsR(UEDEN) = UsR(UEDEN) / (sR - sM);
 
@@ -379,11 +381,11 @@ Castro::hlld(const Box& bx,
     // Energy , eq.(63)
 
     UssL(UEDEN) = UsL(UEDEN) - std::sqrt(UsL(URHO)) *
-      ((UsL(UMX) * UsL(UMAGX) + UsL(UMY) * UsL(UMAGY) + UsL(UMZ) * UsL(UMAGZ)) / UsL(URHO)
+      ((UsL(UMX) * UsL(UMAGX) + UsL(UMY) * UsL(UMAGY) + UsL(UMZ) * UsL(UMAGZ)) / UsL(URHO) -
        (UssL(UMX) * UssL(UMAGX) + UssL(UMY) * UssL(UMAGY) + UssL(UMZ) * UssL(UMAGZ)) / UssL(URHO)) *
       std::copysign(1.0_rt, qL(QMAGN));
     UssR(UEDEN) = UsR(UEDEN) + std::sqrt(UsR(QRHO)) * 
-      ((UsR(UMX) * UsR(UMAGX) + UsR(UMY) * UsR(UMAGY) + UsR(UMZ) * UsR(UMAGZ)) / UsR(URHO)
+      ((UsR(UMX) * UsR(UMAGX) + UsR(UMY) * UsR(UMAGY) + UsR(UMZ) * UsR(UMAGZ)) / UsR(URHO) -
        (UssR(UMX) * UssR(UMAGX) + UssR(UMY) * UssR(UMAGY) + UssR(UMZ) * UssR(UMAGZ)) / UssR(URHO)) *
       std::copysign(1.0_rt, qR(QMAGN));
 

@@ -142,7 +142,7 @@ Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 
 void
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
-Castro::PToC(Array1D<Real, 0, NQ>& q,
+Castro::PToC(Array1D<Real, 0, NQ-1>& q,
              Array1D<Real, 0, NUM_STATE+2> U,
              Real& gam1) {
 
