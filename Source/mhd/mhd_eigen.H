@@ -14,7 +14,7 @@ Castro::evals(Real* lam, const Real as_in, Real* Q, const int dir) {
   Real ca  = (Q[QMAGX]*Q[QMAGX] + Q[QMAGY]*Q[QMAGY] + Q[QMAGZ]*Q[QMAGZ]) / Q[QRHO];
 
   int QUN;
-  Real cad; // acoustic
+  Real cad; // Alfven
   Real cs;  // slow
   Real cf;  // fast
 
@@ -23,20 +23,20 @@ Castro::evals(Real* lam, const Real as_in, Real* Q, const int dir) {
   if (dir == 0) {
     QUN = QU;
     cad = (Q[QMAGX]*Q[QMAGX]) / Q[QRHO];
-    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cax));
-    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cax));
+    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
+    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
 
   } else if (dir == 1) {
     QUN = QV;
     cad = (Q[QMAGY]*Q[QMAGY]) / Q[QRHO];
-    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cay));
-    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cay));
+    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
+    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
 
   } else {
     QUN = QW;
     cad = (Q[QMAGZ]*Q[QMAGZ]) / Q[QRHO];
-    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*caz));
-    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*caz));
+    cs = 0.5_rt * ((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
+    cf = 0.5_rt * ((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cad));
 
   }
 
@@ -54,8 +54,8 @@ Castro::evals(Real* lam, const Real as_in, Real* Q, const int dir) {
 
 void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-Castro::evecx(Array2d<Real> const& leig,
-              Array2d<Real> const& reig,
+Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
               Real* Q) {
 
@@ -83,11 +83,11 @@ Castro::evecx(Array2d<Real> const& leig,
   Real alf = std::sqrt((as - csx)/(cfx - csx));
   Real als = std::sqrt((cfx - as)/(cfx - csx));
 
-  if (cfx - as < 0.d0) {
+  if (cfx - as < 0.0) {
     als = 0.0_rt;
   }
 
-  if (as - csx < 0.d0) {
+  if (as - csx < 0.0) {
     alf = 0.0_rt;
   }
 
@@ -119,25 +119,25 @@ Castro::evecx(Array2d<Real> const& leig,
 
   // u - cf wave
   leig(0, IEIGN_RHO) = 0.0;
-  leig(0, IEIGN_U) = -N*Cff;
+  leig(0, IEIGN_U) = -N*cff;
   leig(0, IEIGN_V) = N*Qs*bety;
   leig(0, IEIGN_W) = N*Qs*betz;
-  leig(0, IEIGN_P) = N*alf/Q(QRHO);
-  leig(0, IEIGN_BT) = N*AAs*bety/Q(QRHO);
-  leig(0, IEIGN_BTT) = N*AAs*betz/Q(QRHO);
+  leig(0, IEIGN_P) = N*alf/Q[QRHO];
+  leig(0, IEIGN_BT) = N*AAs*bety/Q[QRHO];
+  leig(0, IEIGN_BTT) = N*AAs*betz/Q[QRHO];
 
   // u - cax
   leig(1, IEIGN_RHO) = 0.0;
   leig(1, IEIGN_U) = 0.0;
   leig(1, IEIGN_V) = -0.5_rt*betz;
   leig(1, IEIGN_W) = 0.5_rt*bety;
-  leig(1, IEIGN_P) = 0.d0;
+  leig(1, IEIGN_P) = 0.0;
   leig(1, IEIGN_BT) = -0.5_rt*betz*S/std::sqrt(Q[QRHO]);
   leig(1, IEIGN_BTT) = 0.5_rt*bety*S/std::sqrt(Q[QRHO]);
 
   // u - cs
   leig(2, IEIGN_RHO) = 0.0;
-  leig(2, IEIGN_U) = -N*Css;
+  leig(2, IEIGN_U) = -N*css;
   leig(2, IEIGN_V) = -N*Qf*bety;
   leig(2, IEIGN_W) = -N*Qf*betz;
   leig(2, IEIGN_P) = N*als/Q[QRHO];
@@ -155,7 +155,7 @@ Castro::evecx(Array2d<Real> const& leig,
 
   // u + cs
   leig(4, IEIGN_RHO) = 0.0;
-  leig(4, IEIGN_U) = N*Css;
+  leig(4, IEIGN_U) = N*css;
   leig(4, IEIGN_V) = N*Qf*bety;
   leig(4, IEIGN_W) = N*Qf*betz;
   leig(4, IEIGN_P) = N*als/Q[QRHO];
@@ -173,7 +173,7 @@ Castro::evecx(Array2d<Real> const& leig,
 
   // u + cf
   leig(6, IEIGN_RHO) = 0.0;
-  leig(6, IEIGN_U) = N*Cff;
+  leig(6, IEIGN_U) = N*cff;
   leig(6, IEIGN_V) = -N*Qs*bety;
   leig(6, IEIGN_W) = -N*Qs*betz;
   leig(6, IEIGN_P) = N*alf/Q[QRHO];
@@ -243,8 +243,8 @@ Castro::evecx(Array2d<Real> const& leig,
 
 void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-Castro::evecy(Array2d<Real> const& leig,
-              Array2d<Real> const& reig,
+Castro::evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
               Real* Q) {
 
@@ -262,11 +262,11 @@ Castro::evecy(Array2d<Real> const& leig,
 
   // Slow
 
-  Real csy = 0.5_rt*((as + ca) - std::sqrt((as + ca)**2 - 4.0_rt*as*cay));
+  Real csy = 0.5_rt*((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cay));
 
   // Fast
 
-  Real cfy = 0.5_rt*((as + ca) + std::sqrt((as + ca)**2 - 4.0_rt*as*cay));
+  Real cfy = 0.5_rt*((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*cay));
 
   // useful constants
 
@@ -310,7 +310,7 @@ Castro::evecy(Array2d<Real> const& leig,
   // v - cf
   leig(0, IEIGN_RHO) = 0.0;
   leig(0, IEIGN_U) = N*Qs*betx;
-  leig(0, IEIGN_V) = -N*Cff;
+  leig(0, IEIGN_V) = -N*cff;
   leig(0, IEIGN_W) = N*Qs*betz;
   leig(0, IEIGN_P) = N*alf/Q[QRHO];
   leig(0, IEIGN_BT) = N*AAs*betx/Q[QRHO];
@@ -328,7 +328,7 @@ Castro::evecy(Array2d<Real> const& leig,
   // v - cs
   leig(2, IEIGN_RHO) = 0.0;
   leig(2, IEIGN_U) = -N*Qf*betx;
-  leig(2, IEIGN_V) = -N*Css;
+  leig(2, IEIGN_V) = -N*css;
   leig(2, IEIGN_W) = -N*Qf*betz;
   leig(2, IEIGN_P) = N*als/Q[QRHO];
   leig(2, IEIGN_BT) = -N*AAf*betx/Q[QRHO];
@@ -346,7 +346,7 @@ Castro::evecy(Array2d<Real> const& leig,
   // v + cs
   leig(4, IEIGN_RHO) = 0.0;
   leig(4, IEIGN_U) = N*Qf*betx;
-  leig(4, IEIGN_V) = N*Css;
+  leig(4, IEIGN_V) = N*css;
   leig(4, IEIGN_W) = N*Qf*betz;
   leig(4, IEIGN_P) = N*als/Q[QRHO];
   leig(4, IEIGN_BT) = -N*AAf*betx/Q[QRHO];
@@ -364,7 +364,7 @@ Castro::evecy(Array2d<Real> const& leig,
   // v + cf
   leig(6, IEIGN_RHO) = 0.0;
   leig(6, IEIGN_U) = -N*Qs*betx;
-  leig(6, IEIGN_V) = N*Cff;
+  leig(6, IEIGN_V) = N*cff;
   leig(6, IEIGN_W) = -N*Qs*betz;
   leig(6, IEIGN_P) = N*alf/Q[QRHO];
   leig(6, IEIGN_BT) = N*AAs*betx/Q[QRHO];
@@ -433,8 +433,8 @@ Castro::evecy(Array2d<Real> const& leig,
 
 void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-Castro::evecz(Array2d<Real> const& leig,
-              Array2d<Real> const& reig,
+Castro::evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
               Real* Q) {
 
@@ -446,16 +446,16 @@ Castro::evecz(Array2d<Real> const& leig,
 
   // Alfven
 
-  Real ca = (Q[QMAGX]*Q[QMAGX] + Q[QMAGY]*Q[QMAGY] + Q[QMAGZ]*Q{QMAGZ]) / Q[QRHO];
+  Real ca = (Q[QMAGX]*Q[QMAGX] + Q[QMAGY]*Q[QMAGY] + Q[QMAGZ]*Q[QMAGZ]) / Q[QRHO];
   Real caz = (Q[QMAGZ]*Q[QMAGZ]) / Q[QRHO];
 
   // Slow
 
-  Real csz = 0.5_rt*((as + ca) - std::sqrt((as + ca)**2 - 4.0_rt*as*caz));
+  Real csz = 0.5_rt*((as + ca) - std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*caz));
 
   // Fast
 
-  Real cfz = 0.5_rt*((as + ca) + std::sqrt((as + ca)**2 - 4.0_rt*as*caz));
+  Real cfz = 0.5_rt*((as + ca) + std::sqrt((as + ca)*(as + ca) - 4.0_rt*as*caz));
 
   // useful constants
 
@@ -466,7 +466,7 @@ Castro::evecz(Array2d<Real> const& leig,
     als = 0.0_rt;
   }
 
-  if (as - csz < 0.d0) {
+  if (as - csz < 0.0) {
     alf = 0.0_rt;
   }
 
@@ -500,7 +500,7 @@ Castro::evecz(Array2d<Real> const& leig,
   leig(0, IEIGN_RHO) = 0.0;
   leig(0, IEIGN_U) = N*Qs*betx;
   leig(0, IEIGN_V) = N*Qs*bety;
-  leig(0, IEIGN_W) = -N*Cff;
+  leig(0, IEIGN_W) = -N*cff;
   leig(0, IEIGN_P) = N*alf/Q[QRHO];
   leig(0, IEIGN_BT) = N*AAs*betx/Q[QRHO];
   leig(0, IEIGN_BTT) = N*AAs*bety/Q[QRHO];
@@ -518,7 +518,7 @@ Castro::evecz(Array2d<Real> const& leig,
   leig(2, IEIGN_RHO) = 0.0;
   leig(2, IEIGN_U) = -N*Qf*betx;
   leig(2, IEIGN_V) = -N*Qf*bety;
-  leig(2, IEIGN_W) = -N*Css;
+  leig(2, IEIGN_W) = -N*css;
   leig(2, IEIGN_P) = N*als/Q[QRHO];
   leig(2, IEIGN_BT) = -N*AAf*betx/Q[QRHO];
   leig(2, IEIGN_BTT) = -N*AAf*bety/Q[QRHO];
@@ -536,7 +536,7 @@ Castro::evecz(Array2d<Real> const& leig,
   leig(4, IEIGN_RHO) = 0.0;
   leig(4, IEIGN_U) = N*Qf*betx;
   leig(4, IEIGN_V) = N*Qf*bety;
-  leig(4, IEIGN_W) = N*Css;
+  leig(4, IEIGN_W) = N*css;
   leig(4, IEIGN_P) = N*als/Q[QRHO];
   leig(4, IEIGN_BT) = -N*AAf*betx/Q[QRHO];
   leig(4, IEIGN_BTT) = -N*AAf*bety/Q[QRHO];
@@ -554,7 +554,7 @@ Castro::evecz(Array2d<Real> const& leig,
   leig(6, IEIGN_RHO) = 0.0;
   leig(6, IEIGN_U) = -N*Qs*betx;
   leig(6, IEIGN_V) = -N*Qs*bety;
-  leig(6, IEIGN_W) = N*Cff;
+  leig(6, IEIGN_W) = N*cff;
   leig(6, IEIGN_P) = N*alf/Q[QRHO];
   leig(6, IEIGN_BT) = N*AAs*betx/Q[QRHO];
   leig(6, IEIGN_BTT) = N*AAs*bety/Q[QRHO];

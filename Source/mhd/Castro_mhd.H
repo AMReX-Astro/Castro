@@ -1,3 +1,4 @@
+
     void just_the_mhd(amrex::Real time, amrex::Real dt);
 
     void
@@ -11,9 +12,9 @@
         amrex::Array4<amrex::Real const> const& s,
         amrex::Array4<amrex::Real const> const& qaux,
         amrex::Array4<amrex::Real const> const& flatn,
-        amrex::Array4<amrex::Real const> const& bx,
-        amrex::Array4<amrex::Real const> const& by,
-        amrex::Array4<amrex::Real const> const& bz,
+        amrex::Array4<amrex::Real const> const& Bx,
+        amrex::Array4<amrex::Real const> const& By,
+        amrex::Array4<amrex::Real const> const& Bz,
         amrex::Array4<amrex::Real> const& qleft,
         amrex::Array4<amrex::Real> const& qright,
         amrex::Array4<amrex::Real const> const& srcQ,
@@ -25,22 +26,22 @@
 
     void
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    evecx(amrex::Array2d<amrex::Real> const& leig,
-          amrex::Array2d<amrex::Real> const& reig,
+    evecx(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+          amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
           amrex::Real* Q);
 
     void
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    evecy(amrex::Array2d<amrex::Real> const& leig,
-          amrex::Array2d<amrex::Real> const& reig,
+    evecy(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+          amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
           amrex::Real* Q);
 
     void
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    evecz(amrex::Array2d<amrex::Real> const& leig,
-          amrex::Array2d<amrex::Real> const& reig,
+    evecz(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+          amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
           amrex::Real* Q);
 

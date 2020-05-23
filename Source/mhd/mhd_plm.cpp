@@ -12,9 +12,9 @@ Castro::plm(const Box& bx,
             Array4<Real const> const& s,
             Array4<Real const> const& qaux,
             Array4<Real const> const& flatn,
-            Array4<Real const> const& bx,
-            Array4<Real const> const& by,
-            Array4<Real const> const& bz,
+            Array4<Real const> const& Bx,
+            Array4<Real const> const& By,
+            Array4<Real const> const& Bz,
             Array4<Real> const& qleft,
             Array4<Real> const& qright,
             Array4<Real const> const& srcQ,
@@ -111,13 +111,11 @@ Castro::plm(const Box& bx,
     Real as = qaux(i,j,k,QC);
 
     Real lam[NEIGN];
-    Real leig[NEIGN];
-    Real reig[NEIGN];
 
     evals(lam, as, q_zone, idir);
 
-    Array2d<Real, 0, NEIGN-1, 0, NEIGN-1> leig;
-    Array2d<Real, 0, NEIGN-1, 0, NEIGN-1> reig;
+    Array2D<Real, 0, NEIGN-1, 0, NEIGN-1> leig;
+    Array2D<Real, 0, NEIGN-1, 0, NEIGN-1> reig;
 
     if (idir == 0) {
       evecx(leig, reig, as, q_zone);
@@ -146,7 +144,7 @@ Castro::plm(const Box& bx,
 
       // cross-talk of normal magnetic field direction
       for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (bx(i+1,j,k) - bx(i,j,k)) / dx[idir];
+        smhd[n] = smhd[n] * (Bx(i+1,j,k) - Bx(i,j,k)) / dx[idir];
       }
 
     } else if (idir == 1) {
@@ -155,7 +153,7 @@ Castro::plm(const Box& bx,
 
       // cross-talk of normal magnetic field direction
       for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (by(i,j+1,k) - by(i,j,k)) / dx[idir];
+        smhd[n] = smhd[n] * (By(i,j+1,k) - By(i,j,k)) / dx[idir];
       }
 
     } else {
@@ -164,7 +162,7 @@ Castro::plm(const Box& bx,
 
       // cross-talk of normal magnetic field direction
       for (int n = 0; n < NEIGN; n++) {
-        smhd[n] = smhd[n] * (bz(i,j,k+1) - bz(i,j,k)) / dx[idir];
+        smhd[n] = smhd[n] * (Bz(i,j,k+1) - Bz(i,j,k)) / dx[idir];
       }
     }
 
@@ -202,7 +200,7 @@ Castro::plm(const Box& bx,
       qleft(i+1,j,k,QPRES) = amrex::max(small_pres,
                                         q_zone[QPRES] + 0.5_rt*summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
-      qleft(i+1,j,k,QMAGX) = bx(i+1,j,k); // Bx stuff
+      qleft(i+1,j,k,QMAGX) = Bx(i+1,j,k); // Bx stuff
       qleft(i+1,j,k,QMAGY) = q_zone[QMAGY] + 0.5_rt*summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qleft(i+1,j,k,QMAGZ) = q_zone[QMAGZ] + 0.5_rt*summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
@@ -216,7 +214,7 @@ Castro::plm(const Box& bx,
                                         q_zone[QPRES] + 0.5_rt*summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
       qleft(i,j+1,k,QMAGX) = q_zone[QMAGX] + 0.5_rt*summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qleft(i,j+1,k,QMAGY) = by(i,j+1,k); // By stuff
+      qleft(i,j+1,k,QMAGY) = By(i,j+1,k); // By stuff
       qleft(i,j+1,k,QMAGZ) = q_zone[QMAGZ] + 0.5_rt*summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else {
@@ -230,7 +228,7 @@ Castro::plm(const Box& bx,
 
       qleft(i,j,k+1,QMAGX) = q_zone[QMAGX] + 0.5_rt*summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qleft(i,j,k+1,QMAGY) = q_zone[QMAGY] + 0.5_rt*summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
-      qleft(i,j,k+1,QMAGZ) = bz(i,j,k+1); // Bz stuff
+      qleft(i,j,k+1,QMAGZ) = Bz(i,j,k+1); // Bz stuff
     }
 
     // right state at i-1/2
@@ -243,19 +241,19 @@ Castro::plm(const Box& bx,
                                      q_zone[QPRES] + 0.5_rt*summ_m[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
     if (idir == 0) {
-      qright(i,j,k,QMAGX) = bx(i,j,k); // Bx stuff
+      qright(i,j,k,QMAGX) = Bx(i,j,k); // Bx stuff
       qright(i,j,k,QMAGY) = q_zone[QMAGY] + 0.5_rt*summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qright(i,j,k,QMAGZ) = q_zone[QMAGZ] + 0.5_rt*summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else if (idir == 1) {
       qright(i,j,k,QMAGX) = q_zone[QMAGX] + 0.5_rt*summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qright(i,j,k,QMAGY) = by(i,j,k); // By stuff
+      qright(i,j,k,QMAGY) = By(i,j,k); // By stuff
       qright(i,j,k,QMAGZ) = q_zone[QMAGZ] + 0.5_rt*summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else {
       qright(i,j,k,QMAGX) = q_zone[QMAGX] + 0.5_rt*summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qright(i,j,k,QMAGY) = q_zone[QMAGY] + 0.5_rt*summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
-      qright(i,j,k,QMAGZ) = bz(i,j,k); // Bz stuff
+      qright(i,j,k,QMAGZ) = Bz(i,j,k); // Bz stuff
     }
 
     // species
@@ -300,7 +298,7 @@ Castro::plm(const Box& bx,
       eos_state.rho = qleft(i+1,j,k,QRHO);
       eos_state.p = qleft(i+1,j,k,QPRES);
       eos_state.T = s(i,j,k,QTEMP); // some initial guess?
-      for (int n = 0; n < NQ; n++) {
+      for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i+1,j,k,QFS+n);
       }
       eos(eos_input_rp, eos_state);
@@ -310,7 +308,7 @@ Castro::plm(const Box& bx,
       eos_state.rho = qleft(i,j+1,k,QRHO);
       eos_state.p = qleft(i,j+1,k,QPRES);
       eos_state.T = s(i,j,k,QTEMP); // some initial guess?
-      for (int n = 0; n < NQ; n++) {
+      for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j+1,k,QFS+n);
       }
       eos(eos_input_rp, eos_state);
@@ -320,7 +318,7 @@ Castro::plm(const Box& bx,
       eos_state.rho = qleft(i,j,k+1,QRHO);
       eos_state.p = qleft(i,j,k+1,QPRES);
       eos_state.T = s(i,j,k,QTEMP); // some initial guess?
-      for (int n = 0; n < NQ; n++) {
+      for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j,k+1,QFS+n);
       }
       eos(eos_input_rp, eos_state);
@@ -329,7 +327,7 @@ Castro::plm(const Box& bx,
 
     eos_state.rho = qright(i,j,k,QRHO);
     eos_state.p = qright(i,j,k,QPRES);
-    for (int n = 0; n < NQ; n++) {
+    for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qright(i,j,k,QFS+n);
     }
 

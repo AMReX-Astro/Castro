@@ -8,6 +8,7 @@ CEXE_sources += mhd_util.cpp
 CEXE_headers += mhd_util.H
 CEXE_headers += mhd_eigen.H
 CEXE_headers += mhd_slope.H
+CEXE_headers += mhd_sizes.H
 
 CEXE_sources += ct_upwind.cpp
 CEXE_sources += electric.cpp

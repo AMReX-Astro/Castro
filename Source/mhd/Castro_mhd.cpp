@@ -255,19 +255,11 @@ Castro::just_the_mhd(Real time, Real dt)
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
-            const int idir_f = idir + 1;
-
-            plm(bxi.loVect(), bxi.hiVect(), idir_f,
-              BL_TO_FORTRAN_ANYD(q),
-              BL_TO_FORTRAN_ANYD(qaux),
-              BL_TO_FORTRAN_ANYD(flatn),
-              BL_TO_FORTRAN_ANYD(Bx),
-              BL_TO_FORTRAN_ANYD(By),
-              BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qleft[idir]),
-              BL_TO_FORTRAN_ANYD(qright[idir]),
-              BL_TO_FORTRAN_ANYD(srcQ),
-              dx_f, dt);
+            plm(bxi, idir,
+                q_arr, qaux_arr, flatn_arr,
+                Bx_arr, By_arr, Bz_arr,
+                qleft[idir].array(), qright[idir].array(),
+                src_q_arr, dt);
           }
 
 
