@@ -22,28 +22,30 @@
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
-    evals(amrex::Real* lam, const amrex::Real as_in, amrex::Real* Q, const int dir);
+    evals(amrex::Array1D<amrex::Real, 0, NEIGN-1>& lam,
+          const amrex::Real as_in,
+          amrex::Array1D<amrex::Real, 0, NQ-1>& Q, const int dir);
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     evecx(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
           amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
-          amrex::Real* Q);
+          amrex::Array1D<amrex::Real, 0, NQ-1>& Q);
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     evecy(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
           amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
-          amrex::Real* Q);
+          amrex::Array1D<amrex::Real, 0, NQ-1>& Q);
 
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     evecz(amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
           amrex::Array2D<amrex::Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
           const amrex::Real as_in,
-          amrex::Real* Q);
+          amrex::Array1D<amrex::Real, 0, NQ-1>& Q);
 
     void
     consup_mhd(const amrex::Box& bx,
