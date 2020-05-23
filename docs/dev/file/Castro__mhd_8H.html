@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File mhd_util.H" href="mhd__util_8H.html" />
+    <link rel="next" title="File mhd_eigen.H" href="mhd__eigen_8H.html" />
     <link rel="prev" title="Mhd" href="../mhd_files.html" /> 
 </head>
 
@@ -138,6 +138,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../mhd_files.html">Mhd</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_mhd.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__slope_8H.html">File mhd_slope.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
 </ul>
 </li>
@@ -239,6 +242,31 @@
 <dd></dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">
+<span id="_CPPv33plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="_CPPv23plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="plm__amrex::BoxCR.iC.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1ac3a61c9734174849d79bfcb4519491f3"></span>void <code class="sig-name descname">plm</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <em class="property">const</em> int <em>idir</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>s</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qaux</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flatn</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bx</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>By</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bz</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qleft</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qright</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>srcQ</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__mhd_8H_1a0c5bdc95e0b9f83f708d6afe06c2aadc"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void evals (amrex::Array1D&lt; amrex::Real, 0, NEIGN-1 &gt; &amp;lam, const amrex::Real as_in, amrex::Array1D&lt; amrex::Real, 0, NQ-1 &gt; &amp;Q, const int dir)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__mhd_8H_1afc595cd90fb89bd8e24c1f73f57dfcfa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void evecx (amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;leig, amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;reig, const amrex::Real as_in, amrex::Array1D&lt; amrex::Real, 0, NQ-1 &gt; &amp;Q)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__mhd_8H_1acc549eb122cdb47c829c2501891f4a52"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void evecy (amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;leig, amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;reig, const amrex::Real as_in, amrex::Array1D&lt; amrex::Real, 0, NQ-1 &gt; &amp;Q)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__mhd_8H_1af456379efc935951511f37f55785dde8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void evecz (amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;leig, amrex::Array2D&lt; amrex::Real, 0, NEIGN-1, 0, NEIGN-1 &gt; &amp;reig, const amrex::Real as_in, amrex::Array1D&lt; amrex::Real, 0, NQ-1 &gt; &amp;Q)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv410consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
 <span id="_CPPv310consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv210consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="consup_mhd__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1ab9045d4ddc5cb0be58c6c8cc457202d7"></span>void <code class="sig-name descname">consup_mhd</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>update</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -255,7 +283,7 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__mhd_8H_1a4932ae7a8aedfa11f8718d364bf3a324"></span><code class="sig-name descname">void AMREX_GPU_DEVICE AMREX_FORCE_INLINE qflux (amrex::Real *qflx, amrex::Real *flx, amrex::Real *q_zone)</code></dt>
+<span class="target" id="Castro__mhd_8H_1a6c08a0fcb9b187f8db55008b863560dc"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void qflux (amrex::Real *qflx, amrex::Real *flx, amrex::Real *q_zone)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
@@ -275,7 +303,7 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__mhd_8H_1aa537006e2a6b67f45eae04999f5a15f6"></span><code class="sig-name descname">void AMREX_GPU_DEVICE AMREX_FORCE_INLINE electric (amrex::Real *q_zone, amrex::Real &amp;E_zone, const int comp)</code></dt>
+<span class="target" id="Castro__mhd_8H_1abb8ac88f206deacaca1660b6c40b7d10"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void electric (amrex::Real *q_zone, amrex::Real &amp;E_zone, const int comp)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
@@ -290,7 +318,7 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__mhd_8H_1af6578865ae981a7b2418211edb608686"></span><code class="sig-name descname">void AMREX_GPU_DEVICE AMREX_FORCE_INLINE ConsToPrim (amrex::Real *q_zone, amrex::Real *U_zone)</code></dt>
+<span class="target" id="Castro__mhd_8H_1aa3e904882871a62ad3dd94859cd871df"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void ConsToPrim (amrex::Real *q_zone, amrex::Real *U_zone)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -304,7 +332,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mhd__util_8H.html" class="btn btn-neutral float-right" title="File mhd_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mhd__eigen_8H.html" class="btn btn-neutral float-right" title="File mhd_eigen.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../mhd_files.html" class="btn btn-neutral float-left" title="Mhd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

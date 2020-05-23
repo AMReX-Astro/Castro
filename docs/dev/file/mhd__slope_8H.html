@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File mhd_util.H &mdash; Castro  documentation</title>
+  <title>File mhd_slope.H &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Particles" href="../particles_files.html" />
-    <link rel="prev" title="File mhd_slope.H" href="mhd__slope_8H.html" /> 
+    <link rel="next" title="File mhd_util.H" href="mhd__util_8H.html" />
+    <link rel="prev" title="File mhd_sizes.H" href="mhd__sizes_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -79,7 +79,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/mhd__util_8H.html">master</a> | <a href="../file/mhd__util_8H.html">development</a>
+        Branch: <a href="../../file/mhd__slope_8H.html">master</a> | <a href="../file/mhd__slope_8H.html">development</a>
     </div>
 
         </div>
@@ -140,8 +140,8 @@
 <li class="toctree-l3"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mhd__slope_8H.html">File mhd_slope.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File mhd_util.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File mhd_slope.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
@@ -208,13 +208,13 @@
         
           <li><a href="../mhd_files.html">Mhd</a> &raquo;</li>
         
-      <li>File mhd_util.H</li>
+      <li>File mhd_slope.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/mhd__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/mhd__slope_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -227,18 +227,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-mhd-util-h">
-<h1>File mhd_util.H<a class="headerlink" href="#file-mhd-util-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-mhd-slope-h">
+<h1>File mhd_slope.H<a class="headerlink" href="#file-mhd-slope-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1a068d3f61b94ce4a3e3af6b76426c9e69"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void eos_soundspeed_mhd (Real &amp;c, Real as, Real ca, Real bd)</code></dt>
+<span class="target" id="mhd__slope_8H_1afd1e1f2f22e90fad97224f63e08efd92"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void minmod (Real &amp;dW, const Real WR, const Real WL)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1a0305d540cf8b71899d0237b673df0e85"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE int epsilon_ijk (const int i, const int j, const int k)</code></dt>
+<span class="target" id="mhd__slope_8H_1a44b98151b69d7004426fb5da8f237b23"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void vanleer (Real &amp;dW, const Real WR, const Real WL)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="mhd__slope_8H_1a50b512e2cb8a86ce1487c311ca8951d8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void centerdif (Real &amp;dW, const Real WR, const Real WL)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="mhd__slope_8H_1a9156a9618c85362ac879b051b966c6b7"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void secondMC (Real &amp;dW, const Real WR, const Real WL)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="mhd__slope_8H_1a0ed784ec29e7a76d8ee718f61b13e1e0"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void slope (Real &amp;dW, const Real WR, const Real WL, const Real flat)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -252,10 +267,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../particles_files.html" class="btn btn-neutral float-right" title="Particles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mhd__util_8H.html" class="btn btn-neutral float-right" title="File mhd_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mhd__slope_8H.html" class="btn btn-neutral float-left" title="File mhd_slope.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mhd__sizes_8H.html" class="btn btn-neutral float-left" title="File mhd_sizes.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

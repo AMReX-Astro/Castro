@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File mhd_util.H &mdash; Castro  documentation</title>
+  <title>File mhd_sizes.H &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Particles" href="../particles_files.html" />
-    <link rel="prev" title="File mhd_slope.H" href="mhd__slope_8H.html" /> 
+    <link rel="next" title="File mhd_slope.H" href="mhd__slope_8H.html" />
+    <link rel="prev" title="File mhd_eigen.H" href="mhd__eigen_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -79,7 +79,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/mhd__util_8H.html">master</a> | <a href="../file/mhd__util_8H.html">development</a>
+        Branch: <a href="../../file/mhd__sizes_8H.html">master</a> | <a href="../file/mhd__sizes_8H.html">development</a>
     </div>
 
         </div>
@@ -139,9 +139,9 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../mhd_files.html">Mhd</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__mhd_8H.html">File Castro_mhd.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File mhd_sizes.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mhd__slope_8H.html">File mhd_slope.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File mhd_util.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
@@ -208,13 +208,13 @@
         
           <li><a href="../mhd_files.html">Mhd</a> &raquo;</li>
         
-      <li>File mhd_util.H</li>
+      <li>File mhd_sizes.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/mhd__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/mhd__sizes_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -227,18 +227,63 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-mhd-util-h">
-<h1>File mhd_util.H<a class="headerlink" href="#file-mhd-util-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-mhd-sizes-h">
+<h1>File mhd_sizes.H<a class="headerlink" href="#file-mhd-sizes-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1a068d3f61b94ce4a3e3af6b76426c9e69"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void eos_soundspeed_mhd (Real &amp;c, Real as, Real ca, Real bd)</code></dt>
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="cpp var">
+<dt id="_CPPv45UMAGX">
+<span id="_CPPv35UMAGX"></span><span id="_CPPv25UMAGX"></span><span id="UMAGX__i"></span><span class="target" id="mhd__sizes_8H_1a9f58f22bccf691b019d9c3b5084734a6"></span><em class="property">constexpr</em> int <code class="sig-name descname">UMAGX</code> = NUM_STATE<a class="headerlink" href="#_CPPv45UMAGX" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1a0305d540cf8b71899d0237b673df0e85"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE int epsilon_ijk (const int i, const int j, const int k)</code></dt>
+<dl class="cpp var">
+<dt id="_CPPv45UMAGY">
+<span id="_CPPv35UMAGY"></span><span id="_CPPv25UMAGY"></span><span id="UMAGY__i"></span><span class="target" id="mhd__sizes_8H_1acb153daedec290f85e36d0b59b14e444"></span><em class="property">constexpr</em> int <code class="sig-name descname">UMAGY</code> = NUM_STATE + 1<a class="headerlink" href="#_CPPv45UMAGY" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv45UMAGZ">
+<span id="_CPPv35UMAGZ"></span><span id="_CPPv25UMAGZ"></span><span id="UMAGZ__i"></span><span class="target" id="mhd__sizes_8H_1ac8f0926ad45b239cf0e22165c37083e9"></span><em class="property">constexpr</em> int <code class="sig-name descname">UMAGZ</code> = NUM_STATE + 2<a class="headerlink" href="#_CPPv45UMAGZ" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv45NEIGN">
+<span id="_CPPv35NEIGN"></span><span id="_CPPv25NEIGN"></span><span id="NEIGN__i"></span><span class="target" id="mhd__sizes_8H_1a650f943e376e2e10eab8157007e4f740"></span><em class="property">constexpr</em> int <code class="sig-name descname">NEIGN</code> = 7<a class="headerlink" href="#_CPPv45NEIGN" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv49IEIGN_RHO">
+<span id="_CPPv39IEIGN_RHO"></span><span id="_CPPv29IEIGN_RHO"></span><span id="IEIGN_RHO__i"></span><span class="target" id="mhd__sizes_8H_1a082537712471d0040e5825a8cf9ffd95"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_RHO</code> = 0<a class="headerlink" href="#_CPPv49IEIGN_RHO" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv47IEIGN_U">
+<span id="_CPPv37IEIGN_U"></span><span id="_CPPv27IEIGN_U"></span><span id="IEIGN_U__i"></span><span class="target" id="mhd__sizes_8H_1a877e75d58388edc33e0913ef99b71c91"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_U</code> = 1<a class="headerlink" href="#_CPPv47IEIGN_U" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv47IEIGN_V">
+<span id="_CPPv37IEIGN_V"></span><span id="_CPPv27IEIGN_V"></span><span id="IEIGN_V__i"></span><span class="target" id="mhd__sizes_8H_1a9ac9a81bd7e3946a8046c89d15f9c1c9"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_V</code> = 2<a class="headerlink" href="#_CPPv47IEIGN_V" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv47IEIGN_W">
+<span id="_CPPv37IEIGN_W"></span><span id="_CPPv27IEIGN_W"></span><span id="IEIGN_W__i"></span><span class="target" id="mhd__sizes_8H_1afb07bcefdd170f403a219fd9356efc53"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_W</code> = 3<a class="headerlink" href="#_CPPv47IEIGN_W" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv47IEIGN_P">
+<span id="_CPPv37IEIGN_P"></span><span id="_CPPv27IEIGN_P"></span><span id="IEIGN_P__i"></span><span class="target" id="mhd__sizes_8H_1a16c756aa2a947c0e4008c3e13a5c20da"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_P</code> = 4<a class="headerlink" href="#_CPPv47IEIGN_P" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv48IEIGN_BT">
+<span id="_CPPv38IEIGN_BT"></span><span id="_CPPv28IEIGN_BT"></span><span id="IEIGN_BT__i"></span><span class="target" id="mhd__sizes_8H_1a40b8c52555c52813f44e56223bee9ed7"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_BT</code> = 5<a class="headerlink" href="#_CPPv48IEIGN_BT" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv49IEIGN_BTT">
+<span id="_CPPv39IEIGN_BTT"></span><span id="_CPPv29IEIGN_BTT"></span><span id="IEIGN_BTT__i"></span><span class="target" id="mhd__sizes_8H_1ac6e86fcee2137129c1be74e10dc2ae52"></span><em class="property">constexpr</em> int <code class="sig-name descname">IEIGN_BTT</code> = 6<a class="headerlink" href="#_CPPv49IEIGN_BTT" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -252,10 +297,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../particles_files.html" class="btn btn-neutral float-right" title="Particles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mhd__slope_8H.html" class="btn btn-neutral float-right" title="File mhd_slope.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mhd__slope_8H.html" class="btn btn-neutral float-left" title="File mhd_slope.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mhd__eigen_8H.html" class="btn btn-neutral float-left" title="File mhd_eigen.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

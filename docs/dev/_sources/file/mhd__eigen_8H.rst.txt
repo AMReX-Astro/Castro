@@ -1,0 +1,4 @@
+File mhd_eigen.H
+================
+
+.. doxygenfile:: mhd_eigen.H
