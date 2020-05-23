@@ -8,8 +8,8 @@ geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     =  0      0      0
 
 #we can make the setup "1D" for wave traveling in one direction
-geometry.prob_hi     =  1      0.25  0.25  
-amr.n_cell           =  16     4     4    
+geometry.prob_hi     =  1      0.5  0.5  
+amr.n_cell           =  16     8     8    
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry

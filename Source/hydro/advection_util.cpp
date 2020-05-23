@@ -61,7 +61,6 @@ Castro::ctoprim(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-
 #ifndef AMREX_USE_CUDA
     if (uin(i,j,k,URHO) <= 0.0_rt) {
       std::cout << std::endl;
@@ -160,6 +159,13 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QPRES) = eos_state.p;
 #ifdef TRUE_SDC
     q_arr(i,j,k,QGC) = eos_state.gam1;
+#endif
+
+#ifdef MHD
+    q_arr(i,j,k,QPTOT) = q_arr(i,j,k,QPRES) +
+      0.5_rt * (q_arr(i,j,k,QMAGX) * q_arr(i,j,k,QMAGX) +
+                q_arr(i,j,k,QMAGY) * q_arr(i,j,k,QMAGY) +
+                q_arr(i,j,k,QMAGZ) * q_arr(i,j,k,QMAGZ));
 #endif
 
 #ifdef RADIATION

@@ -5,9 +5,9 @@ stop_time =  0.2
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0  1  1 
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
-geometry.prob_lo     =  0      0      0
-geometry.prob_hi     =  1     0.015625  0.015625
-amr.n_cell           =  256      4     4
+geometry.prob_lo     =  0      0        0
+geometry.prob_hi     =  1      0.03125  0.03125
+amr.n_cell           =  256    8        8
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
