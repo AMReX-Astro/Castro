@@ -3,8 +3,8 @@
 
 #include "mhd_util.H"
 
-void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
 Castro::evals(Real* lam, const Real as_in, Real* Q, const int dir) {
 
   // The characteristic speeds of the system
@@ -52,8 +52,8 @@ Castro::evals(Real* lam, const Real as_in, Real* Q, const int dir) {
 }
 
 
-void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
 Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
               Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
@@ -241,8 +241,8 @@ Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 }
 
 
-void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
 Castro::evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
               Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
@@ -431,8 +431,8 @@ Castro::evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 }
 
 
-void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
 Castro::evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
               Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
               const Real as_in,
