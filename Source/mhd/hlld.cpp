@@ -74,7 +74,7 @@ Castro::hlld(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    // this is a loop over interfaces, so, e.g., for dir = 1 (x), we are seeing
+    // this is a loop over interfaces, so, e.g., for idir = 0 (x), we are seeing
     // q_{i-1/2,j,k,L} and q_{i-1/2,j,k,R}
 
     Array1D<Real, 0, NQ-1> qL;
