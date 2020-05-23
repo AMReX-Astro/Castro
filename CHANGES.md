@@ -1,5 +1,9 @@
 # 20.06
 
+   * The parameter castro.density_reset_method has been removed. A density
+     reset now unconditionally sets the density to small_dens, the temperature
+     to small_temp, and zeros out the velocities. (#989)
+
    * A burning timestep limiter dtnuc_T has been added which restricts the
      burning from updating the temperature by more than the factor
      dtnuc_T * T / dT/dt. (#972)
