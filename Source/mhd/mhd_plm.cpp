@@ -288,7 +288,7 @@ Castro::plm(const Box& bx,
       } else {
         qleft(i,j,k+1,QFS+n) = q_zone[QFS+n] + 0.5_rt*(1.0_rt - dtdx*un) * dW;
       }
-      qright(i,j,k,QFS) = q_zone[QFS+n] - 0.5_rt*(1.0_rt + dtdx*un) * dW;
+      qright(i,j,k,QFS+n) = q_zone[QFS+n] - 0.5_rt*(1.0_rt + dtdx*un) * dW;
     }
 
     // rho e
