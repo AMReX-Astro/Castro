@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include <iostream>
+
 using namespace amrex;
 
 void
@@ -11,14 +11,7 @@ Castro::just_the_mhd(Real time, Real dt)
 
       hydro_source.setVal(0.0);
 
-      const int finest_level = parent->finestLevel();
-
       const auto dx = geom.CellSizeArray();
-      const Real* dx_f = geom.CellSize();
-
-      const int*  domain_lo = geom.Domain().loVect();
-      const int*  domain_hi = geom.Domain().hiVect();
-
 
       MultiFab& S_new = get_new_data(State_Type);
       MultiFab& Bx_new= get_new_data(Mag_Type_x);
@@ -89,13 +82,8 @@ Castro::just_the_mhd(Real time, Real dt)
           // box with NUM_GROW ghost cells for PPM stuff
           const Box& bx_gc = amrex::grow(bx, NUM_GROW);
 
-          const int* lo = bx.loVect();
-          const int* hi = bx.hiVect();
-
           FArrayBox &statein  = Sborder[mfi];
           auto u_arr = statein.array();
-
-          FArrayBox &stateout = S_new[mfi];
 
           FArrayBox &source_in  = sources_for_hydro[mfi];
           auto src_arr = source_in.array();
@@ -178,17 +166,10 @@ Castro::just_the_mhd(Real time, Real dt)
           auto src_q_arr = srcQ.array();
           auto elix_src_q = srcQ.elixir();
 
-          const int* lo_gc = bx_gc.loVect();
-          const int* hi_gc = bx_gc.hiVect();
-
           ctoprim(bx_gc, time,
                   u_arr,
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
-
-          const int* lo1 = obx.loVect();
-          const int* hi1 = obx.hiVect();
-
 
           src_to_prim(bx_gc, q_arr, src_arr, src_q_arr);
 
@@ -255,19 +236,11 @@ Castro::just_the_mhd(Real time, Real dt)
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
-            const int idir_f = idir + 1;
-
-            plm(bxi.loVect(), bxi.hiVect(), idir_f,
-              BL_TO_FORTRAN_ANYD(q),
-              BL_TO_FORTRAN_ANYD(qaux),
-              BL_TO_FORTRAN_ANYD(flatn),
-              BL_TO_FORTRAN_ANYD(Bx),
-              BL_TO_FORTRAN_ANYD(By),
-              BL_TO_FORTRAN_ANYD(Bz),
-              BL_TO_FORTRAN_ANYD(qleft[idir]),
-              BL_TO_FORTRAN_ANYD(qright[idir]),
-              BL_TO_FORTRAN_ANYD(srcQ),
-              dx_f, dt);
+            plm(bxi, idir,
+                q_arr, qaux_arr, flatn_arr,
+                Bx_arr, By_arr, Bz_arr,
+                qleft[idir].array(), qright[idir].array(),
+                src_q_arr, dt);
           }
 
 
