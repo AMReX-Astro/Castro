@@ -659,7 +659,7 @@ extern "C"
                      dat(i,j,k,2)*y +
                      dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
 
-          der(i,j,k,0) = std::sqrt(vtot2 - vr*vr);
+          der(i,j,k,0) = std::sqrt(amrex::max(vtot2 - vr*vr, 0.0_rt));
         }
 
       });
