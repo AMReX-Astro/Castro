@@ -18,18 +18,16 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   call probdata_init(name, namlen)
 
-  split(1) = frac*(problo(1)+probhi(1))
-  split(2) = frac*(problo(2)+probhi(2))
-  split(3) = frac*(problo(3)+probhi(3))
 
-  !Temporarily give value to B here
-  B_x  = ONE/M_SQRT_2
-  B_y  = ONE/M_SQRT_2
+  !give value to B 
+  B_x  = B_0/M_SQRT_2
+  B_y  = B_0/M_SQRT_2
   B_z  = ZERO
    
-  ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt
+
+  ! compute the internal energy (erg/cc) 
 
   eos_state%rho = rho_0
   eos_state%p = p_0
@@ -64,11 +62,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt), intent(in   ) :: xlo(3), xhi(3), time, dx(3)
   real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
 
-  real(rt) :: x, y, z, pert
+  real(rt) :: x, y, pert
   integer  :: i, j, k
 
   do k = lo(3), hi(3)
-     z = problo(3) + dx(3)*(dble(k) + 0.5e0_rt)
 
      do j = lo(2), hi(2)
         y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
@@ -76,23 +73,21 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
            x = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
-           if (idir == 1) then
-                 state(i,j,k,URHO) = rho_0
-                 state(i,j,k,UMX) = u_x
-                 state(i,j,k,UMY) = u_y
+           !initialize using MM eq. 54
+            state(i,j,k,URHO) = rho_0
+            state(i,j,k,UMX) = u_x * rho_0
+            state(i,j,k,UMY) = u_y * rho_0
 
-                 pert = 1.0e-5_rt*sin(TWO*M_PI*x)
+            pert = 1.0e-5_rt*sin(TWO*M_PI*(k_x*x + k_y*y))
 
-                 state(i,j,k,UMZ) = (u_z - pert) * rho_0
-                 state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 * pert**2 + 0.5e0_rt * (B_x**2 + B_y**2 + pert**2)
-                 state(i,j,k,UEINT) = rhoe_0
-                 state(i,j,k,UTEMP) = T_0
+            state(i,j,k,UMZ) = (u_z - pert) * rho_0
+            state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 * u_x**2+u_y**2+(u_z-pert)**2 &
+                                 + 0.5e0_rt * (B_x**2 + B_y**2 + pert**2)
+            state(i,j,k,UEINT) = rhoe_0 * rho_0
+            state(i,j,k,UTEMP) = T_0
 
-           endif
-
-           state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
-           state(i,j,k,UFS  ) = state(i,j,k,URHO)
-
+            state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt
+            state(i,j,k,UFS  ) = state(i,j,k,URHO)
 
         enddo
      enddo
