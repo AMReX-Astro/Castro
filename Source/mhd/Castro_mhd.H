@@ -129,3 +129,18 @@
     ConsToPrim(amrex::Real* q_zone, amrex::Real* U_zone);
 
 
+    void
+    hlld(const amrex::Box& bx,
+         amrex::Array4<amrex::Real const> const& qleft,
+         amrex::Array4<amrex::Real const> const& qright,
+         amrex::Array4<amrex::Real> const& flx,
+         const int dir);
+
+
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    void
+    PToC(amrex::Array1D<amrex::Real, 0, NQ-1>& q,
+         amrex::Array1D<amrex::Real, 0, NUM_STATE+2>& U,
+         amrex::Real& gam1);
+
+
