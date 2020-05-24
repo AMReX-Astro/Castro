@@ -1,10 +1,15 @@
 &fortin
+  p_0 = 1.0
+  u_x = 0.0
+  u_y = 0.0
+  u_z = 0.0
+  rho_0 = 1.0
 
-  r_init = 0.01
-  p_ambient = 1.d-5
-  exp_energy = 1.0
-  dens_ambient = 1.0
-  nsub = 10
+  k_x = 1.0 
+  k_y = 1.0
+ 
+  type_wave = 2 
+ 
 /
 
 &tagging
@@ -22,7 +27,7 @@
 /
 
 &extern
-  eos_gamma = 1.4d0
-  eos_assume_neutral = T
 
+  eos_assume_neutral = T
+  eos_gamma = 1.67
 /
