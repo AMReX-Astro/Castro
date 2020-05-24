@@ -7,7 +7,7 @@
 using namespace amrex;
 
 // sound speed calc for ideal MHD
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
 
