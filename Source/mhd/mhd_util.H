@@ -140,6 +140,49 @@ Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 }
 
 
+void
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+Castro::PToC(Array1D<Real, 0, NQ-1>& q,
+             Array1D<Real, 0, NUM_STATE+2>& U,
+             Real& gam1) {
+
+  // first the conserved state
+  U(URHO) = q(QRHO);
+  U(UMX) = q(QRHO) * q(QU);
+  U(UMY) = q(QRHO) * q(QV);
+  U(UMZ) = q(QRHO) * q(QW);
+
+  eos_t eos_state;
+
+  eos_state.rho = q(QRHO);
+  eos_state.p = q(QPRES);
+  for (int n = 0; n < NumSpec; n++) {
+    eos_state.xn[n] = q(QFS+n);
+  }
+  eos_state.T = 100.0;  // dummy initial guess
+
+  eos(eos_input_rp, eos_state);
+
+  Real B2 = q(QMAGX) * q(QMAGX) + q(QMAGY) * q(QMAGY) + q(QMAGZ) * q(QMAGZ);
+
+  U(UEINT) = eos_state.rho * eos_state.e;
+  U(UEDEN) = U(UEINT) +
+    0.5_rt * q(QRHO) * (q(QU) * q(QU) + q(QV) * q(QV) + q(QW) * q(QW)) + 0.5_rt * B2;
+
+  U(UMAGX) = q(QMAGX);
+  U(UMAGY) = q(QMAGY);
+  U(UMAGZ) = q(QMAGZ);
+
+  for (int n = 0; n < NumSpec; n++) {
+    U(UFS+n) = U(URHO) * q(QFS+n);
+  }
+
+  U(UTEMP) = eos_state.T;
+
+  gam1 = eos_state.gam1;
+
+}
+
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 int
