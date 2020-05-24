@@ -1,5 +1,9 @@
 # 20.06
 
+   * A constrained-transport corner transport upwind MHD solver has been
+     added.  This can be used by compiling with USE_MPI = TRUE.  Presently
+     it only works for a single level (no AMR).  (#307)
+
    * A burning timestep limiter dtnuc_T has been added which restricts the
      burning from updating the temperature by more than the factor
      dtnuc_T * T / dT/dt. (#972)
