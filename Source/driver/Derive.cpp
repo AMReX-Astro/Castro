@@ -541,6 +541,8 @@ extern "C"
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
+      // our input dat is rho, UMX, UMY, UMZ
+
       auto const dat = datfab.array();
       auto const der = derfab.array();
 
@@ -568,11 +570,98 @@ extern "C"
         Real z = 0.0_rt;
 #endif
 
-        Real r = std::sqrt(x*x + y*y + z*z);
+        if (domain_is_plane_parallel) {
+#if AMREX_SPACEDIM == 2
+          // the radial velocity is just the horizontal velocity
+          der(i,j,k,0) = dat(i,j,k,1)/dat(i,j,k,0);
+#elif AMREX_SPACEDIM == 3
+          // the velocity in the x-y plane decomposed into r, phi unit vectors is:
+          // v_cyl = ( u cos phi + v sin phi) e_r +
+          //         (-u sin phi + v cos phi) e_phi
+          // where e_r and e_phi are the cylindrical unit vectors
 
-        der(i,j,k,0) = (dat(i,j,k,1)*x +
-                        dat(i,j,k,2)*y +
-                        dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+          // we need the distance in the x-y plane from the origin
+          Real r = std::sqrt(x*x + y*y);
+          der(i,j,k,0) = (dat(i,j,k,1)*x + dat(i,j,k,2)*y) / (dat(i,j,k,0)*r);
+#endif
+        } else {
+          Real r = std::sqrt(x*x + y*y + z*z);
+
+          der(i,j,k,0) = (dat(i,j,k,1)*x +
+                          dat(i,j,k,2)*y +
+                          dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+        }
+
+      });
+    }
+
+
+    void ca_dercircvel(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& geomdata,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
+
+      // our input dat is rho, UMX, UMY, UMZ
+
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
+
+      auto dx = geomdata.CellSizeArray();
+
+      // center calculated like advection_utils.cpp
+      GpuArray<Real, 3> center;
+      ca_get_center(center.begin());
+
+      auto problo = geomdata.ProbLoArray();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+
+        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+#if AMREX_SPACEDIM >= 2
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        Real y = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        Real z = 0.0_rt;
+#endif
+
+        if (domain_is_plane_parallel) {
+#if AMREX_SPACEDIM == 2
+          // the circumferential velocity is just the out-of-plane velocity
+          der(i,j,k,0) = dat(i,j,k,3)/dat(i,j,k,0);
+#elif AMREX_SPACEDIM == 3
+          // the velocity in the x-y plane decomposed into r, phi unit vectors is:
+          // v_cyl = ( u cos phi + v sin phi) e_r +
+          //         (-u sin phi + v cos phi) e_phi
+          // where e_r and e_phi are the cylindrical unit vectors
+
+          // we need the distance in the x-y plane from the origin
+          Real r = std::sqrt(x*x + y*y);
+          der(i,j,k,0) = (-dat(i,j,k,1)*y + dat(i,j,k,2)*x) / (dat(i,j,k,0)*r);
+#endif
+        } else {
+          Real r = std::sqrt(x*x + y*y + z*z);
+
+          // we really mean just the velocity component that is
+          // perpendicular to radial, and in general 3-d (e.g. a
+          // sphere), the sign doesn't make sense, so we compute this
+          // such that v_r^2 + v_c^2 = v^2
+          Real vtot2 = (dat(i,j,k,1)*dat(i,j,k,1) +
+                        dat(i,j,k,2)*dat(i,j,k,2) +
+                        dat(i,j,k,3)*dat(i,j,k,3))/(dat(i,j,k,0)*dat(i,j,k,0));
+
+          Real vr = (dat(i,j,k,1)*x +
+                     dat(i,j,k,2)*y +
+                     dat(i,j,k,3)*z) / ( dat(i,j,k,0)*r );
+
+          der(i,j,k,0) = std::sqrt(vtot2 - vr*vr);
+        }
+
       });
     }
 
@@ -778,7 +867,7 @@ extern "C"
                   const int* lo, const int* hi,
                   const int* domain_lo, const int* domain_hi,
                   const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec, 
+                  const Real* time, const Real* dt, const int* bcrec,
                   const int* level, const int* grid_no)
   {
 

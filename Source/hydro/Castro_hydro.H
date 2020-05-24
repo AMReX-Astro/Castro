@@ -60,7 +60,6 @@
                  const amrex::Real time,
                  amrex::Array4<amrex::Real const> const& uin,
 #ifdef MHD
-                 amrex::Array4<amrex::Real> const& bcc,
                  amrex::Array4<amrex::Real const> const& Bx,
                  amrex::Array4<amrex::Real const> const& By,
                  amrex::Array4<amrex::Real const> const& Bz,
