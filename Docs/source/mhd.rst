@@ -4,8 +4,11 @@
 MHD
 ***
 
+Introduction
+============
+
 Castro implements a constrained transport (CT) corner transport upwind
-(CTU) MHD scheme based on the work of Miniati & Martin
+(CTU) ideal MHD scheme based on the work of Miniati & Martin
 :cite:`miniati_martin`.  MHD is enabled by compiling with ``USE_MHD =
 TRUE``.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
@@ -14,4 +17,17 @@ supported by MHD.
 
 .. note::
 
+   The MHD solver supports 3-d only.
+
    Currently the MHD solver is single-level only.  AMR support is forthcoming.
+
+Equations and Data Structures
+=============================
+
+The ideal MHD equations we solve appear as:
+
+.. math::
+
+   \frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) = \rho \omegadot_k
+
+
