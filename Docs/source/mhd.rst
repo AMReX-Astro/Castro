@@ -65,6 +65,23 @@ conventions:
   * ``Ex(i,j,k)`` is the edge-centered x-component of the electric field,
     :math:`E_{x,i,j-1/2,k-1/2}`
 
+
+Problem Initialization
+======================
+
+.. index:: ca_initmag
+
+There is an additional initialization routine for MHD, ``ca_initmag``
+that is used to initialize the face-centered magnetic field
+components.  This is done separately from the main conserved fluid
+state.
+
+The conserved fluid state is initialized in ``ca_initdata`` just as
+with pure hydrodynamics problems.  The one change is the when
+initializing the total energy density, ``UEDEN``, you need to include
+the magnetic energy contribution.
+
+
 Hydrodynamics Update
 ====================
 
