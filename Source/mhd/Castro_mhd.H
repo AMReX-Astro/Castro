@@ -140,7 +140,7 @@
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE
     void
     PToC(amrex::Array1D<amrex::Real, 0, NQ-1>& q,
-         amrex::Array1D<amrex::Real, 0, NUM_STATE+2> U,
+         amrex::Array1D<amrex::Real, 0, NUM_STATE+2>& U,
          amrex::Real& gam1);
 
 
