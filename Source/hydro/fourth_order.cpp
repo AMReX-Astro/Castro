@@ -1,5 +1,9 @@
 #include "Castro.H"
 
+#ifdef DIFFUSION
+#include "conductivity.H"
+#endif
+
 void
 Castro::fourth_interfaces(const Box& bx,
                           const int idir, const int ncomp,
@@ -740,3 +744,171 @@ Castro::states(const Box& bx,
   }
 
 }
+
+
+void
+Castro::fourth_avisc(const Box& bx,
+                     Array4<Real const> const& q,
+                     Array4<Real const> const& qaux,
+                     Array4<Real> const& avis,
+                     const int idir) {
+
+  // this computes the *face-centered* artifical viscosity using the
+  // 4th order expression from McCorquodale & Colella (Eq. 35)
+
+  constexpr Real beta = 0.3_rt;
+
+  const auto dx = geom.CellSizeArray();
+
+  Real dxinv = 1.0_rt / dx[0];
+  Real dyinv = 1.0_rt / dx[1];
+  Real dzinv = 1.0_rt / dx[2];
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real cmin;
+
+    if (idir == 0) {
+
+      // normal direction
+
+      avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv;
+#if AMREX_SPACEDIM >= 2
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
+                                           q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv;
+#endif
+#if AMREX_SPACEDIM >= 3
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
+                                           q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv;
+#endif
+
+      cmin = amrex::min(qaux(i,j,k,QC), qaux(i-1,j,k,QC));
+
+    } else if (idir == 1) {
+
+      // normal direction
+
+      avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV)) * dyinv;
+
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
+                                           q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv;
+
+#if AMREX_SPACEDIM >= 3
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
+                                           q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv;
+#endif
+
+      cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j-1,k,QC));
+
+    } else {
+
+      // normal direction
+
+      avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW)) * dzinv;
+
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
+                                           q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv;
+
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
+                                           q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv;
+
+      cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j,k-1,QC));
+
+    }
+
+    // MC Eq. 36
+
+    Real coeff = amrex::min(1.0_rt, (dx[idir] * avis(i,j,k)) * (dx[idir] * avis(i,j,k)) /
+                                    (beta * (cmin * cmin)));
+
+    if (avis(i,j,k) < 0.0_rt) {
+      avis(i,j,k) = dx[idir] * avis(i,j,k) * coeff;
+    } else {
+      avis(i,j,k) = 0.0_rt;
+    }
+
+  });
+
+}
+
+
+#ifdef DIFFUSION
+void
+Castro::fourth_add_diffusive_flux(const Box& bx,
+                                  Array4<Real const> const& q,
+                                  const int temp_comp,
+                                  Array4<Real const> const& qint,
+                                  Array4<Real> const& F,
+                                  const int idir, const bool is_avg) {
+
+  // add the diffusive flux to the energy fluxes
+
+  const auto dx = geom.CellSizeArray();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    eos_t eos_state;
+
+    eos_state.rho = qint(i,j,k,QRHO);
+    eos_state.T = q(i,j,k,temp_comp);  // initial guess
+    eos_state.e = qint(i,j,k,QREINT) / qint(i,j,k,QRHO);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n] = qint(i,j,k,QFS+n);
+    }
+
+    eos(eos_input_re, eos_state);
+    conductivity(eos_state);
+
+    Real dTdx;
+
+    if (idir == 0) {
+
+      if (is_avg) {
+        // we are working with the cell-center state
+        dTdx = (-q(i+1,j,k,temp_comp) + 27*q(i,j,k,temp_comp) -
+                27*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp)) / (24.0_rt * dx[0]);
+
+      } else {
+        // we are working with the cell-average state
+        dTdx = (-q(i+1,j,k,temp_comp) + 15*q(i,j,k,temp_comp) -
+                15*q(i-1,j,k,temp_comp) + q(i-2,j,k,temp_comp)) / (12.0_rt * dx[0]);
+      }
+
+    } else if (idir == 1) {
+
+      if (is_avg) {
+        // we are working with the cell-center state
+        dTdx = (-q(i,j+1,k,temp_comp) + 27*q(i,j,k,temp_comp) -
+                27*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp)) / (24.0_rt * dx[1]);
+
+      } else {
+        // we are working with the cell-average state
+        dTdx = (-q(i,j+1,k,temp_comp) + 15*q(i,j,k,temp_comp) -
+                15*q(i,j-1,k,temp_comp) + q(i,j-2,k,temp_comp)) / (12.0_rt * dx[1]);
+      }
+
+    } else {
+
+      if (is_avg) {
+        // we are working with the cell-center state
+        dTdx = (-q(i,j,k+1,temp_comp) + 27*q(i,j,k,temp_comp) -
+                27*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp)) / (24.0_rt * dx[2]);
+
+      } else {
+        // we are working with the cell-average state
+        dTdx = (-q(i,j,k+1,temp_comp) + 15*q(i,j,k,temp_comp) -
+                15*q(i,j,k-1,temp_comp) + q(i,j,k-2,temp_comp)) / (12.0_rt * dx[2]);
+      }
+
+    }
+
+    F(i,j,k,UEINT) -= eos_state.conductivity * dTdx;
+    F(i,j,k,UEDEN) -= eos_state.conductivity * dTdx;
+
+  });
+}
+#endif
