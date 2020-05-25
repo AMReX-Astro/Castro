@@ -38,7 +38,6 @@ ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += fourth_order.cpp
   CEXE_sources += fourth_center_average.cpp
   CEXE_headers += fourth_center_average.H
-  ca_F90EXE_sources += Castro_mol_nd.F90
 endif
 
 ifneq ($(DIM), 1)
