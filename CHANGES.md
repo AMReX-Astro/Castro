@@ -1,5 +1,9 @@
 # 20.06
 
+   * The parameter castro.density_reset_method has been removed. A density
+     reset now unconditionally sets the density to small_dens, the temperature
+     to small_temp, and zeros out the velocities. (#989)
+
    * A constrained-transport corner transport upwind MHD solver has been
      added.  This can be used by compiling with USE_MPI = TRUE.  Presently
      it only works for a single level (no AMR).  (#307)

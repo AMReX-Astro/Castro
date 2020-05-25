@@ -1,0 +1,6 @@
+This test is desribe in Crockett et. al 2004, section 4.1 Simple Linearized MHD waves
+For the fast and slow magnetosonic waves, the perturbation is given in eq. 37
+The test is also described in Miniati&Martin 2011 in section 3.1.2 
+It is used to study the convergence of the mhd algorithm. 
+
+
