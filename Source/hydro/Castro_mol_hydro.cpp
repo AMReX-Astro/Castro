@@ -182,6 +182,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
         avis.resize(obx, 1);
+        avis_arr = avis.array();
         Elixir elix_avis = avis.elixir();
 
 #ifndef AMREX_USE_CUDA
@@ -380,13 +381,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               Real avisc_coeff = alpha * (difmag / 0.1);
 
-              avisc(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                    BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
-                    ZFILL(dx),
-                    BL_TO_FORTRAN_ANYD(avis),
-                    idir_f);
+              auto q_bar_arr = q_bar.array(mfi);
+              auto qaux_bar_arr = qaux_bar.array(mfi);
 
+              fourth_avisc(nbx,
+                           q_bar_arr, qaux_bar_arr,
+                           avis_arr, idir);
 
               Array4<Real const> const uin_arr = statein.array();
               Array4<Real const> const avis_arr = avis.array();
