@@ -776,12 +776,12 @@ Castro::fourth_avisc(const Box& bx,
 
       avis(i,j,k) = (q(i,j,k,QU) - q(i-1,j,k,QU)) * dxinv;
 #if AMREX_SPACEDIM >= 2
-      avis(i,j,k) += 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
-                              q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
+                                           q(i-1,j+1,k,QV) - q(i-1,j-1,k,QV)) * dyinv;
 #endif
 #if AMREX_SPACEDIM >= 3
-      avis(i,j,k) += 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
-                              q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
+                                           q(i-1,j,k+1,QW) - q(i-1,j,k-1,QW)) * dzinv;
 #endif
 
       cmin = amrex::min(qaux(i,j,k,QC), qaux(i-1,j,k,QC));
@@ -792,12 +792,12 @@ Castro::fourth_avisc(const Box& bx,
 
       avis(i,j,k) = (q(i,j,k,QV) - q(i,j-1,k,QV)) * dyinv;
 
-      avis(i,j,k) += 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
-                              q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
+                                           q(i+1,j-1,k,QU) - q(i-1,j-1,k,QU)) * dxinv;
 
 #if AMREX_SPACEDIM >= 3
-      avis(i,j,k) += 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
-                              q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j,k+1,QW) - q(i,j,k-1,QW) +
+                                           q(i,j-1,k+1,QW) - q(i,j-1,k-1,QW)) * dzinv;
 #endif
 
       cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j-1,k,QC));
@@ -808,11 +808,11 @@ Castro::fourth_avisc(const Box& bx,
 
       avis(i,j,k) = (q(i,j,k,QW) - q(i,j,k-1,QW)) * dzinv;
 
-      avis(i,j,k) += 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
-                              q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i,j+1,k,QV) - q(i,j-1,k,QV) +
+                                           q(i,j+1,k-1,QV) - q(i,j-1,k-1,QV)) * dyinv;
 
-      avis(i,j,k) += 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
-                              q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv;
+      avis(i,j,k) = avis(i,j,k) + 0.25_rt*(q(i+1,j,k,QU) - q(i-1,j,k,QU) +
+                                           q(i+1,j,k-1,QU) - q(i-1,j,k-1,QU)) * dxinv;
 
       cmin = amrex::min(qaux(i,j,k,QC), qaux(i,j,k-1,QC));
 
@@ -821,7 +821,7 @@ Castro::fourth_avisc(const Box& bx,
     // MC Eq. 36
 
     Real coeff = amrex::min(1.0_rt, (dx[idir] * avis(i,j,k)) * (dx[idir] * avis(i,j,k)) /
-                                    (beta * cmin * cmin));
+                                    (beta * (cmin * cmin)));
 
     if (avis(i,j,k) < 0.0_rt) {
       avis(i,j,k) = dx[idir] * avis(i,j,k) * coeff;
