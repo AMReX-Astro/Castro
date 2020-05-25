@@ -46,9 +46,6 @@ max_step = 1
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
 
-# Level 0 timestep below which we halt
-
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -155,9 +152,6 @@ castro.transverse_reset_rhoe = 1
 
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
-
-# Choose the method used on a negative density reset
-castro.density_reset_method = 2
 
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 0
