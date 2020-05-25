@@ -182,7 +182,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
         avis.resize(obx, 1);
-        avis_arr = avis.array();
+        auto avis_arr = avis.array();
         Elixir elix_avis = avis.elixir();
 
 #ifndef AMREX_USE_CUDA
@@ -273,12 +273,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // Note: this can act even if do_hydro = 0
             // operate on ibx[idir]
             if (diffuse_temp == 1) {
-              int is_avg = 1;
-              add_diffusive_flux(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
-                                 BL_TO_FORTRAN_ANYD(q[mfi]), NQ, QTEMP+1,
-                                 BL_TO_FORTRAN_ANYD(q_avg),
-                                 BL_TO_FORTRAN_ANYD(f_avg),
-                                 ZFILL(dx), idir_f, is_avg);
+              bool is_avg = true;
+              fourth_add_diffusive_flux(ibx[idir],
+                                        q_arr, QTEMP,
+                                        q_avg_arr, f_avg_arr,
+                                        idir, is_avg);
             }
 #endif
 
@@ -343,12 +342,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #ifdef DIFFUSION
             if (diffuse_temp == 1) {
               // add the diffusive flux to F(q_fc) if needed
-              int is_avg = 0;
-              add_diffusive_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(T_cc[mfi]), 1, 1,
-                                 BL_TO_FORTRAN_ANYD(q_fc),
-                                 BL_TO_FORTRAN_ANYD(flux[idir]),
-                                 ZFILL(dx), idir_f, is_avg);
+              bool is_avg = false;
+              fourth_add_diffusive_flux(nbx,
+                                        T_cc.array(mfi), 0,
+                                        q_fc_arr, flux[idir].array(),
+                                        idir, is_avg);
             }
 #endif
 
