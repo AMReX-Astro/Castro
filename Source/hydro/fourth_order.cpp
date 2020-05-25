@@ -332,7 +332,7 @@ Castro::states(const Box& bx,
               } else if (std::abs(dafm) >= 2.0_rt*std::abs(dafp)) {
                 // Eq. 31
                 ar(i,j,k,ncomp) = a(i,j,k,ncomp) - 2.0_rt*(1.0_rt - rho)*dafp - rho*dafm;
-              } else if (abs(dafp) >= 2.0_rt*abs(dafm)) {
+              } else if (std::abs(dafp) >= 2.0_rt*std::abs(dafm)) {
                 // Eq. 32
                 al(i+1,j,k,ncomp) = a(i,j,k,ncomp) + 2.0_rt*(1.0_rt - rho)*dafm + rho*dafp;
               }
@@ -468,7 +468,7 @@ Castro::states(const Box& bx,
           }
 
           Real rho;
-          if (abs(d2af) <= 1.e-12_rt *
+          if (std::abs(d2af) <= 1.e-12_rt *
               amrex::max(std::abs(a(i,j-2,k,ncomp)), std::abs(a(i,j-1,k,ncomp)),
                          std::abs(a(i,j,k,ncomp)), std::abs(a(i,j+1,k,ncomp)),
                          std::abs(a(i,j+2,k,ncomp)))) {
@@ -495,10 +495,10 @@ Castro::states(const Box& bx,
                 // Eqs. 29, 30
                 ar(i,j,k,ncomp) = a(i,j,k,ncomp) - rho*dafm;  // note: typo in Eq 29
                 al(i,j+1,k,ncomp) = a(i,j,k,ncomp) + rho*dafp;
-              } else if (abs(dafm) >= 2.0_rt*abs(dafp)) {
+              } else if (std::abs(dafm) >= 2.0_rt*std::abs(dafp)) {
                 // Eq. 31
                 ar(i,j,k,ncomp) = a(i,j,k,ncomp) - 2.0_rt*(1.0_rt - rho)*dafp - rho*dafm;
-              } else if (abs(dafp) >= 2.0_rt*abs(dafm)) {
+              } else if (std::abs(dafp) >= 2.0_rt*std::abs(dafm)) {
                 // Eq. 32
                 al(i,j+1,k,ncomp) = a(i,j,k,ncomp) + 2.0_rt*(1.0_rt - rho)*dafm + rho*dafp;
               }
