@@ -232,26 +232,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             for (int n = 0; n < NQ; n++) {
 
-              int ncomp_f = n + 1;
-
               // construct the interface states in the idir direction
               // operate on nbx1
-              ca_fourth_interfaces(AMREX_INT_ANYD(nbx1.loVect()), AMREX_INT_ANYD(nbx1.hiVect()),
-                                   idir_f, ncomp_f,
-                                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                                   BL_TO_FORTRAN_ANYD(q_int),
-                                   ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
+              fourth_interfaces(nbx1,
+                                idir, n,
+                                q_arr, q_int_arr);
 
               // compute the limited interface states
               // operate on obx -- this loop is over cell-centers
-              ca_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                        idir_f, ncomp_f,
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(q_int),
-                        BL_TO_FORTRAN_ANYD(flatn),
-                        BL_TO_FORTRAN_ANYD(qm),
-                        BL_TO_FORTRAN_ANYD(qp),
-                        ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
+              states(obx,
+                     idir, n,
+                     q_arr, q_int_arr, flatn_arr,
+                     qm_arr, qp_arr);
             }
 
             // get the face-averaged state and flux, <q> and F(<q>),
