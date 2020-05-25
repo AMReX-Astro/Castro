@@ -131,23 +131,6 @@ extern "C"
 #endif
      const BL_FORT_FAB_ARG_3D(volume));
 
-  void ca_fourth_interfaces
-    (const int* lo, const int* hi,
-     const int idir, const int ncomp,
-     const BL_FORT_FAB_ARG_3D(q),
-     BL_FORT_FAB_ARG_3D(q_int),
-     const int* domlo, const int* domhi);
-
-  void ca_states
-    (const int* lo, const int* hi,
-     const int idir, const int ncomp,
-     const BL_FORT_FAB_ARG_3D(q),
-     const BL_FORT_FAB_ARG_3D(q_int),
-     const BL_FORT_FAB_ARG_3D(flatn),
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp),
-     const int* domlo, const int* domhi);
-
   void ca_mol_diffusive_flux
     (const int* lo, const int* hi,
      const int idir,
