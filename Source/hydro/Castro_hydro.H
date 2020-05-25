@@ -547,6 +547,22 @@
 #endif
 
 #ifdef TRUE_SDC
+
+    void
+    fourth_interfaces(const amrex::Box& bx,
+                      const int idir, const int ncomp,
+                      amrex::Array4<amrex::Real const> const& a,
+                      amrex::Array4<amrex::Real> const& a_int);
+
+    void
+    states(const amrex::Box& bx,
+           const int idir, const int ncomp,
+           amrex::Array4<amrex::Real const> const& a,
+           amrex::Array4<amrex::Real const> const& a_int,
+           amrex::Array4<amrex::Real const> const& flatn,
+           amrex::Array4<amrex::Real> const& al,
+           amrex::Array4<amrex::Real> const& ar);
+
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const& a,
