@@ -1241,7 +1241,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto dx_arr = geom.CellSizeArray();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
           GpuArray<Real, 3> loc;
