@@ -1,8 +1,10 @@
+#include "Castro.H"
+
 void
-Castro::ca_fourth_interfaces(const Box& bx,
-                             const int idir, const int ncomp,
-                             Array4<Real const> const& a,
-                             Array4<Real> const& a_int) {
+Castro::fourth_interfaces(const Box& bx,
+                          const int idir, const int ncomp,
+                          Array4<Real const> const& a,
+                          Array4<Real> const& a_int) {
 
   // this just computes the unlimited single-value interface state
   // for the 4th order method.
@@ -13,6 +15,12 @@ Castro::ca_fourth_interfaces(const Box& bx,
   // our convention here is that:
   //     al(i,j,k)   will be al_{i-1/2,j,k),
   //     al(i+1,j,k) will be al_{i+1/2,j,k)
+
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  auto domlo = geom.Domain().loVect3d();
+  auto domhi = geom.Domain().hiVect3d();
 
   if (idir == 0) {
 
@@ -25,46 +33,46 @@ Castro::ca_fourth_interfaces(const Box& bx,
       // interpolate to the edges -- this is a_{i-1/2}
       // note for non-periodic physical boundaries, we use a special stencil
 
-      if (i == domlo[0]+1 && physbc_lo[0] != Interior) {
+      if (i == domlo[0]+1 && lo_bc[0] != Interior) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i-1,j,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i+1,j,k,ncomp) + a(i+2,j,k,ncomp));
 
-      } else if (i == domlo[0] && physbc_lo[0] != Interior) {
+      } else if (i == domlo[0] && lo_bc[0] != Interior) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i+1,j,k,ncomp) +
                                          13.0_rt*a(i+2,j,k,ncomp) - 3.0_rt*a(i+3,j,k,ncomp));
 
-      } else if (i == domhi[0] && physbc_hi[0] != Interior) {
+      } else if (i == domhi[0] && hi_bc[0] != Interior) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i-1,j,k,ncomp) -
                                          5.0_rt*a(i-2,j,k,ncomp) + a(i-3,j,k,ncomp));
 
-      } else if (i == domhi[0]+1 && physbc_hi[0] != Interior) {
+      } else if (i == domhi[0]+1 && hi_bc[0] != Interior) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i-1,j,k,ncomp) - 23.0_rt*a(i-2,j,k,ncomp) +
                                          13.0_rt*a(i-3,j,k,ncomp) - 3.0_rt*a(i-4,j,k,ncomp));
 
-      } else if (i == domlo[0]-1 && physbc_lo[0] == Outflow) {
-        // extrapolate to the domlo(1)-1 cell using a
+      } else if (i == domlo[0]-1 && lo_bc[0] == Outflow) {
+        // extrapolate to the domlo[0]-1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(domlo(1),j,k,ncomp) - 6.0_rt*a(domlo(1)+1,j,k,ncomp) + 4.0_rt*a(domlo(1)+2,j,k,ncomp) - a(domlo(1)+3,j,k,ncomp);
+        Real ac = 4.0_rt*a(domlo[0],j,k,ncomp) - 6.0_rt*a(domlo[0]+1,j,k,ncomp) + 4.0_rt*a(domlo[0]+2,j,k,ncomp) - a(domlo[0]+3,j,k,ncomp);
 
         // now use the 1-sided stencil from above with
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i+1,j,k,ncomp) +
                                          13.0_rt*a(i+2,j,k,ncomp) - 3.0_rt*a(i+3,j,k,ncomp));
 
-      } else if (i == domhi[0]+2 && physbc_hi[0] == Outflow) {
-        // extrapolate to the domhi(1)+1 cell using a
+      } else if (i == domhi[0]+2 && hi_bc[0] == Outflow) {
+        // extrapolate to the domhi[0]+1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(domhi(1),j,k,ncomp) - 6.0_rt*a(domhi(1)-1,j,k,ncomp) + 4.0_rt*a(domhi(1)-2,j,k,ncomp) - a(domhi(1)-3,j,k,ncomp);
+        Real ac = 4.0_rt*a(domhi[0],j,k,ncomp) - 6.0_rt*a(domhi[0]-1,j,k,ncomp) + 4.0_rt*a(domhi[0]-2,j,k,ncomp) - a(domhi[0]-3,j,k,ncomp);
 
         // now use the 1-sided stencil from above with
         // this extrapolated value
@@ -88,46 +96,46 @@ Castro::ca_fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (j == domlo[1]+1 && physbc_lo[1] != Interior) {
+      if (j == domlo[1]+1 && lo_bc[1] != Interior) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j-1,k,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j+1,k,ncomp) + a(i,j+2,k,ncomp));
 
-      } else if (j == domlo[1] && physbc_lo[1] != Interior) {
+      } else if (j == domlo[1] && lo_bc[1] != Interior) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j+1,k,ncomp) +
                                          13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp));
 
-      } else if (j == domhi[1] && physbc_hi[1] != Interior) {
+      } else if (j == domhi[1] && hi_bc[1] != Interior) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j-1,k,ncomp) -
                                          5.0_rt*a(i,j-2,k,ncomp) + a(i,j-3,k,ncomp));
 
-      } else if (j == domhi[1]+1 .and. physbc_hi[1] != Interior) {
+      } else if (j == domhi[1]+1 && hi_bc[1] != Interior) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j-1,k,ncomp) - 23.0_rt*a(i,j-2,k,ncomp) +
                                          13.0_rt*a(i,j-3,k,ncomp) - 3.0_rt*a(i,j-4,k,ncomp));
 
-      } else if (j == domlo[1]-1 .and. physbc_lo[1] == Outflow) {
-        // extrapolate to the domlo(2)-1 cell using a
+      } else if (j == domlo[1]-1 && lo_bc[1] == Outflow) {
+        // extrapolate to the domlo[1]-1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(i,domlo(2),k,ncomp) - 6.0_rt*a(i,domlo(2)+1,k,ncomp) + 4.0_rt*a(i,domlo(2)+2,k,ncomp) - a(i,domlo(2)+3,k,ncomp);
+        Real ac = 4.0_rt*a(i,domlo[1],k,ncomp) - 6.0_rt*a(i,domlo[1]+1,k,ncomp) + 4.0_rt*a(i,domlo[1]+2,k,ncomp) - a(i,domlo[1]+3,k,ncomp);
 
         // now use the 1-sided stencil from above with
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j+1,k,ncomp) +
                                          13.0_rt*a(i,j+2,k,ncomp) - 3.0_rt*a(i,j+3,k,ncomp));
 
-      } else if (j == domhi[1]+2 && physbc_hi[1] == Outflow) {
-        // extrapolate to the domhi(2)+1 cell using a
+      } else if (j == domhi[1]+2 && hi_bc[1] == Outflow) {
+        // extrapolate to the domhi[1]+1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(i,domhi(2),k,ncomp) - 6.0_rt*a(i,domhi(2)-1,k,ncomp) + 4.0_rt*a(i,domhi(2)-2,k,ncomp) - a(i,domhi(2)-3,k,ncomp);
+        Real ac = 4.0_rt*a(i,domhi[1],k,ncomp) - 6.0_rt*a(i,domhi[1]-1,k,ncomp) + 4.0_rt*a(i,domhi[1]-2,k,ncomp) - a(i,domhi[1]-3,k,ncomp);
 
         // now use the 1-sided stencil from above with
         // this extrapolated value
@@ -152,51 +160,51 @@ Castro::ca_fourth_interfaces(const Box& bx,
 
       // interpolate to the edges
 
-      if (k == domlo[2]+1 && physbc_lo[2] != Interior) {
+      if (k == domlo[2]+1 && lo_bc[2] != Interior) {
         // use a stencil for the interface that is one zone
         // from the left physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k-1,ncomp) + 13.0_rt*a(i,j,k,ncomp) -
                                          5.0_rt*a(i,j,k+1,ncomp) + a(i,j,k+2,ncomp));
 
-      } else if (k == domlo[2] && physbc_lo[2] != Interior) {
+      } else if (k == domlo[2] && lo_bc[2] != Interior) {
         // use a stencil for when the interface is on the
         // left physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k,ncomp) - 23.0_rt*a(i,j,k+1,ncomp) +
                                          13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp));
 
-      } else if (k == domhi[2] .and. physbc_hi[2] != Interior) {
+      } else if (k == domhi[2] && hi_bc[2] != Interior) {
         // use a stencil for the interface that is one zone
         // from the right physical boundary, MC Eq. 22
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(3.0_rt*a(i,j,k,ncomp) + 13.0_rt*a(i,j,k-1,ncomp) -
                                          5.0_rt*a(i,j,k-2,ncomp) + a(i,j,k-3,ncomp));
 
-      } else if (k == domhi[2]+1 .and. physbc_hi[2] != Interior) {
+      } else if (k == domhi[2]+1 && hi_bc[2] != Interior) {
         // use a stencil for when the interface is on the
         // right physical boundary MC Eq. 21
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*a(i,j,k-1,ncomp) - 23.0_rt*a(i,j,k-2,ncomp) +
                                          13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
 
-      } else if (k == domlo[2]-1 .and. physbc_lo[2] == Outflow) {
-        // extrapolate to the domlo(3)-1 cell using a
+      } else if (k == domlo[2]-1 && lo_bc[2] == Outflow) {
+        // extrapolate to the domlo[2]-1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(i,j,domlo(3),ncomp) - 6.0_rt*a(i,j,domlo(3)+1,ncomp) + 4.0_rt*a(i,j,domlo(3)+2,ncomp) - a(i,j,domlo(3)+3,ncomp);
+        Real ac = 4.0_rt*a(i,j,domlo[2],ncomp) - 6.0_rt*a(i,j,domlo[2]+1,ncomp) + 4.0_rt*a(i,j,domlo[2]+2,ncomp) - a(i,j,domlo[2]+3,ncomp);
 
         // now use the 1-sided stencil from above with
         // this extrapolated value
         a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k+1,ncomp) +
                                          13.0_rt*a(i,j,k+2,ncomp) - 3.0_rt*a(i,j,k+3,ncomp));
 
-      } else if (k == domhi[2]+2 .and. physbc_hi[2] == Outflow) {
-        // extrapolate to the domhi(3)+1 cell using a
+      } else if (k == domhi[2]+2 && hi_bc[2] == Outflow) {
+        // extrapolate to the domhi[2]+1 cell using a
         // conservative cubic polynomial averaged over
         // the cell
-        Real ac = 4.0_rt*a(i,j,domhi(3),ncomp) - 6.0_rt*a(i,j,domhi(3)-1,ncomp) + 4.0_rt*a(i,j,domhi(3)-2,ncomp) - a(i,j,domhi(3)-3,ncomp)
+        Real ac = 4.0_rt*a(i,j,domhi[2],ncomp) - 6.0_rt*a(i,j,domhi[2]-1,ncomp) + 4.0_rt*a(i,j,domhi[2]-2,ncomp) - a(i,j,domhi[2]-3,ncomp);
 
-          // now use the 1-sided stencil from above with
-          // this extrapolated value
-          a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k-2,ncomp) +
-                                           13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
+        // now use the 1-sided stencil from above with
+        // this extrapolated value
+        a_int(i,j,k) = (1.0_rt/12.0_rt)*(25.0_rt*ac - 23.0_rt*a(i,j,k-2,ncomp) +
+                                         13.0_rt*a(i,j,k-3,ncomp) - 3.0_rt*a(i,j,k-4,ncomp));
 
       } else {
         // regular stencil
@@ -210,13 +218,13 @@ Castro::ca_fourth_interfaces(const Box& bx,
 
 
 void
-Castro::ca_states(const Box& bx,
-                  const int idir, const int ncomp,
-                  Array4<Real const> const& a,
-                  Array4<Real const> const& a_int,
-                  Array4<Real const> const& flatn,
-                  Array4<Real> const& al,
-                  Array4<Real> const& ar) {
+Castro::states(const Box& bx,
+               const int idir, const int ncomp,
+               Array4<Real const> const& a,
+               Array4<Real const> const& a_int,
+               Array4<Real const> const& flatn,
+               Array4<Real> const& al,
+               Array4<Real> const& ar) {
 
   // our convention here is that:
   //     al(i,j,k)   will be al_{i-1/2,j,k),
@@ -225,6 +233,15 @@ Castro::ca_states(const Box& bx,
   // Note, this needs to be run on lo-1, hi+1 in all directions
 
   // we need interface values on all faces of the domain
+
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  auto domlo = geom.Domain().loVect3d();
+  auto domhi = geom.Domain().hiVect3d();
+
+  constexpr Real C2 = 1.25_rt;
+  constexpr Real C3 = 0.1_rt;
 
   if (idir == 0) {
 
@@ -343,19 +360,19 @@ Castro::ca_states(const Box& bx,
 
         if (i == domlo[0]) {
 
-          // reset the left state at domlo(1) if needed -- it is outside the domain
+          // reset the left state at domlo[0] if needed -- it is outside the domain
 
-          if (physbc_lo[0] == Outflow) {
-            //al(domlo(1),j,k,:) = ar(domlo(1),j,k,:)
+          if (lo_bc[0] == Outflow) {
+            //al(domlo[0],j,k,:) = ar(domlo[0],j,k,:)
 
-          } else if (physbc_lo[0] == Symmetry) {
+          } else if (lo_bc[0] == Symmetry) {
             if (ncomp == QU) {
               al(domlo[0],j,k,QU) = -ar(domlo[0],j,k,QU);
             } else {
               al(domlo[0],j,k,ncomp) = ar(domlo[0],j,k,ncomp);
             }
 
-          } else if (physbc_lo[0] == Interior) {
+          } else if (lo_bc[0] == Interior) {
             // we don't need to do anything here
 
           } else {
@@ -367,19 +384,19 @@ Castro::ca_states(const Box& bx,
 
         if (i == domhi[0]+1) {
 
-          // reset the right state at domhi(1)+1 if needed -- it is outside the domain
+          // reset the right state at domhi[0]+1 if needed -- it is outside the domain
 
-          if (physbc_hi[0] == Outflow) {
-            //ar(domhi(1)+1,j,k,:) = al(domhi(1)+1,j,k,:)
+          if (hi_bc[0] == Outflow) {
+            //ar(domhi[0]+1,j,k,:) = al(domhi[0]+1,j,k,:)
 
-          } else if (physbc_hi[0] == Symmetry) {
+          } else if (hi_bc[0] == Symmetry) {
             if (ncomp == QU) {
-              ar(domhi(1)+1,j,k,QU) = -al(domhi(1)+1,j,k,QU);
+              ar(domhi[0]+1,j,k,QU) = -al(domhi[0]+1,j,k,QU);
             } else {
-              ar(domhi(1)+1,j,k,ncomp) = al(domhi(1)+1,j,k,ncomp);
+              ar(domhi[0]+1,j,k,ncomp) = al(domhi[0]+1,j,k,ncomp);
             }
 
-          } else if (physbc_hi[0] == Interior) {
+          } else if (hi_bc[0] == Interior) {
             // we don't need to do anything here
 
           } else {
@@ -431,7 +448,7 @@ Castro::ca_states(const Box& bx,
         Real d2acp2 = a(i,j+1,k,ncomp) - 2.0_rt*a(i,j+2,k,ncomp) + a(i,j+3,k,ncomp);
 
         // limit? MC Eq. 24 and 25
-        if (dafm * dafp <= 0.0_rt .or. ||
+        if (dafm * dafp <= 0.0_rt ||
             (a(i,j,k,ncomp) - a(i,j-2,k,ncomp))*(a(i,j+2,k,ncomp) - a(i,j,k,ncomp)) <= 0.0_rt) {
 
           // we are at an extrema
@@ -508,19 +525,19 @@ Castro::ca_states(const Box& bx,
 
         if (j == domlo[1]) {
 
-          // reset the left state at domlo(2) if needed -- it is outside the domain
+          // reset the left state at domlo[1] if needed -- it is outside the domain
 
-          if (physbc_lo[1] == Outflow) {
-            //al(i,domlo(2),k,:) = ar(i,domlo(2),k,:)
+          if (lo_bc[1] == Outflow) {
+            //al(i,domlo[1],k,:) = ar(i,domlo[1],k,:)
 
-          } else if (physbc_lo[1] == Symmetry) {
+          } else if (lo_bc[1] == Symmetry) {
             if (ncomp == QV) {
               al(i,domlo[1],k,QV) = -ar(i,domlo[1],k,QV);
             } else {
               al(i,domlo[1],k,ncomp) = ar(i,domlo[1],k,ncomp);
             }
 
-          } else if (physbc_lo[1] == Interior) {
+          } else if (lo_bc[1] == Interior) {
             // we don't need to do anything here
 
           } else {
@@ -532,19 +549,19 @@ Castro::ca_states(const Box& bx,
 
         if (j == domhi[1]+1) {
 
-          // reset the right state at domhi(2)+1 if needed -- it is outside the domain
+          // reset the right state at domhi[1]+1 if needed -- it is outside the domain
 
-          if (physbc_hi[1] == Outflow) {
-            //ar(i,domhi(2)+1,k,:) = al(i,domhi(2)+1,k,:)
+          if (hi_bc[1] == Outflow) {
+            //ar(i,domhi[1]+1,k,:) = al(i,domhi[1]+1,k,:)
 
-          } else if (physbc_hi[1] == Symmetry) {
+          } else if (hi_bc[1] == Symmetry) {
             if (ncomp == QV) {
               ar(i,domhi[1]+1,k,QV) = -al(i,domhi[1]+1,k,QV);
             } else {
               ar(i,domhi[1]+1,k,ncomp) = al(i,domhi[1]+1,k,ncomp);
             }
 
-          } else if (physbc_hi[1] == Interior) {
+          } else if (hi_bc[1] == Interior) {
             // we don't need to do anything here
 
           } else {
@@ -602,11 +619,11 @@ Castro::ca_states(const Box& bx,
 
           Real s = std::copysign(1.0_rt, d2ac0);
 
-          Real d2a_limt;
+          Real d2a_lim;
 
           if (s == std::copysign(1.0_rt, d2acm1) &&
               s == std::copysign(1.0_rt, d2acp1) &&
-              s == std::sign(1.0_rt, d2af)) {
+              s == std::copysign(1.0_rt, d2af)) {
             // MC Eq. 26
             d2a_lim = s * amrex::min(std::abs(d2af), C2*std::abs(d2acm1),
                                      C2*std::abs(d2ac0), C2*std::abs(d2acp1));
@@ -671,19 +688,19 @@ Castro::ca_states(const Box& bx,
         // now handle any physical boundaries here by modifying the interface values
 
         if (k == domlo[2]) {
-          // reset the left state at domlo(3) if needed -- it is outside the domain
+          // reset the left state at domlo[2] if needed -- it is outside the domain
 
-          if (physbc_lo[2] == Outflow) {
-            //al(i,j,domlo(3),:) = ar(i,j,domlo(3),:)
+          if (lo_bc[2] == Outflow) {
+            //al(i,j,domlo[2],:) = ar(i,j,domlo[2],:)
 
-          } else if (physbc_lo[2] == Symmetry) {
+          } else if (lo_bc[2] == Symmetry) {
             if (ncomp == QW) {
               al(i,j,domlo[2],QW) = -ar(i,j,domlo[2],QW);
             } else {
               al(i,j,domlo[2],ncomp) = ar(i,j,domlo[2],ncomp);
             }
 
-          } else if (physbc_lo[2] == Interior) {
+          } else if (lo_bc[2] == Interior) {
             // we don't need to do anything here
 
           } else {
@@ -694,19 +711,19 @@ Castro::ca_states(const Box& bx,
         }
 
         if (k == domhi[2]+1) {
-          // reset the right state at domhi(3)+1 if needed -- it is outside the domain
+          // reset the right state at domhi[2]+1 if needed -- it is outside the domain
 
-          if (physbc_hi[2] == Outflow) {
-            //ar(i,j,domhi(3)+1,:) = al(i,j,domhi(3)+1,:)
+          if (hi_bc[2] == Outflow) {
+            //ar(i,j,domhi[2]+1,:) = al(i,j,domhi[2]+1,:)
 
-          } else if (physbc_hi[2] == Symmetry) {
+          } else if (hi_bc[2] == Symmetry) {
             if (ncomp == QW) {
               ar(i,j,domhi[2]+1,QW) = -al(i,j,domhi[2]+1,QW);
             } else {
               ar(i,j,domhi[2]+1,ncomp) = al(i,j,domhi[2]+1,ncomp);
             }
 
-          } else if (physbc_lo[2] == Interior) {
+          } else if (lo_bc[2] == Interior) {
             // we don't need to do anything here
 
           } else {
