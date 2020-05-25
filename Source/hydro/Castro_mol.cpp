@@ -378,7 +378,7 @@ Castro::mol_consup(const Box& bx,
 #endif
 
     // this assumes that the species are at the end of the conserved state
-    if (n <= NSRC) {
+    if (n < NSRC) {
       update(i,j,k,n) += srcU(i,j,k,n);
     }
 
