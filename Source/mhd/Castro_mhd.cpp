@@ -72,6 +72,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox q2D;
 
+      FArrayBox div;
+
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
         {
 
@@ -585,6 +587,38 @@ Castro::just_the_mhd(Real time, Real dt)
           eebzf.growHi(1, 1);
 
           electric_edge_z(eebzf, q2D_arr, Ez_arr, flxx_arr, flxy_arr);
+
+          // clean the final fluxes
+
+          div.resize(obx, 1);
+          Elixir elix_div = div.elixir();
+          auto div_arr = div.array();
+
+          // compute divu -- we'll use this later when doing the artifical viscosity
+          divu(obx, q_arr, div_arr);
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            Array4<Real> const flux_arr = (flux[idir]).array();
+
+            // Zero out shock and temp fluxes -- these are physically meaningless here
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+              flux_arr(i,j,k,UTEMP) = 0.e0;
+#ifdef SHOCK_VAR
+              flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+            });
+
+            apply_av(nbx, idir, div_arr, u_arr, flux_arr);
+
+            normalize_species_fluxes(nbx, flux_arr);
+
+          }
+
 
           // Conservative update
 
