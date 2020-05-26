@@ -122,6 +122,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -215,53 +216,26 @@
 <h2>Compiling<a class="headerlink" href="#compiling" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p><em>Compiling fails giving me a cryptic message about a module not
-being found, usually bl_types or bl_error_module, like:</em></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpif90</span> <span class="o">-</span><span class="n">fno</span><span class="o">-</span><span class="nb">range</span><span class="o">-</span><span class="n">check</span> <span class="o">-</span><span class="n">fno</span><span class="o">-</span><span class="n">second</span><span class="o">-</span><span class="n">underscore</span>
- <span class="o">-</span><span class="n">Jo</span><span class="o">/</span><span class="mi">3</span><span class="n">d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">gcc</span><span class="o">.</span><span class="n">gfortran</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">EXE</span> <span class="o">-</span><span class="n">I</span> <span class="n">o</span><span class="o">/</span><span class="mi">3</span><span class="n">d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">gcc</span><span class="o">.</span><span class="n">gfortran</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">EXE</span>
- <span class="o">-</span><span class="n">ffixed</span><span class="o">-</span><span class="n">line</span><span class="o">-</span><span class="n">length</span><span class="o">-</span><span class="mi">0</span> <span class="o">-</span><span class="n">g</span> <span class="o">-</span><span class="n">O3</span>
- <span class="o">-</span><span class="n">I</span><span class="o">.</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">util</span>
- <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">EOS</span> <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">EOS</span><span class="o">/</span><span class="n">gamma_law</span>
- <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">networks</span>
- <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">networks</span><span class="o">/</span><span class="n">general_null</span>
- <span class="o">-</span><span class="n">I</span><span class="o">.</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Src</span><span class="o">/</span><span class="n">C_BaseLib</span>
- <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Src</span><span class="o">/</span><span class="n">C_AMRLib</span>
- <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Src</span><span class="o">/</span><span class="n">C_BoundaryLib</span> <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Source</span>
- <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Source</span><span class="o">/</span><span class="n">Src_3d</span> <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">Source</span><span class="o">/</span><span class="n">Src_nd</span> <span class="o">-</span><span class="n">I</span><span class="o">../../</span><span class="n">constants</span>
- <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Src</span><span class="o">/</span><span class="n">F_BaseLib</span>
- <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Tools</span><span class="o">/</span><span class="n">C_scripts</span> <span class="o">-</span><span class="n">c</span>
- <span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">EOS</span><span class="o">/</span><span class="n">eos</span><span class="o">.</span><span class="n">f90</span> <span class="o">-</span><span class="n">o</span>
- <span class="n">o</span><span class="o">/</span><span class="mi">3</span><span class="n">d</span><span class="o">.</span><span class="n">Linux</span><span class="o">.</span><span class="n">gcc</span><span class="o">.</span><span class="n">gfortran</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">EXE</span><span class="o">/</span><span class="n">eos</span><span class="o">.</span><span class="n">o</span>
-<span class="o">../../</span><span class="n">Microphysics</span><span class="o">/</span><span class="n">EOS</span><span class="o">/</span><span class="n">eos</span><span class="o">.</span><span class="n">f90</span><span class="p">:</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">:</span>
-
-   <span class="n">use</span> <span class="n">bl_types</span>
-      <span class="mi">1</span>
-<span class="n">Fatal</span> <span class="n">Error</span><span class="p">:</span> <span class="n">Can</span><span class="s1">&#39;t open module file ‘bl_types.mod’ for reading at (1):</span>
- <span class="n">No</span> <span class="n">such</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">directory</span> <span class="n">compilation</span> <span class="n">terminated</span><span class="o">.</span>
-
-<span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">zingale</span><span class="o">/</span><span class="n">development</span><span class="o">/</span><span class="n">BoxLib</span><span class="o">//</span><span class="n">Tools</span><span class="o">/</span><span class="n">C_mk</span><span class="o">/</span><span class="n">Make</span><span class="o">.</span><span class="n">rules</span><span class="p">:</span><span class="mi">122</span><span class="p">:</span> <span class="n">recipe</span>
- <span class="k">for</span> <span class="n">target</span> <span class="s1">&#39;o/3d.Linux.gcc.gfortran.MPI.EXE/eos.o&#39;</span> <span class="n">failed</span>
-</pre></div>
-</div>
-<p>This usually indicates that the build system cannot find a source file
-(note: the problem above is not bl_types, that just seems to be
-the way the error manifests itself). The source files are specified
-in the various Make.package files throughout the
-Castro directory hierarchy. make will look through the
-directories in the VPATH_LOCATIONS to find the files.</p>
+being found.</em></p>
+<p>This usually indicates that the build system cannot find a source file.
+The source files are specified
+in the various <code class="docutils literal notranslate"><span class="pre">Make.package</span></code> files throughout the
+Castro directory hierarchy. make will look through the
+directories in the <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code> to find the files.</p>
 <p>There are 2 things you can do to check what’s happening. First, inspect
-the directories in VPATH_LOCATIONS. This can be done via:</p>
+the directories in <code class="docutils literal notranslate"><span class="pre">VPATH_LOCATIONS</span></code>. This can be done via:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="nb">print</span><span class="o">-</span><span class="n">VPATH_LOCATIONS</span>
 </pre></div>
 </div>
 <p>Next, ask make to tell you where it is finding each of the source
-files. This is done through a script find_files_vpath.py
+files. This is done through a script <code class="docutils literal notranslate"><span class="pre">find_files_vpath.py</span></code>
 that is hooked into Castro’s build system. You can run this as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">file_locations</span>
 </pre></div>
 </div>
 <p>At the end of the report, it will list any files it cannot find in
-the vpath. Some of these are to be expected (like extern.f90
-and buildInfo.cpp—these are written at compiletime. But any
+the vpath. Some of these are to be expected (like <code class="docutils literal notranslate"><span class="pre">extern.f90</span></code>
+and <code class="docutils literal notranslate"><span class="pre">buildInfo.cpp</span></code>—these are written at compile-time. But any
 other missing files need to be investigated.</p>
 </li>
 <li><p><em>I’m still having trouble compiling. How can I find out what
@@ -273,11 +247,11 @@ all of the make variables are set to?</em></p>
 <p>This will tell you the value of all the compilers and their options.</p>
 </li>
 <li><p><em>How do I use a system’s BLAS library instead of compiling and
-linking the one that comes with the StarKiller microphysics?</em></p>
+linking the one that comes with the StarKiller microphysics?</em></p>
 <p>To use a system’s BLAS library, set the Make variable
-USE_SYSTEM_BLAS to TRUE. This will then look at
-the Make variable BLAS_LIBRARY for the library to link
-(defaults to -lopenblas).</p>
+<code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code> to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>. This will then look at
+the Make variable <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> for the library to link
+(defaults to <code class="docutils literal notranslate"><span class="pre">-lopenblas</span></code>).</p>
 </li>
 <li><p><em>How can I check to make sure the function signatures defined
 in C are consistent with their implementations in Fortran?</em></p>
@@ -296,7 +270,7 @@ in C are consistent with their implementations in Fortran?</em></p>
 I get more information?</em></p>
 <p>The best thing to do is to recompile the code with <code class="docutils literal notranslate"><span class="pre">TEST=TRUE</span></code>
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>. This will have AMReX catch the
-signals raised in both C and Fortran functions. Behind the
+signals raised in both C++ and Fortran functions. Behind the
 scenes, this defines the <code class="docutils literal notranslate"><span class="pre">AMREX_TESTING</span></code> preprocessor flag, which
 will initialize memory allocated in fabs or multifabs to
 signaling NaNs (sNaN), and use the <code class="docutils literal notranslate"><span class="pre">BLBackTrace::handler()</span></code>
@@ -318,7 +292,7 @@ DEBUG=TRUE.</p>
 <p>For further capabilities, defining <code class="docutils literal notranslate"><span class="pre">BACKTRACE=TRUE</span></code> enables you
 to get more information than the backtrace of the call stack info by
 instrumenting the code. (This is in C code only). Here is an
-example. You know the line “<code class="docutils literal notranslate"><span class="pre">Real</span> <span class="pre">rho</span> <span class="pre">=</span> <span class="pre">state(cell,0);</span></code>” is
+example. You know the line <code class="docutils literal notranslate"><span class="pre">Real</span> <span class="pre">rho</span> <span class="pre">=</span> <span class="pre">state(cell,0);</span></code> is
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
 it hits the segfault. With <code class="docutils literal notranslate"><span class="pre">BACKTRACE</span></code>, you could do</p>
@@ -331,12 +305,13 @@ it hits the segfault. With <code class="docutils literal notranslate"><span clas
 Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 </pre></div>
 </div>
-<p>The “print” prints to a stack of string, not stdout. When it
-hits the segfault, you will only see the last print out.</p>
+<p>The “print” prints to a stack of string, not stdout. When it hits
+the segfault, you will only see the last print out in the backtrace
+file (e.g. <code class="docutils literal notranslate"><span class="pre">BackTrace.0</span></code>).</p>
 </li>
 <li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
-<p>Given a MultiFab mf, you can dump out the state as:</p>
+<p>Given a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>, you can dump out the state as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">print_state</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">IntVect</span><span class="p">(</span><span class="n">D_DECL</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">)));</span>
 </pre></div>
 </div>
@@ -347,8 +322,8 @@ space. Note that since a multifab exists only on a single level, the
 integer indices here refer to the global index space on that level.</p>
 </li>
 <li><p><em>What if I want to see all the data in a FArrayBox?</em></p>
-<p>You can simply output a FAB to std::cout. Imagine that you
-are in an MFIter loop, with a MultiFab mf:</p>
+<p>You can simply output a FAB to <code class="docutils literal notranslate"><span class="pre">std::cout</span></code>. Imagine that you
+are in an MFIter loop, with a MultiFab <code class="docutils literal notranslate"><span class="pre">mf</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">S</span> <span class="o">=</span> <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
 <span class="n">std</span><span class="p">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">S</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="p">::</span><span class="n">endl</span><span class="p">;</span>
 </pre></div>
@@ -366,8 +341,8 @@ by compiling with</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_GPROF</span><span class="o">=</span><span class="n">TRUE</span>
 </pre></div>
 </div>
-<p>in your GNUmakefile.</p>
-<p>When you run, a file named gmon.out will be produced. This can
+<p>in your <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
+<p>When you run, a file named <code class="docutils literal notranslate"><span class="pre">gmon.out</span></code> will be produced. This can
 be processed with gprof by running:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gprof</span> <span class="n">exec</span><span class="o">-</span><span class="n">name</span>
 </pre></div>
@@ -383,7 +358,7 @@ argument to gprof.</p>
 <ol class="arabic">
 <li><p><em>How can I force the running code to output, even it the plot or
 checkpoint interval parameters don’t require it?</em></p>
-<p>Create a file called dump_and_continue, e.g., as:</p>
+<p>Create a file called <code class="docutils literal notranslate"><span class="pre">dump_and_continue</span></code>, e.g., as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">touch</span> <span class="n">dump_and_continue</span>
 </pre></div>
 </div>
@@ -397,7 +372,7 @@ check will be done at the end of every timestep that is a multiple of 10.
 Set that to 1 in your inputs file if you’d like it to check every timestep.</p>
 </li>
 <li><p><em>How can I output plotfiles in single precision?</em></p>
-<p>The AMReX runtime parameter:</p>
+<p>The AMReX runtime parameter:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fab</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="n">NATIVE_32</span>
 </pre></div>
 </div>
@@ -440,8 +415,8 @@ to enable the Dac8Bit option. The section will look like:</p>
 <span class="n">EndSection</span>
 </pre></div>
 </div>
-<p>If you don’t already have an xorg.conf then you can create one
-by running nvidia-xconfig first.</p>
+<p>If you don’t already have an <code class="docutils literal notranslate"><span class="pre">xorg.conf</span></code> then you can create one
+by running <code class="docutils literal notranslate"><span class="pre">nvidia-xconfig</span></code> first.</p>
 </li>
 </ol>
 </div>

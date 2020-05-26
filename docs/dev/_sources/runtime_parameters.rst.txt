@@ -84,7 +84,7 @@ namespace: ``castro``
 |                                        | Colella \& Woodward ppm; 2: extrema-preserving ppm      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``mhd_plm_slope``                      | MHD plm slopes: 0 zero slope 1 vanleer 2 centered, no   | 1             |
-|                                        | limit                                                   |               |
+|                                        | limit 3 2nd order MC limiter                            |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``ppm_temp_fix``                       | various methods of giving temperature a larger role in  | 0             |
 |                                        | the reconstruction---see Zingale \& Katz 2015           |               |

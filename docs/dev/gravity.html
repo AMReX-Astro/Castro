@@ -39,7 +39,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Diffusion" href="diffusion.html" />
-    <link rel="prev" title="Hydrodynamics" href="Hydrodynamics.html" /> 
+    <link rel="prev" title="MHD" href="mhd.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -114,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Gravity</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#gravity-types">Gravity Types</a></li>
@@ -276,7 +277,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</p></li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[6]</a>. Briefly:</p>
+the discussion in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[7]</a>. Briefly:</p>
 <ul>
 <li><p>At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
@@ -321,7 +322,7 @@ all time.</p>
 of the full Poisson solve / multigrid solver is controlled by
 <code class="docutils literal notranslate"><span class="pre">gravity.no_sync</span></code> and <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code>.</p></li>
 <li><p>For isolated boundary conditions, and when
-<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type``=</span>&#160; <span class="pre">``PoissonGrav</span></code>, the parameters
+<code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>, the parameters
 <code class="docutils literal notranslate"><span class="pre">gravity.max_multipole_order</span></code> and
 <code class="docutils literal notranslate"><span class="pre">gravity.direct_sum_bcs</span></code> control the accuracy of
 the Dirichlet boundary conditions. These are described in
@@ -352,11 +353,11 @@ reasonable default value), and then the absolute tolerance used by
 the multigrid solve is <code class="docutils literal notranslate"><span class="pre">abs_tol</span></code> <span class="math notranslate nohighlight">\(\times 4\pi G\,
 \rho_{\text{max}}\)</span> where <span class="math notranslate nohighlight">\(\rho_{\text{max}}\)</span> is the maximum
 value of the density on the domain. On fine levels, this absolute
-tolerance is multiplied by (<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>):sup:<cite>2</cite> to account
+tolerance is multiplied by <span class="math notranslate nohighlight">\((\mathtt{ref\_ratio})^2\)</span> to account
 for the change in the absolute scale of the Laplacian operator. You
 can also specify an array of values for <code class="docutils literal notranslate"><span class="pre">abs_tol</span></code>, one for each
 possible level in the simulation, and then the scaling by
-(<code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>):sup:<cite>2</cite> is not applied.</p></li>
+<span class="math notranslate nohighlight">\((\mathtt{ref\_ratio})^2\)</span> is not applied.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity.rel_tol</span></code> : if <code class="docutils literal notranslate"><span class="pre">gravity.gravity_type</span></code> = <code class="docutils literal notranslate"><span class="pre">PoissonGrav</span></code>,
 this is the relative tolerance for the Poisson solve. By default it
 is zero. You can specify a single value for this tolerance and it
@@ -495,7 +496,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id2">[31]</a>.</p>
+is <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id2">[33]</a>.</p>
 <ul>
 <li><p><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -634,8 +635,8 @@ GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<a class="bibtex reference internal" href="zreferences.html#grbk1" id="id5">[33]</a>. For detailed physics, please refer to
-<a class="bibtex reference internal" href="zreferences.html#grbk2" id="id6">[45]</a>. For describing very strong gravitational
+<a class="bibtex reference internal" href="zreferences.html#grbk1" id="id5">[35]</a>. For detailed physics, please refer to
+<a class="bibtex reference internal" href="zreferences.html#grbk2" id="id6">[47]</a>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -754,7 +755,7 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<a class="bibtex reference internal" href="zreferences.html#katzthesis" id="id7">[30]</a> for some more details.</p></li>
+<a class="bibtex reference internal" href="zreferences.html#katzthesis" id="id7">[32]</a> for some more details.</p></li>
 </ul>
 <dl class="footnote brackets">
 <dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>
@@ -782,7 +783,7 @@ Minnesota.</p>
         <a href="diffusion.html" class="btn btn-neutral float-right" title="Diffusion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Hydrodynamics.html" class="btn btn-neutral float-left" title="Hydrodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mhd.html" class="btn btn-neutral float-left" title="MHD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

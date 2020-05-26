@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Gravity" href="gravity.html" />
+    <link rel="next" title="MHD" href="mhd.html" />
     <link rel="prev" title="Offloading a routine to GPU" href="gpu_porting.html" /> 
 </head>
 
@@ -139,6 +139,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#hybrid-momentum">Hybrid Momentum</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -364,7 +365,7 @@ present in <code class="docutils literal notranslate"><span class="pre">NQSRC</s
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-primlist"></span><table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 23 </span><span class="caption-text">The integer variable keys for accessing the primitive state vector.</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 23 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 33%" />
 <col style="width: 34%" />
@@ -709,7 +710,7 @@ keys for the different quantities are listed in <a class="reference internal" hr
 <p>This has two benefits. First, for a general equation of state,
 carrying around an additional thermodynamic quantity allows us to
 avoid equation of state calls (in particular, in the Riemann solver,
-see e.g. <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id1">[13]</a>). Second, it is sometimes the case that the
+see e.g. <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id1">[14]</a>). Second, it is sometimes the case that the
 internal energy calculated as</p>
 <div class="math notranslate nohighlight">
 \[e_T \equiv E - \frac{1}{2} \mathbf{v}^2\]</div>
@@ -721,7 +722,7 @@ other source terms, these can indirectly alter the value of the
 internal energy if obtained from the total energy.</p>
 <p>To provide a more reasonable internal energy for defining the
 thermodynamic state, we have implemented the dual energy formalism
-from ENZO <a class="bibtex reference internal" href="zreferences.html#bryan-1995" id="id2">[9]</a>, <a class="bibtex reference internal" href="zreferences.html#bryan-2014" id="id3">[8]</a>, where we switch
+from ENZO <a class="bibtex reference internal" href="zreferences.html#bryan-1995" id="id2">[10]</a>, <a class="bibtex reference internal" href="zreferences.html#bryan-2014" id="id3">[9]</a>, where we switch
 between <span class="math notranslate nohighlight">\((\rho e)\)</span> and <span class="math notranslate nohighlight">\((\rho e_T)\)</span> depending on the local
 state of the fluid. To do so, we define parameters <span class="math notranslate nohighlight">\(\eta_1\)</span>,
 <span class="math notranslate nohighlight">\(\eta_2\)</span>, and <span class="math notranslate nohighlight">\(\eta_3\)</span>, corresponding to the code
@@ -904,7 +905,7 @@ Then we use the EOS to compute <span class="math notranslate nohighlight">\(p,T 
 <p>We also compute the flattening coefficient, <span class="math notranslate nohighlight">\(\chi\in[0,1]\)</span>, used in
 the edge state prediction to further limit slopes near strong shocks.
 We use the same flattening procedure described in the the the original
-PPM paper <a class="bibtex reference internal" href="zreferences.html#ppm" id="id4">[15]</a> and the Flash paper <a class="bibtex reference internal" href="zreferences.html#flash" id="id5">[20]</a>.
+PPM paper <a class="bibtex reference internal" href="zreferences.html#ppm" id="id4">[16]</a> and the Flash paper <a class="bibtex reference internal" href="zreferences.html#flash" id="id5">[21]</a>.
 A flattening coefficient of 1 indicates that no additional limiting
 takes place; a flattening coefficient of 0 means we effectively drop
 order to a first-order Godunov scheme (this convention is opposite of
@@ -948,15 +949,15 @@ near shocks (0 or 1; default 1)</p></li>
 <p>We wish to compute a left and right state of primitive variables at
 each edge to be used as inputs to the Riemann problem. There
 are several reconstruction techniques, a piecewise
-linear method that follows the description in <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id6">[12]</a>,
-the classic PPM limiters <a class="bibtex reference internal" href="zreferences.html#ppm" id="id7">[15]</a>, and the new PPM limiters introduced
-in <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id8">[14]</a>. The choice of
+linear method that follows the description in <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id6">[13]</a>,
+the classic PPM limiters <a class="bibtex reference internal" href="zreferences.html#ppm" id="id7">[16]</a>, and the new PPM limiters introduced
+in <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id8">[15]</a>. The choice of
 limiters is determined by castro.ppm_type.</p>
 <p>For the new PPM limiters, we have further modified the method
-of <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id9">[14]</a> to eliminate sensitivity due to roundoff error
+of <a class="bibtex reference internal" href="zreferences.html#colellasekora" id="id9">[15]</a> to eliminate sensitivity due to roundoff error
 (modifications via personal communication with Colella).</p>
 <p>We also use characteristic tracing with corner coupling in 3D, as
-described in Miller &amp; Colella (2002) <a class="bibtex reference internal" href="zreferences.html#millercolella-2002" id="id10">[34]</a>. We
+described in Miller &amp; Colella (2002) <a class="bibtex reference internal" href="zreferences.html#millercolella-2002" id="id10">[36]</a>. We
 give full details of the new PPM algorithm, as it has not appeared before
 in the literature, and summarize the developments from Miller &amp;
 Colella.</p>
@@ -1158,7 +1159,7 @@ its transverse update.</p></li>
 <div class="section" id="riemann-problem">
 <h3>Riemann Problem<a class="headerlink" href="#riemann-problem" title="Permalink to this headline">¶</a></h3>
 <p>Castro has three main options for the Riemann solver—the
-Colella &amp; Glaz solver <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id11">[13]</a> (the same solver used
+Colella &amp; Glaz solver <a class="bibtex reference internal" href="zreferences.html#colglaz" id="id11">[14]</a> (the same solver used
 by Flash), a simpler solver described in an unpublished
 manuscript by Colella, Glaz, &amp; Ferguson, and an HLLC
 solver. The first two are both
@@ -1255,8 +1256,8 @@ geometries because it relies on the pressure term being part of the flux
 in the momentum equation.</p></li>
 </ul>
 <p>The default is to use the solver based on an unpublished Colella,
-Glaz, &amp; Ferguson manuscript (it also appears in <a class="bibtex reference internal" href="zreferences.html#pember-1996" id="id12">[2]</a>),
-as described in the original Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id13">[6]</a>.</p>
+Glaz, &amp; Ferguson manuscript (it also appears in <a class="bibtex reference internal" href="zreferences.html#pember-1996" id="id12">[3]</a>),
+as described in the original Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id13">[7]</a>.</p>
 <p>The Colella &amp; Glaz solver is iterative, and two runtime parameters are used
 to control its behavior:</p>
 <ul>
@@ -1353,7 +1354,7 @@ cases. Additionally, it is not specified at all how to reset momenta
 in such a case. Consequently, we desired to improve the situation by
 limiting fluxes such that negative densities could not occur, so that
 such a reset would in practice always be avoided. Our solution
-implements the positivity-preserving method of <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id14">[26]</a>. This
+implements the positivity-preserving method of <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id14">[28]</a>. This
 behavior is controlled by
 castro.limit_fluxes_on_small_dens.</p>
 <p>A hydrodynamical update to a zone can be broken down into an update
@@ -1383,21 +1384,21 @@ hold. In regions where the density is not at risk of going negative,
 <span class="math notranslate nohighlight">\(\theta \approx 1\)</span> and the original hydrodynamic update is recovered.
 Further discussion, including a proof of the method, a description of
 multi-dimensional effects, and test verification problems, can be
-found in <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id15">[26]</a>.</p>
+found in <a class="bibtex reference internal" href="zreferences.html#hu-2013" id="id15">[28]</a>.</p>
 </div>
 </div>
 <div class="section" id="hybrid-momentum">
 <h2>Hybrid Momentum<a class="headerlink" href="#hybrid-momentum" title="Permalink to this headline">¶</a></h2>
-<p>Castro implements the hybrid momentum scheme of <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id16">[10]</a>.
+<p>Castro implements the hybrid momentum scheme of <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id16">[11]</a>.
 In particular, this switches from using the Cartesian momenta,
 <span class="math notranslate nohighlight">\((\rho u)\)</span>, <span class="math notranslate nohighlight">\((\rho v)\)</span>, and <span class="math notranslate nohighlight">\((\rho w)\)</span>, to a
 cylindrical momentum set, <span class="math notranslate nohighlight">\((\rho v_R)\)</span>, <span class="math notranslate nohighlight">\((\rho R v_\phi)\)</span>,
 and <span class="math notranslate nohighlight">\((\rho v_z)\)</span>.  This latter component is identical to the
 Cartesian value.  We translate between these sets of momentum throughout the code,
 ultimately doing the conservative update in terms of the cylindrical momentum.  Additional
-source terms appear in this formulation, which are written out in <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id17">[10]</a>.</p>
+source terms appear in this formulation, which are written out in <a class="bibtex reference internal" href="zreferences.html#byerly-2014" id="id17">[11]</a>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">rotating_torus</span></code> problem gives a good test for this.  This problem
-originated with <a class="bibtex reference internal" href="zreferences.html#papaloizoupringle" id="id18">[39]</a>.  The
+originated with <a class="bibtex reference internal" href="zreferences.html#papaloizoupringle" id="id18">[41]</a>.  The
 problem is initialized as a torus with constant specific angular
 momentum, as shown below:</p>
 <div class="figure align-default" id="id23">
@@ -1436,7 +1437,7 @@ the initial torus is largely intact.</span><a class="headerlink" href="#id25" ti
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="gravity.html" class="btn btn-neutral float-right" title="Gravity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mhd.html" class="btn btn-neutral float-right" title="MHD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="gpu_porting.html" class="btn btn-neutral float-left" title="Offloading a routine to GPU" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

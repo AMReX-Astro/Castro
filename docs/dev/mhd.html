@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Reactions &mdash; Castro  documentation</title>
+  <title>MHD &mdash; Castro  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
   <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="File Castro_react.H" href="file/Castro__react_8H.html" />
-    <link rel="prev" title="File rad_util.H" href="file/rad__util_8H.html" /> 
+    <link rel="next" title="Gravity" href="gravity.html" />
+    <link rel="prev" title="Hydrodynamics" href="Hydrodynamics.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -79,7 +79,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../reactions_files.html">master</a> | <a href="./reactions_files.html">development</a>
+        Branch: <a href="../mhd.html">master</a> | <a href="./mhd.html">development</a>
     </div>
 
         </div>
@@ -109,12 +109,19 @@
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Castro reference</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MHD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#equations-and-data-structures">Equations and Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#problem-initialization">Problem Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hydrodynamics-update">Hydrodynamics Update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#electric-update">Electric Update</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -131,26 +138,8 @@
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="filelist.html">File list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="diffusion_files.html">Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="driver_files.html">Driver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="gravity_files.html">Gravity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hydro_files.html">Hydro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="mhd_files.html">Mhd</a></li>
-<li class="toctree-l2"><a class="reference internal" href="particles_files.html">Particles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="problems_files.html">Problems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="radiation_files.html">Radiation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Reactions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="file/Castro__react_8H.html">File Castro_react.H</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="rotation_files.html">Rotation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scf_files.html">Scf</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sdc_files.html">Sdc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sources_files.html">Sources</a></li>
-</ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
@@ -201,15 +190,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="filelist.html">File list</a> &raquo;</li>
-        
-      <li>Reactions</li>
+      <li>MHD</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/reactions_files.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/mhd.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -222,12 +209,96 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="reactions">
-<h1>Reactions<a class="headerlink" href="#reactions" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="file/Castro__react_8H.html">File Castro_react.H</a></li>
+  <div class="section" id="mhd">
+<span id="ch-mhd"></span><h1>MHD<a class="headerlink" href="#mhd" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Castro implements a constrained transport (CT) corner transport upwind
+(CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
+<a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id1">[2]</a>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
+same driver as the CTU hydrodynamics solver.  This means that all of
+the source terms supported by the hydrodynamics solver are also
+supported by MHD.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The MHD solver supports 3-d only.</p>
+<p>Currently the MHD solver is single-level only.  AMR support is forthcoming.</p>
+</div>
+</div>
+<div class="section" id="equations-and-data-structures">
+<h2>Equations and Data Structures<a class="headerlink" href="#equations-and-data-structures" title="Permalink to this headline">¶</a></h2>
+<p>The ideal MHD equations we solve appear as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+\frac{\partial \rho X_k}{\partial t} + \frac{\partial}{\partial x_j} ( \rho U_j X_k) &amp;= \rho \omegadot_k \\
+\frac{\partial \rho U_j}{\partial t} + \frac{\partial}{\partial x_j} (\rho U_i U_j + p \delta_{ij} - B_j B_i) &amp;= S_{\rho U_j} \\
+\frac{\partial \rho E}{\partial t} + \frac{\partial}{\partial x_j} \left [ U_j (\rho E + p) - B_j B_i u_i \right ] &amp;= S_{\rho E} + \rho H_\mathrm{nuc} \\
+\frac{\partial B_i}{\partial t} &amp;= -\frac{\partial}{\partial x_j} (U_j B_i - B_j U_i)
+\end{align}\end{split}\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight">
+\[p = p_g + \frac{1}{2} B^2\]</div>
+<p>and the <span class="math notranslate nohighlight">\(S\)</span> sources represent the hydrodynamical sources and
+the remainder are reaction sources.  The MHD solver uses the same
+time-advancement driver as the hydrodynamic CTU driver
+(<a class="reference internal" href="FlowChart.html#sec-strangctu"><span class="std std-ref">CTU w/ Strang-split Reactions Flowchart</span></a>), using Strang splitting for the reactions (by
+default).</p>
+<p>The constrained transport algorithm algebraically ensures that
+<span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.  Throughout the algorithm, the
+magnetic fields are face-centered, the electric fields are
+edge-centered, and the conserved state is cell-centered (or averages),
+unless specified otherwise.  We use the following indexing
+conventions:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">U(i,j,k)</span></code> is the cell-centered state, <span class="math notranslate nohighlight">\(U_{i,j,k}\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qleft(i,j,k)</span></code> is the interface value of a state, for example,
+in the x-direction this would be <span class="math notranslate nohighlight">\(q_{i-1/2,j,k}\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Bx(i,j,k)</span></code> is the face-centered x-component of the magnetic field,
+<span class="math notranslate nohighlight">\(B_{x,i-1/2,j,k}\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ex(i,j,k)</span></code> is the edge-centered x-component of the electric field,
+<span class="math notranslate nohighlight">\(E_{x,i,j-1/2,k-1/2}\)</span></p></li>
 </ul>
+</div></blockquote>
+</div>
+<div class="section" id="problem-initialization">
+<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
+<p id="index-0">There is an additional initialization routine for MHD, <code class="docutils literal notranslate"><span class="pre">ca_initmag</span></code>
+that is used to initialize the face-centered magnetic field
+components.  This is done separately from the main conserved fluid
+state.</p>
+<p>The conserved fluid state is initialized in <code class="docutils literal notranslate"><span class="pre">ca_initdata</span></code> just as
+with pure hydrodynamics problems.  The one change is the when
+initializing the total energy density, <code class="docutils literal notranslate"><span class="pre">UEDEN</span></code>, you need to include
+the magnetic energy contribution.</p>
+</div>
+<div class="section" id="hydrodynamics-update">
+<h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this headline">¶</a></h2>
+<p>We use piecewise linear reconstruction with a characteristic projection
+and the full 12-Riemann solve corner transport upwind method.  The HLLD
+Riemann solver is used.</p>
+<p>Within the solver, we use the same indexing into the primitive state
+as defined in <a class="reference internal" href="Hydrodynamics.html#table-primlist"><span class="std std-ref">Primitive State Vector Integer Keys</span></a>, with the additions of <code class="docutils literal notranslate"><span class="pre">QMAGX</span></code>,
+<code class="docutils literal notranslate"><span class="pre">QMAGY</span></code>, and <code class="docutils literal notranslate"><span class="pre">QMAGZ</span></code> for the cell-centered magnetic field
+components and <code class="docutils literal notranslate"><span class="pre">QPTOT</span></code> for the total pressure (gas + magnetic).</p>
+<p>The slope limiting for the controlled by the <code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span></code> variable:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">0</span></code> : piecewise constant slopes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">1</span></code> : van Leer limiter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">2</span></code> : unlimited center difference</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">3</span></code> : 2nd order MC limiter</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="electric-update">
+<h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this headline">¶</a></h2>
+<p>Coupled to the hydrodynamics update is the electric field update.
+Here we update the components of E using the contact upwind scheme
+first proposed in <a class="bibtex reference internal" href="zreferences.html#gs2005" id="id2">[23]</a>.  The updated electric field then
+gives the magnetic field via Faraday’s law and the discretization ensures
+that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </div>
 </div>
 
@@ -239,10 +310,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="file/Castro__react_8H.html" class="btn btn-neutral float-right" title="File Castro_react.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gravity.html" class="btn btn-neutral float-right" title="Gravity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="file/rad__util_8H.html" class="btn btn-neutral float-left" title="File rad_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Hydrodynamics.html" class="btn btn-neutral float-left" title="Hydrodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

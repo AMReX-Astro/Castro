@@ -121,6 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -449,7 +450,7 @@ problems are:</p>
 <p>A pressureless cloud collapse that is a standard test problem for
 gravity. An analytic solution that describes the radius of the
 sphere as a function of time is found in Colgate and
-White <a class="bibtex reference internal" href="zreferences.html#colgwhite" id="id2">[16]</a>. This problem is also found
+White <a class="bibtex reference internal" href="zreferences.html#colgwhite" id="id2">[17]</a>. This problem is also found
 in the FLASH User’s Guide.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>:</p>
@@ -479,13 +480,13 @@ atmosphere.  This uses the multigamma EOS.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">oddeven</span></code>:</p>
 <p>A grid-aligned shock hitting a very small density perturbation.
 This demonstrates the odd-even decoupling problem discussed in
-<a class="bibtex reference internal" href="zreferences.html#quirk1997" id="id3">[3]</a>. This setup serves to test the
+<a class="bibtex reference internal" href="zreferences.html#quirk1997" id="id3">[4]</a>. This setup serves to test the
 castro.hybrid_riemann option to hydrodynamics.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>:</p>
 <p>A reacting bubble in a stratified white dwarf atmosphere. This
 problem was featured in the Maestro reaction
-paper <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id4">[7]</a>.</p>
+paper <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id4">[8]</a>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>:</p>
 <p>A single-model Rayleigh-Taylor instability problem.</p>
@@ -493,7 +494,7 @@ paper <a class="bibtex reference internal" href="zreferences.html#maestro-iii" i
 <li><p><code class="docutils literal notranslate"><span class="pre">RT_particles</span></code>:</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>:</p>
 <p>The standard Sedov-Taylor blast wave problem. This setup was used
-in the first Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id5">[6]</a>.</p>
+in the first Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id5">[7]</a>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod</span></code>:</p>
 <p>A one-dimensional shock tube setup, including the classic Sod
@@ -502,7 +503,7 @@ problem. This setup was used in the original Castro paper.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>:</p>
 <p>A version of the Sod shock tube for the general stellar equation
 of state. This setup and the included inputs files was used
-in <a class="bibtex reference internal" href="zreferences.html#zingalekatz" id="id6">[46]</a>.</p>
+in <a class="bibtex reference internal" href="zreferences.html#zingalekatz" id="id6">[48]</a>.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>:</p>
 <p>A simple nova-like convection problem with an external heating
