@@ -92,6 +92,8 @@ contains
              ! We don't apply in the case of the conservative energy
              ! formulation.
 
+             Real SrE;
+
              if (rot_source_type == 1 .or. rot_source_type == 2) then
 
                 SrE = dot_product(uold(i,j,k,UMX:UMZ) * rhoInv, Sr)
