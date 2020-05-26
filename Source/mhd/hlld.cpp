@@ -187,8 +187,8 @@ Castro::hlld(const Box& bx,
 
     // Density eq.(43)
 
-    UsL(URHO) = qL(QRHO) * ((sL - qL(QVELN)) / (sL - sM));
-    UsR(URHO) = qR(QRHO) * ((sR - qR(QVELN)) / (sR - sM));
+    UsL(URHO) = amrex::max(small_dens, qL(QRHO) * ((sL - qL(QVELN)) / (sL - sM)));
+    UsR(URHO) = amrex::max(small_dens, qR(QRHO) * ((sR - qR(QVELN)) / (sR - sM)));
 
     // Species * states
 
