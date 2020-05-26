@@ -89,6 +89,23 @@ We use piecewise linear reconstruction with a characteristic projection
 and the full 12-Riemann solve corner transport upwind method.  The HLLD
 Riemann solver is used.
 
+Within the solver, we use the same indexing into the primitive state
+as defined in :ref:`table:primlist`, with the additions of ``QMAGX``,
+``QMAGY``, and ``QMAGZ`` for the cell-centered magnetic field
+components and ``QPTOT`` for the total pressure (gas + magnetic).
+
+The slope limiting for the controlled by the ``mhd_plm_slope`` variable:
+
+  * ``mhd_plm_slope = 0`` : piecewise constant slopes
+  * ``mhd_plm_slope = 1`` : van Leer limiter
+  * ``mhd_plm_slope = 2`` : unlimited center difference
+  * ``mhd_plm_slope = 3`` : 2nd order MC limiter
 
 Electric Update
 ===============
+
+Coupled to the hydrodynamics update is the electric field update.
+Here we update the components of E using the contact upwind scheme
+first proposed in :cite:`GS2005`.  The updated electric field then
+gives the magnetic field via Faraday's law and the discretization ensures
+that :math:`\nabla \cdot {\bf B} = 0`.
