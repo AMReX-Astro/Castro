@@ -20,6 +20,20 @@
         amrex::Array4<amrex::Real const> const& srcQ,
         const amrex::Real dt);
 
+    void
+    ppm_mhd(const amrex::Box& bx,
+            const int idir,
+            amrex::Array4<amrex::Real const> const& q_arr,
+            amrex::Array4<amrex::Real const> const& qaux,
+            amrex::Array4<amrex::Real const> const& flatn,
+            amrex::Array4<amrex::Real const> const& Bx,
+            amrex::Array4<amrex::Real const> const& By,
+            amrex::Array4<amrex::Real const> const& Bz,
+            amrex::Array4<amrex::Real> const& qleft,
+            amrex::Array4<amrex::Real> const& qright,
+            amrex::Array4<amrex::Real const> const& srcQ,
+            const amrex::Real dt);
+
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     evals(amrex::Array1D<amrex::Real, 0, NEIGN-1>& lam,

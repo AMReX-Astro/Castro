@@ -158,4 +158,36 @@ ppm_int_profile(const Real sm, const Real sp, const Real sc,
 }
 
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
+                       const Real lam, const Real dtdx,
+                       Real& Ip, Real& Im) {
+
+  // Integrate the parabolic profile to the edge of the cell.
+  // This is the MHD version.  We come in already with the eigenvalues.
+
+  // compute x-component of Ip and Im
+  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+
+  // Ip/m is the integral under the parabola for the extent
+  // that a wave can travel over a timestep
+  //
+  // Ip integrates to the right edge of a cell
+  // Im integrates to the left edge of a cell
+
+  Real speed = lam;
+  Real sigma = std::abs(speed) * dtdx;
+
+  // if speed == ZERO, then either branch is the same
+  if (speed <= 0.0_rt) {
+    Ip = sp;
+    Im = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+  } else {
+    Ip = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+    Im = sm;
+  }
+
+}
+
 #endif
