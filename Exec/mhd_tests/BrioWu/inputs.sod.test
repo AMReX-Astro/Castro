@@ -49,7 +49,7 @@ amr.check_file      = sod_x_chk  # root name of checkpoint file
 amr.check_int       = 10         # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_files_output = 0
+amr.plot_files_output = 1
 amr.checkpoint_files_output = 0
 
 amr.plot_file       = sod_x_plt  # root name of plotfile
