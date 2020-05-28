@@ -1,7 +1,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#include "fundamental_constants.H"
 #include "Gravity.H"
+#include "fundamental_constants.H"
 
 using namespace amrex;
 
@@ -16,7 +16,8 @@ void Castro::scf_relaxation() {
     // Maximum density must be set.
 
     if (scf_maximum_density <= 0) {
-        amrex::Error("castro.scf_maximum_density must be set for SCF relaxation.");
+        amrex::Error(
+            "castro.scf_maximum_density must be set for SCF relaxation.");
     }
 
     // Equatorial radius and polar radius must both
@@ -32,7 +33,9 @@ void Castro::scf_relaxation() {
     }
 
     if (scf_polar_radius > scf_equatorial_radius) {
-        amrex::Error("Polar radius must not be larger than equatorial radius for SCF relaxation.");
+        amrex::Error(
+            "Polar radius must not be larger than equatorial radius for SCF "
+            "relaxation.");
     }
 
     // Now do the SCF solve.
@@ -42,23 +45,20 @@ void Castro::scf_relaxation() {
     // Update the gravitational field. Since we don't need this
     // during the iterations, we only do it once at the end.
 
-    for (int lev = 0; lev <= parent->finestLevel(); ++lev)
-    {
+    for (int lev = 0; lev <= parent->finestLevel(); ++lev) {
         MultiFab& grav_new = getLevel(lev).get_new_data(Gravity_Type);
-        gravity->get_new_grav_vector(lev, grav_new, getLevel(lev).state[Gravity_Type].curTime());
+        gravity->get_new_grav_vector(
+            lev, grav_new, getLevel(lev).state[Gravity_Type].curTime());
     }
 
     // Perform a final pass to ensure we're consistent with AMR.
 
-    for (int lev = parent->finestLevel()-1; lev >= 0; --lev) {
+    for (int lev = parent->finestLevel() - 1; lev >= 0; --lev) {
         getLevel(lev).avgDown();
     }
-
 }
 
-void
-Castro::do_hscf_solve()
-{
+void Castro::do_hscf_solve() {
 
     const int finest_level = parent->finestLevel();
     const int n_levs = finest_level + 1;
@@ -92,28 +92,26 @@ Castro::do_hscf_solve()
         MultiFab& state_new = getLevel(lev).get_new_data(State_Type);
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:target_h_max)
+#pragma omp parallel reduction(max : target_h_max)
 #endif
         for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& bx = mfi.tilebox();
 
-            scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+            scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()),
+                                       AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                                       scf_maximum_density,
-                                       &target_h_max);
-
+                                       scf_maximum_density, &target_h_max);
         }
-
     }
 
     ParallelDescriptor::ReduceRealMax(target_h_max);
 
-    Vector< std::unique_ptr<MultiFab> > psi(n_levs);
-    Vector< std::unique_ptr<MultiFab> > enthalpy(n_levs);
-    Vector< std::unique_ptr<MultiFab> > state_vec(n_levs);
-    Vector< std::unique_ptr<MultiFab> > phi(n_levs);
-    Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
+    Vector<std::unique_ptr<MultiFab> > psi(n_levs);
+    Vector<std::unique_ptr<MultiFab> > enthalpy(n_levs);
+    Vector<std::unique_ptr<MultiFab> > state_vec(n_levs);
+    Vector<std::unique_ptr<MultiFab> > phi(n_levs);
+    Vector<std::unique_ptr<MultiFab> > phi_rot(n_levs);
 
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
@@ -131,29 +129,31 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            psi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            psi[lev].reset(
+                new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
 
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*psi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*psi[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()),
+                                       AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
                                        AMREX_ZFILL(dx), time);
-
             }
-
         }
 
         // Construct a local MultiFab for the enthalpy.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            enthalpy[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            enthalpy[lev].reset(
+                new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
         }
 
         // Construct a local MultiFab for the state data. We do
@@ -162,21 +162,29 @@ Castro::do_hscf_solve()
         // copy of the data to work with.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            state_vec[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
-            phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
-            phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            state_vec[lev].reset(new MultiFab(
+                getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+            phi[lev].reset(
+                new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
+            phi_rot[lev].reset(
+                new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
         }
 
         // Copy in the state data. Mask it out on coarse levels.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab::Copy((*state_vec[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
-            MultiFab::Copy((*phi[lev]), getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1, 0);
-            MultiFab::Copy((*phi_rot[lev]), getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
+            MultiFab::Copy((*state_vec[lev]),
+                           getLevel(lev).get_new_data(State_Type), 0, 0,
+                           NUM_STATE, 0);
+            MultiFab::Copy((*phi[lev]),
+                           getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1,
+                           0);
+            MultiFab::Copy((*phi_rot[lev]),
+                           getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
 
             if (lev < finest_level) {
-                const MultiFab& mask = getLevel(lev+1).build_fine_mask();
+                const MultiFab& mask = getLevel(lev + 1).build_fine_mask();
 
                 for (int n = 0; n < NUM_STATE; ++n) {
                     MultiFab::Multiply((*state_vec[lev]), mask, 0, n, 1, 0);
@@ -185,7 +193,6 @@ Castro::do_hscf_solve()
                 MultiFab::Multiply((*phi[lev]), mask, 0, 0, 1, 0);
                 MultiFab::Multiply((*phi_rot[lev]), mask, 0, 0, 1, 0);
             }
-
         }
 
         // First step is to find the rotational frequency.
@@ -200,20 +207,20 @@ Castro::do_hscf_solve()
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:phi_A, psi_A, phi_B, psi_B)
+#pragma omp parallel reduction(+ : phi_A, psi_A, phi_B, psi_B)
 #endif
-            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                scf_update_for_omegasq(AMREX_ARLIM_ANYD(bx.loVect()),
+                                       AMREX_ARLIM_ANYD(bx.hiVect()),
                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                        BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx),
-                                       &phi_A, &psi_A, &phi_B, &psi_B);
-
+                                       AMREX_ZFILL(dx), &phi_A, &psi_A, &phi_B,
+                                       &psi_B);
             }
-
         }
 
         ParallelDescriptor::ReduceRealSum(phi_A);
@@ -227,7 +234,9 @@ Castro::do_hscf_solve()
         // rotation module knows to treat rotational_period = 0 as effectively disabling
         // rotation, we'll use that approach.
 
-        if (std::abs(scf_polar_radius - scf_equatorial_radius) / std::abs(scf_equatorial_radius) < 1.e-6) {
+        if (std::abs(scf_polar_radius - scf_equatorial_radius) /
+                std::abs(scf_equatorial_radius) <
+            1.e-6) {
 
             rotational_period = 0.0;
 
@@ -236,7 +245,9 @@ Castro::do_hscf_solve()
             Real omegasq = -(phi_A - phi_B) / (psi_A - psi_B);
 
             if (omegasq < 0.0 && ParallelDescriptor::IOProcessor()) {
-                std::cerr << "Omega squared = " << omegasq << " is negative in the relaxation step; aborting." << std::endl;
+                std::cerr << "Omega squared = " << omegasq
+                          << " is negative in the relaxation step; aborting."
+                          << std::endl;
                 amrex::Error();
             }
 
@@ -245,7 +256,6 @@ Castro::do_hscf_solve()
             // Rotational period is 2 pi / omega.
 
             rotational_period = 2.0 * M_PI / omega;
-
         }
 
         // Now save the updated rotational frequency in the Fortran module.
@@ -262,19 +272,18 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*phi_rot[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi_rot[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                             AMREX_ZFILL(dx), time);
-
+                ca_fill_rotational_potential(
+                    AMREX_ARLIM_ANYD(bx.loVect()),
+                    AMREX_ARLIM_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]), AMREX_ZFILL(dx),
+                    time);
             }
-
         }
-
-
 
         // Second step is to evaluate the Bernoulli constant.
 
@@ -285,24 +294,23 @@ Castro::do_hscf_solve()
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:bernoulli)
+#pragma omp parallel reduction(+ : bernoulli)
 #endif
-            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_get_bernoulli_const(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                        BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                        AMREX_ZFILL(dx), &bernoulli);
-
+                scf_get_bernoulli_const(
+                    AMREX_ARLIM_ANYD(bx.loVect()),
+                    AMREX_ARLIM_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
+                    BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]), AMREX_ZFILL(dx),
+                    &bernoulli);
             }
-
         }
 
         ParallelDescriptor::ReduceRealSum(bernoulli);
-
-
 
         // Third step is to construct the enthalpy field and
         // find the maximum enthalpy for the star.
@@ -316,18 +324,19 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*phi[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_construct_enthalpy(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                       BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
-                                       AMREX_ZFILL(dx), bernoulli);
-
+                scf_construct_enthalpy(
+                    AMREX_ARLIM_ANYD(bx.loVect()),
+                    AMREX_ARLIM_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
+                    BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
+                    BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]), AMREX_ZFILL(dx),
+                    bernoulli);
             }
-
         }
 
         Real actual_h_max = 0.0;
@@ -336,8 +345,8 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
-            actual_rho_max = std::max(actual_rho_max, state_vec[lev]->max(URHO));
-
+            actual_rho_max =
+                std::max(actual_rho_max, state_vec[lev]->max(URHO));
         }
 
         Real Linf_norm = 0.0;
@@ -349,21 +358,20 @@ Castro::do_hscf_solve()
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:Linf_norm)
+#pragma omp parallel reduction(max : Linf_norm)
 #endif
-            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()),
+                                   AMREX_ARLIM_ANYD(bx.hiVect()),
                                    BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
                                    BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
                                    AMREX_ZFILL(dx), actual_rho_max,
-                                   actual_h_max, target_h_max,
-                                   &Linf_norm);
-
+                                   actual_h_max, target_h_max, &Linf_norm);
             }
-
         }
 
         ParallelDescriptor::ReduceRealMax(Linf_norm);
@@ -371,12 +379,15 @@ Castro::do_hscf_solve()
         // Copy state data back to its source, and synchronize it on coarser levels.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state_vec[lev]), 0, 0, NUM_STATE, 0);
-            MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type), (*phi[lev]), 0, 0, 1, 0);
-            MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(State_Type),
+                           (*state_vec[lev]), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type),
+                           (*phi[lev]), 0, 0, 1, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type),
+                           (*phi_rot[lev]), 0, 0, 1, 0);
         }
 
-        for (int lev = finest_level-1; lev >= 0; --lev) {
+        for (int lev = finest_level - 1; lev >= 0; --lev) {
             getLevel(lev).avgDown();
         }
 
@@ -401,21 +412,21 @@ Castro::do_hscf_solve()
             const Real* dx = parent->Geom(lev).CellSize();
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng,mass)
+#pragma omp parallel reduction(+ : kin_eng, pot_eng, int_eng, mass)
 #endif
-            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid();
+                 ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()),
+                                AMREX_ARLIM_ANYD(bx.hiVect()),
                                 BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
                                 BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                 BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                AMREX_ZFILL(dx),
-                                &kin_eng, &pot_eng, &int_eng, &mass);
-
+                                AMREX_ZFILL(dx), &kin_eng, &pot_eng, &int_eng,
+                                &mass);
             }
-
         }
 
         ParallelDescriptor::ReduceRealSum(kin_eng);
@@ -423,7 +434,8 @@ Castro::do_hscf_solve()
         ParallelDescriptor::ReduceRealSum(int_eng);
         ParallelDescriptor::ReduceRealSum(mass);
 
-        Real virial_error = std::abs(2.0 * kin_eng + pot_eng + 3.0 * int_eng) / std::abs(pot_eng);
+        Real virial_error = std::abs(2.0 * kin_eng + pot_eng + 3.0 * int_eng) /
+                            std::abs(pot_eng);
 
         // Now check to see if we're converged.
 
@@ -438,29 +450,31 @@ Castro::do_hscf_solve()
             // Grab the value for the solar mass.
 
             std::cout << std::endl << std::endl;
-            std::cout << "   Relaxation iterations completed: " << j << std::endl;
-            std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
-            std::cout << "   Rotational period (s): " << rotational_period << std::endl;
+            std::cout << "   Relaxation iterations completed: " << j
+                      << std::endl;
+            std::cout
+                << "   L-infinity norm of residual (relative to old state): "
+                << Linf_norm << std::endl;
+            std::cout << "   Rotational period (s): " << rotational_period
+                      << std::endl;
             std::cout << "   Kinetic energy: " << kin_eng << std::endl;
             std::cout << "   Potential energy: " << pot_eng << std::endl;
             std::cout << "   Internal energy: " << int_eng << std::endl;
             std::cout << "   Virial error: " << virial_error << std::endl;
-            std::cout << "   Mass: " << mass / C::M_solar << " solar masses" << std::endl;
+            std::cout << "   Mass: " << mass / C::M_solar << " solar masses"
+                      << std::endl;
 
             if (is_relaxed == 1) {
                 std::cout << "  Relaxation completed!" << std::endl;
             }
 
             std::cout << std::endl << std::endl;
-
         }
 
         if (is_relaxed == 1) break;
 
         j++;
-
     }
-
 }
 #endif
 #endif

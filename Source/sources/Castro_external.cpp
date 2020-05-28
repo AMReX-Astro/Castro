@@ -3,9 +3,8 @@
 
 using namespace amrex;
 
-void
-Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
-{
+void Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in,
+                                      Real time, Real dt) {
     const Real strt_time = ParallelDescriptor::second();
 
     if (!add_ext_src) return;
@@ -20,29 +19,27 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
 
-    if (verbose > 1)
-    {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+    if (verbose > 1) {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction([=]() mutable {
 #endif
-        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+            ParallelDescriptor::ReduceRealMax(run_time, IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_old_ext_source() time = " << run_time << "\n" << "\n";
+            if (ParallelDescriptor::IOProcessor())
+                std::cout << "Castro::construct_old_ext_source() time = "
+                          << run_time << "\n"
+                          << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
 }
 
-
-
-void
-Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
-{
+void Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old,
+                                      MultiFab& state_new, Real time, Real dt) {
     const Real strt_time = ParallelDescriptor::second();
 
     if (!add_ext_src) return;
@@ -90,46 +87,42 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
     MultiFab::Saxpy(source, mult_factor, ext_src, 0, 0, source.nComp(), 0);
 
-    if (verbose > 1)
-    {
-        const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-        Real      run_time = ParallelDescriptor::second() - strt_time;
+    if (verbose > 1) {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real run_time = ParallelDescriptor::second() - strt_time;
 
 #ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction([=]() mutable {
 #endif
-        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
+            ParallelDescriptor::ReduceRealMax(run_time, IOProc);
 
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
+            if (ParallelDescriptor::IOProcessor())
+                std::cout << "Castro::construct_new_ext_source() time = "
+                          << run_time << "\n"
+                          << "\n";
 #ifdef BL_LAZY
         });
 #endif
     }
 }
 
-
-
-void
-Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src)
-{
+void Castro::fill_ext_source(Real time, Real dt, MultiFab& state_old,
+                             MultiFab& state_new, MultiFab& ext_src) {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
+    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
 #pragma gpu box(bx)
-        ca_ext_src
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(state_old[mfi]),
-           BL_TO_FORTRAN_ANYD(state_new[mfi]),
-           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-           AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
+        ca_ext_src(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                   BL_TO_FORTRAN_ANYD(state_old[mfi]),
+                   BL_TO_FORTRAN_ANYD(state_new[mfi]),
+                   BL_TO_FORTRAN_ANYD(ext_src[mfi]), AMREX_REAL_ANYD(prob_lo),
+                   AMREX_REAL_ANYD(dx), time, dt);
     }
 }

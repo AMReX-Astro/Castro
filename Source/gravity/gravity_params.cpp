@@ -5,5 +5,3 @@
 #include <gravity_params.H>
 
 #include <gravity_declares.H>
-
-

@@ -1,8 +1,8 @@
 #include "Castro.H"
-#include "Castro_util.H"
 #include "Castro_F.H"
 #include "Castro_hydro.H"
 #include "Castro_hydro_F.H"
+#include "Castro_util.H"
 
 #ifdef RADIATION
 #include "Radiation.H"
@@ -14,53 +14,54 @@
 
 using namespace amrex;
 
-void
-Castro::construct_ctu_hydro_source(Real time, Real dt)
-{
+void Castro::construct_ctu_hydro_source(Real time, Real dt) {
 
-  BL_PROFILE("Castro::construct_ctu_hydro_source()");
+    BL_PROFILE("Castro::construct_ctu_hydro_source()");
 
-  const Real strt_time = ParallelDescriptor::second();
+    const Real strt_time = ParallelDescriptor::second();
 
-  // this constructs the hydrodynamic source (essentially the flux
-  // divergence) using the CTU framework for unsplit hydrodynamics
+    // this constructs the hydrodynamic source (essentially the flux
+    // divergence) using the CTU framework for unsplit hydrodynamics
 
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "... Entering construct_ctu_hydro_source()" << std::endl
+                  << std::endl;
 
-  hydro_source.setVal(0.0);
+    hydro_source.setVal(0.0);
 
 #ifdef HYBRID_MOMENTUM
-  GeometryData geomdata = geom.data();
+    GeometryData geomdata = geom.data();
 #endif
 
-  int coord = geom.Coord();
+    int coord = geom.Coord();
 
-  const Real *dx = geom.CellSize();
+    const Real* dx = geom.CellSize();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
-  MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef RADIATION
-  MultiFab& Er_new = get_new_data(Rad_Type);
+    MultiFab& Er_new = get_new_data(Rad_Type);
 
-  if (!Radiation::rad_hydro_combined) {
-    amrex::Abort("Castro::construct_ctu_hydro_source -- we don't implement a mode where we have radiation, but it is not coupled to hydro");
-  }
+    if (!Radiation::rad_hydro_combined) {
+        amrex::Abort(
+            "Castro::construct_ctu_hydro_source -- we don't implement a mode "
+            "where we have radiation, but it is not coupled to hydro");
+    }
 
-  int nstep_fsp = -1;
+    int nstep_fsp = -1;
 #endif
 
-  Real mass_lost = 0.;
-  Real xmom_lost = 0.;
-  Real ymom_lost = 0.;
-  Real zmom_lost = 0.;
-  Real eden_lost = 0.;
-  Real xang_lost = 0.;
-  Real yang_lost = 0.;
-  Real zang_lost = 0.;
+    Real mass_lost = 0.;
+    Real xmom_lost = 0.;
+    Real ymom_lost = 0.;
+    Real zmom_lost = 0.;
+    Real eden_lost = 0.;
+    Real xang_lost = 0.;
+    Real yang_lost = 0.;
+    Real zang_lost = 0.;
 
 #ifdef _OPENMP
 #ifdef RADIATION
@@ -72,1497 +73,1348 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                      reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
 #endif
 #endif
-  {
+    {
 
 #ifdef RADIATION
-    int priv_nstep_fsp = -1;
+        int priv_nstep_fsp = -1;
 #endif
 
-    // Declare local storage now. This should be done outside the MFIter loop,
-    // and then we will resize the Fabs in each MFIter loop iteration. Then,
-    // we apply an Elixir to ensure that their memory is saved until it is no
-    // longer needed (only relevant for the asynchronous case, usually on GPUs).
+        // Declare local storage now. This should be done outside the MFIter loop,
+        // and then we will resize the Fabs in each MFIter loop iteration. Then,
+        // we apply an Elixir to ensure that their memory is saved until it is no
+        // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
-    FArrayBox flatn;
+        FArrayBox flatn;
 #ifdef RADIATION
-    FArrayBox flatg;
+        FArrayBox flatg;
 #endif
-    FArrayBox dq;
-    FArrayBox shk;
-    FArrayBox src_q;
-    FArrayBox qxm, qxp;
+        FArrayBox dq;
+        FArrayBox shk;
+        FArrayBox src_q;
+        FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
-    FArrayBox qym, qyp;
+        FArrayBox qym, qyp;
 #endif
 #if AMREX_SPACEDIM == 3
-    FArrayBox qzm, qzp;
+        FArrayBox qzm, qzp;
 #endif
-    FArrayBox div;
-    FArrayBox q_int;
+        FArrayBox div;
+        FArrayBox q_int;
 #ifdef RADIATION
-    FArrayBox lambda_int;
+        FArrayBox lambda_int;
 #endif
 #if AMREX_SPACEDIM >= 2
-    FArrayBox ftmp1, ftmp2;
+        FArrayBox ftmp1, ftmp2;
 #ifdef RADIATION
-    FArrayBox rftmp1, rftmp2;
+        FArrayBox rftmp1, rftmp2;
 #endif
-    FArrayBox qgdnvtmp1, qgdnvtmp2;
-    FArrayBox ql, qr;
+        FArrayBox qgdnvtmp1, qgdnvtmp2;
+        FArrayBox ql, qr;
 #endif
-    FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
+        FArrayBox flux[AMREX_SPACEDIM], qe[AMREX_SPACEDIM];
 #ifdef RADIATION
-    FArrayBox rad_flux[AMREX_SPACEDIM];
+        FArrayBox rad_flux[AMREX_SPACEDIM];
 #endif
 #if AMREX_SPACEDIM <= 2
-    FArrayBox pradial;
+        FArrayBox pradial;
 #endif
 #if AMREX_SPACEDIM == 3
-    FArrayBox qmyx, qpyx;
-    FArrayBox qmzx, qpzx;
-    FArrayBox qmxy, qpxy;
-    FArrayBox qmzy, qpzy;
-    FArrayBox qmxz, qpxz;
-    FArrayBox qmyz, qpyz;
+        FArrayBox qmyx, qpyx;
+        FArrayBox qmzx, qpzx;
+        FArrayBox qmxy, qpxy;
+        FArrayBox qmzy, qpzy;
+        FArrayBox qmxz, qpxz;
+        FArrayBox qmyz, qpyz;
 #endif
 
 #ifdef AMREX_USE_GPU
-    size_t starting_size = MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
-    size_t current_size = starting_size;
+        size_t starting_size =
+            MultiFab::queryMemUsage("AmrLevel_Level_" + std::to_string(level));
+        size_t current_size = starting_size;
 #endif
 
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      size_t fab_size = 0;
+            size_t fab_size = 0;
 
-      // the valid region box
-      const Box& bx = mfi.tilebox();
+            // the valid region box
+            const Box& bx = mfi.tilebox();
 
-      const Box& obx = amrex::grow(bx, 1);
+            const Box& obx = amrex::grow(bx, 1);
 
-      flatn.resize(obx, 1);
-      Elixir elix_flatn = flatn.elixir();
-      fab_size += flatn.nBytes();
+            flatn.resize(obx, 1);
+            Elixir elix_flatn = flatn.elixir();
+            fab_size += flatn.nBytes();
 
 #ifdef RADIATION
-      flatg.resize(obx, 1);
-      Elixir elix_flatg = flatg.elixir();
-      fab_size += flatg.nBytes();
+            flatg.resize(obx, 1);
+            Elixir elix_flatg = flatg.elixir();
+            fab_size += flatg.nBytes();
 #endif
 
-      // If we are oversubscribing the GPU, performance of the hydro will be constrained
-      // due to its heavy memory requirements. We can help the situation by prefetching in
-      // all the data we will need, and then prefetching it out at the end. This at least
-      // improves performance by mitigating the number of unified memory page faults.
+            // If we are oversubscribing the GPU, performance of the hydro will be constrained
+            // due to its heavy memory requirements. We can help the situation by prefetching in
+            // all the data we will need, and then prefetching it out at the end. This at least
+            // improves performance by mitigating the number of unified memory page faults.
 
-      // Unfortunately in CUDA there is no easy way to see actual current memory usage when
-      // using unified memory; querying CUDA for free memory usage will only tell us whether
-      // we've oversubscribed at any point, not whether we're currently oversubscribing, but
-      // this is still a good heuristic in most cases.
+            // Unfortunately in CUDA there is no easy way to see actual current memory usage when
+            // using unified memory; querying CUDA for free memory usage will only tell us whether
+            // we've oversubscribed at any point, not whether we're currently oversubscribing, but
+            // this is still a good heuristic in most cases.
 
-      bool oversubscribed = false;
+            bool oversubscribed = false;
 
 #ifdef AMREX_USE_CUDA
-      if (Gpu::Device::freeMemAvailable() < 0.005 * Gpu::Device::totalGlobalMem()) {
-          oversubscribed = true;
-      }
-#endif
-
-      if (oversubscribed) {
-          q[mfi].prefetchToDevice();
-          qaux[mfi].prefetchToDevice();
-          volume[mfi].prefetchToDevice();
-          Sborder[mfi].prefetchToDevice();
-          hydro_source[mfi].prefetchToDevice();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToDevice();
-              (*fluxes[i])[mfi].prefetchToDevice();
-          }
-#if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToDevice();
-          P_radial[mfi].prefetchToDevice();
-#endif
-#ifdef RADIATION
-          Erborder[mfi].prefetchToDevice();
-          Er_new[mfi].prefetchToDevice();
-#endif
-      }
-
-      Array4<Real const> const q_arr = q.array(mfi);
-      Array4<Real const> const qaux_arr = qaux.array(mfi);
-
-      Array4<Real const> const areax_arr = area[0].array(mfi);
-#if AMREX_SPACEDIM >= 2
-      Array4<Real const> const areay_arr = area[1].array(mfi);
-#endif
-#if AMREX_SPACEDIM == 3
-      Array4<Real const> const areaz_arr = area[2].array(mfi);
-#endif
-
-      Array4<Real> const vol_arr = volume.array(mfi);
-
-#if AMREX_SPACEDIM < 3
-      Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
-#endif
-
-      // compute the flattening coefficient
-
-      Array4<Real> const flatn_arr = flatn.array();
-#ifdef RADIATION
-      Array4<Real> const flatg_arr = flatg.array();
-#endif
-
-      if (first_order_hydro == 1) {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-        {
-          flatn_arr(i,j,k) = 0.0;
-        });
-      } else if (use_flattening == 1) {
-
-        uflatten(obx, q_arr, flatn_arr, QPRES);
-
-#ifdef RADIATION
-        uflatten(obx, q_arr, flatg_arr, QPTOT);
-
-        Real flatten_pp_thresh = radiation::flatten_pp_threshold;
-
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-        {
-          flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
-
-          if (flatten_pp_thresh > 0.0) {
-            if ( q_arr(i-1,j,k,QU) + q_arr(i,j-1,k,QV) + q_arr(i,j,k-1,QW) >
-                 q_arr(i+1,j,k,QU) + q_arr(i,j+1,k,QV) + q_arr(i,j,k+1,QW) ) {
-
-              if (q_arr(i,j,k,QPRES) < flatten_pp_thresh * q_arr(i,j,k,QPTOT)) {
-                flatn_arr(i,j,k) = 0.0;
-              }
+            if (Gpu::Device::freeMemAvailable() <
+                0.005 * Gpu::Device::totalGlobalMem()) {
+                oversubscribed = true;
             }
-          }
-        });
 #endif
 
-      } else {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-        {
-          flatn_arr(i,j,k) = 1.0;
-        });
-      }
+            if (oversubscribed) {
+                q[mfi].prefetchToDevice();
+                qaux[mfi].prefetchToDevice();
+                volume[mfi].prefetchToDevice();
+                Sborder[mfi].prefetchToDevice();
+                hydro_source[mfi].prefetchToDevice();
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+                    area[i][mfi].prefetchToDevice();
+                    (*fluxes[i])[mfi].prefetchToDevice();
+                }
+#if AMREX_SPACEDIM < 3
+                dLogArea[0][mfi].prefetchToDevice();
+                P_radial[mfi].prefetchToDevice();
+#endif
+#ifdef RADIATION
+                Erborder[mfi].prefetchToDevice();
+                Er_new[mfi].prefetchToDevice();
+#endif
+            }
 
-      const Box& xbx = amrex::surroundingNodes(bx, 0);
-      const Box& gxbx = amrex::grow(xbx, 1);
+            Array4<Real const> const q_arr = q.array(mfi);
+            Array4<Real const> const qaux_arr = qaux.array(mfi);
+
+            Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
-      const Box& ybx = amrex::surroundingNodes(bx, 1);
-      const Box& gybx = amrex::grow(ybx, 1);
+            Array4<Real const> const areay_arr = area[1].array(mfi);
 #endif
 #if AMREX_SPACEDIM == 3
-      const Box& zbx = amrex::surroundingNodes(bx, 2);
-      const Box& gzbx = amrex::grow(zbx, 1);
+            Array4<Real const> const areaz_arr = area[2].array(mfi);
 #endif
 
-      shk.resize(obx, 1);
-      Elixir elix_shk = shk.elixir();
-      fab_size += shk.nBytes();
+            Array4<Real> const vol_arr = volume.array(mfi);
 
-      Array4<Real> const shk_arr = shk.array();
+#if AMREX_SPACEDIM < 3
+            Array4<Real const> const dLogArea_arr = (dLogArea[0]).array(mfi);
+#endif
 
-      // Multidimensional shock detection
-      // Used for the hybrid Riemann solver
+            // compute the flattening coefficient
+
+            Array4<Real> const flatn_arr = flatn.array();
+#ifdef RADIATION
+            Array4<Real> const flatg_arr = flatg.array();
+#endif
+
+            if (first_order_hydro == 1) {
+                amrex::ParallelFor(obx, [=] AMREX_GPU_HOST_DEVICE(
+                                            int i, int j, int k) noexcept {
+                    flatn_arr(i, j, k) = 0.0;
+                });
+            } else if (use_flattening == 1) {
+
+                uflatten(obx, q_arr, flatn_arr, QPRES);
+
+#ifdef RADIATION
+                uflatten(obx, q_arr, flatg_arr, QPTOT);
+
+                Real flatten_pp_thresh = radiation::flatten_pp_threshold;
+
+                amrex::ParallelFor(obx, [=] AMREX_GPU_HOST_DEVICE(
+                                            int i, int j, int k) noexcept {
+                    flatn_arr(i, j, k) =
+                        flatn_arr(i, j, k) * flatg_arr(i, j, k);
+
+                    if (flatten_pp_thresh > 0.0) {
+                        if (q_arr(i - 1, j, k, QU) + q_arr(i, j - 1, k, QV) +
+                                q_arr(i, j, k - 1, QW) >
+                            q_arr(i + 1, j, k, QU) + q_arr(i, j + 1, k, QV) +
+                                q_arr(i, j, k + 1, QW)) {
+
+                            if (q_arr(i, j, k, QPRES) <
+                                flatten_pp_thresh * q_arr(i, j, k, QPTOT)) {
+                                flatn_arr(i, j, k) = 0.0;
+                            }
+                        }
+                    }
+                });
+#endif
+
+            } else {
+                amrex::ParallelFor(obx, [=] AMREX_GPU_HOST_DEVICE(
+                                            int i, int j, int k) noexcept {
+                    flatn_arr(i, j, k) = 1.0;
+                });
+            }
+
+            const Box& xbx = amrex::surroundingNodes(bx, 0);
+            const Box& gxbx = amrex::grow(xbx, 1);
+#if AMREX_SPACEDIM >= 2
+            const Box& ybx = amrex::surroundingNodes(bx, 1);
+            const Box& gybx = amrex::grow(ybx, 1);
+#endif
+#if AMREX_SPACEDIM == 3
+            const Box& zbx = amrex::surroundingNodes(bx, 2);
+            const Box& gzbx = amrex::grow(zbx, 1);
+#endif
+
+            shk.resize(obx, 1);
+            Elixir elix_shk = shk.elixir();
+            fab_size += shk.nBytes();
+
+            Array4<Real> const shk_arr = shk.array();
+
+            // Multidimensional shock detection
+            // Used for the hybrid Riemann solver
 
 #ifdef SHOCK_VAR
-      bool compute_shock = true;
+            bool compute_shock = true;
 #else
-      bool compute_shock = false;
+            bool compute_shock = false;
 #endif
 
-      if (hybrid_riemann == 1 || compute_shock) {
-        shock(obx, q_arr, shk_arr);
-      }
-      else {
-        amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-        {
-          shk_arr(i,j,k) = 0.0;
-        });
-      }
+            if (hybrid_riemann == 1 || compute_shock) {
+                shock(obx, q_arr, shk_arr);
+            } else {
+                amrex::ParallelFor(obx, [=] AMREX_GPU_HOST_DEVICE(
+                                            int i, int j, int k) noexcept {
+                    shk_arr(i, j, k) = 0.0;
+                });
+            }
 
-      // get the primitive variable hydro sources
+            // get the primitive variable hydro sources
 
-      const Box& qbx = amrex::grow(bx, NUM_GROW);
+            const Box& qbx = amrex::grow(bx, NUM_GROW);
 
-      src_q.resize(qbx, NQSRC);
-      Elixir elix_src_q = src_q.elixir();
-      fab_size += src_q.nBytes();
-      Array4<Real> const src_q_arr = src_q.array();
+            src_q.resize(qbx, NQSRC);
+            Elixir elix_src_q = src_q.elixir();
+            fab_size += src_q.nBytes();
+            Array4<Real> const src_q_arr = src_q.array();
 
-      Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+            Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-      src_to_prim(qbx, q_arr, src_arr, src_q_arr);
+            src_to_prim(qbx, q_arr, src_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
-        // Add in the reactions source term; only done in simplified SDC.
+            // Add in the reactions source term; only done in simplified SDC.
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+            if (time_integration_method ==
+                SimplifiedSpectralDeferredCorrections) {
 
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
+                MultiFab& SDC_react_source =
+                    get_new_data(Simplified_SDC_React_Type);
 
-            if (do_react)
-              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx, 0, 0, NQSRC);
-
-        }
+                if (do_react)
+                    src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx,
+                                              0, 0, NQSRC);
+            }
 #endif
 #endif
 #endif
 
+            // work on the interface states
 
-      // work on the interface states
+            qxm.resize(obx, NQ);
+            Elixir elix_qxm = qxm.elixir();
+            fab_size += shk.nBytes();
 
-      qxm.resize(obx, NQ);
-      Elixir elix_qxm = qxm.elixir();
-      fab_size += shk.nBytes();
+            qxp.resize(obx, NQ);
+            Elixir elix_qxp = qxp.elixir();
+            fab_size += qxp.nBytes();
 
-      qxp.resize(obx, NQ);
-      Elixir elix_qxp = qxp.elixir();
-      fab_size += qxp.nBytes();
-
-      Array4<Real> const qxm_arr = qxm.array();
-      Array4<Real> const qxp_arr = qxp.array();
+            Array4<Real> const qxm_arr = qxm.array();
+            Array4<Real> const qxp_arr = qxp.array();
 
 #if AMREX_SPACEDIM >= 2
-      qym.resize(obx, NQ);
-      Elixir elix_qym = qym.elixir();
-      fab_size += qym.nBytes();
+            qym.resize(obx, NQ);
+            Elixir elix_qym = qym.elixir();
+            fab_size += qym.nBytes();
 
-      qyp.resize(obx, NQ);
-      Elixir elix_qyp = qyp.elixir();
-      fab_size += qyp.nBytes();
+            qyp.resize(obx, NQ);
+            Elixir elix_qyp = qyp.elixir();
+            fab_size += qyp.nBytes();
 
-      Array4<Real> const qym_arr = qym.array();
-      Array4<Real> const qyp_arr = qyp.array();
+            Array4<Real> const qym_arr = qym.array();
+            Array4<Real> const qyp_arr = qyp.array();
 
 #endif
 
 #if AMREX_SPACEDIM == 3
-      qzm.resize(obx, NQ);
-      Elixir elix_qzm = qzm.elixir();
-      fab_size += qzm.nBytes();
+            qzm.resize(obx, NQ);
+            Elixir elix_qzm = qzm.elixir();
+            fab_size += qzm.nBytes();
 
-      qzp.resize(obx, NQ);
-      Elixir elix_qzp = qzp.elixir();
-      fab_size += qzp.nBytes();
+            qzp.resize(obx, NQ);
+            Elixir elix_qzp = qzp.elixir();
+            fab_size += qzp.nBytes();
 
-      Array4<Real> const qzm_arr = qzm.array();
-      Array4<Real> const qzp_arr = qzp.array();
+            Array4<Real> const qzm_arr = qzm.array();
+            Array4<Real> const qzp_arr = qzp.array();
 
 #endif
 
-      if (ppm_type == 0) {
+            if (ppm_type == 0) {
 
-        dq.resize(obx, NQ);
-        Elixir elix_dq = dq.elixir();
-        fab_size += dq.nBytes();
-        auto dq_arr = dq.array();
+                dq.resize(obx, NQ);
+                Elixir elix_dq = dq.elixir();
+                fab_size += dq.nBytes();
+                auto dq_arr = dq.array();
 
-        ctu_plm_states(obx, bx,
-                       q_arr,
-                       flatn_arr,
-                       qaux_arr,
-                       src_q_arr,
-                       dq_arr,
-                       qxm_arr, qxp_arr,
+                ctu_plm_states(obx, bx, q_arr, flatn_arr, qaux_arr, src_q_arr,
+                               dq_arr, qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
-                       qym_arr, qyp_arr,
+                               qym_arr, qyp_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                       qzm_arr, qzp_arr,
+                               qzm_arr, qzp_arr,
 #endif
 #if (AMREX_SPACEDIM < 3)
-                       dLogArea_arr,
+                               dLogArea_arr,
 #endif
-                       dt);
+                               dt);
 
-      } else {
+            } else {
 
 #ifdef RADIATION
-        ctu_ppm_rad_states(obx, bx,
-                           q_arr, flatn_arr, qaux_arr, src_q_arr,
-                           qxm_arr, qxp_arr,
+                ctu_ppm_rad_states(obx, bx, q_arr, flatn_arr, qaux_arr,
+                                   src_q_arr, qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
-                           qym_arr, qyp_arr,
+                                   qym_arr, qyp_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                           qzm_arr, qzp_arr,
+                                   qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                           dLogArea_arr,
+                                   dLogArea_arr,
 #endif
-                           dt);
+                                   dt);
 #else
 
-        ctu_ppm_states(obx, bx,
-                       q_arr, flatn_arr, qaux_arr, src_q_arr,
-                       qxm_arr, qxp_arr,
+                ctu_ppm_states(obx, bx, q_arr, flatn_arr, qaux_arr, src_q_arr,
+                               qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
-                       qym_arr, qyp_arr,
+                               qym_arr, qyp_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                       qzm_arr, qzp_arr,
+                               qzm_arr, qzp_arr,
 #endif
 #if AMREX_SPACEDIM < 3
-                       dLogArea_arr,
+                               dLogArea_arr,
 #endif
-                       dt);
+                               dt);
 #endif
+            }
 
-      }
+            div.resize(obx, 1);
+            Elixir elix_div = div.elixir();
+            fab_size += div.nBytes();
+            auto div_arr = div.array();
 
-      div.resize(obx, 1);
-      Elixir elix_div = div.elixir();
-      fab_size += div.nBytes();
-      auto div_arr = div.array();
+            // compute divu -- we'll use this later when doing the artifical viscosity
+            divu(obx, q_arr, div_arr);
 
-      // compute divu -- we'll use this later when doing the artifical viscosity
-      divu(obx, q_arr, div_arr);
-
-      q_int.resize(obx, NQ);
-      Elixir elix_q_int = q_int.elixir();
-      fab_size += q_int.nBytes();
-      Array4<Real> const q_int_arr = q_int.array();
+            q_int.resize(obx, NQ);
+            Elixir elix_q_int = q_int.elixir();
+            fab_size += q_int.nBytes();
+            Array4<Real> const q_int_arr = q_int.array();
 
 #ifdef RADIATION
-      lambda_int.resize(obx, Radiation::nGroups);
-      Elixir elix_lambda_int = lambda_int.elixir();
-      fab_size += lambda_int.nBytes();
-      Array4<Real> const lambda_int_arr = lambda_int.array();
+            lambda_int.resize(obx, Radiation::nGroups);
+            Elixir elix_lambda_int = lambda_int.elixir();
+            fab_size += lambda_int.nBytes();
+            Array4<Real> const lambda_int_arr = lambda_int.array();
 #endif
 
-      flux[0].resize(gxbx, NUM_STATE);
-      Elixir elix_flux_x = flux[0].elixir();
-      fab_size += flux[0].nBytes();
-      Array4<Real> const flux0_arr = (flux[0]).array();
+            flux[0].resize(gxbx, NUM_STATE);
+            Elixir elix_flux_x = flux[0].elixir();
+            fab_size += flux[0].nBytes();
+            Array4<Real> const flux0_arr = (flux[0]).array();
 
-      qe[0].resize(gxbx, NGDNV);
-      Elixir elix_qe_x = qe[0].elixir();
-      auto qex_arr = qe[0].array();
-      fab_size += qe[0].nBytes();
+            qe[0].resize(gxbx, NGDNV);
+            Elixir elix_qe_x = qe[0].elixir();
+            auto qex_arr = qe[0].array();
+            fab_size += qe[0].nBytes();
 
 #ifdef RADIATION
-      rad_flux[0].resize(gxbx, Radiation::nGroups);
-      Elixir elix_rad_flux_x = rad_flux[0].elixir();
-      fab_size += rad_flux[0].nBytes();
-      auto rad_flux0_arr = (rad_flux[0]).array();
+            rad_flux[0].resize(gxbx, Radiation::nGroups);
+            Elixir elix_rad_flux_x = rad_flux[0].elixir();
+            fab_size += rad_flux[0].nBytes();
+            auto rad_flux0_arr = (rad_flux[0]).array();
 #endif
 
 #if AMREX_SPACEDIM >= 2
-      flux[1].resize(gybx, NUM_STATE);
-      Elixir elix_flux_y = flux[1].elixir();
-      fab_size += flux[1].nBytes();
-      Array4<Real> const flux1_arr = (flux[1]).array();
+            flux[1].resize(gybx, NUM_STATE);
+            Elixir elix_flux_y = flux[1].elixir();
+            fab_size += flux[1].nBytes();
+            Array4<Real> const flux1_arr = (flux[1]).array();
 
-      qe[1].resize(gybx, NGDNV);
-      Elixir elix_qe_y = qe[1].elixir();
-      auto qey_arr = qe[1].array();
-      fab_size += qe[1].nBytes();
+            qe[1].resize(gybx, NGDNV);
+            Elixir elix_qe_y = qe[1].elixir();
+            auto qey_arr = qe[1].array();
+            fab_size += qe[1].nBytes();
 
 #ifdef RADIATION
-      rad_flux[1].resize(gybx, Radiation::nGroups);
-      Elixir elix_rad_flux_y = rad_flux[1].elixir();
-      fab_size += rad_flux[1].nBytes();
-      auto const rad_flux1_arr = (rad_flux[1]).array();
+            rad_flux[1].resize(gybx, Radiation::nGroups);
+            Elixir elix_rad_flux_y = rad_flux[1].elixir();
+            fab_size += rad_flux[1].nBytes();
+            auto const rad_flux1_arr = (rad_flux[1]).array();
 #endif
 #endif
 
 #if AMREX_SPACEDIM == 3
-      flux[2].resize(gzbx, NUM_STATE);
-      Elixir elix_flux_z = flux[2].elixir();
-      fab_size += flux[2].nBytes();
-      Array4<Real> const flux2_arr = (flux[2]).array();
+            flux[2].resize(gzbx, NUM_STATE);
+            Elixir elix_flux_z = flux[2].elixir();
+            fab_size += flux[2].nBytes();
+            Array4<Real> const flux2_arr = (flux[2]).array();
 
-      qe[2].resize(gzbx, NGDNV);
-      Elixir elix_qe_z = qe[2].elixir();
-      auto qez_arr = qe[2].array();
-      fab_size += qe[2].nBytes();
+            qe[2].resize(gzbx, NGDNV);
+            Elixir elix_qe_z = qe[2].elixir();
+            auto qez_arr = qe[2].array();
+            fab_size += qe[2].nBytes();
 
 #ifdef RADIATION
-      rad_flux[2].resize(gzbx, Radiation::nGroups);
-      Elixir elix_rad_flux_z = rad_flux[2].elixir();
-      fab_size += rad_flux[2].nBytes();
-      auto const rad_flux2_arr = (rad_flux[2]).array();
+            rad_flux[2].resize(gzbx, Radiation::nGroups);
+            Elixir elix_rad_flux_z = rad_flux[2].elixir();
+            fab_size += rad_flux[2].nBytes();
+            auto const rad_flux2_arr = (rad_flux[2]).array();
 #endif
 #endif
 
 #if AMREX_SPACEDIM <= 2
-      if (!Geom().IsCartesian()) {
-          pradial.resize(xbx, 1);
-      }
-      Elixir elix_pradial = pradial.elixir();
-      fab_size += pradial.nBytes();
+            if (!Geom().IsCartesian()) {
+                pradial.resize(xbx, 1);
+            }
+            Elixir elix_pradial = pradial.elixir();
+            fab_size += pradial.nBytes();
 #endif
 
 #if AMREX_SPACEDIM == 1
-      cmpflx_plus_godunov(xbx,
-                          qxm_arr, qxp_arr,
-                          flux0_arr, q_int_arr,
+            cmpflx_plus_godunov(xbx, qxm_arr, qxp_arr, flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                                rad_flux0_arr, lambda_int_arr,
 #endif
-                          qex_arr,
-                          qaux_arr,
-                          shk_arr,
-                          0);
+                                qex_arr, qaux_arr, shk_arr, 0);
 
-#endif // 1-d
-
-
+#endif  // 1-d
 
 #if AMREX_SPACEDIM >= 2
-      ftmp1.resize(obx, NUM_STATE);
-      Elixir elix_ftmp1 = ftmp1.elixir();
-      auto ftmp1_arr = ftmp1.array();
-      fab_size += ftmp1.nBytes();
+            ftmp1.resize(obx, NUM_STATE);
+            Elixir elix_ftmp1 = ftmp1.elixir();
+            auto ftmp1_arr = ftmp1.array();
+            fab_size += ftmp1.nBytes();
 
-      ftmp2.resize(obx, NUM_STATE);
-      Elixir elix_ftmp2 = ftmp2.elixir();
-      auto ftmp2_arr = ftmp2.array();
-      fab_size += ftmp2.nBytes();
+            ftmp2.resize(obx, NUM_STATE);
+            Elixir elix_ftmp2 = ftmp2.elixir();
+            auto ftmp2_arr = ftmp2.array();
+            fab_size += ftmp2.nBytes();
 
 #ifdef RADIATION
-      rftmp1.resize(obx, Radiation::nGroups);
-      Elixir elix_rftmp1 = rftmp1.elixir();
-      auto rftmp1_arr = rftmp1.array();
-      fab_size += rftmp1.nBytes();
+            rftmp1.resize(obx, Radiation::nGroups);
+            Elixir elix_rftmp1 = rftmp1.elixir();
+            auto rftmp1_arr = rftmp1.array();
+            fab_size += rftmp1.nBytes();
 
-      rftmp2.resize(obx, Radiation::nGroups);
-      Elixir elix_rftmp2 = rftmp2.elixir();
-      auto rftmp2_arr = rftmp2.array();
-      fab_size += rftmp2.nBytes();
+            rftmp2.resize(obx, Radiation::nGroups);
+            Elixir elix_rftmp2 = rftmp2.elixir();
+            auto rftmp2_arr = rftmp2.array();
+            fab_size += rftmp2.nBytes();
 #endif
 
-      qgdnvtmp1.resize(obx, NGDNV);
-      Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
-      auto qgdnvtmp1_arr = qgdnvtmp1.array();
-      fab_size += qgdnvtmp1.nBytes();
+            qgdnvtmp1.resize(obx, NGDNV);
+            Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
+            auto qgdnvtmp1_arr = qgdnvtmp1.array();
+            fab_size += qgdnvtmp1.nBytes();
 
 #if AMREX_SPACEDIM == 3
-      qgdnvtmp2.resize(obx, NGDNV);
-      Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
-      auto qgdnvtmp2_arr = qgdnvtmp2.array();
-      fab_size += qgdnvtmp2.nBytes();
+            qgdnvtmp2.resize(obx, NGDNV);
+            Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
+            auto qgdnvtmp2_arr = qgdnvtmp2.array();
+            fab_size += qgdnvtmp2.nBytes();
 #endif
 
-      ql.resize(obx, NQ);
-      Elixir elix_ql = ql.elixir();
-      auto ql_arr = ql.array();
-      fab_size += ql.nBytes();
+            ql.resize(obx, NQ);
+            Elixir elix_ql = ql.elixir();
+            auto ql_arr = ql.array();
+            fab_size += ql.nBytes();
 
-      qr.resize(obx, NQ);
-      Elixir elix_qr = qr.elixir();
-      auto qr_arr = qr.array();
-      fab_size += qr.nBytes();
+            qr.resize(obx, NQ);
+            Elixir elix_qr = qr.elixir();
+            auto qr_arr = qr.array();
+            fab_size += qr.nBytes();
 #endif
-
-
 
 #if AMREX_SPACEDIM == 2
 
-      const amrex::Real hdt = 0.5*dt;
-      const amrex::Real hdtdx = 0.5*dt/dx[0];
-      const amrex::Real hdtdy = 0.5*dt/dx[1];
+            const amrex::Real hdt = 0.5 * dt;
+            const amrex::Real hdtdx = 0.5 * dt / dx[0];
+            const amrex::Real hdtdy = 0.5 * dt / dx[1];
 
-      // compute F^x
-      // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
-      const Box& cxbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
+            // compute F^x
+            // [lo(1), lo(2)-1, 0], [hi(1)+1, hi(2)+1, 0]
+            const Box& cxbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 1, 0)));
 
-      // ftmp1 = fx
-      // rftmp1 = rfx
-      // qgdnvtmp1 = qgdnxv
-      cmpflx_plus_godunov(cxbx,
-                          qxm_arr, qxp_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fx
+            // rftmp1 = rfx
+            // qgdnvtmp1 = qgdnxv
+            cmpflx_plus_godunov(cxbx, qxm_arr, qxp_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 0);
 
-      // compute F^y
-      // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
-      const Box& cybx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
+            // compute F^y
+            // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
+            const Box& cybx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1, 0, 0)));
 
-      // ftmp2 = fy
-      // rftmp2 = rfy
-      cmpflx_plus_godunov(cybx,
-                          qym_arr, qyp_arr,
-                          ftmp2_arr, q_int_arr,
+            // ftmp2 = fy
+            // rftmp2 = rfy
+            cmpflx_plus_godunov(cybx, qym_arr, qyp_arr, ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                                rftmp2_arr, lambda_int_arr,
 #endif
-                          qey_arr,
-                          qaux_arr, shk_arr,
-                          1);
+                                qey_arr, qaux_arr, shk_arr, 1);
 
-      // add the transverse flux difference in y to the x states
-      // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
+            // add the transverse flux difference in y to the x states
+            // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
 
-      // ftmp2 = fy
-      // rftmp2 = rfy
-      trans_single(xbx, 1, 0,
-                   qxm_arr, ql_arr,
-                   qxp_arr, qr_arr,
-                   qaux_arr,
-                   ftmp2_arr,
+            // ftmp2 = fy
+            // rftmp2 = rfy
+            trans_single(xbx, 1, 0, qxm_arr, ql_arr, qxp_arr, qr_arr, qaux_arr,
+                         ftmp2_arr,
 #ifdef RADIATION
-                   rftmp2_arr,
+                         rftmp2_arr,
 #endif
-                   qey_arr,
-                   areay_arr,
-                   vol_arr,
-                   hdt, hdtdy);
+                         qey_arr, areay_arr, vol_arr, hdt, hdtdy);
 
-      reset_edge_state_thermo(xbx, ql.array());
+            reset_edge_state_thermo(xbx, ql.array());
 
-      reset_edge_state_thermo(xbx, qr.array());
+            reset_edge_state_thermo(xbx, qr.array());
 
-      // solve the final Riemann problem axross the x-interfaces
+            // solve the final Riemann problem axross the x-interfaces
 
-      cmpflx_plus_godunov(xbx,
-                          ql_arr, qr_arr,
-                          flux0_arr, q_int_arr,
+            cmpflx_plus_godunov(xbx, ql_arr, qr_arr, flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                                rad_flux0_arr, lambda_int_arr,
 #endif
-                          qex_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qex_arr, qaux_arr, shk_arr, 0);
 
-      // add the transverse flux difference in x to the y states
-      // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
+            // add the transverse flux difference in x to the y states
+            // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
 
-      // ftmp1 = fx
-      // rftmp1 = rfx
-      // qgdnvtmp1 = qgdnvx
+            // ftmp1 = fx
+            // rftmp1 = rfx
+            // qgdnvtmp1 = qgdnvx
 
-      trans_single(ybx, 0, 1,
-                   qym_arr, ql_arr,
-                   qyp_arr, qr_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            trans_single(ybx, 0, 1, qym_arr, ql_arr, qyp_arr, qr_arr, qaux_arr,
+                         ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   areax_arr,
-                   vol_arr,
-                   hdt, hdtdx);
+                         qgdnvtmp1_arr, areax_arr, vol_arr, hdt, hdtdx);
 
-      reset_edge_state_thermo(ybx, ql.array());
+            reset_edge_state_thermo(ybx, ql.array());
 
-      reset_edge_state_thermo(ybx, qr.array());
+            reset_edge_state_thermo(ybx, qr.array());
 
+            // solve the final Riemann problem axross the y-interfaces
 
-      // solve the final Riemann problem axross the y-interfaces
-
-      cmpflx_plus_godunov(ybx,
-                          ql_arr, qr_arr,
-                          flux1_arr, q_int_arr,
+            cmpflx_plus_godunov(ybx, ql_arr, qr_arr, flux1_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux1_arr, lambda_int_arr,
+                                rad_flux1_arr, lambda_int_arr,
 #endif
-                          qey_arr,
-                          qaux_arr, shk_arr,
-                          1);
-#endif // 2-d
-
-
+                                qey_arr, qaux_arr, shk_arr, 1);
+#endif  // 2-d
 
 #if AMREX_SPACEDIM == 3
 
-      const amrex::Real hdt = 0.5*dt;
+            const amrex::Real hdt = 0.5 * dt;
 
-      const amrex::Real hdtdx = 0.5*dt/dx[0];
-      const amrex::Real hdtdy = 0.5*dt/dx[1];
-      const amrex::Real hdtdz = 0.5*dt/dx[2];
+            const amrex::Real hdtdx = 0.5 * dt / dx[0];
+            const amrex::Real hdtdy = 0.5 * dt / dx[1];
+            const amrex::Real hdtdz = 0.5 * dt / dx[2];
 
-      const amrex::Real cdtdx = dt/dx[0]/3.0;
-      const amrex::Real cdtdy = dt/dx[1]/3.0;
-      const amrex::Real cdtdz = dt/dx[2]/3.0;
+            const amrex::Real cdtdx = dt / dx[0] / 3.0;
+            const amrex::Real cdtdy = dt / dx[1] / 3.0;
+            const amrex::Real cdtdz = dt / dx[2] / 3.0;
 
-      // compute F^x
-      // [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& cxbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,1)));
+            // compute F^x
+            // [lo(1), lo(2)-1, lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
+            const Box& cxbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 1, 1)));
 
-      // ftmp1 = fx
-      // rftmp1 = rfx
-      // qgdnvtmp1 = qgdnxv
-      cmpflx_plus_godunov(cxbx,
-                          qxm_arr, qxp_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fx
+            // rftmp1 = rfx
+            // qgdnvtmp1 = qgdnxv
+            cmpflx_plus_godunov(cxbx, qxm_arr, qxp_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 0);
 
-      // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
+            // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
+            const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0, 0, 1)));
 
-      qmyx.resize(tyxbx, NQ);
-      Elixir elix_qmyx = qmyx.elixir();
-      auto qmyx_arr = qmyx.array();
-      fab_size += qmyx.nBytes();
+            qmyx.resize(tyxbx, NQ);
+            Elixir elix_qmyx = qmyx.elixir();
+            auto qmyx_arr = qmyx.array();
+            fab_size += qmyx.nBytes();
 
-      qpyx.resize(tyxbx, NQ);
-      Elixir elix_qpyx = qpyx.elixir();
-      auto qpyx_arr = qpyx.array();
-      fab_size += qpyx.nBytes();
+            qpyx.resize(tyxbx, NQ);
+            Elixir elix_qpyx = qpyx.elixir();
+            auto qpyx_arr = qpyx.array();
+            fab_size += qpyx.nBytes();
 
-      // ftmp1 = fx
-      // rftmp1 = rfx
-      // qgdnvtmp1 = qgdnvx
-      trans_single(tyxbx, 0, 1,
-                   qym_arr, qmyx_arr,
-                   qyp_arr, qpyx_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            // ftmp1 = fx
+            // rftmp1 = rfx
+            // qgdnvtmp1 = qgdnvx
+            trans_single(tyxbx, 0, 1, qym_arr, qmyx_arr, qyp_arr, qpyx_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdx);
+                         qgdnvtmp1_arr, hdt, cdtdx);
 
-      reset_edge_state_thermo(tyxbx, qmyx.array());
+            reset_edge_state_thermo(tyxbx, qmyx.array());
 
-      reset_edge_state_thermo(tyxbx, qpyx.array());
+            reset_edge_state_thermo(tyxbx, qpyx.array());
 
-      // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
+            // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
+            const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0, 1, 0)));
 
-      qmzx.resize(tzxbx, NQ);
-      Elixir elix_qmzx = qmzx.elixir();
-      auto qmzx_arr = qmzx.array();
-      fab_size += qmzx.nBytes();
+            qmzx.resize(tzxbx, NQ);
+            Elixir elix_qmzx = qmzx.elixir();
+            auto qmzx_arr = qmzx.array();
+            fab_size += qmzx.nBytes();
 
-      qpzx.resize(tzxbx, NQ);
-      Elixir elix_qpzx = qpzx.elixir();
-      auto qpzx_arr = qpzx.array();
-      fab_size += qpzx.nBytes();
+            qpzx.resize(tzxbx, NQ);
+            Elixir elix_qpzx = qpzx.elixir();
+            auto qpzx_arr = qpzx.array();
+            fab_size += qpzx.nBytes();
 
-      trans_single(tzxbx, 0, 2,
-                   qzm_arr, qmzx_arr,
-                   qzp_arr, qpzx_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            trans_single(tzxbx, 0, 2, qzm_arr, qmzx_arr, qzp_arr, qpzx_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdx);
+                         qgdnvtmp1_arr, hdt, cdtdx);
 
-      reset_edge_state_thermo(tzxbx, qmzx.array());
+            reset_edge_state_thermo(tzxbx, qmzx.array());
 
-      reset_edge_state_thermo(tzxbx, qpzx.array());
+            reset_edge_state_thermo(tzxbx, qpzx.array());
 
-      // compute F^y
-      // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& cybx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,1)));
+            // compute F^y
+            // [lo(1)-1, lo(2), lo(3)-1], [hi(1)+1, hi(2)+1, hi(3)+1]
+            const Box& cybx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1, 0, 1)));
 
-      // ftmp1 = fy
-      // rftmp1 = rfy
-      // qgdnvtmp1 = qgdnvy
-      cmpflx_plus_godunov(cybx,
-                          qym_arr, qyp_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fy
+            // rftmp1 = rfy
+            // qgdnvtmp1 = qgdnvy
+            cmpflx_plus_godunov(cybx, qym_arr, qyp_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          1);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 1);
 
-      // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
-      const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
+            // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
+            const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 0, 1)));
 
-      qmxy.resize(txybx, NQ);
-      Elixir elix_qmxy = qmxy.elixir();
-      auto qmxy_arr = qmxy.array();
-      fab_size += qmxy.nBytes();
+            qmxy.resize(txybx, NQ);
+            Elixir elix_qmxy = qmxy.elixir();
+            auto qmxy_arr = qmxy.array();
+            fab_size += qmxy.nBytes();
 
-      qpxy.resize(txybx, NQ);
-      Elixir elix_qpxy = qpxy.elixir();
-      auto qpxy_arr = qpxy.array();
-      fab_size += qpxy.nBytes();
+            qpxy.resize(txybx, NQ);
+            Elixir elix_qpxy = qpxy.elixir();
+            auto qpxy_arr = qpxy.array();
+            fab_size += qpxy.nBytes();
 
-      // ftmp1 = fy
-      // rftmp1 = rfy
-      // qgdnvtmp1 = qgdnvy
-      trans_single(txybx, 1, 0,
-                   qxm_arr, qmxy_arr,
-                   qxp_arr, qpxy_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            // ftmp1 = fy
+            // rftmp1 = rfy
+            // qgdnvtmp1 = qgdnvy
+            trans_single(txybx, 1, 0, qxm_arr, qmxy_arr, qxp_arr, qpxy_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdy);
+                         qgdnvtmp1_arr, hdt, cdtdy);
 
-      reset_edge_state_thermo(txybx, qmxy.array());
+            reset_edge_state_thermo(txybx, qmxy.array());
 
-      reset_edge_state_thermo(txybx, qpxy.array());
+            reset_edge_state_thermo(txybx, qpxy.array());
 
-      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
-      const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
+            // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
+            const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1, 0, 0)));
 
-      qmzy.resize(tzybx, NQ);
-      Elixir elix_qmzy = qmzy.elixir();
-      auto qmzy_arr = qmzy.array();
-      fab_size += qmzy.nBytes();
+            qmzy.resize(tzybx, NQ);
+            Elixir elix_qmzy = qmzy.elixir();
+            auto qmzy_arr = qmzy.array();
+            fab_size += qmzy.nBytes();
 
-      qpzy.resize(tzybx, NQ);
-      Elixir elix_qpzy = qpzy.elixir();
-      auto qpzy_arr = qpzy.array();
-      fab_size += qpzy.nBytes();
+            qpzy.resize(tzybx, NQ);
+            Elixir elix_qpzy = qpzy.elixir();
+            auto qpzy_arr = qpzy.array();
+            fab_size += qpzy.nBytes();
 
-      // ftmp1 = fy
-      // rftmp1 = rfy
-      // qgdnvtmp1 = qgdnvy
-      trans_single(tzybx, 1, 2,
-                   qzm_arr, qmzy_arr,
-                   qzp_arr, qpzy_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            // ftmp1 = fy
+            // rftmp1 = rfy
+            // qgdnvtmp1 = qgdnvy
+            trans_single(tzybx, 1, 2, qzm_arr, qmzy_arr, qzp_arr, qpzy_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdy);
+                         qgdnvtmp1_arr, hdt, cdtdy);
 
-      reset_edge_state_thermo(tzybx, qmzy.array());
+            reset_edge_state_thermo(tzybx, qmzy.array());
 
-      reset_edge_state_thermo(tzybx, qpzy.array());
+            reset_edge_state_thermo(tzybx, qpzy.array());
 
-      // compute F^z
-      // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
-      const Box& czbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,1,0)));
+            // compute F^z
+            // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)+1]
+            const Box& czbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1, 1, 0)));
 
-      // ftmp1 = fz
-      // rftmp1 = rfz
-      // qgdnvtmp1 = qgdnvz
-      cmpflx_plus_godunov(czbx,
-                          qzm_arr, qzp_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fz
+            // rftmp1 = rfz
+            // qgdnvtmp1 = qgdnvz
+            cmpflx_plus_godunov(czbx, qzm_arr, qzp_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          2);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 2);
 
-      // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-      const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
+            // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
+            const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 1, 0)));
 
-      qmxz.resize(txzbx, NQ);
-      Elixir elix_qmxz = qmxz.elixir();
-      auto qmxz_arr = qmxz.array();
-      fab_size += qmxz.nBytes();
+            qmxz.resize(txzbx, NQ);
+            Elixir elix_qmxz = qmxz.elixir();
+            auto qmxz_arr = qmxz.array();
+            fab_size += qmxz.nBytes();
 
-      qpxz.resize(txzbx, NQ);
-      Elixir elix_qpxz = qpxz.elixir();
-      auto qpxz_arr = qpxz.array();
-      fab_size += qpxz.nBytes();
+            qpxz.resize(txzbx, NQ);
+            Elixir elix_qpxz = qpxz.elixir();
+            auto qpxz_arr = qpxz.array();
+            fab_size += qpxz.nBytes();
 
-      // ftmp1 = fz
-      // rftmp1 = rfz
-      // qgdnvtmp1 = qgdnvz
-      trans_single(txzbx, 2, 0,
-                   qxm_arr, qmxz_arr,
-                   qxp_arr, qpxz_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            // ftmp1 = fz
+            // rftmp1 = rfz
+            // qgdnvtmp1 = qgdnvz
+            trans_single(txzbx, 2, 0, qxm_arr, qmxz_arr, qxp_arr, qpxz_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdz);
+                         qgdnvtmp1_arr, hdt, cdtdz);
 
-      reset_edge_state_thermo(txzbx, qmxz.array());
+            reset_edge_state_thermo(txzbx, qmxz.array());
 
-      reset_edge_state_thermo(txzbx, qpxz.array());
+            reset_edge_state_thermo(txzbx, qpxz.array());
 
-      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
-      const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
+            // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
+            const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1, 0, 0)));
 
-      qmyz.resize(tyzbx, NQ);
-      Elixir elix_qmyz = qmyz.elixir();
-      auto qmyz_arr = qmyz.array();
-      fab_size += qmyz.nBytes();
+            qmyz.resize(tyzbx, NQ);
+            Elixir elix_qmyz = qmyz.elixir();
+            auto qmyz_arr = qmyz.array();
+            fab_size += qmyz.nBytes();
 
-      qpyz.resize(tyzbx, NQ);
-      Elixir elix_qpyz = qpyz.elixir();
-      auto qpyz_arr = qpyz.array();
-      fab_size += qpyz.nBytes();
+            qpyz.resize(tyzbx, NQ);
+            Elixir elix_qpyz = qpyz.elixir();
+            auto qpyz_arr = qpyz.array();
+            fab_size += qpyz.nBytes();
 
-      // ftmp1 = fz
-      // rftmp1 = rfz
-      // qgdnvtmp1 = qgdnvz
-      trans_single(tyzbx, 2, 1,
-                   qym_arr, qmyz_arr,
-                   qyp_arr, qpyz_arr,
-                   qaux_arr,
-                   ftmp1_arr,
+            // ftmp1 = fz
+            // rftmp1 = rfz
+            // qgdnvtmp1 = qgdnvz
+            trans_single(tyzbx, 2, 1, qym_arr, qmyz_arr, qyp_arr, qpyz_arr,
+                         qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                   rftmp1_arr,
+                         rftmp1_arr,
 #endif
-                   qgdnvtmp1_arr,
-                   hdt, cdtdz);
+                         qgdnvtmp1_arr, hdt, cdtdz);
 
-      reset_edge_state_thermo(tyzbx, qmyz.array());
+            reset_edge_state_thermo(tyzbx, qmyz.array());
 
-      reset_edge_state_thermo(tyzbx, qpyz.array());
+            reset_edge_state_thermo(tyzbx, qpyz.array());
 
-      // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
+            // we now have q?zx, q?yx, q?zy, q?xy, q?yz, q?xz
 
-      //
-      // Use qx?, q?yz, q?zy to compute final x-flux
-      //
+            //
+            // Use qx?, q?yz, q?zy to compute final x-flux
+            //
 
-      // compute F^{y|z}
-      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-      const Box& cyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
+            // compute F^{y|z}
+            // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
+            const Box& cyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1, 0, 0)));
 
-      // ftmp1 = fyz
-      // rftmp1 = rfyz
-      // qgdnvtmp1 = qgdnvyz
-      cmpflx_plus_godunov(cyzbx,
-                          qmyz_arr, qpyz_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fyz
+            // rftmp1 = rfyz
+            // qgdnvtmp1 = qgdnvyz
+            cmpflx_plus_godunov(cyzbx, qmyz_arr, qpyz_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          1);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 1);
 
-      // compute F^{z|y}
-      // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
-      const Box& czybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
+            // compute F^{z|y}
+            // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
+            const Box& czybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1, 0, 0)));
 
-      // ftmp2 = fzy
-      // rftmp2 = rfzy
-      // qgdnvtmp2 = qgdnvzy
-      cmpflx_plus_godunov(czybx,
-                          qmzy_arr, qpzy_arr,
-                          ftmp2_arr, q_int_arr,
+            // ftmp2 = fzy
+            // rftmp2 = rfzy
+            // qgdnvtmp2 = qgdnvzy
+            cmpflx_plus_godunov(czybx, qmzy_arr, qpzy_arr, ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                                rftmp2_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp2_arr,
-                          qaux_arr, shk_arr,
-                          2);
+                                qgdnvtmp2_arr, qaux_arr, shk_arr, 2);
 
-      // compute the corrected x interface states and fluxes
-      // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
+            // compute the corrected x interface states and fluxes
+            // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
 
-      trans_final(xbx, 0, 1, 2,
-                  qxm_arr, ql_arr,
-                  qxp_arr, qr_arr,
-                  qaux_arr,
-                  ftmp1_arr,
+            trans_final(xbx, 0, 1, 2, qxm_arr, ql_arr, qxp_arr, qr_arr,
+                        qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                  rftmp1_arr,
+                        rftmp1_arr,
 #endif
-                  ftmp2_arr,
+                        ftmp2_arr,
 #ifdef RADIATION
-                  rftmp2_arr,
+                        rftmp2_arr,
 #endif
-                  qgdnvtmp1_arr,
-                  qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                        qgdnvtmp1_arr, qgdnvtmp2_arr, hdt, hdtdx, hdtdy, hdtdz);
 
-      reset_edge_state_thermo(xbx, ql.array());
+            reset_edge_state_thermo(xbx, ql.array());
 
-      reset_edge_state_thermo(xbx, qr.array());
+            reset_edge_state_thermo(xbx, qr.array());
 
-      cmpflx_plus_godunov(xbx,
-                          ql_arr, qr_arr,
-                          flux0_arr, q_int_arr,
+            cmpflx_plus_godunov(xbx, ql_arr, qr_arr, flux0_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                                rad_flux0_arr, lambda_int_arr,
 #endif
-                          qex_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qex_arr, qaux_arr, shk_arr, 0);
 
-      //
-      // Use qy?, q?zx, q?xz to compute final y-flux
-      //
+            //
+            // Use qy?, q?zx, q?xz to compute final y-flux
+            //
 
-      // compute F^{z|x}
-      // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
-      const Box& czxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
+            // compute F^{z|x}
+            // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
+            const Box& czxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0, 1, 0)));
 
-      // ftmp1 = fzx
-      // rftmp1 = rfzx
-      // qgdnvtmp1 = qgdnvzx
-      cmpflx_plus_godunov(czxbx,
-                          qmzx_arr, qpzx_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fzx
+            // rftmp1 = rfzx
+            // qgdnvtmp1 = qgdnvzx
+            cmpflx_plus_godunov(czxbx, qmzx_arr, qpzx_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          2);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 2);
 
-      // compute F^{x|z}
-      // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
-      const Box& cxzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
+            // compute F^{x|z}
+            // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
+            const Box& cxzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 1, 0)));
 
-      // ftmp2 = fxz
-      // rftmp2 = rfxz
-      // qgdnvtmp2 = qgdnvxz
-      cmpflx_plus_godunov(cxzbx,
-                          qmxz_arr, qpxz_arr,
-                          ftmp2_arr, q_int_arr,
+            // ftmp2 = fxz
+            // rftmp2 = rfxz
+            // qgdnvtmp2 = qgdnvxz
+            cmpflx_plus_godunov(cxzbx, qmxz_arr, qpxz_arr, ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                                rftmp2_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp2_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qgdnvtmp2_arr, qaux_arr, shk_arr, 0);
 
-      // Compute the corrected y interface states and fluxes
-      // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
+            // Compute the corrected y interface states and fluxes
+            // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
 
-      trans_final(ybx, 1, 0, 2,
-                  qym_arr, ql_arr,
-                  qyp_arr, qr_arr,
-                  qaux_arr,
-                  ftmp2_arr,
+            trans_final(ybx, 1, 0, 2, qym_arr, ql_arr, qyp_arr, qr_arr,
+                        qaux_arr, ftmp2_arr,
 #ifdef RADIATION
-                  rftmp2_arr,
+                        rftmp2_arr,
 #endif
-                  ftmp1_arr,
+                        ftmp1_arr,
 #ifdef RADIATION
-                  rftmp1_arr,
+                        rftmp1_arr,
 #endif
-                  qgdnvtmp2_arr,
-                  qgdnvtmp1_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                        qgdnvtmp2_arr, qgdnvtmp1_arr, hdt, hdtdx, hdtdy, hdtdz);
 
-      reset_edge_state_thermo(ybx, ql.array());
+            reset_edge_state_thermo(ybx, ql.array());
 
-      reset_edge_state_thermo(ybx, qr.array());
+            reset_edge_state_thermo(ybx, qr.array());
 
-      // Compute the final F^y
-      // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
-      cmpflx_plus_godunov(ybx,
-                          ql_arr, qr_arr,
-                          flux1_arr, q_int_arr,
+            // Compute the final F^y
+            // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
+            cmpflx_plus_godunov(ybx, ql_arr, qr_arr, flux1_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux1_arr, lambda_int_arr,
+                                rad_flux1_arr, lambda_int_arr,
 #endif
-                          qey_arr,
-                          qaux_arr, shk_arr,
-                          1);
+                                qey_arr, qaux_arr, shk_arr, 1);
 
-      //
-      // Use qz?, q?xy, q?yx to compute final z-flux
-      //
+            //
+            // Use qz?, q?xy, q?yx to compute final z-flux
+            //
 
-      // compute F^{x|y}
-      // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1]
-      const Box& cxybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
+            // compute F^{x|y}
+            // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), hi(3)+1]
+            const Box& cxybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0, 0, 1)));
 
-      // ftmp1 = fxy
-      // rftmp1 = rfxy
-      // qgdnvtmp1 = qgdnvxy
-      cmpflx_plus_godunov(cxybx,
-                          qmxy_arr, qpxy_arr,
-                          ftmp1_arr, q_int_arr,
+            // ftmp1 = fxy
+            // rftmp1 = rfxy
+            // qgdnvtmp1 = qgdnvxy
+            cmpflx_plus_godunov(cxybx, qmxy_arr, qpxy_arr, ftmp1_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                                rftmp1_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp1_arr,
-                          qaux_arr, shk_arr,
-                          0);
+                                qgdnvtmp1_arr, qaux_arr, shk_arr, 0);
 
-      // compute F^{y|x}
-      // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
-      const Box& cyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
+            // compute F^{y|x}
+            // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
+            const Box& cyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0, 0, 1)));
 
-      // ftmp2 = fyx
-      // rftmp2 = rfyx
-      // qgdnvtmp2 = qgdnvyx
-      cmpflx_plus_godunov(cyxbx,
-                          qmyx_arr, qpyx_arr,
-                          ftmp2_arr, q_int_arr,
+            // ftmp2 = fyx
+            // rftmp2 = rfyx
+            // qgdnvtmp2 = qgdnvyx
+            cmpflx_plus_godunov(cyxbx, qmyx_arr, qpyx_arr, ftmp2_arr, q_int_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                                rftmp2_arr, lambda_int_arr,
 #endif
-                          qgdnvtmp2_arr,
-                          qaux_arr, shk_arr,
-                          1);
+                                qgdnvtmp2_arr, qaux_arr, shk_arr, 1);
 
-      // compute the corrected z interface states and fluxes
-      // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
+            // compute the corrected z interface states and fluxes
+            // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-      trans_final(zbx, 2, 0, 1,
-                  qzm_arr, ql_arr,
-                  qzp_arr, qr_arr,
-                  qaux_arr,
-                  ftmp1_arr,
+            trans_final(zbx, 2, 0, 1, qzm_arr, ql_arr, qzp_arr, qr_arr,
+                        qaux_arr, ftmp1_arr,
 #ifdef RADIATION
-                  rftmp1_arr,
+                        rftmp1_arr,
 #endif
-                  ftmp2_arr,
+                        ftmp2_arr,
 #ifdef RADIATION
-                  rftmp2_arr,
+                        rftmp2_arr,
 #endif
-                  qgdnvtmp1_arr,
-                  qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                        qgdnvtmp1_arr, qgdnvtmp2_arr, hdt, hdtdx, hdtdy, hdtdz);
 
-      reset_edge_state_thermo(zbx, ql.array());
+            reset_edge_state_thermo(zbx, ql.array());
 
-      reset_edge_state_thermo(zbx, qr.array());
+            reset_edge_state_thermo(zbx, qr.array());
 
-      // compute the final z fluxes F^z
-      // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
+            // compute the final z fluxes F^z
+            // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
-      cmpflx_plus_godunov(zbx,
-                          ql_arr, qr_arr,
-                          flux2_arr, q_int_arr,
+            cmpflx_plus_godunov(zbx, ql_arr, qr_arr, flux2_arr, q_int_arr,
 #ifdef RADIATION
-                          rad_flux2_arr, lambda_int_arr,
+                                rad_flux2_arr, lambda_int_arr,
 #endif
-                          qez_arr,
-                          qaux_arr, shk_arr,
-                          2);
+                                qez_arr, qaux_arr, shk_arr, 2);
 
-#endif // 3-d
+#endif  // 3-d
 
+            // clean the fluxes
 
+            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-      // clean the fluxes
+                const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+                Array4<Real> const flux_arr = (flux[idir]).array();
+                Array4<Real const> const uin_arr = Sborder.array(mfi);
 
-          const Box& nbx = amrex::surroundingNodes(bx, idir);
-
-          Array4<Real> const flux_arr = (flux[idir]).array();
-          Array4<Real const> const uin_arr = Sborder.array(mfi);
-
-          // Zero out shock and temp fluxes -- these are physically meaningless here
-          amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-          {
-              flux_arr(i,j,k,UTEMP) = 0.e0;
+                // Zero out shock and temp fluxes -- these are physically meaningless here
+                amrex::ParallelFor(nbx, [=] AMREX_GPU_HOST_DEVICE(
+                                            int i, int j, int k) noexcept {
+                    flux_arr(i, j, k, UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
-              flux_arr(i,j,k,USHK) = 0.e0;
+                    flux_arr(i, j, k, USHK) = 0.e0;
 #endif
-          });
+                });
 
-          apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
+                apply_av(nbx, idir, div_arr, uin_arr, flux_arr);
 
 #ifdef RADIATION
-          Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
-          Array4<Real const> const Erin_arr = Erborder.array(mfi);
+                Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
+                Array4<Real const> const Erin_arr = Erborder.array(mfi);
 
-          apply_av_rad(nbx, idir, div_arr, Erin_arr, rad_flux_arr);
+                apply_av_rad(nbx, idir, div_arr, Erin_arr, rad_flux_arr);
 #endif
 
-          if (limit_fluxes_on_small_dens == 1) {
-              limit_hydro_fluxes_on_small_dens
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   q.array(mfi),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
-          }
+                if (limit_fluxes_on_small_dens == 1) {
+                    limit_hydro_fluxes_on_small_dens(
+                        nbx, idir, Sborder.array(mfi), q.array(mfi),
+                        volume.array(mfi), flux[idir].array(),
+                        area[idir].array(mfi), dt);
+                }
 
-          if (limit_fluxes_on_large_vel == 1) {
-              limit_hydro_fluxes_on_large_vel
-                  (nbx, idir,
-                   Sborder.array(mfi),
-                   q.array(mfi),
-                   volume.array(mfi),
-                   flux[idir].array(),
-                   area[idir].array(mfi),
-                   dt);
-          }
+                if (limit_fluxes_on_large_vel == 1) {
+                    limit_hydro_fluxes_on_large_vel(
+                        nbx, idir, Sborder.array(mfi), q.array(mfi),
+                        volume.array(mfi), flux[idir].array(),
+                        area[idir].array(mfi), dt);
+                }
 
-          normalize_species_fluxes(nbx, flux_arr);
+                normalize_species_fluxes(nbx, flux_arr);
+            }
 
-      }
+            // conservative update
+            Array4<Real> const update_arr = hydro_source.array(mfi);
 
-
-
-      // conservative update
-      Array4<Real> const update_arr = hydro_source.array(mfi);
-
-      Array4<Real> const flx_arr = (flux[0]).array();
-      Array4<Real> const qx_arr = (qe[0]).array();
+            Array4<Real> const flx_arr = (flux[0]).array();
+            Array4<Real> const qx_arr = (qe[0]).array();
 
 #if AMREX_SPACEDIM >= 2
-      Array4<Real> const fly_arr = (flux[1]).array();
-      Array4<Real> const qy_arr = (qe[1]).array();
+            Array4<Real> const fly_arr = (flux[1]).array();
+            Array4<Real> const qy_arr = (qe[1]).array();
 #endif
 
 #if AMREX_SPACEDIM == 3
-      Array4<Real> const flz_arr = (flux[2]).array();
-      Array4<Real> const qz_arr = (qe[2]).array();
+            Array4<Real> const flz_arr = (flux[2]).array();
+            Array4<Real> const qz_arr = (qe[2]).array();
 #endif
 
-      consup_hydro(bx,
-                   shk_arr,
-                   update_arr,
-                   flx_arr, qx_arr, areax_arr,
+            consup_hydro(bx, shk_arr, update_arr, flx_arr, qx_arr, areax_arr,
 #if AMREX_SPACEDIM >= 2
-                   fly_arr, qy_arr, areay_arr,
+                         fly_arr, qy_arr, areay_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                   flz_arr, qz_arr, areaz_arr,
+                         flz_arr, qz_arr, areaz_arr,
 #endif
-                   vol_arr,
-                   dt);
-
+                         vol_arr, dt);
 
 #ifdef HYBRID_MOMENTUM
-      auto dx_arr = geom.CellSizeArray();
+            auto dx_arr = geom.CellSizeArray();
 
-      amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-      {
+            amrex::ParallelFor(bx, [=] AMREX_GPU_HOST_DEVICE(int i, int j,
+                                                             int k) {
+                GpuArray<Real, 3> loc;
 
-          GpuArray<Real, 3> loc;
+                position(i, j, k, geomdata, loc);
 
-          position(i, j, k, geomdata, loc);
+                for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+                    loc[dir] -= center[dir];
 
-          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-              loc[dir] -= center[dir];
+                Real R = amrex::max(
+                    std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+                Real RInv = 1.0_rt / R;
 
-          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
-          Real RInv = 1.0_rt / R;
-
-          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
-                                                           (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
-
-      });
+                update_arr(i, j, k, UMR) = update_arr(i, j, k, UMR) -
+                                           ((loc[0] * RInv) *
+                                                (qx_arr(i + 1, j, k, GDPRES) -
+                                                 qx_arr(i, j, k, GDPRES)) /
+                                                dx_arr[0] +
+                                            (loc[1] * RInv) *
+                                                (qy_arr(i, j + 1, k, GDPRES) -
+                                                 qy_arr(i, j, k, GDPRES)) /
+                                                dx_arr[1]);
+            });
 #endif
 
 #ifdef RADIATION
 #pragma gpu box(bx)
-      ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                     BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                     BL_TO_FORTRAN_ANYD(qe[0]),
-                     BL_TO_FORTRAN_ANYD(area[0][mfi]),
+            ctu_rad_consup(
+                AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
+                BL_TO_FORTRAN_ANYD(Erborder[mfi]),
+                BL_TO_FORTRAN_ANYD(S_new[mfi]), BL_TO_FORTRAN_ANYD(Er_new[mfi]),
+                BL_TO_FORTRAN_ANYD(rad_flux[0]), BL_TO_FORTRAN_ANYD(qe[0]),
+                BL_TO_FORTRAN_ANYD(area[0][mfi]),
 #if AMREX_SPACEDIM >= 2
-                     BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                     BL_TO_FORTRAN_ANYD(qe[1]),
-                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                BL_TO_FORTRAN_ANYD(rad_flux[1]), BL_TO_FORTRAN_ANYD(qe[1]),
+                BL_TO_FORTRAN_ANYD(area[1][mfi]),
 #endif
 #if AMREX_SPACEDIM == 3
-                     BL_TO_FORTRAN_ANYD(rad_flux[2]),
-                     BL_TO_FORTRAN_ANYD(qe[2]),
-                     BL_TO_FORTRAN_ANYD(area[2][mfi]),
+                BL_TO_FORTRAN_ANYD(rad_flux[2]), BL_TO_FORTRAN_ANYD(qe[2]),
+                BL_TO_FORTRAN_ANYD(area[2][mfi]),
 #endif
-                     &priv_nstep_fsp,
-                     BL_TO_FORTRAN_ANYD(volume[mfi]),
-                     AMREX_REAL_ANYD(dx), dt);
+                &priv_nstep_fsp, BL_TO_FORTRAN_ANYD(volume[mfi]),
+                AMREX_REAL_ANYD(dx), dt);
 
-      nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
+            nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
 #if AMREX_SPACEDIM <= 2
-      Array4<Real> pradial_fab = pradial.array();
+            Array4<Real> pradial_fab = pradial.array();
 #endif
 
+            for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
-      for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+                const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-        const Box& nbx = amrex::surroundingNodes(bx, idir);
+                Array4<Real> const flux_arr = (flux[idir]).array();
+                Array4<Real const> const area_arr = (area[idir]).array(mfi);
 
-        Array4<Real> const flux_arr = (flux[idir]).array();
-        Array4<Real const> const area_arr = (area[idir]).array(mfi);
-
-        scale_flux(nbx,
+                scale_flux(nbx,
 #if AMREX_SPACEDIM == 1
-                   qex_arr,
+                           qex_arr,
 #endif
-                   flux_arr, area_arr, dt);
+                           flux_arr, area_arr, dt);
 
 #ifdef RADIATION
-        Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
-        scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
+                Array4<Real> const rad_flux_arr = (rad_flux[idir]).array();
+                scale_rad_flux(nbx, rad_flux_arr, area_arr, dt);
 #endif
 
-        if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
+                if (idir == 0) {
+                    // get the scaled radial pressure -- we need to treat this specially
 #if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
+                    if (!Geom().IsCartesian()) {
+                        amrex::ParallelFor(nbx, [=
+                        ] AMREX_GPU_HOST_DEVICE(int i, int j, int k) noexcept {
+                            pradial_fab(i, j, k) =
+                                qex_arr(i, j, k, GDPRES) * dt;
+                        });
+                    }
 #endif
 
 #if AMREX_SPACEDIM == 2
-            if (!mom_flux_has_p(0, 0, coord)) {
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
+                    if (!mom_flux_has_p(0, 0, coord)) {
+                        amrex::ParallelFor(nbx, [=
+                        ] AMREX_GPU_HOST_DEVICE(int i, int j, int k) noexcept {
+                            pradial_fab(i, j, k) =
+                                qex_arr(i, j, k, GDPRES) * dt;
+                        });
+                    }
 #endif
-        }
+                }
 
-        // Store the fluxes from this advance.
+                // Store the fluxes from this advance.
 
-        // For normal integration we want to add the fluxes from this advance
-        // since we may be subcycling the timestep. But for simplified SDC integration
-        // we want to copy the fluxes since we expect that there will not be
-        // subcycling and we only want the last iteration's fluxes.
+                // For normal integration we want to add the fluxes from this advance
+                // since we may be subcycling the timestep. But for simplified SDC integration
+                // we want to copy the fluxes since we expect that there will not be
+                // subcycling and we only want the last iteration's fluxes.
 
-        Array4<Real> const flux_fab = (flux[idir]).array();
-        Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-        const int numcomp = NUM_STATE;
+                Array4<Real> const flux_fab = (flux[idir]).array();
+                Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+                const int numcomp = NUM_STATE;
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                if (time_integration_method ==
+                    SimplifiedSpectralDeferredCorrections) {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-            {
-                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
-            });
+                    AMREX_HOST_DEVICE_FOR_4D(
+                        mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+                        { fluxes_fab(i, j, k, n) = flux_fab(i, j, k, n); });
 
-        } else {
+                } else {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-            {
-                fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
-            });
-
-        }
+                    AMREX_HOST_DEVICE_FOR_4D(
+                        mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+                        { fluxes_fab(i, j, k, n) += flux_fab(i, j, k, n); });
+                }
 
 #ifdef RADIATION
-        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
-        Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-        const int radcomp = Radiation::nGroups;
+                Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+                Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
+                const int radcomp = Radiation::nGroups;
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                if (time_integration_method ==
+                    SimplifiedSpectralDeferredCorrections) {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-            {
-                rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
-            });
+                    AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i,
+                                             j, k, n, {
+                                                 rad_fluxes_fab(i, j, k, n) =
+                                                     rad_flux_fab(i, j, k, n);
+                                             });
 
-        } else {
+                } else {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-            {
-                rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
-            });
-
-        }
+                    AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i,
+                                             j, k, n, {
+                                                 rad_fluxes_fab(i, j, k, n) +=
+                                                     rad_flux_fab(i, j, k, n);
+                                             });
+                }
 #endif
 
-        Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+                Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
-        {
-            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
-        });
+                AMREX_HOST_DEVICE_FOR_4D(
+                    mfi.nodaltilebox(idir), 1, i, j, k, n,
+                    { mass_fluxes_fab(i, j, k, 0) = flux_fab(i, j, k, URHO); });
 
-      } // idir loop
+            }  // idir loop
 
 #if AMREX_SPACEDIM <= 2
-      if (!Geom().IsCartesian()) {
+            if (!Geom().IsCartesian()) {
 
-          Array4<Real> P_radial_fab = P_radial.array(mfi);
+                Array4<Real> P_radial_fab = P_radial.array(mfi);
 
-          if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+                if (time_integration_method ==
+                    SimplifiedSpectralDeferredCorrections) {
 
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
-              });
+                    AMREX_HOST_DEVICE_FOR_4D(
+                        mfi.nodaltilebox(0), 1, i, j, k, n, {
+                            P_radial_fab(i, j, k, 0) = pradial_fab(i, j, k, 0);
+                        });
 
-          } else {
+                } else {
 
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
-              });
-
-          }
-
-      }
+                    AMREX_HOST_DEVICE_FOR_4D(
+                        mfi.nodaltilebox(0), 1, i, j, k, n, {
+                            P_radial_fab(i, j, k, 0) += pradial_fab(i, j, k, 0);
+                        });
+                }
+            }
 #endif
 
-      if (track_grid_losses == 1) {
+            if (track_grid_losses == 1) {
 
 #pragma gpu box(bx)
-          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(flux[0]),
+                ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()),
+                                     AMREX_INT_ANYD(bx.hiVect()),
+                                     BL_TO_FORTRAN_ANYD(flux[0]),
 #if AMREX_SPACEDIM >= 2
-                               BL_TO_FORTRAN_ANYD(flux[1]),
+                                     BL_TO_FORTRAN_ANYD(flux[1]),
 #endif
 #if AMREX_SPACEDIM == 3
-                               BL_TO_FORTRAN_ANYD(flux[2]),
+                                     BL_TO_FORTRAN_ANYD(flux[2]),
 #endif
-                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
-      }
+                                     AMREX_MFITER_REDUCE_SUM(&mass_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&xmom_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&ymom_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&zmom_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&eden_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&xang_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&yang_lost),
+                                     AMREX_MFITER_REDUCE_SUM(&zang_lost));
+            }
 
 #ifdef AMREX_USE_GPU
-      // Check if we're going to run out of memory in the next MFIter iteration.
-      // If so, do a synchronize here so that we don't oversubscribe GPU memory.
-      // Note that this will capture the case where we started with more memory
-      // than what the GPU has, on the logic that even in that case, it makes
-      // sense to not further pile on the oversubscription demands.
+            // Check if we're going to run out of memory in the next MFIter iteration.
+            // If so, do a synchronize here so that we don't oversubscribe GPU memory.
+            // Note that this will capture the case where we started with more memory
+            // than what the GPU has, on the logic that even in that case, it makes
+            // sense to not further pile on the oversubscription demands.
 
-      // This could (and should) be generalized in the future to operate with
-      // more granularity than the MFIter loop boundary. We would have potential
-      // synchronization points prior to each of the above kernel launches, and
-      // we would check whether the sum of all previously allocated fabs would
-      // result in oversubscription, including any contributions from a partial
-      // MFIter loop. A further optimization would be to not apply a device
-      // synchronize, but rather to use CUDA events to poll on a check about
-      // whether enough memory has freed up to begin the next iteration, and then
-      // immediately proceed to the next kernel when there's enough space for it.
+            // This could (and should) be generalized in the future to operate with
+            // more granularity than the MFIter loop boundary. We would have potential
+            // synchronization points prior to each of the above kernel launches, and
+            // we would check whether the sum of all previously allocated fabs would
+            // result in oversubscription, including any contributions from a partial
+            // MFIter loop. A further optimization would be to not apply a device
+            // synchronize, but rather to use CUDA events to poll on a check about
+            // whether enough memory has freed up to begin the next iteration, and then
+            // immediately proceed to the next kernel when there's enough space for it.
 
-      current_size += fab_size;
-      if (current_size + fab_size >= Gpu::Device::totalGlobalMem()) {
-          Gpu::Device::synchronize();
-          current_size = starting_size;
-      }
+            current_size += fab_size;
+            if (current_size + fab_size >= Gpu::Device::totalGlobalMem()) {
+                Gpu::Device::synchronize();
+                current_size = starting_size;
+            }
 #endif
 
-      if (oversubscribed) {
-          q[mfi].prefetchToHost();
-          qaux[mfi].prefetchToHost();
-          volume[mfi].prefetchToHost();
-          Sborder[mfi].prefetchToHost();
-          hydro_source[mfi].prefetchToHost();
-          for (int i = 0; i < AMREX_SPACEDIM; ++i) {
-              area[i][mfi].prefetchToHost();
-              (*fluxes[i])[mfi].prefetchToHost();
-          }
+            if (oversubscribed) {
+                q[mfi].prefetchToHost();
+                qaux[mfi].prefetchToHost();
+                volume[mfi].prefetchToHost();
+                Sborder[mfi].prefetchToHost();
+                hydro_source[mfi].prefetchToHost();
+                for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+                    area[i][mfi].prefetchToHost();
+                    (*fluxes[i])[mfi].prefetchToHost();
+                }
 #if AMREX_SPACEDIM < 3
-          dLogArea[0][mfi].prefetchToHost();
-          P_radial[mfi].prefetchToHost();
+                dLogArea[0][mfi].prefetchToHost();
+                P_radial[mfi].prefetchToHost();
 #endif
 #ifdef RADIATION
-          Erborder[mfi].prefetchToHost();
-          Er_new[mfi].prefetchToHost();
+                Erborder[mfi].prefetchToHost();
+                Er_new[mfi].prefetchToHost();
 #endif
-      }
+            }
 
+        }  // MFIter loop
 
-    } // MFIter loop
-
-  } // OMP loop
+    }  // OMP loop
 
 #ifdef RADIATION
-  if (radiation->verbose>=1) {
+    if (radiation->verbose >= 1) {
 #ifdef BL_LAZY
-    Lazy::QueueReduction( [=] () mutable {
+        Lazy::QueueReduction([=]() mutable {
 #endif
-       ParallelDescriptor::ReduceIntMax(nstep_fsp, ParallelDescriptor::IOProcessorNumber());
-       if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
-         std::cout << "Radiation f-space advection on level " << level
-                   << " takes as many as " << nstep_fsp;
-         if (nstep_fsp == 1) {
-           std::cout<< " substep.\n";
-         }
-         else {
-           std::cout<< " substeps.\n";
-         }
-       }
-#ifdef BL_LAZY
-     });
-#endif
-  }
-#else
-  // Flush Fortran output
-
-  if (verbose)
-    flush_output();
-
-  if (track_grid_losses)
-    {
-      material_lost_through_boundary_temp[0] += mass_lost;
-      material_lost_through_boundary_temp[1] += xmom_lost;
-      material_lost_through_boundary_temp[2] += ymom_lost;
-      material_lost_through_boundary_temp[3] += zmom_lost;
-      material_lost_through_boundary_temp[4] += eden_lost;
-      material_lost_through_boundary_temp[5] += xang_lost;
-      material_lost_through_boundary_temp[6] += yang_lost;
-      material_lost_through_boundary_temp[7] += zang_lost;
-    }
-
-  if (print_update_diagnostics)
-    {
-
-      bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
-
-#ifdef BL_LAZY
-      Lazy::QueueReduction( [=] () mutable {
-#endif
-         ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-         if (ParallelDescriptor::IOProcessor())
-           std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
-
-         print_source_change(hydro_update);
-
-#ifdef BL_LAZY
-      });
-#endif
-    }
-#endif
-
-  if (verbose && ParallelDescriptor::IOProcessor())
-    std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl << std::endl;
-
-  if (verbose > 0)
-    {
-      const int IOProc   = ParallelDescriptor::IOProcessorNumber();
-      Real      run_time = ParallelDescriptor::second() - strt_time;
-
-#ifdef BL_LAZY
-      Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(run_time,IOProc);
-
-        if (ParallelDescriptor::IOProcessor())
-          std::cout << "Castro::construct_ctu_hydro_source() time = " << run_time << "\n" << "\n";
+            ParallelDescriptor::ReduceIntMax(
+                nstep_fsp, ParallelDescriptor::IOProcessorNumber());
+            if (ParallelDescriptor::IOProcessor() && nstep_fsp > 0) {
+                std::cout << "Radiation f-space advection on level " << level
+                          << " takes as many as " << nstep_fsp;
+                if (nstep_fsp == 1) {
+                    std::cout << " substep.\n";
+                } else {
+                    std::cout << " substeps.\n";
+                }
+            }
 #ifdef BL_LAZY
         });
 #endif
     }
+#else
+    // Flush Fortran output
 
+    if (verbose) flush_output();
+
+    if (track_grid_losses) {
+        material_lost_through_boundary_temp[0] += mass_lost;
+        material_lost_through_boundary_temp[1] += xmom_lost;
+        material_lost_through_boundary_temp[2] += ymom_lost;
+        material_lost_through_boundary_temp[3] += zmom_lost;
+        material_lost_through_boundary_temp[4] += eden_lost;
+        material_lost_through_boundary_temp[5] += xang_lost;
+        material_lost_through_boundary_temp[6] += yang_lost;
+        material_lost_through_boundary_temp[7] += zang_lost;
+    }
+
+    if (print_update_diagnostics) {
+
+        bool local = true;
+        Vector<Real> hydro_update =
+            evaluate_source_change(hydro_source, dt, local);
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction(
+            [=]() mutable {
+#endif
+                ParallelDescriptor::ReduceRealSum(
+                    hydro_update.dataPtr(), hydro_update.size(),
+                    ParallelDescriptor::IOProcessorNumber());
+
+                if (ParallelDescriptor::IOProcessor())
+                    std::cout
+                        << std::endl
+                        << "  Contributions to the state from the hydro source:"
+                        << std::endl;
+
+                print_source_change(hydro_update);
+
+#ifdef BL_LAZY
+            });
+#endif
+    }
+#endif
+
+    if (verbose && ParallelDescriptor::IOProcessor())
+        std::cout << "... Leaving construct_ctu_hydro_source()" << std::endl
+                  << std::endl;
+
+    if (verbose > 0) {
+        const int IOProc = ParallelDescriptor::IOProcessorNumber();
+        Real run_time = ParallelDescriptor::second() - strt_time;
+
+#ifdef BL_LAZY
+        Lazy::QueueReduction([=]() mutable {
+#endif
+            ParallelDescriptor::ReduceRealMax(run_time, IOProc);
+
+            if (ParallelDescriptor::IOProcessor())
+                std::cout << "Castro::construct_ctu_hydro_source() time = "
+                          << run_time << "\n"
+                          << "\n";
+#ifdef BL_LAZY
+        });
+#endif
+    }
 }

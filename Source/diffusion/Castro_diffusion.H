@@ -7,7 +7,8 @@
 /// @param time     current time
 /// @param dt       timestep
 ///
-    void construct_old_diff_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
+void construct_old_diff_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                               amrex::Real time, amrex::Real dt);
 
 ///
 /// Construct diffusion source at new time
@@ -18,8 +19,10 @@
 /// @param time         current time
 /// @param dt           timestep
 ///
-    void construct_new_diff_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
-
+void construct_new_diff_source(amrex::MultiFab& source,
+                               amrex::MultiFab& state_old,
+                               amrex::MultiFab& state_new, amrex::Real time,
+                               amrex::Real dt);
 
 ///
 /// Get thermal conductivity diffusion term at given time
@@ -28,8 +31,8 @@
 /// @param state    Current state
 /// @param DiffTerm MultiFab to save term to
 ///
-void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::MultiFab& DiffTerm);
-
+void getTempDiffusionTerm(amrex::Real time, amrex::MultiFab& state,
+                          amrex::MultiFab& DiffTerm);
 
 ///
 /// Calculate temperature or enthalpty diffusion terms and add to ``ext_src`` (multiplied by ``mult_factor``).
@@ -41,8 +44,7 @@ void getTempDiffusionTerm (amrex::Real time, amrex::MultiFab& state, amrex::Mult
 /// @param mult_factor  Real, factor to multiply diffusion
 ///                     sources by before adding to other sources.
 ///
-void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& state,
-                                   amrex::MultiFab& DiffTerm, amrex::Real t,
-                                   amrex::Real mult_factor = 1.0);
-
-
+void add_temp_diffusion_to_source(amrex::MultiFab& ext_src,
+                                  amrex::MultiFab& state,
+                                  amrex::MultiFab& DiffTerm, amrex::Real t,
+                                  amrex::Real mult_factor = 1.0);

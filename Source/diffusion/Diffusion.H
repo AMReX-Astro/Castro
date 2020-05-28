@@ -7,102 +7,95 @@
 #include "diffusion_params.H"
 
 ///
-/// @class Diffusion 
+/// @class Diffusion
 /// @brief
 ///
 class Diffusion {
 
-public:
+   public:
+    ///
+    /// @param Parent
+    /// @param _phys_bc
+    ///
+    Diffusion(amrex::Amr* Parent, amrex::BCRec* _phys_bc);
+    ~Diffusion();
+    void read_params();
 
+    ///
+    /// @param jobInfoFile
+    ///
+    void output_job_info_params(std::ostream& jobInfoFile);
 
-///
-/// @param Parent
-/// @param _phys_bc
-///
-  Diffusion(amrex::Amr* Parent, amrex::BCRec* _phys_bc);
-  ~Diffusion ();
-  void read_params ();
+    ///
+    /// @param level
+    /// @param level_data
+    /// @param volume
+    /// @param area
+    ///
+    void install_level(int level, amrex::AmrLevel* level_data,
+                       amrex::MultiFab& volume, amrex::MultiFab* area);
 
+    ///
+    /// @param level
+    /// @param Temperature
+    /// @param CrseTemp
+    /// @param DiffTerm
+    /// @param temp_cond_coef
+    ///
+    void applyop(
+        int level, amrex::MultiFab& Temperature, amrex::MultiFab& CrseTemp,
+        amrex::MultiFab& DiffTerm,
+        amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
 
-///
-/// @param jobInfoFile
-///
-  void output_job_info_params(std::ostream& jobInfoFile);
+    void make_mg_bc();
 
+   protected:
+    ///
+    /// Pointers to amr,amrlevel.
+    ///
+    amrex::Amr* parent;
+    amrex::Vector<amrex::AmrLevel*> LevelData;
 
-///
-/// @param level
-/// @param level_data
-/// @param volume
-/// @param area
-///
-  void install_level (int                   level,
-                      amrex::AmrLevel*             level_data,
-                      amrex::MultiFab&             volume,
-                      amrex::MultiFab*             area);
+    ///
+    /// BoxArray at each level
+    ///
+    amrex::Vector<amrex::BoxArray> grids;
 
+    ///
+    /// Volume and area fractions.
+    ///
+    amrex::Vector<amrex::MultiFab*> volume;
+    amrex::Vector<amrex::MultiFab*> area;
 
-///
-/// @param level
-/// @param Temperature
-/// @param CrseTemp
-/// @param DiffTerm
-/// @param temp_cond_coef
-///
-  void applyop(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
-               amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
+    amrex::BCRec* phys_bc;
 
-  void make_mg_bc();
-
-protected:
-
-///
-/// Pointers to amr,amrlevel.
-///
-  amrex::Amr*             parent;
-  amrex::Vector<amrex::AmrLevel*> LevelData;
-
-
-///
-/// BoxArray at each level
-///
-  amrex::Vector<amrex::BoxArray> grids;
-
-///
-/// Volume and area fractions.
-///
-  amrex::Vector<amrex::MultiFab*> volume;
-  amrex::Vector<amrex::MultiFab*> area;
-
-  amrex::BCRec*       phys_bc;
-
-  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_lobc;
-  std::array<amrex::MLLinOp::BCType,AMREX_SPACEDIM> mlmg_hibc;
+    std::array<amrex::MLLinOp::BCType, AMREX_SPACEDIM> mlmg_lobc;
+    std::array<amrex::MLLinOp::BCType, AMREX_SPACEDIM> mlmg_hibc;
 
 #if (BL_SPACEDIM < 3)
-///
-/// @param level
-/// @param cc
-///
-  void   weight_cc(int level,amrex::MultiFab& cc);
+    ///
+    /// @param level
+    /// @param cc
+    ///
+    void weight_cc(int level, amrex::MultiFab& cc);
 
-///
-/// @param level
-/// @param cc
-///
-  void unweight_cc(int level,amrex::MultiFab& cc);
+    ///
+    /// @param level
+    /// @param cc
+    ///
+    void unweight_cc(int level, amrex::MultiFab& cc);
 #endif
 
-
-///
-/// @param level
-/// @param Temperature
-/// @param CrseTemp
-/// @param DiffTerm
-/// @param temp_cond_coef
-///
-  void applyop_mlmg(int level,amrex::MultiFab& Temperature,amrex::MultiFab& CrseTemp,
-                    amrex::MultiFab& DiffTerm, amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
-
+    ///
+    /// @param level
+    /// @param Temperature
+    /// @param CrseTemp
+    /// @param DiffTerm
+    /// @param temp_cond_coef
+    ///
+    void applyop_mlmg(
+        int level, amrex::MultiFab& Temperature, amrex::MultiFab& CrseTemp,
+        amrex::MultiFab& DiffTerm,
+        amrex::Vector<std::unique_ptr<amrex::MultiFab> >& temp_cond_coef);
 };
 #endif
