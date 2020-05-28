@@ -71,7 +71,7 @@ Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 }
 
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
 
@@ -92,7 +92,7 @@ Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
 }
 
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 
@@ -141,7 +141,7 @@ Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 
 
 void
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Castro::PToC(Array1D<Real, 0, NQ-1>& q,
              Array1D<Real, 0, NUM_STATE+2>& U,
              Real& gam1) {
@@ -184,7 +184,7 @@ Castro::PToC(Array1D<Real, 0, NQ-1>& q,
 }
 
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int
 epsilon_ijk(const int i, const int j, const int k) {
 
