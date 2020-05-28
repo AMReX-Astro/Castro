@@ -111,7 +111,7 @@ Controls
    ``gravity.no_sync`` and ``gravity.no_composite``.
 
 -  For isolated boundary conditions, and when
-   ``gravity.gravity_type``=  ``PoissonGrav``, the parameters
+   ``gravity.gravity_type`` = ``PoissonGrav``, the parameters
    ``gravity.max_multipole_order`` and
    ``gravity.direct_sum_bcs`` control the accuracy of
    the Dirichlet boundary conditions. These are described in
@@ -148,11 +148,11 @@ solves:
    the multigrid solve is ``abs_tol`` :math:`\times 4\pi G\,
    \rho_{\text{max}}` where :math:`\rho_{\text{max}}` is the maximum
    value of the density on the domain. On fine levels, this absolute
-   tolerance is multiplied by (``ref_ratio``):sup:`2` to account
+   tolerance is multiplied by :math:`(\mathtt{ref\_ratio})^2` to account
    for the change in the absolute scale of the Laplacian operator. You
    can also specify an array of values for ``abs_tol``, one for each
    possible level in the simulation, and then the scaling by
-   (``ref_ratio``):sup:`2` is not applied.
+   :math:`(\mathtt{ref\_ratio})^2` is not applied.
 
 -  ``gravity.rel_tol`` : if ``gravity.gravity_type`` = ``PoissonGrav``,
    this is the relative tolerance for the Poisson solve. By default it
