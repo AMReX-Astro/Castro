@@ -83,7 +83,7 @@
               const amrex::Real dt);
 
 
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     qflux(amrex::Real* qflx, amrex::Real* flx, amrex::Real* q_zone);
 
@@ -108,7 +108,7 @@
                     amrex::Array4<amrex::Real const> const& flxx,
                     amrex::Array4<amrex::Real const> const& flxy);
 
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     electric(amrex::Real* q_zone, amrex::Real& E_zone, const int comp);
 
@@ -138,7 +138,7 @@
               amrex::Array4<amrex::Real const> const& Ed2,
               const int d, const int d1, const int d2, const amrex::Real dt);
 
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     ConsToPrim(amrex::Real* q_zone, amrex::Real* U_zone);
 
@@ -151,7 +151,7 @@
          const int dir);
 
 
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     PToC(amrex::Array1D<amrex::Real, 0, NQ-1>& q,
          amrex::Array1D<amrex::Real, 0, NUM_STATE+2>& U,
