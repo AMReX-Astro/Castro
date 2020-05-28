@@ -69,7 +69,7 @@
               const amrex::Real dt);
 
 
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     qflux(amrex::Real* qflx, amrex::Real* flx, amrex::Real* q_zone);
 

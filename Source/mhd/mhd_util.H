@@ -21,7 +21,7 @@ eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
   c = std::sqrt(c);
 }
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 
