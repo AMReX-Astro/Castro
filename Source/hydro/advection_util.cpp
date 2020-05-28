@@ -23,7 +23,6 @@ Castro::ctoprim(const Box& bx,
                 const Real time,
                 Array4<Real const> const& uin,
 #ifdef MHD
-                Array4<Real> const& bcc,
                 Array4<Real const> const& Bx,
                 Array4<Real const> const& By,
                 Array4<Real const> const& Bz,
@@ -62,7 +61,6 @@ Castro::ctoprim(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-
 #ifndef AMREX_USE_CUDA
     if (uin(i,j,k,URHO) <= 0.0_rt) {
       std::cout << std::endl;
@@ -86,13 +84,8 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef MHD
     q_arr(i,j,k,QMAGX) = 0.5_rt * (Bx(i+1,j,k) + Bx(i,j,k));
-    bcc(i,j,k,0) = q_arr(i,j,k,QMAGX);
-
     q_arr(i,j,k,QMAGY) = 0.5_rt * (By(i,j+1,k) + By(i,j,k));
-    bcc(i,j,k,1) = q_arr(i,j,k,QMAGY);
-
     q_arr(i,j,k,QMAGZ) = 0.5_rt * (Bz(i,j,k+1) + Bz(i,j,k));
-    bcc(i,j,k,2) = q_arr(i,j,k,QMAGZ);
 #endif
 
     // Get the internal energy, which we'll use for
@@ -166,6 +159,13 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QPRES) = eos_state.p;
 #ifdef TRUE_SDC
     q_arr(i,j,k,QGC) = eos_state.gam1;
+#endif
+
+#ifdef MHD
+    q_arr(i,j,k,QPTOT) = q_arr(i,j,k,QPRES) +
+      0.5_rt * (q_arr(i,j,k,QMAGX) * q_arr(i,j,k,QMAGX) +
+                q_arr(i,j,k,QMAGY) * q_arr(i,j,k,QMAGY) +
+                q_arr(i,j,k,QMAGZ) * q_arr(i,j,k,QMAGZ));
 #endif
 
 #ifdef RADIATION

@@ -1,3 +1,17 @@
+# 20.06
+
+   * The parameter castro.density_reset_method has been removed. A density
+     reset now unconditionally sets the density to small_dens, the temperature
+     to small_temp, and zeros out the velocities. (#989)
+
+   * A constrained-transport corner transport upwind MHD solver has been
+     added.  This can be used by compiling with USE_MPI = TRUE.  Presently
+     it only works for a single level (no AMR).  (#307)
+
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
+
    * The reaction weights metric implemented in version 20.05 (#863) has been
      added to the simplified SDC reactions driver. (#930)
 
