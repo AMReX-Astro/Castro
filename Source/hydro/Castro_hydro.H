@@ -547,6 +547,38 @@
 #endif
 
 #ifdef TRUE_SDC
+
+    void
+    fourth_interfaces(const amrex::Box& bx,
+                      const int idir, const int ncomp,
+                      amrex::Array4<amrex::Real const> const& a,
+                      amrex::Array4<amrex::Real> const& a_int);
+
+    void
+    states(const amrex::Box& bx,
+           const int idir, const int ncomp,
+           amrex::Array4<amrex::Real const> const& a,
+           amrex::Array4<amrex::Real const> const& a_int,
+           amrex::Array4<amrex::Real const> const& flatn,
+           amrex::Array4<amrex::Real> const& al,
+           amrex::Array4<amrex::Real> const& ar);
+
+    void
+    fourth_avisc(const amrex::Box& bx,
+                 amrex::Array4<amrex::Real const> const& q,
+                 amrex::Array4<amrex::Real const> const& qaux,
+                 amrex::Array4<amrex::Real> const& avis,
+                 const int idir);
+
+    void
+    fourth_add_diffusive_flux(const amrex::Box& bx,
+                              amrex::Array4<amrex::Real const> const& q,
+                              const int temp_comp,
+                              amrex::Array4<amrex::Real const> const& qint,
+                              amrex::Array4<amrex::Real> const& F,
+                              const int idir, const bool is_avg);
+
+
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const& a,
