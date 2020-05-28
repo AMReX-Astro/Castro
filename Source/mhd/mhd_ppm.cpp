@@ -101,7 +101,6 @@ Castro::ppm_mhd(const Box& bx,
       evecz(leig, reig, as, q_zone);
     }
 
-
     // do the parabolic reconstruction and compute the integrals under
     // the characteristic waves
     Real s[5];
@@ -142,10 +141,13 @@ Castro::ppm_mhd(const Box& bx,
 
       ppm_reconstruct(s, flat, sm, sp);
 
+      // loop over waves and integrate under the parabola
       for (int ii = 0; ii < NEIGN; ii++) {
-        Real Ipt;
-        Real Imt;
-        ppm_int_profile_single(sm, sp, s[i0], lam(ii), dtdx, Ipt, Imt);
+        Real Ipt = 0.0;
+        Real Imt = 0.0;
+        Real speed = lam(ii);
+
+        ppm_int_profile_single(sm, sp, s[i0], speed, dtdx, Ipt, Imt);
 
         Ip[n][ii] = Ipt;
         Im[n][ii] = Imt;
@@ -200,6 +202,12 @@ Castro::ppm_mhd(const Box& bx,
     // Im is the integral from the left edge, so we take as the
     // reference state the fastest wave moving to the left
 
+    Real q_ref[NEIGN];
+
+    for (int n = 0; n < NEIGN; n++) {
+      q_ref[n] = Im[n][0];
+    }
+
     Real summ_m[NEIGN] = {0.0_rt};
 
     // loop over the waves
@@ -209,7 +217,7 @@ Castro::ppm_mhd(const Box& bx,
 
       // loop over variables in Im[n][ii]
       for (int n = 0; n < NEIGN; n++) {
-        LdQ += leig(ii,n) * (Im[n][0] - Im[n][ii]);
+        LdQ += leig(ii,n) * (q_ref[n] - Im[n][ii]);
       }
 
       // add the contribution of this wave to each variable
@@ -219,26 +227,26 @@ Castro::ppm_mhd(const Box& bx,
     }
 
     qright(i,j,k,QRHO) = amrex::max(small_dens,
-                                    Im[IEIGN_RHO][0] - summ_m[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
-    qright(i,j,k,QU) = Im[IEIGN_U][0] - summ_m[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
-    qright(i,j,k,QV) = Im[IEIGN_V][0] - summ_m[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
-    qright(i,j,k,QW) = Im[IEIGN_W][0] - summ_m[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
+                                    q_ref[IEIGN_RHO] - summ_m[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
+    qright(i,j,k,QU) = q_ref[IEIGN_U] - summ_m[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
+    qright(i,j,k,QV) = q_ref[IEIGN_V] - summ_m[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
+    qright(i,j,k,QW) = q_ref[IEIGN_W] - summ_m[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
     qright(i,j,k,QPRES) = amrex::max(small_pres,
-                                     Im[IEIGN_P][0] - summ_m[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
+                                     q_ref[IEIGN_P] - summ_m[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
     if (idir == 0) {
       qright(i,j,k,QMAGX) = Bx(i,j,k); // Bx stuff
-      qright(i,j,k,QMAGY) = Im[IEIGN_BT][0] -  summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qright(i,j,k,QMAGZ) = Im[IEIGN_BTT][0] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qright(i,j,k,QMAGY) = q_ref[IEIGN_BT] -  summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qright(i,j,k,QMAGZ) = q_ref[IEIGN_BTT] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else if (idir == 1) {
-      qright(i,j,k,QMAGX) = Im[IEIGN_BT][0] - summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qright(i,j,k,QMAGX) = q_ref[IEIGN_BT] - summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qright(i,j,k,QMAGY) = By(i,j,k); // By stuff
-      qright(i,j,k,QMAGZ) = Im[IEIGN_BTT][0] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qright(i,j,k,QMAGZ) = q_ref[IEIGN_BTT] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else {
-      qright(i,j,k,QMAGX) = Im[IEIGN_BT][0] - summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qright(i,j,k,QMAGY) = Im[IEIGN_BTT][0] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qright(i,j,k,QMAGX) = q_ref[IEIGN_BT] - summ_m[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qright(i,j,k,QMAGY) = q_ref[IEIGN_BTT] - summ_m[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
       qright(i,j,k,QMAGZ) = Bz(i,j,k); // Bz stuff
     }
 
@@ -247,6 +255,10 @@ Castro::ppm_mhd(const Box& bx,
 
     // Ip is the integral from the right edge, so we take as the
     // reference state the fastest wave moving to the right
+
+    for (int n = 0; n < NEIGN; n++) {
+      q_ref[n] = Ip[n][NEIGN-1];
+    }
 
     Real summ_p[NEIGN] = {0.0_rt};
 
@@ -257,7 +269,7 @@ Castro::ppm_mhd(const Box& bx,
 
       // loop over variables in Im[n][ii]
       for (int n = 0; n < NEIGN; n++) {
-        LdQ += leig(ii,n) * (Ip[n][NEIGN-1] - Ip[n][ii]);
+        LdQ += leig(ii,n) * (q_ref[n] - Ip[n][ii]);
       }
 
       // add the contribution of this wave to each variable
@@ -268,41 +280,41 @@ Castro::ppm_mhd(const Box& bx,
 
     if (idir == 0) {
       qleft(i+1,j,k,QRHO) = amrex::max(small_dens,
-                                       Ip[IEIGN_RHO][NEIGN-1] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
-      qleft(i+1,j,k,QU) = Ip[IEIGN_U][NEIGN-1] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
-      qleft(i+1,j,k,QV) = Ip[IEIGN_V][NEIGN-1] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
-      qleft(i+1,j,k,QW) = Ip[IEIGN_W][NEIGN-1] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
+                                       q_ref[IEIGN_RHO] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
+      qleft(i+1,j,k,QU) = q_ref[IEIGN_U] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
+      qleft(i+1,j,k,QV) = q_ref[IEIGN_V] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
+      qleft(i+1,j,k,QW) = q_ref[IEIGN_W] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
       qleft(i+1,j,k,QPRES) = amrex::max(small_pres,
-                                        Ip[IEIGN_P][NEIGN-1] - 0.5_rt*summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
+                                        q_ref[IEIGN_P] - 0.5_rt*summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
       qleft(i+1,j,k,QMAGX) = Bx(i+1,j,k); // Bx stuff
-      qleft(i+1,j,k,QMAGY) = Ip[IEIGN_BT][NEIGN-1] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qleft(i+1,j,k,QMAGZ) = Ip[IEIGN_BTT][NEIGN-1] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qleft(i+1,j,k,QMAGY) = q_ref[IEIGN_BT] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qleft(i+1,j,k,QMAGZ) = q_ref[IEIGN_BTT] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else if (idir == 1) {
       qleft(i,j+1,k,QRHO) = amrex::max(small_dens,
-                                       Ip[IEIGN_RHO][NEIGN-1] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
-      qleft(i,j+1,k,QU) = Ip[IEIGN_U][NEIGN-1] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
-      qleft(i,j+1,k,QV) = Ip[IEIGN_V][NEIGN-1] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
-      qleft(i,j+1,k,QW) = Ip[IEIGN_W][NEIGN-1] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
+                                       q_ref[IEIGN_RHO] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
+      qleft(i,j+1,k,QU) = q_ref[IEIGN_U] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
+      qleft(i,j+1,k,QV) = q_ref[IEIGN_V] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
+      qleft(i,j+1,k,QW) = q_ref[IEIGN_W] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
       qleft(i,j+1,k,QPRES) = amrex::max(small_pres,
-                                        Ip[IEIGN_P][NEIGN-1] - summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
+                                        q_ref[IEIGN_P] - summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
-      qleft(i,j+1,k,QMAGX) = Ip[IEIGN_BT][NEIGN-1] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qleft(i,j+1,k,QMAGX) = q_ref[IEIGN_BT] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
       qleft(i,j+1,k,QMAGY) = By(i,j+1,k); // By stuff
-      qleft(i,j+1,k,QMAGZ) = Ip[IEIGN_BTT][NEIGN-1] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qleft(i,j+1,k,QMAGZ) = q_ref[IEIGN_BTT] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
 
     } else {
       qleft(i,j,k+1,QRHO) = amrex::max(small_dens,
-                                       Ip[IEIGN_RHO][NEIGN-1] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
-      qleft(i,j,k+1,QU) = Ip[IEIGN_U][NEIGN-1] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
-      qleft(i,j,k+1,QV) = Ip[IEIGN_V][NEIGN-1] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
-      qleft(i,j,k+1,QW) = Ip[IEIGN_W][NEIGN-1] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
+                                       q_ref[IEIGN_RHO] - summ_p[IEIGN_RHO] + 0.5_rt*dt*smhd[IEIGN_RHO]);
+      qleft(i,j,k+1,QU) = q_ref[IEIGN_U] - summ_p[IEIGN_U] + 0.5_rt*dt*smhd[IEIGN_U];
+      qleft(i,j,k+1,QV) = q_ref[IEIGN_V] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
+      qleft(i,j,k+1,QW) = q_ref[IEIGN_W] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
       qleft(i,j,k+1,QPRES) = amrex::max(small_pres,
-                                        Ip[IEIGN_P][NEIGN-1] - summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
+                                        q_ref[IEIGN_P] - summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
-      qleft(i,j,k+1,QMAGX) = Ip[IEIGN_BT][NEIGN-1] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
-      qleft(i,j,k+1,QMAGY) = Ip[IEIGN_BTT][NEIGN-1] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
+      qleft(i,j,k+1,QMAGX) = q_ref[IEIGN_BT] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
+      qleft(i,j,k+1,QMAGY) = q_ref[IEIGN_BTT] - summ_p[IEIGN_BTT] + 0.5_rt*dt*smhd[IEIGN_BTT];
       qleft(i,j,k+1,QMAGZ) = Bz(i,j,k+1); // Bz stuff
     }
 
