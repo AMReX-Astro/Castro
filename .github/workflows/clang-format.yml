@@ -17,15 +17,15 @@ jobs:
       run: |
         find Exec Source -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
-    - name: Commit files
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add --all
-        git diff-index --quiet HEAD || git commit -m "clang-format has tidied up the code."
+    # - name: Commit files
+    #   run: |
+    #     git config --local user.email "action@github.com"
+    #     git config --local user.name "GitHub Action"
+    #     git add --all
+    #     git diff-index --quiet HEAD || git commit -m "clang-format has tidied up the code."
 
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        branch: ${{ github.head_ref }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Push changes
+    #   uses: ad-m/github-push-action@master
+    #   with:
+    #     branch: ${{ github.head_ref }}
+    #     github_token: ${{ secrets.GITHUB_TOKEN }}
