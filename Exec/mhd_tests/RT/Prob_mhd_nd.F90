@@ -26,7 +26,6 @@ subroutine ca_initmag(level, time, lo, hi, &
   real(rt) :: x, y, z
   integer  :: i, j, k
 
-  print *, "Initializing magnetic field!!"
 
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
