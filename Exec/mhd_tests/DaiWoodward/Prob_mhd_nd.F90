@@ -24,8 +24,6 @@ subroutine ca_initmag(level, time, lo, hi, &
   real(rt) :: xcen, ycen, zcen
   integer  :: i, j, k
 
-  print *, "Initializing magnetic field!!"
-
   if (idir .eq. 1) then
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)

@@ -24,7 +24,6 @@
   real(rt) :: xcen, ycen, zcen
   integer  :: i, j, k
 
-  print *, "Initializing magnetic field!!"
 
      do k = lo(3), hi(3)
         do j = lo(2), hi(2)
