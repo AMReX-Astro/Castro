@@ -59,5 +59,4 @@ explanations from which this section was adapted can be found at
 http://yt-project.org/doc/index.html.
 
 
-
-
+.. include:: yt_example.ipynb
