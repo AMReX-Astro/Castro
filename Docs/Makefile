@@ -41,4 +41,5 @@ ifneq ($(NO_DOXYGEN),TRUE)
 	breathe-apidoc --o source doxy_files/xml -g class,file
 endif
 	python3 make_api.py
+	jupyter nbconvert --to rst source/yt_example.ipynb
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
