@@ -1,15 +1,16 @@
 # sources used with mhd
 
 CEXE_headers += Castro_mhd.H
-FEXE_headers += Castro_mhd_F.H
 
 CEXE_sources += Castro_mhd.cpp
 CEXE_sources += mhd_util.cpp
 CEXE_headers += mhd_util.H
+CEXE_headers += mhd_eigen.H
+CEXE_headers += mhd_slope.H
+CEXE_headers += mhd_sizes.H
 
-ca_F90EXE_sources += flatten_mhd.F90
 CEXE_sources += ct_upwind.cpp
 CEXE_sources += electric.cpp
-ca_f90EXE_sources += hlld.f90
-ca_f90EXE_sources += mhd_plm_3d.f90
-ca_F90EXE_sources += mhd_state.F90
+CEXE_sources += mhd_plm.cpp
+
+CEXE_sources += hlld.cpp

@@ -212,27 +212,6 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
 
 end subroutine ca_set_amr_info
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
-    ! Passing data from f90 back to C++
-    !
-    ! Binds to C function `ca_get_method_params`
-
-  use meth_params_module, only: NHYP
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: ngrowHyp
-
-  nGrowHyp = NHYP
-
-end subroutine ca_get_method_params
 
 ! :::
 ! ::: ----------------------------------------------------------------

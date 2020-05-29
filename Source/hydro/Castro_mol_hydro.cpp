@@ -182,6 +182,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
 
         avis.resize(obx, 1);
+        auto avis_arr = avis.array();
         Elixir elix_avis = avis.elixir();
 
 #ifndef AMREX_USE_CUDA
@@ -232,26 +233,18 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             for (int n = 0; n < NQ; n++) {
 
-              int ncomp_f = n + 1;
-
               // construct the interface states in the idir direction
               // operate on nbx1
-              ca_fourth_interfaces(AMREX_INT_ANYD(nbx1.loVect()), AMREX_INT_ANYD(nbx1.hiVect()),
-                                   idir_f, ncomp_f,
-                                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                                   BL_TO_FORTRAN_ANYD(q_int),
-                                   ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
+              fourth_interfaces(nbx1,
+                                idir, n,
+                                q_arr, q_int_arr);
 
               // compute the limited interface states
               // operate on obx -- this loop is over cell-centers
-              ca_states(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                        idir_f, ncomp_f,
-                        BL_TO_FORTRAN_ANYD(q[mfi]),
-                        BL_TO_FORTRAN_ANYD(q_int),
-                        BL_TO_FORTRAN_ANYD(flatn),
-                        BL_TO_FORTRAN_ANYD(qm),
-                        BL_TO_FORTRAN_ANYD(qp),
-                        ARLIM_3D(domain_lo.begin()), ARLIM_3D(domain_hi.begin()));
+              states(obx,
+                     idir, n,
+                     q_arr, q_int_arr, flatn_arr,
+                     qm_arr, qp_arr);
             }
 
             // get the face-averaged state and flux, <q> and F(<q>),
@@ -280,12 +273,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // Note: this can act even if do_hydro = 0
             // operate on ibx[idir]
             if (diffuse_temp == 1) {
-              int is_avg = 1;
-              add_diffusive_flux(AMREX_INT_ANYD(ibx[idir].loVect()), AMREX_INT_ANYD(ibx[idir].hiVect()),
-                                 BL_TO_FORTRAN_ANYD(q[mfi]), NQ, QTEMP+1,
-                                 BL_TO_FORTRAN_ANYD(q_avg),
-                                 BL_TO_FORTRAN_ANYD(f_avg),
-                                 ZFILL(dx), idir_f, is_avg);
+              bool is_avg = true;
+              fourth_add_diffusive_flux(ibx[idir],
+                                        q_arr, QTEMP,
+                                        q_avg_arr, f_avg_arr,
+                                        idir, is_avg);
             }
 #endif
 
@@ -350,12 +342,11 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #ifdef DIFFUSION
             if (diffuse_temp == 1) {
               // add the diffusive flux to F(q_fc) if needed
-              int is_avg = 0;
-              add_diffusive_flux(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(T_cc[mfi]), 1, 1,
-                                 BL_TO_FORTRAN_ANYD(q_fc),
-                                 BL_TO_FORTRAN_ANYD(flux[idir]),
-                                 ZFILL(dx), idir_f, is_avg);
+              bool is_avg = false;
+              fourth_add_diffusive_flux(nbx,
+                                        T_cc.array(mfi), 0,
+                                        q_fc_arr, flux[idir].array(),
+                                        idir, is_avg);
             }
 #endif
 
@@ -388,13 +379,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
               Real avisc_coeff = alpha * (difmag / 0.1);
 
-              avisc(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                    BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                    BL_TO_FORTRAN_ANYD(qaux_bar[mfi]),
-                    ZFILL(dx),
-                    BL_TO_FORTRAN_ANYD(avis),
-                    idir_f);
+              auto q_bar_arr = q_bar.array(mfi);
+              auto qaux_bar_arr = qaux_bar.array(mfi);
 
+              fourth_avisc(nbx,
+                           q_bar_arr, qaux_bar_arr,
+                           avis_arr, idir);
 
               Array4<Real const> const uin_arr = statein.array();
               Array4<Real const> const avis_arr = avis.array();

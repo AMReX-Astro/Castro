@@ -280,8 +280,12 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-  // Define NUM_GROW from the f90 module.
-  ca_get_method_params(&NUM_GROW);
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+#ifdef MHD
+  NUM_GROW = 6;
+#else
+  NUM_GROW = 4;
+#endif
 
   const Real run_strt = ParallelDescriptor::second() ;
 
