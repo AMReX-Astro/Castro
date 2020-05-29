@@ -14,7 +14,7 @@ code.docutils.literal.notranslate {
    font-size: 95%;
 }
 
-div.highlight-default>div.highlight {
+div#example-notebook div.highlight-default div.highlight {
     background-color: inherit;
 }
 
