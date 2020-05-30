@@ -169,9 +169,12 @@ Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
 from the zone indices, ``i``, ``j``, and ``k``.
 
 
+.. _create:bcs:
 
 Boundary conditions
 -------------------
+
+.. index:: boundary conditions
 
 Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
@@ -190,12 +193,27 @@ hydrostatic boundary condition here, we set::
    castro.hse_reflect_vels = 1
 
 The first parameter tells Castro to use the HSE boundary condition.  The next two
-control how the temperature and velocity are treated.
+control how the temperature and velocity are treated.  For modeling a plane-parallel
+hydrostatic atmosphere, this type of boundary condition at the bottom is essential
+when using the standard CTU PPM solver. 
 
-A different special boundary condition, ``"interp"`` is available at
+A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the ``model_parser``
 module to fill the ghost cells at the upper boundary with the initial
-model data.
+model data.  You set this as::
+
+   castro.hi_bc = 2 2
+
+   castro.fill_ambient_bc = 1
+   castro.ambient_fill_dir = 1
+   castro.ambient_outflow_vel = 1
+
+where ``ambient_fill_dir`` is the 0-based direction to fill using an
+ambient state defined by the problem setup.  In this example, we will
+override the outflow (2) boundary condition in the y-direction.  That
+problem setup needs to fill the ``ambient_state(:)`` array defined in
+``ambient_module``.  An example of using this boundary is in the
+``flame_wave`` problem.
 
 The implementations of these boundary conditions is found in
 ``Castro/Source/problems/bc_ext_fill_nd.F90``.
