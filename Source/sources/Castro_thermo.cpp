@@ -117,8 +117,8 @@ Castro::fill_thermo_source (Real time, Real dt,
   // including the new SDC method (the `-` is because it is on the RHS
   // of the equation)
 
-  const Real* dx = geom.CellSize();
-  const Real* prob_lo = geom.ProbLo();
+  const auto dx = geom.CellSizeArray();
+  const auto prob_lo = geom.ProbLoArray();
 
   auto coord = geom.Coord();
 

@@ -94,7 +94,9 @@ ppm_type                     int           1                  y
 # 0 zero slope
 # 1 vanleer
 # 2 centered, no limit
+# 3 2nd order MC limiter
 mhd_plm_slope                int           1                  y             MHD
+
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
 ppm_temp_fix                 int           0                  y 

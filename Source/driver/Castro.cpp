@@ -930,6 +930,10 @@ Castro::initData ()
        int nby = By_new.nComp();
        int nbz = Bz_new.nComp();
 
+       Bx_new.setVal(0.0);
+       By_new.setVal(0.0);
+       Bz_new.setVal(0.0);
+
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
           RealBox    gridloc(grids[mfi.index()],
                               geom.CellSize(), geom.ProbLo());
@@ -937,9 +941,6 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
-          Bx_new[mfi].setVal(0.0);
-          By_new[mfi].setVal(0.0);
-          Bz_new[mfi].setVal(0.0);
 
           BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
              (level, cur_time, lo, hi,
