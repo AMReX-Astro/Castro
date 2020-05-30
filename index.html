@@ -42,7 +42,7 @@
     <!-- Banner -->
     <section id="banner">
       <h2>Castro</h2>
-      <p>an adaptive mesh, astrophysical radiation hydrodynamics simulation code</p>
+      <p>an adaptive mesh, astrophysical radiation/MHD/hydrodynamics simulation code</p>
       <ul class="actions">
 	<li>
 	  <a href="https://github.com/AMReX-Astro/Castro" class="button big">Get Castro</a>
@@ -58,8 +58,10 @@
 	  <p>Castro is part of the AMReX suite of astrophysical
 	  hydrodynamics codes that collectively provide the simulation
 	  capabilities to model explosive astrophysical phenomena.
-	  Castro specializes in supersonic flows, where radiation can
-	  be an important driver of the dynamics.</p>
+	  Castro specializes in near-sonic and supersonic flows, where radiation can
+	  be an important driver of the dynamics.  A lot of emphasis is placed on
+          accurately coupling reactions and hydro, with a variety of time-stepping
+          techniques available.</p>
 	</header>
 
 	<div class="row 150%">
@@ -97,7 +99,7 @@
 	      <p>Castro has been used for scientific explorations of
 		Type Ia supernovae (the Chandra, sub-Chandra, and
 		merging white dwarf scenarios), core-collapse
-		supernovae, and pair instability supernovae.</p>
+		supernovae, pair instability supernovae, and X-ray bursts.</p>
 		<a href="science.html" class="button alt">learn more</a>
 	    </section>
 	  </div>
@@ -163,10 +165,9 @@ make DIM=2 USE_MPI=FALSE</pre>
 	  <h2>Development</h2>
 	  <p>Castro is BSD-licensed and hosted on github.  Contributions are welcomed.</p>
 	</header>
-	Castro is written in a mix of C++ and Fortran.  The main
-	driver, memory management, and parallelization are implemented
-	in C++ (using the AMReX framework) and the physics kernels
-	are written in Fortran.  New code features are done either on
+	Castro is written in a mostly in C++ (with a few Fortran kernels).  The main
+	driver, memory management, and parallelization are handled by
+	the AMReX framework.  New code features are done either on
 	the "<tt>development</tt>" branch or in a separate feature
 	branch and periodically merged into "<tt>master</tt>".  If you
 	want to contribute to Castro, clone the Castro git repo, make

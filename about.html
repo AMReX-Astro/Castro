@@ -50,11 +50,13 @@
 		<li><h3>Castro at a glance</h3></li>
 		<li>1-, 2-, and 3-dimensional unsplit, 2nd-order hydrodynamics</li>
 		<li>multigroup flux-limited diffusion radiation hydrodynamics</li>
+                <li>constrained transport corner-transport upwind ideal MHD (single level only currently)</li>
 		<li>adaptive mesh refinement with subcycling; jumps of
 		  2x and 4x between levels</li>
 		<li>arbitrary equation of state (gamma-law and stellar
 		  EOSes are bundled)</li>
 		<li>general nuclear reaction networks</li>
+                <li>Strang split or spectral deferred corrections time integration</li>
 		<li>explicit thermal diffusion</li>
 		<li>full Poisson gravity (with isolated boundary
 		conditions)</li>
@@ -116,6 +118,16 @@
 	      package.
 
 	    <header class="major">
+	      <h3>MHD</h3>
+	    </header>
+
+	    <p>Ideal MHD is supported through a constrained transport,
+              unsplit (corner transport upwind) solver.  This works together
+              with our general equation of state and reaction networks,
+              all the source terms, and the simplified spectral deferred corrections
+              time integration code path.
+
+	    <header class="major">
 	      <h3>microphysics</h3>
 	    </header>
 
@@ -128,6 +140,22 @@
 	      git repo.  Maintaining them in a separate repo allows all of the
 	      AMReX astrophysics codes share the same microphysics.
 
+	    <header class="major">
+	      <h3>time-integration</h3>
+	    </header>
+
+	    <p>The default solver use a second-order accurate update
+              of hydrodynamics with Strang splitting to couple the
+              reaction sources.  Two different time-integration
+              techniques are available: the simplified spectral
+              deferred corrections (SDC) method uses the same
+              hydrodynamics reconstruction but solves the coupled
+              hydro-reaction system using with the full still reaction
+              integration and a piecewise-constant-in-time
+              hydrodynamics source.  The true SDC method uses solves a
+              nonlinear update for the coupled evolution of the
+              reacting hydro system with either a 2nd order or 4th
+              order (in space and time) discretization.</p>
 
 	    <header class="major">
 	      <h3>reproducibility</h3>
