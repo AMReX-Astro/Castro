@@ -46,6 +46,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+#ifdef HYBRID_MOMENTUM
+  GeometryData geomdata = geom.data();
+#endif
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -627,6 +634,29 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
                    volume.array(mfi));
 
+
+#ifdef HYBRID_MOMENTUM
+        auto dx_arr = geom.CellSizeArray();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+          GpuArray<Real, 3> loc;
+
+          position(i, j, k, geomdata, loc);
+
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+            loc[dir] -= center[dir];
+
+          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+          Real RInv = 1.0_rt / R;
+
+          source_out_arr(i,j,k,UMR) -= ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
+                                        (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
+
+        });
+#endif
 
         // scale the fluxes
 #if AMREX_SPACEDIM <= 2
