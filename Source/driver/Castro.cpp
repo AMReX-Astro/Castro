@@ -2992,11 +2992,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_enforce_minimum_density
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(state_in[mfi]),
-             verbose);
+        do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
 
     }
 
