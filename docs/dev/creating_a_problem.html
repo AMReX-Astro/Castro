@@ -354,8 +354,8 @@ version of Castro.</p></li>
 from the zone indices, <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, and <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p>
 </div>
 <div class="section" id="boundary-conditions">
-<h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
-<p>Standard boundary conditions, including outflow (zero-gradient), periodic,
+<span id="create-bcs"></span><h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
 hydrostatic boundary condition that can be used for the lower boundary.  It
 is accessed by setting the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> flag to 1 in the vertical coordinate
@@ -371,12 +371,35 @@ hydrostatic boundary condition here, we set:</p>
 <span class="n">castro</span><span class="o">.</span><span class="n">hse_reflect_vels</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p>The first parameter tells Castro to use the HSE boundary condition.  The next two
-control how the temperature and velocity are treated.</p>
-<p>A different special boundary condition, <code class="docutils literal notranslate"><span class="pre">&quot;interp&quot;</span></code> is available at
+<p>The first parameter tells Castro to use the HSE boundary condition.
+In filling the ghost cells, hydrostatic equilibrum will be integrated
+from the last interior zone into the boundary.  We need one more
+equation for this integration, so we either interpolate the density or
+temperature into the ghost cells, depending on the value of
+<code class="docutils literal notranslate"><span class="pre">castro.hse_interp_temp</span></code>.  Finally, <code class="docutils literal notranslate"><span class="pre">castro.hse_reflect_vels</span></code>
+determines how we treat the velocity.  The default is to give is a
+zero gradient, but in tests we’ve found that reflecting the velocity
+while integrating the HSE profile can be better.  For modeling a
+plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
+conditions instead of a simple symmetry boundary is essential when
+using the standard CTU PPM solver.</p>
+<p>A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the <code class="docutils literal notranslate"><span class="pre">model_parser</span></code>
 module to fill the ghost cells at the upper boundary with the initial
-model data.</p>
+model data.  You set this as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">hi_bc</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">2</span>
+
+<span class="n">castro</span><span class="o">.</span><span class="n">fill_ambient_bc</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">ambient_fill_dir</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">ambient_outflow_vel</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">ambient_fill_dir</span></code> is the 0-based direction to fill using an
+ambient state defined by the problem setup.  In this example, we will
+override the outflow (2) boundary condition in the y-direction.  That
+problem setup needs to fill the <code class="docutils literal notranslate"><span class="pre">ambient_state(:)</span></code> array defined in
+<code class="docutils literal notranslate"><span class="pre">ambient_module</span></code>.  An example of using this boundary is in the
+<code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> problem.</p>
 <p>The implementations of these boundary conditions is found in
 <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/bc_ext_fill_nd.F90</span></code>.</p>
 <p>If a problem requires different initial conditions, then they should

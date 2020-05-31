@@ -985,6 +985,8 @@ AMReX that can get around this, but we do not use them in Castro.
 Physical Boundaries
 -------------------
 
+.. index:: boundary conditions
+
 Physical boundary conditions are specified by an integer index [4]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
@@ -1018,12 +1020,11 @@ routines are discussed more below.
 If you want to specify a value at a function (like at an inflow
 boundary), then you choose an *inflow* boundary at that face of
 the domain. You then need to write the implementation code for this.
-An example is the problem toy_convect which implements a
-hydrostatic lower boundary (through its custom ``bc_fill_?d.F90``
-routines.
+There is a centralized hydrostatic boundary condition that is implemented
+this way—see :ref:`create:bcs`.
 
 .. _table:castro:bcs:
-.. table:: Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?
+.. table:: Physical boundary conditions supported in Castro.
 
    +-------------+-------------+-------------+--------------+--------------+
    | **name**    | **integer** | **normal    | **transverse | **scalars**  |

@@ -1117,7 +1117,7 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 </div>
 <div class="section" id="physical-boundaries">
 <span id="soft-phys-bcs"></span><h3>Physical Boundaries<a class="headerlink" href="#physical-boundaries" title="Permalink to this headline">¶</a></h3>
-<p>Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id8" id="id4">4</a> in
+<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id8" id="id4">4</a> in
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -1143,11 +1143,10 @@ routines are discussed more below.</p>
 <p>If you want to specify a value at a function (like at an inflow
 boundary), then you choose an <em>inflow</em> boundary at that face of
 the domain. You then need to write the implementation code for this.
-An example is the problem toy_convect which implements a
-hydrostatic lower boundary (through its custom <code class="docutils literal notranslate"><span class="pre">bc_fill_?d.F90</span></code>
-routines.</p>
+There is a centralized hydrostatic boundary condition that is implemented
+this way—see <a class="reference internal" href="creating_a_problem.html#create-bcs"><span class="std std-ref">Boundary conditions</span></a>.</p>
 <span id="table-castro-bcs"></span><table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 20 </span><span class="caption-text">Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 19%" />
 <col style="width: 19%" />
