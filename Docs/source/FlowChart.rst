@@ -196,8 +196,12 @@ of each step.
 
    -  Free any memory allocated for the level advance.
 
+
+.. _sec:strangctu:
+
 CTU w/ Strang-split Reactions Flowchart
 ---------------------------------------
+
 
 This described the flow using the CTU + Strang-split reactions,
 including gravity, rotation, and diffusion.  This integration is
