@@ -1,6 +1,11 @@
+#include "Castro.H"
+#include "Castro_F.H"
+#include "Rotation.H"
+#include "Castro_util.H"
+#include "math.H"
 
 void
-Castro::rsrc(const Box& box,
+Castro::rsrc(const Box& bx,
              Array4<Real const> const& phi,
              Array4<Real const> const& rot,
              Array4<Real const> const& uold,
@@ -10,6 +15,8 @@ Castro::rsrc(const Box& box,
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
+
+  GeometryData geomdata = geom.data();
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -114,19 +121,19 @@ Castro::rsrc(const Box& box,
 
 
 void
-Castro::ca_corrrsrc(const Box& bx,
-                    Array4<Real const> const& phi_old,
-                    Array4<Real const> const& phi_new,
-                    Array4<Real const> const& rold,
-                    Array4<Real const> const& rnew,
-                    Array4<Real const> const& uold,
-                    Array4<Real const> const& unew,
-                    Array4<Real> const& source,
-                    Array4<Real const> const& flux1,
-                    Array4<Real const> const& flux2,
-                    Array4<Real const> const& flux3,
-                    const Real dt, const Real time,
-                    Array4<Real const> const& vol) {
+Castro::corrrsrc(const Box& bx,
+                 Array4<Real const> const& phi_old,
+                 Array4<Real const> const& phi_new,
+                 Array4<Real const> const& rold,
+                 Array4<Real const> const& rnew,
+                 Array4<Real const> const& uold,
+                 Array4<Real const> const& unew,
+                 Array4<Real> const& source,
+                 Array4<Real const> const& flux1,
+                 Array4<Real const> const& flux2,
+                 Array4<Real const> const& flux3,
+                 const Real dt, const Real time,
+                 Array4<Real const> const& vol) {
 
   // Corrector step for the rotation source terms. This is applied
   // after the hydrodynamics update to fix the time-level n
@@ -170,6 +177,9 @@ Castro::ca_corrrsrc(const Box& bx,
   GpuArray<Real, 3> domegadt_new;
   get_domegadt(time, domegadt_new);
 
+  GeometryData geomdata = geom.data();
+
+  Real dt_omega[3];
 
   if (implicit_rotation_update == 1) {
 
@@ -186,21 +196,27 @@ Castro::ca_corrrsrc(const Box& bx,
 
       if (state_in_rotating_frame == 1) {
 
-        dt_omega = dt * omega_new;
+        for (int idir = 0; idir < 3; idir++) {
+          dt_omega[idir] = dt * omega_new[idir];
+        }
 
       } else {
 
-        dt_omega = HALF * dt * omega_new;
+        for (int idir = 0; idir < 3; idir++) {
+          dt_omega[idir] = 0.5_rt * dt * omega_new[idir];
+        }
 
       }
 
     } else {
 
-      dt_omega = 0.0_rt;
+      for (int idir = 0; idir < 3; idir++) {
+        dt_omega[idir] = 0.0_rt;
+      }
 
     }
 
-    Array2d<Real, 0, 2, 0, 2> dt_omega_matrix;
+    Array2D<Real, 0, 2, 0, 2> dt_omega_matrix;
 
     dt_omega_matrix(0, 0) = 1.0_rt + dt_omega[0] * dt_omega[0];
     dt_omega_matrix(0, 1) = dt_omega[0] * dt_omega[1] + dt_omega[2];
@@ -272,7 +288,7 @@ Castro::ca_corrrsrc(const Box& bx,
 
     // Define new source terms
 
-    Real vnew[3];
+    GpuArray<Real, 3> vnew;
 
     vnew[0] = unew(i,j,k,UMX) * rhoninv;
     vnew[1] = unew(i,j,k,UMY) * rhoninv;
@@ -300,11 +316,11 @@ Castro::ca_corrrsrc(const Box& bx,
 
       Real acc[3];
       bool coriolis = false;
-      rotational_acceleration(loc, vnew, time, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega_new, domegadt_new, coriolis, acc);
 
       Real new_mom_tmp[3];
       for (int n = 0; n < 3; n++) {
-        new_mom[n] = unew(i,j,k,UMX+n) - 0.5_rt * Sr_old[n] * dt + 0.5_rt * rhon * acc[n] * dt;
+        new_mom_tmp[n] = unew(i,j,k,UMX+n) - 0.5_rt * Sr_old[n] * dt + 0.5_rt * rhon * acc[n] * dt;
       }
 
       // The following is the general solution to the 3D coupled system,
@@ -375,7 +391,7 @@ Castro::ca_corrrsrc(const Box& bx,
       // For this source type, we first update the momenta
       // before we calculate the energy source term.
 
-      Real vnew[3];
+      GpuArray<Real, 3> vnew;
 
       vnew[0] = snew[UMX] * rhoninv;
       vnew[1] = snew[UMY] * rhoninv;
@@ -383,7 +399,7 @@ Castro::ca_corrrsrc(const Box& bx,
 
       Real acc[3];
       bool coriolis = true;
-      rotational_acceleration(loc, vnew, time, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega_new, domegadt_new, coriolis, acc);
 
       Sr_new[0] = rhon * acc[0];
       Sr_new[1] = rhon * acc[1];
@@ -398,7 +414,7 @@ Castro::ca_corrrsrc(const Box& bx,
       // Instead of calculating the energy source term explicitly,
       // we simply update the kinetic energy.
 
-      Real new_ke = HALF * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoninv;
+      Real new_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoninv;
       SrEcorr = new_ke - old_ke;
 
     } else if (rot_source_type == 4) {
@@ -439,7 +455,7 @@ Castro::ca_corrrsrc(const Box& bx,
 
       SrEcorr = SrEcorr - (0.5_rt / dt) * ( flux1(i    ,j,k) * (phi - phixl) -
                                             flux1(i+1  ,j,k) * (phi - phixr) +
-                                            flux2(i,     ,k) * (phi - phiyl) -
+                                            flux2(i,    j,k) * (phi - phiyl) -
                                             flux2(i,j+dg1,k) * (phi - phiyr) +
                                             flux3(i,j,k    ) * (phi - phizl) -
                                             flux3(i,j,k+dg2) * (phi - phizr) ) / vol(i,j,k);
@@ -449,8 +465,17 @@ Castro::ca_corrrsrc(const Box& bx,
       // it is captured automatically for the others since the time rate of change
       // of omega also appears in the velocity source term.
 
-      Sr_old = - rhoo * cross_product(domegadt_old, loc);
-      Sr_new = - rhon * cross_product(domegadt_new, loc);
+      GpuArray<Real, 3> cp_tmp;
+
+      cross_product(domegadt_old, loc, cp_tmp);
+      for (int idir = 0; idir < 3; idir++) {
+        Sr_old[idir] = - rhoo * cp_tmp[idir];
+      }
+
+      cross_product(domegadt_new, loc, cp_tmp);
+      for (int idir = 0; idir < 3; idir++) {
+        Sr_new[idir] = - rhon * cp_tmp[idir];
+      }
 
       Real vnew[3];
 

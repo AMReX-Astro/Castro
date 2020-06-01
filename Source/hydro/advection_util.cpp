@@ -13,6 +13,10 @@
 #include "rad_util.H"
 #endif
 
+#ifdef ROTATION
+#include "Rotation.H"
+#endif
+
 #include "eos.H"
 
 using namespace amrex;

@@ -1,6 +1,11 @@
+#include "Castro.H"
+#include "Castro_F.H"
+#include "Rotation.H"
+#include "math.H"
+
 void
 Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                                GpuArray<Real, 3>& omega, GpuArray<Real, 3>& domega_dt.
+                                GpuArray<Real, 3> const& omega, GpuArray<Real, 3> const& domega_dt,
                                 const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -104,7 +109,7 @@ Castro::rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omeg
       GpuArray<Real, 3> omega_cross_r;
       cross_product(omega, r, omega_cross_r);
 
-      for (int idir = 0; idir < 3, idir++) {
+      for (int idir = 0; idir < 3; idir++) {
         phi -= 0.5_rt * omega_cross_r[idir] * omega_cross_r[idir];
       }
 
@@ -201,7 +206,7 @@ Castro::fill_rotational_acceleration(const Box& bx,
 
     bool coriolis = true;
     Real Sr[3];
-    rotational_acceleration(r, v, omega, domega_dt, coriolis, Sr);
+    rotational_acceleration(r, v, omega, domegadt, coriolis, Sr);
 
     for (int idir = 0; idir < 3; idir++) {
       rot(i,j,k,idir) = Sr[idir];
@@ -229,6 +234,13 @@ Castro::fill_rotational_psi(const Box& bx,
 
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
+  auto problo = geom.ProbLoArray();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+  auto dx = geom.CellSizeArray();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
@@ -248,7 +260,7 @@ Castro::fill_rotational_psi(const Box& bx,
 #endif
 
 
-    psi(i,j,k) = rotational_potential(r, omega) / demom;
+    psi(i,j,k) = rotational_potential(r, omega) / denom;
 
   });
 }

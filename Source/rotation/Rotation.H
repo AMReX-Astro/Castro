@@ -14,9 +14,9 @@ Castro::get_omega(const Real time, GpuArray<Real, 3>& omega) {
   omega[1] = 0.0_rt;
   omega[2] = 0.0_rt;
 
-  coord = geom.Coord();
+  auto coord = geom.Coord();
 
-  if (coord_type == 0 || coord_type == 1) {
+  if (coord == 0 || coord == 1) {
 
     if (rotational_period > 0.0_rt) {
 
@@ -24,7 +24,7 @@ Castro::get_omega(const Real time, GpuArray<Real, 3>& omega) {
       // adjust it accordingly in the calculation of omega. We assume
       // that the change has been linear and started at t == 0.
 
-      Real curr_period = rotation_period + rotational_dPdt * time;
+      Real curr_period = rotational_period + rotational_dPdt * time;
 
       omega[rot_axis] = 2.0_rt * M_PI / curr_period;
 
@@ -47,7 +47,9 @@ Castro::get_domegadt(const Real time, GpuArray<Real, 3>& domegadt) {
   domegadt[1] = 0.0_rt;
   domegadt[2] = 0.0_rt;
 
-  if (coord_type == 0 || coord_type == 1) {
+  auto coord = geom.Coord();
+
+  if (coord == 0 || coord == 1) {
 
     if (rotational_period > 0.0_rt) {
 
@@ -60,7 +62,7 @@ Castro::get_domegadt(const Real time, GpuArray<Real, 3>& domegadt) {
       get_omega(time, curr_omega);
 
       for (int idir = 0; idir < 3; idir++) {
-        domegadt[idir] = -curr_omega[idir] * (rot_period_dot / curr_period);
+        domegadt[idir] = -curr_omega[idir] * (rotational_dPdt / curr_period);
       }
     }
 

@@ -111,21 +111,19 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                        BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(source[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-                        AMREX_REAL_ANYD(dx),dt,time,
-                        BL_TO_FORTRAN_ANYD(volume[mfi]));
+            corrrsrc(bx,
+                     phirot_old.array(mfi),
+                     phirot_new.array(mfi),
+                     rot_old.array(mfi),
+                     rot_new.array(mfi),
+                     state_old.array(mfi),
+                     state_new.array(mfi),
+                     source.array(mfi),
+                     (*mass_fluxes[0]).array(mfi),
+                     (*mass_fluxes[1]).array(mfi),
+                     (*mass_fluxes[2]).array(mfi),
+                     dt, time,
+                     volume.array(mfi));
         }
     }
 
