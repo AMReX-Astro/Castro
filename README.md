@@ -7,10 +7,10 @@
 
 *an adaptive mesh, astrophysical radiation hydrodynamics simulation code*
 
-`Castro` is an adaptive-mesh compressible radiation hydrodynamics
+`Castro` is an adaptive-mesh compressible radiation / MHD / hydrodynamics
 code for astrophysical flows.  `Castro` supports a general equation of
 state, full Poisson gravity, and reactive flows, and is parallelized
-with MPI + OpenMP.
+with MPI + OpenMP for CPUs and MPI + CUDA for GPUs.
 
 More information on Castro can be found here:
 
