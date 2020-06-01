@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>namespace: castro &mdash; Castro 20.05
- documentation</title>
+  <title>namespace: castro &mdash; Castro  documentation</title>
   
 
   
@@ -66,11 +65,6 @@
 
           
             
-            
-              <div class="version">
-                20.05
-
-              </div>
             
           
 
@@ -133,6 +127,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -355,45 +350,50 @@ momentum (3D only)</p></td>
 Colella &amp; Woodward ppm; 2: extrema-preserving ppm</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ppm_temp_fix</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span></code></p></td>
+<td><p>MHD plm slopes: 0 zero slope 1 vanleer 2 centered, no
+limit 3 2nd order MC limiter</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ppm_temp_fix</span></code></p></td>
 <td><p>various methods of giving temperature a larger role in
 the reconstruction—see Zingale &amp; Katz 2015</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code></p></td>
 <td><p>for piecewise linear, reconstruction order to use 1 =
 piecewise constant, 2 = piecewise linear</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plm_limiter</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">plm_limiter</span></code></p></td>
 <td><p>for piecewise linear, what limiter to use? 1 = 2nd
 order MC, 2 = 4th order MC</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">hybrid_riemann</span></code></p></td>
 <td><p>do we drop from our regular Riemann solver to HLL when
 we are in shocks to avoid the odd-even decoupling
 instability?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">riemann_solver</span></code></p></td>
 <td><p>which Riemann solver do we use: 0: Colella, Glaz, &amp;
 Ferguson (a two-shock solver); 1: Colella &amp; Glaz (a
 two-shock solver) 2: HLLC</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_maxiter</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, the maximum
 number of iterations to take when solving for the star
 state</p></td>
 <td><p>12</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_tol</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, the tolerance
 to demand in finding the star state</p></td>
 <td><p>1.0e-5</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">cg_blend</span></code></p></td>
 <td><p>for the Colella &amp; Glaz Riemann solver, what to do if
 we do not converge to a solution for the star state. 0
 = do nothing; print iterations and exit 1 = revert to
@@ -401,30 +401,30 @@ the original guess for p-star 2 = do a bisection search
 for another 2 * cg_maxiter iterations.</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_eos_in_riemann</span></code></p></td>
 <td><p>should we use the EOS in the Riemann solver to ensure
 thermodynamic consistency?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_flattening</span></code></p></td>
 <td><p>flatten the reconstructed profiles around shocks to
 prevent them from becoming too thin</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_use_eos</span></code></p></td>
 <td><p>after we add the transverse correction to the interface
 states, replace the predicted pressure with an EOS call
 (using <span class="math notranslate nohighlight">\(e\)</span> and <span class="math notranslate nohighlight">\(\rho\)</span>).</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_density</span></code></p></td>
 <td><p>if the transverse interface state correction, if the
 new density is negative, then replace all of the
 interface quantities with their values without the
 transverse correction.</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transverse_reset_rhoe</span></code></p></td>
 <td><p>if the interface state for <span class="math notranslate nohighlight">\((\rho e)\)</span> is negative
 after we add the transverse terms, then replace the
 interface value of <span class="math notranslate nohighlight">\((\rho e)\)</span> with a value
@@ -432,50 +432,43 @@ constructed from the <span class="math notranslate nohighlight">\((\rho e)\)</sp
 equation</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta1</span></code></p></td>
 <td><p>Threshold value of (E - K) / E such that above eta1,
 the hydrodynamic pressure is derived from E - K;
 otherwise, we use the internal energy variable UEINT.</p></td>
 <td><p>1.0e0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dual_energy_eta2</span></code></p></td>
 <td><p>Threshold value of (E - K) / E such that above eta2, we
 update the internal energy variable UEINT to match E -
 K. Below this, UEINT remains unchanged.</p></td>
 <td><p>1.0e-4</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_pslope</span></code></p></td>
 <td><p>for the piecewise linear reconstruction, do we subtract
 off <span class="math notranslate nohighlight">\((\rho g)\)</span> from the pressure before limiting?
 This is a well-balanced method that does well with HSE</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">pslope_cutoff_density</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pslope_cutoff_density</span></code></p></td>
 <td><p>if we are using pslope, below what density to we turn
 off the well-balanced reconstruction?</p></td>
 <td><p>-1.e20</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_small_dens</span></code></p></td>
 <td><p>Should we limit the density fluxes so that we do not
 create small densities?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_large_vel</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">limit_fluxes_on_large_vel</span></code></p></td>
 <td><p>Should we limit the momentum fluxes so that we do not
 create large velocities?</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">speed_limit</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">speed_limit</span></code></p></td>
 <td><p>If we’re limiting the fluxes to avoid large velocities,
 this is the speed limit.</p></td>
 <td><p>2.99792458e10</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">density_reset_method</span></code></p></td>
-<td><p>Which method to use when resetting a negative/small
-density 1 = Reset to characteristics of adjacent zone
-with largest density 2 = Use average of all adjacent
-zones for all state variables</p></td>
-<td><p>1</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_sponge</span></code></p></td>
 <td><p>permits sponge to be turned on and off</p></td>
@@ -742,14 +735,20 @@ change the internal energy of a zone. The timestep is
 equal to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(e / \dot{e})\)</span>.</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_T</span></code></p></td>
+<td><p>Limit the timestep based on how much the burning can
+change the temperature of a zone. The timestep is equal
+to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(T / \dot{T})\)</span>.</p></td>
+<td><p>1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X</span></code></p></td>
 <td><p>Limit the timestep based on how much the burning can
 change the species mass fractions of a zone. The
 timestep is equal to <code class="docutils literal notranslate"><span class="pre">dtnuc</span></code>  <span class="math notranslate nohighlight">\(\cdot\,(X /
 \dot{X})\)</span>.</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dtnuc_X_threshold</span></code></p></td>
 <td><p>If we are using the timestep limiter based on changes
 in $X$, set a threshold on the species abundance below
 which the limiter is not applied. This helps prevent
@@ -757,41 +756,41 @@ the timestep from becoming very small due to changes in
 trace species.</p></td>
 <td><p>1.e-3</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">do_react</span></code></p></td>
 <td><p>permits reactions to be turned on and off – mostly for
 efficiency’s sake</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_min</span></code></p></td>
 <td><p>minimum temperature for allowing reactions to occur in
 a zone</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_T_max</span></code></p></td>
 <td><p>maximum temperature for allowing reactions to occur in
 a zone</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_min</span></code></p></td>
 <td><p>minimum density for allowing reactions to occur in a
 zone</p></td>
 <td><p>0.0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">react_rho_max</span></code></p></td>
 <td><p>maximum density for allowing reactions to occur in a
 zone</p></td>
 <td><p>1.e200</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">disable_shock_burning</span></code></p></td>
 <td><p>disable burning inside hydrodynamic shock regions</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">T_guess</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">T_guess</span></code></p></td>
 <td><p>initial guess for the temperature when inverting the
 EoS (e.g. when calling eos_input_re)</p></td>
 <td><p>1.e8</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reactions_max_solve_level</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reactions_max_solve_level</span></code></p></td>
 <td><p>maximum level to do an explicit burn on (above this, we
 interpolate the reactions source)</p></td>
 <td><p>100</p></td>
@@ -1071,44 +1070,51 @@ SCF</p></td>
 <td><p>do we dump the old state into the checkpoint files too?</p></td>
 <td><p>false</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code></p></td>
+<td><p>do we assume the domain is plane parallel when
+computing some of the derived quantities (e.g. radial
+velocity).  Note: this will always assume that the last
+spatial dimension is vertical</p></td>
+<td><p>false</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">print_fortran_warnings</span></code></p></td>
 <td><p>display warnings in Fortran90 routines</p></td>
 <td><p>(0, 1)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">print_update_diagnostics</span></code></p></td>
 <td><p>display information about updates to the state (how
 much mass, momentum, energy added)</p></td>
 <td><p>(0, 1)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></p></td>
 <td><p>calculate losses of material through physical grid
 boundaries</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></p></td>
 <td><p>how often (number of coarse timesteps) to compute
 integral sums (for runtime diagnostics)</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></p></td>
 <td><p>how often (simulation time) to compute integral sums
 (for runtime diagnostics)</p></td>
 <td><p>-1.0e0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></p></td>
 <td><p>display center of mass diagnostics</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
 <td><p>a string describing the simulation that will be copied
 into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</p></td>
 <td><p>“Castro”</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
 <td><p>write a final plotfile and checkpoint upon completion</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
 <td><p>Do we want to reset the time in the checkpoint? This
 ONLY takes effect if amr.regrid_on_restart = 1 and
 amr.checkpoint_on_restart = 1, (which require that
@@ -1117,7 +1123,7 @@ checkpoint) and you set it to value greater than this
 default value.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
 <td><p>Do we want to reset the number of steps in the
 checkpoint? This ONLY takes effect if
 amr.regrid_on_restart = 1 and amr.checkpoint_on_restart

@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_util.H &mdash; Castro 20.05
- documentation</title>
+  <title>File Castro_util.H &mdash; Castro  documentation</title>
   
 
   
@@ -67,11 +66,6 @@
           
             
             
-              <div class="version">
-                20.05
-
-              </div>
-            
           
 
           
@@ -120,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
@@ -151,6 +146,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -240,25 +236,30 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap(int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap (int ipassive)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap(int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap (int ipassive)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p(const int mom_dir, const int flux_dir, const int coord)</code></dt>
+<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position(int i, int j, int k, GeometryData const &amp; geomdata, GpuArray&lt; Real, 3 &gt; &amp; loc, bool ccx = true, bool ccy = true, bool ccz = true)</code></dt>
+<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position (int i, int j, int k, GeometryData const &amp;geomdata, GpuArray&lt; Real, 3 &gt; &amp;loc, bool ccx=true, bool ccy=true, bool ccz=true)</code></dt>
 <dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt id="_CPPv45amrex">
+<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><em class="property">namespace </em><code class="sig-name descname">amrex</code><a class="headerlink" href="#_CPPv45amrex" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 
 

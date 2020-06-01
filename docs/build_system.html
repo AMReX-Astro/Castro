@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Build System Overview &mdash; Castro 20.05
- documentation</title>
+  <title>Build System Overview &mdash; Castro  documentation</title>
   
 
   
@@ -66,11 +65,6 @@
 
           
             
-            
-              <div class="version">
-                20.05
-
-              </div>
             
           
 
@@ -135,6 +129,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -411,12 +406,13 @@ number of options (<code class="docutils literal notranslate"><span class="pre">
 <li><p><code class="docutils literal notranslate"><span class="pre">set_variables.py</span></code> is called</p>
 <ul id="index-17">
 <li><p>This processes the Castro <code class="docutils literal notranslate"><span class="pre">_variables</span></code> file and writes
-<code class="docutils literal notranslate"><span class="pre">state_indices.F90</span></code> and <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
+<code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code> and <code class="docutils literal notranslate"><span class="pre">state_indices.H</span></code> into the
 <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code> directory.</p>
 <p>These are used to define the size of the various state arrays and
 the integer keys to index each state variable.</p>
 </li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">state_indices.F90</span></code></p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the build rule for <code class="docutils literal notranslate"><span class="pre">state_indices_nd.F90</span></code></p></li>
+<li><p>You can test this portion of the build system by doing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">test_variables</span></code></p></li>
 </ul>
 </li>
 <li><p>(for <code class="docutils literal notranslate"><span class="pre">general_null</span> <span class="pre">networks</span></code>), <code class="docutils literal notranslate"><span class="pre">actual_network.F90</span></code> is created</p>

@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_diffusion.H &mdash; Castro 20.05
- documentation</title>
+  <title>File Castro_diffusion.H &mdash; Castro  documentation</title>
   
 
   
@@ -67,11 +66,6 @@
           
             
             
-              <div class="version">
-                20.05
-
-              </div>
-            
           
 
           
@@ -120,6 +114,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
@@ -147,6 +142,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -236,7 +232,7 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt id="_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv325construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a59cdd89e59c7a166c33833cc068380e0"></span>void <code class="sig-name descname">construct_old_diff_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv325construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a59cdd89e59c7a166c33833cc068380e0"></span>void <code class="sig-name descname">construct_old_diff_source</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>source</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct diffusion source at old time</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -252,7 +248,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv425construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv325construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a2eea87bd84b03fce1caa947811100d33"></span>void <code class="sig-name descname">construct_new_diff_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>source</em>, amrex::MultiFab &amp;<em>state_old</em>, amrex::MultiFab &amp;<em>state_new</em>, amrex::Real <em>time</em>, amrex::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv325construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv225construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_diff_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1a2eea87bd84b03fce1caa947811100d33"></span>void <code class="sig-name descname">construct_new_diff_source</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>source</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state_old</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state_new</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425construct_new_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct diffusion source at new time</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -269,7 +265,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv420getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE">
-<span id="_CPPv320getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv220getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="getTempDiffusionTerm__amrex::Real.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__diffusion_8H_1a057493fcc9c50ae1c1c765cfbfdbccc4"></span>void <code class="sig-name descname">getTempDiffusionTerm</code><span class="sig-paren">(</span>amrex::Real <em>time</em>, amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>DiffTerm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv320getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv220getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="getTempDiffusionTerm__amrex::Real.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="Castro__diffusion_8H_1a057493fcc9c50ae1c1c765cfbfdbccc4"></span>void <code class="sig-name descname">getTempDiffusionTerm</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>DiffTerm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420getTempDiffusionTermN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get thermal conductivity diffusion term at given time</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -284,7 +280,7 @@
 
 <dl class="cpp function">
 <dt id="_CPPv428add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv328add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv228add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="add_temp_diffusion_to_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1ae0052f64f5a4112372349d57cf6568d3"></span>void <code class="sig-name descname">add_temp_diffusion_to_source</code><span class="sig-paren">(</span>amrex::MultiFab &amp;<em>ext_src</em>, amrex::MultiFab &amp;<em>state</em>, amrex::MultiFab &amp;<em>DiffTerm</em>, amrex::Real <em>t</em>, amrex::Real <em>mult_factor</em> = 1.0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv428add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv328add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv228add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="add_temp_diffusion_to_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__diffusion_8H_1ae0052f64f5a4112372349d57cf6568d3"></span>void <code class="sig-name descname">add_temp_diffusion_to_source</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>ext_src</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>DiffTerm</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>t</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>mult_factor</em> = 1.0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv428add_temp_diffusion_to_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Calculate temperature or enthalpty diffusion terms and add to <code class="docutils literal notranslate"><span class="pre">ext_src</span></code> (multiplied by <code class="docutils literal notranslate"><span class="pre">mult_factor</span></code>).</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">

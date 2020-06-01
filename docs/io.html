@@ -8,8 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Outputting &mdash; Castro 20.05
- documentation</title>
+  <title>Outputting &mdash; Castro  documentation</title>
   
 
   
@@ -66,11 +65,6 @@
 
           
             
-            
-              <div class="version">
-                20.05
-
-              </div>
             
           
 
@@ -133,6 +127,7 @@
 <li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
@@ -224,7 +219,7 @@
 <span id="ch-io"></span><h1>Outputting<a class="headerlink" href="#outputting" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="restart-capability">
 <h2>Restart Capability<a class="headerlink" href="#restart-capability" title="Permalink to this headline">¶</a></h2>
-<p>Castro has a standard sort of checkpointing and restarting capability.
+<span class="target" id="index-0"></span><span class="target" id="index-1"></span><p id="index-2">Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):</p>
 <blockquote>
@@ -251,7 +246,7 @@ algorithm without I/O.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code>: how parallel is the writing of
 the checkpoint files? (Integer <span class="math notranslate nohighlight">\(\geq 1\)</span>; default: 64)</p>
-<p>See the chapter <a class="reference internal" href="#ch-io"><span class="std std-ref">Outputting</span></a> for more details on parallel I/O and the
+<p>See the section <span class="xref std std-ref">sec:parallel_io</span> for more details on parallel I/O and the
 <code class="docutils literal notranslate"><span class="pre">amr.check_nfiles</span></code> parameter.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">amr.checkpoint_on_restart</span></code>: should we write a
@@ -297,13 +292,13 @@ simulation time. The directory names will be <code class="docutils literal notra
 </div>
 <div class="section" id="plotfile-outputting">
 <span id="sec-plotfiles"></span><h2>Plotfile Outputting<a class="headerlink" href="#plotfile-outputting" title="Permalink to this headline">¶</a></h2>
-<p>Castro has two levels of plotfiles, <cite>regular</cite> plotfiles and <cite>small</cite>
+<p id="index-3">Castro has two levels of plotfiles, <cite>regular</cite> plotfiles and <cite>small</cite>
 plotfiles.  The idea behind this distinction is that we can output a
 small number of variables very frequently in the small plotfiles and
 output a large number (or all variables) less frequently.  This helps
 keep the data sizes down while allowing for fine-grained temporal
 analysis of important quantities.</p>
-<p id="index-0">A few general controls determines whether we want to output plotfiles and when:</p>
+<p>A few general controls determines whether we want to output plotfiles and when:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">amr.plot_files_output</span></code> : this is set to 1 to output plotfiles</p></li>
@@ -313,7 +308,7 @@ immediately when we restart.</p></li>
 when we dump a checkpoint file.</p></li>
 </ul>
 </div></blockquote>
-<p id="index-1">The frequency of outputting and naming of regular plotfiles is
+<p id="index-4">The frequency of outputting and naming of regular plotfiles is
 controlled by:</p>
 <blockquote>
 <div><ul>
@@ -334,7 +329,7 @@ you requested.</p>
 Set this to -1 to rely on the simulation-time-based outputting.</p></li>
 </ul>
 </div></blockquote>
-<p id="index-2">Similarly, the frequency of outputting and naming of small plotfiles
+<p id="index-5">Similarly, the frequency of outputting and naming of small plotfiles
 is controlled by:</p>
 <blockquote>
 <div><ul class="simple">
@@ -389,7 +384,7 @@ directory names will be <code class="docutils literal notranslate"><span class="
 </div>
 <div class="section" id="controlling-whats-in-the-plotfile">
 <h2>Controlling What’s in the PlotFile<a class="headerlink" href="#controlling-whats-in-the-plotfile" title="Permalink to this headline">¶</a></h2>
-<p id="index-3">There are a few options that can be set at runtime to control what
+<p id="index-6">There are a few options that can be set at runtime to control what
 variables appear in the regular plotfile.</p>
 <blockquote>
 <div><ul>
@@ -421,7 +416,7 @@ derived variables that Castro knows about by doing:</p>
 <p>To not output any derived variable,s this is set to <code class="docutils literal notranslate"><span class="pre">NONE</span></code>.</p>
 </div></blockquote>
 </div></blockquote>
-<p id="index-4">For small plotfiles, the controls that lists the variables is:</p>
+<p id="index-7">For small plotfiles, the controls that lists the variables is:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">amr.small_plot_vars</span></code> : this is a list of which variables
@@ -551,7 +546,7 @@ own variable)</p></td>
 </div>
 <div class="section" id="derived-variables">
 <h3>Derived variables<a class="headerlink" href="#derived-variables" title="Permalink to this headline">¶</a></h3>
-<table class="docutils align-default">
+<table class="docutils align-default" id="index-8">
 <colgroup>
 <col style="width: 22%" />
 <col style="width: 33%" />
@@ -576,7 +571,7 @@ where <span class="math notranslate nohighlight">\({\bf r}\)</span> is the dista
 <td><p><code class="docutils literal notranslate"><span class="pre">derangmomx</span></code>,
 <code class="docutils literal notranslate"><span class="pre">derangmomy</span></code>,
 <code class="docutils literal notranslate"><span class="pre">derangmomz</span></code></p></td>
-<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\({\rm g~cm^{-1}~s^{-1}}\)</span></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">diff_coeff</span></code></p></td>
 <td><p>Thermal diffusion coefficient,
@@ -690,49 +685,57 @@ and radiation (for non radhydro problems)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">radvel</span></code></p></td>
 <td><p>Radial velocity (measured with respect to
-<cite>center</cite>),
+<code class="docutils literal notranslate"><span class="pre">center</span></code> or vertical axis if
+<code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is set)
 <span class="math notranslate nohighlight">\((xu + yv + zw)/r\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">circvel</span></code></p></td>
+<td><p>Circumferential velocity (perpendicular to
+<code class="docutils literal notranslate"><span class="pre">radvel</span></code>.  If <code class="docutils literal notranslate"><span class="pre">domain_is_plane_parallel</span></code> is
+set, then this is in the x-y plane</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">derradialvel</span></code></p></td>
+<td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">soundspeed</span></code></p></td>
 <td><p>Sound speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dersoundspeed</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StateErr</span></code></p></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">thermal_cond</span></code></p></td>
 <td><p>Thermal conductivity, <span class="math notranslate nohighlight">\(\kth\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dercond</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\({\rm erg~cm^{-1}~s^{-1}~K^{-1}}\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">t_sound_t_enuc</span></code></p></td>
 <td></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derenuctimescale</span></code></p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uminusc</span></code></p></td>
 <td><p>(only for 1D) x-velocity <span class="math notranslate nohighlight">\(-\)</span> sound
 speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">deruminusc</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uplusc</span></code></p></td>
 <td><p>(only for 1D) x-velocity + sound speed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">deruplusc</span></code></p></td>
 <td><p><span class="math notranslate nohighlight">\(\cms\)</span></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">X(q)</span></code></p></td>
 <td><p>Mass fraction of species q
 <span class="math notranslate nohighlight">\(X_k = (\rho X_k)/\rho\)</span></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">derspec</span></code></p></td>
 <td><p>–</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">x_velocity</span></code>,
 <code class="docutils literal notranslate"><span class="pre">y_velocity</span></code>,
 <code class="docutils literal notranslate"><span class="pre">z_velocity</span></code></p></td>
 <td><p>Fluid velocity,
@@ -898,7 +901,7 @@ can be plotted very easily to monitor the time step.</p>
 </div>
 <div class="section" id="parallel-i-o">
 <h2>Parallel I/O<a class="headerlink" href="#parallel-i-o" title="Permalink to this headline">¶</a></h2>
-<p>Both checkpoint files and plotfiles are really directories containing
+<p id="sec-parallel-io">Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.
 The fundamental data structure we read/write to disk is a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>,
 which is made up of multiple FAB’s, one FAB per grid. Multiple
