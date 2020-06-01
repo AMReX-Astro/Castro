@@ -5,6 +5,10 @@
 #include "conductivity.H"
 #endif
 
+#ifdef MHD
+#include "mhd_util.H"
+#endif
+
 using namespace amrex;
 
 Real
@@ -133,6 +137,117 @@ Castro::estdt_cfl(const Real time)
   return estdt_hydro;
 
 }
+
+#ifdef MHD
+Real
+Castro::estdt_mhd()
+{
+
+  // MHD timestep limiter
+  const auto dx = geom.CellSizeArray();
+
+  ReduceOps<ReduceOpMin> reduce_op;
+  ReduceData<Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const MultiFab& state = get_new_data(State_Type);
+
+  const MultiFab& bx = get_new_data(Mag_Type_x);
+  const MultiFab& by = get_new_data(Mag_Type_y);
+  const MultiFab& bz = get_new_data(Mag_Type_z);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+    const Box& box = mfi.tilebox();
+
+    auto u_arr = state.array(mfi);
+
+    auto bx_arr = bx.array(mfi);
+    auto by_arr = by.array(mfi);
+    auto bz_arr = bz.array(mfi);
+
+    reduce_op.eval(box, reduce_data,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    {
+
+      Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
+      Real bcx = 0.5_rt * (bx_arr(i+1,j,k) + bx_arr(i,j,k));
+      Real bcy = 0.5_rt * (by_arr(i,j+1,k) + by_arr(i,j,k));
+      Real bcz = 0.5_rt * (bz_arr(i,j,k+1) + bz_arr(i,j,k));
+
+      Real ux = u_arr(i,j,k,UMX) * rhoInv;
+      Real uy = u_arr(i,j,k,UMY) * rhoInv;
+      Real uz = u_arr(i,j,k,UMZ) * rhoInv;
+
+      eos_t eos_state;
+      eos_state.rho = u_arr(i,j,k,URHO);
+      eos_state.e = u_arr(i,j,k,UEINT) * rhoInv;
+      eos_state.T = u_arr(i,j,k,UTEMP);
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = u_arr(i,j,k,UFS+n) * rhoInv;
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = u_arr(i,j,k,UFX+n) * rhoInv;
+      }
+
+      eos(eos_input_re, eos_state);
+
+      Real e  = u_arr(i,j,k,UEINT) * rhoInv;
+
+      Real as = eos_state.gam1 * eos_state.p * rhoInv;
+      Real ca = (bcx*bcx + bcy*bcy + bcz*bcz) * rhoInv;
+
+      Real cx;
+      Real cy;
+      Real cz;
+
+      if (e > 0_rt) {
+        Real cad = bcx*bcx * rhoInv;
+        eos_soundspeed_mhd(cx, as, ca, cad);
+
+        cad = bcy*bcy * rhoInv;
+        eos_soundspeed_mhd(cy, as, ca, cad);
+
+        cad = bcz*bcz * rhoInv;
+        eos_soundspeed_mhd(cz, as, ca, cad);
+
+      } else {
+        cx = 0.0_rt;
+        cy = 0.0_rt;
+        cz = 0.0_rt;
+      }
+
+      Real dt1 = dx[0]/(cx + std::abs(ux));
+
+      Real dt2;
+#if AMREX_SPACEDIM >= 2
+      dt2 = dx[1]/(cy + std::abs(uy));
+#else
+      dt2 = dt1;
+#endif
+
+      Real dt3;
+#if AMREX_SPACEDIM == 3
+      dt3 = dx[2]/(cz + std::abs(uz));
+#else
+      dt3 = dt1;
+#endif
+
+      return {amrex::min(dt1, dt2, dt3)};
+
+    });
+
+  }
+
+  ReduceTuple hv = reduce_data.value();
+  Real estdt_mhd = amrex::get<0>(hv);
+
+  return estdt_mhd;
+
+}
+#endif
 
 #ifdef DIFFUSION
 

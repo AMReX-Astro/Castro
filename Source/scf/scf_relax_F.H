@@ -1,5 +1,5 @@
-#ifndef _scf_relax_F_H_
-#define _scf_relax_F_H_
+#ifndef CASTRO_SCF_RELAX_H
+#define CASTRO_SCF_RELAX_H
 
 #include <AMReX_BLFort.H>
 

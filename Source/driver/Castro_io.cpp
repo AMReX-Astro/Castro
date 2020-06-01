@@ -218,8 +218,9 @@ Castro::restart (Amr&     papa,
         int len = dir.size();
 
         Vector<int> int_dir_name(len);
-        for (int j = 0; j < len; j++)
+        for (int j = 0; j < len; j++) {
           int_dir_name[j] = (int) dir_for_pass[j];
+        }
 
         problem_restart(int_dir_name.dataPtr(), &len);
 
@@ -238,9 +239,9 @@ Castro::restart (Amr&     papa,
 
     if (grown_factor > 1 && level == 0)
     {
-       if (verbose && ParallelDescriptor::IOProcessor())
-          std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
-
+       if (verbose && ParallelDescriptor::IOProcessor()) {
+         std::cout << "Doing special restart with grown_factor " << grown_factor << std::endl;
+       }
        MultiFab& S_new = get_new_data(State_Type);
 
        Box orig_domain;
@@ -251,8 +252,9 @@ Castro::restart (Amr&     papa,
           Box domain(geom.Domain());
           int lo=0, hi=0;
           if (geom.IsRZ()) {
-             if (grown_factor != 2) 
+             if (grown_factor != 2) {
                 amrex::Abort("Must have grown_factor = 2");
+             }
 
              int d = 0;
              int dlen =  domain.size()[d];
@@ -286,14 +288,15 @@ Castro::restart (Amr&     papa,
              }
           }
        } else {
-          if (ParallelDescriptor::IOProcessor())
+          if (ParallelDescriptor::IOProcessor()) {
              std::cout << "... invalid value of star_at_center: " << star_at_center << std::endl;
+          }
           amrex::Abort();
        }
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-           RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
+
            const Real* prob_lo = geom.ProbLo();
            const Box& bx      = mfi.validbox();
            const int* lo      = bx.loVect();
@@ -309,6 +312,8 @@ Castro::restart (Amr&     papa,
                           AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+
+              RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
 
               Real cur_time = state[State_Type].curTime();
 
@@ -414,29 +419,11 @@ Castro::checkPoint(const std::string& dir,
                    bool dump_old_default)
 {
 
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToHost(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToHost(new_MF);
-  }
-
   const Real io_start_time = ParallelDescriptor::second();
 
   AmrLevel::checkPoint(dir, os, how, dump_old);
 
   const Real io_time = ParallelDescriptor::second() - io_start_time;
-
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToDevice(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToDevice(new_MF);
-  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -1131,9 +1118,11 @@ Castro::plotFileOutput(const std::string& dir,
     //
     // Only the I/O processor makes the directory if it doesn't already exist.
     //
-    if (ParallelDescriptor::IOProcessor())
-        if (!amrex::UtilCreateDirectory(FullPath, 0755))
+    if (ParallelDescriptor::IOProcessor()) {
+        if (!amrex::UtilCreateDirectory(FullPath, 0755)) {
             amrex::CreateDirectoryFailed(FullPath);
+        }
+    }
     //
     // Force other processors to wait till directory is built.
     //
@@ -1207,8 +1196,6 @@ Castro::plotFileOutput(const std::string& dir,
     }
 #endif
 
-    amrex::prefetchToHost(plotMF);
-
     //
     // Use the Full pathname when naming the MultiFab.
     //
@@ -1217,7 +1204,11 @@ Castro::plotFileOutput(const std::string& dir,
 
     const Real io_start_time = ParallelDescriptor::second();
 
-    VisMF::Write(plotMF,TheFullPath,how,true);
+    if (amrex::AsyncOut::UseAsyncOut()) {
+        VisMF::AsyncWrite(std::move(plotMF),TheFullPath);
+    } else {
+        VisMF::Write(plotMF,TheFullPath,how,true);
+    }
 
     const Real io_time = ParallelDescriptor::second() - io_start_time;
 

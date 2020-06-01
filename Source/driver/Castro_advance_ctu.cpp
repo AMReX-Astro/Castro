@@ -36,6 +36,16 @@ Castro::do_advance_ctu(Real time,
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
+#ifdef MHD
+    MultiFab& Bx_old = get_old_data(Mag_Type_x);
+    MultiFab& By_old = get_old_data(Mag_Type_y);
+    MultiFab& Bz_old = get_old_data(Mag_Type_z);
+
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif 
+
     // Perform initialization steps.
 
     initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -75,11 +85,14 @@ Castro::do_advance_ctu(Real time,
 #ifdef REACTIONS
     bool burn_success = true;
 
+    MultiFab& R_old = get_old_data(Reactions_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        // this operates on Sborder (which is initially S_old).  The result
-        // of the reactions is added directly back to Sborder.
-        burn_success = strang_react_first_half(prev_time, 0.5 * dt);
+        // The result of the reactions is added directly to Sborder.
+        burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
+        clean_state(Sborder, prev_time, Sborder.nGrow());
 
     }
 #endif
@@ -95,8 +108,6 @@ Castro::do_advance_ctu(Real time,
         // Do this for the reactions as well, in case we cut the timestep
         // short due to it being rejected.
 
-        MultiFab& R_old = get_old_data(Reactions_Type);
-        MultiFab& R_new = get_new_data(Reactions_Type);
         MultiFab::Copy(R_new, R_old, 0, 0, R_new.nComp(), R_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
@@ -126,7 +137,11 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_old_sources(old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+      do_old_sources(
+#ifdef MHD
+                      Bx_old, By_old, Bz_old,
+#endif                
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -148,6 +163,7 @@ Castro::do_advance_ctu(Real time,
 
     if (do_hydro)
     {
+#ifndef MHD
       // Construct the primitive variables.
       cons_to_prim(time);
 
@@ -163,6 +179,10 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
+#else
+      just_the_mhd(time, dt);
+      apply_source_to_state(S_new, hydro_source, dt, 0);
+#endif
 
       // Check for small/negative densities.
       // If we detect one, return immediately.
@@ -183,7 +203,11 @@ Castro::do_advance_ctu(Real time,
 
 
     // Sync up state after old sources and hydro source.
-    clean_state(S_new, cur_time, 0);
+    clean_state(
+#ifdef MHD
+                Bx_new, By_new, Bz_new,
+#endif
+                S_new, cur_time, 0);
 
 #ifndef AMREX_USE_CUDA
     // Check for NaN's.
@@ -223,7 +247,11 @@ Castro::do_advance_ctu(Real time,
 
     if (apply_sources()) {
 
-      do_new_sources(new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+      do_new_sources(
+#ifdef MHD
+                              Bx_new, By_new, Bz_new,
+#endif  
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
 
     } else {
 
@@ -235,8 +263,13 @@ Castro::do_advance_ctu(Real time,
     // since the hydro source only works on the valid zones.
 
     if (S_new.nGrow() > 0) {
-        clean_state(S_new, cur_time, 0);
-        expand_state(S_new, cur_time, S_new.nGrow());
+      clean_state(
+#ifdef MHD
+                  Bx_new, By_new, Bz_new,
+#endif                
+                  S_new, cur_time, 0);
+
+      expand_state(S_new, cur_time, S_new.nGrow());
     }
 
     // Do the second half of the reactions.
@@ -244,7 +277,8 @@ Castro::do_advance_ctu(Real time,
 #ifdef REACTIONS
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
-        burn_success = strang_react_second_half(cur_time - 0.5 * dt, 0.5 * dt);
+        burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
+        clean_state(S_new, cur_time, S_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
@@ -271,6 +305,7 @@ Castro::do_advance_ctu(Real time,
     if (castro::change_max * new_dt < dt) {
         status.success = false;
         status.reason = "timestep validity check failed";
+        return status;
     }
 
     finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
@@ -286,8 +321,6 @@ bool
 Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
-
-    MultiFab& S_new = get_new_data(State_Type);
 
     bool do_retry = false;
 
@@ -327,9 +360,7 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
                 Arena* old_arena = state[k].getArena();
                 state[k].setArena(The_Pinned_Arena());
 #endif
-
                 *prev_state[k] = state[k];
-
 #ifdef AMREX_USE_GPU
                 state[k].setArena(old_arena);
 #endif

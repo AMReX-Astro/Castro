@@ -15,15 +15,15 @@ using namespace amrex;
 
 void
 Castro::trace_plm(const Box& bx, const int idir,
-                  Array4<Real const> const q_arr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real const> const dq,
-                  Array4<Real> const qm,
-                  Array4<Real> const qp,
+                  Array4<Real const> const& q_arr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real const> const& dq,
+                  Array4<Real> const& qm,
+                  Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
-                  Array4<Real const> const dloga,
+                  Array4<Real const> const& dloga,
 #endif
-                  Array4<Real const> const srcQ,
+                  Array4<Real const> const& srcQ,
                   const Box& vbx,
                   const Real dt) {
 
@@ -33,9 +33,6 @@ Castro::trace_plm(const Box& bx, const int idir,
   const auto dx = geom.CellSizeArray();
 
   const Real dtdx = dt/dx[idir];
-
-  auto lo = bx.loVect3d();
-  auto hi = bx.hiVect3d();
 
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
@@ -72,7 +69,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 
   // Compute left and right traced states
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real cc = qaux_arr(i,j,k,QC);
@@ -226,8 +224,8 @@ Castro::trace_plm(const Box& bx, const int idir,
 #if (AMREX_SPACEDIM < 3)
     // geometry source terms -- these only apply to the x-states
     if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
-      Real courn = dtdx*(cc + abs(un));
-      Real eta = (1.0_rt-courn)/(cc*dt*abs(dloga(i,j,k)));
+      Real courn = dtdx*(cc + std::abs(un));
+      Real eta = (1.0_rt-courn)/(cc*dt*std::abs(dloga(i,j,k)));
       Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);
       Real sourcr = -0.5_rt*dt*rho*dlogatmp*un;
       Real sourcp = sourcr*csq;

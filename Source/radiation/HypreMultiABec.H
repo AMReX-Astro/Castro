@@ -1,5 +1,5 @@
-#ifndef _HypreMultiABec_H_
-#define _HypreMultiABec_H_
+#ifndef CASTRO_HYPREMULTIABEC_H
+#define CASTRO_HYPREMULTIABEC_H
 
 #include "HypreABec.H"
 

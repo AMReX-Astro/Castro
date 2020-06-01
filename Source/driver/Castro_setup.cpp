@@ -13,7 +13,7 @@
 # include "Radiation.H"
 # include "RAD_F.H"
 #endif
-#include "Problem_Derive_F.H"
+#include <Problem_Derive_F.H>
 
 #include "AMReX_buildInfo.H"
 
@@ -43,6 +43,11 @@ static int tang_vel_bc[] =
   {
     INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
   };
+
+static int mag_field_bc[] = 
+{
+  INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
+};
 
 static
 void
@@ -110,6 +115,22 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
   bc.setHi(2,norm_vel_bc[hi_bc[2]]);
 #endif
 }
+
+
+#ifdef MHD
+static
+void
+set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
+{
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+    for (int i = 0; i < BL_SPACEDIM; i++)
+    {
+        bc.setLo(i, mag_field_bc[lo_bc[i]]);
+        bc.setHi(i, mag_field_bc[hi_bc[i]]);
+    }
+}
+#endif
 
 // In some cases we want to replace inflow boundaries with
 // first-order extrapolation boundaries. This is intended to
@@ -259,8 +280,12 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-  // Define NUM_GROW from the f90 module.
-  ca_get_method_params(&NUM_GROW);
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+#ifdef MHD
+  NUM_GROW = 6;
+#else
+  NUM_GROW = 4;
+#endif
 
   const Real run_strt = ParallelDescriptor::second() ;
 
@@ -297,8 +322,9 @@ Castro::variableSetUp ()
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
 
-  if (ParallelDescriptor::IOProcessor())
+  if (ParallelDescriptor::IOProcessor()) {
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
+  }
 
   const Geometry& dgeom = DefaultGeometry();
 
@@ -319,8 +345,9 @@ Castro::variableSetUp ()
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
-  for (int i = 0; i < probin_file_length; i++)
+  for (int i = 0; i < probin_file_length; i++) {
     probin_file_name[i] = probin_file[i];
+  }
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
@@ -353,10 +380,12 @@ Castro::variableSetUp ()
     interp = &pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1)
+    if (lin_limit_state_interp == 1) {
       interp = &lincc_interp;
-    else
+    }
+    else {
       interp = &cell_cons_interp;
+    }
   }
 
   // Note that the default is state_data_extrap = false,
@@ -366,7 +395,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#ifdef RADIATION
+#if defined(RADIATION) 
   // Radiation should always have at least one ghost zone.
   int ngrow_state = std::max(1, state_nghost);
 #else
@@ -379,6 +408,25 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,ngrow_state,NUM_STATE,
                          interp,state_data_extrap,store_in_checkpoint);
+
+#ifdef MHD
+  store_in_checkpoint = true;
+  IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
+  desc_lst.addDescriptor(Mag_Type_x, xface,
+                         StateDescriptor::Point, 0, 1, 
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+  IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
+  desc_lst.addDescriptor(Mag_Type_y, yface,
+                         StateDescriptor::Point, 0, 1,
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+  IndexType zface(IntVect{AMREX_D_DECL(0,0,1)});
+  desc_lst.addDescriptor(Mag_Type_z, zface,
+                         StateDescriptor::Point, 0, 1,
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+#endif
 
 #ifdef GRAVITY
   store_in_checkpoint = true;
@@ -517,8 +565,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
-      for (int i = 0; i < NumSpec; i++)
+      for (int i = 0; i < NumSpec; i++) {
         std::cout << short_spec_names_cxx[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -538,8 +587,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
-      for (int i = 0; i < NumAux; i++)
+      for (int i = 0; i < NumAux; i++) {
         std::cout << aux_names[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -567,6 +617,15 @@ Castro::variableSetUp ()
 
   BndryFunc genericBndryFunc(ca_generic_fill);
   genericBndryFunc.setRunOnGPU(true);
+
+#ifdef MHD
+  set_mag_field_bc(bc, phys_bc);
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
+#endif
+
+
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
@@ -800,8 +859,9 @@ Castro::variableSetUp ()
   derive_lst.add("magvort",IndexType::TheCellType(),1,ca_dermagvort,grow_box_by_one);
   // Here we exploit the fact that UMX = URHO + 1
   //   in order to use the correct interpolation.
-  if (UMX != URHO+1)
+  if (UMX != URHO+1) {
     amrex::Error("We are assuming UMX = URHO + 1 in Castro_setup.cpp");
+  }
   derive_lst.addComponent("magvort",desc_lst,State_Type,URHO,4);
 
   //
@@ -885,6 +945,10 @@ Castro::variableSetUp ()
   derive_lst.addComponent("radvel",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("radvel",desc_lst,State_Type,UMX,3);
 
+  derive_lst.add("circvel",IndexType::TheCellType(),1,ca_dercircvel,the_same_box);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,UMX,3);
+
   derive_lst.add("magmom",IndexType::TheCellType(),1,ca_dermagmom,the_same_box);
   derive_lst.addComponent("magmom",desc_lst,State_Type,UMX,3);
 
@@ -925,6 +989,54 @@ Castro::variableSetUp ()
     derive_lst.addComponent("Ertot",desc_lst,Rad_Type,0,Radiation::nGroups);
   }
 #endif
+
+#ifdef MHD
+//Electric Field at the face
+//
+//Magentic Field Cell Centered
+//x component
+  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
+  derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
+//y component
+  derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, the_same_box);
+  derive_lst.addComponent("B_y", desc_lst, Mag_Type_y, 0, 1);
+//z component
+  derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
+  derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
+
+//Electric Field
+//x component
+  derive_lst.add("E_x", IndexType::TheCellType(), 1, ca_derex, the_same_box);
+  derive_lst.addComponent("E_x", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("E_x", desc_lst, Mag_Type_z, 0, 1);
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Ymom, 1);
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Zmom, 1);
+
+//y component
+  derive_lst.add("E_y", IndexType::TheCellType(), 1, ca_derey, the_same_box);
+  derive_lst.addComponent("E_y", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("E_y", desc_lst, Mag_Type_z, 0, 1);
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Xmom, 1);
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Zmom, 1);
+
+//z component
+  derive_lst.add("E_z", IndexType::TheCellType(), 1, ca_derez, the_same_box);
+  derive_lst.addComponent("E_z", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("E_z", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Xmom, 1);
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Ymom, 1);
+
+//Divergence of B
+  derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1); 
+  
+#endif 
+
 
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);

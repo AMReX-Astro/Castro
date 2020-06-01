@@ -8,7 +8,6 @@ module timestep_module
 
 contains
 
-
 #ifdef REACTIONS
 
   subroutine ca_estdt_burning(lo, hi, &
@@ -23,7 +22,8 @@ contains
 
     use amrex_constants_module, only: HALF, ONE
     use network, only: nspec, naux, aion
-    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_X, dtnuc_X_threshold
+    use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_T, &
+                                   dtnuc_X, dtnuc_X_threshold, small_temp
     use prob_params_module, only : dim
 #if naux > 0
     use meth_params_module, only : UFX
@@ -32,7 +32,7 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use react_util_module, only: okay_to_burn_type ! function
-    use burn_type_module, only : burn_t, net_ienuc, burn_to_eos, eos_to_burn, neqs
+    use burn_type_module, only : burn_t, net_ienuc, net_itemp, burn_to_eos, eos_to_burn, neqs
     use temperature_integration_module, only: self_heat
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
@@ -48,7 +48,7 @@ contains
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
-    real(rt)      :: e, X(nspec), dedt, dXdt(nspec)
+    real(rt)      :: e, T, X(nspec), dedt, dTdt, dXdt(nspec)
     integer       :: i, j, k
     integer       :: n
 
@@ -73,22 +73,25 @@ contains
     !
     ! If dtnuc is less than one, it controls the fraction we will
     ! allow the internal energy to change in this timestep due to
-    ! nuclear burning, provided that the last timestep's burning is a
-    ! good estimate for the current timestep's burning.
+    ! nuclear burning, provided that our instantaneous estimate
+    ! of the energy release is representative of the full timestep.
     !
-    ! We do the same thing for the species, using a timestep
+    ! We do the same thing for the temperature, using a timestep
+    ! limiter dtnuc_T * (T / (dT/dt)).
+    !
+    ! We also do the same thing for the species, using a timestep
     ! limiter dtnuc_X * (X_k / (dX_k/dt)). To prevent changes
     ! due to trace isotopes that we probably are not interested in,
     ! only apply the limiter to species with an abundance greater
     ! than a user-specified threshold.
     !
-    ! To estimate de/dt and dX/dt, we are going to call the RHS of the
+    ! To estimate de/dt, dT/dt, and dX/dt, we are going to call the RHS of the
     ! burner given the current state data. We need to do an EOS
     ! call before we do the RHS call so that we have accurate
     ! values for the thermodynamic data like abar, zbar, etc.
     ! But we will call in (rho, T) mode, which is inexpensive.
 
-    if (dtnuc_e > 1.e199_rt .and. dtnuc_X > 1.e199_rt) return
+    if (dtnuc_e > 1.e199_rt .and. dtnuc_X > 1.e199_rt .and. dtnuc_T > 1.e199_rt) return
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
@@ -107,6 +110,7 @@ contains
              if (.not. okay_to_burn_type(state_new)) cycle
 
              e    = state_new % e
+             T    = max(state_new % T, small_temp)
              X    = max(state_new % xn, small_x)
 
              call burn_to_eos(state_new, eos_state)
@@ -123,6 +127,7 @@ contains
              call actual_rhs(state_new, ydot)
 
              dedt = ydot(net_ienuc)
+             dTdt = ydot(net_itemp)
              dXdt = ydot(1:nspec) * aion
 
              ! Apply a floor to the derivatives. This ensures that we don't
@@ -132,6 +137,7 @@ contains
              ! ignored compared to other limiters.
 
              dedt = max(abs(dedt), derivative_floor)
+             dTdt = max(abs(dTdt), derivative_floor)
 
              do n = 1, nspec
                 if (X(n) .ge. dtnuc_X_threshold) then
@@ -141,7 +147,7 @@ contains
                 end if
              end do
 
-             dt_tmp = min(dtnuc_e * e / dedt, dtnuc_X * minval(X / dXdt))
+             dt_tmp = min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt, dtnuc_X * minval(X / dXdt))
 
              call reduce_min(dt, dt_tmp)
 

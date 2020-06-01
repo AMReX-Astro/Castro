@@ -89,9 +89,17 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
+#MHD 
+# plm slopes:
+# 0 zero slope
+# 1 vanleer
+# 2 centered, no limit
+# 3 2nd order MC limiter
+mhd_plm_slope                int           1                  y             MHD
+
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y
+ppm_temp_fix                 int           0                  y 
 
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
@@ -175,11 +183,6 @@ limit_fluxes_on_large_vel    int           0                  y
 
 # If we're limiting the fluxes to avoid large velocities, this is the speed limit.
 speed_limit                  Real          2.99792458e10      y
-
-# Which method to use when resetting a negative/small density
-# 1 = Reset to characteristics of adjacent zone with largest density
-# 2 = Use average of all adjacent zones for all state variables
-density_reset_method         int           1                  y
 
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
@@ -348,6 +351,11 @@ sdc_iters                    int           2
 # energy of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
+
+# Limit the timestep based on how much the burning can change the temperature
+# of a zone. The timestep is equal to
+# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
+dtnuc_T                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
@@ -528,6 +536,11 @@ spherical_star               int           0
 
 # do we dump the old state into the checkpoint files too?
 dump_old                     bool          false
+
+# do we assume the domain is plane parallel when computing some of the derived
+# quantities (e.g. radial velocity).  Note: this will always assume that the
+# last spatial dimension is vertical
+domain_is_plane_parallel     bool          false
 
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)

@@ -1,5 +1,6 @@
-#ifndef _Castro_F_H_
-#define _Castro_F_H_
+#ifndef CASTRO_F_H
+#define CASTRO_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -31,8 +32,6 @@ extern "C"
 
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
-
-  void ca_get_method_params(int* HYP_GROW);
 
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 #ifdef PROB_PARAMS
@@ -160,9 +159,14 @@ extern "C"
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
+    (const int* lo, const int* hi,
+#ifdef MHD
+     BL_FORT_FAB_ARG_3D(bx),
+     BL_FORT_FAB_ARG_3D(by),
+     BL_FORT_FAB_ARG_3D(bz),
+#endif
+     BL_FORT_FAB_ARG_3D(S_new),
      const int verbose);
-
 
 #ifdef RADIATION
   void ca_estdt_rad
@@ -180,32 +184,6 @@ extern "C"
      const amrex::Real* dx, amrex::Real* dt);
 #endif
 
-  void ca_make_fourth_average(const int lo[], const int hi[],
-                              BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar,
-                              const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                               const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
-                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int ncomp,
-                                 const int* domlo, const int* domhi);
-
-  void ca_compute_lap_term(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_ANYD(lap), const int ncomp,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center_in_place(const int lo[], const int hi[],
-                                    BL_FORT_FAB_ARG_3D(q), const int* nc,
-                                    const int* domlo, const int* domhi);
 
 #ifdef RADIATION
   void ca_inelastic_sct
@@ -246,6 +224,7 @@ extern "C"
 #ifdef GRAVITY
 #include <Castro_gravity_F.H>
 #endif
+
 
 /* rotation */
 #ifdef ROTATION
@@ -307,6 +286,16 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 #endif
+#endif
+
+#ifdef MHD
+BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& nx, BL_FORT_FAB_ARG_3D(magx),
+   const int& ny, BL_FORT_FAB_ARG_3D(magy),
+   const int& nz, BL_FORT_FAB_ARG_3D(magz),
+   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
 

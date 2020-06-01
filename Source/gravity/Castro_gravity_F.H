@@ -1,5 +1,5 @@
-#ifndef _Castro_gravity_F_H_
-#define _Castro_gravity_F_H_
+#ifndef CASTRO_GRAVITY_F_H
+#define CASTRO_GRAVITY_F_H
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus

@@ -1,0 +1,28 @@
+p_0                real            1.0_rt        y
+
+u_x                real            0.0_rt        y
+
+u_y                real            0.0_rt        y
+
+u_z                real            0.0_rt        y
+
+rho_0              real            1.0_rt        y
+
+rhoe_0             real            1.0_rt        y
+
+
+T_0                real            1.0_rt        y
+
+
+B_0                real            1.0_rt        y
+
+B_x                real            0.0_rt        n
+B_y                real            0.0_rt        n
+B_z                real            0.0_rt        n 
+ 
+#wave vector orientations
+k_x                real            1.0_rt        y
+k_y                real            0.0_rt        y 
+
+
+ 
