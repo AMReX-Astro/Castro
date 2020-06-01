@@ -159,16 +159,16 @@ Castro::ca_corrrsrc(const Box& bx,
   ca_get_center(center.begin());
 
   GpuArray<Real, 3> omega_old;
-  get_omega(time-dt, omega_old.begin());
+  get_omega(time-dt, omega_old);
 
   GpuArray<Real, 3> omega_new;
-  get_omega(time, omega_new.begin());
+  get_omega(time, omega_new);
 
   GpuArray<Real, 3> domegadt_old;
-  get_domegadt(time-dt, domegadt_old.begin());
+  get_domegadt(time-dt, domegadt_old);
 
   GpuArray<Real, 3> domegadt_new;
-  get_domegadt(time, domegadt_new.begin());
+  get_domegadt(time, domegadt_new);
 
 
   if (implicit_rotation_update == 1) {

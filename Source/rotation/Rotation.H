@@ -1,3 +1,6 @@
+#ifndef CASTRO_ROTATION_H
+#define CASTRO_ROTATION_H
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 Castro::get_omega(const Real time, GpuArray<Real, 3>& omega) {
@@ -74,3 +77,5 @@ void
 Castro::set_rot_period(const Real period) {
   rotational_period = period;
 }
+
+#endif

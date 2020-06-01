@@ -122,7 +122,7 @@ Castro::fill_rotational_potential(const Box& bx,
                                   const Real time) {
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(time, omega);
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -170,10 +170,10 @@ Castro::fill_rotational_acceleration(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(time, omega);
 
   GpuArray<Real, 3> domegadt;
-  get_domegadt(time, domegadt.begin());
+  get_domegadt(time, domegadt);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -225,7 +225,7 @@ Castro::fill_rotational_psi(const Box& bx,
   // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(time, omega);
 
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
