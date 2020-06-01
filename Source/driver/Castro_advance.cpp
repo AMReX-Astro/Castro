@@ -440,8 +440,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
       ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
 
-      for (int i = 0; i < n_lost; i++)
+      for (int i = 0; i < n_lost; i++) {
         material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
+      }
 
     }
 
