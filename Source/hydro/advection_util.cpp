@@ -54,7 +54,7 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(time, omega);
 #endif
 
   amrex::ParallelFor(bx,
