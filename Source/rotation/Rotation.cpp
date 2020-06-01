@@ -1,7 +1,7 @@
 void
 Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                                 GpuArray<Real, 3>& omega, GpuArray<Real, 3>& domega_dt.
-                                const Real time, const bool coriolis, Real* Sr) {
+                                const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
   // the rotational acceleration. This is the sum of:
@@ -89,184 +89,166 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
   }
 }
 
-  function rotational_potential(r, time) result(phi)
-    ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
-    !
+Real
+Castro::rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega) {
 
-    use amrex_constants_module, only: ZERO, HALF
-    use meth_params_module, only: state_in_rotating_frame, rotation_include_centrifugal
-    use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega
-    use amrex_fort_module, only : rt => amrex_real
+  // Construct rotational potential, phi_R = -1/2 | omega x r |**2
+  //
 
-    implicit none
+  Real phi = 0.0_rt;
 
-    real(rt)         :: r(3), time
-    real(rt)         :: phi
+  if (state_in_rotating_frame == 1) {
 
-    real(rt)         :: omega(3), omegacrossr(3)
+    if (rotation_include_centrifugal == 1) {
 
-    !$gpu
+      GpuArray<Real, 3> omega_cross_r;
+      cross_product(omega, r, omega_cross_r);
 
-    if (state_in_rotating_frame .eq. 1) then
+      for (int idir = 0; idir < 3, idir++) {
+        phi -= 0.5_rt * omega_cross_r[idir] * omega_cross_r[idir];
+      }
 
-       call get_omega(time, omega)
+    }
+  }
 
-       phi = ZERO
+  return phi;
 
-       if (rotation_include_centrifugal == 1) then
-
-          omegacrossr = cross_product(omega, r)
-
-          phi = phi - HALF * dot_product(omegacrossr,omegacrossr)
-
-       endif
-
-    else
-
-       phi = ZERO
-
-    endif
-
-  end function rotational_potential
+}
 
 
+void
+Castro::fill_rotational_potential(const Box& bx,
+                                  Array4<Real> const& phi,
+                                  const Real time) {
 
-  subroutine ca_fill_rotational_potential(lo,hi,phi,phi_lo,phi_hi,dx,time) &
-       bind(C, name="ca_fill_rotational_potential")
-    !
-    ! .. note::
-    !    Binds to C function ``ca_fill_rotational_potential``
+  GpuArray<Real, 3> omega;
+  get_omega(time, omega.begin());
 
-    use prob_params_module, only: problo, center
-    use amrex_constants_module, only: HALF
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
 
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
+  auto problo = geom.ProbLoArray();
 
-    integer         , intent(in   ) :: lo(3), hi(3)
-    integer         , intent(in   ) :: phi_lo(3), phi_hi(3)
+  auto dx = geom.CellSizeArray();
 
-    real(rt)        , intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt)        , intent(in   ) :: dx(3)
-    real(rt), value , intent(in   ) :: time
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
 
-    integer          :: i, j, k
-    real(rt)         :: r(3)
+    GpuArray<Real, 3> r;
 
-    !$gpu
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+#if AMREX_SPACEDIM >= 2
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+#else
+    r[1] = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+#else
+    r[2] = 0.0_rt;
+#endif
 
-    do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
+    phi(i,j,k) = rotational_potential(r, omega);
 
-       do j = lo(2), hi(2)
-          r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
+  });
 
-          do i = lo(1), hi(1)
-             r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
-
-             phi(i,j,k) = rotational_potential(r,time)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_fill_rotational_potential
+}
 
 
-  subroutine ca_fill_rotational_acceleration(lo,hi,rot,rot_lo,rot_hi,state,state_lo,state_hi,dx,time) &
-       bind(C, name="ca_fill_rotational_acceleration")
-    !
-    ! .. note::
-    !    Binds to C function ``ca_fill_rotational_acceleration``
+void
+Castro::fill_rotational_acceleration(const Box& bx,
+                                     Array4<Real> const& rot,
+                                     Array4<Real const> const& state,
+                                     const Real time) {
 
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ
-    use prob_params_module, only: problo, center
-    use amrex_constants_module, only: HALF
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
 
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
+  auto problo = geom.ProbLoArray();
 
-    integer         , intent(in   ) :: lo(3), hi(3)
-    integer         , intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer         , intent(in   ) :: state_lo(3), state_hi(3)
+  auto dx = geom.CellSizeArray();
 
-    real(rt)        , intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3),3)
-    real(rt)        , intent(in   ) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-    real(rt)        , intent(in   ) :: dx(3)
-    real(rt), value , intent(in   ) :: time
+  GpuArray<Real, 3> omega;
+  get_omega(time, omega.begin());
 
-    integer          :: i, j, k
-    real(rt)         :: r(3), v(3)
+  GpuArray<Real, 3> domegadt;
+  get_domegadt(time, domegadt.begin());
 
-    !$gpu
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
 
-    do k = lo(3), hi(3)
-       r(3) = problo(3) + dx(3)*(dble(k)+HALF) - center(3)
+    GpuArray<Real, 3> r;
 
-       do j = lo(2), hi(2)
-          r(2) = problo(2) + dx(2)*(dble(j)+HALF) - center(2)
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+#if AMREX_SPACEDIM >= 2
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+#else
+    r[1] = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+#else
+    r[2] = 0.0_rt;
+#endif
 
-          do i = lo(1), hi(1)
-             r(1) = problo(1) + dx(1)*(dble(i)+HALF) - center(1)
+    GpuArray<Real, 3> v;
 
-             v(:) = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
+    v[0] = state(i,j,k,UMX) / state(i,j,k,URHO);
+    v[1] = state(i,j,k,UMY) / state(i,j,k,URHO);
+    v[2] = state(i,j,k,UMZ) / state(i,j,k,URHO);
 
-             rot(i,j,k,:) = rotational_acceleration(r, v, time)
+    bool coriolis = true;
+    Real Sr[3];
+    rotational_acceleration(r, v, omega, domega_dt, coriolis, Sr);
 
-          enddo
-       enddo
-    enddo
+    for (int idir = 0; idir < 3; idir++) {
+      rot(i,j,k,idir) = Sr[idir];
+    }
+  });
+}
 
-  end subroutine ca_fill_rotational_acceleration
+
+void
+Castro::fill_rotational_psi(const Box& bx,
+                            Array4<Real> const& psi,
+                            const Real time) {
+
+  // Construct psi, which is the distance-related part of the rotation
+  // law. See e.g. Hachisu 1986a, Equation 15.  For rigid-body
+  // rotation, psi = -R^2 / 2, where R is the distance orthogonal to
+  // the rotation axis. There are also v-constant and j-constant
+  // rotation laws that we do not implement here. We will construct
+  // this as potential / omega**2, so that the rotational_potential
+  // routine uniquely determines the rotation law. For the other
+  // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
+
+  GpuArray<Real, 3> omega;
+  get_omega(time, omega.begin());
+
+  Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    GpuArray<Real, 3> r;
+
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+#if AMREX_SPACEDIM >= 2
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+#else
+    r[1] = 0.0_rt;
+#endif
+#if AMREX_SPACEDIM == 3
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+#else
+    r[2] = 0.0_rt;
+#endif
 
 
+    psi(i,j,k) = rotational_potential(r, omega) / demom;
 
-  subroutine ca_fill_rotational_psi(lo, hi, &
-                                    psi, psi_lo, psi_hi, &
-                                    dx, time) bind(C, name='ca_fill_rotational_psi')
-    ! Construct psi, which is the distance-related part
-    ! of the rotation law. See e.g. Hachisu 1986a, Equation 15.
-    ! For rigid-body rotation, psi = -R^2 / 2, where R is the
-    ! distance orthogonal to the rotation axis. There are also
-    ! v-constant and j-constant rotation laws that we do not
-    ! implement here. We will construct this as potential / omega**2,
-    ! so that the rotational_potential routine uniquely determines
-    ! the rotation law. For the other rotation laws, we would
-    ! simply divide by v_0^2 or j_0^2 instead.
-
-    use amrex_constants_module, only: HALF
-    use prob_params_module, only: problo, center
-    use rotation_frequency_module, only: get_omega
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: psi_lo(3), psi_hi(3)
-    real(rt), intent(inout) :: psi(psi_lo(1):psi_hi(1),psi_lo(2):psi_hi(2),psi_lo(3):psi_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ), value :: time
-
-    integer  :: i, j, k
-    real(rt) :: r(3), omega(3)
-
-    !$gpu
-
-    call get_omega(time, omega)
-
-    do k = lo(3), hi(3)
-       r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
-       do j = lo(2), hi(2)
-          r(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-          do i = lo(1), hi(1)
-             r(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-
-             psi(i,j,k) = rotational_potential(r, time) / sum(omega**2)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_fill_rotational_psi
-
-end module rotation_module
+  });
+}
