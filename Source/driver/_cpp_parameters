@@ -429,11 +429,11 @@ grav_source_type             int           4                  y
 do_rotation                  int          -1                  y
 
 # the rotation period for the corotating frame
-rotational_period            Real         -1.e200             y        ROTATION        rot_period
+rotational_period            Real         -1.e200             n        ROTATION
 
 # the rotation periods time evolution---this allows the rotation rate to
 # change durning the simulation time
-rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
+rotational_dPdt              Real          0.0                n        ROTATION
 
 # permits the centrifugal terms in the rotation to be turned on and off
 rotation_include_centrifugal int           1                  y        ROTATION
@@ -461,7 +461,7 @@ rot_source_type              int           4                  y        ROTATION
 implicit_rotation_update     int           1                  y        ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  y        ROTATION
+rot_axis                     int           3                  n        ROTATION
 
 # include a central point mass
 use_point_mass               int           0                  y        GRAVITY

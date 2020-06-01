@@ -79,8 +79,6 @@ module meth_params_module
 
   ! End the declarations of the ParmParse parameters
 
-  real(rt), save :: rot_vec(3)
-
 contains
 
   subroutine ca_set_castro_method_params() bind(C, name="ca_set_castro_method_params")

@@ -4,7 +4,7 @@ module math_module
 
 contains
 
-  function cross_product(A,B) result(C)
+  function cross_product_f(A,B) result(C)
     ! Compute the standard cross-product of two three-vectors.
 
     use amrex_fort_module, only : rt => amrex_real
@@ -20,6 +20,6 @@ contains
     C(2) = A(3)*B(1) - A(1)*B(3)
     C(3) = A(1)*B(2) - A(2)*B(1)
 
-  end function cross_product
+  end function cross_product_f
 
 end module math_module

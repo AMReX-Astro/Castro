@@ -13,6 +13,10 @@
 #include "rad_util.H"
 #endif
 
+#ifdef ROTATION
+#include "Rotation.H"
+#endif
+
 #include "eos.H"
 
 using namespace amrex;
@@ -54,7 +58,7 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(time, omega);
 #endif
 
   amrex::ParallelFor(bx,

@@ -3,6 +3,8 @@
 #include "fundamental_constants.H"
 #include "Gravity.H"
 
+#include "Rotation.H"
+
 using namespace amrex;
 
 #ifdef GRAVITY
@@ -142,9 +144,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx), time);
+                fill_rotational_psi(bx, (*psi[lev]).array(mfi), time);
 
             }
 
@@ -250,7 +250,7 @@ Castro::do_hscf_solve()
 
         // Now save the updated rotational frequency in the Fortran module.
 
-        set_rot_period(&rotational_period);
+        set_rot_period(rotational_period);
 
         // With the updated period, we can construct the updated rotational
         // potential, which will be used in the remaining steps below.
@@ -266,9 +266,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                             AMREX_ZFILL(dx), time);
+                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
 
             }
 
