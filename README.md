@@ -50,26 +50,24 @@ Development generally follows the following ideas:
     If a change is critical, we can cherry-pick the commit from
     `development` to `master`.
 
-  * Contributions are welcomed from anyone.  *Any contributions that
-    have the potential to change answers should be done via pull
-    requests.*   A pull request should be generated from your fork of
-    Castro and target the `development` branch.  (If you mistakenly
-    target `master`, we can change it for you.)
+  * Contributions are welcomed from anyone in the form of a pull
+    request from your fork of Castro, targeting the `development`
+    branch. (If you mistakenly target `master`, we can change it
+    for you.)
 
-    Please add a line to `CHANGES` summarizing your change if it
+    Please add a line to `CHANGES.md` summarizing your change if it
     is a bug fix or new feature.  Reference the PR or issue as
     appropriate. Additionally, if your change fixes a bug (or if
     you find a bug but do not fix it), and there is no current
     issue describing the bug, please file a separate issue describing
     the bug, regardless of how significant the bug is. If possible,
-    in both the `CHANGES` file and the issue, please cite the pull
+    in both the `CHANGES.md` file and the issue, please cite the pull
     request numbers or git commit hashes where the problem was
     introduced and fixed, respectively.
 
-    If there are a number of small commits making up the PR, we may
-    wish to squash commits upon merge to have a clean history.
-    *Please ensure that your PR title and first post are descriptive,
-    since these will be used for a squashed commit message.*
+    We will squash commits upon merge to have a clean history.
+    *Please ensure that your PR title and and the PR summary field are
+    descriptive, since these will be used for a squashed commit message.*
 
   * On the first workday of each month, we perform a merge of
     `development` into `master`, in coordination with `AMReX`,
