@@ -1,180 +1,93 @@
-module rotation_module
+void
+Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
+                                GpuArray<Real, 3>& omega, GpuArray<Real, 3>& domega_dt.
+                                const Real time, const bool coriolis, Real* Sr) {
 
-  use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
-       rotation_include_domegadt
+  // Given a position and velocity, calculate
+  // the rotational acceleration. This is the sum of:
+  // the Coriolis force (-2 omega x v),
+  // the centrifugal force (- omega x ( omega x r)),
+  // and a changing rotation rate (-d(omega)/dt x r).
 
-  use castro_error_module
-  use amrex_fort_module, only : rt => amrex_real
+  Sr[0] = 0.0;
+  Sr[1] = 0.0;
+  Sr[2] = 0.0;
 
-  implicit none
+  if (state_in_rotating_frame == 1) {
 
-contains
+    // Allow the various terms to be turned off.  This is often used
+    // for diagnostic purposes, but there are genuine science cases
+    // for disabling certain terms in some cases (in particular, when
+    // obtaining a system in rotational equilibrium through a
+    // relaxation process involving damping or sponging, one may want
+    // to turn off the Coriolis force during the relaxation process,
+    // on the basis that the true equilibrium state will have zero
+    // velocity anyway).
 
-  subroutine inertial_to_rotational_velocity(idx, time, v, idir)
-    ! Given a velocity vector in the inertial frame, transform it to a
-    ! velocity vector in the rotating frame.
+    bool c1 = (rotation_include_centrifugal == 1) ? true : false;
 
+    bool c2 = (rotation_include_coriolis == 1) ? true : false;
 
-    use prob_params_module, only: center
-    use castro_util_module, only: position ! function
-    use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega
-    use amrex_fort_module, only : rt => amrex_real
+    if (! coriolis) {
+      c2 = false;
+    }
 
-    implicit none
+    bool c3 = (rotation_include_domegadt == 1) ? true : false;
 
-    integer, intent(in) :: idx(3)
-    real(rt)        , intent(in   ) :: time
-    real(rt)        , intent(inout) :: v(3)
-    integer, intent(in), optional :: idir
+    GpuArray<Real, 3> omega_cross_v;
+    cross_product(omega, v, omega_cross_v);
 
-    real(rt)         :: loc(3), omega(3)
+    if (c1) {
+      GpuArray<Real, 3> omega_cross_r;
+      cross_product(omega, r, omega_cross_r);
 
-    !$gpu
+      GpuArray<Real, 3> omega_cross_omega_cross_r;
+      cross_product(omega, omega_cross_r, omega_cross_omega_cross_r);
 
-    if (present(idir)) then
-       if (idir .eq. 1) then
-          loc = position(idx(1),idx(2),idx(3),ccx=.false.) - center
-       else if (idir .eq. 2) then
-          loc = position(idx(1),idx(2),idx(3),ccy=.false.) - center
-       else if (idir .eq. 3) then
-          loc = position(idx(1),idx(2),idx(3),ccz=.false.) - center
-       else
-#ifndef AMREX_USE_GPU
-          call castro_error("Error: unknown direction in inertial_to_rotational_velocity.")
-#endif
-       endif
-    else
-       loc = position(idx(1),idx(2),idx(3)) - center
-    endif
+      for (int idir = 0; idir < 3; idir++) {
+        Sr[idir] -= omega_cross_omega_cross_r[idir];
+      }
+    }
 
-    call get_omega(time, omega)
+    if (c2) {
+      for (int idir = 0; idir < 3; idir++) {
+        Sr[idir] -= 2.0_rt * omega_cross_v[idir];
+      }
+    }
 
-    v = v - cross_product(omega, loc)
+    if (c3) {
+      GpuArray<Real, 3> domega_dt_cross_r;
+      cross_product(domega_dt, r, domega_dt_cross_r);
 
-  end subroutine inertial_to_rotational_velocity
+      for (int idir = 0; idir < 3; idir++) {
+        Sr[idir] -= domega_dt_cross_r[idir];
+      }
+    }
 
-  function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
-    ! Given a position and velocity, calculate
-    ! the rotational acceleration. This is the sum of:
-    ! the Coriolis force (-2 omega x v),
-    ! the centrifugal force (- omega x ( omega x r)),
-    ! and a changing rotation rate (-d(omega)/dt x r).
-    !
+  } else {
 
-    use amrex_constants_module, only: ZERO, TWO
-    use meth_params_module, only: state_in_rotating_frame
-    use math_module, only: cross_product ! function
-    use rotation_frequency_module, only: get_omega
-    use rotation_frequency_module, only: get_domegadt ! function
+    // The source term for the momenta when we're not measuring state
+    // variables in the rotating frame is not strictly the traditional
+    // Coriolis force, but we'll still allow it to be disabled with
+    // the same parameter.
 
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
+    bool c2 = (rotation_include_coriolis == 1) ? true : false;
 
-    real(rt)         :: r(3), v(3), time
-    real(rt)         :: Sr(3)
+    if (! coriolis) {
+      c2 = false;
+    }
 
-    real(rt)         :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
+    if (c2) {
+      GpuArray<Real, 3> omega_cross_v;
+      cross_product(omega, v, omega_cross_v);
 
-    logical, optional :: centrifugal, coriolis, domegadt
-    logical :: c1, c2, c3
+      for (int idir = 0; idir < 3; idir++) {
+        Sr[idir] -= omega_cross_v[idir];
+      }
+    }
 
-    !$gpu
-
-    call get_omega(time, omega)
-
-    if (state_in_rotating_frame .eq. 1) then
-
-       ! Allow the various terms to be turned off.
-       ! This is often used for diagnostic purposes,
-       ! but there are genuine science cases for
-       ! disabling certain terms in some cases (in
-       ! particular, when obtaining a system in
-       ! rotational equilibrium through a relaxation
-       ! process involving damping or sponging, one
-       ! may want to turn off the Coriolis force
-       ! during the relaxation process, on the
-       ! basis that the true equilibrium state
-       ! will have zero velocity anyway).
-
-       if (rotation_include_centrifugal == 1) then
-          c1 = .true.
-       else
-          c1 = .false.
-       endif
-
-       if (present(centrifugal)) then
-          if (.not. centrifugal) c1 = .false.
-       endif
-
-       if (rotation_include_coriolis == 1) then
-          c2 = .true.
-       else
-          c2 = .false.
-       endif
-
-       if (present(coriolis)) then
-          if (.not. coriolis) c2 = .false.
-       endif
-
-       if (rotation_include_domegadt == 1) then
-          c3 = .true.
-       else
-          c3 = .false.
-       endif
-
-       if (present(domegadt)) then
-          if (.not. domegadt) c3 = .false.
-       endif
-
-       domega_dt = get_domegadt(time)
-
-       omegacrossr = cross_product(omega,r)
-       omegacrossv = cross_product(omega,v)
-
-       Sr = ZERO
-
-       if (c1) then
-          Sr = Sr - cross_product(omega, omegacrossr)
-       endif
-
-       if (c2) then
-          Sr = Sr - TWO * omegacrossv
-       endif
-
-       if (c3) then
-          Sr = Sr - cross_product(domega_dt, r)
-       endif
-
-    else
-
-       ! The source term for the momenta when we're not measuring
-       ! state variables in the rotating frame is not strictly the
-       ! traditional Coriolis force, but we'll still allow it to
-       ! be disabled with the same parameter.
-
-       if (rotation_include_coriolis == 1) then
-          c2 = .true.
-       else
-          c2 = .false.
-       endif
-
-       if (present(coriolis)) then
-          if (.not. coriolis) c2 = .false.
-       endif
-
-       Sr = ZERO
-
-       if (c2) then
-          Sr = Sr - cross_product(omega, v)
-       endif
-
-    endif
-
-  end function rotational_acceleration
-
-
-
+  }
+}
 
   function rotational_potential(r, time) result(phi)
     ! Construct rotational potential, phi_R = -1/2 | omega x r |**2
