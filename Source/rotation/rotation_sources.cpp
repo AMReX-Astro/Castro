@@ -181,6 +181,8 @@ Castro::corrrsrc(const Box& bx,
 
   Real dt_omega[3];
 
+  Array2D<Real, 0, 2, 0, 2> dt_omega_matrix = {};
+
   if (implicit_rotation_update == 1) {
 
     // Don't do anything here if we've got the Coriolis force disabled.
@@ -216,7 +218,6 @@ Castro::corrrsrc(const Box& bx,
 
     }
 
-    Array2D<Real, 0, 2, 0, 2> dt_omega_matrix;
 
     dt_omega_matrix(0, 0) = 1.0_rt + dt_omega[0] * dt_omega[0];
     dt_omega_matrix(0, 1) = dt_omega[0] * dt_omega[1] + dt_omega[2];

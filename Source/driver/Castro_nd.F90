@@ -405,12 +405,6 @@ subroutine ca_set_method_params(dm) &
 
   call bl_pd_is_ioproc(ioproc)
 
-#ifdef ROTATION
-  rot_vec = ZERO
-  rot_vec(rot_axis) = ONE
-#endif
-
-
   !---------------------------------------------------------------------
   ! safety checks
   !---------------------------------------------------------------------
@@ -462,9 +456,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
-#ifdef ROTATION
-  use meth_params_module, only: rot_axis
-#endif
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -528,12 +519,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   if (dim .lt. 3) then
      dg(3) = 0
   endif
-
-#ifdef ROTATION
-  if (coord_type == 1) then
-     rot_axis = 2
-  endif
-#endif
 
   allocate(mom_flux_has_p(3))
 
