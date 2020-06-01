@@ -5,7 +5,9 @@
 /// @param amr_ncycle       the number of subcycles at this level
 /// @param time             current time
 ///
-void construct_old_gravity(int amr_iteration, int amr_ncycle, amrex::Real time);
+    void construct_old_gravity(int amr_iteration, int amr_ncycle,
+                               amrex::Real time);
+
 
 ///
 /// Construct gravitational field at new timestep
@@ -14,7 +16,8 @@ void construct_old_gravity(int amr_iteration, int amr_ncycle, amrex::Real time);
 /// @param amr_ncycle       the number of subcycles at this level
 /// @param time             current time
 ///
-void construct_new_gravity(int amr_iteration, int amr_ncycle, amrex::Real time);
+    void construct_new_gravity(int amr_iteration, int amr_ncycle,
+                               amrex::Real time);
 
 ///
 /// Construct gravitational source terms at old timestep
@@ -24,9 +27,8 @@ void construct_new_gravity(int amr_iteration, int amr_ncycle, amrex::Real time);
 /// @param time     current time
 /// @param dt       timestep
 ///
-void construct_old_gravity_source(amrex::MultiFab& source,
-                                  amrex::MultiFab& state, amrex::Real time,
-                                  amrex::Real dt);
+    void construct_old_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state, amrex::Real time, amrex::Real dt);
+
 
 ///
 /// Construct gravitational source terms at new timestep
@@ -37,7 +39,5 @@ void construct_old_gravity_source(amrex::MultiFab& source,
 /// @param time         current time
 /// @param dt           timestep
 ///
-void construct_new_gravity_source(amrex::MultiFab& source,
-                                  amrex::MultiFab& state_old,
-                                  amrex::MultiFab& state_new, amrex::Real time,
-                                  amrex::Real dt);
+    void construct_new_gravity_source(amrex::MultiFab& source, amrex::MultiFab& state_old, amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+

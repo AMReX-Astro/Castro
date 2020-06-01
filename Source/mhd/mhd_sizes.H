@@ -2,8 +2,8 @@
 #define CASTRO_MHD_SIZES_H
 
 constexpr int UMAGX = NUM_STATE;
-constexpr int UMAGY = NUM_STATE + 1;
-constexpr int UMAGZ = NUM_STATE + 2;
+constexpr int UMAGY = NUM_STATE+1;
+constexpr int UMAGZ = NUM_STATE+2;
 
 constexpr int NEIGN = 7;
 

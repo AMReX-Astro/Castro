@@ -5,457 +5,471 @@
 
 using namespace amrex;
 
-void Castro::electric_edge_x(const Box& bx, Array4<Real const> const& q_arr,
-                             Array4<Real> const& E,
-                             Array4<Real const> const& flxy,
-                             Array4<Real const> const& flxz) {
+void
+Castro::electric_edge_x(const Box& bx,
+                        Array4<Real const> const& q_arr,
+                        Array4<Real> const& E,
+                        Array4<Real const> const& flxy,
+                        Array4<Real const> const& flxz) {
 
-    // Compute Ex on an edge.  This will compute Ex(i, j-1/2, k-1/2)
+  // Compute Ex on an edge.  This will compute Ex(i, j-1/2, k-1/2)
 
-    amrex::ParallelFor(bx, [=] AMREX_GPU_HOST_DEVICE(int i, int j,
-                                                     int k) noexcept {
-        Real q_zone[NQ];
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
 
-        // Compute Ex(i, j-1/2, k-1/2) using MM Eq. 50
+    Real q_zone[NQ];
 
-        // dEx/dy (Eq. 49), located at (i, j-3/4, k-1/2)
+    // Compute Ex(i, j-1/2, k-1/2) using MM Eq. 50
 
-        // first compute dEx/dy_{i,j-3/4,k-1} using MM Eq. 49
-        // note that the face value Ex_{i,j-1/2,k-1} = -F_{i,j-1/2,k-1}(Bz)
-        // via Faraday's law (MM Eq. 15)
+    // dEx/dy (Eq. 49), located at (i, j-3/4, k-1/2)
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j - 1, k - 1, n);
-        }
-        Real Ecen = 0.0_rt;
-        electric(q_zone, Ecen, 0);
-        Real a = 2.0_rt * (-flxy(i, j, k - 1, UMAGZ) - Ecen);
+    // first compute dEx/dy_{i,j-3/4,k-1} using MM Eq. 49
+    // note that the face value Ex_{i,j-1/2,k-1} = -F_{i,j-1/2,k-1}(Bz) 
+    // via Faraday's law (MM Eq. 15)
 
-        // now compute dEx/dy_{i,j-3/4,k}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k-1,n);
+    }
+    Real Ecen = 0.0_rt;
+    electric(q_zone, Ecen, 0);
+    Real a = 2.0_rt * (-flxy(i,j,k-1,UMAGZ) - Ecen);
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j - 1, k, n);
-        }
-        electric(q_zone, Ecen, 0);
-        Real b = 2.0_rt * (-flxy(i, j, k, UMAGZ) - Ecen);
+    // now compute dEx/dy_{i,j-3/4,k}
 
-        // Upwind in the z direction to get dEx/dy i, j-3/4, k-1/2
-        // using w_{i,j-1,k-1/2}
-        // recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k,n);
+    }
+    electric(q_zone, Ecen, 0);
+    Real b = 2.0_rt *(-flxy(i,j,k,UMAGZ) - Ecen);
 
-        Real d1 = 0.0;
-        if (flxz(i, j - 1, k, URHO) > 0.0_rt) {
-            d1 = a;
-        } else if (flxz(i, j - 1, k, URHO) < 0.0_rt) {
-            d1 = b;
-        } else {
-            d1 = 0.5_rt * (a + b);
-        }
+    // Upwind in the z direction to get dEx/dy i, j-3/4, k-1/2
+    // using w_{i,j-1,k-1/2}
+    // recall flxz(QRHO) = rho*w so sign(rho*w) = sign(w)
 
-        // dEx/dy located at (i, j-1/4, k-1/2)
+    Real d1 = 0.0;
+    if (flxz(i,j-1,k,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxz(i,j-1,k,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.5_rt * (a + b);
+    }
 
-        // first compute dEx/dy_{i,j-1/4,k-1}
+    // dEx/dy located at (i, j-1/4, k-1/2)
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j, k - 1, n);
-        }
-        electric(q_zone, Ecen, 0);
-        a = 2.0_rt * (Ecen + flxy(i, j, k - 1, UMAGZ));
+    // first compute dEx/dy_{i,j-1/4,k-1}
 
-        // now compute dEx/dy_{i,j-1/4,k}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k-1,n);
+    }
+    electric(q_zone, Ecen, 0);
+    a = 2.0_rt * (Ecen + flxy(i,j,k-1,UMAGZ));
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j, k, n);
-        }
-        electric(q_zone, Ecen, 0);
-        b = 2.0_rt * (Ecen + flxy(i, j, k, UMAGZ));
+    // now compute dEx/dy_{i,j-1/4,k}
 
-        // finally upwind in the z direction to get dEx/dy i, j-1/4, k-1/2
-        // using w_{i,j,k-1/2}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 0);
+    b = 2.0_rt * (Ecen + flxy(i,j,k,UMAGZ));
 
-        Real d2 = 0.0;
-        if (flxz(i, j, k, URHO) > 0.0_rt) {
-            d2 = a;
-        } else if (flxz(i, j, k, URHO) < 0.0_rt) {
-            d2 = b;
-        } else {
-            d2 = 0.5_rt * (a + b);
-        }
+    // finally upwind in the z direction to get dEx/dy i, j-1/4, k-1/2
+    // using w_{i,j,k-1/2}
 
-        // Calculate the "second derivative" in the y direction for
-        // d^2Ex/dy^2 i, j-1/2, k-1/2 (this is one of the terms in Eq. 50)
-        // note: Stone 08 Eq. 79 has the signs backwards for this term.
+    Real d2 = 0.0;
+    if (flxz(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxz(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-        Real dd1 = 0.125_rt * (d1 - d2);
+    // Calculate the "second derivative" in the y direction for
+    // d^2Ex/dy^2 i, j-1/2, k-1/2 (this is one of the terms in Eq. 50)
+    // note: Stone 08 Eq. 79 has the signs backwards for this term.
 
-        // now dEx/dz located at (i, j-1/2, k-3/4)
+    Real dd1 = 0.125_rt * (d1 - d2);
 
-        // first compute dEx/dz_{i,j-1,k-3/4}
-        // note that the face value of Ex_{i,j-1,k-1/2} = F_{i,j-1,k-1/2}(By)
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j - 1, k - 1, n);
-        }
-        electric(q_zone, Ecen, 0);
-        a = 2.0_rt * (flxz(i, j - 1, k, UMAGY) - Ecen);
+    // now dEx/dz located at (i, j-1/2, k-3/4)
 
-        // now compute dEx/dz_{i,j,k-3/4}
+    // first compute dEx/dz_{i,j-1,k-3/4}
+    // note that the face value of Ex_{i,j-1,k-1/2} = F_{i,j-1,k-1/2}(By)
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j, k - 1, n);
-        }
-        electric(q_zone, Ecen, 0);
-        b = 2.0_rt * (flxz(i, j, k, UMAGY) - Ecen);
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k-1,n);
+    }
+    electric(q_zone, Ecen, 0);
+    a = 2.0_rt * (flxz(i,j-1,k,UMAGY) - Ecen);
 
-        // upwind in the y direction to get dEx/dz i, j-1/2, k-3/4
-        // using v_{i,j-1/2,k-1}
+    // now compute dEx/dz_{i,j,k-3/4}
 
-        if (flxy(i, j, k - 1, URHO) > 0.0_rt) {
-            d1 = a;
-        } else if (flxy(i, j, k - 1, URHO) < 0.0_rt) {
-            d1 = b;
-        } else {
-            d1 = 0.5_rt * (a + b);
-        }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k-1,n);
+    }
+    electric(q_zone, Ecen, 0);
+    b = 2.0_rt * (flxz(i,j,k,UMAGY) - Ecen);
 
-        // dEx/dz located at (i, j-1/2, k-1/4)
+    // upwind in the y direction to get dEx/dz i, j-1/2, k-3/4
+    // using v_{i,j-1/2,k-1}
 
-        // first compute dEx/dz_{i,j-1,k-1/4}
+    if (flxy(i,j,k-1,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxy(i,j,k-1,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.5_rt * (a + b);
+    }
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j - 1, k, n);
-        }
-        electric(q_zone, Ecen, 0);
-        a = 2.0_rt * (Ecen - flxz(i, j - 1, k, UMAGY));
+    // dEx/dz located at (i, j-1/2, k-1/4)
 
-        // now compute dEx/dz_{i,j,k-1/4}
+    // first compute dEx/dz_{i,j-1,k-1/4}
 
-        for (int n = 0; n < NQ; n++) {
-            q_zone[n] = q_arr(i, j, k, n);
-        }
-        electric(q_zone, Ecen, 0);
-        b = 2.0_rt * (Ecen - flxz(i, j, k, UMAGY));
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k,n);
+    }
+    electric(q_zone, Ecen, 0);
+    a = 2.0_rt * (Ecen - flxz(i,j-1,k,UMAGY));
 
-        // upwind in the y direction to get dEx/dz i, j-1/2, k-1/4
-        // using v_{i,j-1/2,k}
+    // now compute dEx/dz_{i,j,k-1/4}
 
-        if (flxy(i, j, k, URHO) > 0.0_rt) {
-            d2 = a;
-        } else if (flxy(i, j, k, URHO) < 0.0_rt) {
-            d2 = b;
-        } else {
-            d2 = 0.5_rt * (a + b);
-        }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 0);
+    b = 2.0_rt * (Ecen - flxz(i,j,k,UMAGY));
 
-        // calculate second derivative
+    // upwind in the y direction to get dEx/dz i, j-1/2, k-1/4
+    // using v_{i,j-1/2,k}
 
-        Real dd2 = 0.125_rt * (d1 - d2);
+    if (flxy(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxy(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-        // now the final Ex_{i,j-1/2,k-1/2}, using MM Eq. 50 (shifted to j-1/2, k-1/2)
+    // calculate second derivative
 
-        E(i, j, k) =
-            0.25_rt * (-flxy(i, j, k, UMAGZ) - flxy(i, j, k - 1, UMAGZ) +
-                       flxz(i, j - 1, k, UMAGY) + flxz(i, j, k, UMAGY)) +
-            dd1 + dd2;
-    });
+    Real dd2 = 0.125_rt * (d1 - d2);
+
+    // now the final Ex_{i,j-1/2,k-1/2}, using MM Eq. 50 (shifted to j-1/2, k-1/2)
+
+    E(i,j,k) = 0.25_rt * (-flxy(i,j,k,UMAGZ) - flxy(i,j,k-1,UMAGZ) +
+                          flxz(i,j-1,k,UMAGY) + flxz(i,j,k,UMAGY)) + dd1 + dd2;
+
+  });
 }
 
-void Castro::electric_edge_y(const Box& bx, Array4<Real const> const& q_arr,
-                             Array4<Real> const& E,
-                             Array4<Real const> const& flxx,
-                             Array4<Real const> const& flxz) {
+void
+Castro::electric_edge_y(const Box& bx,
+                        Array4<Real const> const& q_arr,
+                        Array4<Real> const& E,
+                        Array4<Real const> const& flxx,
+                        Array4<Real const> const& flxz) {
 
-    // Compute Ey on an edge.  This will compute Ey(i-1/2, j, k-1/2)
+  // Compute Ey on an edge.  This will compute Ey(i-1/2, j, k-1/2)
 
-    amrex::ParallelFor(
-        bx, [=] AMREX_GPU_HOST_DEVICE(int i, int j, int k) noexcept {
-            Real q_zone[NQ];
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
 
-            // Compute Ey(i-1/2, j, k-1/2)
+    Real q_zone[NQ];
 
-            // dEy/dz i-1/2, j, k-3/4
+    // Compute Ey(i-1/2, j, k-1/2)
 
-            // first compute dEy/dz_{i-1,j,k-3/4}
+    // dEy/dz i-1/2, j, k-3/4
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k - 1, n);
-            }
-            Real Ecen = 0.0_rt;
-            electric(q_zone, Ecen, 1);
-            Real a = 2.0_rt * (-flxz(i - 1, j, k, UMAGX) - Ecen);
+    // first compute dEy/dz_{i-1,j,k-3/4}
 
-            // now compute dEy/dz_{i,j,k-3/4}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k-1,n);
+    }
+    Real Ecen = 0.0_rt;
+    electric(q_zone, Ecen, 1);
+    Real a = 2.0_rt * (-flxz(i-1,j,k,UMAGX) - Ecen);
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k - 1, n);
-            }
-            electric(q_zone, Ecen, 1);
-            Real b = 2.0_rt * (-flxz(i, j, k, UMAGX) - Ecen);
+    // now compute dEy/dz_{i,j,k-3/4}
 
-            // upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
-            // using u_{i-1/2,j,k-1}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k-1,n);
+    }
+    electric(q_zone, Ecen, 1);
+    Real b = 2.0_rt * (-flxz(i,j,k,UMAGX) - Ecen);
 
-            Real d1 = 0.0;
-            if (flxx(i, j, k - 1, URHO) > 0.0_rt) {
-                d1 = a;
-            } else if (flxx(i, j, k - 1, URHO) < 0.0_rt) {
-                d1 = b;
-            } else {
-                d1 = 0.5_rt * (a + b);
-            }
+    // upwind in the x direction to get dEy/dz i-1/2, j, k-3/4
+    // using u_{i-1/2,j,k-1}
 
-            // dEy/dz i-1/2, j, k-1/4
+    Real d1 = 0.0;
+    if (flxx(i,j,k-1,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxx(i,j,k-1,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.5_rt * (a + b);
+    }
 
-            // first compute dEy/dz_{i-1,j,k-1/4}
+    // dEy/dz i-1/2, j, k-1/4
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k, n);
-            }
-            electric(q_zone, Ecen, 1);
-            a = 2.0_rt * (Ecen + flxz(i - 1, j, k, UMAGX));
+    // first compute dEy/dz_{i-1,j,k-1/4}
 
-            // now compute dEy/dz_{i,j,k-1/4}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k,n);
+    }
+    electric(q_zone, Ecen, 1);
+    a = 2.0_rt * (Ecen + flxz(i-1,j,k,UMAGX));
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k, n);
-            }
-            electric(q_zone, Ecen, 1);
-            b = 2.0_rt * (Ecen + flxz(i, j, k, UMAGX));
+    // now compute dEy/dz_{i,j,k-1/4}
 
-            // upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
-            // using u_{i-1/2.j,k}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 1);
+    b = 2.0_rt * (Ecen + flxz(i,j,k,UMAGX));
 
-            Real d2 = 0.0;
-            if (flxx(i, j, k, URHO) > 0.0_rt) {
-                d2 = a;
-            } else if (flxx(i, j, k, URHO) < 0.0_rt) {
-                d2 = b;
-            } else {
-                d2 = 0.5_rt * (a + b);
-            }
+    // upwind in the x direction to get dEy/dz i-1/2, j, k-1/4
+    // using u_{i-1/2.j,k}
 
-            // calculate the "second derivative" in the y direction for
-            // d^2Ey/dz^2 i-1/2, j, k-1/2
+    Real d2 = 0.0;
+    if (flxx(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxx(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-            Real dd1 = 0.125_rt * (d1 - d2);
+    // calculate the "second derivative" in the y direction for
+    // d^2Ey/dz^2 i-1/2, j, k-1/2
 
-            // dEy/dx i-3/4, j, k-1/2
+    Real dd1 = 0.125_rt * (d1 - d2);
 
-            // first compute dEy/dz_{i-3/4,j,k-1}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k - 1, n);
-            }
-            electric(q_zone, Ecen, 1);
-            a = 2.0_rt * (flxx(i, j, k - 1, UMAGZ) - Ecen);
+    // dEy/dx i-3/4, j, k-1/2
 
-            // next compute dEy/dz_{i-3/4,j,k}
+    // first compute dEy/dz_{i-3/4,j,k-1}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k, n);
-            }
-            electric(q_zone, Ecen, 1);
-            b = 2.0_rt * (flxx(i, j, k, UMAGZ) - Ecen);
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k-1,n);
+    }
+    electric(q_zone, Ecen, 1);
+    a = 2.0_rt * (flxx(i,j,k-1,UMAGZ) - Ecen);
 
-            // upwind in the z direction to get dEy/dx i-3/4, j, k-1/2
-            // using w_{i-1,j,k-1/2}
+    // next compute dEy/dz_{i-3/4,j,k}
 
-            if (flxz(i - 1, j, k, URHO) > 0.0_rt) {
-                d1 = a;
-            } else if (flxz(i - 1, j, k, URHO) < 0.0_rt) {
-                d1 = b;
-            } else {
-                d1 = 0.5_rt * (a + b);
-            }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k,n);
+    }
+    electric(q_zone, Ecen, 1);
+    b = 2.0_rt * (flxx(i,j,k,UMAGZ) - Ecen);
 
-            // dEy/dx i-1/4, j, k-1/2
+    // upwind in the z direction to get dEy/dx i-3/4, j, k-1/2
+    // using w_{i-1,j,k-1/2}
 
-            // first compute dEy/dx_{i-1/4,j,k-1}
+    if (flxz(i-1,j,k,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxz(i-1,j,k,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.5_rt * (a + b);
+    }
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k - 1, n);
-            }
-            electric(q_zone, Ecen, 1);
-            a = 2.0_rt * (Ecen - flxx(i, j, k - 1, UMAGZ));
+    // dEy/dx i-1/4, j, k-1/2
 
-            // next compute dEy/dx_{i-1/4,j,k}
+    // first compute dEy/dx_{i-1/4,j,k-1}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k, n);
-            }
-            electric(q_zone, Ecen, 1);
-            b = 2.0_rt * (Ecen - flxx(i, j, k, UMAGZ));
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k-1,n);
+    }
+    electric(q_zone, Ecen, 1);
+    a = 2.0_rt * (Ecen - flxx(i,j,k-1,UMAGZ));
 
-            // upwind in the z direction for i-1/4, j, k-1/2
-            // using w_{i,j,k-1/2}
+    // next compute dEy/dx_{i-1/4,j,k}
 
-            if (flxz(i, j, k, URHO) > 0.0_rt) {
-                d2 = a;
-            } else if (flxz(i, j, k, URHO) < 0.0_rt) {
-                d2 = b;
-            } else {
-                d2 = 0.5_rt * (a + b);
-            }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 1);
+    b = 2.0_rt * (Ecen - flxx(i,j,k,UMAGZ));
 
-            // calculate second derivative
+    // upwind in the z direction for i-1/4, j, k-1/2
+    // using w_{i,j,k-1/2}
 
-            Real dd2 = 0.125_rt * (d1 - d2);
+    if (flxz(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxz(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-            // now the final Ey_{i-1/2, j, k-1/2}
+    // calculate second derivative
 
-            E(i, j, k) =
-                0.25_rt * (-flxz(i, j, k, UMAGX) - flxz(i - 1, j, k, UMAGX) +
-                           flxx(i, j, k - 1, UMAGZ) + flxx(i, j, k, UMAGZ)) +
-                dd1 + dd2;
-        });
+    Real dd2 = 0.125_rt * (d1 - d2);
+
+    // now the final Ey_{i-1/2, j, k-1/2}
+
+    E(i,j,k) = 0.25_rt * (-flxz(i,j,k,UMAGX) - flxz(i-1,j,k,UMAGX) +
+                          flxx(i,j,k-1,UMAGZ) + flxx(i,j,k,UMAGZ)) + dd1 + dd2;
+
+  });
 }
 
-void Castro::electric_edge_z(const Box& bx, Array4<Real const> const& q_arr,
-                             Array4<Real> const& E,
-                             Array4<Real const> const& flxx,
-                             Array4<Real const> const& flxy) {
 
-    // Compute Ez on an edge.  This will compute Ez(i-1/2, j-1/2, k)
+void
+Castro::electric_edge_z(const Box& bx,
+                        Array4<Real const> const& q_arr,
+                        Array4<Real> const& E,
+                        Array4<Real const> const& flxx,
+                        Array4<Real const> const& flxy) {
 
-    amrex::ParallelFor(
-        bx, [=] AMREX_GPU_HOST_DEVICE(int i, int j, int k) noexcept {
-            Real q_zone[NQ];
+  // Compute Ez on an edge.  This will compute Ez(i-1/2, j-1/2, k)
 
-            // Compute Ez(i-1/2, j-1/2, k)
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
 
-            // dEz/dx i-3/4, j-1/2, k
+    Real q_zone[NQ];
 
-            // first compute dEz/dx_{i-3/4,j-1,k}
+    // Compute Ez(i-1/2, j-1/2, k)
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j - 1, k, n);
-            }
-            Real Ecen = 0.0_rt;
-            electric(q_zone, Ecen, 2);
-            Real a = 2.0_rt * (-flxx(i, j - 1, k, UMAGY) - Ecen);
+    // dEz/dx i-3/4, j-1/2, k
 
-            //  next dEz/dx_{i-3/4,j,k}
+    // first compute dEz/dx_{i-3/4,j-1,k}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            Real b = 2.0_rt * (-flxx(i, j, k, UMAGY) - Ecen);
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j-1,k,n);
+    }
+    Real Ecen = 0.0_rt;
+    electric(q_zone, Ecen, 2);
+    Real a = 2.0_rt * (-flxx(i,j-1,k,UMAGY) - Ecen);
 
-            // upwind in the y direction to get dEz/dx i-3/4, j-1/2, k
-            // using v_{i-1,j-1/2,k}
+    //  next dEz/dx_{i-3/4,j,k}
 
-            Real d1 = 0.0_rt;
-            if (flxy(i - 1, j, k, URHO) > 0.0_rt) {
-                d1 = a;
-            } else if (flxy(i - 1, j, k, URHO) < 0.0_rt) {
-                d1 = b;
-            } else {
-                d1 = 0.50_rt * (a + b);
-            }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    Real b = 2.0_rt * (-flxx(i,j,k,UMAGY) - Ecen);
 
-            // dEz/dx i-1/4, j-1/2, k
+    // upwind in the y direction to get dEz/dx i-3/4, j-1/2, k
+    // using v_{i-1,j-1/2,k}
 
-            // first compute dEz/dx_{i-1/4,j-1,k}
+    Real d1 = 0.0_rt;
+    if ( flxy(i-1,j,k,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxy(i-1,j,k,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.50_rt * (a + b);
+    }
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j - 1, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            a = 2.0_rt * (Ecen + flxx(i, j - 1, k, UMAGY));
+    // dEz/dx i-1/4, j-1/2, k
 
-            // next dEz/dx_{i-1/4,j,k}
+    // first compute dEz/dx_{i-1/4,j-1,k}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            b = 2.0_rt * (Ecen + flxx(i, j, k, UMAGY));
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    a = 2.0_rt * (Ecen + flxx(i,j-1,k,UMAGY));
 
-            // upwind in the y direction to get dEz/dx i-1/4, j-1/2, k
-            // using v_{i,j-1/2,k}
+    // next dEz/dx_{i-1/4,j,k}
 
-            Real d2 = 0.0_rt;
-            if (flxy(i, j, k, URHO) > 0.0_rt) {
-                d2 = a;
-            } else if (flxy(i, j, k, URHO) < 0.0_rt) {
-                d2 = b;
-            } else {
-                d2 = 0.5_rt * (a + b);
-            }
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    b = 2.0_rt * (Ecen + flxx(i,j,k,UMAGY));
 
-            // Calculate the "second derivative" in the x direction for
-            // d^2Ez/dx^2 i-1/2, j-1/2, k
+    // upwind in the y direction to get dEz/dx i-1/4, j-1/2, k
+    // using v_{i,j-1/2,k}
 
-            Real dd1 = 0.125_rt * (d1 - d2);
+    Real d2 = 0.0_rt;
+    if (flxy(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxy(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-            // dEz/dy i-1/2, j-3/4, k
+    // Calculate the "second derivative" in the x direction for
+    // d^2Ez/dx^2 i-1/2, j-1/2, k
 
-            // first compute dEz/dy_{i-1,j-3/4,k}
+    Real dd1 = 0.125_rt * (d1 - d2);
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j - 1, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            a = 2.0_rt * (flxy(i - 1, j, k, UMAGX) - Ecen);
 
-            // now compute dEz/dy_{i,j-3/4,k}
+    // dEz/dy i-1/2, j-3/4, k
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j - 1, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            b = 2.0_rt * (flxy(i, j, k, UMAGX) - Ecen);
+    // first compute dEz/dy_{i-1,j-3/4,k}
 
-            // upwind in the x direction to get dEz/dy i-1/2, j-3/4, k
-            // using u_{i-1/2,j-1,k}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j-1,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    a = 2.0_rt * (flxy(i-1,j,k,UMAGX) - Ecen);
 
-            if (flxx(i, j - 1, k, URHO) > 0.0_rt) {
-                d1 = a;
-            } else if (flxx(i, j - 1, k, URHO) < 0.0_rt) {
-                d1 = b;
-            } else {
-                d1 = 0.5_rt * (a + b);
-            }
+    // now compute dEz/dy_{i,j-3/4,k}
 
-            // dEz/dy i-1/2, j-1/4, k
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j-1,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    b = 2.0_rt * (flxy(i,j,k,UMAGX) - Ecen);
 
-            // first compute dEz/dy_{i-1,j-1/4,k}
+    // upwind in the x direction to get dEz/dy i-1/2, j-3/4, k
+    // using u_{i-1/2,j-1,k}
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i - 1, j, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            a = 2.0_rt * (Ecen - flxy(i - 1, j, k, UMAGX));
+    if (flxx(i,j-1,k,URHO) > 0.0_rt) {
+      d1 = a;
+    } else if (flxx(i,j-1,k,URHO) < 0.0_rt) {
+      d1 = b;
+    } else {
+      d1 = 0.5_rt * (a + b);
+    }
 
-            // now compute dEz/dy_{i,j-1/4,k}
+    // dEz/dy i-1/2, j-1/4, k
 
-            for (int n = 0; n < NQ; n++) {
-                q_zone[n] = q_arr(i, j, k, n);
-            }
-            electric(q_zone, Ecen, 2);
-            b = 2.0_rt * (Ecen - flxy(i, j, k, UMAGX));
+    // first compute dEz/dy_{i-1,j-1/4,k}
 
-            // Upwind in the x direction for i-1/2, j-1/4, k
-            // using u_{i-1/2,j,k}
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i-1,j,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    a = 2.0_rt * (Ecen - flxy(i-1,j,k,UMAGX));
 
-            if (flxx(i, j, k, URHO) > 0.0_rt) {
-                d2 = a;
-            } else if (flxx(i, j, k, URHO) < 0.0_rt) {
-                d2 = b;
-            } else {
-                d2 = 0.5_rt * (a + b);
-            }
+    // now compute dEz/dy_{i,j-1/4,k}
 
-            // calculate second derivative
+    for (int n = 0; n < NQ; n++) {
+      q_zone[n] = q_arr(i,j,k,n);
+    }
+    electric(q_zone, Ecen, 2);
+    b = 2.0_rt * (Ecen - flxy(i,j,k,UMAGX));
 
-            Real dd2 = 0.125_rt * (d1 - d2);
+    // Upwind in the x direction for i-1/2, j-1/4, k
+    // using u_{i-1/2,j,k}
 
-            // compute Ez i-1/2, j-1/2, k
+    if (flxx(i,j,k,URHO) > 0.0_rt) {
+      d2 = a;
+    } else if (flxx(i,j,k,URHO) < 0.0_rt) {
+      d2 = b;
+    } else {
+      d2 = 0.5_rt * (a + b);
+    }
 
-            E(i, j, k) =
-                0.25_rt * (-flxx(i, j, k, UMAGY) - flxx(i, j - 1, k, UMAGY) +
-                           flxy(i - 1, j, k, UMAGX) + flxy(i, j, k, UMAGX)) +
-                dd1 + dd2;
-        });
+    // calculate second derivative
+
+    Real dd2 = 0.125_rt * (d1 - d2);
+
+    // compute Ez i-1/2, j-1/2, k
+
+    E(i,j,k) = 0.25_rt * (-flxx(i,j,k,UMAGY) - flxx(i,j-1,k,UMAGY) +
+                          flxy(i-1,j,k,UMAGX) + flxy(i,j,k,UMAGX)) + dd1 + dd2;
+
+  });
 }
+

@@ -8,9 +8,11 @@ using namespace amrex;
 // Avoid the singularity in cylindrical coordinates
 static AMREX_GPU_MANAGED Real R_min = std::numeric_limits<Real>::min();
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(
-    const GpuArray<Real, 3>& loc, const GpuArray<Real, 3>& linear_mom,
-    GpuArray<Real, 3>& hybrid_mom) {
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void linear_to_hybrid(const GpuArray<Real, 3>& loc,
+                      const GpuArray<Real, 3>& linear_mom,
+                      GpuArray<Real, 3>& hybrid_mom)
+{
     // Convert a linear momentum into the "hybrid" scheme
     // that has radial and angular components.
 
@@ -27,15 +29,17 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void linear_to_hybrid(
     // the linear momenta are already expressed in the inertial frame,
     // so we don't need to explicitly take rotation into account.
 
-    hybrid_mom[0] =
-        linear_mom[0] * (loc[0] * RInv) + linear_mom[1] * (loc[1] * RInv);
+    hybrid_mom[0] = linear_mom[0] * (loc[0] * RInv) + linear_mom[1] * (loc[1] * RInv);
     hybrid_mom[1] = linear_mom[1] * loc[0] - linear_mom[0] * loc[1];
     hybrid_mom[2] = linear_mom[2];
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(
-    const GpuArray<Real, 3>& loc, const GpuArray<Real, 3>& hybrid_mom,
-    GpuArray<Real, 3>& linear_mom) {
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void hybrid_to_linear(const GpuArray<Real, 3>& loc,
+                      const GpuArray<Real, 3>& hybrid_mom,
+                      GpuArray<Real, 3>& linear_mom)
+{
     // Convert a "hybrid" momentum into a linear one.
 
     Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
@@ -43,40 +47,44 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void hybrid_to_linear(
 
     // This is the inverse of Byerly et al., Equations 25 and 26.
 
-    linear_mom[0] = hybrid_mom[0] * (loc[0] * RInv) -
-                    hybrid_mom[1] * (loc[1] * RInv * RInv);
-    linear_mom[1] = hybrid_mom[1] * (loc[0] * RInv * RInv) +
-                    hybrid_mom[0] * (loc[1] * RInv);
+    linear_mom[0] = hybrid_mom[0] * (loc[0] * RInv) - hybrid_mom[1] * (loc[1] * RInv * RInv);
+    linear_mom[1] = hybrid_mom[1] * (loc[0] * RInv * RInv) + hybrid_mom[0] * (loc[1] * RInv);
     linear_mom[2] = hybrid_mom[2];
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void set_hybrid_momentum_source(
-    const GpuArray<Real, 3>& loc, const GpuArray<Real, 3>& linear_source,
-    GpuArray<Real, 3>& hybrid_source) {
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
+                                const GpuArray<Real, 3>& linear_source,
+                                GpuArray<Real, 3>& hybrid_source)
+{
     Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
     Real RInv = 1.0_rt / R;
 
     // This is analogous to the conversion of linear momentum to hybrid momentum.
 
-    hybrid_source[0] =
-        linear_source[0] * (loc[0] * RInv) + linear_source[1] * (loc[1] * RInv);
+    hybrid_source[0] = linear_source[0] * (loc[0] * RInv) + linear_source[1] * (loc[1] * RInv);
     hybrid_source[1] = linear_source[1] * loc[0] - linear_source[0] * loc[1];
     hybrid_source[2] = linear_source[2];
 }
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(
-    const GpuArray<Real, NGDNV>& state, const GeometryData& geomdata,
-    const GpuArray<Real, 3>& center, int idir, int i, int j, int k,
-    GpuArray<Real, NUM_STATE>& flux, bool cell_centered = false) {
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData& geomdata,
+                         const GpuArray<Real, 3>& center, int idir, int i, int j, int k,
+                         GpuArray<Real, NUM_STATE>& flux, bool cell_centered = false)
+{
     bool ccx = true;
     bool ccy = true;
     bool ccz = true;
 
     if (idir == 0) {
         ccx = cell_centered;
-    } else if (idir == 1) {
+    }
+    else if (idir == 1) {
         ccy = cell_centered;
-    } else {
+    }
+    else {
         ccz = cell_centered;
     }
 
@@ -84,7 +92,8 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(
 
     position(i, j, k, geomdata, loc, ccx, ccy, ccz);
 
-    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) loc[dir] -= center[dir];
+    for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+        loc[dir] -= center[dir];
 
     GpuArray<Real, 3> linear_mom;
 
@@ -101,15 +110,18 @@ AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux(
         flux[UMR] = hybrid_mom[0] * u_adv;
         flux[UML] = hybrid_mom[1] * u_adv - loc[1] * state[GDPRES];
         flux[UMP] = hybrid_mom[2] * u_adv;
-    } else if (idir == 1) {
+    }
+    else if (idir == 1) {
         flux[UMR] = hybrid_mom[0] * u_adv;
         flux[UML] = hybrid_mom[1] * u_adv + loc[0] * state[GDPRES];
         flux[UMP] = hybrid_mom[2] * u_adv;
-    } else {
+    }
+    else {
         flux[UMR] = hybrid_mom[0] * u_adv;
         flux[UML] = hybrid_mom[1] * u_adv;
         flux[UMP] = hybrid_mom[2] * u_adv + state[GDPRES];
     }
+
 }
 
 #endif

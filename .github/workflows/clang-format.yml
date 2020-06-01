@@ -15,7 +15,7 @@ jobs:
 
     - name: Run clang-format
       run: |
-        find Exec Source -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
+        find . -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
     - name: Commit files
       run: |
