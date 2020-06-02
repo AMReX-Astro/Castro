@@ -24,6 +24,12 @@ jobs:
             exit 0
         else 
             echo "clang-format has found formatting errors"
-            git diff | tee diff.txt
+            git diff | tee clang-format-diff.txt
             exit 1
         fi
+      
+    - name: Archive git diff report
+        uses: actions/upload-artifact@v1
+        with:
+        name: clang-format-diff
+        path: clang-format-diff.txt
