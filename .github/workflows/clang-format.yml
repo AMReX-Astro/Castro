@@ -29,6 +29,7 @@ jobs:
         fi
       
     - name: Archive git diff report
+      if: ${{ failure() }}
       uses: actions/upload-artifact@v1
       with:
         name: clang-format-diff
