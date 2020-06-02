@@ -198,6 +198,7 @@ subroutine ca_initdata(lo, hi, &
   use initial_model_module, only: gen_npts_model, gen_model_r, gen_model_state, &
                                   idens_model, itemp_model, ipres_model, ispec_model
   use interpolate_module, only: interpolate ! function
+  use prob_params_module, only : center
 
   implicit none
 
