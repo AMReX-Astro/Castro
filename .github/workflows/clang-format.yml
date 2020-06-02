@@ -18,13 +18,12 @@ jobs:
 
     - name: Check for changes
       run: |
-        git add --all
         if [[ -z "$(git status --porcelain)" ]]; then
             echo "clang-format made no modifications"
             exit 0
         else 
             echo "clang-format has found formatting errors"
-            git clang-format --extensions cpp,h,H --style file --diff | tee clang-format-diff.txt
+            git diff HEAD | tee clang-format-diff.txt
             exit 1
         fi
       
