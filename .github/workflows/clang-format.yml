@@ -10,22 +10,18 @@ jobs:
     steps:
 
     - uses: actions/checkout@v2
-      with:
-        ref: refs/heads/${{ github.head_ref }}
 
     - name: Run clang-format
       run: |
-        find . -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
+        find Diagnostics Exec Source Util -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
-    - name: Commit files
+    - name: Check for changes
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add --all
-        git diff-index --quiet HEAD || git commit -m "clang-format has tidied up the code."
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        branch: ${{ github.head_ref }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        if $(git diff-index --quiet HEAD); then
+          echo "clang-format has found formatting errors"
+          git diff | tee diff.txt
+          exit 1
+        else 
+          echo "clang-format made no modifications"
+          exit 0
+        fi
