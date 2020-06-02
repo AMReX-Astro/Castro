@@ -13,16 +13,17 @@ jobs:
 
     - name: Run clang-format
       run: |
+        pwd
         find Diagnostics Exec Source Util -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
     - name: Check for changes
       run: |
         git add --all
-        if $(git diff-index --quiet HEAD); then
-          echo "clang-format has found formatting errors"
-          git diff | tee diff.txt
-          exit 1
+        if [[ -z "$(git status --porcelain)" ]]; then
+            echo "clang-format made no modifications"
+            exit 0
         else 
-          echo "clang-format made no modifications"
-          exit 0
+            echo "clang-format has found formatting errors"
+            git diff | tee diff.txt
+            exit 1
         fi
