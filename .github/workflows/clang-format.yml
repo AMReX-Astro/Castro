@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Run clang-format
       run: |
@@ -24,7 +24,7 @@ jobs:
             exit 0
         else 
             echo "clang-format has found formatting errors"
-            git diff | tee clang-format-diff.txt
+            git clang-format --extensions cpp,h,H --style file --diff | tee clang-format-diff.txt
             exit 1
         fi
       

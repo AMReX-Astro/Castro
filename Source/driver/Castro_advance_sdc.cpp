@@ -342,7 +342,7 @@ Real Castro::do_advance_sdc(Real time, Real dt, int amr_iteration, int amr_ncycl
             make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
 
             // store
-            R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
+            R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp()); 
 
         } else {
 
