@@ -4,7 +4,7 @@ if command -v clang-format >/dev/null 2>&1; then
 
     export PATH=`git rev-parse --git-dir`/../tools/:$PATH
 
-    git clang-format --extensions cpp,h,H --style file -v
+    git clang-format --extensions cpp,h,H --style file -v Source/driver
     # Possible predefined styles:
     # LLVM
     # Google

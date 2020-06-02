@@ -14,7 +14,7 @@ jobs:
     - name: Run clang-format
       run: |
         pwd
-        find Diagnostics Exec Source Util -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
+        find Source/driver -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
     - name: Check for changes
       run: |
