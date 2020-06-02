@@ -159,10 +159,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_fillx(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_fillx(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 
@@ -181,10 +181,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_filly(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_filly(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 
@@ -203,10 +203,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_fillz(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_fillz(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 #endif  

@@ -223,16 +223,18 @@ This is the current build system process.
 
 * ``set_variables.py`` is called
 
-  .. index:: set_variables.py, _variables, state_indices.F90, state_indices.H
+  .. index:: set_variables.py, _variables, state_indices_nd.F90, state_indices.H
 
   * This processes the Castro ``_variables`` file and writes
-    ``state_indices.F90`` and ``state_indices.H`` into the
+    ``state_indices_nd.F90`` and ``state_indices.H`` into the
     ``tmp_build_dir/castro_sources/`` directory.
 
     These are used to define the size of the various state arrays and
     the integer keys to index each state variable.
 
-  * The hook for this is in ``Make.Castro`` in the build rule for ``state_indices.F90``
+  * The hook for this is in ``Make.auto_source`` in the build rule for ``state_indices_nd.F90``
+
+  * You can test this portion of the build system by doing ``make test_variables``
 
 * (for ``general_null networks``), ``actual_network.F90`` is created
 

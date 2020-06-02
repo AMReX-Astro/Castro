@@ -1150,3 +1150,87 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     });
 
 }
+
+
+void
+Castro::do_enforce_minimum_density(const Box& bx,
+                                   Array4<Real> const& state_arr,
+                                   const int verbose) {
+
+  GeometryData geomdata = geom.data();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    if (state_arr(i,j,k,URHO) < small_dens) {
+
+#ifndef AMREX_USE_CUDA
+      if (verbose > 0) {
+        std::cout << " " << std::endl;
+        if (state_arr(i,j,k,URHO) < 0.0_rt) {
+          std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
+        } else {
+          std::cout << ">>> RESETTING SMALL DENSITY AT " << i << ", " << j << ", " << k << std::endl;
+        }
+        std::cout << ">>> FROM " << state_arr(i,j,k,URHO) << " TO " << small_dens << std::endl;
+        std::cout << ">>> IN GRID " << bx << std::endl;
+        std::cout << " " << std::endl;
+      }
+#endif
+
+      for (int ipassive = 0; ipassive < npassive; ipassive++) {
+        int n = upassmap(ipassive);
+        state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
+      }
+
+      eos_t eos_state;
+      eos_state.rho = small_dens;
+      eos_state.T = small_temp;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = state_arr(i,j,k,UFS+n) / small_dens;
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = state_arr(i,j,k,UFX+n) / small_dens;
+      }
+      eos(eos_input_rt, eos_state);
+
+      state_arr(i,j,k,URHO ) = eos_state.rho;
+      state_arr(i,j,k,UTEMP) = eos_state.T;
+
+      state_arr(i,j,k,UMX) = 0.0_rt;
+      state_arr(i,j,k,UMY) = 0.0_rt;
+      state_arr(i,j,k,UMZ) = 0.0_rt;
+
+      state_arr(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+      state_arr(i,j,k,UEDEN) = state_arr(i,j,k,UEINT);
+
+#ifdef HYBRID_MOMENTUM
+      GpuArray<Real, 3> loc;
+
+      position(i, j, k, geomdata, loc);
+
+      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+        loc[dir] -= center[dir];
+      }
+
+      GpuArray<Real, 3> linear_mom;
+
+      for (int dir = 0; dir < 3; ++dir) {
+        linear_mom[dir] = state_arr(i,j,k,UMX+dir);
+      }
+
+      GpuArray<Real, 3> hybrid_mom;
+
+      linear_to_hybrid(loc, linear_mom, hybrid_mom);
+
+      for (int dir = 0; dir < 3; ++dir) {
+        state_arr(i,j,k,UMR+dir) = hybrid_mom[dir];
+      }
+#endif
+    }
+  });
+}

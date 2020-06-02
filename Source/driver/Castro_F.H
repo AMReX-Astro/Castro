@@ -142,11 +142,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-  void ca_enforce_minimum_density
-    (const int* lo, const int* hi,
-     const amrex::Real* state, const int* s_lo, const int* s_hi,
-     const int verbose);
-
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
