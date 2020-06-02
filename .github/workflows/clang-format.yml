@@ -13,7 +13,7 @@ jobs:
 
     - name: Run clang-format
       run: |
-        pwd
+        clang-format --version
         find Source/driver -maxdepth 4 -regex '.*\.\(cpp\|h\|H\)' | xargs clang-format -i -style=file
 
     - name: Check for changes
