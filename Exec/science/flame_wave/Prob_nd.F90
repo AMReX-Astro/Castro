@@ -154,7 +154,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
 #if AMREX_SPACEDIM == 2
   ! for axisymmetry, put the x-center on the x-axis
+  ! and the y-center at 0, so the height computation is okay
   center(1) = ZERO
+  center(2) = ZERO
 #endif
 
   ! set the ambient state for the upper boundary condition
