@@ -218,10 +218,10 @@ subroutine ca_initdata(lo, hi, &
      z = problo(3) + (dble(k) + HALF) * dx(3)
 
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j) + HALF) * dx(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
 
         do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1)
+           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            ! lateral distance
            if (AMREX_SPACEDIM == 1) then
