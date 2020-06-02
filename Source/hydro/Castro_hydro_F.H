@@ -51,45 +51,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(qm),
      BL_FORT_FAB_ARG_3D(qp));
 
-  void ca_mol_consup
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(shk),
-     const BL_FORT_FAB_ARG_3D(statein),
-     const BL_FORT_FAB_ARG_3D(srcU),
-     BL_FORT_FAB_ARG_3D(update),
-     const amrex::Real* dx, const amrex::Real dt,
-     BL_FORT_FAB_ARG_3D(flux1),
-#if AMREX_SPACEDIM >= 2
-     BL_FORT_FAB_ARG_3D(flux2),
-#endif
-#if AMREX_SPACEDIM == 3
-     BL_FORT_FAB_ARG_3D(flux3),
-#endif
-     const BL_FORT_FAB_ARG_3D(area1),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(area2),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(area3),
-#endif
-     const BL_FORT_FAB_ARG_3D(q1),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(q2),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(q3),
-#endif
-     const BL_FORT_FAB_ARG_3D(volume));
-
-  void ca_mol_diffusive_flux
-    (const int* lo, const int* hi,
-     const int idir,
-     const BL_FORT_FAB_ARG_3D(U),
-     const BL_FORT_FAB_ARG_3D(cond),
-     BL_FORT_FAB_ARG_3D(flux),
-     const amrex::Real* dx);
-
-
 #ifdef __cplusplus
 }
 #endif

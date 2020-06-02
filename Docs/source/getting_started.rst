@@ -163,6 +163,15 @@ package supports the AMReX file format natively, as does the yt python
 package [2]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
 
+Please know that we do have a number of conversion routines to other
+formats (such as matlab), but it is hard to describe them all. If you
+would like to display the data in another format, please let us know
+(again, asalmgren@lbl.gov) and we will point you to whatever we have
+
+
+Amrvis
+^^^^^^
+
 #. Get Amrvis::
 
        git clone https://github.com/AMReX-Codes/Amrvis
@@ -181,20 +190,20 @@ Amrvis, which we demonstrate here. Amrvis is available on github.
 
    Then cd into ``volpack/`` and type ``make``.
 
-   Note: Amrvisrequires the OSF/Motif libraries and headers. If you
+   Note: Amrvis requires the OSF/Motif libraries and headers. If you
    don’t have these you will need to install the development version
    of motif through your package manager.  On most Linux
    distributions, the motif library is provided by the openmotif
    package, and its header files (like ``Xm.h``) are provided by
    openmotif-devel. If those packages are not installed, then use the
    package management tool to install them, which varies from
-   distribution to distribution, but is straightforward.  lesstif
-   gives some functionality and will allow you to build the amrvis
+   distribution to distribution, but is straightforward.  ``lesstif``
+   gives some functionality and will allow you to build the Amrvis
    executable, but Amrvis may not run properly.
 
    You may then want to create an alias to amrvis2d, for example::
 
-       alias amrvis2d /tmp/Amrvis/amrvis2d...ex
+       alias amrvis2d=/tmp/Amrvis/amrvis2d...ex
 
    where ``/tmp/Amrvis/amrvis2d...ex`` is the full path and name of
    the Amrvis executable.
@@ -226,16 +235,17 @@ Amrvis, which we demonstrate here. Amrvis is available on github.
    provided in the FAQ (§ :ref:`ch:faq:vis`)—this is due
    to the default behavior of the DAC in mappuing colors.
 
-   Note: yt is a great alternative to using Amrvis for visualization,
-   and understands Castro plotfiles well.
 
-   Please know that we do have a number of conversion routines to other
-   formats (such as matlab), but it is hard to describe them all. If you
-   would like to display the data in another format, please let us know
-   (again, asalmgren@lbl.gov) and we will point you to whatever we have
-   that can help.
+yt
+^^
 
-You have now completed a brief introduction to Castro.
+yt is a great alternative to using Amrvis for visualization,
+and understands Castro plotfiles well.  Install yt following
+their instructions: `Getting yt <https://yt-project.org/#getyt>`_ .
+
+You should be able to read in your plotfiles using ``yt.load()``
+and do any of the plots described in the `yt Cookbook <https://yt-project.org/doc/cookbook/index.html>`_ .
+
 
 Other Distributed Problem Setups
 ================================
