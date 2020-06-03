@@ -31,11 +31,7 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
     bool c1 = (rotation_include_centrifugal == 1) ? true : false;
 
-    bool c2 = (rotation_include_coriolis == 1) ? true : false;
-
-    if (! coriolis) {
-      c2 = false;
-    }
+    bool c2 = (rotation_include_coriolis == 1 && coriolis) ? true : false;
 
     bool c3 = (rotation_include_domegadt == 1) ? true : false;
 
@@ -76,11 +72,7 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
     // Coriolis force, but we'll still allow it to be disabled with
     // the same parameter.
 
-    bool c2 = (rotation_include_coriolis == 1) ? true : false;
-
-    if (! coriolis) {
-      c2 = false;
-    }
+    bool c2 = (rotation_include_coriolis == 1 && coriolis) ? true : false;
 
     if (c2) {
       GpuArray<Real, 3> omega_cross_v;
