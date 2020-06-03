@@ -416,7 +416,7 @@ Castro::read_params ()
       }
     }
     if (dgeom.IsRZ())
-      rot_axis = 2;
+      rot_axis = 1;
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
