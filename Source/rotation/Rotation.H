@@ -7,8 +7,8 @@ Castro::get_omega(const Real time, GpuArray<Real, 3>& omega) {
 
   // If rot_period is less than zero, that means rotation is disabled,
   // and so we should effectively shut off the source term by setting
-  // omega = 0. Note that by default rot_axis == 3 for Cartesian
-  // coordinates and rot_axis == 2 for cylindrical coordinates.
+  // omega = 0. Note that by default rot_axis == 2 for Cartesian
+  // coordinates and rot_axis == 1 for cylindrical coordinates.
 
   omega[0] = 0.0_rt;
   omega[1] = 0.0_rt;
