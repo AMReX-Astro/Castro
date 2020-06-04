@@ -335,13 +335,13 @@ Castro::corrrsrc(const Box& bx,
       // of the dt_omega_matrix. It also has the correct form if we have disabled
       // the Coriolis force entirely; at that point it reduces to the identity matrix.
 
-      Real new_mom[3];
+      Real new_mom[3] = {}; 
 
       // new_mom = matmul(dt_omega_matrix, new_mom)
 
       for (int l = 0; l < 3; l++) {
         for (int m = 0; m < 3; m++) {
-          new_mom[l] = dt_omega_matrix(l,m) * new_mom_tmp[m];
+          new_mom[l] += dt_omega_matrix(l,m) * new_mom_tmp[m];
         }
       }
 
