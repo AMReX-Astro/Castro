@@ -7,9 +7,9 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
                              ambient_density, torus_width, torus_center
   use prob_params_module, only: center
   use meth_params_module, only: point_mass
-! #ifdef ROTATION
-!   use rotation_frequency_module, only: get_omega
-! #endif
+#ifdef ROTATION
+  use rotation_frequency_module, only: get_omega
+#endif
   use amrex_fort_module, only : rt => amrex_real
 
   implicit none
@@ -22,12 +22,12 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   call probdata_init(name, namlen)
 
-!#ifdef ROTATION
-!  call get_omega(ZERO, omega)
-!#else
+#ifdef ROTATION
+  call get_omega(ZERO, omega)
+#else
   ! Provide a dummy value so that we can compile without rotation.
   omega = [ZERO, ZERO, TWO * M_PI]
-!#endif
+#endif
 
   ! Figure out R_0, the maximum pressure radius.
 
@@ -62,10 +62,10 @@ contains
     use network, only: nspec
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS, point_mass, &
                                   do_rotation, state_in_rotating_frame
-!#ifdef ROTATION
-!    use rotation_frequency_module, only: get_omega
-!#endif
-    use math_module, only: cross_product_f ! function
+#ifdef ROTATION
+    use rotation_frequency_module, only: get_omega
+#endif
+    use math_module, only: cross_product ! function
     use prob_params_module, only: center
     use castro_util_module, only: position ! function
     use amrex_fort_module, only : rt => amrex_real
@@ -86,11 +86,11 @@ contains
 
     !$gpu
 
-!#ifdef ROTATION
-!    call get_omega(ZERO, omega)
-!#else
+#ifdef ROTATION
+    call get_omega(ZERO, omega)
+#else
     omega = [ZERO, ZERO, TWO * M_PI]
-!#endif
+#endif
 
     ! Rotating torus of Papaloizou and Pringle (1984), MNRAS, 208, 721.
     ! http://adsabs.harvard.edu/abs/1985MNRAS.213..799P
@@ -140,12 +140,10 @@ contains
              endif
 
              if (rho > ambient_density .and. (do_rotation == 0 .or. (do_rotation == 1 .and. state_in_rotating_frame == 0))) then
-                vel = cross_product_f(omega, loc)
+                vel = cross_product(omega, loc)
              else
                 vel = ZERO
              endif
-
-             vel = 1.0
 
              eos_state % rho = rho
              eos_state % T   = 1.0
