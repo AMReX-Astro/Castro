@@ -460,8 +460,9 @@ rot_source_type              int           4                  y        ROTATION
 # for better coupling of the Coriolis terms
 implicit_rotation_update     int           1                  y        ROTATION
 
-# the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  n        ROTATION
+# the coordinate axis (:math:`x=0`, :math:`y=1`, :math:`z=2`) for the
+# rotation vector
+rot_axis                     int           2                  n        ROTATION
 
 # include a central point mass
 use_point_mass               int           0                  y        GRAVITY

@@ -31,11 +31,7 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
     bool c1 = (rotation_include_centrifugal == 1) ? true : false;
 
-    bool c2 = (rotation_include_coriolis == 1) ? true : false;
-
-    if (! coriolis) {
-      c2 = false;
-    }
+    bool c2 = (rotation_include_coriolis == 1 && coriolis) ? true : false;
 
     bool c3 = (rotation_include_domegadt == 1) ? true : false;
 
@@ -76,11 +72,7 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
     // Coriolis force, but we'll still allow it to be disabled with
     // the same parameter.
 
-    bool c2 = (rotation_include_coriolis == 1) ? true : false;
-
-    if (! coriolis) {
-      c2 = false;
-    }
+    bool c2 = (rotation_include_coriolis == 1 && coriolis) ? true : false;
 
     if (c2) {
       GpuArray<Real, 3> omega_cross_v;
@@ -180,6 +172,8 @@ Castro::fill_rotational_acceleration(const Box& bx,
   GpuArray<Real, 3> domegadt;
   get_domegadt(time, domegadt);
 
+  std::cout << "center = " << center[0] << " " << center[1] << " " << center[2] << std::endl;
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
@@ -208,6 +202,12 @@ Castro::fill_rotational_acceleration(const Box& bx,
     Real Sr[3];
     rotational_acceleration(r, v, omega, domegadt, coriolis, Sr);
 
+    if (i == 10 && j == 10) {
+      std::cout << "ROT (fill_rotational_acceleration) :: time = " << time << 
+                  " v = " << v[0] << " " << v[1] << " " << v[2] << 
+                  " r = " << r[0] << " " << r[1] << " " << r[2] <<
+                  " Sr = " << Sr[0] << " " << Sr[1] << " " << Sr[2] << std::endl;
+    }
     for (int idir = 0; idir < 3; idir++) {
       rot(i,j,k,idir) = Sr[idir];
     }

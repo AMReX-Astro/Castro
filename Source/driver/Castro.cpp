@@ -326,11 +326,13 @@ Castro::read_params ()
 #endif
     // sanity checks
 
-    if (grown_factor < 1)
-       amrex::Error("grown_factor must be integer >= 1");
+    if (grown_factor < 1) {
+      amrex::Error("grown_factor must be integer >= 1");
+    }
 
-    if (cfl <= 0.0 || cfl > 1.0)
+    if (cfl <= 0.0 || cfl > 1.0) {
       amrex::Error("Invalid CFL factor; must be between zero and one.");
+    }
 
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
@@ -379,7 +381,9 @@ Castro::read_params ()
 
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
-    if (do_hydro == 0) do_reflux = 0;
+    if (do_hydro == 0) {
+      do_reflux = 0;
+    }
 
     if (max_dt < fixed_dt)
       {
@@ -416,7 +420,7 @@ Castro::read_params ()
       }
     }
     if (dgeom.IsRZ())
-      rot_axis = 2;
+      rot_axis = 1;
 #if (BL_SPACEDIM == 1)
       if (do_rotation) {
         std::cerr << "ERROR:Castro::Rotation not implemented in 1d\n";
@@ -448,7 +452,9 @@ Castro::read_params ()
     Vector<int> tilesize(BL_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
     {
-        for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
+        for (int i=0; i<BL_SPACEDIM; i++) {
+          hydro_tile_size[i] = tilesize[i];
+        }
     }
 
     // Override Amr defaults. Note: this function is called after Amr::Initialize()
@@ -517,8 +523,9 @@ Castro::Castro (Amr&            papa,
 
     if (do_grav) {
       // gravity is a static object, only alloc if not already there
-      if (gravity == 0)
+      if (gravity == 0) {
         gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+      }
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -537,8 +544,9 @@ Castro::Castro (Amr&            papa,
 
       gravity->install_level(level,this,volume,area.data());
 
-      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
-         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) {
+        std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+      }
 
 #ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
@@ -554,8 +562,9 @@ Castro::Castro (Amr&            papa,
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
-      if (diffusion == 0)
+      if (diffusion == 0) {
         diffusion = new Diffusion(parent,&phys_bc);
+      }
 
       diffusion->install_level(level,this,volume,area.data());
 #endif
@@ -658,23 +667,28 @@ Castro::initMFs()
 {
     fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-        fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+      fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-        fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+      fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+    }
 
     mass_fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-        mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+      mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-        mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+      mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
+    if (!Geom().IsCartesian()) {
+      P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
+    }
 #endif
 
 #ifdef RADIATION
@@ -812,8 +826,9 @@ Castro::setGridInfo ()
         n_error_buf_to_f[nlevs-1] = 0;
       }
 
-      for (int lev = 0; lev <= max_level; lev++)
+      for (int lev = 0; lev <= max_level; lev++) {
         blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
+      }
 
       for (int lev = 1; lev <= max_level; lev++) {
         IntVect ref_ratio = parent->refRatio(lev-1);
@@ -823,7 +838,7 @@ Castro::setGridInfo ()
         // data directly from those levels, because some potential
         // refined levels may not exist at the beginning of the simulation.
 
-        for (int dir = 0; dir < 3; dir++)
+        for (int dir = 0; dir < 3; dir++) {
           if (dir < BL_SPACEDIM) {
             dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
             int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
@@ -836,6 +851,7 @@ Castro::setGridInfo ()
             domhi_level[3 * lev + dir] = 0;
             ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
           }
+        }
 
         n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
@@ -879,8 +895,9 @@ Castro::initData ()
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-       std::cout << "Initializing the data at level " << level << std::endl;
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "Initializing the data at level " << level << std::endl;
+    }
 
 #ifdef MHD
    MultiFab& Bx_new   = get_new_data(Mag_Type_x);
@@ -1219,8 +1236,9 @@ Castro::initData ()
 
        int ng = S_new.nGrow();
 
-       if (ng > 0)
-           AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+       if (ng > 0) {
+         AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+       }
     }
 
     clean_state(
@@ -1299,16 +1317,18 @@ Castro::initData ()
 #endif
 
 #ifdef AMREX_PARTICLES
-    if (level == 0)
-        init_particles();
+    if (level == 0) {
+      init_particles();
+    }
 #endif
 
 #ifdef AMREX_USE_CUDA
     AMREX_GPU_SAFE_CALL(cudaProfilerStart());
 #endif
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-       std::cout << "Done initializing the level " << level << " data " << std::endl;
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "Done initializing the level " << level << " data " << std::endl;
+    }
 }
 
 void
@@ -1354,8 +1374,9 @@ Castro::init ()
     // If we just triggered a regrid, we need to account for the fact that
     // the data on the coarse level has already been advanced.
 
-    if (getLevel(level-1).post_step_regrid)
-        time = prev_time;
+    if (getLevel(level-1).post_step_regrid) {
+      time = prev_time;
+    }
 
     setTimeLevel(time,dt_old,dt);
 
@@ -1388,8 +1409,9 @@ Castro::estTimeStep (Real dt_old)
 {
     BL_PROFILE("Castro::estTimeStep()");
 
-    if (fixed_dt > 0.0)
-        return fixed_dt;
+    if (fixed_dt > 0.0) {
+      return fixed_dt;
+    }
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
@@ -1615,8 +1637,8 @@ Castro::computeNewDt (int                   finest_level,
 
               for (int i = 0; i <= finest_level; i++)
               {
-                  if (verbose && ParallelDescriptor::IOProcessor())
-                      if (dt_min[i] > change_max*dt_level[i])
+                  if (verbose && ParallelDescriptor::IOProcessor()) {
+                    if (dt_min[i] > change_max*dt_level[i])
                       {
                           std::cout << "Castro::compute_new_dt : limiting dt at level "
                                     << i << '\n';
@@ -1626,6 +1648,7 @@ Castro::computeNewDt (int                   finest_level,
                                     << change_max * dt_level[i] << " = " << change_max
                                     << " * " << dt_level[i] << '\n';
                       }
+                  }
                   dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
               }
 
@@ -1699,8 +1722,9 @@ Castro::computeNewDt (int                   finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
-                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                if (verbose) {
+                  amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                }
             }
 
         }
@@ -1778,8 +1802,9 @@ Castro::computeInitialDt (int                   finest_level,
     //
     // Grids have been constructed, compute dt for all levels.
     //
-    if (level > 0)
-        return;
+    if (level > 0) {
+      return;
+    }
 
     int i;
 
@@ -1799,8 +1824,9 @@ Castro::computeInitialDt (int                   finest_level,
     const Real eps = 0.001*dt_0;
     Real cur_time  = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps))
-            dt_0 = stop_time - cur_time;
+        if ((cur_time + dt_0) > (stop_time - eps)) {
+          dt_0 = stop_time - cur_time;
+        }
     }
 
     n_factor = 1;
@@ -1843,8 +1869,9 @@ Castro::post_timestep (int iteration)
     // Now do the refluxing. If we're using gravity it
     // will also do the sync solve associated with the reflux.
 
-    if (do_reflux && level < parent->finestLevel())
-        reflux(level, level+1);
+    if (do_reflux && level < parent->finestLevel()) {
+      reflux(level, level+1);
+    }
 
     // Ensure consistency with finer grids.
 
@@ -1894,8 +1921,9 @@ Castro::post_timestep (int iteration)
 
         if (sum_interval > 0) {
 
-          if (nstep%sum_interval == 0)
+          if (nstep%sum_interval == 0) {
             sum_int_test = true;
+          }
 
         }
 
@@ -1906,24 +1934,29 @@ Castro::post_timestep (int iteration)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-        if (moving_center) write_center();
+        if (moving_center) {
+          write_center();
+        }
 #endif
     }
 
 #ifdef RADIATION
     // diagnostic stuff
 
-    if (level == 0)
+    if (level == 0) {
       do_energy_diagnostics();
+    }
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -2012,9 +2045,9 @@ Castro::post_restart ()
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation)
+    if (do_rotation) {
       fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
-    else {
+    }  else {
       phirot_new.setVal(0.0);
       rot_new.setVal(0.0);
     }
@@ -2199,8 +2232,9 @@ Castro::post_regrid (int lbase,
 
                     // Update the maximum density, used in setting the solver tolerance.
 
-                    if (level == 0)
-                        gravity->update_max_rhs();
+                    if (level == 0) {
+                      gravity->update_max_rhs();
+                    }
 
                     gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
 
@@ -2219,16 +2253,18 @@ Castro::post_init (Real stop_time)
 {
     BL_PROFILE("Castro::post_init()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     //
     // Average data down from finer levels
     // so that conserved data is consistent between levels.
     //
     int finest_level = parent->finestLevel();
-    for (int k = finest_level-1; k>= 0; k--)
-        getLevel(k).avgDown();
+    for (int k = finest_level-1; k>= 0; k--) {
+      getLevel(k).avgDown();
+    }
 
 #ifdef GRAVITY
 
@@ -2247,8 +2283,9 @@ Castro::post_init (Real stop_time)
 
           if (gravity->NoComposite() != 1)  {
              gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1)
-                gravity->test_composite_phi(level);
+             if (gravity->test_results_of_solves() == 1) {
+               gravity->test_composite_phi(level);
+             }
           }
        }
 
@@ -2325,9 +2362,9 @@ Castro::post_init (Real stop_time)
 
         if (sum_interval > 0) {
 
-          if (nstep%sum_interval == 0)
+          if (nstep%sum_interval == 0) {
             sum_int_test = true;
-
+          }
         }
 
         bool sum_per_test = false;
@@ -2337,17 +2374,20 @@ Castro::post_init (Real stop_time)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-    if (level == 0 && moving_center == 1)
+    if (level == 0 && moving_center == 1) {
        write_center();
+    }
 #endif
 }
 
@@ -2376,8 +2416,9 @@ Castro::post_grown_restart ()
 
           if (gravity->NoComposite() != 1)  {
              gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1)
+             if (gravity->test_results_of_solves() == 1) {
                 gravity->test_composite_phi(level);
+             }
           }
        }
 
@@ -2430,20 +2471,23 @@ Castro::post_grown_restart ()
 int
 Castro::okToContinue ()
 {
-    if (level > 0)
-        return 1;
+    if (level > 0) {
+      return 1;
+    }
 
     int test = 1;
 
     if (signalStopJob) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
+      }
     }
     else if (parent->dtLevel(level) < dt_cutoff * parent->cumTime()) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run because dt < dt_cutoff * time." << std::endl;
+      }
     }
 
     return test;
@@ -2455,8 +2499,9 @@ Castro::advance_aux(Real time, Real dt)
 {
     BL_PROFILE("Castro::advance_aux()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "... special update for auxiliary variables \n";
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "... special update for auxiliary variables \n";
+    }
 
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
@@ -2481,22 +2526,28 @@ Castro::advance_aux(Real time, Real dt)
 void
 Castro::FluxRegCrseInit() {
 
-    if (level == parent->finestLevel()) return;
+    if (level == parent->finestLevel()) {
+      return;
+    }
 
     Castro& fine_level = getLevel(level+1);
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
-        fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+    if (!Geom().IsCartesian()) {
+      fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
-            fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+    if (Radiation::rad_hydro_combined) {
+      for (int i = 0; i < BL_SPACEDIM; ++i) {
+        fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+      }
+    }
 #endif
 
 }
@@ -2507,20 +2558,26 @@ Castro::FluxRegFineAdd() {
 
     BL_PROFILE("Castro::FluxRegFineAdd()");
 
-    if (level == 0) return;
+    if (level == 0) {
+      return;
+    }
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
-        flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    if (!Geom().IsCartesian()) {
+      getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
-            getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+    if (Radiation::rad_hydro_combined) {
+      for (int i = 0; i < BL_SPACEDIM; ++i) {
+        getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+      }
+    }
 #endif
 
 }
@@ -2727,8 +2784,9 @@ Castro::reflux(int crse_level, int fine_level)
     // Do the sync solve across all levels.
 
 #ifdef GRAVITY
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-        gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+      gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
+    }
 #endif
 
     // Now subtract the new-time updates to the state data,
@@ -2850,8 +2908,9 @@ Castro::reflux(int crse_level, int fine_level)
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+        if (ParallelDescriptor::IOProcessor()) {
+          std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -2992,11 +3051,7 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_enforce_minimum_density
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(state_in[mfi]),
-             verbose);
+        do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
 
     }
 
@@ -3084,8 +3139,9 @@ Castro::errorEst (TagBoxArray& tags,
     // note that we need to use the new time here,
     // not the old time.
 
-    if (post_step_regrid)
-        ltime = get_state_data(State_Type).curTime();
+    if (post_step_regrid) {
+      ltime = get_state_data(State_Type).curTime();
+    }
 
     // Apply each of the specified tagging functions.
 
@@ -3299,8 +3355,9 @@ Castro::extern_init ()
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
-  for (int i = 0; i < probin_file_length; i++)
+  for (int i = 0; i < probin_file_length; i++) {
     probin_file_name[i] = probin_file[i];
+  }
 
   // read them in in Fortran
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
@@ -3725,8 +3782,9 @@ Castro::swap_state_time_levels(const Real dt)
 #ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
-            sdc_order == 4 && k == SDC_Source_Type)
-            state[k].swapTimeLevels(0.0);
+            sdc_order == 4 && k == SDC_Source_Type) {
+          state[k].swapTimeLevels(0.0);
+        }
 #endif
 #endif
         state[k].allocOldData();
@@ -3761,8 +3819,9 @@ Castro::get_numpts ()
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
-     if (verbose && ParallelDescriptor::IOProcessor())
-         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     if (verbose && ParallelDescriptor::IOProcessor()) {
+       std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     }
 
      return numpts_1d;
 }
@@ -3891,7 +3950,9 @@ Castro::define_new_center(MultiFab& S, Real time)
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
     int mi[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
+    for (int i = 0; i < BL_SPACEDIM; i++) {
+      mi[i] = max_index[i];
+    }
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
@@ -3902,7 +3963,9 @@ Castro::define_new_center(MultiFab& S, Real time)
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
-    if ( Geom().IsRZ() ) center[0] = 0;
+    if ( Geom().IsRZ() ) {
+      center[0] = 0;
+    }
 
     ca_set_center(ZFILL(center));
 }
