@@ -51,7 +51,7 @@ castro.point_mass_fix_solution = 0
 
 # ROTATION
 
-castro.do_rotation       = 0
+castro.do_rotation       = 1
 castro.rotational_period = 1.0
 
 # TIME STEP CONTROL
@@ -71,8 +71,8 @@ castro.print_fortran_warnings = 1
 amr.max_level       = 0       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = -1      # how often to regrid
-amr.blocking_factor = 8       # block factor in grid generation
-amr.max_grid_size   = 32
+amr.blocking_factor = 64       # block factor in grid generation
+amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES

@@ -2,7 +2,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_util.H"
-
+#include "Rotation.H"
 using namespace amrex;
 
 void
@@ -157,6 +157,12 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
 
     int ng = phi.nGrow();
 
+    // DEBUG
+    GpuArray<Real, 3> omega;
+    get_omega(time, omega);
+    std::cout << "omega = " << omega[0] << " " << omega[1] << " " << omega[2]  << std::endl;
+    // DEBUG
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -168,6 +174,9 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
         fill_rotational_potential(bx, phi.array(mfi), time);
 
     }
+
+    print_state(phi, IntVect(D_DECL(10, 10, 0)));
+
 
     rot.setVal(0.0);
 
@@ -187,6 +196,9 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
         fill_rotational_acceleration(bx, rot.array(mfi), state_in.array(mfi), time);
 
     }
+
+    std::cout << "rot = ";
+    print_state(rot, IntVect(D_DECL(10, 10, 0)));
 
 }
 
