@@ -115,10 +115,6 @@ Castro::rsrc(const Box& bx,
       source(i,j,k,n) += src[n];
     }
 
-    if (i == 10 && j == 10) {
-      std::cout << "ROT (rsrc) :: " << source(i,j,k,UMX) << " " << source(i,j,k,UMY) << " " << source(i,j,k,UMZ) << " " << source(i,j,k,UEDEN) << std::endl;
-    }
-
   });
 
 }
@@ -235,16 +231,13 @@ Castro::corrrsrc(const Box& bx,
     dt_omega_matrix(2, 1) = dt_omega[2] * dt_omega[1] - dt_omega[0];
     dt_omega_matrix(2, 2) = 1.0_rt + dt_omega[2] * dt_omega[2];
 
-    std::cout << "ROT (corrrsrc) :: dt_omega_matrix = ";
     for (int l = 0; l < 3; l++) {
       for (int m = 0; m < 3; m++) {
         dt_omega_matrix(l, m) /= (1.0_rt + dt_omega[0] * dt_omega[0] +
                                            dt_omega[1] * dt_omega[1] +
                                            dt_omega[2] * dt_omega[2]);
-        std::cout << dt_omega_matrix(l, m) << " ";
       }
     }
-    std::cout << std::endl;
 
   }
 
@@ -280,9 +273,6 @@ Castro::corrrsrc(const Box& bx,
 
     Real old_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoninv;
 
-    if (i == 10 && j == 10) {
-      std::cout << "ROT (corrrsrc) :: loc = " << loc[0] << " " << loc[1] << " " << loc[2] << " old_ke = " << old_ke << std::endl;
-    }
 
     // Define old source terms
 
@@ -298,9 +288,6 @@ Castro::corrrsrc(const Box& bx,
 
     Real SrE_old = vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2];
 
-    if (i == 10 && j == 10) {
-      std::cout << "ROT (corrrsrc) :: Sr_old = " << Sr_old[0] << " " << Sr_old[1] << " " << Sr_old[2] << " " << SrE_old << std::endl;
-    }
 
     // Define new source terms
 
@@ -316,9 +303,6 @@ Castro::corrrsrc(const Box& bx,
 
     Real SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
 
-    if (i == 10 && j == 10) {
-      std::cout << "ROT (corrrsrc) :: Sr_new = " << Sr_new[0] << " " << Sr_new[1] << " " << Sr_new[2] << " " << SrE_new << std::endl;
-    }
 
     // Define correction terms
 
@@ -343,9 +327,6 @@ Castro::corrrsrc(const Box& bx,
         new_mom_tmp[n] = unew(i,j,k,UMX+n) - 0.5_rt * Sr_old[n] * dt + 0.5_rt * rhon * acc[n] * dt;
       }
 
-      if (i == 10 && j == 10) {
-        std::cout << "ROT (corrrsrc) :: new_mom_tmp = " << new_mom_tmp[0] << " " << new_mom_tmp[1] << " " << new_mom_tmp[2] << std::endl;
-      }
 
       // The following is the general solution to the 3D coupled system,
       // assuming that the rotation vector has components along all three
@@ -368,10 +349,6 @@ Castro::corrrsrc(const Box& bx,
         }
       }
 
-      if (i == 10 && j == 10) {
-        std::cout << "ROT (corrrsrc) :: new_mom = " << new_mom[0] << " " << new_mom[1] << " " << new_mom[2] << std::endl;
-      }
-      
 
       // Obtain the effective source term; remember that we're ultimately going
       // to multiply the source term by dt to get the update to the state.
@@ -527,10 +504,6 @@ Castro::corrrsrc(const Box& bx,
 
     for (int n = 0; n < NSRC; n++) {
       source(i,j,k,n) += src[n];
-    }
-
-    if (i == 10 && j == 10) {
-      std::cout << "ROT (corrrsrc) :: " << source(i,j,k,UMX) << " " << source(i,j,k,UMY) << " " << source(i,j,k,UMZ) << " " << source(i,j,k,UEDEN) << std::endl;
     }
 
   });
