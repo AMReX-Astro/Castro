@@ -484,8 +484,8 @@ Castro::corrrsrc(const Box& bx,
       vnew[1] = snew[UMY] * rhoninv;
       vnew[2] = snew[UMZ] * rhoninv;
 
-      SrEcorr = SrEcorr + 0.5_rt * (vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2]) +
-                                   (vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2]);
+      SrEcorr += 0.5_rt * (vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2]) +
+                          (vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2]);
 
     } else {
 #ifndef AMREX_USE_GPU
