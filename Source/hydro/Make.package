@@ -21,8 +21,6 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
-ca_F90EXE_sources += advection_util_nd.F90
-
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
 CEXE_sources += riemann_solvers.cpp
@@ -38,7 +36,6 @@ ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += fourth_order.cpp
   CEXE_sources += fourth_center_average.cpp
   CEXE_headers += fourth_center_average.H
-  ca_F90EXE_sources += Castro_mol_nd.F90
 endif
 
 ifneq ($(DIM), 1)
