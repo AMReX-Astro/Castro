@@ -46,6 +46,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+#ifdef HYBRID_MOMENTUM
+  GeometryData geomdata = geom.data();
+#endif
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -83,12 +90,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         const Box& obx2 = amrex::grow(bx, 2);
 
         FArrayBox &statein  = Sborder[mfi];
+        Array4<Real const> const uin_arr = statein.array();
+
         FArrayBox &stateout = S_new[mfi];
 
         FArrayBox &source_in  = sources_for_hydro[mfi];
+        auto source_in_arr = source_in.array();
 
         // the output of this will be stored in the correct stage MF
         FArrayBox &source_out = A_update[mfi];
+        auto source_out_arr = source_out.array();
 
         Real stage_weight = 1.0;
 
@@ -228,8 +239,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             f_avg.resize(ibx[idir], NUM_STATE);
             Elixir elix_favg = f_avg.elixir();
             auto f_avg_arr = f_avg.array();
-
-            int idir_f = idir + 1;
 
             for (int n = 0; n < NQ; n++) {
 
@@ -386,7 +395,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                            q_bar_arr, qaux_bar_arr,
                            avis_arr, idir);
 
-              Array4<Real const> const uin_arr = statein.array();
               Array4<Real const> const avis_arr = avis.array();
 
               amrex::ParallelFor(nbx, NUM_STATE,
@@ -460,8 +468,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           auto q_int_arr = q_int.array();
 
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
-
-            const int idir_f = idir + 1;
 
             if (do_hydro) {
 
@@ -553,19 +559,16 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // add a diffusive flux
             cond.resize(obx, 1);
             Elixir elix_cond = cond.elixir();
+            auto cond_arr = cond.array();
 
 #ifdef DIFFUSION
-            fill_temp_cond(obx, Sborder.array(mfi), cond.array());
+            fill_temp_cond(obx, Sborder.array(mfi), cond_arr);
 
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-            ca_mol_diffusive_flux
-              (AMREX_ARLIM_ANYD(nbx.loVect()), AMREX_ARLIM_ANYD(nbx.hiVect()),
-               idir_f,
-               BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-               BL_TO_FORTRAN_ANYD(cond),
-               BL_TO_FORTRAN_ANYD(flux[idir]),
-               AMREX_ZFILL(dx));
+            mol_diffusive_flux(nbx, idir,
+                               uin_arr, cond_arr,
+                               flux[idir].array());
 
 #endif
           } // end idir loop
@@ -581,9 +584,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             const Box& nbx = amrex::surroundingNodes(bx, idir);
 
             Array4<Real> const flux_arr = (flux[idir]).array();
-
-            int idir_f = idir + 1;
-
 
             // apply the density flux limiter
             if (limit_fluxes_on_small_dens == 1) {
@@ -606,36 +606,57 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         // do the conservative update -- and store the shock variable
 #pragma gpu box(bx)
-        ca_mol_consup
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(shk),
-           BL_TO_FORTRAN_ANYD(statein),
-           BL_TO_FORTRAN_ANYD(source_in),
-           BL_TO_FORTRAN_ANYD(source_out),
-           AMREX_REAL_ANYD(dx), dt,
-           BL_TO_FORTRAN_ANYD(flux[0]),
+        mol_consup(bx,
+                   shk_arr,
+                   uin_arr, source_in_arr,
+                   source_out_arr,
+                   dt,
+                   flux[0].array(),
 #if AMREX_SPACEDIM >= 2
-           BL_TO_FORTRAN_ANYD(flux[1]),
+                   flux[1].array(),
 #endif
 #if AMREX_SPACEDIM == 3
-           BL_TO_FORTRAN_ANYD(flux[2]),
+                   flux[2].array(),
 #endif
-           BL_TO_FORTRAN_ANYD(area[0][mfi]),
+                   area[0].array(mfi),
 #if AMREX_SPACEDIM >= 2
-           BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                   area[1].array(mfi),
 #endif
 #if AMREX_SPACEDIM == 3
-           BL_TO_FORTRAN_ANYD(area[2][mfi]),
+                   area[2].array(mfi),
 #endif
-           BL_TO_FORTRAN_ANYD(qe[0]),
+                   qe[0].array(),
 #if AMREX_SPACEDIM >= 2
-           BL_TO_FORTRAN_ANYD(qe[1]),
+                   qe[1].array(),
 #endif
 #if AMREX_SPACEDIM == 3
-           BL_TO_FORTRAN_ANYD(qe[2]),
+                   qe[2].array(),
 #endif
-           BL_TO_FORTRAN_ANYD(volume[mfi]));
+                   volume.array(mfi));
 
+
+#ifdef HYBRID_MOMENTUM
+        auto dx_arr = geom.CellSizeArray();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+
+          GpuArray<Real, 3> loc;
+
+          position(i, j, k, geomdata, loc);
+
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+            loc[dir] -= center[dir];
+
+          Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+          Real RInv = 1.0_rt / R;
+
+          source_out_arr(i,j,k,UMR) -= ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
+                                        (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
+
+        });
+#endif
 
         // scale the fluxes
 #if AMREX_SPACEDIM <= 2
