@@ -1363,20 +1363,21 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM <= 2
-            Array4<Real> pradial_fab = pradial.array();
-            Array4<Real> P_radial_fab = P_radial.array(mfi);
 
 #if AMREX_SPACEDIM == 1
             if (idir == 0 && !Geom().IsCartesian()) {
 #elif AMREX_SPACEDIM == 2
             if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
 #endif
+                Array4<Real> pradial_fab = pradial.array();
+                Array4<Real> P_radial_fab = P_radial.array(mfi);
+
                 AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
                 {
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
-
             }
+
 #endif
 
         } // add_fluxes
