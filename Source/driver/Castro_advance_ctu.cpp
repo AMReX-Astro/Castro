@@ -538,29 +538,29 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         // will include Strang-split reactions; for simplified SDC, we defer the
         // burn until after the advance.
 
-        int num_sub_iters = 1;
+        // Save the number of SDC iterations in case we are about to modify it.
+
+        int sdc_iters_old = sdc_iters;
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            num_sub_iters = sdc_iters;
-
             // If we're in a retry we want to add one more iteration. This is
             // because we will have zeroed out the lagged corrector from the
             // last iteration/timestep and so having another iteration will
             // approximately compensate for that.
 
             if (in_retry) {
-                num_sub_iters += 1;
+                sdc_iters += 1;
                 amrex::Print() << "Adding an SDC iteration due to the retry." << std::endl << std::endl;
             }
         }
 
         advance_status status;
 
-        for (int n = 0; n < num_sub_iters; ++n) {
+        for (int n = 0; n < sdc_iters; ++n) {
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
                 sdc_iteration = n;
-                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
+                amrex::Print() << "Beginning SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
 
             // We do the hydro advance here, and record whether we completed it.
@@ -617,7 +617,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             }
 
             if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << num_sub_iters << "." << std::endl << std::endl;
+                amrex::Print() << "Ending SDC iteration " << n + 1 << " of " << sdc_iters << "." << std::endl << std::endl;
             }
 
         }
@@ -625,6 +625,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
+
+        // Set sdc_iters to its original value, in case we modified it above.
+
+        sdc_iters = sdc_iters_old;
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
