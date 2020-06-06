@@ -1381,16 +1381,17 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
         } // add_fluxes
 
-         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+        Array4<Real> const flux_fab = (flux[idir]).array();
+        Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
-         AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
-         {
-             // This is a copy, not an add, since we need mass_fluxes to be
-             // only this subcycle's data when we evaluate the gravitational
-             // forces.
+        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+        {
+            // This is a copy, not an add, since we need mass_fluxes to be
+            // only this subcycle's data when we evaluate the gravitational
+            // forces.
 
-             mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
-         });
+            mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
+        });
 
       } // idir loop
 
