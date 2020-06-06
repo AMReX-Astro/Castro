@@ -107,7 +107,7 @@ several main data structures that hold the state.
    are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
    .. _table:primlist:
-   .. table:: The integer variable keys for accessing the primitive state vector.
+   .. table:: Primitive State Vector Integer Keys
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |

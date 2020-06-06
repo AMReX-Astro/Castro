@@ -72,6 +72,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox q2D;
 
+      FArrayBox div;
+
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
         {
 
@@ -259,10 +261,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxx1D_arr = flxx1D.array();
           auto elix_flxx1D = flxx1D.elixir();
 
-          hlld(bfx.loVect(), bfx.hiVect(),
-               BL_TO_FORTRAN_ANYD(qleft[0]),
-               BL_TO_FORTRAN_ANYD(qright[0]),
-               BL_TO_FORTRAN_ANYD(flxx1D), 1);
+          hlld(bfx, qleft[0].array(), qright[0].array(), flxx1D_arr, 0);
 
           // y-dir
           // [lo(1)-3, lo(2)-2, lo(3)-3] [hi(1)+3, hi(2)+3, hi(3)+3]
@@ -272,10 +271,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxy1D_arr = flxy1D.array();
           auto elix_flxy1D = flxy1D.elixir();
 
-          hlld(bfy.loVect(), bfy.hiVect(),
-               BL_TO_FORTRAN_ANYD(qleft[1]),
-               BL_TO_FORTRAN_ANYD(qright[1]),
-               BL_TO_FORTRAN_ANYD(flxy1D), 2);
+          hlld(bfy, qleft[1].array(), qright[1].array(), flxy1D_arr, 1);
 
           // z-dir
           // [lo(1)-3, lo(2)-3, lo(3)-2] [hi(1)+3, hi(2)+3, hi(3)+3]
@@ -285,10 +281,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flxz1D_arr = flxz1D.array();
           auto elix_flxz1D = flxz1D.elixir();
 
-          hlld(bfz.loVect(), bfz.hiVect(),
-               BL_TO_FORTRAN_ANYD(qleft[2]),
-               BL_TO_FORTRAN_ANYD(qright[2]),
-               BL_TO_FORTRAN_ANYD(flxz1D), 3);
+          hlld(bfz, qleft[2].array(), qright[2].array(), flxz1D_arr, 2);
 
 
           // Prim to Cons
@@ -382,10 +375,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_xy_arr = flx_xy.array();
           auto elix_flx_xy = flx_xy.elixir();
 
-          hlld(ccbx.loVect(), ccbx.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_xy), 1);
+          hlld(ccbx, qtmp_left_arr, qtmp_right_arr, flx_xy_arr, 0);
 
           // affected by Z Flux
           corner_couple(ccbx,
@@ -399,10 +389,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_xz_arr = flx_xz.array();
           auto elix_flx_xz = flx_xz.elixir();
 
-          hlld(ccbx.loVect(), ccbx.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_xz), 1);
+          hlld(ccbx, qtmp_left_arr, qtmp_right_arr, flx_xz_arr, 0);
 
 
           // Y direction
@@ -422,10 +409,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_yx_arr = flx_yx.array();
           auto elix_flx_yx = flx_yx.elixir();
 
-          hlld(ccby.loVect(), ccby.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_yx), 2);
+          hlld(ccby, qtmp_left_arr, qtmp_right_arr, flx_yx_arr, 1);
 
           // affected by Z Flux
 
@@ -440,10 +424,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_yz_arr = flx_yz.array();
           auto elix_flx_yz = flx_yz.elixir();
 
-          hlld(ccby.loVect(), ccby.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_yz), 2);
+          hlld(ccby, qtmp_left_arr, qtmp_right_arr, flx_yz_arr, 1);
 
           // Z direction
 
@@ -462,10 +443,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_zx_arr = flx_zx.array();
           auto elix_flx_zx = flx_zx.elixir();
 
-          hlld(ccbz.loVect(), ccbz.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_zx), 3);
+          hlld(ccbz, qtmp_left_arr, qtmp_right_arr, flx_zx_arr, 2);
 
           // affected by Y Flux
 
@@ -480,10 +458,7 @@ Castro::just_the_mhd(Real time, Real dt)
           auto flx_zy_arr = flx_zy.array();
           auto elix_flx_zy = flx_zy.elixir();
 
-          hlld(ccbz.loVect(), ccbz.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flx_zy), 3);
+          hlld(ccbz, qtmp_left_arr, qtmp_right_arr, flx_zy_arr, 2);
 
 
           // MM CTU Step 6
@@ -554,10 +529,7 @@ Castro::just_the_mhd(Real time, Real dt)
           // We need to compute these on a box 1 larger in the transverse directions
           // than we'd need for hydro alone due to the electric update
 
-          hlld(nbx1.loVect(), nbx1.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flux[0]), 1);
+          hlld(nbx1, qtmp_left_arr, qtmp_right_arr, flux[0].array(), 0);
 
           // for y direction
           const Box& nby1 = amrex::grow(nby, IntVect(1, 0, 1));
@@ -569,10 +541,7 @@ Castro::just_the_mhd(Real time, Real dt)
                     Ey_arr, Ex_arr, Ez_arr,
                     1, 0, 2, dt);
 
-          hlld(nby1.loVect(), nby1.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flux[1]), 2);
+          hlld(nby1, qtmp_left_arr, qtmp_right_arr, flux[1].array(), 1);
 
           // for z direction
           const Box& nbz1 = amrex::grow(nbz, IntVect(1, 1, 0));
@@ -584,10 +553,7 @@ Castro::just_the_mhd(Real time, Real dt)
                     Ez_arr, Ex_arr, Ey_arr,
                     2, 0, 1, dt);
 
-          hlld(nbz1.loVect(), nbz1.hiVect(),
-               BL_TO_FORTRAN_ANYD(qtmp_left),
-               BL_TO_FORTRAN_ANYD(qtmp_right),
-               BL_TO_FORTRAN_ANYD(flux[2]), 3);
+          hlld(nbz1, qtmp_left_arr, qtmp_right_arr, flux[2].array(), 2);
 
 
           // MM CTU Step 10
@@ -621,6 +587,38 @@ Castro::just_the_mhd(Real time, Real dt)
           eebzf.growHi(1, 1);
 
           electric_edge_z(eebzf, q2D_arr, Ez_arr, flxx_arr, flxy_arr);
+
+          // clean the final fluxes
+
+          div.resize(obx, 1);
+          Elixir elix_div = div.elixir();
+          auto div_arr = div.array();
+
+          // compute divu -- we'll use this later when doing the artifical viscosity
+          divu(obx, q_arr, div_arr);
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            Array4<Real> const flux_arr = (flux[idir]).array();
+
+            // Zero out shock and temp fluxes -- these are physically meaningless here
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+              flux_arr(i,j,k,UTEMP) = 0.e0;
+#ifdef SHOCK_VAR
+              flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+            });
+
+            apply_av(nbx, idir, div_arr, u_arr, flux_arr);
+
+            normalize_species_fluxes(nbx, flux_arr);
+
+          }
+
 
           // Conservative update
 
@@ -656,12 +654,44 @@ Castro::just_the_mhd(Real time, Real dt)
           //Ey(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2), ey_lo(3):ey_hi(3)) = Eytemp(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2),ey_lo(3):ey_hi(3))
           //Ez(ez_lo(1):ez_hi(1),ez_lo(2):ez_hi(2), ez_lo(3):ez_hi(3)) = Eztemp(ez_lo(1):ez_hi(1),ez_lo(2):ez_hi(2),ez_lo(3):ez_hi(3))
 
-          for (int i = 0; i < BL_SPACEDIM; i++){
-            (*fluxes[i])[mfi].plus(flux[i], mfi.nodaltilebox(i),0,0,NUM_STATE);
+          // Store the fluxes from this advance.
 
-            (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
-            //electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
-          }
+          // For normal integration we want to add the fluxes from this advance
+          // since we may be subcycling the timestep. But for simplified SDC integration
+          // we want to copy the fluxes since we expect that there will not be
+          // subcycling and we only want the last iteration's fluxes.
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+            Array4<Real> const flux_fab = (flux[idir]).array();
+            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+            const int numcomp = NUM_STATE;
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+              {
+                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+              });
+
+            } else {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+              {
+                fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
+              });
+
+            }
+
+
+            Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+            {
+              mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
+            });
+
+          } // idir loop
 
         }
 
