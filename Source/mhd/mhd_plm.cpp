@@ -200,10 +200,10 @@ Castro::plm(const Box& bx,
     Real ref_term = 0.5_rt * (1.0_rt - amrex::max(lam(NEIGN-1), 0.0_rt) * dtdx);
 
     q_ref_left[IEIGN_RHO] = q_zone(QRHO) + ref_term * dq_lim[QRHO];
-    q_ref_left[IEIGN_U] = q_zone(QU) + ref_term * dq_lim[QRHO];
-    q_ref_left[IEIGN_V] = q_zone(QV) + ref_term * dq_lim[QRHO];
-    q_ref_left[IEIGN_W] = q_zone(QW) + ref_term * dq_lim[QRHO];
-    q_ref_left[IEIGN_P] = q_zone(QPRES) + ref_term * dq_lim[QRHO];
+    q_ref_left[IEIGN_U] = q_zone(QU) + ref_term * dq_lim[QU];
+    q_ref_left[IEIGN_V] = q_zone(QV) + ref_term * dq_lim[QV];
+    q_ref_left[IEIGN_W] = q_zone(QW) + ref_term * dq_lim[QW];
+    q_ref_left[IEIGN_P] = q_zone(QPRES) + ref_term * dq_lim[QPRES];
     if (idir == 0) {
       q_ref_left[IEIGN_BT] = q_zone(QMAGY) + ref_term * dq_lim[IEIGN_BT];
       q_ref_left[IEIGN_BTT] = q_zone(QMAGZ) + ref_term * dq_lim[IEIGN_BTT];
@@ -224,10 +224,10 @@ Castro::plm(const Box& bx,
     ref_term = 0.5_rt * (1.0_rt + amrex::min(lam(0), 0.0_rt) * dtdx);
 
     q_ref_right[IEIGN_RHO] = q_zone(QRHO) - ref_term * dq_lim[QRHO];
-    q_ref_right[IEIGN_U] = q_zone(QU) - ref_term * dq_lim[QRHO];
-    q_ref_right[IEIGN_V] = q_zone(QV) - ref_term * dq_lim[QRHO];
-    q_ref_right[IEIGN_W] = q_zone(QW) - ref_term * dq_lim[QRHO];
-    q_ref_right[IEIGN_P] = q_zone(QPRES) - ref_term * dq_lim[QRHO];
+    q_ref_right[IEIGN_U] = q_zone(QU) - ref_term * dq_lim[QU];
+    q_ref_right[IEIGN_V] = q_zone(QV) - ref_term * dq_lim[QV];
+    q_ref_right[IEIGN_W] = q_zone(QW) - ref_term * dq_lim[QW];
+    q_ref_right[IEIGN_P] = q_zone(QPRES) - ref_term * dq_lim[QPRES];
     if (idir == 0) {
       q_ref_right[IEIGN_BT] = q_zone(QMAGY) - ref_term * dq_lim[IEIGN_BT];
       q_ref_right[IEIGN_BTT] = q_zone(QMAGZ) - ref_term * dq_lim[IEIGN_BTT];
