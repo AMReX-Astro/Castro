@@ -1335,7 +1335,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         bool add_fluxes = true;
 
         if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
-            sdc_iteration == sdc_iters - 1) {
+            sdc_iteration != sdc_iters - 1) {
             add_fluxes = false;
         }
 
