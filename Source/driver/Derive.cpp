@@ -492,7 +492,7 @@ extern "C"
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
       {
           // The derive data is (rho, rho_enuc)
-          Real enuc = std::abs(dat(i,j,k,1)) / dat(i,j,k,0);
+          Real enuc = dat(i,j,k,1) / dat(i,j,k,0);
 
           der(i,j,k,0) = enuc;
       });
