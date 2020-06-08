@@ -370,26 +370,33 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
 
         // Clear the contribution to the fluxes from this step.
 
-        for (int dir = 0; dir < 3; ++dir)
-            fluxes[dir]->setVal(0.0);
+        for (int dir = 0; dir < 3; ++dir) {
+          fluxes[dir]->setVal(0.0);
+        }
 
-        for (int dir = 0; dir < 3; ++dir)
-            mass_fluxes[dir]->setVal(0.0);
+        for (int dir = 0; dir < 3; ++dir) {
+          mass_fluxes[dir]->setVal(0.0);
+        }
 
 #if (BL_SPACEDIM <= 2)
-        if (!Geom().IsCartesian())
-            P_radial.setVal(0.0);
+        if (!Geom().IsCartesian()) {
+          P_radial.setVal(0.0);
+        }
 #endif
 
 #ifdef RADIATION
-        if (Radiation::rad_hydro_combined)
-            for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-                rad_fluxes[dir]->setVal(0.0);
+        if (Radiation::rad_hydro_combined) {
+          for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+            rad_fluxes[dir]->setVal(0.0);
+          }
+        }
 #endif
 
-        if (track_grid_losses)
-            for (int i = 0; i < n_lost; i++)
-                material_lost_through_boundary_temp[i] = 0.0;
+        if (track_grid_losses) {
+          for (int i = 0; i < n_lost; i++) {
+            material_lost_through_boundary_temp[i] = 0.0;
+          }
+        }
 
         // For simplified SDC, we'll have garbage data if we
         // attempt to use the lagged source terms (both reacting
@@ -464,8 +471,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         AMREX_ASSERT(dt_cutoff > eps);
 
-        if (subcycle_time + dt_subcycle > (1.0 - dt_cutoff) * (time + dt))
-            dt_subcycle = (time + dt) - subcycle_time;
+        if (subcycle_time + dt_subcycle > (1.0 - dt_cutoff) * (time + dt)) {
+          dt_subcycle = (time + dt) - subcycle_time;
+        }
 
         // Determine whether we're below the cutoff timestep.
 
@@ -522,8 +530,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Set the relevant time levels.
 
-        for (int k = 0; k < num_state_type; k++)
-            state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+        for (int k = 0; k < num_state_type; k++) {
+          state[k].setTimeLevel(subcycle_time + dt_subcycle, dt_subcycle, 0.0);
+        }
 
         // Do the advance and construct the relevant source terms. For CTU this
         // will include Strang-split reactions; for simplified SDC, we defer the
@@ -531,18 +540,22 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         int num_sub_iters = 1;
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            num_sub_iters = sdc_iters;
+        // Save the number of SDC iterations in case we are about to modify it.
 
+        int sdc_iters_old = sdc_iters;
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             // If we're in a retry we want to add one more iteration. This is
             // because we will have zeroed out the lagged corrector from the
             // last iteration/timestep and so having another iteration will
             // approximately compensate for that.
 
             if (in_retry) {
-                num_sub_iters += 1;
+                sdc_iters += 1;
                 amrex::Print() << "Adding an SDC iteration due to the retry." << std::endl << std::endl;
             }
+
+            num_sub_iters = sdc_iters;
         }
 
         advance_status status;
@@ -617,10 +630,15 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
 
+        // Set sdc_iters to its original value, in case we modified it above.
+
+        sdc_iters = sdc_iters_old;
+
         // If we have hit a CFL violation during this subcycle, we must abort.
 
-        if (cfl_violation && !use_retry)
-            amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
+        if (cfl_violation && !use_retry) {
+          amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
+        }
 
         // If we're allowing for retries, check for that here.
 
@@ -689,8 +707,9 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // reflux immediately following this, skip this if we're on the
             // finest level and this is not the last iteration.
 
-            if (!(amr_iteration < amr_ncycle && level == parent->finestLevel()))
-                keep_prev_state = true;
+            if (!(amr_iteration < amr_ncycle && level == parent->finestLevel())) {
+              keep_prev_state = true;
+            }
 
         }
 

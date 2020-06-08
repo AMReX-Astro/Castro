@@ -5,9 +5,6 @@
   exp_energy = 1.0
   dens_ambient = 1.0
   nsub = 10
-  B_x = 0.0
-  B_y = 0.0
-  B_z = 0.0 
 /
 
 &tagging

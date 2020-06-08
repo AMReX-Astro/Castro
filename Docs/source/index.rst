@@ -36,6 +36,7 @@ https://github.com/amrex-astro/Castro
    debugging
    gpu_porting
    Hydrodynamics
+   mhd
    gravity
    diffusion
    rotation

@@ -428,6 +428,7 @@ void Castro::ca_store_reaction_state(const Box& bx,
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
         R_store(i,j,k,NumSpec+NumAux  ) = R_old(i,j,k,UEDEN);
+        R_store(i,j,k,NumSpec+NumAux+1) = 0.0; // we're not storing the weights
     });
 }
 

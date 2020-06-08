@@ -17,6 +17,7 @@ help:
 clean:
 	rm -rf build doxy_files source/class source/file source/namespace source/preprocessed_files
 	rm -f source/classlist.rst source/filelist.rst source/namespacelist.rst
+	rm -f source/yt_example.rst
 	rm -rf source/preprocessed_files
 	rm -rf source/*_files.rst
 
@@ -28,6 +29,7 @@ ifneq ($(NO_DOXYGEN),TRUE)
 	breathe-apidoc --o source doxy_files/xml -g class,file
 	python3 make_api.py
 endif
+	jupyter nbconvert --to rst source/yt_example.ipynb
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Catch-all target: route all unknown targets to Sphinx using the new
@@ -39,4 +41,5 @@ ifneq ($(NO_DOXYGEN),TRUE)
 	breathe-apidoc --o source doxy_files/xml -g class,file
 endif
 	python3 make_api.py
+	jupyter nbconvert --to rst source/yt_example.ipynb
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

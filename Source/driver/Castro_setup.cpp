@@ -44,10 +44,12 @@ static int tang_vel_bc[] =
     INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
   };
 
+#ifdef MHD
 static int mag_field_bc[] = 
 {
   INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
 };
+#endif
 
 static
 void
@@ -280,8 +282,12 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-  // Define NUM_GROW from the f90 module.
-  ca_get_method_params(&NUM_GROW);
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+#ifdef MHD
+  NUM_GROW = 6;
+#else
+  NUM_GROW = 4;
+#endif
 
   const Real run_strt = ParallelDescriptor::second() ;
 
@@ -1113,8 +1119,9 @@ Castro::variableSetUp ()
 
   // Fill with an empty string to initialize.
 
-  for (int n = 0; n < num_src; ++n)
+  for (int n = 0; n < num_src; ++n) {
     source_names[n] = "";
+  }
 
   source_names[ext_src] = "user-defined external";
   source_names[thermo_src] = "pdivU source";
