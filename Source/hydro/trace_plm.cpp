@@ -17,7 +17,6 @@ void
 Castro::trace_plm(const Box& bx, const int idir,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
-                  Array4<Real const> const& dq,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
@@ -31,6 +30,15 @@ Castro::trace_plm(const Box& bx, const int idir,
   // vbx is the valid box (no ghost cells)
 
   const auto dx = geom.CellSizeArray();
+
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  bool lo_symm = lo_bc[idir] == Symmetry;
+  bool hi_symm = hi_bc[idir] == Symmetry;
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
 
   const Real dtdx = dt/dx[idir];
 
@@ -67,11 +75,35 @@ Castro::trace_plm(const Box& bx, const int idir,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
+  constexpr int NEIGN = 6;
+  constexpr int IEIGN_RHO = 0;
+  constexpr int IEIGN_UN = 1;
+  constexpr int IEIGN_UT = 2;
+  constexpr int IEIGN_UTT = 3;
+  constexpr int IEIGN_P = 4;
+  constexpr int IEIGN_RE = 5;
+
+  int cvars[NEIGN];
+  cvars[IEIGN_RHO] = QRHO;
+  cvars[IEIGN_UN] = QUN;
+  cvars[IEIGN_UT] = QUT;
+  cvars[IEIGN_UTT] = QUTT;
+  cvars[IEIGN_P] = QPRES;
+  cvars[IEIGN_RE] = QRHOE;
+
   // Compute left and right traced states
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
+
+    bool lo_bc_test = lo_symm && (idir == 0 && i == domlo[0]) ||
+                                 (idir == 1 && j == domlo[1]) ||
+                                 (idir == 2 && k == domlo[2]);
+
+    bool hi_bc_test = hi_symm && (idir == 0 && i == domhi[0]) ||
+                                 (idir == 1 && j == domhi[1]) ||
+                                 (idir == 2 && k == domhi[2]);
 
     Real cc = qaux_arr(i,j,k,QC);
     Real csq = cc*cc;
@@ -85,12 +117,108 @@ Castro::trace_plm(const Box& bx, const int idir,
     Real rhoe = q_arr(i,j,k,QREINT);
     Real enth = (rhoe+p)/(rho*csq);
 
-    Real drho = dq(i,j,k,QRHO);
-    Real dun = dq(i,j,k,QUN);
-    Real dut = dq(i,j,k,QUT);
-    Real dutt = dq(i,j,k,QUTT);
-    Real dp = dq(i,j,k,QPRES);
-    Real drhoe = dq(i,j,k,QREINT);
+    Real dq[NEIGN];
+    Real s[5];
+    Real flat = flatn(i,j,k);
+
+    for (int n = 0; n < NEIGN; n++) {
+      int v = cvars[n];
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,v);
+        s[im1] = q_arr(i-1,j,k,v);
+        s[i0]  = q_arr(i,j,k,v);
+        s[ip1] = q_arr(i+1,j,k,v);
+        s[ip2] = q_arr(i+2,j,k,v);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,v);
+        s[im1] = q_arr(i,j-1,k,v);
+        s[i0]  = q_arr(i,j,k,v);
+        s[ip1] = q_arr(i,j+1,k,v);
+        s[ip2] = q_arr(i,j+2,k,v);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,v);
+        s[im1] = q_arr(i,j,k-1,v);
+        s[i0]  = q_arr(i,j,k,v);
+        s[ip1] = q_arr(i,j,k+1,v);
+        s[ip2] = q_arr(i,j,k+2,v);
+      }
+
+      bool vtest = v == QUN;
+      dq[n] = uslope(s, flat, lo_bc_test && vtest, hi_bc_test && vtest);
+    }
+
+    // are we doing well-balanced?
+    if (use_pslope == 1) {
+
+      Real trho[5];
+      Real src[5];
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,QPRES);
+        s[im1] = q_arr(i-1,j,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i+1,j,k,QPRES);
+        s[ip2] = q_arr(i+2,j,k,QPRES);
+
+        trho[im2] = q_arr(i-2,j,k,QRHO);
+        trho[im1] = q_arr(i-1,j,k,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i+1,j,k,QRHO);
+        trho[ip2] = q_arr(i+2,j,k,QRHO);
+
+        src[im2] = srcQ(i-2,j,k,QUN);
+        src[im1] = srcQ(i-1,j,k,QUN);
+        src[i0]  = srcQ(i,j,k,QUN);
+        src[ip1] = srcQ(i+1,j,k,QUN);
+        src[ip2] = srcQ(i+2,j,k,QUN);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,QPRES);
+        s[im1] = q_arr(i,j-1,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j+1,k,QPRES);
+        s[ip2] = q_arr(i,j+2,k,QPRES);
+
+        trho[im2] = q_arr(i,j-2,k,QRHO);
+        trho[im1] = q_arr(i,j-1,k,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i,j+1,k,QRHO);
+        trho[ip2] = q_arr(i,j+2,k,QRHO);
+
+        src[im2] = srcQ(i,j-2,k,QUN);
+        src[im1] = srcQ(i,j-1,k,QUN);
+        src[i0]  = srcQ(i,j,k,QUN);
+        src[ip1] = srcQ(i,j+1,k,QUN);
+        src[ip2] = srcQ(i,j+2,k,QUN);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,QPRES);
+        s[im1] = q_arr(i,j,k-1,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j,k+1,QPRES);
+        s[ip2] = q_arr(i,j,k+2,QPRES);
+
+        trho[im2] = q_arr(i,j,k-2,QRHO);
+        trho[im1] = q_arr(i,j,k-1,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i,j,k+1,QRHO);
+        trho[ip2] = q_arr(i,j,k+2,QRHO);
+
+        src[im2] = srcQ(i,j,k-2,QUN);
+        src[im1] = srcQ(i,j,k-1,QUN);
+        src[i0]  = srcQ(i,j,k,QUN);
+        src[ip1] = srcQ(i,j,k+1,QUN);
+        src[ip2] = srcQ(i,j,k+2,QUN);
+      }
+
+      Real dp = dq[IEIGN_P];
+      pslope(trho, s, src, flat, dx, dp);
+      dq[IEIGN_P] = dp;
+
+    }
 
     Real alpham = 0.5_rt*(dp/(rho*cc) - dun)*(rho/cc);
     Real alphap = 0.5_rt*(dp/(rho*cc) + dun)*(rho/cc);
@@ -138,7 +266,7 @@ Castro::trace_plm(const Box& bx, const int idir,
       qp(i,j,k,QPRES) = amrex::max(lsmall_pres, p_ref + (apright + amright)*csq);
       qp(i,j,k,QREINT) = rhoe_ref + (apright + amright)*enth*csq + azeright;
 
-      // add the source terms 
+      // add the source terms
       qp(i,j,k,QRHO  ) += 0.5_rt*dt*srcQ(i,j,k,QRHO);
       qp(i,j,k,QRHO  ) = amrex::max(lsmall_dens, qp(i,j,k,QRHO));
       qp(i,j,k,QUN   ) += 0.5_rt*dt*srcQ(i,j,k,QUN);
