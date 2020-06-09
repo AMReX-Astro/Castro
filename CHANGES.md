@@ -1,3 +1,8 @@
+# 20.07
+
+   * A bug where refluxing between AMR levels resulted in incorrect results
+     when a retry occurred in the previous timestep has been fixed. (#1018)
+
 # 20.06
 
    * The parameter castro.density_reset_method has been removed. A density
