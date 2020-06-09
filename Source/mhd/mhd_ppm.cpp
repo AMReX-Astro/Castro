@@ -300,7 +300,7 @@ Castro::ppm_mhd(const Box& bx,
       qleft(i+1,j,k,QV) = q_ref_left[IEIGN_V] - summ_p[IEIGN_V] + 0.5_rt*dt*smhd[IEIGN_V];
       qleft(i+1,j,k,QW) = q_ref_left[IEIGN_W] - summ_p[IEIGN_W] + 0.5_rt*dt*smhd[IEIGN_W];
       qleft(i+1,j,k,QPRES) = amrex::max(small_pres,
-                                        q_ref_left[IEIGN_P] - 0.5_rt*summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
+                                        q_ref_left[IEIGN_P] - summ_p[IEIGN_P] + 0.5_rt*dt*smhd[IEIGN_P]);
 
       qleft(i+1,j,k,QMAGX) = Bx(i+1,j,k); // Bx stuff
       qleft(i+1,j,k,QMAGY) = q_ref_left[IEIGN_BT] - summ_p[IEIGN_BT] + 0.5_rt*dt*smhd[IEIGN_BT];
