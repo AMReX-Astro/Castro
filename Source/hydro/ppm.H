@@ -176,7 +176,7 @@ ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
   // Ip integrates to the right edge of a cell
   // Im integrates to the left edge of a cell
 
-  Real sigma = lam * dtdx;
+  Real sigma = std::abs(lam) * dtdx;
 
   // if speed == ZERO, then either branch is the same
   Im = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
