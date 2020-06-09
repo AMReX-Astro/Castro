@@ -9,22 +9,29 @@ import sys
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit('No version provided!')
+        print('No version provided!')
+    else:
+        gen_version_re = re.compile(r'#\s(\d\d\.\d\d)')
+        this_version_re = re.compile(f'#\s{sys.argv[1]}')
 
-    gen_version_re = re.compile(r'#\s(\d\d\.\d\d)')
-    this_version_re = re.compile(f'#\s{sys.argv[1]}')
-
-    with open('CHANGES.md', 'r') as file:
-        txt = file.read()
-        m = re.search(this_version_re, txt)
-        if m:
-            # find next date
-            m_next = re.search(gen_version_re, txt[m.end():])
-            if m_next:
-                txt = '   ' + txt[m.end():m.end()+m_next.start()].strip()
+        with open('CHANGES.md', 'r') as file:
+            txt = file.read()
+            m = re.search(this_version_re, txt)
+            if m:
+                # find next date
+                m_next = re.search(gen_version_re, txt[m.end():])
+                if m_next:
+                    txt = txt[m.end():m.end()+m_next.start()].strip()
+                else:
+                    txt = txt[m.end():].strip()
             else:
-                txt = '   ' + txt[m.end():].strip()
-        else:
-            txt = ""
-                
-        print(f'::set-env name=RELEASE_TXT::{txt}')
+                txt = ""
+                    
+            # we now need to substitute characters in the string so that 
+            # the action can deal with line breaks 
+            txt = txt.replace('%', '%25')
+            txt = txt.replace('\n', '%0A')
+            txt = txt.replace('\r', '%0D')
+            txt = txt.replace('%0A   *', '%0A*')
+
+            print(f'::set-env name=RELEASE_TXT::{txt}')

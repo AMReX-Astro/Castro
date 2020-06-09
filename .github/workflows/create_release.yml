@@ -2,35 +2,35 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - '[0-9][0-9].[0-9][0-9]' # Push events to matching ##.##
+      - '[0-9][0-9].[0-9][0-9]' 
   
-  name: Create Release
-  
-  jobs:
-    build:
-      name: Create Release
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
+name: Create Release
 
-        - name: Get the version
-          id: get_version
-          run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-        - name: Set release text
-          id: release_txt
-          run: |
-            python .github/workflows/get_release_txt.py ${VERSION}
+      - name: Get the version
+        id: get_version
+        run: echo ::set-env name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-        - name: Create Release
-          id: create_release
-          uses: actions/create-release@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-          with:
-            tag_name: ${{ github.ref }}
-            release_name: Release ${{ github.ref }}
-            body: ${{ RELEASE_TXT }}
-            draft: false
-            prerelease: false
+      - name: Set release text
+        id: release_txt
+        run: |
+          python3 .github/workflows/get_release_txt.py ${{ env.VERSION }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ env.RELEASE_TXT }}
+          draft: false
+          prerelease: false
