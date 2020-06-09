@@ -1,3 +1,17 @@
+# 20.07
+
+   * The Reactions_Type StateData has been reworked so that its first
+     NumSpec components are rho * omegadot rather than omegadot; then,
+     the NumAux auxiliary components are stored, if the network has any
+     auxiliary variables; then, rho * enuc is stored (enuc itself is
+     removed), and finally the burn weights are stored. The checkpoint
+     version has been incremented, so this version of the code cannot
+     restart from checkpoints generated with earlier versions of the
+     code. (#927)
+
+   * A bug where refluxing between AMR levels resulted in incorrect results
+     when a retry occurred in the previous timestep has been fixed. (#1018)
+
 # 20.06
 
    * The parameter castro.density_reset_method has been removed. A density
