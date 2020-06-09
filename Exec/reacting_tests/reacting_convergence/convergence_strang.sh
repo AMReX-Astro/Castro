@@ -3,7 +3,7 @@
 # echo the commands
 set -x
 
-DIM=1
+DIM=2
 EXEC=./Castro${DIM}d.gnu.MPI.ex
 
 RUNPARAMS="castro.time_integration_method=0"
