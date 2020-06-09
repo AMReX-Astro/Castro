@@ -228,7 +228,11 @@ Castro::ppm_mhd(const Box& bx,
 
       // loop over variables in Im[n][ii]
       for (int n = 0; n < NEIGN; n++) {
-        LdQ += leig(ii,n) * (q_ref_right[n] - Im[n][ii]);
+        if (lam(ii) <= 0.0_rt) {
+          LdQ += leig(ii,n) * (q_ref_right[n] - Im[n][ii]);
+        } else {
+          LdQ += leig(ii,n) * (q_ref_right[n] - Ip[n][ii]);
+        }
       }
 
       // add the contribution of this wave to each variable
@@ -276,7 +280,11 @@ Castro::ppm_mhd(const Box& bx,
 
       // loop over variables in Im[n][ii]
       for (int n = 0; n < NEIGN; n++) {
-        LdQ += leig(ii,n) * (q_ref_left[n] - Ip[n][ii]);
+        if (lam(ii) >= 0.0_rt) {
+          LdQ += leig(ii,n) * (q_ref_left[n] - Ip[n][ii]);
+        } else {
+          LdQ += leig(ii,n) * (q_ref_left[n] - Im[n][ii]);
+        }
       }
 
       // add the contribution of this wave to each variable
