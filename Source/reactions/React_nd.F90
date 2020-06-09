@@ -47,7 +47,7 @@ contains
     real(rt) , intent(inout) :: failed
 
     integer          :: i, j, k, n
-    real(rt)         :: rhoInv, delta_e, delta_rho_e, dx_min
+    real(rt)         :: rhoInv, dx_min
     logical          :: do_burn
 
     type (burn_t) :: burn_state_in, burn_state_out
@@ -71,7 +71,7 @@ contains
     !$acc parallel if(do_acc == 1)
 
     !$acc loop gang vector collapse(3) &
-    !$acc private(rhoInv, delta_e, delta_rho_e) &
+    !$acc private(rhoInv) &
     !$acc private(burn_state_in, burn_state_out) &
     !$acc private(i,j,k)
 
@@ -162,29 +162,6 @@ contains
 
              if (do_burn) then
 
-                ! Note that we want to update the total energy by taking
-                ! the difference of the old rho*e and the new rho*e. If
-                ! the user wants to ensure that rho * E = rho * e + rho *
-                ! K, this reset should be enforced through an appropriate
-                ! choice for the dual energy formalism parameter
-                ! dual_energy_eta2 in reset_internal_energy.
-
-                delta_e     = burn_state_out % e - burn_state_in % e
-                delta_rho_e = burn_state_out % rho * delta_e
-
-                state(i,j,k,UEINT) = state(i,j,k,UEINT) + delta_rho_e
-                state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + delta_rho_e
-
-                do n = 1, nspec
-                   state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * burn_state_out % xn(n)
-                enddo
-
-#if naux > 0
-                do n = 1, naux
-                   state(i,j,k,UFX+n-1)  = state(i,j,k,URHO) * burn_state_out % aux(n)
-                enddo
-#endif
-
                 ! Add burning rates to reactions MultiFab, but be
                 ! careful because the reactions and state MFs may
                 ! not have the same number of ghost cells.
@@ -194,11 +171,15 @@ contains
                      k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
                    do n = 1, nspec
-                      reactions(i,j,k,n) = (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
+                      reactions(i,j,k,n) = state(i,j,k,URHO) * (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
                    end do
-                   reactions(i,j,k,nspec+1) = delta_e / dt_react
-                   reactions(i,j,k,nspec+2) = delta_rho_e / dt_react
-                   reactions(i,j,k,nspec+3) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+#if naux > 0
+                   do n = 1, naux
+                      reactions(i,j,k,n+nspec) = state(i,j,k,URHO) * (burn_state_out % aux(n) - burn_state_in % aux(n)) / dt_react
+                   end do
+#endif
+                   reactions(i,j,k,nspec+naux+1) = state(i,j,k,URHO) * (burn_state_out % e - burn_state_in % e) / dt_react
+                   reactions(i,j,k,nspec+naux+2) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
                 end if
 
@@ -208,11 +189,11 @@ contains
                      j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
                      k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                   do n = 1, nspec+2
+                   do n = 1, nspec+naux+1
                       reactions(i,j,k,n) = ZERO
                    end do
 
-                   reactions(i,j,k,nspec+3) = ONE
+                   reactions(i,j,k,nspec+naux+2) = ONE
 
                 end if
 
@@ -267,7 +248,7 @@ contains
     real(rt), intent(in   ) :: uold(uo_lo(1):uo_hi(1),uo_lo(2):uo_hi(2),uo_lo(3):uo_hi(3),NVAR)
     real(rt), intent(inout) :: unew(un_lo(1):un_hi(1),un_lo(2):un_hi(2),un_lo(3):un_hi(3),NVAR)
     real(rt), intent(in   ) :: asrc(as_lo(1):as_hi(1),as_lo(2):as_hi(2),as_lo(3):as_hi(3),NVAR)
-    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
+    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+naux+2)
     integer , intent(in   ) :: mask(m_lo(1):m_hi(1),m_lo(2):m_hi(2),m_lo(3):m_hi(3))
     real(rt), intent(in   ), value :: time, dt_react
     integer , intent(in   ), value :: sdc_iter
@@ -393,14 +374,11 @@ contains
                      j .ge. r_lo(2) .and. j .le. r_hi(2) .and. &
                      k .ge. r_lo(3) .and. k .le. r_hi(3) ) then
 
-                   rhonInv = ONE / unew(i,j,k,URHO)
-
                    do n = 1, nspec
-                      reactions(i,j,k,n) = (unew(i,j,k,UFS+n-1) * rhoninv - uold(i,j,k,UFS+n-1) * rhooinv) / dt_react
+                      reactions(i,j,k,n) = (unew(i,j,k,UFS+n-1) - uold(i,j,k,UFS+n-1)) / dt_react
                    end do
-                   reactions(i,j,k,nspec+1) = (unew(i,j,k,UEINT) * rhonInv - uold(i,j,k,UEINT) * rhooInv) / dt_react
-                   reactions(i,j,k,nspec+2) = (unew(i,j,k,UEINT) - uold(i,j,k,UEINT)) / dt_react
-                   reactions(i,j,k,nspec+3) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
+                   reactions(i,j,k,nspec+naux+1) = (unew(i,j,k,UEINT) - uold(i,j,k,UEINT)) / dt_react
+                   reactions(i,j,k,nspec+naux+2) = max(ONE, dble(burn_state_out % n_rhs + 2 * burn_state_out % n_jac))
 
                 end if
 

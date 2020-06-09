@@ -27,9 +27,10 @@
 ///
 /// Check to see if the CFL condition has been violated
 ///
+/// @param State MultiFab of conserved variables
 /// @param dt timestep
 ///
-    void check_for_cfl_violation(const amrex::Real dt);
+    void check_for_cfl_violation(const amrex::MultiFab& State, const amrex::Real dt);
 
 ///
 /// this constructs the hydrodynamic source (essentially the flux
