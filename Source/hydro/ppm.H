@@ -178,10 +178,13 @@ ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
 
   Real sigma = std::abs(lam) * dtdx;
 
-  // if speed == ZERO, then either branch is the same
-  Im = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
-  Ip = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
-
+  if (lam <= 0.0_rt) {
+    Ip = sp;
+    Im = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+  } else {
+    Ip = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+    Im = sm;
+  }
 }
 
 #endif

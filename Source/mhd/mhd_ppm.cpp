@@ -153,8 +153,23 @@ Castro::ppm_mhd(const Box& bx,
 
         ppm_int_profile_single(sm, sp, s[i0], speed, dtdx, Ipt, Imt);
 
-        Ip[n][ii] = Ipt;
-        Im[n][ii] = Imt;
+        // we do a special correction here for waves that are not
+        // moving toward the interface.  It doesn't make sense to
+        // integrate under the parabola in this case, so we simply
+        // create a piecewise linear slope here.  See Stone et al. Eq
+        // 44 and 45
+        if (lam(ii) >= 0.0_rt) {
+          Ip[n][ii] = Ipt;
+        } else {
+          Ip[n][ii] = 0.5_rt * dtdx * (sp - sm);
+        }
+
+        if (lam(ii) <= 0.0_rt) {
+          Im[n][ii] = Imt;
+        } else {
+          Im[n][ii] = 0.5_rt * dtdx * (sp - sm);
+        }
+
       }
 
       // and now the reference states
@@ -231,7 +246,8 @@ Castro::ppm_mhd(const Box& bx,
         if (lam(ii) <= 0.0_rt) {
           LdQ += leig(ii,n) * (q_ref_right[n] - Im[n][ii]);
         } else {
-          LdQ += leig(ii,n) * (q_ref_right[n] - Ip[n][ii]);
+          // in this case, the integral Im is a slope
+          LdQ += (lam(0) - lam(ii)) * leig(ii,n) * Im[n][ii];
         }
       }
 
@@ -283,7 +299,8 @@ Castro::ppm_mhd(const Box& bx,
         if (lam(ii) >= 0.0_rt) {
           LdQ += leig(ii,n) * (q_ref_left[n] - Ip[n][ii]);
         } else {
-          LdQ += leig(ii,n) * (q_ref_left[n] - Im[n][ii]);
+          // in this case, the integral Ip is a slope
+          LdQ += (lam(NEIGN-1) - lam(ii)) * leig(ii,n) * Ip[n][ii];
         }
       }
 
