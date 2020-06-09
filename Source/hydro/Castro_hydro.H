@@ -278,17 +278,16 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    Real
+    uslope(const amrex::Real* q, const amrex::Real flatn,
+           bool bnd_lo_reflect, bool bnd_hi_reflect);
 
-    void uslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const& q_arr, const int n,
-                amrex::Array4<amrex::Real const> const& flatn,
-                amrex::Array4<amrex::Real> const& dq);
-
-    void pslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const& q_arr,
-                amrex::Array4<amrex::Real const> const& flatn_arr,
-                amrex::Array4<amrex::Real> const& dq,
-                amrex::Array4<amrex::Real const> const& src);
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    void
+    pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src, const amrex::Real flatn,
+           bool lo_bc_test, bool hi_bc_test,
+           const amrex::Real dx, amrex::Real& dp);
 
 
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
@@ -296,7 +295,6 @@
                         amrex::Array4<amrex::Real const> const& flatn,
                         amrex::Array4<amrex::Real const> const& qaux__arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
-                        amrex::Array4<amrex::Real> const& dq,
                         amrex::Array4<amrex::Real> const& qxm,
                         amrex::Array4<amrex::Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
@@ -316,7 +314,7 @@
                    const int idir,
                    amrex::Array4<amrex::Real const> const& q,
                    amrex::Array4<amrex::Real const> const& qaux,
-                   amrex::Array4<amrex::Real const> const& dq,
+                   amrex::Array4<amrex::Real const> const& flatn_arr,
                    amrex::Array4<amrex::Real> const& qm,
                    amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)

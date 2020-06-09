@@ -87,7 +87,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     FArrayBox flatg;
 #endif
-    FArrayBox dq;
     FArrayBox shk;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
@@ -363,17 +362,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (ppm_type == 0) {
 
-        dq.resize(obx, NQ);
-        Elixir elix_dq = dq.elixir();
-        fab_size += dq.nBytes();
-        auto dq_arr = dq.array();
-
         ctu_plm_states(obx, bx,
                        q_arr,
                        flatn_arr,
                        qaux_arr,
                        src_q_arr,
-                       dq_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,

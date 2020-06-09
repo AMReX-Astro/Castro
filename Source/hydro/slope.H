@@ -50,11 +50,11 @@ Castro::uslope(const Real* q, const Real flatn,
       // Saltzman p. 162 (but note that Saltzman has a
       // sign error)
 
-      Real qm2 = q(im2);
-      Real qm1 = q(im1);
-      Real q0 = q(i0);
-      Real qp1 = q(ip1);
-      Real qp2 = q(ip2);
+      Real qm2 = q[im2];
+      Real qm1 = q[im1];
+      Real q0 = q[i0];
+      Real qp1 = q[ip1];
+      Real qp2 = q[ip2];
 
       if (bnd_lo_reflect) {
         qm2 = -qp1;
@@ -105,8 +105,9 @@ Castro::uslope(const Real* q, const Real flatn,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
-       const Real dx, Real& dp) {
+Castro::pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+               bool lo_bc_test, bool hi_bc_test,
+               const Real dx, Real& dp) {
 
   // dp should come in as the current estimate of the pressure slope
   // and we overwrite it if needed

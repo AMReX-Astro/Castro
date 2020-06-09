@@ -9,7 +9,8 @@
 
 #include <cmath>
 
-#include <ppm.H>
+#include "ppm.H"
+#include "slope.H"
 
 using namespace amrex;
 
@@ -17,6 +18,7 @@ void
 Castro::trace_plm(const Box& bx, const int idir,
                   Array4<Real const> const& q_arr,
                   Array4<Real const> const& qaux_arr,
+                  Array4<Real const> const& flatn_arr,
                   Array4<Real> const& qm,
                   Array4<Real> const& qp,
 #if AMREX_SPACEDIM < 3
@@ -89,7 +91,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   cvars[IEIGN_UT] = QUT;
   cvars[IEIGN_UTT] = QUTT;
   cvars[IEIGN_P] = QPRES;
-  cvars[IEIGN_RE] = QRHOE;
+  cvars[IEIGN_RE] = QREINT;
 
   // Compute left and right traced states
 
@@ -119,7 +121,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
     Real dq[NEIGN];
     Real s[5];
-    Real flat = flatn(i,j,k);
+    Real flat = flatn_arr(i,j,k);
 
     for (int n = 0; n < NEIGN; n++) {
       int v = cvars[n];
@@ -215,17 +217,17 @@ Castro::trace_plm(const Box& bx, const int idir,
       }
 
       Real dp = dq[IEIGN_P];
-      pslope(trho, s, src, flat, dx, dp);
+      pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
       dq[IEIGN_P] = dp;
 
     }
 
-    Real alpham = 0.5_rt*(dp/(rho*cc) - dun)*(rho/cc);
-    Real alphap = 0.5_rt*(dp/(rho*cc) + dun)*(rho/cc);
-    Real alpha0r = drho - dp/csq;
-    Real alpha0e = drhoe - dp*enth;
-    Real alpha0ut = dut;
-    Real alpha0utt = dutt;
+    Real alpham = 0.5_rt*(dq[IEIGN_P]/(rho*cc) - dq[IEIGN_UN])*(rho/cc);
+    Real alphap = 0.5_rt*(dq[IEIGN_P]/(rho*cc) + dq[IEIGN_UN])*(rho/cc);
+    Real alpha0r = dq[IEIGN_RHO] - dq[IEIGN_P]/csq;
+    Real alpha0e = dq[IEIGN_RE] - dq[IEIGN_P]*enth;
+    Real alpha0ut = dq[IEIGN_UT];
+    Real alpha0utt = dq[IEIGN_UTT];
 
     Real e[3];
     e[0] = un - cc;
@@ -235,12 +237,12 @@ Castro::trace_plm(const Box& bx, const int idir,
     // construct the right state on the i interface
 
     Real ref_fac = 0.5_rt*(1.0_rt + dtdx*amrex::min(e[0], 0.0_rt));
-    Real rho_ref = rho - ref_fac*drho;
-    Real un_ref = un - ref_fac*dun;
-    Real ut_ref = ut - ref_fac*dut;
-    Real utt_ref = utt - ref_fac*dutt;
-    Real p_ref = p - ref_fac*dp;
-    Real rhoe_ref = rhoe - ref_fac*drhoe;
+    Real rho_ref = rho - ref_fac*dq[IEIGN_RHO];
+    Real un_ref = un - ref_fac*dq[IEIGN_UN];
+    Real ut_ref = ut - ref_fac*dq[IEIGN_UT];
+    Real utt_ref = utt - ref_fac*dq[IEIGN_UTT];
+    Real p_ref = p - ref_fac*dq[IEIGN_P];
+    Real rhoe_ref = rhoe - ref_fac*dq[IEIGN_RE];
 
     // this is -(1/2) ( 1 + dt/dx lambda) (l . dq) r
     Real trace_fac0 = 0.0_rt; //  FOURTH*dtdx*(e(1) - e(1))*(1.0_rt - sign(1.0_rt, e(1)))
@@ -280,12 +282,12 @@ Castro::trace_plm(const Box& bx, const int idir,
     // now construct the left state on the i+1 interface
 
     ref_fac = 0.5_rt*(1.0_rt - dtdx*amrex::max(e[2], 0.0_rt));
-    rho_ref = rho + ref_fac*drho;
-    un_ref = un + ref_fac*dun;
-    ut_ref = ut + ref_fac*dut;
-    utt_ref = utt + ref_fac*dutt;
-    p_ref = p + ref_fac*dp;
-    rhoe_ref = rhoe + ref_fac*drhoe;
+    rho_ref = rho + ref_fac*dq[IEIGN_RHO];
+    un_ref = un + ref_fac*dq[IEIGN_UN];
+    ut_ref = ut + ref_fac*dq[IEIGN_UT];
+    utt_ref = utt + ref_fac*dq[IEIGN_UTT];
+    p_ref = p + ref_fac*dq[IEIGN_P];
+    rhoe_ref = rhoe + ref_fac*dq[IEIGN_RE];
 
     trace_fac0 = 0.25_rt*dtdx*(e[2] - e[0])*(1.0_rt + std::copysign(1.0_rt, e[0]));
     trace_fac1 = 0.25_rt*dtdx*(e[2] - e[1])*(1.0_rt + std::copysign(1.0_rt, e[1]));
@@ -378,13 +380,41 @@ Castro::trace_plm(const Box& bx, const int idir,
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int n = qpassmap(ipassive);
 
+      // get the slope
+      Real s[5];
+      Real flat = flatn_arr(i,j,k);
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,n);
+        s[im1] = q_arr(i-1,j,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i+1,j,k,n);
+        s[ip2] = q_arr(i+2,j,k,n);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,n);
+        s[im1] = q_arr(i,j-1,k,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j+1,k,n);
+        s[ip2] = q_arr(i,j+2,k,n);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,n);
+        s[im1] = q_arr(i,j,k-1,n);
+        s[i0]  = q_arr(i,j,k,n);
+        s[ip1] = q_arr(i,j,k+1,n);
+        s[ip2] = q_arr(i,j,k+2,n);
+      }
+
+      Real dX = uslope(s, flat, false, false);
+
       // Right state
       if ((idir == 0 && i >= vlo[0]) ||
           (idir == 1 && j >= vlo[1]) ||
           (idir == 2 && k >= vlo[2])) {
 
         Real spzero = un >= 0.0_rt ? -1.0_rt : un*dtdx;
-        qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dq(i,j,k,n);
+        qp(i,j,k,n) = q_arr(i,j,k,n) + 0.5_rt*(-1.0_rt - spzero)*dX;
 #if  PRIM_SPECIES_HAVE_SOURCES
         qp(i,j,k,n) += 0.5_rt*dt*srcQ(i,j,k,n);
 #endif
@@ -392,7 +422,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // Left state
       Real spzero = un >= 0.0_rt ? un*dtdx : 1.0_rt;
-      Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dq(i,j,k,n);
+      Real acmpleft = 0.5_rt*(1.0_rt - spzero )*dX;
 
       if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,n) = q_arr(i,j,k,n) + acmpleft;

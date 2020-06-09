@@ -10,7 +10,8 @@
 #include "Gravity.H"
 #endif
 
-#include <ppm.H>
+#include "ppm.H"
+#include "slope.H"
 
 using namespace amrex;
 
@@ -26,17 +27,142 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  for (int n = 0; n < NQ; n++) {
-    // piecewise linear slopes
-    uslope(bx, idir,
-           q_arr, n,
-           flatn_arr, dq);
-  }
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  bool lo_symm = lo_bc[idir] == Symmetry;
+  bool hi_symm = hi_bc[idir] == Symmetry;
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  // piecewise linear slopes
+  amrex::ParallelFor(bx, NQ,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+  {
+
+    bool lo_bc_test = lo_symm && (idir == 0 && i == domlo[0]) ||
+                                 (idir == 1 && j == domlo[1]) ||
+                                 (idir == 2 && k == domlo[2]);
+
+    bool hi_bc_test = hi_symm && (idir == 0 && i == domhi[0]) ||
+                                 (idir == 1 && j == domhi[1]) ||
+                                 (idir == 2 && k == domhi[2]);
+
+    Real s[5];
+    Real flat = flatn_arr(i,j,k);
+
+    if (idir == 0) {
+      s[im2] = q_arr(i-2,j,k,n);
+      s[im1] = q_arr(i-1,j,k,n);
+      s[i0]  = q_arr(i,j,k,n);
+      s[ip1] = q_arr(i+1,j,k,n);
+      s[ip2] = q_arr(i+2,j,k,n);
+
+    } else if (idir == 1) {
+      s[im2] = q_arr(i,j-2,k,n);
+      s[im1] = q_arr(i,j-1,k,n);
+      s[i0]  = q_arr(i,j,k,n);
+      s[ip1] = q_arr(i,j+1,k,n);
+      s[ip2] = q_arr(i,j+2,k,n);
+
+    } else {
+      s[im2] = q_arr(i,j,k-2,n);
+      s[im1] = q_arr(i,j,k-1,n);
+      s[i0]  = q_arr(i,j,k,n);
+      s[ip1] = q_arr(i,j,k+1,n);
+      s[ip2] = q_arr(i,j,k+2,n);
+    }
+
+    // normal velocity?
+    bool vtest = n == QU+idir;
+
+    dq(i,j,k,n) = uslope(s, flat, lo_bc_test && vtest, hi_bc_test && vtest);
+  });
 
   if (use_pslope == 1) {
-    pslope(bx, idir,
-           q_arr,
-           flatn_arr, dq, src_q_arr);
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+
+      Real s[5];
+      Real flat = flatn_arr(i,j,k);
+
+      Real trho[5];
+      Real src[5];
+
+      bool lo_bc_test = lo_symm && (idir == 0 && i == domlo[0]) ||
+                                   (idir == 1 && j == domlo[1]) ||
+                                   (idir == 2 && k == domlo[2]);
+
+      bool hi_bc_test = hi_symm && (idir == 0 && i == domhi[0]) ||
+                                   (idir == 1 && j == domhi[1]) ||
+                                   (idir == 2 && k == domhi[2]);
+
+      if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,QPRES);
+        s[im1] = q_arr(i-1,j,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i+1,j,k,QPRES);
+        s[ip2] = q_arr(i+2,j,k,QPRES);
+
+        trho[im2] = q_arr(i-2,j,k,QRHO);
+        trho[im1] = q_arr(i-1,j,k,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i+1,j,k,QRHO);
+        trho[ip2] = q_arr(i+2,j,k,QRHO);
+
+        src[im2] = src_q_arr(i-2,j,k,QU);
+        src[im1] = src_q_arr(i-1,j,k,QU);
+        src[i0]  = src_q_arr(i,j,k,QU);
+        src[ip1] = src_q_arr(i+1,j,k,QU);
+        src[ip2] = src_q_arr(i+2,j,k,QU);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,QPRES);
+        s[im1] = q_arr(i,j-1,k,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j+1,k,QPRES);
+        s[ip2] = q_arr(i,j+2,k,QPRES);
+
+        trho[im2] = q_arr(i,j-2,k,QRHO);
+        trho[im1] = q_arr(i,j-1,k,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i,j+1,k,QRHO);
+        trho[ip2] = q_arr(i,j+2,k,QRHO);
+
+        src[im2] = src_q_arr(i,j-2,k,QV);
+        src[im1] = src_q_arr(i,j-1,k,QV);
+        src[i0]  = src_q_arr(i,j,k,QV);
+        src[ip1] = src_q_arr(i,j+1,k,QV);
+        src[ip2] = src_q_arr(i,j+2,k,QV);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,QPRES);
+        s[im1] = q_arr(i,j,k-1,QPRES);
+        s[i0]  = q_arr(i,j,k,QPRES);
+        s[ip1] = q_arr(i,j,k+1,QPRES);
+        s[ip2] = q_arr(i,j,k+2,QPRES);
+
+        trho[im2] = q_arr(i,j,k-2,QRHO);
+        trho[im1] = q_arr(i,j,k-1,QRHO);
+        trho[i0]  = q_arr(i,j,k,QRHO);
+        trho[ip1] = q_arr(i,j,k+1,QRHO);
+        trho[ip2] = q_arr(i,j,k+2,QRHO);
+
+        src[im2] = src_q_arr(i,j,k-2,QW);
+        src[im1] = src_q_arr(i,j,k-1,QW);
+        src[i0]  = src_q_arr(i,j,k,QW);
+        src[ip1] = src_q_arr(i,j,k+1,QW);
+        src[ip2] = src_q_arr(i,j,k+2,QW);
+      }
+
+      Real dp = dq(i,j,k,QPRES);
+      pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
+      dq(i,j,k,QPRES) = dp;
+
+    });
   }
 
   amrex::ParallelFor(bx, NQ,
@@ -83,20 +209,12 @@ Castro::mol_plm_reconstruct(const Box& bx,
 
 
   // special care for reflecting BCs
-  const int* lo_bc = phys_bc.lo();
-  const int* hi_bc = phys_bc.hi();
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  bool lo_bc_test = lo_bc[idir] == Symmetry;
-  bool hi_bc_test = hi_bc[idir] == Symmetry;
 
   // we have to do this after the loops above, since here we will
   // consider interfaces, not zones
 
   if (idir == 0) {
-    if (lo_bc_test) {
+    if (lo_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -117,7 +235,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     }
 
 
-    if (hi_bc_test) {
+    if (hi_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -140,7 +258,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 #if AMREX_SPACEDIM >= 2
   } else if (idir == 1) {
 
-    if (lo_bc_test) {
+    if (lo_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -161,7 +279,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     }
 
 
-    if (hi_bc_test) {
+    if (hi_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -185,7 +303,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
 #if AMREX_SPACEDIM == 3
   } else {
 
-    if (lo_bc_test) {
+    if (lo_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -206,7 +324,7 @@ Castro::mol_plm_reconstruct(const Box& bx,
     }
 
 
-    if (hi_bc_test) {
+    if (hi_symm) {
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
