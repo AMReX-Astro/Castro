@@ -99,13 +99,13 @@ Castro::trace_plm(const Box& bx, const int idir,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    bool lo_bc_test = lo_symm && (idir == 0 && i == domlo[0]) ||
-                                 (idir == 1 && j == domlo[1]) ||
-                                 (idir == 2 && k == domlo[2]);
+    bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
+                                  (idir == 1 && j == domlo[1]) ||
+                                  (idir == 2 && k == domlo[2]));
 
-    bool hi_bc_test = hi_symm && (idir == 0 && i == domhi[0]) ||
-                                 (idir == 1 && j == domhi[1]) ||
-                                 (idir == 2 && k == domhi[2]);
+    bool hi_bc_test = hi_symm && ((idir == 0 && i == domhi[0]) ||
+                                  (idir == 1 && j == domhi[1]) ||
+                                  (idir == 2 && k == domhi[2]));
 
     Real cc = qaux_arr(i,j,k,QC);
     Real csq = cc*cc;
@@ -381,8 +381,6 @@ Castro::trace_plm(const Box& bx, const int idir,
       int n = qpassmap(ipassive);
 
       // get the slope
-      Real s[5];
-      Real flat = flatn_arr(i,j,k);
 
       if (idir == 0) {
         s[im2] = q_arr(i-2,j,k,n);
