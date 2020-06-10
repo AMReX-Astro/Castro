@@ -194,7 +194,7 @@ Castro::just_the_mhd(Real time, Real dt)
             amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-              flatn_arr(i,j,k) = 0.0;
+              flatn_arr(i,j,k) = 1.0;
             });
 
           } else {
