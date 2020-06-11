@@ -38,8 +38,16 @@ Improvements to the gravity solver and rotation were described in:
   * *Double White Dwarf Mergers on Adaptive Meshes I. Methodology and
     Code
     Verification*, M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty,
-    A. S. Almgren, W. Zhang 2016, ApJ, 819, 94.
+    A. S. Almgren, & W. Zhang, 2016, ApJ, 819, 94.
     http://dx.doi.org/10.3847/0004-637X/819/2/94
+
+The 4th order reactive hydrodynamics spectral deferred corrections solver
+was described in:
+
+  * *Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections*
+    M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, & W. Zhang,
+    2019, ApJ, 886, 105.
+    https://ui.adsabs.harvard.edu/link_gateway/2019ApJ...886..105Z/doi:10.3847/1538-4357/ab4e1d
 
 The development of AMReX library is led by the
 Center for Computational Sciences and Engineering / Lawrence Berkeley

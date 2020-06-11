@@ -33,8 +33,6 @@ extern "C"
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
 
-  void ca_get_method_params(int* HYP_GROW);
-
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 #ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
@@ -144,11 +142,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-  void ca_enforce_minimum_density
-    (const int* lo, const int* hi,
-     const amrex::Real* state, const int* s_lo, const int* s_hi,
-     const int verbose);
-
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
@@ -231,12 +224,6 @@ extern "C"
 /* rotation */
 #ifdef ROTATION
 #include <Castro_rotation_F.H>
-#endif
-
-
-/* mhd */
-#ifdef MHD
-#include <Castro_mhd_F.H>
 #endif
 
 

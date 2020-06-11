@@ -3,6 +3,10 @@
 
 #include <state_indices.H>
 
+#ifdef MHD
+#include <mhd_sizes.H>
+#endif
+
 // runtime parameters
 #include <castro_params.H>
 using namespace castro;

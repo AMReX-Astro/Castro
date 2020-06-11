@@ -27,9 +27,10 @@
 ///
 /// Check to see if the CFL condition has been violated
 ///
+/// @param State MultiFab of conserved variables
 /// @param dt timestep
 ///
-    void check_for_cfl_violation(const amrex::Real dt);
+    void check_for_cfl_violation(const amrex::MultiFab& State, const amrex::Real dt);
 
 ///
 /// this constructs the hydrodynamic source (essentially the flux
@@ -156,6 +157,42 @@
                               amrex::Array4<amrex::Real> const& qm,
                               amrex::Array4<amrex::Real> const& qp);
 
+     void mol_consup(const amrex::Box& bx,
+                     amrex::Array4<amrex::Real const> const& shk,
+                     amrex::Array4<amrex::Real const> const& uin,
+                     amrex::Array4<amrex::Real const> const& srcU,
+                     amrex::Array4<amrex::Real> const& update,
+                     const amrex::Real dt,
+                     amrex::Array4<amrex::Real const> const& flux1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& flux2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& flux3,
+#endif
+                     amrex::Array4<amrex::Real const> const& area1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& area2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& area3,
+#endif
+                     amrex::Array4<amrex::Real const> const& q1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& q2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& q3,
+#endif
+                     amrex::Array4<amrex::Real const> const& vol);
+
+     void
+     mol_diffusive_flux(const amrex::Box& bx,
+                        const int idir,
+                        amrex::Array4<amrex::Real const> const& U,
+                        amrex::Array4<amrex::Real const> const& cond,
+                        amrex::Array4<amrex::Real> const& flux);
+
      void trans_single(const amrex::Box& bx,
                        int idir_t, int idir_n,
                        amrex::Array4<amrex::Real const> const& qm,
@@ -242,17 +279,16 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    Real
+    uslope(const amrex::Real* q, const amrex::Real flatn,
+           bool bnd_lo_reflect, bool bnd_hi_reflect);
 
-    void uslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const& q_arr, const int n,
-                amrex::Array4<amrex::Real const> const& flatn,
-                amrex::Array4<amrex::Real> const& dq);
-
-    void pslope(const amrex::Box& bx, const int idir,
-                amrex::Array4<amrex::Real const> const& q_arr,
-                amrex::Array4<amrex::Real const> const& flatn_arr,
-                amrex::Array4<amrex::Real> const& dq,
-                amrex::Array4<amrex::Real const> const& src);
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+    void
+    pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src, const amrex::Real flatn,
+           bool lo_bc_test, bool hi_bc_test,
+           const amrex::Real dx, amrex::Real& dp);
 
 
     void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
@@ -260,7 +296,6 @@
                         amrex::Array4<amrex::Real const> const& flatn,
                         amrex::Array4<amrex::Real const> const& qaux__arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
-                        amrex::Array4<amrex::Real> const& dq,
                         amrex::Array4<amrex::Real> const& qxm,
                         amrex::Array4<amrex::Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
@@ -280,7 +315,7 @@
                    const int idir,
                    amrex::Array4<amrex::Real const> const& q,
                    amrex::Array4<amrex::Real const> const& qaux,
-                   amrex::Array4<amrex::Real const> const& dq,
+                   amrex::Array4<amrex::Real const> const& flatn_arr,
                    amrex::Array4<amrex::Real> const& qm,
                    amrex::Array4<amrex::Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
@@ -488,9 +523,14 @@
     void reset_edge_state_thermo(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qedge);
 
-    void edge_state_temp_to_pres(const Box& bx,
+    void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
+
+
+    void do_enforce_minimum_density(const amrex::Box& bx,
+                                    amrex::Array4<amrex::Real> const& state_arr,
+                                    const int verbose);
 
 #ifdef HYBRID_MOMENTUM
 
@@ -547,6 +587,38 @@
 #endif
 
 #ifdef TRUE_SDC
+
+    void
+    fourth_interfaces(const amrex::Box& bx,
+                      const int idir, const int ncomp,
+                      amrex::Array4<amrex::Real const> const& a,
+                      amrex::Array4<amrex::Real> const& a_int);
+
+    void
+    states(const amrex::Box& bx,
+           const int idir, const int ncomp,
+           amrex::Array4<amrex::Real const> const& a,
+           amrex::Array4<amrex::Real const> const& a_int,
+           amrex::Array4<amrex::Real const> const& flatn,
+           amrex::Array4<amrex::Real> const& al,
+           amrex::Array4<amrex::Real> const& ar);
+
+    void
+    fourth_avisc(const amrex::Box& bx,
+                 amrex::Array4<amrex::Real const> const& q,
+                 amrex::Array4<amrex::Real const> const& qaux,
+                 amrex::Array4<amrex::Real> const& avis,
+                 const int idir);
+
+    void
+    fourth_add_diffusive_flux(const amrex::Box& bx,
+                              amrex::Array4<amrex::Real const> const& q,
+                              const int temp_comp,
+                              amrex::Array4<amrex::Real const> const& qint,
+                              amrex::Array4<amrex::Real> const& F,
+                              const int idir, const bool is_avg);
+
+
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real compute_laplacian(int i, int j, int k, int n,
                            Array4<Real const> const& a,

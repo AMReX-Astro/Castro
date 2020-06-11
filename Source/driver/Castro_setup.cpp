@@ -44,10 +44,12 @@ static int tang_vel_bc[] =
     INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
   };
 
+#ifdef MHD
 static int mag_field_bc[] = 
 {
   INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
 };
+#endif
 
 static
 void
@@ -280,8 +282,12 @@ Castro::variableSetUp ()
 
   const int dm = BL_SPACEDIM;
 
-  // Define NUM_GROW from the f90 module.
-  ca_get_method_params(&NUM_GROW);
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+#ifdef MHD
+  NUM_GROW = 6;
+#else
+  NUM_GROW = 4;
+#endif
 
   const Real run_strt = ParallelDescriptor::second() ;
 
@@ -477,13 +483,13 @@ Castro::variableSetUp ()
 
 
 #ifdef REACTIONS
-  // Components 0:Numspec-1         are      omegadot_i
-  // Component    NumSpec            is      enuc =      (eout-ein)
-  // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
-  // Component    NumSpec+2          is      weights ~ number of RHS calls
+  // Components 0:NumSpec-1                are rho * omegadot_i
+  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
+  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
+  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point, NUM_GROW, NumSpec+3,
+                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -674,12 +680,20 @@ Castro::variableSetUp ()
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
-      name_react = "omegadot_" + short_spec_names_cxx[i];
+      name_react = "rho_omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
     }
-  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+2, "weights", bc, genericBndryFunc); 
+#if naux > 0
+  std::string name_aux;
+  for (int i = 0; i < NumAux; ++i) {
+      set_scalar_bc(bc,phys_bc);
+      replace_inflow_bc(bc);
+      name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
+      desc_lst.setComponent(Reactions_Type, i, name_aux, bc, genericBndryFunc);
+  }
+#endif
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "burn_weights", bc, genericBndryFunc); 
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -930,7 +944,14 @@ Castro::variableSetUp ()
   //
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+
+  //
+  // Nuclear energy generation rate
+  //
+  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
+  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
@@ -1098,8 +1119,9 @@ Castro::variableSetUp ()
 
   // Fill with an empty string to initialize.
 
-  for (int n = 0; n < num_src; ++n)
+  for (int n = 0; n < num_src; ++n) {
     source_names[n] = "";
+  }
 
   source_names[ext_src] = "user-defined external";
   source_names[thermo_src] = "pdivU source";
