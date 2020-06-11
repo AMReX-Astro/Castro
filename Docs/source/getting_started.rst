@@ -163,12 +163,6 @@ packages yt, VisIt, and Paraview all support the AMReX file format
 natively [1]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
 
-Please know that we do have a number of conversion routines to other
-formats (such as matlab), but it is hard to describe them all. If you
-would like to display the data in another format, please let us know
-(again, asalmgren@lbl.gov) and we will point you to whatever we have.
-
-
 
 .. _sec:gettingstartedyt:
 
