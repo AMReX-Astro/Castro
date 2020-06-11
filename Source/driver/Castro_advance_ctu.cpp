@@ -164,9 +164,6 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      // Construct the primitive variables.
-      cons_to_prim(time);
-
       // Check for CFL violations.
       check_for_cfl_violation(S_old, dt);
 

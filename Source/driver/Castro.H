@@ -1261,7 +1261,9 @@ protected:
 ///
 /// The primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab q;
+#endif
 
 
 ///
@@ -1280,7 +1282,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab qaux;
+#endif
     amrex::MultiFab qaux_bar;
 
 
