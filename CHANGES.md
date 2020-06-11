@@ -1,5 +1,7 @@
 # 20.07
 
+   * PPM reconstruction has been added to the MHD solver (#1002)
+
    * The Reactions_Type StateData has been reworked so that its first
      NumSpec components are rho * omegadot rather than omegadot; then,
      the NumAux auxiliary components are stored, if the network has any
