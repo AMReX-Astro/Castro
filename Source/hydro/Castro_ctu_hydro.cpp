@@ -51,6 +51,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 
   int nstep_fsp = -1;
+
+  AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+
+  MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
+  if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+  }
+  else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+  }
 #endif
 
   Real mass_lost = 0.;
@@ -89,6 +99,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
     FArrayBox dq;
     FArrayBox shk;
+    FArrayBox q, qaux;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -169,8 +180,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToDevice();
-          qaux[mfi].prefetchToDevice();
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
@@ -188,8 +197,28 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
       }
 
-      Array4<Real const> const q_arr = q.array(mfi);
-      Array4<Real const> const qaux_arr = qaux.array(mfi);
+      // Compute the primitive variables (both q and qaux) from
+      // the conserved variables.
+
+      const Box& qbx = amrex::grow(bx, NUM_GROW);
+
+      q.resize(qbx, NQ);
+      Elixir elix_q = q.elixir();
+      fab_size += q.nBytes();
+      Array4<Real> const q_arr = q.array();
+
+      qaux.resize(qbx, NQ);
+      Elixir elix_qaux = qaux.elixir();
+      fab_size += qaux.nBytes();
+      Array4<Real> const qaux_arr = qaux.array();
+
+      ctoprim(qbx, time, Sborder.array(mfi),
+#ifdef RADIATION
+              Erborder.array(mfi), lamborder.array(mfi),
+#endif
+              q_arr, qaux_arr);
+
+
 
       Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
@@ -290,8 +319,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
 
       // get the primitive variable hydro sources
-
-      const Box& qbx = amrex::grow(bx, NUM_GROW);
 
       src_q.resize(qbx, NQSRC);
       Elixir elix_src_q = src_q.elixir();
@@ -1183,7 +1210,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1194,7 +1221,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_large_vel
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1442,8 +1469,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToHost();
-          qaux[mfi].prefetchToHost();
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();

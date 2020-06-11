@@ -1,10 +1,12 @@
 
+#ifdef TRUE_SDC
 ///
 /// Calculate primitive variables from conserved variables (uses StateData)
 ///
 /// @param time     current time
 ///
     void cons_to_prim(const amrex::Real time);
+#endif
 
 ///
 /// Calculate primitive variables from given conserved variables
