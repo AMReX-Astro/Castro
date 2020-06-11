@@ -6,7 +6,8 @@ Spectral Deferred Corrections
 
 The Castro SDC solver couples the hydrodynamics tightly together,
 iteratively improving the convergence of the solution.  This is the
-basis of the 4th order accurate Castro solver.
+basis of the 4th order accurate Castro solver.  The algorithm is described
+in :cite:`castro-sdc`.
 
 .. note::
 
