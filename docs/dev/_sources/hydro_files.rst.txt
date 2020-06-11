@@ -8,5 +8,7 @@ Hydro
    file/fourth__center__average_8H
    file/hybrid_8H
    file/ppm_8H
+   file/reconstruction_8H
    file/riemann_8H
+   file/slope_8H
    
