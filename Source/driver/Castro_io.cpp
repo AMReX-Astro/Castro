@@ -49,11 +49,12 @@ using namespace amrex;
 // 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
 // 6: Simplified_SDC_Source_Type removed from Castro
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
+// 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 
 namespace
 {
     int input_version = -1;
-    int current_version = 7;
+    int current_version = 8;
 }
 
 // I/O routines for Castro

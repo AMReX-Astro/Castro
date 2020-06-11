@@ -168,7 +168,7 @@ Castro::do_advance_ctu(Real time,
       cons_to_prim(time);
 
       // Check for CFL violations.
-      check_for_cfl_violation(dt);
+      check_for_cfl_violation(S_old, dt);
 
       // If we detect one, return immediately.
       if (cfl_violation) {
@@ -272,9 +272,49 @@ Castro::do_advance_ctu(Real time,
       expand_state(S_new, cur_time, S_new.nGrow());
     }
 
-    // Do the second half of the reactions.
+    // Do the second half of the reactions for Strang, or the full burn for simplified SDC.
 
 #ifdef REACTIONS
+
+#ifdef SIMPLIFIED_SDC
+
+    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+        if (do_react) {
+
+            // Do the ODE integration to capture the reaction source terms.
+
+            bool burn_success = react_state(time, dt);
+
+            // Skip the rest of the advance if the burn was unsuccessful.
+
+            if (!burn_success) {
+                status.success = false;
+                status.reason = "burn unsuccessful";
+                return status;
+            }
+
+            MultiFab& S_new = get_new_data(State_Type);
+
+            clean_state(S_new, time + dt, S_new.nGrow());
+
+            // Compute the reactive source term for use in the next iteration.
+
+            MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+            get_react_source_prim(SDC_react_new, time, dt);
+
+            // Check for NaN's.
+
+#ifndef AMREX_USE_CUDA
+            check_for_nan(S_new);
+#endif
+
+        }
+
+    }
+
+#else // SIMPLIFIED_SDC
+
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
@@ -289,7 +329,10 @@ Castro::do_advance_ctu(Real time,
         }
 
     }
-#endif
+
+#endif // SIMPLIFIED_SDC
+
+#endif // REACTIONS
 
     // Check if this timestep violated our stability criteria. Our idea is,
     // if the timestep created a velocity v and sound speed at the new time
@@ -540,18 +583,22 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         int num_sub_iters = 1;
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-            num_sub_iters = sdc_iters;
+        // Save the number of SDC iterations in case we are about to modify it.
 
+        int sdc_iters_old = sdc_iters;
+
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
             // If we're in a retry we want to add one more iteration. This is
             // because we will have zeroed out the lagged corrector from the
             // last iteration/timestep and so having another iteration will
             // approximately compensate for that.
 
             if (in_retry) {
-                num_sub_iters += 1;
+                sdc_iters += 1;
                 amrex::Print() << "Adding an SDC iteration due to the retry." << std::endl << std::endl;
             }
+
+            num_sub_iters = sdc_iters;
         }
 
         advance_status status;
@@ -564,44 +611,8 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             }
 
             // We do the hydro advance here, and record whether we completed it.
-            // If we are doing simplified SDC, there is no point in doing the burn
-            // or the subsequent SDC iterations if the advance was incomplete.
 
             status = do_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle);
-
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-                if (do_react && status.success) {
-
-                    // Do the ODE integration to capture the reaction source terms.
-
-                    bool burn_success = react_state(subcycle_time, dt_subcycle);
-
-                    if (!burn_success) {
-                        status.success = false;
-                        status.reason = "burn unsuccessful";
-                    }
-
-                    MultiFab& S_new = get_new_data(State_Type);
-
-                    clean_state(S_new, subcycle_time + dt_subcycle, S_new.nGrow());
-
-                    // Compute the reactive source term for use in the next iteration.
-
-                    MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
-                    get_react_source_prim(SDC_react_new, subcycle_time, dt_subcycle);
-
-                    // Check for NaN's.
-
-#ifndef AMREX_USE_CUDA
-                    check_for_nan(S_new);
-#endif
-
-                }
-            }
-#endif
-#endif
 
             if (in_retry) {
                 in_retry = false;
@@ -625,6 +636,10 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
         if (verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "  Subcycle completed" << std::endl << std::endl;
         }
+
+        // Set sdc_iters to its original value, in case we modified it above.
+
+        sdc_iters = sdc_iters_old;
 
         // If we have hit a CFL violation during this subcycle, we must abort.
 
