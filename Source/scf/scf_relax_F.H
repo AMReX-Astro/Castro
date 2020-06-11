@@ -1,5 +1,5 @@
-#ifndef _scf_relax_F_H_
-#define _scf_relax_F_H_
+#ifndef CASTRO_SCF_RELAX_H
+#define CASTRO_SCF_RELAX_H
 
 #include <AMReX_BLFort.H>
 
@@ -48,8 +48,6 @@ extern "C"
                        const amrex::Real* dx,
                        amrex::Real* kin_eng, amrex::Real* pot_eng,
                        amrex::Real* int_eng, amrex::Real* mass);
-
-  void scf_get_solar_mass(amrex::Real* M_solar);
 
 #ifdef __cplusplus
 }

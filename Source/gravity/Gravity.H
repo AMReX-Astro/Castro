@@ -1,8 +1,10 @@
-#ifndef _Gravity_H_
-#define _Gravity_H_
+#ifndef GRAVITY_H
+#define GRAVITY_H
 
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
+
+#include "gravity_params.H"
 
 // This vector can be accessed on the GPU.
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
@@ -213,16 +215,6 @@ public:
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
                                      int is_new,
                                      int use_previous_phi_as_guess = 0);
-
-
-///
-/// Returns the volume weighted average of ``mf`` at the given level
-///
-/// @param level    index of AMR level
-/// @param mf       MultiFab to be averaged
-/// @param mask     boolean, should we mask finer levels?
-///
-  amrex::Real computeAvg    (int level, amrex::MultiFab* mf, bool mask=true);
 
 
 ///
@@ -437,7 +429,6 @@ protected:
 
   static amrex::Real max_radius_all_in_domain;
 
-#include "gravity_params.H"
 
 #if (BL_SPACEDIM < 3)
 
@@ -538,6 +529,15 @@ private:
                                      const amrex::Vector<amrex::MultiFab*>& res,
                                      amrex::Real time);
 
+
+public:
+
+  inline amrex::Real
+  get_const_grav() {
+    return gravity::const_grav;
+  }
+
+
 };
 
 ///
@@ -545,5 +545,6 @@ private:
 /// @brief A physical boundary condition function for grad phi
 ///
 using GradPhiPhysBCFunct = amrex::PhysBCFunctNoOp;
+
 
 #endif

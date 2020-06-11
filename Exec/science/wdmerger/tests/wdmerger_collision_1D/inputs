@@ -49,9 +49,6 @@ stop_time = 100.0
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
 
-# Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -69,9 +66,6 @@ amr.compute_new_dt_on_regrid = 1
 
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
-
-# Disable retries based on negative density resets
-castro.retry_neg_dens_factor = -1.0
 
 ############################################################################################ 
 # Resolution, gridding and AMR
@@ -162,9 +156,6 @@ castro.transverse_reset_rhoe = 1
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
 
-# Choose the method used on a negative density reset
-castro.density_reset_method = 2
-
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 0
 
@@ -177,9 +168,6 @@ castro.small_temp = 1.e7
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
-
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
 
 # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta1 = 1.0e-3

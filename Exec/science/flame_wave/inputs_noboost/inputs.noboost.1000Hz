@@ -6,8 +6,8 @@ stop_time =  3.0
 geometry.is_periodic = 0       0
 geometry.coord_sys   = 1                  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0       0
-geometry.prob_hi     = 1.2288e5     3.072e4
-amr.n_cell           = 768         192
+geometry.prob_hi     = 1.84320e5     3.072e4
+amr.n_cell           = 1152          192
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -15,13 +15,15 @@ amr.n_cell           = 768         192
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  3   1
-castro.hi_bc       =  2   1
+castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
-castro.yr_ext_bc_type = "interp"
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -34,7 +36,6 @@ castro.small_temp = 1.e6
 castro.small_dens = 1.e-5
 
 castro.ppm_type = 1
-castro.ppm_reference_eigenvectors = 1
 castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav
@@ -59,7 +60,7 @@ castro.react_T_min = 6.e7
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.use_retry      = 1
 castro.max_subcycles = 16
 
@@ -82,11 +83,11 @@ amr.check_int       = 250        # number of timesteps between checkpoints
 
 # PLOTFILES
 amr.plot_file        = flame_wave_1000Hz_plt        # root name of plotfile
-amr.plot_per         = 2.e-3      # number of seconds between plotfiles
+amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_1000Hz_smallplt        # root name of plotfile
-amr.small_plot_per         = 5.e-5      # number of seconds between plotfiles
+amr.small_plot_per         = 1.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 

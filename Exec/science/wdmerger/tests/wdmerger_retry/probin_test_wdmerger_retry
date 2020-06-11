@@ -1,5 +1,7 @@
 &fortin 
 
+
+
   mass_P = 0.64
   mass_S = 0.64
 
@@ -15,7 +17,7 @@
   collision_separation = 4.0
   collision_impact_parameter = 0.0
 
-  interp_temp = T
+
 
 
   stellar_temp = 1.0d7
@@ -25,6 +27,8 @@
 
   axis_1 = 1
   axis_2 = 2 
+
+
 
   max_stellar_tagging_level = 0
   max_temperature_tagging_level = 0

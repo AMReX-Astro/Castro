@@ -72,8 +72,6 @@ std::string Radiation::current_group_name = "Radiation";
 
 int Radiation::pure_hydro = 0;
 
-#include <radiation_defaults.H>
-
 // static initialization, must be called before Castro::variableSetUp
 
 void Radiation::read_static_params()
@@ -160,11 +158,6 @@ void Radiation::read_static_params()
     }
   }
 
-  if (rad_hydro_combined) {
-    if (Castro::riemann_solver == 1) {
-      amrex::Error("The Colella and Glaz Riemann solver cannot be used with rad_hydro_combined.");
-    }
-  }
 
   if (Radiation::SolverType == Radiation::MGFLDSolver) {
 
@@ -1957,7 +1950,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             c_v.resize(reg);
             get_c_v(c_v, temp, S[mfi], reg);
 
-            S[mfi].copy(temp,reg,0,reg,UTEMP,1);
+            S[mfi].copy<RunOn::Device>(temp,reg,0,reg,UTEMP,1);
+            Gpu::synchronize();
 
 #pragma gpu box(reg) sync
             ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -1973,7 +1967,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               igroup, igroup, 1, 0.0);
 
             kp2.resize(reg);
-            S[mfi].plus(dT, UTEMP, 1);
+            S[mfi].plus<RunOn::Device>(dT, UTEMP, 1);
+            Gpu::synchronize();
 
 #pragma gpu box(reg) sync
             ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
@@ -1981,7 +1976,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                               BL_TO_FORTRAN_ANYD(S[mfi]),
                               igroup, igroup, 1, 0.0);
 
-            S[mfi].plus(-dT, UTEMP, 1);
+            S[mfi].plus<RunOn::Device>(-dT, UTEMP, 1);
+            Gpu::synchronize();
 
             ca_get_v_dcf(reg.loVect(), reg.hiVect(),
                          BL_TO_FORTRAN(Er[mfi]),
@@ -2066,7 +2062,7 @@ void Radiation::filter_prim(int level, MultiFab& State)
           const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
 
           for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal(1.0, isects[ii].second, 0);
+              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
           }
       }
   }

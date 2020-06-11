@@ -1,5 +1,5 @@
-#ifndef _RadSolve_H_
-#define _RadSolve_H_
+#ifndef CASTRO_RADSOLVE_H
+#define CASTRO_RADSOLVE_H
 
 #include <AMReX_Amr.H>
 
@@ -11,6 +11,8 @@
 #include "HypreABec.H"
 #include "HypreMultiABec.H"
 #include "HypreExtMultiABec.H"
+
+#include <radsolve_params.H>
 
 ///
 /// @class RadSolve
@@ -303,7 +305,6 @@ protected:
     std::unique_ptr<HypreMultiABec> hm;
     std::unique_ptr<HypreExtMultiABec> hem;
 
-#include <radsolve_params.H>
 
 };
 

@@ -11,8 +11,8 @@ using namespace amrex;
 
 void
 Castro::uflatten(const Box& bx,
-                 Array4<Real const> const q_arr,
-                 Array4<Real> const flatn, const int pres_comp) {
+                 Array4<Real const> const& q_arr,
+                 Array4<Real> const& flatn, const int pres_comp) {
 
   constexpr Real small_pres = 1.e-200_rt;
 
@@ -22,7 +22,8 @@ Castro::uflatten(const Box& bx,
   constexpr Real zcut2 = 0.85_rt;
   constexpr Real dzcut = 1.0_rt / (zcut2-zcut1);
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // x-direction flattening coef
@@ -78,7 +79,7 @@ Castro::uflatten(const Box& bx,
 
     denom = amrex::max(small_pres, std::abs(q_arr(i,j+2,k,pres_comp) - q_arr(i,j-2,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z = min(1.0_rt, max(0.0_rt, dzcut * (zeta - zcut1)));
+    z = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
     tst = 0.0_rt;
     if (q_arr(i,j-1,k,QV) - q_arr(i,j+1,k,QV) >= 0.0_rt) {
@@ -97,7 +98,7 @@ Castro::uflatten(const Box& bx,
 
     denom = amrex::max(small_pres, std::abs(q_arr(i,j+2-ishft,k,pres_comp) - q_arr(i,j-2-ishft,k,pres_comp)));
     zeta = std::abs(dp) / denom;
-    z2 = min(1.0_rt, max(0.0_rt, dzcut * (zeta - zcut1)));
+    z2 = amrex::min(1.0_rt, amrex::max(0.0_rt, dzcut * (zeta - zcut1)));
 
     tst = 0.0_rt;
     if (q_arr(i,j-1-ishft,k,QV) - q_arr(i,j+1-ishft,k,QV) >= 0.0_rt) {

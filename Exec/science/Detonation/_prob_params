@@ -28,8 +28,6 @@ io16                 integer       -1
 
 xn                   real          0.0_rt         n     (nspec, network)
 
-fill_ambient_bc      logical      .false.         y
-
 ambient_dens         real         0.0_rt
 
 ambient_temp         real         0.0_rt

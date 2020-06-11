@@ -107,7 +107,7 @@ several main data structures that hold the state.
    are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
    .. _table:primlist:
-   .. table:: The integer variable keys for accessing the primitive state vector.
+   .. table:: Primitive State Vector Integer Keys
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -125,8 +125,6 @@ several main data structures that hold the state.
       | ``QREINT``            | :math:`\rho e`         |                       |
       +-----------------------+------------------------+-----------------------+
       | ``QTEMP``             | :math:`T`              |                       |
-      +-----------------------+------------------------+-----------------------+
-      | ``QGAME``             | :math:`p/(\rho e) + 1` |                       |
       +-----------------------+------------------------+-----------------------+
       | ``QFA``               | :math:`A_1`            | the first advected    |
       |                       |                        | quantity              |
@@ -168,15 +166,6 @@ several main data structures that hold the state.
       +-----------------------+-----------------------+-----------------------+
       | ``QC``                | :math:`c_s`           | the sound speed, as   |
       |                       |                       | returned from the EOS |
-      +-----------------------+-----------------------+-----------------------+
-      | ``QCSML``             |                       | a small sound speed   |
-      |                       |                       | used for cutoffs      |
-      +-----------------------+-----------------------+-----------------------+
-      | ``QDPDR``             | :math:`\partial p/    | computed via the EOS  |
-      |                       | \partial \rho |_e`    |                       |
-      +-----------------------+-----------------------+-----------------------+
-      | ``QDPDE``             | :math:`\partial p/    | computed via the EOS  |
-      |                       | \partial e|_\rho`     |                       |
       +-----------------------+-----------------------+-----------------------+
       | ``QGAMCG``            | :math:`{\Gamma_1      | includes radiation    |
       |                       | }_\mathrm{tot}`       | components (defined   |
@@ -223,12 +212,6 @@ several main data structures that hold the state.
       |                       |                       | defined,              |
       |                       |                       | this is always just   |
       |                       |                       | the gas pressure      |
-      +-----------------------+-----------------------+-----------------------+
-      | ``QDGAME``            | :math:`\gamma_e = p/( | regardless of whether |
-      |                       | \rho e) + 1`          | ``RADIATION`` is      |
-      |                       |                       | defined,              |
-      |                       |                       | this is always just   |
-      |                       |                       | the gas contribution  |
       +-----------------------+-----------------------+-----------------------+
       | ``QDLAMS``            | :math:`{\lambda_f}`   | the starting index    |
       |                       |                       | for the flux          |
@@ -640,14 +623,8 @@ We compute the primtive variables from the conserved variables.
 
 -  :math:`p,T`: use the EOS.
 
-   First, if castro.allow_negative_energy is 0 (it defaults to
-   1) and :math:`e < 0`, we do the following:
-
-   #. Use the EOS to set :math:`e = e(\rho,T_{\rm small},X_k)`.
-
-   #. If :math:`e < 0`, abort the program with an error message.
-
-   Now, use the EOS to compute :math:`p,T = p,T(\rho,e,X_k)`.
+   First, we use the EOS to ensure :math:`e` is no smaller than :math:`e(\rho,T_{\rm small},X_k)`.
+   Then we use the EOS to compute :math:`p,T = p,T(\rho,e,X_k)`.
 
 We also compute the flattening coefficient, :math:`\chi\in[0,1]`, used in
 the edge state prediction to further limit slopes near strong shocks.
@@ -1150,11 +1127,6 @@ Density Resets
 --------------
 
 Need to document density_reset_method
-
-Energy
-------
-
-Need to document allow_negative_energy and allow_small_energy
 
 .. _app:hydro:flux_limiting:
 

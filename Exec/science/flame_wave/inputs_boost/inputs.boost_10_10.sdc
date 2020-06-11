@@ -15,13 +15,17 @@ amr.n_cell           = 6144         1536
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  3   1
-castro.hi_bc       =  2   1
+castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 0
 
-castro.yr_ext_bc_type = "interp"
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
+castro.domain_is_plane_parallel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -70,7 +74,7 @@ castro.react_T_min = 6.e7
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.dtnuc_e = 0.1
 
 # DIAGNOSTICS & VERBOSITY

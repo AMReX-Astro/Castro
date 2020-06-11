@@ -1,13 +1,11 @@
-#ifndef _Gravity_F_H_
-#define _Gravity_F_H_
+#ifndef GRAVITY_F_H
+#define GRAVITY_F_H
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-  void get_grav_const(amrex::Real* Gconst);
 
   void ca_test_residual
     (const int* lo, const int* hi,

@@ -1,5 +1,5 @@
-#ifndef _Castro_bc_fill_nd_F_H_
-#define _Castro_bc_fill_nd_F_H_
+#ifndef CASTRO_BC_FILL_ND_F_H
+#define CASTRO_BC_FILL_ND_F_H
 
 #include <AMReX_BLFort.H>
 
@@ -22,83 +22,28 @@ extern "C"
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real time, const int* bc);
 
-#ifdef GRAVITY
-  void phigravfill
+#ifdef MHD
+  void face_fillx
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real time, const int* bc);
 
-  void gravxfill
+  void face_filly
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real time, const int* bc);
 
-  void gravyfill
+  void face_fillz
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      const int* dlo, const int* dhi,
      const amrex::Real* dx, const amrex::Real* glo,
      const amrex::Real time, const int* bc);
-
-  void gravzfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-#endif
-
-#ifdef ROTATION
-  void phirotfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-
-  void rotxfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-
-  void rotyfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-
-  void rotzfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-#endif
-
-#ifdef REACTIONS
-  void reactfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-#endif
-
-#ifdef RADIATION
-  void radfill
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     const int* dlo, const int* dhi,
-     const amrex::Real* dx, const amrex::Real* glo,
-     const amrex::Real time, const int* bc);
-#endif
+#endif  
 
   inline void ca_nullfill
     (BL_FORT_FAB_ARG_3D(state),

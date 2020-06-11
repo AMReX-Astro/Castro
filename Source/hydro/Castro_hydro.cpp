@@ -35,48 +35,27 @@ Castro::cons_to_prim(const Real time)
 
         const Box& qbx = mfi.growntilebox(NUM_GROW);
 
+        Array4<Real> const q_arr = q.array(mfi);
+        Array4<Real> const qaux_arr = qaux.array(mfi);
+        Array4<Real> const Sborder_arr = Sborder.array(mfi);
+#ifdef RADIATION
+        Array4<Real> const Erborder_arr = Erborder.array(mfi);
+        Array4<Real> const lamborder_arr = lamborder.array(mfi);
+#endif
+
         // Convert the conservative state to the primitive variable state.
         // This fills both q and qaux.
 
-#pragma gpu box(qbx)
-        ca_ctoprim(AMREX_INT_ANYD(qbx.loVect()), AMREX_INT_ANYD(qbx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(Sborder[mfi]),
+        ctoprim(qbx,
+                time,
+                Sborder_arr,
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+                Erborder_arr,
+                lamborder_arr,
 #endif
-                   BL_TO_FORTRAN_ANYD(q[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux[mfi]));
+                q_arr,
+                qaux_arr);
 
-        // Convert the source terms expressed as sources to the conserved state to those
-        // expressed as sources for the primitive state.
-        if (time_integration_method == CornerTransportUpwind ||
-            time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-          Array4<Real> const q_arr = q.array(mfi);
-          Array4<Real> const qaux_arr = qaux.array(mfi);
-          Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-          Array4<Real> const src_q_arr = src_q.array(mfi);
-
-          src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
-        }
-
-#ifndef RADIATION
-#ifdef SIMPLIFIED_SDC
-#ifdef REACTIONS
-        // Add in the reactions source term; only done in simplified SDC.
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
-
-            if (do_react)
-                src_q[mfi].plus(SDC_react_source[mfi],qbx,qbx,0,0,NQSRC);
-
-        }
-#endif
-#endif
-#endif
     }
 
 }
@@ -113,15 +92,23 @@ Castro::cons_to_prim(MultiFab& u, MultiFab& q_in, MultiFab& qaux_in, Real time)
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_ctoprim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(u[mfi]),
+        auto u_arr = u.array(mfi);
 #ifdef RADIATION
-                   BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                   BL_TO_FORTRAN_ANYD(lamborder[mfi]),
+        auto Erborder_arr = Erborder.array(mfi);
+        auto lamborder_arr = lamborder.array(mfi);
 #endif
-                   BL_TO_FORTRAN_ANYD(q_in[mfi]),
-                   BL_TO_FORTRAN_ANYD(qaux_in[mfi]));
+        auto q_in_arr = q_in.array(mfi);
+        auto qaux_in_arr = qaux_in.array(mfi);
+
+        ctoprim(bx,
+                time,
+                u_arr,
+#ifdef RADIATION
+                Erborder_arr,
+                lamborder_arr,
+#endif
+                q_in_arr,
+                qaux_in_arr);
 
     }
 
@@ -137,10 +124,12 @@ Castro::cons_to_prim_fourth(const Real time)
     // convert the conservative state cell averages to primitive cell
     // averages with 4th order accuracy
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
 
     MultiFab& S_new = get_new_data(State_Type);
+
+    FArrayBox U_cc;
 
     // we don't support radiation here
 #ifdef RADIATION
@@ -160,32 +149,29 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_avg to U_cc -- this will use a Laplacian
       // operation and will result in U_cc defined only on
       // NUM_GROW-1 ghost cells at the end.
-      FArrayBox U_cc;
       U_cc.resize(qbx, NUM_STATE);
+      Elixir elix_u_cc = U_cc.elixir();
+      auto const U_cc_arr = U_cc.array();
 
-      ca_make_cell_center(BL_TO_FORTRAN_BOX(qbxm1),
-                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_cc),
-                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
 
       // enforce the minimum density on the new cell-centered state
-      Real dens_change = 1.e0;
-      ca_enforce_minimum_density
-        (AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
-         BL_TO_FORTRAN_ANYD(U_cc),
-         &dens_change, verbose);
+      do_enforce_minimum_density(qbxm1, U_cc.array(), verbose);
 
       // and ensure that the internal energy is positive
-      ca_reset_internal_e(AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
-                          BL_TO_FORTRAN_ANYD(U_cc),
-                          print_fortran_warnings);
+      reset_internal_energy(qbxm1, U_cc.array());
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbx),
-                 BL_TO_FORTRAN_ANYD(Sborder[mfi]),
-                 BL_TO_FORTRAN_ANYD(q_bar[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux_bar[mfi]));
+      auto Sborder_arr = Sborder.array(mfi);
+      auto q_bar_arr = q_bar.array(mfi);
+      auto qaux_bar_arr = qaux_bar.array(mfi);
+
+      ctoprim(qbx,
+              time, 
+              Sborder_arr,
+              q_bar_arr,
+              qaux_bar_arr);
 
       // this is what we should construct the flattening coefficient
       // from
@@ -193,10 +179,14 @@ Castro::cons_to_prim_fourth(const Real time)
       // convert U_cc to q_cc (we'll store this temporarily in q,
       // qaux).  This will remain valid only on the NUM_GROW-1 ghost
       // cells.
-      ca_ctoprim(BL_TO_FORTRAN_BOX(qbxm1),
-                 BL_TO_FORTRAN_ANYD(U_cc),
-                 BL_TO_FORTRAN_ANYD(q[mfi]),
-                 BL_TO_FORTRAN_ANYD(qaux[mfi]));
+      auto q_arr = q.array(mfi);
+      auto qaux_arr = qaux.array(mfi);
+
+      ctoprim(qbxm1,
+              time,
+              U_cc_arr,
+              q_arr,
+              qaux_arr);
     }
 
 
@@ -224,17 +214,12 @@ Castro::cons_to_prim_fourth(const Real time)
       // this will create q, qaux in NUM_GROW-1 ghost cells, but that's
       // we need here
 
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(q[mfi]),
-                             BL_TO_FORTRAN_FAB(q_bar[mfi]),
-                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      make_fourth_average(qbxm1, q.array(mfi), q_bar.array(mfi), domain_lo, domain_hi);
 
       // not sure if we need to convert qaux this way, or if we can
       // just evaluate it (we may not need qaux at all actually)
-      ca_make_fourth_average(BL_TO_FORTRAN_BOX(qbxm1),
-                             BL_TO_FORTRAN_FAB(qaux[mfi]),
-                             BL_TO_FORTRAN_FAB(qaux_bar[mfi]),
-                             AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+
+      make_fourth_average(qbxm1, qaux.array(mfi), qaux_bar.array(mfi), domain_lo, domain_hi);
 
     }
 
@@ -243,31 +228,147 @@ Castro::cons_to_prim_fourth(const Real time)
 #endif
 
 void
-Castro::check_for_cfl_violation(const Real dt)
+Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
 {
 
     BL_PROFILE("Castro::check_for_cfl_violation()");
 
-    Real courno = -1.0e+200;
+    auto dx = geom.CellSizeArray();
 
-    const Real *dx = geom.CellSize();
+    Real dtdx = dt / dx[0];
 
-    MultiFab& S_new = get_new_data(State_Type);
+    Real dtdy = 0.0_rt;
+    if (AMREX_SPACEDIM >= 2) {
+      dtdy = dt / dx[1];
+    }
+
+    Real dtdz = 0.0_rt;
+    if (AMREX_SPACEDIM == 3) {
+      dtdz = dt / dx[2];
+    }
+
+    ReduceOps<ReduceOpMax> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:courno)
+#pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(State, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_compute_cfl(BL_TO_FORTRAN_BOX(bx),
-                       BL_TO_FORTRAN_ANYD(q[mfi]),
-                       BL_TO_FORTRAN_ANYD(qaux[mfi]),
-                       dt, AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MAX(&courno), print_fortran_warnings);
+        auto U = State.array(mfi);
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+            // Compute running max of Courant number over grids
+
+            Real rho = U(i,j,k,URHO);
+            Real rhoInv = 1.0 / rho;
+
+            Real u = U(i,j,k,UMX) * rhoInv;
+            Real v = U(i,j,k,UMY) * rhoInv;
+            Real w = U(i,j,k,UMZ) * rhoInv;
+
+            eos_t eos_state;
+
+            eos_state.rho = U(i,j,k,URHO);
+            eos_state.T = U(i,j,k,UTEMP);
+            eos_state.e = U(i,j,k,UEINT) * rhoInv;
+            for (int n = 0; n < NumSpec; n++) {
+                eos_state.xn[n] = U(i,j,k,UFS+n) * rhoInv;
+            }
+            for (int n = 0; n < NumAux; n++) {
+                eos_state.aux[n] = U(i,j,k,UFX+n) * rhoInv;
+            }
+
+            eos(eos_input_re, eos_state);
+
+            Real cs = eos_state.cs;
+
+            Real courx = (cs + std::abs(u)) * dtdx;
+            Real coury = (cs + std::abs(v)) * dtdy;
+            Real courz = (cs + std::abs(w)) * dtdz;
+
+            if (castro::time_integration_method == 0) {
+
+#ifndef AMREX_USE_CUDA
+                if (verbose == 1) {
+
+                    if (courx > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (u+c) * dt / dx > 1 " << courx << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... u = " << u << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
+                    }
+
+                    if (coury > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (v+c) * dt / dx > 1 " << coury << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... v = " << v << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
+                    }
+
+                    if (courz > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... (w+c) * dt / dx > 1 " << courz << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... w = " << w << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
+                    }
+
+                }
+#endif
+
+                // CTU integration constraint
+
+                return {amrex::max(courx, coury, courz)};
+
+            }
+            else {
+
+                // method-of-lines constraint
+                Real courtmp = courx;
+                if (AMREX_SPACEDIM >= 2) {
+                    courtmp += coury;
+                }
+                if (AMREX_SPACEDIM == 3) {
+                    courtmp += courz;
+                }
+
+#ifndef AMREX_USE_CUDA
+                if (verbose == 1) {
+
+                    // note: it might not be 1 for all RK integrators
+                    if (courtmp > 1.0_rt) {
+                        std::cout << std::endl;
+                        std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
+                        std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
+                        std::cout << ">>> ... u = " << u << " v = " << v
+                                  << " w = " << w << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
+                    }
+
+                }
+#endif
+
+                return {courtmp};
+
+            }
+
+        });
 
     }
+
+    ReduceTuple hv = reduce_data.value();
+    Real courno = amrex::get<0>(hv);
 
     ParallelDescriptor::ReduceRealMax(courno);
 

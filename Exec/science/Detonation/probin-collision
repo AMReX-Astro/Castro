@@ -15,8 +15,6 @@
 
   vel = 2.0d8
 
-  fill_ambient_bc = T
-
   grav_acceleration = 1.1d8
 /
 
@@ -28,13 +26,13 @@
   max_denerr_lev = 0
 
   tempgrad_rel = 0.5
-  max_tempgrad_rel_lev = 20
+  max_tempgrad_rel_lev = 0
 
   dengrad_rel = 0.5
   max_dengrad_rel_lev = 0
 
-  dxnuc_min = 0.1
-
+  dxnuc_min = 0.01
+  max_dxnuc_lev = 20
 /
 
 &extern

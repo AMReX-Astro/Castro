@@ -56,6 +56,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   call eos(eos_input_rp, eos_state)
 
   e_ambient = eos_state % e
+  temp_ambient = eos_state % T
 
   ! set explosion pressure -- we will convert the point-explosion energy into
   ! a corresponding pressure distributed throughout the perturbed volume
@@ -262,7 +263,11 @@ subroutine ca_initdata(lo, hi, &
 
            ! The temperature initialization will be done later
            ! in the call to clean_state. We want to avoid
-           ! EOS calls in ca_initdata.
+           ! EOS calls in ca_initdata. So that there is valid
+           ! data for an initial guess for the EOS, we initialize
+           ! to the ambient temperature everywhere.
+
+           state(i,j,k,UTEMP) = temp_ambient
 
            state(i,j,k,UFS) = state(i,j,k,URHO)
 

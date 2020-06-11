@@ -14,9 +14,10 @@ contains
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only: fill_ambient_bc
+    use meth_params_module, only: fill_ambient_bc, ambient_fill_dir, ambient_outflow_vel, UMX, UMY, UMZ, UEDEN, URHO, UEINT
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
+    use amrex_constants_module, only: ZERO, HALF
 
     implicit none
 
@@ -29,27 +30,90 @@ contains
     real(rt), intent(in   ), value :: time
 
     integer :: i, j, k
+    logical :: ambient_x_lo, ambient_y_lo, ambient_z_lo
+    logical :: ambient_x_hi, ambient_y_hi, ambient_z_hi
 
     !$gpu
 
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
+    ambient_x_lo = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap)
+    ambient_x_hi = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap)
+
+#if AMREX_SPACEDIM >= 2
+    ambient_y_lo = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)
+    ambient_y_hi = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ambient_z_lo = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)
+    ambient_z_hi = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap)
+#endif
 
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1,1) == amrex_bc_foextrap .or. bc(1,1,1) == amrex_bc_hoextrap))  &
-                    .or. (i > domhi(1) .and. (bc(1,2,1) == amrex_bc_foextrap .or. bc(1,2,1) == amrex_bc_hoextrap))  &
+                if (ambient_x_lo .and. i < domlo(1) .or. &
+                    ambient_x_hi .and. i > domhi(1) &
 #if AMREX_SPACEDIM >= 2
-                    .or. (j < domlo(2) .and. (bc(2,1,1) == amrex_bc_foextrap .or. bc(2,1,1) == amrex_bc_hoextrap)) &
-                    .or. (j > domhi(2) .and. (bc(2,2,1) == amrex_bc_foextrap .or. bc(2,2,1) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_y_lo .and. j < domlo(2) .or. &
+                    ambient_y_hi .and. j > domhi(2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                    .or. (k < domlo(3) .and. (bc(3,1,1) == amrex_bc_foextrap .or. bc(3,1,1) == amrex_bc_hoextrap)) &
-                    .or. (k > domhi(3) .and. (bc(3,2,1) == amrex_bc_foextrap .or. bc(3,2,1) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_z_lo .and. k < domlo(3) .or. &
+                    ambient_z_hi .and. k > domhi(3) &
 #endif
                     ) then
                    adv(i,j,k,:) = ambient_state(:)
+
+                   if (ambient_outflow_vel == 1) then
+
+                      ! extrapolate the normal velocity only if it is outgoing
+                      if (i < domlo(1)) then
+                         adv(i,j,k,UMX) = min(ZERO, adv(domlo(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (i > domhi(1)) then
+                         adv(i,j,k,UMX) = max(ZERO, adv(domhi(1),j,k,UMX))
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j < domlo(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = min(ZERO, adv(i,domlo(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (j > domhi(2)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = max(ZERO, adv(i,domhi(2),k,UMY))
+                         adv(i,j,k,UMZ) = ZERO
+
+                      else if (k < domlo(3)) then
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = min(ZERO, adv(i,j,domlo(3),UMZ))
+
+                      else
+                         adv(i,j,k,UMX) = ZERO
+                         adv(i,j,k,UMY) = ZERO
+                         adv(i,j,k,UMZ) = max(ZERO, adv(i,j,domhi(3),UMZ))
+
+                      end if
+
+                      ! now make the energy consistent
+                      adv(i,j,k,UEDEN) = adv(i,j,k,UEINT) + &
+                           HALF*sum(adv(i,j,k,UMX:UMZ)**2)/adv(i,j,k,URHO)
+
+                   end if
+
                 end if
              end do
           end do
@@ -63,7 +127,7 @@ contains
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
     use amrex_filcc_module, only: amrex_filccn
-    use meth_params_module, only: fill_ambient_bc, URHO
+    use meth_params_module, only: fill_ambient_bc, URHO, ambient_fill_dir
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
 
@@ -79,25 +143,47 @@ contains
 
     integer :: i, j, k
 
+    logical :: ambient_x_lo, ambient_y_lo, ambient_z_lo
+    logical :: ambient_x_hi, ambient_y_hi, ambient_z_hi
+
     !$gpu
 
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
+    ambient_x_lo = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)
+    ambient_x_hi = (ambient_fill_dir == 0 .or. ambient_fill_dir == -1) .and. &
+         (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)
+
+#if AMREX_SPACEDIM >= 2
+    ambient_y_lo = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)
+    ambient_y_hi = (ambient_fill_dir == 1 .or. ambient_fill_dir == -1) .and. &
+         (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ambient_z_lo = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)
+    ambient_z_hi = (ambient_fill_dir == 2 .or. ambient_fill_dir == -1) .and. &
+         (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap)
+#endif
 
     if (fill_ambient_bc == 1) then
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
              do i = lo(1), hi(1)
-                if ((i < domlo(1) .and. (bc(1,1) == amrex_bc_foextrap .or. bc(1,1) == amrex_bc_hoextrap)) &
-                    .or. (i > domhi(1) .and. (bc(1,2) == amrex_bc_foextrap .or. bc(1,2) == amrex_bc_hoextrap)) &
+                if (ambient_x_lo .and. i < domlo(1) .or. &
+                    ambient_x_hi .and. i > domhi(1) &
 #if AMREX_SPACEDIM >= 2
-                    .or. (j < domlo(2) .and. (bc(2,1) == amrex_bc_foextrap .or. bc(2,1) == amrex_bc_hoextrap)) &
-                    .or. (j > domhi(2) .and. (bc(2,2) == amrex_bc_foextrap .or. bc(2,2) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_y_lo .and. j < domlo(2) .or. &
+                    ambient_y_hi .and. j > domhi(2) &
 #endif
 #if AMREX_SPACEDIM == 3
-                    .or. (k < domlo(3) .and. (bc(3,1) == amrex_bc_foextrap .or. bc(3,1) == amrex_bc_hoextrap)) &
-                    .or. (k > domhi(3) .and. (bc(3,2) == amrex_bc_foextrap .or. bc(3,2) == amrex_bc_hoextrap)) &
+                    .or. &
+                    ambient_z_lo .and. k < domlo(3) .or. &
+                    ambient_z_hi .and. k > domhi(3) &
 #endif
-                   ) then
+                    ) then
                    adv(i,j,k) = ambient_state(URHO)
                 end if
              end do
@@ -107,395 +193,73 @@ contains
 
   end subroutine denfill
 
-
-  
-#ifdef GRAVITY
-  subroutine phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phigravfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine phigravfill
-
-  
-
-  subroutine gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravxfill")
-
-    use amrex_filcc_module, only: amrex_filccn
+#ifdef MHD
+  subroutine face_fillx(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_fillx")
+          
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
 
     implicit none
 
-    include 'AMReX_bc_types.fi'
-
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
     real(rt), intent(in   ), value :: time
+    integer dir
 
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
+    dir = 1
 
-    !$gpu
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine gravxfill
+  end subroutine face_fillx
 
 
-
-  subroutine gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravyfill")
-
-    use amrex_filcc_module, only: amrex_filccn
+  subroutine face_filly(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_filly")
+                       
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
 
     implicit none
 
-    include 'AMReX_bc_types.fi'
-
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-    real(rt), intent(in   ), value :: time
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
+    real(rt), intent(in   ), value :: time 
+    integer dir
 
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
+    dir = 2
 
-    !$gpu
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
+  end subroutine face_filly
 
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine gravyfill
-
-
-
-  subroutine gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravzfill")
-
-    use amrex_filcc_module, only: amrex_filccn
+  subroutine face_fillz(lo, hi, var, var_lo, var_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="face_fillz")
+                     
+    use amrex_fort_module, only : rt => amrex_real
+    use fc_fill_module
 
     implicit none
 
-    include 'AMReX_bc_types.fi'
-
     integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
+    integer,  intent(in   ) :: var_lo(3), var_hi(3)
     integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
+    integer,  intent(in   ) :: bc(AMREX_SPACEDIM,2)
     real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
+    real(rt), intent(inout) :: var(var_lo(1):var_hi(1), var_lo(2):var_hi(2), var_lo(3):var_hi(3))
     real(rt), intent(in   ), value :: time
+    integer dir
 
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
+    dir = 3
 
-    !$gpu
+    call filfc(var,var_lo(1),var_lo(2),var_lo(3),var_hi(1),var_hi(2),var_hi(3),domlo,domhi,delta,xlo,bc,dir)
 
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. grav_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. grav_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine gravzfill
+  end subroutine face_fillz
 #endif
 
-  
-
-#ifdef ROTATION
-  subroutine phirotfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phirotfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. phi_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. phi_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine phirotfill
-
-  
-
-  subroutine rotxfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotxfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine rotxfill
-
-
-
-  subroutine rotyfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotyfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine rotyfill
-
-
-
-  subroutine rotzfill(lo, hi, rot, rot_lo, rot_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="rotzfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: rot_lo(3), rot_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: rot(rot_lo(1):rot_hi(1),rot_lo(2):rot_hi(2),rot_lo(3):rot_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. rot_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. rot_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, rot, rot_lo, rot_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine rotzfill
-#endif  
-
-
-#ifdef REACTIONS
-  subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="reactfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: react_lo(3), react_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. react_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. react_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, react, react_lo, react_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine reactfill
-#endif
-
-
-
-#ifdef RADIATION
-  subroutine radfill(lo, hi, rad, rad_lo, rad_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="radfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: rad_lo(3), rad_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: rad(rad_lo(1):rad_hi(1),rad_lo(2):rad_hi(2),rad_lo(3):rad_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    integer :: d
-    integer :: bc_temp(AMREX_SPACEDIM,2)
-
-    !$gpu
-
-    ! handle an external BC via extrapolation here 
-    bc_temp(:,:) = bc(:,:)
-
-    do d = 1, AMREX_SPACEDIM
-       if (bc(d,1) == EXT_DIR .and. rad_lo(d) < domlo(d)) then
-          bc_temp(d,1) = FOEXTRAP
-       end if
-
-       if (bc(d,2) == EXT_DIR .and. rad_hi(d) > domhi(d)) then
-          bc_temp(d,2) = FOEXTRAP
-       end if
-    end do
-
-    call amrex_filccn(lo, hi, rad, rad_lo, rad_hi, 1, domlo, domhi, delta, xlo, bc_temp)
-
-  end subroutine radfill
-#endif
-  
 end module bc_fill_module

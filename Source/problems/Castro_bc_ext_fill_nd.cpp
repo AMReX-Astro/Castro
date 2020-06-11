@@ -5,116 +5,26 @@
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+void ca_ext_fill(Box const& bx, FArrayBox& data,
+                 const int dcomp, const int numcomp,
+                 Geometry const& geom, const Real time,
+                 const int* bc_f)
 {
-#endif
-
-    // Note that these are called with dimension agnostic macros like
-    // AMREX_ZFILL and AMREX_INT_ANYD already, so we should expect that
-    // everything has three entries, not AMREX_SPACEDIM entries.
-    // We still choose to use the macros anyway below, for compatibility
-    // with the GPU pragma script.
-
-    void ca_ext_fill(const int* lo, const int* hi,
-                     Real* adv, const int* adv_lo, const int* adv_hi,
-                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                     const Real* time, const int* bc)
-    {
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
 #pragma gpu box(bx)
-        ext_fill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                 adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                 AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                 AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
-
-    }
-
-    void ca_ext_denfill(const int* lo, const int* hi,
-                        Real* adv, const int* adv_lo, const int* adv_hi,
-                        const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                        const Real* time, const int* bc)
-    {
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-      ext_denfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                  AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                  AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
-
-    }
-
-
-#ifdef GRAVITY
-    void ca_ext_gravxfill(const int* lo, const int* hi,
-                          Real* adv, const int* adv_lo, const int* adv_hi,
-                          const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                          const Real* time, const int* bc)
-    {
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-      ext_gravxfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                    adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                    AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                    AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
-
-    }
-
-    void ca_ext_gravyfill(const int* lo, const int* hi,
-                          Real* adv, const int* adv_lo, const int* adv_hi,
-                          const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                          const Real* time, const int* bc)
-    {
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-      ext_gravyfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                    adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                    AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                    AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
-
-    }
-
-    void ca_ext_gravzfill(const int* lo, const int* hi,
-                          Real* adv, const int* adv_lo, const int* adv_hi,
-                          const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
-                          const Real* time, const int* bc)
-    {
-
-        IntVect ilo(D_DECL(lo[0], lo[1], lo[2]));
-        IntVect ihi(D_DECL(hi[0], hi[1], hi[2]));
-
-        Box bx(ilo, ihi);
-
-#pragma gpu box(bx)
-      ext_gravzfill(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                    adv, AMREX_INT_ANYD(adv_lo), AMREX_INT_ANYD(adv_hi),
-                    AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                    AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc);
-
-    }
-#endif
-
-
-#ifdef __cplusplus
+    ext_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(data),
+             AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+             AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 }
-#endif
+
+void ca_ext_denfill(Box const& bx, FArrayBox& data,
+                    const int dcomp, const int numcomp,
+                    Geometry const& geom, const Real time,
+                    const int* bc_f)
+{
+#pragma gpu box(bx)
+    ext_denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                BL_TO_FORTRAN_N_ANYD(data, dcomp),
+                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+}

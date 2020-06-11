@@ -14,9 +14,6 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEINT, UEDEN, UFS
-#ifdef GRAVITY
-    use meth_params_module, only: gravity_type_int, const_grav
-#endif
     use network, only: nspec
     use prob_params_module, only: problo, probhi
     use probdata_module
@@ -30,8 +27,6 @@ contains
 
     real(rt) :: c_T
 
-    real(rt) :: vel_g
-
     !$gpu
 
     c_T = problo(1) + center_T * (probhi(1) - problo(1))
@@ -42,21 +37,11 @@ contains
     if (x < c_T) then
        state(i,j,k,UTEMP) = T_l
        state(i,j,k,UEINT) = state(i,j,k,URHO) * ambient_e_l
-       state(i,j,k,UMX) = state(i,j,k,URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * const_grav * time
-       end if
-#endif
+       state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel + grav_acceleration * time)
     else
        state(i,j,k,UTEMP) = T_r
        state(i,j,k,UEINT) = state(i,j,k,URHO) * ambient_e_r
-       state(i,j,k,UMX) = -state(i,j,k,URHO) * vel
-#ifdef GRAVITY
-       if (gravity_type_int == 0) then
-          state(i,j,k,UMX) = state(i,j,k,UMX) + state(i,j,k,URHO) * const_grav * time
-       end if
-#endif
+       state(i,j,k,UMX  ) = -state(i,j,k,URHO) * (vel + grav_acceleration * time)
     end if
 
     state(i,j,k,UMY:UMZ) = ZERO
@@ -70,8 +55,7 @@ contains
 
     use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: HALF
-    use meth_params_module, only: NVAR
-    use probdata_module, only: fill_ambient_bc
+    use meth_params_module, only: NVAR, fill_ambient_bc
     use prob_params_module, only : problo
 
     implicit none
@@ -102,7 +86,7 @@ contains
     ! which have bc == 0, or for reflecting boundaries, which have
     ! bc == -1 or bc == 1.
 
-    if (fill_ambient_bc) then
+    if (fill_ambient_bc == 1) then
 
        do k = lo(3), hi(3)
           do j = lo(2), hi(2)
@@ -164,123 +148,5 @@ contains
     call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine denfill
-
-
-
-#ifdef GRAVITY
-  subroutine gravxfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravxfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine gravxfill
-
-
-
-  subroutine gravyfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravyfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine gravyfill
-
-
-
-  subroutine gravzfill(lo, hi, grav, grav_lo, grav_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="gravzfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, grav, grav_lo, grav_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine gravzfill
-
-
-
-  subroutine phigravfill(lo, hi, phi, phi_lo, phi_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="phigravfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: phi_lo(3), phi_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3), time
-    real(rt), intent(inout) :: phi(phi_lo(1):phi_hi(1),phi_lo(2):phi_hi(2),phi_lo(3):phi_hi(3))
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, phi, phi_lo, phi_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine phigravfill
-#endif
-
-#ifdef REACTIONS
-  subroutine reactfill(lo, hi, react, react_lo, react_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="reactfill")
-
-    use amrex_filcc_module, only: amrex_filccn
-
-    implicit none
-
-    include 'AMReX_bc_types.fi'
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: react_lo(3), react_hi(3)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    integer,  intent(in   ) :: bc(AMREX_SPACEDIM, 2)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: react(react_lo(1):react_hi(1),react_lo(2):react_hi(2),react_lo(3):react_hi(3))
-    real(rt), intent(in   ), value :: time
-
-    !$gpu
-
-    call amrex_filccn(lo, hi, react, react_lo, react_hi, 1, domlo, domhi, delta, xlo, bc)
-
-  end subroutine reactfill
-#endif
 
 end module bc_fill_module

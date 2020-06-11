@@ -1,6 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-
+#include "fundamental_constants.H"
 #include "Gravity.H"
 
 using namespace amrex;
@@ -437,9 +437,6 @@ Castro::do_hscf_solve()
 
             // Grab the value for the solar mass.
 
-            Real M_solar;
-            scf_get_solar_mass(&M_solar);
-
             std::cout << std::endl << std::endl;
             std::cout << "   Relaxation iterations completed: " << j << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
@@ -448,7 +445,7 @@ Castro::do_hscf_solve()
             std::cout << "   Potential energy: " << pot_eng << std::endl;
             std::cout << "   Internal energy: " << int_eng << std::endl;
             std::cout << "   Virial error: " << virial_error << std::endl;
-            std::cout << "   Mass: " << mass / M_solar << " solar masses" << std::endl;
+            std::cout << "   Mass: " << mass / C::M_solar << " solar masses" << std::endl;
 
             if (is_relaxed == 1) {
                 std::cout << "  Relaxation completed!" << std::endl;

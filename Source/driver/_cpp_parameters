@@ -4,7 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro static
+@namespace: castro Castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -33,9 +33,6 @@ update_sources_after_reflux  int           1
 
 # should we apply the sources one by one or all at once?
 apply_sources_consecutively  int           0
-
-# should we have state data for custom load-balancing weighting?
-use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -92,9 +89,17 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
+#MHD 
+# plm slopes:
+# 0 zero slope
+# 1 vanleer
+# 2 centered, no limit
+# 3 2nd order MC limiter
+mhd_plm_slope                int           1                  y             MHD
+
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y
+ppm_temp_fix                 int           0                  y 
 
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
@@ -103,10 +108,6 @@ plm_iorder                   int           2                  y
 # for piecewise linear, what limiter to use?
 # 1 = 2nd order MC, 2 = 4th order MC
 plm_limiter                  int           2                  y
-
-# for piecewise linear, MOL or SDC, do well-balanced reconstruction on
-# pressure
-plm_well_balanced            int           0                  y
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
@@ -166,8 +167,13 @@ dual_energy_eta1             Real          1.0e0              y
 dual_energy_eta2             Real          1.0e-4             y
 
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
-# from the pressure before limiting?
+# from the pressure before limiting?  This is a well-balanced method that
+# does well with HSE
 use_pslope                   int           1                  y
+
+# if we are using pslope, below what density to we turn off the well-balanced
+# reconstruction?
+pslope_cutoff_density        Real          -1.e20             y
 
 # Should we limit the density fluxes so that we do not create small densities?
 limit_fluxes_on_small_dens   int           0                  y
@@ -177,15 +183,6 @@ limit_fluxes_on_large_vel    int           0                  y
 
 # If we're limiting the fluxes to avoid large velocities, this is the speed limit.
 speed_limit                  Real          2.99792458e10      y
-
-# Which method to use when resetting a negative/small density
-# 1 = Reset to characteristics of adjacent zone with largest density
-# 2 = Use average of all adjacent zones for all state variables
-density_reset_method         int           1                  y
-
-# Whether or not to allow the internal energy to be less than the
-# internal energy corresponding to small_temp
-allow_small_energy           int           1                  y
 
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
@@ -205,22 +202,22 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        ""                 y
+xl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        ""                 y
+xr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        ""                 y
+yl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        ""                 y
+yr_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        ""                 y
+zl_ext_bc_type               string        "fillme"           y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        ""                 y
+zr_ext_bc_type               string        "fillme"           y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -235,6 +232,13 @@ hse_reflect_vels             int           0                  y
 
 # fills physical domain boundaries with the ambient state
 fill_ambient_bc              int           0                  y
+
+# which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = y, 2 = z
+ambient_fill_dir             int           -1                 y
+
+# in the ambient region, do we do a basic outflow in the normal
+# direction of the velocity (with a min/max to ensure it is outgoing)
+ambient_outflow_vel          int           0                  y
 
 # clamps the ambient material to the ambient temperature
 clamp_ambient_temp           int           0                  y
@@ -292,8 +296,9 @@ fixed_dt                     Real         -1.0
 # constraints)
 initial_dt                   Real         -1.0
 
-# the smallest valid timestep---if we go below this, we abort
-dt_cutoff                    Real          0.0
+# the smallest valid timestep, as a fraction of the current simulation time.
+# if we go below this, we abort.
+dt_cutoff                    Real          1.e-12
 
 # the largest valid timestep---limit all timesteps to be no larger than this
 max_dt                       Real          1.e200
@@ -306,9 +311,9 @@ cfl                          Real          0.8                y
 # the timestep estimators
 init_shrink                  Real          1.0
 
-# the maximum factor by which the timestep can increase from one step to
-# the next.
-change_max                   Real          1.1
+# the maximum factor by which the timestep can increase or decrease from
+# one step to the next
+change_max                   Real          1.1                y
 
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
@@ -322,18 +327,6 @@ small_plot_per_is_exact      int           0
 # criteria, and we will do subcycled timesteps on the same level until
 # we reach the original target time.
 use_retry                    int           1
-
-# Tolerance to use when evaluating whether to do a retry.
-# The timestep suggested by the retry will be multiplied by
-# (1 + this factor) before comparing the actual timestep to it.
-# If set to some number slightly larger than zero, then this
-# prevents retries that are caused by small numerical differences.
-retry_tolerance              Real          0.02
-
-# If we're doing retries, set the target threshold for changes in density
-# if a retry is triggered by a negative density. If this is set to a negative
-# number then it will disable retries using this criterion.
-retry_neg_dens_factor        Real          1.e-1
 
 # When performing a retry, the factor to multiply the current
 # timestep by when trying again.
@@ -358,6 +351,11 @@ sdc_iters                    int           2
 # energy of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
+
+# Limit the timestep based on how much the burning can change the temperature
+# of a zone. The timestep is equal to
+# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
+dtnuc_T                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
@@ -390,6 +388,9 @@ disable_shock_burning        int           0                  y
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
+
+# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
+reactions_max_solve_level    int           100
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -536,6 +537,11 @@ spherical_star               int           0
 # do we dump the old state into the checkpoint files too?
 dump_old                     bool          false
 
+# do we assume the domain is plane parallel when computing some of the derived
+# quantities (e.g. radial velocity).  Note: this will always assume that the
+# last spatial dimension is vertical
+domain_is_plane_parallel     bool          false
+
 # display warnings in Fortran90 routines
 print_fortran_warnings       int           (0, 1)
 
@@ -556,7 +562,7 @@ show_center_of_mass          int           0
 
 # a string describing the simulation that will be copied into the
 # plotfile's ``job_info`` file
-job_name                     string        ""
+job_name                     string        "Castro"
 
 # write a final plotfile and checkpoint upon completion
 output_at_completion         int           1
@@ -585,7 +591,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro static
+@namespace: particles Castro
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -613,7 +619,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity static
+@namespace: gravity Gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -669,7 +675,7 @@ mlmg_consolidation           int           1                  n
 # Do N-Solve?
 mlmg_nsolve                  int           0                  n
 
-@namespace: diffusion Diffusion static
+@namespace: diffusion Diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
@@ -678,7 +684,7 @@ mlmg_nsolve                  int           0                  n
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
 
-@namespace: radsolve RadSolve static
+@namespace: radsolve RadSolve
 
 # the linear solver option to use
 level_solver_flag            int           1                  n
@@ -697,7 +703,7 @@ beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
 
-@namespace: radiation Radiation static
+@namespace: radiation Radiation
 
 prop_temp_floor              Real          0.0                y
 

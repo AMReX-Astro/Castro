@@ -57,8 +57,7 @@ extensions = ['sphinx.ext.autodoc',
               'numpydoc',
               'sphinx.ext.githubpages',
               'breathe',
-              'sphinxfortran.fortran_domain',
-              'sphinxfortran.fortran_autodoc']
+              'IPython.sphinxext.ipython_console_highlighting']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -101,7 +100,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = []
+exclude_patterns = ['**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -235,9 +234,3 @@ breathe_default_members = ('members', 'undoc-members', 'protected-members',
 breathe_doxygen_config_options = {'EXTRACT_ALL': 'YES',
                                   'SHOW_USED_FILES': 'YES', 'RECURSIVE': 'YES'
                                   }
-
-# -- Options for sphinx-fortran -----------------------------------------
-
-fortran_src = [os.path.abspath('preprocessed_files')]
-
-fortran_ext = ['f90', 'F90']

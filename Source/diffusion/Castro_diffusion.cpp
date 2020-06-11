@@ -2,11 +2,11 @@
 #include "Castro.H"
 #include "Castro_F.H"
 
+#include "diffusion_util.H"
+
 using std::string;
 
 #include "Diffusion.H"
-
-using namespace amrex;
 
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
@@ -132,26 +132,29 @@ Castro::getTempDiffusionTerm (Real time, MultiFab& state_in, MultiFab& TempDiffT
                const Box& obx = amrex::grow(bx, 1);
                coeff_cc.resize(obx, 1);
                Elixir elix_coeff_cc = coeff_cc.elixir();
+               Array4<Real> const coeff_arr = coeff_cc.array();
 
-#pragma gpu box(obx)
-               ca_fill_temp_cond(AMREX_INT_ANYD(obx.loVect()), AMREX_INT_ANYD(obx.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(grown_state[mfi]),
-                                 BL_TO_FORTRAN_ANYD(coeff_cc));
+               Array4<Real const> const U_arr = grown_state.array(mfi);
 
-               // Now average the data to zone edges.
+               fill_temp_cond(obx, U_arr, coeff_arr);
 
                for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
                    const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-                   const int idir_f = idir + 1;
+                   Array4<Real> const edge_coeff_arr = (*coeffs[idir]).array(mfi);
 
-#pragma gpu box(nbx)
-                   ca_average_coef_cc_to_ec(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                                            BL_TO_FORTRAN_ANYD(coeff_cc),
-                                            BL_TO_FORTRAN_ANYD((*coeffs[idir])[mfi]),
-                                            idir_f);
+                   AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+                   {
 
+                     if (idir == 0) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i-1,j,k));
+                     } else if (idir == 1) {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j-1,k));
+                     } else {
+                       edge_coeff_arr(i,j,k) = 0.5_rt * (coeff_arr(i,j,k) + coeff_arr(i,j,k-1));
+                     }
+                   });
                }
            }
        }

@@ -1,5 +1,6 @@
-#ifndef _Castro_react_F_H_
-#define _Castro_react_F_H_
+#ifndef CASTRO_REACT_F_H
+#define CASTRO_REACT_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -22,9 +23,7 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(state),
      BL_FORT_FAB_ARG_3D(reactions),
-     BL_FORT_FAB_ARG_3D(weights),
-     const BL_FORT_IFAB_ARG_3D(mask),
-     const amrex::Real time, const amrex::Real dt_react, const int strang_half,
+     const amrex::Real time, const amrex::Real dt_react,
      amrex::Real* burn_failure);
 
 

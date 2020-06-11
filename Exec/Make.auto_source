@@ -45,7 +45,7 @@ ifeq ($(USE_PROB_PARAMS), TRUE)
 endif
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
-PROB_PARAMETERS := ./_prob_params
+PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
 
 $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
@@ -64,6 +64,9 @@ METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
 $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+
+# for debugging
+test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90
 
 #------------------------------------------------------------------------------
 # state variable info

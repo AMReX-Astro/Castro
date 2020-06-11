@@ -1,5 +1,6 @@
-#ifndef _Castro_F_H_
-#define _Castro_F_H_
+#ifndef CASTRO_F_H
+#define CASTRO_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -31,8 +32,6 @@ extern "C"
 
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
-
-  void ca_get_method_params(int* HYP_GROW);
 
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 #ifdef PROB_PARAMS
@@ -75,8 +74,21 @@ extern "C"
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
-  void ca_get_sponge_params(const int* name, const int* namlen);
+  void ca_read_sponge_params(const int* name, const int* namlen);
+
+  void ca_get_sponge_params(amrex::Real& sponge_lower_factor,
+                            amrex::Real& sponge_upper_factor,
+                            amrex::Real& sponge_lower_radius,
+                            amrex::Real& sponge_upper_radius,
+                            amrex::Real& sponge_lower_density,
+                            amrex::Real& sponge_upper_density,
+                            amrex::Real& sponge_lower_pressure,
+                            amrex::Real& sponge_upper_pressure,
+                            amrex::Real* sponge_target_velocity,
+                            amrex::Real& sponge_timescale);
+
   void ca_allocate_sponge_params();
+
   void ca_deallocate_sponge_params();
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
@@ -130,29 +142,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-
-#ifdef HYBRID_MOMENTUM
-  void ca_linear_to_hybrid_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_to_linear_momentum
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_hybrid_hydro_source
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(sources),
-     const amrex::Real mult_factor);
-#endif
-
-  void ca_check_initial_species
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
-
-  void ca_enforce_minimum_density
-    (const int* lo, const int* hi,
-     const amrex::Real* state, const int* s_lo, const int* s_hi,
-     amrex::Real* frac_change, const int verbose);
-
   void ca_normalize_species
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
@@ -164,27 +153,15 @@ extern "C"
   void ca_clamp_temp
     (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
 
-  void ca_enforce_consistent_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_recompute_energetics
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
   void ca_reset_internal_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
-     const int verbose);
-
-  void ca_estdt
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
-
-#ifdef DIFFUSION
-  void ca_estdt_temp_diffusion
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
+#ifdef MHD
+     BL_FORT_FAB_ARG_3D(bx),
+     BL_FORT_FAB_ARG_3D(by),
+     BL_FORT_FAB_ARG_3D(bz),
 #endif
+     BL_FORT_FAB_ARG_3D(S_new),
+     const int verbose);
 
 #ifdef RADIATION
   void ca_estdt_rad
@@ -202,42 +179,6 @@ extern "C"
      const amrex::Real* dx, amrex::Real* dt);
 #endif
 
-  void ca_check_timestep
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
-     const BL_FORT_FAB_ARG_3D(state_new),
-#ifdef REACTIONS
-     const BL_FORT_FAB_ARG_3D(reactions_old),
-     const BL_FORT_FAB_ARG_3D(reactions_new),
-#endif
-     const amrex::Real* dx, const amrex::Real dt_old, amrex::Real* dt);
-
-  void ca_make_fourth_average(const int lo[], const int hi[],
-                              BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar,
-                              const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                               const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
-                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int ncomp,
-                                 const int* domlo, const int* domhi);
-
-  void ca_compute_lap_term(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_ANYD(lap), const int ncomp,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center_in_place(const int lo[], const int hi[],
-                                    BL_FORT_FAB_ARG_3D(q), const int* nc,
-                                    const int* domlo, const int* domhi);
 
 #ifdef RADIATION
   void ca_inelastic_sct
@@ -248,37 +189,7 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-
-
   void flush_output();
-
-
-  void ca_summass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumsquared
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass);
-
-  void ca_sumlocmass
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir);
-
-  void ca_sumlocmass2d
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(rho),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* mass, const int idir1, const int idir2);
-
-  void ca_sumlocsquaredmass
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(rho),
-     const BL_FORT_FAB_ARG_3D(vol),
-     amrex::Real* mass, const amrex::Real* dx, int idir);
-
-  void ca_sumproduct
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(f1), const BL_FORT_FAB_ARG_3D(f2),
-     const amrex::Real* dx, const BL_FORT_FAB_ARG_3D(vol), amrex::Real* s);
-
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
@@ -309,6 +220,7 @@ extern "C"
 #include <Castro_gravity_F.H>
 #endif
 
+
 /* rotation */
 #ifdef ROTATION
 #include <Castro_rotation_F.H>
@@ -318,12 +230,6 @@ extern "C"
 /* SDC */
 #ifdef TRUE_SDC
 #include <Castro_sdc_F.H>
-#endif
-
-
-/* diffusion */
-#ifdef DIFFUSION
-#include <Castro_diffusion_F.H>
 #endif
 
 
@@ -375,6 +281,16 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
    BL_FORT_FAB_ARG_3D(state),
    const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
 #endif
+#endif
+
+#ifdef MHD
+BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& nx, BL_FORT_FAB_ARG_3D(magx),
+   const int& ny, BL_FORT_FAB_ARG_3D(magy),
+   const int& nz, BL_FORT_FAB_ARG_3D(magz),
+   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
 

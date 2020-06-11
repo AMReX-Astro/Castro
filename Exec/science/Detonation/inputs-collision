@@ -15,25 +15,28 @@ castro.max_subcycles = 128
 
 castro.add_ext_src = 1
 
+castro.fill_ambient_bc = 1
+
 castro.lo_bc = 2
 castro.hi_bc = 2
 
 castro.do_hydro = 1
 castro.do_react = 1
+castro.reactions_max_solve_level = 0
 
 castro.cfl            = 0.5
 castro.init_shrink    = 0.1
-castro.change_max     = 1.05
-castro.dt_cutoff      = 1.e-20
+castro.change_max     = 1.25
+castro.dtnuc_e        = 1.e200
+castro.dtnuc_X        = 1.e200
 
-castro.small_temp     = 1.e7
-castro.allow_small_energy = 0
+castro.small_temp     = 1.e5
 
 castro.sum_interval   = 0
-castro.v              = 0
+castro.v              = 1
 amr.v                 = 1
 
-amr.max_level       = 0
+amr.max_level       = 10
 amr.ref_ratio       = 4
 amr.regrid_int      = 1
 amr.blocking_factor = 64
@@ -41,15 +44,18 @@ amr.max_grid_size   = 64
 
 amr.n_error_buf     = 2
 
-amr.check_file      = det_x_chk
-amr.check_per       = 0.1
-amr.plot_file       = det_x_plt
-amr.plot_per        = 0.1
-amr.plot_vars = ALL
+castro.use_post_step_regrid = 1
+
+amr.check_file       = det_x_chk
+amr.check_per        = 0.1
+amr.plot_file        = det_x_plt
+amr.plot_per         = 0.1
+amr.plot_vars        = ALL
 amr.derive_plot_vars = ALL
-amr.small_plot_per = 0.01
-amr.small_plot_vars = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
+amr.small_plot_per   = 0.01
+amr.small_plot_vars  = density Temp rho_e rho_c12 rho_o16 rho_si28 rho_ni56 enuc
 amr.derive_small_plot_vars = pressure soundspeed x_velocity t_sound_t_enuc
+
 amr.plotfile_on_restart = 0
 amr.checkpoint_on_restart = 0
 amr.write_plotfile_with_checkpoint = 0

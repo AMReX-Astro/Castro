@@ -413,5 +413,3 @@ if __name__ == "__main__":
         process_header_file(filename)
     elif filename[-4:] == ".cpp":
         process_cpp_file(filename)
-    elif filename[-4:].lower() == ".f90":
-        process_fortran_file(filename)

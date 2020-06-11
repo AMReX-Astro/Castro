@@ -8,6 +8,11 @@ BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
+# Allow a problem setup to define a root location.
+# Otherwise, assume we're building in the current directory.
+
+PROBLEM_DIR ?= ./
+
 # Microphysics is a git submodule of Castro. By default
 # we assume it is in the external/ directory.
 # The user may override this with their own installation
@@ -132,8 +137,6 @@ endif
 
 USE_MLMG = FALSE
 
-# Enable C++ EOS functionality
-USE_CXX_EOS = TRUE
 
 #------------------------------------------------------------------------------
 # Castro directories
@@ -145,7 +148,16 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
            Source/scf Util/model_parser Util/conservative_interpolate
 endif
 
+
 # add / define any special physics we need
+
+ifeq ($(USE_MHD), TRUE)
+  Bdirs += Source/mhd
+  DEFINES += -DMHD
+else
+  Bdirs += Source/hydro
+endif
+
 ifeq ($(USE_GRAV), TRUE)
   Bdirs += Source/gravity
   DEFINES += -DGRAVITY
@@ -168,6 +180,10 @@ ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
+  endif
+
+  ifeq ($(USE_CXX_REACTIONS), TRUE)
+    DEFINES += -DCXX_REACTIONS
   endif
 endif
 

@@ -28,7 +28,7 @@
    x-velocity             QU        NQSRC                                   1                 None
    y-velocity             QV        NQSRC                                   1                 None
    z-velocity             QW        NQSRC                                   1                 None
-   gamma_c                QGC       NQSRC                                   1                 None
+   gamma_c                QGC       NQSRC                                   1                 TRUE_SDC
    pressure               QPRES     NQSRC                                   1                 None
    rho-e                  QREINT    NQSRC                                   1                 None
    B-x                    QMAGX     NQSRC                                   1                 MHD
@@ -39,6 +39,7 @@
    species                QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
    auxiliary              QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
    total-pressure         QPTOT     None                                    1                 RADIATION
+   total-pressure         QPTOT     None                                    1                 MHD
    total-reint            QREITOT   None                                    1                 RADIATION
    radiation              QRAD      None                                  (ngroups, NGROUPS)  RADIATION
 
@@ -47,8 +48,6 @@
 @set: auxiliary NQAUX NQAUX
    gamma_c                QGAMC     None            1                   None
    sound-speed            QC        None            1                   None
-   dpdr                   QDPDR     None            1                   None
-   dpde                   QDPDE     None            1                   None
    gamma_c-gas            QGAMCG    None            1                   RADIATION
    sound-speed-gas        QCG       None            1                   RADIATION
    flux-limiter           QLAMS     None          (ngroups, NGROUPS)    RADIATION

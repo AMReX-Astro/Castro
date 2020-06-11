@@ -1,5 +1,5 @@
-#ifndef _RAD_BNDRYDATA_H_
-#define _RAD_BNDRYDATA_H_
+#ifndef CASTRO_RAD_BNDRYDATA_H
+#define CASTRO_RAD_BNDRYDATA_H
 
 #include <AMReX_BLassert.H>
 #include <AMReX_BoxArray.H>
@@ -141,12 +141,12 @@ public:
 //@ManDoc: set values of boundary Fab for given orientation on nth grid
     void setValue(const amrex::Orientation& _face, int _n, amrex::Real _val)
     {
-        bndry[_face][_n].setVal(_val);
+        bndry[_face][_n].setVal<amrex::RunOn::Host>(_val);
     }
 //@ManDoc: set mask values for given orientation on nth grid
     void setMaskValue(const amrex::Orientation& _face, int _n, int _val)
     {
-        masks[_face][_n]->setVal(_val);
+        masks[_face][_n]->setVal<amrex::RunOn::Host>(_val);
     }
 //@ManDoc: set boundary type specifier for given orientation on nth grid
     void setBoundCond(const amrex::Orientation& _face, int _n, const RadBoundCond& _bcn)

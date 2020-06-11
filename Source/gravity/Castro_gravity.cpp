@@ -52,7 +52,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
         }
 
-        if (verbose && ParallelDescriptor::IOProcessor()) {
+        if (castro::verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "... old-time level Poisson gravity solve at level " << level << std::endl << std::endl;
         }
 
@@ -89,7 +89,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
         if (gravity->test_results_of_solves() == 1) {
 
-            if (verbose && ParallelDescriptor::IOProcessor()) {
+            if (castro::verbose && ParallelDescriptor::IOProcessor()) {
                 std::cout << " " << '\n';
                 std::cout << "... testing grad_phi_curr after doing single level solve " << '\n';
             }
@@ -145,7 +145,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
         if (gravity->NoComposite() != 1 && gravity->DoCompositeCorrection() && level < parent->finestLevel() && level <= gravity->get_max_solve_level())
             phi_new.minus(comp_minus_level_phi, 0, 1, 0);
 
-        if (verbose && ParallelDescriptor::IOProcessor()) {
+        if (castro::verbose && ParallelDescriptor::IOProcessor()) {
             std::cout << "... new-time level Poisson gravity solve at level " << level << std::endl << std::endl;
         }
 
@@ -160,7 +160,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             if (gravity->test_results_of_solves() == 1) {
 
-                if (verbose && ParallelDescriptor::IOProcessor()) {
+                if (castro::verbose && ParallelDescriptor::IOProcessor()) {
                     std::cout << " " << '\n';
                     std::cout << "... testing grad_phi_curr before adding comp_minus_level_grad_phi " << '\n';
                 }
@@ -180,7 +180,7 @@ Castro::construct_new_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             if (gravity->test_results_of_solves() == 1) {
 
-                if (verbose && ParallelDescriptor::IOProcessor()) {
+                if (castro::verbose && ParallelDescriptor::IOProcessor()) {
                     std::cout << " " << '\n';
                     std::cout << "... testing grad_phi_curr after adding comp_minus_level_grad_phi " << '\n';
                 }
@@ -260,7 +260,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
     }
 
-    if (verbose > 1)
+    if (castro::verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;
@@ -324,7 +324,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
         }
     }
 
-    if (verbose > 1)
+    if (castro::verbose > 1)
     {
         const int IOProc   = ParallelDescriptor::IOProcessorNumber();
         Real      run_time = ParallelDescriptor::second() - strt_time;

@@ -30,7 +30,13 @@
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source,
+    void do_old_sources(
+#ifdef MHD
+                        amrex::MultiFab& Bx,
+                        amrex::MultiFab& By,
+                        amrex::MultiFab& Bz,
+#endif
+                        amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
@@ -73,7 +79,13 @@
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source,
+    void do_new_sources(
+#ifdef MHD
+                        amrex::MultiFab& Bx,
+                        amrex::MultiFab& By,
+                        amrex::MultiFab& Bz,
+#endif
+                        amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
@@ -195,6 +207,20 @@
 
 
 ///
+/// Compute the sponge source given a state
+///
+/// @param bx           Box to operate over
+/// @param state        input state
+/// @param source       source incremented with the sponge
+/// @param dt           timestep
+/// @param mult_factor  multiplicative factor in front of the source
+///
+    void apply_sponge(const amrex::Box& bx,
+                      amrex::Array4<amrex::Real const> const state,
+                      amrex::Array4<amrex::Real> const source,
+                      amrex::Real dt, amrex::Real mult_factor);
+
+///
 /// Allocate sponge parameters
 ///
     static void sponge_init();
@@ -204,6 +230,7 @@
 /// Deallocate sponge parameters
 ///
     static void sponge_finalize();
+
 #endif
 
 
@@ -282,8 +309,7 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_thermo_source(amrex::Real time, amrex::Real dt,
-                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
-                            amrex::MultiFab& ext_src);
+                            amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
 #ifdef REACTIONS
