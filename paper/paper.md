@@ -83,11 +83,11 @@ In addition to reactive hydrodynamics, Castro includes full
 self-gravity with isolated boundary conditions and rotation, both
 implemented in an energy-conserving fashion, explicit thermal
 diffusion, and gray [@castroII] and multigroup [@castroIII] flux
-limited diffusion radiation hydrodynamics.  An MHD solver has been
-implemented and will be merged into the master branch in the near
-future.  Castro can use an arbitrary equation of state and reaction
-network and these microphysics routines are provided by the StarKiller
-project [@starkiller].
+limited diffusion radiation hydrodynamics.  A constrained transport
+MHD solver based on the CTU algrothm is also available, and can use
+the same physics sources.  Castro can use an arbitrary equation of
+state and reaction network and these microphysics routines are
+provided by the StarKiller project [@starkiller].
 
 Castro is built on the AMReX [@AMReX] adaptive mesh refinement (AMR)
 library and is largely written in C++ with Fortran compute kernels.
