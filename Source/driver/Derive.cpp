@@ -447,7 +447,7 @@ extern "C"
         // the nuclear energy (rho H_nuc) is tacked onto the end of
         // the input state, after the NUM_STATE conserved state
         // quantities
-        Real enuc = std::abs(dat(i,j,k,enuc_comp));
+        Real enuc = std::abs(dat(i,j,k,enuc_comp)) / dat(i,j,k,URHO);
 
         if (enuc > 1.e-100_rt) {
 
@@ -476,6 +476,25 @@ extern "C"
           der(i,j,k,0) = 0.0_rt;
         }
 
+      });
+    }
+
+    void ca_derenuc(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& geomdata,
+                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
+    {
+      auto const dat = datfab.array();
+      auto const der = derfab.array();
+
+      auto dx = geomdata.CellSizeArray();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+      {
+          // The derive data is (rho, rho_enuc)
+          Real enuc = dat(i,j,k,1) / dat(i,j,k,0);
+
+          der(i,j,k,0) = enuc;
       });
     }
 #endif

@@ -194,7 +194,7 @@ Castro::just_the_mhd(Real time, Real dt)
             amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-              flatn_arr(i,j,k) = 0.0;
+              flatn_arr(i,j,k) = 1.0;
             });
 
           } else {
@@ -238,13 +238,21 @@ Castro::just_the_mhd(Real time, Real dt)
 
           for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
-            plm(bxi, idir,
-                q_arr, qaux_arr, flatn_arr,
-                Bx_arr, By_arr, Bz_arr,
-                qleft[idir].array(), qright[idir].array(),
-                src_q_arr, dt);
-          }
+            if (ppm_type == 0) {
+              plm(bxi, idir,
+                  q_arr, qaux_arr, flatn_arr,
+                  Bx_arr, By_arr, Bz_arr,
+                  qleft[idir].array(), qright[idir].array(),
+                  src_q_arr, dt);
 
+            } else {
+              ppm_mhd(bxi, idir,
+                      q_arr, qaux_arr, flatn_arr,
+                      Bx_arr, By_arr, Bz_arr,
+                      qleft[idir].array(), qright[idir].array(),
+                      src_q_arr, dt);
+            }
+          }
 
           // Corner Couple and find the correct fluxes + electric fields
 

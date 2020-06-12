@@ -345,9 +345,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
+#ifdef TRUE_SDC
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
+#endif
 
 
     if (sdc_order == 4) {
@@ -456,8 +458,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       hydro_source.clear();
     }
 
+#ifdef TRUE_SDC
     q.clear();
     qaux.clear();
+#endif
 
     if (sdc_order == 4) {
       q_bar.clear();
