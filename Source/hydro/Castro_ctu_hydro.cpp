@@ -63,23 +63,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 #endif
 
-  Real mass_lost = 0.;
-  Real xmom_lost = 0.;
-  Real ymom_lost = 0.;
-  Real zmom_lost = 0.;
-  Real eden_lost = 0.;
-  Real xang_lost = 0.;
-  Real yang_lost = 0.;
-  Real zang_lost = 0.;
-
 #ifdef _OPENMP
 #ifdef RADIATION
-#pragma omp parallel reduction(max:nstep_fsp) \
-                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
-#else
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#pragma omp parallel reduction(max:nstep_fsp)
 #endif
 #endif
   {
@@ -1416,27 +1402,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } // idir loop
 
-      if (track_grid_losses == 1) {
-
-#pragma gpu box(bx)
-          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-                               BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                               BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
-      }
-
 #ifdef AMREX_USE_GPU
       // Check if we're going to run out of memory in the next MFIter iteration.
       // If so, do a synchronize here so that we don't oversubscribe GPU memory.
@@ -1509,18 +1474,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   if (verbose)
     flush_output();
-
-  if (track_grid_losses)
-    {
-      material_lost_through_boundary_temp[0] += mass_lost;
-      material_lost_through_boundary_temp[1] += xmom_lost;
-      material_lost_through_boundary_temp[2] += ymom_lost;
-      material_lost_through_boundary_temp[3] += zmom_lost;
-      material_lost_through_boundary_temp[4] += eden_lost;
-      material_lost_through_boundary_temp[5] += xang_lost;
-      material_lost_through_boundary_temp[6] += yang_lost;
-      material_lost_through_boundary_temp[7] += zang_lost;
-    }
 
   if (print_update_diagnostics)
     {

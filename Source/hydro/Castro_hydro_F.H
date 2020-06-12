@@ -34,18 +34,6 @@ extern "C"
      const amrex::Real* dx, const amrex::Real dt);
 #endif
 
-  void ca_track_grid_losses
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(flux0),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(flux1),
-#endif
-#if AMREX_SPACEDIM == 3
-     const BL_FORT_FAB_ARG_3D(flux2),
-#endif
-     amrex::Real* mass_lost, amrex::Real* xmom_lost, amrex::Real* ymom_lost, amrex::Real* zmom_lost,
-     amrex::Real* eden_lost, amrex::Real* xang_lost, amrex::Real* yang_lost, amrex::Real* zang_lost);
-
   void edge_state_temp_to_pres
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(qm),

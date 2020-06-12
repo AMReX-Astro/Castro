@@ -432,12 +432,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
         }
 #endif
 
-        if (track_grid_losses) {
-          for (int i = 0; i < n_lost; i++) {
-            material_lost_through_boundary_temp[i] = 0.0;
-          }
-        }
-
         // For simplified SDC, we'll have garbage data if we
         // attempt to use the lagged source terms (both reacting
         // and non-reacting) from the last timestep, since that
