@@ -114,9 +114,9 @@ ppm_reconstruct(const Real* s,
 /// @param u     The fluid velocity
 /// @param c     The sound speed
 /// @param dtdx  dt/dx (timestep / cell width)
-/// @param Ip    Real[3] giving the integrals under the parabola over
+/// @param Ip    Real[3], the integrals under the parabola over
 ///              the 3 waves from the right zone edge
-/// @param Im    Real[3] giving the integrals under the parabola over
+/// @param Im    Real[3], the integrals under the parabola over
 ///              the 3 waves from the left zone edge
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
@@ -175,7 +175,18 @@ ppm_int_profile(const Real sm, const Real sp, const Real sc,
 
 }
 
-
+///
+/// Integrate under the parabola from the left and right edges for a
+/// single wave speed
+///
+/// @param sm    The parabola value on the left edge of the zone
+/// @param sp    The parabola value on the right edge of the zone
+/// @param sc    The state value at the zone center
+/// @param lam   The wave speed
+/// @param dtdx  dt/dx (timestep / cell width)
+/// @param Ip    integral under the parabola from the right zone edge
+/// @param Im    integral under the parabola from the left zone edge
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
