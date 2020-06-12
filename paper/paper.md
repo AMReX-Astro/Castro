@@ -102,7 +102,7 @@ GPUs [@castro_2019] and 100,000s of CPUs [@castro_2017].  For
 performance portability, the same compute kernel is used for CPUs or
 GPUs, using lambda-capturing for C++ kernels.
 
-While there are a number of astrophysical simulation codes, Castro
+While there are a number of astrophysical hydrodynamics simulation codes, Castro
 offers a few unique features.  The original motivation for developing
 Castro was to build a simulation code based on a modern,
 well-supported AMR library (BoxLib which evolved to AMReX), using
@@ -111,13 +111,13 @@ astrophysics.  The radiation solver was a key design consideration in
 the early development.  The large number of application codes using
 AMReX means that Castro continually gains optimizations for new
 architectures.  As Castro evolved, we adopted a fully open development
-model (as does the Enzo [@enzo] code, for example).  We pride ourselfs in
+model (as does the Enzo [@enzo] code, for example).  We pride ourselves in
 making all of the science problems available Castro git repository as
 we are developing them--no separate repo is used for our science work.
 Other simulation codes, like Flash [@flash], work with a general equation of
 state and reaction network, but Castro is unique in focusing on
 spectral deferred correction techniques for coupling the hydro and
-reactions.  Finally, while some astrophysics codes has forks that
+reactions.  Finally, while some astrophysics codes have forks that
 support GPUs (like K-Athena [@kathena]), Castro's current design targets both
 CPUs and GPUs for all solvers in a performance portable fashion.
 
