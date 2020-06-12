@@ -112,8 +112,8 @@ the early development.  The large number of application codes using
 AMReX means that Castro continually gains optimizations for new
 architectures.  As Castro evolved, we adopted a fully open development
 model (as does the Enzo [@enzo] code, for example).  We pride ourselves in
-making all of the science problems available Castro git repository as
-we are developing them--no separate repo is used for our science work.
+making all of the science problems available in the Castro git repository as
+we are developing them—no separate repo is used for our science work.
 Other simulation codes, like Flash [@flash], work with a general equation of
 state and reaction network, but Castro is unique in focusing on
 spectral deferred correction techniques for coupling the hydro and
