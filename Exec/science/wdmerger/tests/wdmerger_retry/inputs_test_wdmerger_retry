@@ -313,7 +313,7 @@ amr.derive_plot_vars = pressure x_velocity y_velocity z_velocity soundspeed
 amr.small_plot_vars = density Temp
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
 
 # Used a forced fixed dt that is known to be larger
 # than the safe hydrodynamic timestep given the above
