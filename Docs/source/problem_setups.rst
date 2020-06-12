@@ -90,6 +90,26 @@ problems are:
      atmosphere, and write a custom diagnostics routine.
      A MAESTROeX version of this problem setup also exists.
 
+* ``mhd_tests``:
+
+   * ``Alfven``: a linearized MHD wave test problem from :cite:`crockett:2005` and :cite:`miniati_martin`.
+
+   * ``BrioWu``: the Brio Wu shock tube problem as described in :cite:`briowu`.  This is a standard
+     test problem used in many MHD code papers (e.g. :cite:`athena`).
+
+   * ``DaiWoodward``: a shock tube problem described in :cite:`Dai_1998`
+
+   * ``FastRarefaction``: a shock tube problem dominated by kinetic energy, as described in :cite:`miniati_martin`
+
+   * ``MagnetosonicWaves``: the fast and slow magnetosonic wave problem from :cite:`crockett:2005`
+
+   * ``OrszagTang``: a two-dimensional magnetized vortex problem, following :cite:`athena`
+
+   * ``RT``: a magnetized Rayleigh-Taylor instability problem
+
+   * ``species``: a simple test problem to ensure that species are accurately advected.
+
+
 * ``radiation_tests``:
 
    * ``Rad2Tshock``: This sets up a radiating shock that can be
