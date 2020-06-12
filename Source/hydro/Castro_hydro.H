@@ -397,7 +397,7 @@
 
 ///
 /// Add the transverse flux difference in idir_t to the interface states in
-/// direction idir_n as part of the CTU hydrodynamics update
+/// direction idir_n as part of the CTU hydrodynamics update.  This is the main driver.
 ///
 /// @param bx        the box to operate over
 /// @param idir_t    direction for the transverse flux difference (0 = x, 1 = y, 2 = z)
@@ -433,6 +433,26 @@
 #endif
                        amrex::Real hdt, amrex::Real cdtdx);
 
+///
+/// Add the transverse flux difference in idir_t to the interface states in
+/// direction idir_n as part of the CTU hydrodynamics update.
+///
+/// @param bx        the box to operate over
+/// @param idir_t    direction for the transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param idir_n    direction of the interface states normal (0 = x, 1 = y, 2 = z)
+/// @param d         a flag set by the calling driver that determines which interface
+///                  we are updating
+/// @param q_arr     input interface state
+/// @param qo_arr    updated interface state
+/// @param qaux      auxillary state
+/// @param flux_t    flux in the idir_t direction
+/// @param rflux_t   radiation flux in the idir_t direction
+/// @param q_t       Godunov state in the idir_t direction
+/// @param area_t    face area in the idir_t direction
+/// @param vol       cell volume
+/// @param hdt       1/2 * timestep
+/// @param cdt       weight * timestep, where the weight comes from the CTU algorithm
+///
      void actual_trans_single(const amrex::Box& bx,
                               int idir_t, int idir_n, int d,
                               amrex::Array4<amrex::Real const> const& q_arr,
@@ -449,6 +469,31 @@
 #endif
                               amrex::Real hdt, amrex::Real cdtdx);
 
+///
+/// The final transverse update where the flux difference in both
+/// perpendicular directions are added to the normal flux.  This is
+/// the main driver.
+///
+/// @param bx        the box to operate over
+/// @param idir_n    direction of the interface states normal (0 = x, 1 = y, 2 = z)
+/// @param idir_t1   direction for the first transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param idir_t2   direction for the second transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param qm        input left interface state
+/// @param qmo       updated left interface state
+/// @param qp        input right interface state
+/// @param qpo       updated right interface state
+/// @param qaux      auxillary state
+/// @param flux_t1   flux in the idir_t1 direction
+/// @param rflux_t1  radiation flux in the idir_t1 direction
+/// @param flux_t2   flux in the idir_t2 direction
+/// @param rflux_t2  radiation flux in the idir_t2 direction
+/// @param q_t1      Godunov state in the idir_t1 direction
+/// @param q_t2      Godunov state in the idir_t2 direction
+/// @param hdt       1/2 * timestep
+/// @param cdtdx_n   weight * timestep in idir_n direction
+/// @param cdtdx_t1  weight * timestep in idir_t1 direction
+/// @param cdtdx_t2  weight * timestep in idir_t2 direction
+///
      void trans_final(const amrex::Box& bx,
                       int idir_n, int idir_t1, int idir_t2,
                       amrex::Array4<amrex::Real const> const& qm,
@@ -469,6 +514,29 @@
                       amrex::Real hdt, amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
+///
+/// The final transverse update where the flux difference in both
+/// perpendicular directions are added to the normal flux.
+///
+/// @param bx        the box to operate over
+/// @param idir_n    direction of the interface states normal (0 = x, 1 = y, 2 = z)
+/// @param idir_t1   direction for the first transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param idir_t2   direction for the second transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param d         a flag set by the driver to indicate which state we are operating on
+/// @param q_arr     input interface state
+/// @param qo_arr    updated interface state
+/// @param qaux      auxillary state
+/// @param flux_t1   flux in the idir_t1 direction
+/// @param rflux_t1  radiation flux in the idir_t1 direction
+/// @param flux_t2   flux in the idir_t2 direction
+/// @param rflux_t2  radiation flux in the idir_t2 direction
+/// @param q_t1      Godunov state in the idir_t1 direction
+/// @param q_t2      Godunov state in the idir_t2 direction
+/// @param hdt       1/2 * timestep
+/// @param cdtdx_n   weight * timestep in idir_n direction
+/// @param cdtdx_t1  weight * timestep in idir_t1 direction
+/// @param cdtdx_t2  weight * timestep in idir_t2 direction
+///
      void actual_trans_final(const amrex::Box& bx,
                              int idir_n, int idir_t1, int idir_t2, int d,
                              amrex::Array4<amrex::Real const> const& q_arr,
@@ -487,10 +555,27 @@
                              amrex::Real hdt, amrex::Real cdtdx_n,
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
+///
+/// Reconstruct the primtive state as parabola, integrate under them,
+/// and perform the characteristic tracing to get the interface states.
+/// This is for the CTU hydrodynamics scheme.
+///
+/// @param bx        the box to operate over
+/// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param q_arr     primitive variable state
+/// @param qaux_arr  the auxillary state
+/// @param srcQ      primitive variable equation source terms
+/// @param flatn     flattening coefficient
+/// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
+/// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
+/// @param dloga     geometric factor dlog(area)
+/// @param vbx       the valid region box (excluding ghost cells)
+/// @param dt        timestep
+///
     void trace_ppm(const amrex::Box& bx,
                    const int idir,
-                   amrex::Array4<amrex::Real const> const& q,
-                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& q_arr,
+                   amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real const> const& srcQ,
                    amrex::Array4<amrex::Real const> const& flatn,
                    amrex::Array4<amrex::Real> const& qm,
