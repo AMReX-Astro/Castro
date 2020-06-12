@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Distributed Problem Setups &mdash; Castro  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Timestepping and Retries" href="timestepping.html" />
+    <link rel="prev" title="Software Design" href="software.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../problem_setups.html">master</a> | <a href="./problem_setups.html">development</a>
+    </div>
+
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Distributed Problem Setups</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/problem_setups.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="distributed-problem-setups">
+<h1>Distributed Problem Setups<a class="headerlink" href="#distributed-problem-setups" title="Permalink to this headline">¶</a></h1>
+<p>There are a number of standard problem setups that come with Castro.
+These can be used as a starting point toward writing your own setup.
+We organize these into subdirectories by broad type (radiation, hydro,
+gravity, etc.): The standard categories and <em>some</em> of the included
+problems are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">gravity_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DustCollapse</span></code>: A pressureless cloud collapse that is a
+standard test problem for gravity. An analytic solution that
+describes the radius of the sphere as a function of time is found
+in Colgate and White <a class="bibtex reference internal" href="zreferences.html#colgwhite" id="id1">[24]</a>. This problem is also
+found in the FLASH User’s Guide.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evrard_collapse</span></code>: This is the collapse of an isothermal
+spherical gas cloud.  This problem was originally discussed in
+<a class="bibtex reference internal" href="zreferences.html#evrard1988" id="id2">[30]</a>.
+This implementation of the test comes from section 9.1 of
+<a class="bibtex reference internal" href="zreferences.html#springel-2010" id="id3">[56]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: Model a 1-d stellar atmosphere (plane-parallel or
+spherical/self-gravitating) and dump energy in via an analytic
+heat source and watch the atmosphere’s hydrostatic state adjust
+in response. This is the counterpart to the Maestro
+<code class="docutils literal notranslate"><span class="pre">test_basestate</span></code> unit test.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hse_convergence</span></code>: This is meant to be a simple 1-d test for assessing the convergence of
+hydro + gravity in maintaining HSE.  Convergence can be measured either
+by looking at the max <span class="math notranslate nohighlight">\(|U|\)</span> in the plotfiles.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: This is a problem that explores the
+change in a hydrostatic structure due to heating.  This was used
+originally in <a class="bibtex reference internal" href="zreferences.html#maestro-ii" id="id4">[14]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StarGrav</span></code>: This problem sets up a single spherical star in
+hydrostatic equilibrium and is used to assess the ability to
+maintain HSE.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uniform_cube_sphere</span></code>: This is used to compute the
+gravitational potential of a perfect cube, for which there is an
+analytic solution.  It tests our isolated boundary conditions.
+This was demonstrated in <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id5">[43]</a>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hydro_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code>: The acoustic pulse problem from
+<a class="bibtex reference internal" href="zreferences.html#mccorquodalecolella" id="id6">[4]</a> used to measure convergence of pure
+hydrodynamics problems (as used for Castro in
+<a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id7">[66]</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse_general</span></code>: a general equation of state version
+of <code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code> used for measuring convergence in
+<a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id8">[66]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">double_bubble</span></code>: Initialize 1 or 2 bubbles in a stratified
+atmosphere (isothermal or isentropic) and allow for the bubbles
+to have the same or a different <span class="math notranslate nohighlight">\(\gamma\)</span> from one another /
+the background atmosphere.  This uses the multigamma EOS.
+An analogous problem is implemented in Maestro.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">KH</span></code>: A Kelvin-Helmholtz shear instability problem.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">oddeven</span></code>: A grid-aligned shock hitting a very small density
+perturbation.  This demonstrates the odd-even decoupling problem
+discussed in <a class="bibtex reference internal" href="zreferences.html#quirk1997" id="id9">[7]</a>. This setup serves to test the
+castro.hybrid_riemann option to hydrodynamics.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: A single-model Rayleigh-Taylor instability problem.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>: The standard Sedov-Taylor blast wave problem. This
+setup was used in the first Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id10">[12]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sod</span></code>: A one-dimensional shock tube setup, including the
+classic Sod problem. This setup was used in the original Castro
+paper.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>: A version of the Sod shock tube for the general
+stellar equation of state. This setup and the included inputs
+files was used in <a class="bibtex reference internal" href="zreferences.html#zingalekatz" id="id11">[65]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>: A simple nova-like convection problem with an
+external heating source. This problem shows how to use the model
+parser to initialize a 1-d atmosphere on the Castro grid,
+incorporate a custom tagging routine, sponge the fluid above the
+atmosphere, and write a custom diagnostics routine.
+A MAESTROeX version of this problem setup also exists.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Alfven</span></code>: a linearized MHD wave test problem from <a class="bibtex reference internal" href="zreferences.html#crockett-2005" id="id12">[25]</a> and <a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id13">[5]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BrioWu</span></code>: the Brio Wu shock tube problem as described in <a class="bibtex reference internal" href="zreferences.html#briowu" id="id14">[15]</a>.  This is a standard
+test problem used in many MHD code papers (e.g. <a class="bibtex reference internal" href="zreferences.html#athena" id="id15">[57]</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DaiWoodward</span></code>: a shock tube problem described in <a class="bibtex reference internal" href="zreferences.html#dai-1998" id="id16">[3]</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FastRarefaction</span></code>: a shock tube problem dominated by kinetic energy, as described in <a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id17">[5]</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MagnetosonicWaves</span></code>: the fast and slow magnetosonic wave problem from <a class="bibtex reference internal" href="zreferences.html#crockett-2005" id="id18">[25]</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OrszagTang</span></code>: a two-dimensional magnetized vortex problem, following <a class="bibtex reference internal" href="zreferences.html#athena" id="id19">[57]</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: a magnetized Rayleigh-Taylor instability problem</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code>: a simple test problem to ensure that species are accurately advected.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radiation_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Rad2Tshock</span></code>: This sets up a radiating shock that can be
+compared to a semi-analytic solution described in <a class="bibtex reference internal" href="zreferences.html#lowrieedwards" id="id20">[46]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadFront</span></code>: This is the optically-thin streaming of a radiation front problem
+demonstrated originally in Castro in <span class="bibtex" id="id21">[castroII]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadShestakovBolstad</span></code>: This is a linear multigroup diffusion test problem first described
+by <a class="bibtex reference internal" href="zreferences.html#shestakov2005" id="id22">[8]</a> and demonstrated in Castro in <span class="bibtex" id="id23">[castroIII]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSourceTest</span></code>: Test the implementation of the source terms in the gray radiation
+solver.  This does the “relaxation to thermal equilibrium” test as
+described in <a class="bibtex reference internal" href="zreferences.html#swestymyra-2009" id="id24">[58]</a>  (originally described in <a class="bibtex reference internal" href="zreferences.html#turnerstone2001" id="id25">[60]</a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSphere</span></code>: This is a multigroup radiating sphere test problem with an analytic solution,
+described in <a class="bibtex reference internal" href="zreferences.html#graziani-2008" id="id26">[34]</a> and <a class="bibtex reference internal" href="zreferences.html#swestymyra-2009" id="id27">[58]</a> and shown in Castro in <a class="bibtex reference internal" href="zreferences.html#castroiii" id="id28">[64]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code>: This is a non-equlibrium Marshak wave test described in <a class="bibtex reference internal" href="zreferences.html#suolson-1996" id="id29">[2]</a> and shown
+in Castro in <a class="bibtex reference internal" href="zreferences.html#castroii" id="id30">[63]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlsonMG</span></code>: This is a multigroup version of <code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code> described in <a class="bibtex reference internal" href="zreferences.html#suolson-1999" id="id31">[9]</a>
+and shown in Castro in <a class="bibtex reference internal" href="zreferences.html#castroiii" id="id32">[64]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadThermalWave</span></code>: A thermal wave test adapted from <a class="bibtex reference internal" href="zreferences.html#howellgreenough-2003" id="id33">[37]</a> and shown in Castro
+in <a class="bibtex reference internal" href="zreferences.html#castroii" id="id34">[63]</a>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reacting_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bubble_convergence</span></code>: a reacting bubble problem designed for measuring the convergence of
+the reactive hydro algorithms in Castro.  This was used in <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id35">[66]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>: A reacting bubble in a stratified white
+dwarf atmosphere. This problem was featured in the
+Maestro reaction paper <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id36">[13]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reacting_convergence</span></code>: a simple reacting hydrodynamics problem for measuring convergence,
+used in <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id37">[66]</a>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">science</span></code>:</p>
+<p>The problems in the science directory are science problems that have
+appeared in papers (or will shortly).  Many of these are being actively used and are shared
+here for reproducibility.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Detonation</span></code>: this sets up a 1-d detonation that propagates through the domain.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flame</span></code>: this sets up a 1-d deflagration that propagates through the domain.  This setup
+was used for the testing in <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id38">[27]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flame_wave</span></code>: this is a model of a flame propagating across a neutron star as a model for
+an X-ray burst.  This was presented in <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id39">[27]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nova</span></code>: this models convection at the base of an accreted layer
+on a white dwarf as a model of a nova.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">planet</span></code>: this is the problem setup from <a class="bibtex reference internal" href="zreferences.html#ryu-2018" id="id40">[53]</a> that models shear and turbulence in a
+hot Jupiter atmosphere.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subchandra</span></code>: a model of sub-Chandra Type Ia supernova that initializes a hot spot in a helium
+layer on a low mass carbon-oxygen white dwarf.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wdmerger</span></code>: a problem setup for modeling white dwarf mergers.  This was used in <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id41">[43]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xrb_mixed</span></code>: a compressible version of the X-ray burst convection problem from <a class="bibtex reference internal" href="zreferences.html#zingale-2015" id="id42">[67]</a>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_tests</span></code>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>: a test of thermal diffusion (without hydro).  This was used to demonstrate convergence
+in both <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id43">[66]</a> and <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id44">[27]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">particles_test</span></code>: a test of passive particles.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reactions_driver_test</span></code>: a test that just calls the reaction terms on a cube of data.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="timestepping.html" class="btn btn-neutral float-right" title="Timestepping and Retries" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="software.html" class="btn btn-neutral float-left" title="Software Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

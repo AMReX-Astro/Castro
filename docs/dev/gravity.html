@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
@@ -277,7 +278,7 @@ interfaces, the data from the coarse levels acts as Dirichlet
 boundary conditions for the current-level-solve.</p></li>
 </ul>
 <p>The overall integration strategy is as follows, and is similar to
-the discussion in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[7]</a>. Briefly:</p>
+the discussion in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[12]</a>. Briefly:</p>
 <ul>
 <li><p>At the beginning of a simulation, we do a multilevel composite
 solve (if <code class="docutils literal notranslate"><span class="pre">gravity.no_composite</span></code> = 0).</p>
@@ -496,7 +497,7 @@ outwards from the center to get <span class="math notranslate nohighlight">\(\ph
 <span id="sec-poisson-3d-bcs"></span><h4>Poisson Boundary Conditions: 3D<a class="headerlink" href="#poisson-boundary-conditions-3d" title="Permalink to this headline">¶</a></h4>
 <p>The following describes methods for doing isolated boundary
 conditions. The best reference for Castro’s implementation of this
-is <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id2">[33]</a>.</p>
+is <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id2">[43]</a>.</p>
 <ul>
 <li><p><strong>Multipole Expansion</strong></p>
 <p>In 3D, by default, we use a multipole expansion to estimate the value
@@ -635,8 +636,8 @@ GR-correction term for Newtonian gravity.  The correction term is
 applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
-<a class="bibtex reference internal" href="zreferences.html#grbk1" id="id5">[35]</a>. For detailed physics, please refer to
-<a class="bibtex reference internal" href="zreferences.html#grbk2" id="id6">[47]</a>. For describing very strong gravitational
+<a class="bibtex reference internal" href="zreferences.html#grbk1" id="id5">[45]</a>. For detailed physics, please refer to
+<a class="bibtex reference internal" href="zreferences.html#grbk2" id="id6">[62]</a>. For describing very strong gravitational
 field, we need to use Einstein field equations</p>
 <div class="math notranslate nohighlight" id="equation-field">
 <span class="eqno">(6)<a class="headerlink" href="#equation-field" title="Permalink to this equation">¶</a></span>\[R_{ik}-\frac{1}{2}g_{ik}R=\frac{\kappa}{c^{2}}T_{ik} \quad , \quad
@@ -755,7 +756,7 @@ of the source term at the cell center, but this method evaluates the
 change in energy at cell edges, using the hydrodynamical mass
 fluxes, permitting total energy to be conserved (excluding possible
 losses at open domain boundaries). See
-<a class="bibtex reference internal" href="zreferences.html#katzthesis" id="id7">[32]</a> for some more details.</p></li>
+<a class="bibtex reference internal" href="zreferences.html#katzthesis" id="id7">[42]</a> for some more details.</p></li>
 </ul>
 <dl class="footnote brackets">
 <dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id3">1</a></span></dt>

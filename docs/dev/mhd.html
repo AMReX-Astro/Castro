@@ -101,6 +101,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
@@ -215,7 +216,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Castro implements a constrained transport (CT) corner transport upwind
 (CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
-<a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id1">[2]</a>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id1">[5]</a>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
 the source terms supported by the hydrodynamics solver are also
@@ -275,14 +276,18 @@ the magnetic energy contribution.</p>
 </div>
 <div class="section" id="hydrodynamics-update">
 <h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this headline">¶</a></h2>
-<p>We use piecewise linear reconstruction with a characteristic projection
-and the full 12-Riemann solve corner transport upwind method.  The HLLD
-Riemann solver is used.</p>
+<p>We use piecewise linear or piecewise parabolic reconstruction with a
+characteristic projection and the full 12-Riemann solve corner
+transport upwind method.  The HLLD Riemann solver is used.</p>
 <p>Within the solver, we use the same indexing into the primitive state
 as defined in <a class="reference internal" href="Hydrodynamics.html#table-primlist"><span class="std std-ref">Primitive State Vector Integer Keys</span></a>, with the additions of <code class="docutils literal notranslate"><span class="pre">QMAGX</span></code>,
 <code class="docutils literal notranslate"><span class="pre">QMAGY</span></code>, and <code class="docutils literal notranslate"><span class="pre">QMAGZ</span></code> for the cell-centered magnetic field
 components and <code class="docutils literal notranslate"><span class="pre">QPTOT</span></code> for the total pressure (gas + magnetic).</p>
-<p>The slope limiting for the controlled by the <code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span></code> variable:</p>
+<p>Just like with pure hydrodynamics, the reconstruction type is
+controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code>, with <code class="docutils literal notranslate"><span class="pre">0</span></code> selecting piecewise
+linear and <code class="docutils literal notranslate"><span class="pre">1</span></code> selecting piecewise parabolic.</p>
+<p>For the piecewise linear method, the slope limiting for the controlled
+by the <code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span></code> variable:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">0</span></code> : piecewise constant slopes</p></li>
@@ -296,7 +301,7 @@ components and <code class="docutils literal notranslate"><span class="pre">QPTO
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this headline">¶</a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <a class="bibtex reference internal" href="zreferences.html#gs2005" id="id2">[23]</a>.  The updated electric field then
+first proposed in <a class="bibtex reference internal" href="zreferences.html#gs2005" id="id2">[33]</a>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </div>
