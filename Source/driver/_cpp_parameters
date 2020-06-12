@@ -542,9 +542,6 @@ dump_old                     bool          false
 # last spatial dimension is vertical
 domain_is_plane_parallel     bool          false
 
-# display warnings in Fortran90 routines
-print_fortran_warnings       int           (0, 1)
-
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
 
