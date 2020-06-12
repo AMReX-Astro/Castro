@@ -7,13 +7,20 @@
 
 using namespace amrex;
 
-
+///
+/// Compute the coefficients of a parabolic reconstruction of the data in a zone.
+/// This uses the standard PPM limiters described in Colella & Woodward (1984)
+///
+/// @param s      Real[5] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
+/// @param flatn  The flattening coefficient
+/// @param sm     The value of the parabola on the left edge of the zone
+/// @param sp     The value of the parabola on the right edge of the zone
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const Real flatn, Real& sm, Real& sp) {
 
-  // This routine does the reconstruction of the zone data into a parabola.
 
   // Compute van Leer slopes
 
@@ -97,6 +104,21 @@ ppm_reconstruct(const Real* s,
 }
 
 
+///
+/// Integrate under the parabola using from the left and right edges
+/// with the wave speeds u-c, u, u+c
+///
+/// @param sm    The parabola value on the left edge of the zone
+/// @param sp    The parabola value on the right edge of the zone
+/// @param sc    The state value at the zone center
+/// @param u     The fluid velocity
+/// @param c     The sound speed
+/// @param dtdx  dt/dx (timestep / cell width)
+/// @param Ip    Real[3] giving the integrals under the parabola over
+///              the 3 waves from the right zone edge
+/// @param Im    Real[3] giving the integrals under the parabola over
+///              the 3 waves from the left zone edge
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_int_profile(const Real sm, const Real sp, const Real sc,
