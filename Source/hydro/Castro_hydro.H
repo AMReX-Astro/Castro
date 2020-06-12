@@ -48,17 +48,41 @@
 /// divergence) using method of lines integration.  The output, is the
 /// divergence of the fluxes, A = -div{F(U)}
 ///
-/// @param time     current time
-/// @param dt   timestep
-/// @param A_update   divergence of the fluxes
+/// @param time      current time
+/// @param dt        timestep
+/// @param A_update  divergence of the fluxes
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
+///
+/// convert the conserved form of the source terms, S(U), into source terms
+/// for the primitive variable equations, S(q).
+///
+/// @param bx      the box to operate over
+/// @param q_arr   primitive variable state array
+/// @param src     conserved source array
+/// @param srcQ    primitive variable source array
+///
     void src_to_prim(const amrex::Box& bx,
-                     amrex::Array4<amrex::Real const> const& q,
+                     amrex::Array4<amrex::Real const> const& q_arr,
                      amrex::Array4<amrex::Real const> const& src,
                      amrex::Array4<amrex::Real> const& srcQ);
 
+///
+/// the actual work routine that does the conversion of conserved to primtiive
+/// variables.
+///
+/// @param bx        the box to operate over
+/// @param time      current time
+/// @param uin       input conserved state
+/// @param Bx        x-component of magentic field (if USE_MHD=TRUE)
+/// @param By        y-component of magentic field (if USE_MHD=TRUE)
+/// @param Bz        z-component of magentic field (if USE_MHD=TRUE)
+/// @param Erin      radiation energy (if USE_RAD=TRUE)
+/// @param lam       radiation flux limiter (if USE_RAD=TRUE)
+/// @param q_arr     output primitive state
+/// @param qaux_arr  output auxillary quantities
+///
     void ctoprim(const amrex::Box& bx,
                  const amrex::Real time,
                  amrex::Array4<amrex::Real const> const& uin,
@@ -74,19 +98,52 @@
                  amrex::Array4<amrex::Real> const& q_arr,
                  amrex::Array4<amrex::Real> const& qaux_arr);
 
+///
+/// compute the flattening coefficient.  This is 0 if we are in a shock and
+/// 1 if we are not applying any flattening
+///
+/// @param bx         the box to operate over
+/// @param q_arr      the primitive variable state
+/// @param flatn      the flattening coefficient
+/// @param pres_comp  index into q_arr of the pressure component
+///
     void uflatten(const amrex::Box& bx,
-                  amrex::Array4<amrex::Real const> const& q,
+                  amrex::Array4<amrex::Real const> const& q_arr,
                   amrex::Array4<amrex::Real> const& flatn,
                   const int pres_comp);
 
+///
+/// A multidimensional shock detection algorithm
+///
+/// @param bx     the box to operate over
+/// @param q_arr  the primitive variable state
+/// @param shk    the shock flag (1 = shock, 0 = no shock)
+///
     void shock(const amrex::Box& bx,
-               amrex::Array4<amrex::Real const> const& q,
+               amrex::Array4<amrex::Real const> const& q_arr,
                amrex::Array4<amrex::Real> const& shk);
 
+///
+/// Compute the node-centered velocity divergence (DU)_{i-1/2.j-1/2,k-1/2}
+///
+/// @param bx     the box to operate over
+/// @param q_arr  input primitive variable state
+/// @param div    output velocity divergence
+///
     void divu(const amrex::Box& bx,
-              amrex::Array4<amrex::Real const> const& q,
+              amrex::Array4<amrex::Real const> const& q_arr,
               amrex::Array4<amrex::Real> const& div);
 
+///
+/// Update the flux with the artifical viscosity.  This is a 2nd order
+/// accurate implementation.
+///
+/// @param bx    the box to operate over
+/// @param idir  the coordinate direction (0 = x, 1 = y, 2 = z)
+/// @param div   the node-centered velocity divergence
+/// @param uin   the conserved state
+/// @param flux  the flux in direction idir
+///
     void apply_av(const amrex::Box& bx,
                   const int idir,
                   amrex::Array4<amrex::Real const> const& div,
@@ -94,6 +151,16 @@
                   amrex::Array4<amrex::Real> const& flux);
 
 #ifdef RADIATION
+///
+/// Update the radiation flux with the artifical viscosity.  This is a 2nd order
+/// accurate implementation.
+///
+/// @param bx       the box to operate over
+/// @param idir     the coordinate direction (0 = x, 1 = y, 2 = z)
+/// @param div      the node-centered velocity divergence
+/// @param Erin     the radiation energy
+/// @param radflux  the radiation energy flux in direction idir
+///
     void apply_av_rad(const amrex::Box& bx,
                       const int idir,
                       amrex::Array4<amrex::Real const> const& div,
@@ -101,10 +168,72 @@
                       amrex::Array4<amrex::Real> const& radflux);
 #endif
 
+///
+/// Compute the normal left and right primitive variable interface
+/// states at each interface using the piecewise parabolic method with
+/// characteristic tracing.  This implementation is for pure
+/// hydrodynamics
+///
+/// @param bx       the box to operate over
+/// @param vbx      the valid region box (excludes ghost cells)
+/// @param q_arr    the primitive variable state
+/// @param flatn    flattening coefficient
+/// @param qaux_arr the auxillary state
+/// @param srcQ     the source terms for the primitive variable equations
+/// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
+/// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
+/// @param qym      left interface state in y, q_{i,j-1/2,k,L}
+/// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
+/// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
+/// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
+/// @param dloga    the geometric factor d(log area)
+/// @param dt       timestep
+///
     void ctu_ppm_states(const amrex::Box& bx, const amrex::Box& vbx,
-                        amrex::Array4<amrex::Real const> const& q,
+                        amrex::Array4<amrex::Real const> const& q_arr,
                         amrex::Array4<amrex::Real const> const& flatn,
-                        amrex::Array4<amrex::Real const> const& qaux,
+                        amrex::Array4<amrex::Real const> const& qaux_arr,
+                        amrex::Array4<amrex::Real const> const& srcQ,
+                        amrex::Array4<amrex::Real> const& qxm,
+                        amrex::Array4<amrex::Real> const& qxp,
+#if AMREX_SPACEDIM >= 2
+                        amrex::Array4<amrex::Real> const& qym,
+                        amrex::Array4<amrex::Real> const& qyp,
+#endif
+#if AMREX_SPACEDIM == 3
+                        amrex::Array4<amrex::Real> const& qzm,
+                        amrex::Array4<amrex::Real> const& qzp,
+#endif
+#if AMREX_SPACEDIM < 3
+                        amrex::Array4<amrex::Real const> const& dloga,
+#endif
+                        const amrex::Real dt);
+
+///
+/// Compute the normal left and right primitive variable interface
+/// states at each interface using piecewise linear reconstruction with
+/// characteristic tracing.  This implementation is for pure
+/// hydrodynamics
+///
+/// @param bx       the box to operate over
+/// @param vbx      the valid region box (excludes ghost cells)
+/// @param q_arr    the primitive variable state
+/// @param flatn    flattening coefficient
+/// @param qaux_arr the auxillary state
+/// @param srcQ     the source terms for the primitive variable equations
+/// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
+/// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
+/// @param qym      left interface state in y, q_{i,j-1/2,k,L}
+/// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
+/// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
+/// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
+/// @param dloga    the geometric factor d(log area)
+/// @param dt       timestep
+///
+    void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
+                        amrex::Array4<amrex::Real const> const& q_arr,
+                        amrex::Array4<amrex::Real const> const& flatn,
+                        amrex::Array4<amrex::Real const> const& qaux_arr,
                         amrex::Array4<amrex::Real const> const& srcQ,
                         amrex::Array4<amrex::Real> const& qxm,
                         amrex::Array4<amrex::Real> const& qxp,
@@ -122,10 +251,31 @@
                         const amrex::Real dt);
 
 #ifdef RADIATION
+///
+/// Compute the normal left and right primitive variable interface
+/// states at each interface using the piecewise parabolic method with
+/// characteristic tracing.  This implementation is for the radiation
+/// hydrodynamics.
+///
+/// @param bx       the box to operate over
+/// @param vbx      the valid region box (excludes ghost cells)
+/// @param q_arr    the primitive variable state
+/// @param flatn    flattening coefficient
+/// @param qaux_arr the auxillary state
+/// @param srcQ     the source terms for the primitive variable equations
+/// @param qxm      left interface state in x, q_{i-1/2,j,k,L}
+/// @param qxp      right interface state in x, q_{i-1/2,j,k,R}
+/// @param qym      left interface state in y, q_{i,j-1/2,k,L}
+/// @param qyp      right interface state in y, q_{i,j-1/2,k,R}
+/// @param qzm      left interface state in z, q_{i,j,k-1/2,L}
+/// @param qzp      right interface state in z, q_{i,j,k-1/2,R}
+/// @param dloga    the geometric factor d(log area)
+/// @param dt       timestep
+///
     void ctu_ppm_rad_states(const amrex::Box& bx, const amrex::Box& vbx,
-                            amrex::Array4<amrex::Real const> const& q,
+                            amrex::Array4<amrex::Real const> const& q_arr,
                             amrex::Array4<amrex::Real const> const& flatn,
-                            amrex::Array4<amrex::Real const> const& qaux,
+                            amrex::Array4<amrex::Real const> const& qaux_arr,
                             amrex::Array4<amrex::Real const> const& srcQ,
                             amrex::Array4<amrex::Real> const& qxm,
                             amrex::Array4<amrex::Real> const& qxp,
@@ -143,6 +293,21 @@
                             const amrex::Real dt);
 #endif
 
+///
+/// Compute the left and right primitive variable interface states at
+/// each interface using piecewise linear reconstruction for a
+/// method-of-lines type of integration (i.e., no prediction to n+1/2
+/// or characteristic tracing).  This implementation is for pure
+/// hydrodynamics
+///
+/// @param bx          the box to operate over
+/// @param idir        coordinate direction (0 = x, 1 = y, 2 = z)
+/// @param q_arr       the primitive variable state
+/// @param flatn_arr   flattening coefficient
+/// @param dq          slope of the primtiive variables
+/// @param qm          left interface state, e.g., q_{i-1/2,j,k,L}
+/// @param qp          right interface state, e.g., q_{i-1/2,j,k,R}
+///
     void mol_plm_reconstruct(const amrex::Box& bx,
                              const int idir,
                              amrex::Array4<amrex::Real const> const& q_arr,
@@ -151,43 +316,78 @@
                              amrex::Array4<amrex::Real> const& dq,
                              amrex::Array4<amrex::Real> const& qm,
                              amrex::Array4<amrex::Real> const& qp);
+///
+/// Compute the left and right primitive variable interface states at
+/// each interface using piecewise parabolic reconstruction for a
+/// method-of-lines type of integration (i.e., no prediction to n+1/2
+/// or characteristic tracing).  This implementation is for pure
+/// hydrodynamics
+///
+/// @param bx          the box to operate over
+/// @param idir        coordinate direction (0 = x, 1 = y, 2 = z)
+/// @param q_arr       the primitive variable state
+/// @param flatn_arr   flattening coefficient
+/// @param qm          left interface state, e.g., q_{i-1/2,j,k,L}
+/// @param qp          right interface state, e.g., q_{i-1/2,j,k,R}
+///
+    void mol_ppm_reconstruct(const amrex::Box& bx,
+                             const int idir,
+                             amrex::Array4<amrex::Real const> const& q_arr,
+                             amrex::Array4<amrex::Real const> const& flatn_arr,
+                             amrex::Array4<amrex::Real> const& qm,
+                             amrex::Array4<amrex::Real> const& qp);
 
-     void mol_ppm_reconstruct(const amrex::Box& bx,
-                              const int idir,
-                              amrex::Array4<amrex::Real const> const& q_arr,
-                              amrex::Array4<amrex::Real const> const& flatn_arr,
-                              amrex::Array4<amrex::Real> const& qm,
-                              amrex::Array4<amrex::Real> const& qp);
-
-     void mol_consup(const amrex::Box& bx,
-                     amrex::Array4<amrex::Real const> const& shk,
-                     amrex::Array4<amrex::Real const> const& uin,
-                     amrex::Array4<amrex::Real const> const& srcU,
-                     amrex::Array4<amrex::Real> const& update,
-                     const amrex::Real dt,
-                     amrex::Array4<amrex::Real const> const& flux1,
+///
+/// Compute the conservative update of the fluid state given the fluxes.
+/// This returns a source term, update, of the form -div{F} + S(U) which
+/// can then be added to the old state to update in time.  This version
+/// is written for the method-of-lines / true SDC framework.
+///
+/// @param bx      the box to operate over
+/// @param shk     the shock flag
+/// @param srcU    source terms for the conservative equations
+/// @param update  the final conserved state update, -div{F} + S(U)
+/// @param flux0   flux in the x-direction
+/// @param flux1   flux in the y-direction
+/// @param flux2   flux in the z-direction
+/// @param area0   area of x faces
+/// @param area1   area of y faces
+/// @param area2   area of z faces
+/// @param q0      Godunuv state on x faces
+/// @param vol     cell volume
+///
+    void mol_consup(const amrex::Box& bx,
+                    amrex::Array4<amrex::Real const> const& shk,
+                    amrex::Array4<amrex::Real const> const& srcU,
+                    amrex::Array4<amrex::Real> const& update,
+                    const amrex::Real dt,
+                    amrex::Array4<amrex::Real const> const& flux0,
 #if AMREX_SPACEDIM >= 2
-                     amrex::Array4<amrex::Real const> const& flux2,
+                    amrex::Array4<amrex::Real const> const& flux1,
 #endif
 #if AMREX_SPACEDIM == 3
-                     amrex::Array4<amrex::Real const> const& flux3,
+                    amrex::Array4<amrex::Real const> const& flux2,
 #endif
-                     amrex::Array4<amrex::Real const> const& area1,
+                    amrex::Array4<amrex::Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
-                     amrex::Array4<amrex::Real const> const& area2,
+                    amrex::Array4<amrex::Real const> const& area1,
 #endif
 #if AMREX_SPACEDIM == 3
-                     amrex::Array4<amrex::Real const> const& area3,
+                    amrex::Array4<amrex::Real const> const& area2,
 #endif
-                     amrex::Array4<amrex::Real const> const& q1,
-#if AMREX_SPACEDIM >= 2
-                     amrex::Array4<amrex::Real const> const& q2,
-#endif
-#if AMREX_SPACEDIM == 3
-                     amrex::Array4<amrex::Real const> const& q3,
-#endif
-                     amrex::Array4<amrex::Real const> const& vol);
+                    amrex::Array4<amrex::Real const> const& q0,
+                    amrex::Array4<amrex::Real const> const& vol);
 
+///
+/// Compute the diffusive flux term and add it to the energy fluxes.
+/// This implementation is second-order accurate.
+///
+/// @param bx    the box to operate over
+/// @param idir  the coordinate direction (0 = x, 1 = y, 2 = z)
+/// @param U     the conserved state
+/// @param cond  thermal conductivity
+/// @param flux  hydrodynamic flux in direction idir
+///
      void
      mol_diffusive_flux(const amrex::Box& bx,
                         const int idir,
@@ -195,6 +395,26 @@
                         amrex::Array4<amrex::Real const> const& cond,
                         amrex::Array4<amrex::Real> const& flux);
 
+///
+/// Add the transverse flux difference in idir_t to the interface states in
+/// direction idir_n as part of the CTU hydrodynamics update
+///
+/// @param bx        the box to operate over
+/// @param idir_t    direction for the transverse flux difference (0 = x, 1 = y, 2 = z)
+/// @param idir_n    direction of the interface states normal (0 = x, 1 = y, 2 = z)
+/// @param qm        input left interface state
+/// @param qmo       updated left interface state
+/// @param qp        input right interface state
+/// @param qpo       updated right interface state
+/// @param qaux      auxillary state
+/// @param flux_t    flux in the idir_t direction
+/// @param rflux_t   radiation flux in the idir_t direction
+/// @param q_t       Godunov state in the idir_t direction
+/// @param area_t    face area in the idir_t direction
+/// @param vol       cell volume
+/// @param hdt       1/2 * timestep
+/// @param cdt       weight * timestep, where the weight comes from the CTU algorithm
+///
      void trans_single(const amrex::Box& bx,
                        int idir_t, int idir_n,
                        amrex::Array4<amrex::Real const> const& qm,
@@ -292,26 +512,6 @@
            bool lo_bc_test, bool hi_bc_test,
            const amrex::Real dx, amrex::Real& dp);
 
-
-    void ctu_plm_states(const amrex::Box& bx, const amrex::Box& vbx,
-                        amrex::Array4<amrex::Real const> const& q_arr,
-                        amrex::Array4<amrex::Real const> const& flatn,
-                        amrex::Array4<amrex::Real const> const& qaux__arr,
-                        amrex::Array4<amrex::Real const> const& srcQ,
-                        amrex::Array4<amrex::Real> const& qxm,
-                        amrex::Array4<amrex::Real> const& qxp,
-#if AMREX_SPACEDIM >= 2
-                        amrex::Array4<amrex::Real> const& qym,
-                        amrex::Array4<amrex::Real> const& qyp,
-#endif
-#if AMREX_SPACEDIM == 3
-                        amrex::Array4<amrex::Real> const& qzm,
-                        amrex::Array4<amrex::Real> const& qzp,
-#endif
-#if AMREX_SPACEDIM < 3
-                        amrex::Array4<amrex::Real const> const& dloga,
-#endif
-                        const amrex::Real dt);
 
     void trace_plm(const amrex::Box& bx,
                    const int idir,

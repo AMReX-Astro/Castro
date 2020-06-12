@@ -46,11 +46,6 @@ extern "C"
      amrex::Real* mass_lost, amrex::Real* xmom_lost, amrex::Real* ymom_lost, amrex::Real* zmom_lost,
      amrex::Real* eden_lost, amrex::Real* xang_lost, amrex::Real* yang_lost, amrex::Real* zang_lost);
 
-  void edge_state_temp_to_pres
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp));
-
 #ifdef __cplusplus
 }
 #endif
