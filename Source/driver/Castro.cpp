@@ -487,11 +487,6 @@ Castro::Castro (Amr&            papa,
 
     initMFs();
 
-    for (int i = 0; i < n_lost; i++) {
-      material_lost_through_boundary_cumulative[i] = 0.0;
-      material_lost_through_boundary_temp[i] = 0.0;
-    }
-
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
     if (do_hydro && do_reflux) {

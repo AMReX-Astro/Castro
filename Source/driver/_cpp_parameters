@@ -548,9 +548,6 @@ print_fortran_warnings       int           (0, 1)
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
 
-# calculate losses of material through physical grid boundaries
-track_grid_losses            int            0                    y
-
 # how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
 sum_interval                 int           -1
 

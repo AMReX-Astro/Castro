@@ -165,28 +165,6 @@ Castro::restart (Amr&     papa,
 
     }
 
-    if (track_grid_losses && level == 0) 
-    {
-
-      // get the current value of the diagnostic quantities
-      std::ifstream DiagFile;
-      std::string FullPathDiagFile = parent->theRestartFile();
-      FullPathDiagFile += "/Diagnostics";
-      DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
-
-      if (DiagFile.good()) {
-
-          for (int i = 0; i < n_lost; i++) {
-              DiagFile >> material_lost_through_boundary_cumulative[i];
-              material_lost_through_boundary_temp[i] = 0.0;
-          }
-
-          DiagFile.close();
-
-      }
-
-    }
-
 #ifdef GRAVITY
     if (use_point_mass && level == 0)
     {
@@ -490,22 +468,6 @@ Castro::checkPoint(const std::string& dir,
 
             CPUFile << std::setprecision(17) << getCPUTime();
             CPUFile.close();
-        }
-
-        if (track_grid_losses) {
-
-            // store diagnostic quantities
-            std::ofstream DiagFile;
-            std::string FullPathDiagFile = dir;
-            FullPathDiagFile += "/Diagnostics";
-            DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-            for (int i = 0; i < n_lost; i++) {
-              DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-            }
-
-            DiagFile.close();
-
         }
 
 #ifdef GRAVITY
@@ -1236,23 +1198,6 @@ Castro::plotFileOutput(const std::string& dir,
     if (level == 0 && ParallelDescriptor::IOProcessor()) {
         writeJobInfo(dir, io_time);
     }
-
-    if (track_grid_losses && level == 0) {
-
-        // store diagnostic quantities
-        std::ofstream DiagFile;
-        std::string FullPathDiagFile = dir;
-        FullPathDiagFile += "/Diagnostics";
-        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-        for (int i = 0; i < n_lost; i++) {
-          DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-        }
-
-        DiagFile.close();
-
-    }
-
 
 #ifdef GRAVITY
     if (use_point_mass && level == 0) {

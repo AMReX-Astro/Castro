@@ -207,9 +207,6 @@ castro.react_rho_max = 1.0e12
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
 
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
-
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
 

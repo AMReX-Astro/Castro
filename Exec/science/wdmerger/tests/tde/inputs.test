@@ -151,9 +151,6 @@ castro.point_mass_fix_solution = 1
 # Diagnostics and I/O
 ############################################################################################
 
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
-
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
 
