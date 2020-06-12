@@ -1082,35 +1082,30 @@ spatial dimension is vertical</p></td>
 much mass, momentum, energy added)</p></td>
 <td><p>(0, 1)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">track_grid_losses</span></code></p></td>
-<td><p>calculate losses of material through physical grid
-boundaries</p></td>
-<td><p>0</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum_interval</span></code></p></td>
 <td><p>how often (number of coarse timesteps) to compute
 integral sums (for runtime diagnostics)</p></td>
 <td><p>-1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sum_per</span></code></p></td>
 <td><p>how often (simulation time) to compute integral sums
 (for runtime diagnostics)</p></td>
 <td><p>-1.0e0</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">show_center_of_mass</span></code></p></td>
 <td><p>display center of mass diagnostics</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">job_name</span></code></p></td>
 <td><p>a string describing the simulation that will be copied
 into the plotfile’s <code class="docutils literal notranslate"><span class="pre">job_info</span></code> file</p></td>
 <td><p>“Castro”</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">output_at_completion</span></code></p></td>
 <td><p>write a final plotfile and checkpoint upon completion</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_time</span></code></p></td>
 <td><p>Do we want to reset the time in the checkpoint? This
 ONLY takes effect if amr.regrid_on_restart = 1 and
 amr.checkpoint_on_restart = 1, (which require that
@@ -1119,7 +1114,7 @@ checkpoint) and you set it to value greater than this
 default value.</p></td>
 <td><p>-1.e200</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reset_checkpoint_step</span></code></p></td>
 <td><p>Do we want to reset the number of steps in the
 checkpoint? This ONLY takes effect if
 amr.regrid_on_restart = 1 and amr.checkpoint_on_restart

@@ -526,7 +526,7 @@ namespace: ``castro``
 
 **diagnostics, I/O**
 
-.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.track_grid_losses, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
+.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -543,9 +543,6 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
 |                                        | much mass, momentum, energy added)                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
-|                                        | boundaries                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
 |                                        | integral sums (for runtime diagnostics)                 |               |

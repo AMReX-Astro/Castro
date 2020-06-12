@@ -379,9 +379,6 @@ advanced in this step.</p>
 <li><p>Update the flux registers to account for mismatches at
 coarse-fine interfaces. This cleans up the memory used during
 the step.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
-also add up the mass that left through the boundary over this
-step. <a class="footnote-reference brackets" href="#id8" id="id4">1</a></p></li>
 <li><p>Free any memory allocated for the level advance.</p></li>
 </ul>
 </li>
@@ -503,7 +500,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p>sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id5">[8]</a></p></li>
+follows that of Maestro <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id4">[8]</a></p></li>
 <li><p>external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
 equations in the conservative state vector, <span class="math notranslate nohighlight">\(\Ub\)</span>, are indexed
@@ -606,7 +603,7 @@ using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id9" id="id6">2</a>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id7" id="id5">1</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -727,7 +724,7 @@ simulation.</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <span class="bibtex" id="id7">[castro_sdc]</span>.
+<p>The SDC solver follows the algorithm detailed in <span class="bibtex" id="id6">[castro_sdc]</span>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
@@ -1015,13 +1012,7 @@ next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
 <dl class="footnote brackets">
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
-<dd><p>Note: this functionality assumes that only the
-coarse grid touches the physical boundary. It does not use
-any use masks to prevent double counting if multiple levels
-touch the boundary.</p>
-</dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id6">2</a></span></dt>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id5">1</a></span></dt>
 <dd><p>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</p>
 </dd>
 </dl>
