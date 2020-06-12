@@ -140,14 +140,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     }
 #endif
 
-    // Reset the grid loss tracking.
-
-    if (track_grid_losses) {
-      for (int i = 0; i < n_lost; i++) {
-        material_lost_through_boundary_temp[i] = 0.0;
-      }
-    }
-
 #ifdef GRAVITY
     if (moving_center == 1) {
         define_new_center(get_old_data(State_Type), time);
@@ -435,18 +427,6 @@ void
 Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_PROFILE("Castro::finalize_advance()");
-
-    // Add the material lost in this timestep to the cumulative losses.
-
-    if (track_grid_losses) {
-
-      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
-
-      for (int i = 0; i < n_lost; i++) {
-        material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
-      }
-
-    }
 
     if (do_reflux) {
         FluxRegCrseInit();

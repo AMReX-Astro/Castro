@@ -1,5 +1,10 @@
 # 20.07
 
+   * The parameter castro.track_grid_losses has been removed. (#1035)
+
+   * The parameter castro.print_fortran_warnings, which no longer had any
+     effect, has been removed. (#1036)
+
    * PPM reconstruction has been added to the MHD solver (#1002)
 
    * The Reactions_Type StateData has been reworked so that its first
