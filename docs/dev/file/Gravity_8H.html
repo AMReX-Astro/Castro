@@ -582,6 +582,24 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi">
+<span id="_CPPv3N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="_CPPv2N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="Gravity::test_residual__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.i"></span><span class="target" id="classGravity_1a1f5722b41d2a8021f2c7d044f21cb6b1"></span>void <code class="sig-name descname">test_residual</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>rhs</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecx</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecy</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecz</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::GpuArray&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real, AMREX_SPACEDIM&gt; <em>dx</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::GpuArray&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real, AMREX_SPACEDIM&gt; <em>problo</em>, int <em>coord_type</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Test whether using the edge-based gradients to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: box </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: right-hand-side </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecx</span></code>: gradients wrt x </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecy</span></code>: gradients wrt y </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecz</span></code>: gradients wrt z </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_type</span></code>: coordinate system </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N7Gravity24test_level_grad_phi_prevEi">
 <span id="_CPPv3N7Gravity24test_level_grad_phi_prevEi"></span><span id="_CPPv2N7Gravity24test_level_grad_phi_prevEi"></span><span id="Gravity::test_level_grad_phi_prev__i"></span><span class="target" id="classGravity_1accd3fe5ed76e322701a8059b1c4985cd"></span>void <code class="sig-name descname">test_level_grad_phi_prev</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><br /></dt>
 <dd><p><dl class="simple">
