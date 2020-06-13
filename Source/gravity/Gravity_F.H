@@ -7,15 +7,6 @@ extern "C"
 {
 #endif
 
-  void ca_test_residual
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(rhs),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad),
-            const BL_FORT_FAB_ARG(ygrad),
-            const BL_FORT_FAB_ARG(zgrad)), 
-            const amrex::Real* dx, const amrex::Real* problo, 
-            const int* coord_type);
-
   void ca_compute_radial_mass
     (const int* lo, const int* hi, 
      const amrex::Real* dx, amrex::Real dr,
