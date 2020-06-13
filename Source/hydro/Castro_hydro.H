@@ -820,20 +820,29 @@
               amrex::Array4<amrex::Real> const& qint,
               const int idir);
 
+///
+/// A simple HLL Riemann solver for pure hydrodynamics.  This takes just a
+/// single interface's data and returns the HLL flux
+///
+/// @param ql     the left interface state
+/// @param qr     the right interface state
+/// @param cl     sound speed on the left interface
+/// @param cr     sound speed on the right interface
+/// @param idir   coordinate direction for the solve (0 = x, 1 = y, 2 = z)
+/// @param coord  geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical)
+/// @param f      the HLL fluxes
+///
     AMREX_GPU_HOST_DEVICE
     void HLL(const amrex::Real* ql, const amrex::Real* qr,
              const amrex::Real cl, const amrex::Real cr,
              const int idir, const int coord,
              amrex::Real* f);
 
-    AMREX_GPU_HOST_DEVICE
-    void
-    wsqge(const amrex::Real p, const amrex::Real v,
-          const amrex::Real gam, const amrex::Real gdot, amrex::Real& gstar,
-          const amrex::Real gmin, const amrex::Real gmax, const amrex::Real csq,
-          const amrex::Real pstar, amrex::Real& wsq);
 
-    AMREX_GPU_HOST_DEVICE
+///
+/// Find the pstar state in the hydrodynamics Riemann problem via bisection
+///
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
                     const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
@@ -845,19 +854,26 @@
                     amrex::Real& pstar, amrex::Real& gamstar,
                     bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
 
-    AMREX_GPU_HOST_DEVICE
+///
+/// Compute the conserved hydrodynamics state from the primitive state
+///
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     cons_state(const amrex::Real* q, amrex::Real* U,
                const GpuArray<int, npassive>& qpass_map_p,
                const GpuArray<int, npassive>& upass_map_p);
 
-    AMREX_GPU_HOST_DEVICE
+///
+/// Compute the HLLC state given the primitive state
+///
+    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
                const amrex::Real* q, amrex::Real* U,
                const GpuArray<int, npassive>& qpass_map_p,
                const GpuArray<int, npassive>& upass_map_p);
 
+    AMREX_GPU_HOST_DEVICE
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const& qint,
