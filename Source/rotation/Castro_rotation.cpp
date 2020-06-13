@@ -2,7 +2,7 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_util.H"
-
+#include "Rotation.H"
 using namespace amrex;
 
 void
@@ -157,6 +157,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
 
     int ng = phi.nGrow();
 
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -168,6 +169,7 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
         fill_rotational_potential(bx, phi.array(mfi), time);
 
     }
+
 
     rot.setVal(0.0);
 

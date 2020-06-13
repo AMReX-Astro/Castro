@@ -1287,10 +1287,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif
 
-#if AMREX_SPACEDIM <= 2
-      Array4<Real> pradial_fab = pradial.array();
-#endif
-
 
       for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
@@ -1311,109 +1307,94 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
         if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-                amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
+#if AMREX_SPACEDIM <= 2
+            Array4<Real> pradial_fab = pradial.array();
 #endif
 
-#if AMREX_SPACEDIM == 2
+            // get the scaled radial pressure -- we need to treat this specially
+#if AMREX_SPACEDIM <= 2
+
+#if AMREX_SPACEDIM == 1
+            if (!Geom().IsCartesian()) {
+#elif AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
+#endif
                 amrex::ParallelFor(nbx,
                 [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
             }
+
 #endif
         }
 
-        // Store the fluxes from this advance.
+        // Store the fluxes from this advance. For simplified SDC integration we
+        // only need to do this on the last iteration.
 
-        // For normal integration we want to add the fluxes from this advance
-        // since we may be subcycling the timestep. But for simplified SDC integration
-        // we want to copy the fluxes since we expect that there will not be
-        // subcycling and we only want the last iteration's fluxes.
+        bool add_fluxes = true;
 
-        Array4<Real> const flux_fab = (flux[idir]).array();
-        Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-        const int numcomp = NUM_STATE;
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
+            sdc_iteration != sdc_iters - 1) {
+            add_fluxes = false;
+        }
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (add_fluxes) {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-            {
-                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
-            });
-
-        } else {
+            Array4<Real> const flux_fab = (flux[idir]).array();
+            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+            const int numcomp = NUM_STATE;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
 
-        }
-
 #ifdef RADIATION
-        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
-        Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-        const int radcomp = Radiation::nGroups;
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-            {
-                rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
-            });
-
-        } else {
+            Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+            Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
+            const int radcomp = Radiation::nGroups;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
 
-        }
 #endif
 
+#if AMREX_SPACEDIM <= 2
+
+#if AMREX_SPACEDIM == 1
+            if (idir == 0 && !Geom().IsCartesian()) {
+#elif AMREX_SPACEDIM == 2
+            if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+#endif
+                Array4<Real> pradial_fab = pradial.array();
+                Array4<Real> P_radial_fab = P_radial.array(mfi);
+
+                AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+                {
+                    P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
+                });
+            }
+
+#endif
+
+        } // add_fluxes
+
+        Array4<Real> const flux_fab = (flux[idir]).array();
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
         AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
         {
+            // This is a copy, not an add, since we need mass_fluxes to be
+            // only this subcycle's data when we evaluate the gravitational
+            // forces.
+
             mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
         });
 
       } // idir loop
-
-#if AMREX_SPACEDIM <= 2
-      if (!Geom().IsCartesian()) {
-
-          Array4<Real> P_radial_fab = P_radial.array(mfi);
-
-          if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
-              });
-
-          } else {
-
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
-              });
-
-          }
-
-      }
-#endif
 
       if (track_grid_losses == 1) {
 

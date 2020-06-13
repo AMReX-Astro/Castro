@@ -72,6 +72,8 @@ Castro::just_the_mhd(Real time, Real dt)
 
       FArrayBox q2D;
 
+      FArrayBox div;
+
       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
         {
 
@@ -192,7 +194,7 @@ Castro::just_the_mhd(Real time, Real dt)
             amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-              flatn_arr(i,j,k) = 0.0;
+              flatn_arr(i,j,k) = 1.0;
             });
 
           } else {
@@ -586,6 +588,38 @@ Castro::just_the_mhd(Real time, Real dt)
 
           electric_edge_z(eebzf, q2D_arr, Ez_arr, flxx_arr, flxy_arr);
 
+          // clean the final fluxes
+
+          div.resize(obx, 1);
+          Elixir elix_div = div.elixir();
+          auto div_arr = div.array();
+
+          // compute divu -- we'll use this later when doing the artifical viscosity
+          divu(obx, q_arr, div_arr);
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
+
+            const Box& nbx = amrex::surroundingNodes(bx, idir);
+
+            Array4<Real> const flux_arr = (flux[idir]).array();
+
+            // Zero out shock and temp fluxes -- these are physically meaningless here
+            amrex::ParallelFor(nbx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+              flux_arr(i,j,k,UTEMP) = 0.e0;
+#ifdef SHOCK_VAR
+              flux_arr(i,j,k,USHK) = 0.e0;
+#endif
+            });
+
+            apply_av(nbx, idir, div_arr, u_arr, flux_arr);
+
+            normalize_species_fluxes(nbx, flux_arr);
+
+          }
+
+
           // Conservative update
 
           consup_mhd(bx, update_arr, flxx_arr, flxy_arr, flxz_arr);
@@ -620,12 +654,44 @@ Castro::just_the_mhd(Real time, Real dt)
           //Ey(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2), ey_lo(3):ey_hi(3)) = Eytemp(ey_lo(1):ey_hi(1),ey_lo(2):ey_hi(2),ey_lo(3):ey_hi(3))
           //Ez(ez_lo(1):ez_hi(1),ez_lo(2):ez_hi(2), ez_lo(3):ez_hi(3)) = Eztemp(ez_lo(1):ez_hi(1),ez_lo(2):ez_hi(2),ez_lo(3):ez_hi(3))
 
-          for (int i = 0; i < BL_SPACEDIM; i++){
-            (*fluxes[i])[mfi].plus(flux[i], mfi.nodaltilebox(i),0,0,NUM_STATE);
+          // Store the fluxes from this advance.
 
-            (*mass_fluxes[i])[mfi].copy(flux[i],mfi.nodaltilebox(i),Density,mfi.nodaltilebox(i),0,1);
-            //electric[i][mfi].copy(E[i], mfi.nodaltilebox(i));
-          }
+          // For normal integration we want to add the fluxes from this advance
+          // since we may be subcycling the timestep. But for simplified SDC integration
+          // we want to copy the fluxes since we expect that there will not be
+          // subcycling and we only want the last iteration's fluxes.
+
+          for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
+
+            Array4<Real> const flux_fab = (flux[idir]).array();
+            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+            const int numcomp = NUM_STATE;
+
+            if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+              {
+                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
+              });
+
+            } else {
+
+              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+              {
+                fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
+              });
+
+            }
+
+
+            Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
+
+            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+            {
+              mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
+            });
+
+          } // idir loop
 
         }
 

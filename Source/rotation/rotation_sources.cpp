@@ -49,9 +49,9 @@ Castro::rsrc(const Box& bx,
       Sr[n] = rho * rot(i,j,k,n);
     }
 
-    src[UMX] = Sr[UMX];
-    src[UMY] = Sr[UMY];
-    src[UMZ] = Sr[UMZ];
+    src[UMX] = Sr[0];
+    src[UMY] = Sr[1];
+    src[UMZ] = Sr[2];
 
     snew[UMX] += dt * src[UMX];
     snew[UMY] += dt * src[UMY];
@@ -75,9 +75,9 @@ Castro::rsrc(const Box& bx,
 
     if (rot_source_type == 1 || rot_source_type == 2) {
 
-      SrE = uold(i,j,k,UMX) * rhoInv * Sr[UMX] +
-            uold(i,j,k,UMY) * rhoInv * Sr[UMY] +
-            uold(i,j,k,UMZ) * rhoInv * Sr[UMZ];
+      SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
+            uold(i,j,k,UMY) * rhoInv * Sr[1] +
+            uold(i,j,k,UMZ) * rhoInv * Sr[2];
 
     } else if (rot_source_type == 3) {
 
@@ -95,9 +95,9 @@ Castro::rsrc(const Box& bx,
       // during the corrector step, so that the final result is correct.
       // Here we use the same approach as rot_source_type == 2.
 
-      SrE = uold(i,j,k,UMX) * rhoInv * Sr[UMX] +
-            uold(i,j,k,UMY) * rhoInv * Sr[UMY] +
-            uold(i,j,k,UMZ) * rhoInv * Sr[UMZ];
+      SrE = uold(i,j,k,UMX) * rhoInv * Sr[0] +
+            uold(i,j,k,UMY) * rhoInv * Sr[1] +
+            uold(i,j,k,UMZ) * rhoInv * Sr[2];
 
     } else {
 #ifndef AMREX_USE_GPU
@@ -273,6 +273,7 @@ Castro::corrrsrc(const Box& bx,
 
     Real old_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoninv;
 
+
     // Define old source terms
 
     Real vold[3];
@@ -287,6 +288,7 @@ Castro::corrrsrc(const Box& bx,
 
     Real SrE_old = vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2];
 
+
     // Define new source terms
 
     GpuArray<Real, 3> vnew;
@@ -300,6 +302,7 @@ Castro::corrrsrc(const Box& bx,
     }
 
     Real SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
+
 
     // Define correction terms
 
@@ -324,6 +327,7 @@ Castro::corrrsrc(const Box& bx,
         new_mom_tmp[n] = unew(i,j,k,UMX+n) - 0.5_rt * Sr_old[n] * dt + 0.5_rt * rhon * acc[n] * dt;
       }
 
+
       // The following is the general solution to the 3D coupled system,
       // assuming that the rotation vector has components along all three
       // axes, obtained using Cramer's rule (the coefficient matrix is
@@ -335,15 +339,16 @@ Castro::corrrsrc(const Box& bx,
       // of the dt_omega_matrix. It also has the correct form if we have disabled
       // the Coriolis force entirely; at that point it reduces to the identity matrix.
 
-      Real new_mom[3];
+      Real new_mom[3] = {}; 
 
       // new_mom = matmul(dt_omega_matrix, new_mom)
 
       for (int l = 0; l < 3; l++) {
         for (int m = 0; m < 3; m++) {
-          new_mom[l] = dt_omega_matrix(l,m) * new_mom_tmp[m];
+          new_mom[l] += dt_omega_matrix(l,m) * new_mom_tmp[m];
         }
       }
+
 
       // Obtain the effective source term; remember that we're ultimately going
       // to multiply the source term by dt to get the update to the state.

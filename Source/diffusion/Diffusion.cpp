@@ -154,9 +154,14 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     const Geometry& geom = parent->Geom(level);
     const BoxArray& ba = Temperature.boxArray();
     const DistributionMapping& dm = Temperature.DistributionMap();
-    
-    MLABecLaplacian mlabec({geom}, {ba}, {dm},
-                           LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
+
+    LPInfo info;
+    info.setMetricTerm(true);
+    info.setMaxCoarseningLevel(0);
+    info.setAgglomeration(0);
+    info.setConsolidation(0);
+
+    MLABecLaplacian mlabec({geom}, {ba}, {dm}, info);
     mlabec.setMaxOrder(diffusion::mlmg_maxorder);
 
     mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);

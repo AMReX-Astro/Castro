@@ -27,9 +27,10 @@
 ///
 /// Check to see if the CFL condition has been violated
 ///
+/// @param State MultiFab of conserved variables
 /// @param dt timestep
 ///
-    void check_for_cfl_violation(const amrex::Real dt);
+    void check_for_cfl_violation(const amrex::MultiFab& State, const amrex::Real dt);
 
 ///
 /// this constructs the hydrodynamic source (essentially the flux
@@ -155,6 +156,42 @@
                               amrex::Array4<amrex::Real const> const& flatn_arr,
                               amrex::Array4<amrex::Real> const& qm,
                               amrex::Array4<amrex::Real> const& qp);
+
+     void mol_consup(const amrex::Box& bx,
+                     amrex::Array4<amrex::Real const> const& shk,
+                     amrex::Array4<amrex::Real const> const& uin,
+                     amrex::Array4<amrex::Real const> const& srcU,
+                     amrex::Array4<amrex::Real> const& update,
+                     const amrex::Real dt,
+                     amrex::Array4<amrex::Real const> const& flux1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& flux2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& flux3,
+#endif
+                     amrex::Array4<amrex::Real const> const& area1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& area2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& area3,
+#endif
+                     amrex::Array4<amrex::Real const> const& q1,
+#if AMREX_SPACEDIM >= 2
+                     amrex::Array4<amrex::Real const> const& q2,
+#endif
+#if AMREX_SPACEDIM == 3
+                     amrex::Array4<amrex::Real const> const& q3,
+#endif
+                     amrex::Array4<amrex::Real const> const& vol);
+
+     void
+     mol_diffusive_flux(const amrex::Box& bx,
+                        const int idir,
+                        amrex::Array4<amrex::Real const> const& U,
+                        amrex::Array4<amrex::Real const> const& cond,
+                        amrex::Array4<amrex::Real> const& flux);
 
      void trans_single(const amrex::Box& bx,
                        int idir_t, int idir_n,
@@ -488,9 +525,14 @@
     void reset_edge_state_thermo(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qedge);
 
-    void edge_state_temp_to_pres(const Box& bx,
+    void edge_state_temp_to_pres(const amrex::Box& bx,
                                  amrex::Array4<amrex::Real> const& qm,
                                  amrex::Array4<amrex::Real> const& qp);
+
+
+    void do_enforce_minimum_density(const amrex::Box& bx,
+                                    amrex::Array4<amrex::Real> const& state_arr,
+                                    const int verbose);
 
 #ifdef HYBRID_MOMENTUM
 

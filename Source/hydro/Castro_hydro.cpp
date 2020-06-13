@@ -156,10 +156,7 @@ Castro::cons_to_prim_fourth(const Real time)
       make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
 
       // enforce the minimum density on the new cell-centered state
-      ca_enforce_minimum_density
-        (AMREX_ARLIM_ANYD(qbxm1.loVect()), AMREX_ARLIM_ANYD(qbxm1.hiVect()),
-         BL_TO_FORTRAN_ANYD(U_cc),
-         verbose);
+      do_enforce_minimum_density(qbxm1, U_cc.array(), verbose);
 
       // and ensure that the internal energy is positive
       reset_internal_energy(qbxm1, U_cc.array());
@@ -231,7 +228,7 @@ Castro::cons_to_prim_fourth(const Real time)
 #endif
 
 void
-Castro::check_for_cfl_violation(const Real dt)
+Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
 {
 
     BL_PROFILE("Castro::check_for_cfl_violation()");
@@ -250,10 +247,6 @@ Castro::check_for_cfl_violation(const Real dt)
       dtdz = dt / dx[2];
     }
 
-    MultiFab& S_new = get_new_data(State_Type);
-
-    int ltime_integration_method = time_integration_method;
-
     ReduceOps<ReduceOpMax> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -261,23 +254,45 @@ Castro::check_for_cfl_violation(const Real dt)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    for (MFIter mfi(State, hydro_tile_size); mfi.isValid(); ++mfi) {
 
         const Box& bx = mfi.tilebox();
 
-        auto qaux_arr = qaux.array(mfi);
-        auto q_arr = q.array(mfi);
+        auto U = State.array(mfi);
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
         {
             // Compute running max of Courant number over grids
 
-            Real courx = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QU))) * dtdx;
-            Real coury = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QV))) * dtdy;
-            Real courz = (qaux_arr(i,j,k,QC) + std::abs(q_arr(i,j,k,QW))) * dtdz;
+            Real rho = U(i,j,k,URHO);
+            Real rhoInv = 1.0 / rho;
 
-            if (ltime_integration_method == 0) {
+            Real u = U(i,j,k,UMX) * rhoInv;
+            Real v = U(i,j,k,UMY) * rhoInv;
+            Real w = U(i,j,k,UMZ) * rhoInv;
+
+            eos_t eos_state;
+
+            eos_state.rho = U(i,j,k,URHO);
+            eos_state.T = U(i,j,k,UTEMP);
+            eos_state.e = U(i,j,k,UEINT) * rhoInv;
+            for (int n = 0; n < NumSpec; n++) {
+                eos_state.xn[n] = U(i,j,k,UFS+n) * rhoInv;
+            }
+            for (int n = 0; n < NumAux; n++) {
+                eos_state.aux[n] = U(i,j,k,UFX+n) * rhoInv;
+            }
+
+            eos(eos_input_re, eos_state);
+
+            Real cs = eos_state.cs;
+
+            Real courx = (cs + std::abs(u)) * dtdx;
+            Real coury = (cs + std::abs(v)) * dtdy;
+            Real courz = (cs + std::abs(w)) * dtdz;
+
+            if (castro::time_integration_method == 0) {
 
 #ifndef AMREX_USE_CUDA
                 if (verbose == 1) {
@@ -287,8 +302,8 @@ Castro::check_for_cfl_violation(const Real dt)
                         std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
                         std::cout << ">>> ... (u+c) * dt / dx > 1 " << courx << std::endl;
                         std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
-                        std::cout << ">>> ... u = " << q_arr(i,j,k,QU) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
-                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                        std::cout << ">>> ... u = " << u << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
                     }
 
                     if (coury > 1.0_rt) {
@@ -296,8 +311,8 @@ Castro::check_for_cfl_violation(const Real dt)
                         std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
                         std::cout << ">>> ... (v+c) * dt / dx > 1 " << coury << std::endl;
                         std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
-                        std::cout << ">>> ... v = " << q_arr(i,j,k,QV) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
-                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                        std::cout << ">>> ... v = " << v << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
                     }
 
                     if (courz > 1.0_rt) {
@@ -305,8 +320,8 @@ Castro::check_for_cfl_violation(const Real dt)
                         std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
                         std::cout << ">>> ... (w+c) * dt / dx > 1 " << courz << std::endl;
                         std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
-                        std::cout << ">>> ... w = " << q_arr(i,j,k,QW) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
-                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                        std::cout << ">>> ... w = " << w << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
                     }
 
                 }
@@ -336,9 +351,9 @@ Castro::check_for_cfl_violation(const Real dt)
                         std::cout << std::endl;
                         std::cout << "Warning:: CFL violation in check_for_cfl_violation" << std::endl;
                         std::cout << ">>> ... at cell i = " << i << " j = " << j << " k = " << k << std::endl;
-                        std::cout << ">>> ... u = " << q_arr(i,j,k,QU) << " v = " << q_arr(i,j,k,QV)
-                                  << " w = " << q_arr(i,j,k,QW) << " c = " << qaux_arr(i,j,k,QC) << std::endl;
-                        std::cout << ">>> ... density = " << q_arr(i,j,k,QRHO) << std::endl;
+                        std::cout << ">>> ... u = " << u << " v = " << v
+                                  << " w = " << w << " c = " << cs << std::endl;
+                        std::cout << ">>> ... density = " << rho << std::endl;
                     }
 
                 }
