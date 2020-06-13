@@ -598,10 +598,27 @@
            const amrex::Real dx, amrex::Real& dp);
 
 
+///
+/// Reconstruct the primtive state as pieceeise linear, integrate under them,
+/// and perform the characteristic tracing to get the interface states.
+/// This is for the CTU hydrodynamics scheme.
+///
+/// @param bx           the box to operate over
+/// @param idir         coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param q_arr        primitive variable state
+/// @param qaux_arr     the auxillary state
+/// @param flatn_arr    flattening coefficient
+/// @param qm           left interface state (e.g., q_{i-1/2,j,k,L})
+/// @param qp           right interface state (e.g., q_{i-1/2,j,k,R})
+/// @param dloga        geometric factor dlog(area)
+/// @param srcQ         primitive variable equation source terms
+/// @param vbx          the valid region box (excluding ghost cells)
+/// @param dt           timestep
+///
     void trace_plm(const amrex::Box& bx,
                    const int idir,
-                   amrex::Array4<amrex::Real const> const& q,
-                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& q_arr,
+                   amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real const> const& flatn_arr,
                    amrex::Array4<amrex::Real> const& qm,
                    amrex::Array4<amrex::Real> const& qp,
@@ -612,10 +629,27 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
+///
+/// Reconstruct the primtive state as parabola, integrate under them,
+/// and perform the characteristic tracing to get the interface states.
+/// This is for the CTU radiation hydrodynamics scheme.
+///
+/// @param bx        the box to operate over
+/// @param idir      coordinate direction of the interface (0 = x, 1 = y, 2 = z)
+/// @param q_arr     primitive variable state
+/// @param qaux_arr  the auxillary state
+/// @param srcQ      primitive variable equation source terms
+/// @param flatn     flattening coefficient
+/// @param qm        left interface state (e.g., q_{i-1/2,j,k,L})
+/// @param qp        right interface state (e.g., q_{i-1/2,j,k,R})
+/// @param dloga     geometric factor dlog(area)
+/// @param vbx       the valid region box (excluding ghost cells)
+/// @param dt        timestep
+///
     void trace_ppm_rad(const amrex::Box& bx,
                        const int idir,
-                       amrex::Array4<amrex::Real const> const& q,
-                       amrex::Array4<amrex::Real const> const& qaux,
+                       amrex::Array4<amrex::Real const> const& q_arr,
+                       amrex::Array4<amrex::Real const> const& qaux_arr,
                        amrex::Array4<amrex::Real const> const& srcQ,
                        amrex::Array4<amrex::Real const> const& flatn,
                        amrex::Array4<amrex::Real> const& qm,
@@ -626,6 +660,25 @@
                        const amrex::Box& vbx,
                        const amrex::Real dt);
 
+///
+/// Compute the conservative update of the hydrodynamics state and store it
+/// in update so it can be applied later to advance the state
+///
+/// @param bx      the box to operate over
+/// @param shk     the shock flag
+/// @param update  the hydrodynamics update term, -div{F} + S(U)
+/// @param flux0   flux in the x direction
+/// @param qx      Godunov state in the x direction
+/// @param area0   area of x faces
+/// @param flux1   flux in the y direction
+/// @param qy      Godunov state in the y direction
+/// @param area1   area of y faces
+/// @param flux2   flux in the z direction
+/// @param qz      Godunov state in the z direction
+/// @param area2   area of z faces
+/// @param vol     volume of the cell
+/// @param dt      timestep
+///
     void consup_hydro(const amrex::Box& bx,
                       amrex::Array4<amrex::Real const> const& shk,
                       amrex::Array4<amrex::Real> const& update,
@@ -646,7 +699,24 @@
                       const amrex::Real dt);
 
 
-
+///
+/// A general interface to the pure hydrodynamics and radiation
+/// Riemann solvers which takes the left and right interface states,
+/// qm and qp, and computes the flux through the interface and the
+/// godunov state (qint) on the interface
+///
+/// @param bx          the box to operate over
+/// @param qm          left state on the interface
+/// @param qp          right state on the interface
+/// @param flx         flux through the interface
+/// @param qint        tempoary storage of the full interface state
+/// @param rflux       radiation fluxes through the interface
+/// @param lambda_int  radiation flux limiter on the interface
+/// @param qgdnv       Godunov state on the interface
+/// @param qaux        auxillary state
+/// @param shk         shock flag
+/// @param idir        coordinate direction of the solve (0 = x, 1 = y, 2 = z)
+///
     void cmpflx_plus_godunov(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& qm,
                              amrex::Array4<amrex::Real> const& qp,
