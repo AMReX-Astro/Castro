@@ -1,5 +1,8 @@
 # 20.07
 
+   * A CUDA illegal memory access error in Poisson gravity and diffusion
+     has been fixed (#1039).
+
    * The parameter castro.track_grid_losses has been removed. (#1035)
 
    * The parameter castro.print_fortran_warnings, which no longer had any

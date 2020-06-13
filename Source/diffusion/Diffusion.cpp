@@ -79,8 +79,9 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel      
 #endif
@@ -95,8 +96,9 @@ Diffusion::weight_cc(int level, MultiFab& cc)
 void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel      
 #endif

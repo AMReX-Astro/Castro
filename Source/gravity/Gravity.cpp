@@ -2070,9 +2070,10 @@ void
 Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
     BL_PROFILE("Gravity::applyMetricTerms()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2099,9 +2100,10 @@ void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
     BL_PROFILE("Gravity::unweight_cc()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2117,19 +2119,22 @@ void
 Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 {
     BL_PROFILE("Gravity::unweight_edges()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
+    for (int idir = 0; idir < BL_SPACEDIM; ++idir) {
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (int idir=0; idir<BL_SPACEDIM; ++idir) {
         for (MFIter mfi(*edges[idir], TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
             const Box& bx = mfi.tilebox();
 
             do_unweight_edges(bx, (*edges[idir]).array(mfi), idir, dx, coord_type);
         }
+
     }
 }
 #endif
