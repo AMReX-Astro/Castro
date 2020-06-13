@@ -1469,11 +1469,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
      });
 #endif
   }
-#else
-  // Flush Fortran output
-
-  if (verbose)
-    flush_output();
 #endif
 
   if (verbose && ParallelDescriptor::IOProcessor())
