@@ -3052,31 +3052,11 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
     if (print_update_diagnostics)
     {
-
         // Evaluate what the effective reset source was.
 
         MultiFab::Subtract(reset_source, state_in, 0, 0, state_in.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[0]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
-
+        evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
 }
@@ -3472,25 +3452,7 @@ Castro::reset_internal_energy(
 
         MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[UEINT]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
+        evaluate_and_print_source_change(reset_source, 1.0, "negative energy resets");
     }
 }
 
