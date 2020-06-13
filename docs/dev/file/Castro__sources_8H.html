@@ -335,8 +335,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv422evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb">
-<span id="_CPPv322evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb"></span><span id="_CPPv222evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb"></span><span id="evaluate_source_change__amrex::MultiFabR.amrex::Real.b"></span><span class="target" id="Castro__sources_8H_1a19537e185b19e665a62d9865b4de750b"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <code class="sig-name descname">evaluate_source_change</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>update</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422evaluate_source_changeRN5amrex8MultiFabEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv422evaluate_source_changeRKN5amrex8MultiFabEN5amrex4RealEb">
+<span id="_CPPv322evaluate_source_changeRKN5amrex8MultiFabEN5amrex4RealEb"></span><span id="_CPPv222evaluate_source_changeRKN5amrex8MultiFabEN5amrex4RealEb"></span><span id="evaluate_source_change__amrex::MultiFabCR.amrex::Real.b"></span><span class="target" id="Castro__sources_8H_1afaffb6bc91d0d2747f6c3c450ec31208"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <code class="sig-name descname">evaluate_source_change</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>update</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, bool <em>local</em> = false<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422evaluate_source_changeRKN5amrex8MultiFabEN5amrex4RealEb" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Evaluate diagnostics quantities describing the effect of an update on the state. The optional parameter local determines whether we want to do this calculation globally over all processes or locally just on this processor. The latter is useful if you are evaluating the contribution from multiple source changes at once and want to amortize the cost of the parallel reductions. Note that the resultant output is volume-weighted.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -370,6 +370,21 @@
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: boolean, do we get the new or old state data? </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv432evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealENSt6stringE">
+<span id="_CPPv332evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealENSt6stringE"></span><span id="_CPPv232evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealENSt6stringE"></span><span id="evaluate_and_print_source_change__amrex::MultiFabCR.amrex::Real.ss"></span><span class="target" id="Castro__sources_8H_1a891f4c3aa9992358c35fecfa4366cbbf"></span>void <code class="sig-name descname">evaluate_and_print_source_change</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>source</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, std::string <em>source_name</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv432evaluate_and_print_source_changeRKN5amrex8MultiFabEN5amrex4RealENSt6stringE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Evaluate the change to the state due to sources and then print it.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: update to the state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep (will multiply the update) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_name</span></code>: string to associate with this source </p></li>
 </ul>
 </dd>
 </dl>
