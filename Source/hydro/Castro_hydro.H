@@ -586,11 +586,17 @@
                    const amrex::Box& vbx,
                    const amrex::Real dt);
 
+///
+/// Compute the limited piecewise linear slopes for input state q
+///
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     Real
     uslope(const amrex::Real* q, const amrex::Real flatn,
            bool bnd_lo_reflect, bool bnd_hi_reflect);
 
+///
+/// Compute the pressure slope using a well-balanced method
+///
     AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
     void
     pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src, const amrex::Real flatn,
@@ -731,6 +737,19 @@
                              amrex::Array4<amrex::Real const> const& shk,
                              const int idir);
 
+///
+/// Call the hydrodynamic Riemann solvers and return the interface state, without
+/// computing the fluxes
+///
+/// @param bx              the box to operate over
+/// @param qm              left state on the interface
+/// @param qp              right state on the interface
+/// @param qint            the full hydrodynamic interface state
+/// @param lambda_int      radiation flux limiter on the interface
+/// @param qaux            auxillary state
+/// @param idir            coordinate direction of the solve (0 = x, 1 = y, 2 = z)
+/// @param compute_gammas  do we call the EOS using the interface states to get Gamma_1 on interfaces
+///
     void riemann_state(const amrex::Box& bx,
                        amrex::Array4<amrex::Real> const& qm,
                        amrex::Array4<amrex::Real> const& qp,
@@ -741,28 +760,62 @@
                        amrex::Array4<amrex::Real const> const& qaux,
                        const int idir, const int compute_gammas);
 
+///
+/// The Colella-Glaz Riemann solver for pure hydrodynamics.  This is a
+/// two shock approximate state Riemann solver.
+///
+/// @param bx         the box to operate over
+/// @param ql         the left interface state
+/// @param qr         the right interface state
+/// @param qaux_arr   the auxillary state
+/// @param qint       the full Godunov state on the interface
+/// @param idir       coordinate direction for the solve (0 = x, 1 = y, 2 = z)
+///
     void riemanncg(const amrex::Box& bx,
                    amrex::Array4<amrex::Real> const& ql,
                    amrex::Array4<amrex::Real> const& qr,
-                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real> const& qint,
                    const int idir);
 
+///
+/// The Colella-Glaz-Ferguson Riemann solver for hydrodynamics and
+/// radiation hydrodynamics.  This is a two shock approximate state
+/// Riemann solver.
+///
+/// @param bx          the box to operate over
+/// @param ql          the left interface state
+/// @param qr          the right interface state
+/// @param qaux_arr    the auxillary state
+/// @param qint        the full Godunov state on the interface
+/// @param lambda_int  the radiation flux limiter on the interface
+/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
+///
     void riemannus(const amrex::Box& bx,
                    amrex::Array4<amrex::Real> const& ql,
                    amrex::Array4<amrex::Real> const& qr,
-                   amrex::Array4<amrex::Real const> const& qaux,
+                   amrex::Array4<amrex::Real const> const& qaux_arr,
                    amrex::Array4<amrex::Real> const& qint,
 #ifdef RADIATION
                    amrex::Array4<amrex::Real> const& lambda_int,
 #endif
                    const int idir, const int compute_gammas);
 
-
+///
+/// A HLLC Riemann solver for pure hydrodynamics
+///
+/// @param bx          the box to operate over
+/// @param ql          the left interface state
+/// @param qr          the right interface state
+/// @param qaux_arr    the auxillary state
+/// @param uflx        the flux through the interface
+/// @param qint        an approximate Godunov state on the interface
+/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
+///
     void HLLC(const amrex::Box& bx,
               amrex::Array4<amrex::Real const> const& ql,
               amrex::Array4<amrex::Real const> const& qr,
-              amrex::Array4<amrex::Real const> const& qaux,
+              amrex::Array4<amrex::Real const> const& qaux_arr,
               amrex::Array4<amrex::Real> const& uflx,
               amrex::Array4<amrex::Real> const& qint,
               const int idir);
