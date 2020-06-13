@@ -164,9 +164,6 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      // Construct the primitive variables.
-      cons_to_prim(time);
-
       // Check for CFL violations.
       check_for_cfl_violation(S_old, dt);
 
@@ -179,6 +176,10 @@ Castro::do_advance_ctu(Real time,
 
       construct_ctu_hydro_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
+
+      if (print_update_diagnostics) {
+          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
+      }
 #else
       just_the_mhd(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
@@ -434,12 +435,6 @@ Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle
           }
         }
 #endif
-
-        if (track_grid_losses) {
-          for (int i = 0; i < n_lost; i++) {
-            material_lost_through_boundary_temp[i] = 0.0;
-          }
-        }
 
         // For simplified SDC, we'll have garbage data if we
         // attempt to use the lagged source terms (both reacting

@@ -263,6 +263,29 @@ public:
 ///
   void get_new_grav_vector(int level, amrex::MultiFab& grav_vector, amrex::Real time);
 
+///
+/// Test whether using the edge-based gradients
+/// to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
+///
+/// @param bx          box
+/// @param rhs         right-hand-side
+/// @param ecx         gradients wrt x
+/// @param ecy         gradients wrt y
+/// @param ecz         gradients wrt z
+/// @param coord_type  coordinate system
+
+  void test_residual (const amrex::Box& bx,
+                      amrex::Array4<amrex::Real> const& rhs,
+                      amrex::Array4<amrex::Real> const& ecx,
+#if AMREX_SPACEDIM >= 2
+                      amrex::Array4<amrex::Real> const& ecy,
+#endif
+#if AMREX_SPACEDIM == 3
+                      amrex::Array4<amrex::Real> const& ecz,
+#endif
+                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx,
+                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
+                      int coord_type);
 
 ///
 /// @param level

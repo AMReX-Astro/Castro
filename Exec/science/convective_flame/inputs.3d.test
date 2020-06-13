@@ -36,8 +36,6 @@ castro.do_sponge = 1
 
 castro.ppm_type = 1
 
-castro.print_fortran_warnings = 1
-
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -4.2e7
 

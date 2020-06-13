@@ -1261,7 +1261,9 @@ protected:
 ///
 /// The primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab q;
+#endif
 
 
 ///
@@ -1280,7 +1282,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab qaux;
+#endif
     amrex::MultiFab qaux_bar;
 
 
@@ -1429,14 +1433,6 @@ protected:
     int in_retry;
 
     amrex::Real lastDt;
-
-///
-/// For keeping track of fluid quantities lost at physical grid boundaries.
-/// This should persist through restarts, but right now only on level 0.
-///
-    static const int n_lost = 8;
-    amrex::Real             material_lost_through_boundary_cumulative[n_lost];
-    amrex::Real             material_lost_through_boundary_temp[n_lost];
 
 
 ///

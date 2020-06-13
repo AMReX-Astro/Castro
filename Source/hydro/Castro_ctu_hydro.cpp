@@ -51,25 +51,21 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 
   int nstep_fsp = -1;
-#endif
 
-  Real mass_lost = 0.;
-  Real xmom_lost = 0.;
-  Real ymom_lost = 0.;
-  Real zmom_lost = 0.;
-  Real eden_lost = 0.;
-  Real xang_lost = 0.;
-  Real yang_lost = 0.;
-  Real zang_lost = 0.;
+  AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+
+  MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
+  if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+  }
+  else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+  }
+#endif
 
 #ifdef _OPENMP
 #ifdef RADIATION
-#pragma omp parallel reduction(max:nstep_fsp) \
-                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
-#else
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#pragma omp parallel reduction(max:nstep_fsp)
 #endif
 #endif
   {
@@ -87,8 +83,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     FArrayBox flatg;
 #endif
-    FArrayBox dq;
     FArrayBox shk;
+    FArrayBox q, qaux;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -169,8 +165,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToDevice();
-          qaux[mfi].prefetchToDevice();
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
@@ -188,8 +182,28 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
       }
 
-      Array4<Real const> const q_arr = q.array(mfi);
-      Array4<Real const> const qaux_arr = qaux.array(mfi);
+      // Compute the primitive variables (both q and qaux) from
+      // the conserved variables.
+
+      const Box& qbx = amrex::grow(bx, NUM_GROW);
+
+      q.resize(qbx, NQ);
+      Elixir elix_q = q.elixir();
+      fab_size += q.nBytes();
+      Array4<Real> const q_arr = q.array();
+
+      qaux.resize(qbx, NQ);
+      Elixir elix_qaux = qaux.elixir();
+      fab_size += qaux.nBytes();
+      Array4<Real> const qaux_arr = qaux.array();
+
+      ctoprim(qbx, time, Sborder.array(mfi),
+#ifdef RADIATION
+              Erborder.array(mfi), lamborder.array(mfi),
+#endif
+              q_arr, qaux_arr);
+
+
 
       Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
@@ -291,8 +305,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // get the primitive variable hydro sources
 
-      const Box& qbx = amrex::grow(bx, NUM_GROW);
-
       src_q.resize(qbx, NQSRC);
       Elixir elix_src_q = src_q.elixir();
       fab_size += src_q.nBytes();
@@ -363,17 +375,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (ppm_type == 0) {
 
-        dq.resize(obx, NQ);
-        Elixir elix_dq = dq.elixir();
-        fab_size += dq.nBytes();
-        auto dq_arr = dq.array();
-
         ctu_plm_states(obx, bx,
                        q_arr,
                        flatn_arr,
                        qaux_arr,
                        src_q_arr,
-                       dq_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,
@@ -1183,7 +1189,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1194,7 +1200,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_large_vel
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1396,27 +1402,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } // idir loop
 
-      if (track_grid_losses == 1) {
-
-#pragma gpu box(bx)
-          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-                               BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                               BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
-      }
-
 #ifdef AMREX_USE_GPU
       // Check if we're going to run out of memory in the next MFIter iteration.
       // If so, do a synchronize here so that we don't oversubscribe GPU memory.
@@ -1442,8 +1427,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToHost();
-          qaux[mfi].prefetchToHost();
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();
@@ -1486,44 +1469,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
      });
 #endif
   }
-#else
-  // Flush Fortran output
-
-  if (verbose)
-    flush_output();
-
-  if (track_grid_losses)
-    {
-      material_lost_through_boundary_temp[0] += mass_lost;
-      material_lost_through_boundary_temp[1] += xmom_lost;
-      material_lost_through_boundary_temp[2] += ymom_lost;
-      material_lost_through_boundary_temp[3] += zmom_lost;
-      material_lost_through_boundary_temp[4] += eden_lost;
-      material_lost_through_boundary_temp[5] += xang_lost;
-      material_lost_through_boundary_temp[6] += yang_lost;
-      material_lost_through_boundary_temp[7] += zang_lost;
-    }
-
-  if (print_update_diagnostics)
-    {
-
-      bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
-
-#ifdef BL_LAZY
-      Lazy::QueueReduction( [=] () mutable {
-#endif
-         ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-         if (ParallelDescriptor::IOProcessor())
-           std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
-
-         print_source_change(hydro_update);
-
-#ifdef BL_LAZY
-      });
-#endif
-    }
 #endif
 
   if (verbose && ParallelDescriptor::IOProcessor())

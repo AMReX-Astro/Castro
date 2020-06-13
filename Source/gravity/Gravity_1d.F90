@@ -8,67 +8,6 @@ module gravity_1D_module
 
 contains
 
-  subroutine ca_test_residual(lo, hi, &
-       rhs, rhl1, rhh1,  &
-       ecx, ecxl1, ecxh1, &
-       dx, problo, coord_type) bind(C, name="ca_test_residual")
-
-    use amrex_constants_module
-
-    use amrex_fort_module, only : rt => amrex_real
-    implicit none
-
-    integer , intent(in   ) :: lo(1),hi(1)
-    integer , intent(in   ) :: rhl1, rhh1
-    integer , intent(in   ) :: ecxl1, ecxh1
-    integer , intent(in   ) :: coord_type
-    real(rt), intent(inout) :: rhs(rhl1:rhh1)
-    real(rt), intent(in   ) :: ecx(ecxl1:ecxh1)
-    real(rt), intent(in   ) :: dx(1),problo(1)
-
-    real(rt)         :: lapphi
-    real(rt)         :: rlo,rhi,rcen
-    integer          :: i
-
-    ! Cartesian
-    if (coord_type .eq. 0) then
-
-       do i=lo(1),hi(1)
-          lapphi = (ecx(i+1)-ecx(i)) / dx(1)
-          rhs(i) = rhs(i) - lapphi
-       enddo
-
-       ! r-z
-    else if (coord_type .eq. 1) then
-
-       do i=lo(1),hi(1)
-          rlo  = problo(1) + dble(i)*dx(1)
-          rhi  = rlo + dx(1)
-          rcen = HALF * (rlo+rhi)
-          lapphi = (rhi*ecx(i+1)-rlo*ecx(i)) / (rcen*dx(1))
-          rhs(i) = rhs(i) - lapphi
-       enddo
-
-       ! spherical
-    else if (coord_type .eq. 2) then
-
-       do i=lo(1),hi(1)
-          rlo  = problo(1) + dble(i)*dx(1)
-          rhi  = rlo + dx(1)
-          rcen = HALF * (rlo+rhi)
-          lapphi = (rhi**2 * ecx(i+1)-rlo**2 * ecx(i)) / (rcen**2 * dx(1))
-          rhs(i) = rhs(i) - lapphi
-       enddo
-
-    else
-       print *,'Bogus coord_type in test_residual ' ,coord_type
-       call castro_error("Error:: Gravity_1d.f90 :: ca_test_residual")
-    end if
-
-  end subroutine ca_test_residual
-
-
-
   subroutine ca_put_radial_grav(lo,hi,dx,dr,&
                                 grav,g_l1,g_h1, &
                                 radial_grav,problo,n1d,level) bind(C, name="ca_put_radial_grav")
