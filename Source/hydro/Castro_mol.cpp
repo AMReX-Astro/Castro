@@ -423,31 +423,24 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 void
 Castro::mol_consup(const Box& bx,
                    Array4<Real const> const& shk,
-                   Array4<Real const> const& uin,
                    Array4<Real const> const& srcU,
                    Array4<Real> const& update,
                    const Real dt,
-                   Array4<Real const> const& flux1,
+                   Array4<Real const> const& flux0,
 #if AMREX_SPACEDIM >= 2
+                   Array4<Real const> const& flux1,
+#endif
+#if AMREX_SPACEDIM == 3
                    Array4<Real const> const& flux2,
 #endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real const> const& flux3,
-#endif
-                   Array4<Real const> const& area1,
+                   Array4<Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
+                   Array4<Real const> const& area1,
+#endif
+#if AMREX_SPACEDIM == 3
                    Array4<Real const> const& area2,
 #endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real const> const& area3,
-#endif
-                   Array4<Real const> const& q1,
-#if AMREX_SPACEDIM >= 2
-                   Array4<Real const> const& q2,
-#endif
-#if AMREX_SPACEDIM == 3
-                   Array4<Real const> const& q3,
-#endif
+                   Array4<Real const> const& q0,
                    Array4<Real const> const& vol) {
 
 
@@ -464,22 +457,22 @@ Castro::mol_consup(const Box& bx,
   {
 
 #if AMREX_SPACEDIM == 1
-    update(i,j,k,n) += (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) ) / vol(i,j,k);
+    update(i,j,k,n) += (flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k) ) / vol(i,j,k);
 
 #elif AMREX_SPACEDIM == 2
-    update(i,j,k,n) += (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) +
-                        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) ) / vol(i,j,k);
+    update(i,j,k,n) += (flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k) +
+                        flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k) ) / vol(i,j,k);
 
 #else
-    update(i,j,k,n) += (flux1(i,j,k,n) * area1(i,j,k) - flux1(i+1,j,k,n) * area1(i+1,j,k) +
-                        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j+1,k,n) * area2(i,j+1,k) +
-                        flux3(i,j,k,n) * area3(i,j,k) - flux3(i,j,k+1,n) * area3(i,j,k+1) ) / vol(i,j,k);
+    update(i,j,k,n) += (flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k) +
+                        flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k) +
+                        flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1) ) / vol(i,j,k);
 #endif
 
 #if AMREX_SPACEDIM == 1
     if (do_hydro == 1) {
       if (n == UMX) {
-        update(i,j,k,UMX) -= (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES)) / dx[0];
+        update(i,j,k,UMX) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
       }
     }
 #endif
@@ -489,7 +482,7 @@ Castro::mol_consup(const Box& bx,
       if (n == UMX) {
         // add the pressure source term for axisymmetry
         if (coord > 0) {
-          update(i,j,k,n) -= (q1(i+1,j,k,GDPRES) - q1(i,j,k,GDPRES)) / dx[0];
+          update(i,j,k,n) -= (q0(i+1,j,k,GDPRES) - q0(i,j,k,GDPRES)) / dx[0];
         }
       }
     }
