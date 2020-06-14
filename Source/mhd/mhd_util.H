@@ -23,7 +23,7 @@ eos_soundspeed_mhd(Real& c, Real as, Real ca, Real bd) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
+qflux(Real* qflx, Real* flx, Real* q_zone) {
 
   // Calculate the C to P Jacobian applied to the fluxes
 
@@ -73,7 +73,7 @@ Castro::qflux(Real* qflx, Real* flx, Real* q_zone) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
+electric(Real* q_zone, Real& E_zone, const int comp) {
 
   // this takes the cell-center primitive state, q_zone, and computes the cell-center
   // electric field, E_zone, using Faraday's law:
@@ -94,7 +94,7 @@ Castro::electric(Real* q_zone, Real& E_zone, const int comp) {
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
+ConsToPrim(Real* q_zone, Real* U_zone) {
 
   // calculate the primitive variables from the conserved
   // U has NUM_STATE+3 components
@@ -140,11 +140,11 @@ Castro::ConsToPrim(Real* q_zone, Real* U_zone) {
 }
 
 
-void
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-Castro::PToC(Array1D<Real, 0, NQ-1>& q,
-             Array1D<Real, 0, NUM_STATE+2>& U,
-             Real& gam1) {
+void
+PToC(Array1D<Real, 0, NQ-1>& q,
+     Array1D<Real, 0, NUM_STATE+2>& U,
+     Real& gam1) {
 
   // first the conserved state
   U(URHO) = q(QRHO);

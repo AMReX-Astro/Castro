@@ -83,10 +83,6 @@
               const amrex::Real dt);
 
 
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    qflux(amrex::Real* qflx, amrex::Real* flx, amrex::Real* q_zone);
-
     void
     electric_edge_x(const amrex::Box& bx,
                     amrex::Array4<amrex::Real const> const& q_arr,
@@ -107,11 +103,6 @@
                     amrex::Array4<amrex::Real> const& E,
                     amrex::Array4<amrex::Real const> const& flxx,
                     amrex::Array4<amrex::Real const> const& flxy);
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    electric(amrex::Real* q_zone, amrex::Real& E_zone, const int comp);
-
 
     void
     corner_couple(const amrex::Box& bx,
@@ -138,23 +129,11 @@
               amrex::Array4<amrex::Real const> const& Ed2,
               const int d, const int d1, const int d2, const amrex::Real dt);
 
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    ConsToPrim(amrex::Real* q_zone, amrex::Real* U_zone);
-
-
     void
     hlld(const amrex::Box& bx,
          amrex::Array4<amrex::Real const> const& qleft,
          amrex::Array4<amrex::Real const> const& qright,
          amrex::Array4<amrex::Real> const& flx,
          const int dir);
-
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    PToC(amrex::Array1D<amrex::Real, 0, NQ-1>& q,
-         amrex::Array1D<amrex::Real, 0, NUM_STATE+2>& U,
-         amrex::Real& gam1);
 
 
