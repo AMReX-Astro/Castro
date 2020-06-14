@@ -820,45 +820,7 @@
              const int idir, const int coord,
              amrex::Real* f);
 
-<<<<<<< HEAD
-=======
-
-///
-/// Find the pstar state in the hydrodynamics Riemann problem via bisection
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
-                    const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
-                    const amrex::Real gamel, const amrex::Real clsql,
-                    const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
-                    const amrex::Real gamer, const amrex::Real clsqr,
-                    const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
-                    const int lcg_maxiter, const amrex::Real lcg_tol,
-                    amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
-
-///
-/// Compute the conserved hydrodynamics state from the primitive state
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    cons_state(const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
-
-///
-/// Compute the HLLC state given the primitive state
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
-               const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
-
     AMREX_GPU_HOST_DEVICE
->>>>>>> development
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const& qint,
