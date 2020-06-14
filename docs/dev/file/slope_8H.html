@@ -233,6 +233,43 @@
             
   <div class="section" id="file-slope-h">
 <h1>File slope.H<a class="headerlink" href="#file-slope-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt>
+<span class="target" id="slope_8H_1a80205a70538cafdf1ea53cca586df2eb"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real uslope (const Real *q, const Real flatn, bool bnd_lo_reflect, bool bnd_hi_reflect)</code></dt>
+<dd><p>Construct the piecewise linear slopes for an input state q</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">q</span></code>: Real(\5) giving q_{i-2} through q_{i+2}, used in the reconstruction </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: flattening coefficient </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bnd_lo_reflect</span></code>: true if a symmetry boundary is just to the left of this zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bnd_hi_reflect</span></code>: true if a symmetry boundary is just to the right of this zone </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="slope_8H_1aa982c81795a65a4e60721dd3e6ba8f8c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void pslope (const Real *rho, const Real *p, const Real *src, const Real flatn, bool lo_bc_test, bool hi_bc_test, const Real dx, Real &amp;dp)</code></dt>
+<dd><p>Compute the pressure slope using a well-balanced procedure where we subtract HSE off of the pressure before limiting</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">rho</span></code>: Real(\5) giving the density in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code>: Real(\5) giving the pressure in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code>: Real(\5) the source in the velocity equation (e.g. g) in zones i-2, i-1, i, i+2, i+2 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: flattening coefficient </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lo_bc_test</span></code>: true if a physical boundary is just to the left of this zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hi_bc_test</span></code>: true if a physical boundary is just to the right of this zone </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
 </div>
 
 
