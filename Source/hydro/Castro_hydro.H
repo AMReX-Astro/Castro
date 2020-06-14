@@ -620,20 +620,6 @@
                               amrex::Array4<amrex::Real> const& F,
                               const int idir, const bool is_avg);
 
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    Real compute_laplacian(int i, int j, int k, int n,
-                           Array4<Real const> const& a,
-                           GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    Real trans_laplacian(int i, int j, int k, int n,
-                         int idir,
-                         Array4<Real const> const& a,
-                         GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
-
     void make_cell_center(const Box& bx,
                           Array4<Real const> const& U,
                           Array4<Real> const& U_cc,
