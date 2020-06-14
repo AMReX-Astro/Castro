@@ -9,10 +9,10 @@ const Real smallu = 1.e-12_rt;
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::wsqge(const Real p, const Real v,
-              const Real gam, const Real gdot, Real& gstar,
-              const Real gmin, const Real gmax, const Real csq,
-              const Real pstar, Real& wsq) {
+wsqge(const Real p, const Real v,
+      const Real gam, const Real gdot, Real& gstar,
+      const Real gmin, const Real gmax, const Real csq,
+      const Real pstar, Real& wsq) {
 
   // compute the lagrangian wave speeds -- this is the approximate
   // version for the Colella & Glaz algorithm
