@@ -46,15 +46,15 @@ wsqge(const Real p, const Real v,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
-                        const Real ul, const Real pl, const Real taul,
-                        const Real gamel, const Real clsql,
-                        const Real ur, const Real pr, const Real taur,
-                        const Real gamer, const Real clsqr,
-                        const Real gdot, const Real gmin, const Real gmax,
-                        const int lcg_maxiter, const Real lcg_tol,
-                        Real& pstar, Real& gamstar,
-                        bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
+pstar_bisection(Real& pstar_lo, Real& pstar_hi,
+                const Real ul, const Real pl, const Real taul,
+                const Real gamel, const Real clsql,
+                const Real ur, const Real pr, const Real taur,
+                const Real gamer, const Real clsqr,
+                const Real gdot, const Real gmin, const Real gmax,
+                const int lcg_maxiter, const Real lcg_tol,
+                Real& pstar, Real& gamstar,
+                bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
 
   // we want to zero
   // f(p*) = u*_l(p*) - u*_r(p*)
@@ -140,9 +140,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::cons_state(const Real* qstate, Real* U,
-                   const GpuArray<int, npassive>& qpass_map_p,
-                   const GpuArray<int, npassive>& upass_map_p) {
+cons_state(const Real* qstate, Real* U) {
 
   U[URHO] = qstate[QRHO];
 
@@ -164,18 +162,16 @@ Castro::cons_state(const Real* qstate, Real* U,
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
+    int n  = upassmap(ipassive);
+    int nqs = qpassmap(ipassive);
     U[n] = qstate[QRHO]*qstate[nqs];
   }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
-                   const Real* qstate, Real* U,
-                   const GpuArray<int, npassive>& qpass_map_p,
-                   const GpuArray<int, npassive>& upass_map_p) {
+HLLC_state(const int idir, const Real S_k, const Real S_c,
+           const Real* qstate, Real* U) {
 
   Real u_k = 0.0;
   if (idir == 0) {
@@ -217,18 +213,17 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
+    int n  = upassmap(ipassive);
+    int nqs = qpassmap(ipassive);
     U[n] = hllc_factor*qstate[nqs];
   }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::compute_flux(const int idir, const Real bnd_fac, const int coord,
-                     const Real* U, const Real p,
-                     const GpuArray<int, npassive>& upass_map_p,
-                     Real* F) {
+compute_flux(const int idir, const Real bnd_fac, const int coord,
+             const Real* U, const Real p,
+             Real* F) {
 
   // given a conserved state, compute the flux in direction idir
 
@@ -262,7 +257,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac, const int coord,
 #endif
 
   for (int ipassive=0; ipassive < npassive; ipassive++) {
-    int n = upass_map_p[ipassive];
+    int n = upassmap(ipassive);
     F[n] = U[n]*u_flx;
   }
 }

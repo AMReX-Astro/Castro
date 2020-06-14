@@ -26,8 +26,8 @@ using namespace amrex;
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
-Castro::uslope(const Real* q, const Real flatn,
-               bool bnd_lo_reflect, bool bnd_hi_reflect) {
+uslope(const Real* q, const Real flatn,
+       bool bnd_lo_reflect, bool bnd_hi_reflect) {
 
   Real dq;
 
@@ -124,9 +124,9 @@ Castro::uslope(const Real* q, const Real flatn,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
-               bool lo_bc_test, bool hi_bc_test,
-               const Real dx, Real& dp) {
+pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+       bool lo_bc_test, bool hi_bc_test,
+       const Real dx, Real& dp) {
 
   // dp should come in as the current estimate of the pressure slope
   // and we overwrite it if needed

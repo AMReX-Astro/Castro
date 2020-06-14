@@ -3,10 +3,10 @@
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
-Castro:: compute_laplacian(int i, int j, int k, int n,
-                           Array4<Real const> const& a,
-                           GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
+compute_laplacian(int i, int j, int k, int n,
+                  Array4<Real const> const& a,
+                  GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
+                  GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   Real lapx = 0.0;
   Real lapy = 0.0;
@@ -56,11 +56,11 @@ Castro:: compute_laplacian(int i, int j, int k, int n,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
-Castro::trans_laplacian(int i, int j, int k, int n,
-                        int idir,
-                        Array4<Real const> const& a,
-                        GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                        GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
+trans_laplacian(int i, int j, int k, int n,
+                int idir,
+                Array4<Real const> const& a,
+                GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
+                GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   Real lapx = 0.0;
   Real lapy = 0.0;

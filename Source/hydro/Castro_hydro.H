@@ -587,24 +587,6 @@
                    const amrex::Real dt);
 
 ///
-/// Compute the limited piecewise linear slopes for input state q
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    Real
-    uslope(const amrex::Real* q, const amrex::Real flatn,
-           bool bnd_lo_reflect, bool bnd_hi_reflect);
-
-///
-/// Compute the pressure slope using a well-balanced method
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    pslope(const amrex::Real* rho, const amrex::Real* p, const amrex::Real* src, const amrex::Real flatn,
-           bool lo_bc_test, bool hi_bc_test,
-           const amrex::Real dx, amrex::Real& dp);
-
-
-///
 /// Reconstruct the primtive state as pieceeise linear, integrate under them,
 /// and perform the characteristic tracing to get the interface states.
 /// This is for the CTU hydrodynamics scheme.
@@ -838,42 +820,6 @@
              const int idir, const int coord,
              amrex::Real* f);
 
-
-///
-/// Find the pstar state in the hydrodynamics Riemann problem via bisection
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    pstar_bisection(amrex::Real& pstar_lo, amrex::Real& pstar_hi,
-                    const amrex::Real ul, const amrex::Real pl, const amrex::Real taul,
-                    const amrex::Real gamel, const amrex::Real clsql,
-                    const amrex::Real ur, const amrex::Real pr, const amrex::Real taur,
-                    const amrex::Real gamer, const amrex::Real clsqr,
-                    const amrex::Real gdot, const amrex::Real gmin, const amrex::Real gmax,
-                    const int lcg_maxiter, const amrex::Real lcg_tol,
-                    amrex::Real& pstar, amrex::Real& gamstar,
-                    bool& converged, amrex::GpuArray<amrex::Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra);
-
-///
-/// Compute the conserved hydrodynamics state from the primitive state
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    cons_state(const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
-
-///
-/// Compute the HLLC state given the primitive state
-///
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    HLLC_state(const int idir, const amrex::Real S_k, const amrex::Real S_c,
-               const amrex::Real* q, amrex::Real* U,
-               const GpuArray<int, npassive>& qpass_map_p,
-               const GpuArray<int, npassive>& upass_map_p);
-
-    AMREX_GPU_HOST_DEVICE
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const& qint,
@@ -892,12 +838,6 @@
 #endif
                         amrex::Array4<amrex::Real> const& qgdnv);
 
-    AMREX_GPU_HOST_DEVICE
-    void
-    compute_flux(const int idir, const amrex::Real bnd_fac, const int coord,
-                 const amrex::Real* U, const amrex::Real p,
-                 const GpuArray<int, npassive>& upass_map_p,
-                 amrex::Real* F);
 
     AMREX_GPU_HOST_DEVICE
     void
@@ -1043,20 +983,6 @@
                               amrex::Array4<amrex::Real const> const& qint,
                               amrex::Array4<amrex::Real> const& F,
                               const int idir, const bool is_avg);
-
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    Real compute_laplacian(int i, int j, int k, int n,
-                           Array4<Real const> const& a,
-                           GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                           GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    Real trans_laplacian(int i, int j, int k, int n,
-                         int idir,
-                         Array4<Real const> const& a,
-                         GpuArray<bool, AMREX_SPACEDIM> const& lo_periodic, GpuArray<bool, AMREX_SPACEDIM> const& hi_periodic,
-                         GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi);
 
     void make_cell_center(const Box& bx,
                           Array4<Real const> const& U,
