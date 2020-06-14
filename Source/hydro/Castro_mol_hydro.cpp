@@ -608,7 +608,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #pragma gpu box(bx)
         mol_consup(bx,
                    shk_arr,
-                   uin_arr, source_in_arr,
+                   source_in_arr,
                    source_out_arr,
                    dt,
                    flux[0].array(),
@@ -626,12 +626,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                    area[2].array(mfi),
 #endif
                    qe[0].array(),
-#if AMREX_SPACEDIM >= 2
-                   qe[1].array(),
-#endif
-#if AMREX_SPACEDIM == 3
-                   qe[2].array(),
-#endif
                    volume.array(mfi));
 
 
