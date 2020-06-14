@@ -8,6 +8,7 @@
 
 using namespace amrex;
 
+#ifdef TRUE_SDC
 void
 Castro::cons_to_prim(const Real time)
 {
@@ -59,6 +60,7 @@ Castro::cons_to_prim(const Real time)
     }
 
 }
+#endif
 
 // Convert a MultiFab with conservative state data u to a primitive MultiFab q.
 void

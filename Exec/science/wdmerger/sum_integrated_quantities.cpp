@@ -667,70 +667,11 @@ Castro::sum_integrated_quantities ()
 
       }
 
-      // Material lost through domain boundaries
+      // Primary star
 
       if (parent->NumDataLogs() > 4) {
 
-	 std::ostream& log = parent->DataLog(4);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "                MASS LOST"; ++n;
-	     header << std::setw(datwidth) << "                XMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                YMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                ZMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                EDEN LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. X LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. Y LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. Z LOST"; ++n;
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-
-	   log << std::scientific;
-
-	   for (int i = 0; i < n_lost; i++)
-	     log << std::setw(datwidth) << std::setprecision(dataprecision) << material_lost_through_boundary_cumulative[i];
-
-	   log << std::endl;
-
-	 }
-
-      }
-
-      // Primary star
-
-      if (parent->NumDataLogs() > 5) {
-
-	std::ostream& log = parent->DataLog(5);
+	std::ostream& log = parent->DataLog(4);
 
 	 if ( log.good() ) {
 
@@ -822,9 +763,9 @@ Castro::sum_integrated_quantities ()
 
       // Secondary star
 
-      if (parent->NumDataLogs() > 6) {
+      if (parent->NumDataLogs() > 5) {
 
-	std::ostream& log = parent->DataLog(6);
+	std::ostream& log = parent->DataLog(5);
 
 	 if ( log.good() ) {
 
@@ -916,9 +857,9 @@ Castro::sum_integrated_quantities ()
 
       // Extrema over time of various quantities
 
-      if (parent->NumDataLogs() > 7) {
+      if (parent->NumDataLogs() > 6) {
 
-	 std::ostream& log = parent->DataLog(7);
+	 std::ostream& log = parent->DataLog(6);
 
 	 if ( log.good() ) {
 
@@ -977,9 +918,9 @@ Castro::sum_integrated_quantities ()
 
       // Rotation period over time
 
-      if (parent->NumDataLogs() > 8) {
+      if (parent->NumDataLogs() > 7) {
 
-	 std::ostream& log = parent->DataLog(8);
+	 std::ostream& log = parent->DataLog(7);
 
 	 if ( log.good() ) {
 

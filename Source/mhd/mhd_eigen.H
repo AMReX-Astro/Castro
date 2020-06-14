@@ -5,10 +5,10 @@
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::evals(Array1D<Real, 0, NEIGN-1>& lam,
-              const Real as_in,
-              Array1D<Real, 0, NQ-1>& Q,
-              const int dir) {
+evals(Array1D<Real, 0, NEIGN-1>& lam,
+      const Real as_in,
+      Array1D<Real, 0, NQ-1>& Q,
+      const int dir) {
 
   // The characteristic speeds of the system
 
@@ -57,10 +57,10 @@ Castro::evals(Array1D<Real, 0, NEIGN-1>& lam,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
-              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
-              const Real as_in,
-              Array1D<Real, 0, NQ-1>& Q) {
+evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+      Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
+      const Real as_in,
+      Array1D<Real, 0, NQ-1>& Q) {
 
   // returns Leig, where the rows are the left eigenvectors of the characteristic matrix Ax
 
@@ -246,10 +246,10 @@ Castro::evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
-              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
-              const Real as_in,
-              Array1D<Real, 0, NQ-1>& Q) {
+evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+      Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
+      const Real as_in,
+      Array1D<Real, 0, NQ-1>& Q) {
 
 
   // returns Leig, where the rows are the left eigenvectors of the characteristic matrix Ay
@@ -436,10 +436,10 @@ Castro::evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
-              Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
-              const Real as_in,
-              Array1D<Real, 0, NQ-1>& Q) {
+evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+      Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig,
+      const Real as_in,
+      Array1D<Real, 0, NQ-1>& Q) {
 
   // returns Leig, where the rows are the left eigenvectors of the characteristic matrix Az
 
@@ -622,4 +622,26 @@ Castro::evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+check_evecs(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
+            Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& reig) {
+
+  // this checks if the eigenvectors are properly orthornomal
+
+  for (int n = 0; n < NEIGN; n++) {
+    for (int m = 0; m < NEIGN; m++) {
+
+      // dot product of l_m . r_n
+      Real dot = 0.0;
+      for (int p = 0; p < NEIGN; p++)
+      {
+        dot += leig(m, p) * reig(p, n);
+      }
+
+      std::cout << "l(" << m << ") . r(" << n << ") = " << dot << std::endl;
+    }
+    std::cout << std::endl;
+  }
+}
 #endif
