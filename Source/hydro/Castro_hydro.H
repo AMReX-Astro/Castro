@@ -820,7 +820,6 @@
              const int idir, const int coord,
              amrex::Real* f);
 
-    AMREX_GPU_HOST_DEVICE
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const& qint,
