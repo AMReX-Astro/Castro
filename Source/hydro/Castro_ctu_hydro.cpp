@@ -66,6 +66,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef _OPENMP
 #ifdef RADIATION
 #pragma omp parallel reduction(max:nstep_fsp)
+#else
+#pragma omp parallel
 #endif
 #endif
   {
