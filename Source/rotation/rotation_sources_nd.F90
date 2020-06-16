@@ -163,7 +163,6 @@ contains
     use math_module, only: cross_product ! function
     use rotation_module, only: rotational_acceleration ! function
     use rotation_frequency_module, only: get_omega
-    use rotation_frequency_module, only: get_domegadt ! function
     use castro_util_module, only: position ! function
 #ifdef HYBRID_MOMENTUM
     use meth_params_module, only : UMR, UMP
@@ -220,7 +219,7 @@ contains
 
     integer          :: i,j,k
     real(rt)         :: loc(3)
-    real(rt)         :: vnew(3),vold(3),omega_old(3),omega_new(3),domegadt_old(3),domegadt_new(3)
+    real(rt)         :: vnew(3), vold(3), omega(3)
     real(rt)         :: Sr_old(3), Sr_new(3), Srcorr(3), SrEcorr, SrE_old, SrE_new
     real(rt)         :: rhoo, rhon, rhooinv, rhoninv
 
@@ -253,11 +252,7 @@ contains
     src(:) = ZERO
     snew(:) = ZERO
 
-    call get_omega(time-dt, omega_old)
-    call get_omega(time, omega_new)
-
-    domegadt_old = get_domegadt(time-dt)
-    domegadt_new = get_domegadt(time   )
+    call get_omega(omega)
 
     if (implicit_rotation_update == 1) then
 
@@ -274,11 +269,11 @@ contains
 
           if (state_in_rotating_frame == 1) then
 
-             dt_omega = dt * omega_new
+             dt_omega = dt * omega
 
           else
 
-             dt_omega = HALF * dt * omega_new
+             dt_omega = HALF * dt * omega
 
           endif
 
@@ -455,18 +450,6 @@ contains
                                                     flux2(i,j+1*dg(2),k) * (phi - phiyr) + &
                                                     flux3(i,j,k        ) * (phi - phizl) - &
                                                     flux3(i,j,k+1*dg(3)) * (phi - phizr) ) / vol(i,j,k)
-
-                ! Correct for the time rate of change of the potential, which acts
-                ! purely as a source term. This is only necessary for this source type;
-                ! it is captured automatically for the others since the time rate of change
-                ! of omega also appears in the velocity source term.
-
-                Sr_old = - rhoo * cross_product(domegadt_old, loc)
-                Sr_new = - rhon * cross_product(domegadt_new, loc)
-
-                vnew = snew(UMX:UMZ) * rhoninv
-
-                SrEcorr = SrEcorr + HALF * (dot_product(vold, Sr_old) + dot_product(vnew, Sr_new))
 
              else
 #ifndef AMREX_USE_GPU

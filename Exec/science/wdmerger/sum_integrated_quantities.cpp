@@ -57,7 +57,7 @@ Castro::sum_integrated_quantities ()
 
     Real omega[3] = { 0.0 };
 
-    get_omega_vec(omega, time);
+    get_omega_vec(omega);
 
     // Mass transfer rate
 
