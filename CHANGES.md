@@ -1,5 +1,9 @@
 # 20.07
 
+   * The functionality that permitted the rotation rate to change as a
+     function of time, castro.rotation_include_domegadt and
+     castro.rotational_dPdt, has been removed. (#1045)
+
    * A CUDA illegal memory access error in Poisson gravity and diffusion
      has been fixed (#1039).
 
