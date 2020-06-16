@@ -392,7 +392,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotational_dPdt, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rotation_include_domegadt, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -410,17 +410,11 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
-|                                        | rotation rate to change durning the simulation time     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
 |                                        | turned on and off                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
 |                                        | on and off                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
 |                                        | with respect to. The standard in the literature when    |               |
