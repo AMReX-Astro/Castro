@@ -1,7 +1,6 @@
 module rotation_module
 
-  use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis, &
-       rotation_include_domegadt
+  use meth_params_module, only: rotation_include_centrifugal, rotation_include_coriolis
 
   use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
@@ -48,13 +47,13 @@ contains
        loc = position(idx(1),idx(2),idx(3)) - center
     endif
 
-    call get_omega(time, omega)
+    call get_omega(omega)
 
     v = v - cross_product(omega, loc)
 
   end subroutine inertial_to_rotational_velocity
 
-  function rotational_acceleration(r, v, time, centrifugal, coriolis, domegadt) result(Sr)
+  function rotational_acceleration(r, v, time, centrifugal, coriolis) result(Sr)
     ! Given a position and velocity, calculate
     ! the rotational acceleration. This is the sum of:
     ! the Coriolis force (-2 omega x v),
@@ -66,22 +65,21 @@ contains
     use meth_params_module, only: state_in_rotating_frame
     use math_module, only: cross_product ! function
     use rotation_frequency_module, only: get_omega
-    use rotation_frequency_module, only: get_domegadt ! function
-
     use amrex_fort_module, only : rt => amrex_real
+
     implicit none
 
     real(rt)         :: r(3), v(3), time
     real(rt)         :: Sr(3)
 
-    real(rt)         :: omega(3), domega_dt(3), omegacrossr(3), omegacrossv(3)
+    real(rt)         :: omega(3), omegacrossr(3), omegacrossv(3)
 
-    logical, optional :: centrifugal, coriolis, domegadt
-    logical :: c1, c2, c3
+    logical, optional :: centrifugal, coriolis
+    logical :: c1, c2
 
     !$gpu
 
-    call get_omega(time, omega)
+    call get_omega(omega)
 
     if (state_in_rotating_frame .eq. 1) then
 
@@ -117,18 +115,6 @@ contains
           if (.not. coriolis) c2 = .false.
        endif
 
-       if (rotation_include_domegadt == 1) then
-          c3 = .true.
-       else
-          c3 = .false.
-       endif
-
-       if (present(domegadt)) then
-          if (.not. domegadt) c3 = .false.
-       endif
-
-       domega_dt = get_domegadt(time)
-
        omegacrossr = cross_product(omega,r)
        omegacrossv = cross_product(omega,v)
 
@@ -140,10 +126,6 @@ contains
 
        if (c2) then
           Sr = Sr - TWO * omegacrossv
-       endif
-
-       if (c3) then
-          Sr = Sr - cross_product(domega_dt, r)
        endif
 
     else
@@ -197,7 +179,7 @@ contains
 
     if (state_in_rotating_frame .eq. 1) then
 
-       call get_omega(time, omega)
+       call get_omega(omega)
 
        phi = ZERO
 
@@ -339,7 +321,7 @@ contains
 
     !$gpu
 
-    call get_omega(time, omega)
+    call get_omega(omega)
 
     do k = lo(3), hi(3)
        r(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)

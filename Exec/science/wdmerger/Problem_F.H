@@ -67,7 +67,7 @@ extern "C"
 
   void update_center(const amrex::Real* time);
 
-  void get_omega_vec(const amrex::Real* omega, const amrex::Real time);
+  void get_omega_vec(const amrex::Real* omega);
 
   void get_lagrange_points(const amrex::Real mass_1, const amrex::Real mass_2,
 	                   const amrex::Real* com_1, const amrex::Real* com_2);
