@@ -220,9 +220,6 @@ gravity.no_sync = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 # Whether to evolve state variables in the inertial or rotating frame
 castro.state_in_rotating_frame = 1
 

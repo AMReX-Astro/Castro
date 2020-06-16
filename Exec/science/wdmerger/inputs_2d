@@ -227,9 +227,6 @@ gravity.do_composite_phi_correction = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 ############################################################################################
 # Load balancing
 ############################################################################################
