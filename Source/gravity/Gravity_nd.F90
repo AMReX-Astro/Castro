@@ -29,9 +29,105 @@ module gravity_module
 
 contains
 
-  ! ::
-  ! :: ----------------------------------------------------------
-  ! ::
+  subroutine ca_put_radial_grav(lo, hi, dx, dr,&
+                                grav, g_lo, g_hi, &
+                                radial_grav, problo, n1d, level) &
+                                bind(C, name="ca_put_radial_grav")
+
+    use prob_params_module, only: center
+    use amrex_constants_module, only: HALF, TWO
+    use amrex_fort_module, only : rt => amrex_real
+    use castro_error_module, only: castro_error
+
+    implicit none
+
+    integer , intent(in   ) :: lo(3), hi(3)
+    real(rt), intent(in   ) :: dx(3)
+    real(rt), intent(in   ) :: problo(3)
+    real(rt), intent(in   ), value :: dr
+
+    real(rt), intent(in   ) :: radial_grav(0:n1d-1)
+    integer , intent(in   ), value :: n1d, level
+
+    integer , intent(in   ) :: g_lo(3), g_hi(3)
+    real(rt), intent(inout) :: grav(g_lo(1):g_hi(1),g_lo(2):g_hi(2),g_lo(3):g_hi(3),AMREX_SPACEDIM)
+
+    integer  :: i, j, k, index
+    real(rt) :: loc(3), r, mag_grav
+    real(rt) :: cen, xi, slope, glo, gmd, ghi, minvar, maxvar
+
+    ! Note that we are interpolating onto the entire range of grav,
+    ! including the ghost cells. Taking the absolute value of r ensures
+    ! that we will get the correct behavior even for the ghost zones with
+    ! negative indices, which have a reflecting boundary condition.
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+             loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+             loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+             r = sqrt(loc(1)**2 + loc(2)**2 + loc(3)**2)
+
+             index = int(r / dr)
+
+             cen = (dble(index) + HALF) * dr
+             xi = r - cen
+
+             if (index == 0) then
+
+                ! Linear interpolation or extrapolation
+                slope = ( radial_grav(index+1) - radial_grav(index) ) / dr
+                mag_grav = radial_grav(index) + slope * xi
+
+             else if (index == n1d-1) then
+
+                ! Linear interpolation or extrapolation
+                slope = ( radial_grav(index) - radial_grav(index-1) ) / dr
+                mag_grav = radial_grav(index) + slope * xi
+
+             else if (index .gt. n1d-1) then
+
+                if (level .eq. 0) then
+                   print *,'PUT_RADIAL_GRAV: INDEX TOO BIG ', index, ' > ', n1d-1
+                   print *,'AT (i,j,k) ', i, j, k
+                   print *,'R / DR IS ', r, dr
+                   call castro_error("Error:: Gravity_nd.F90 :: ca_put_radial_grav")
+                else
+                   ! NOTE: we don't do anything to this point if it's outside the
+                   !       radial grid and level > 0
+                end if
+
+             else
+
+                ! Quadratic interpolation
+                ghi = radial_grav(index+1)
+                gmd = radial_grav(index  )
+                glo = radial_grav(index-1)
+                mag_grav = ( ghi -      TWO * gmd + glo) * xi**2 / (TWO * dr**2) + &
+                           ( ghi                  - glo) * xi    / (TWO * dr   ) + &
+                           (-ghi + 26.e0_rt * gmd - glo) / 24.e0_rt
+
+                minvar = min(gmd, min(glo, ghi))
+                maxvar = max(gmd, max(glo, ghi))
+                mag_grav = max(mag_grav, minvar)
+                mag_grav = min(mag_grav, maxvar)
+
+             end if
+
+             if (index .le. n1d-1) then
+
+                grav(i,j,k,1:AMREX_SPACEDIM) = mag_grav * (loc(1:AMREX_SPACEDIM) / r)
+
+             end if
+
+          end do
+       end do
+    end do
+
+  end subroutine ca_put_radial_grav
+
 
 
   subroutine ca_compute_radial_mass(lo, hi, &
