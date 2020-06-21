@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 
-plt.rcParams.update({'xtick.labelsize': 9,
-                     'ytick.labelsize': 9,
-                     'font.size': 11})
+plt.rcParams.update({'xtick.labelsize': 10,
+                     'ytick.labelsize': 10,
+                     'font.size': 12})
 
 plt.rc("axes", linewidth=1.5)
 plt.rc("lines", markeredgewidth=1.5)
@@ -79,7 +79,7 @@ ax.scatter(nodes, react, label = "reactions")
 ax.scatter(nodes, diffuse, label = "diffusion")
 ax.scatter(nodes, copy, label = "MPI")
 
-ax.set_yscale("log")
+#ax.set_yscale("log")
 ax.set_xscale("log")
 
 ax.xaxis.set_minor_formatter(mticker.ScalarFormatter())
