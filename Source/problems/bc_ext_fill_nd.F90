@@ -33,7 +33,6 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: idens_model, itemp_model, ispec_model, interpolate_sub
-    use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -901,7 +900,6 @@ contains
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 
