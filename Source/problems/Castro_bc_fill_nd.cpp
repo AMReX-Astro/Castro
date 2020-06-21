@@ -28,7 +28,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);
-    set_bc_launch_config();
 #else
     const int* bc_f = bcrs.data();
 #endif
@@ -64,10 +63,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 
     }
-
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
 
     // we just did the standard BC fills (reflect, outflow, ...)  now
     // we consider the external ones (HSE).  Note, if we are at a

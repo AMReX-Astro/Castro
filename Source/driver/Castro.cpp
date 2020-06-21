@@ -75,10 +75,6 @@ Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
 #endif
 
-#ifdef AMREX_USE_CUDA
-int          Castro::numBCThreadsMin[3] = {1, 1, 1};
-#endif
-
 // the sponge parameters are controlled by Fortran, so
 // this just initializes them before we grab their values
 // from Fortran
@@ -496,17 +492,6 @@ Castro::Castro (Amr&            papa,
             }
         }
     }
-
-#ifdef AMREX_USE_CUDA
-    // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
-    for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-        for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
-            if (parent->blockingFactor(ilev)[dim] % numBCThreadsMin[dim] != 0) {
-                amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
-            }
-        }
-    }
-#endif
 
     // initialize all the new time level data to zero
     for (int k = 0; k < num_state_type; k++) {
