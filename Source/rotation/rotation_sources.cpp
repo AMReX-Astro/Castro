@@ -306,8 +306,8 @@ Castro::corrrsrc(const Box& bx,
       // the non-Coriolis parts of the new contribution (add 1/2 of the new term).
 
       Real acc[3];
-      int coriolis = 0;
-      rotational_acceleration(loc.begin(), vnew.begin(), coriolis, acc);
+      bool coriolis = false;
+      rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Real new_mom_tmp[3];
       for (int n = 0; n < 3; n++) {
@@ -391,8 +391,8 @@ Castro::corrrsrc(const Box& bx,
       vnew[2] = snew[UMZ] * rhoninv;
 
       Real acc[3];
-      int coriolis = 1;
-      rotational_acceleration(loc.begin(), vnew.begin(), coriolis, acc);
+      bool coriolis = true;
+      rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Sr_new[0] = rhon * acc[0];
       Sr_new[1] = rhon * acc[1];

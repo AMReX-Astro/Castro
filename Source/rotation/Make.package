@@ -8,3 +8,4 @@ ca_F90EXE_sources += Rotation_nd.F90
 ca_F90EXE_sources += Rotation_frequency.F90
 CEXE_sources += rotation_sources.cpp
 CEXE_sources += Castro_rotation.cpp
+CEXE_sources += Rotation.cpp

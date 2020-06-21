@@ -40,6 +40,7 @@ ca_F90EXE_sources += Castro_util_nd.F90
 ca_F90EXE_sources += interpolate_nd.F90
 ca_F90EXE_sources += io_nd.F90
 ca_F90EXE_sources += math_nd.F90
+CEXE_headers      += math.H
 ca_F90EXE_sources += reduction_nd.F90
 ca_F90EXE_sources += meth_params_nd.F90
 ca_F90EXE_sources += state_indices_nd.F90

@@ -18,20 +18,10 @@ extern "C"
      BL_FORT_FAB_ARG_3D(phi),
      const amrex::Real* dx, const amrex::Real time);
 
-  void ca_fill_rotational_acceleration
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(rot),
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const amrex::Real time);
-
   void ca_fill_rotational_psi
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(psi),
      const amrex::Real* dx, const amrex::Real time);
-
-  void rotational_acceleration
-     (const Real* r, const Real* v,
-      const int coriolis, Real* Sr);
 
 #ifdef __cplusplus
 }

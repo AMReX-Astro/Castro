@@ -88,3 +88,12 @@
              const Real dt,
              Array4<Real const> const& vol);
 
+    void
+    fill_rotational_acceleration(const Box& bx,
+                                 Array4<Real> const& rot,
+                                 Array4<Real const> const& state);
+
+    void
+    rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
+                            GpuArray<Real, 3> const& omega,
+                            const bool coriolis, Real* Sr);
