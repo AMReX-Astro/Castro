@@ -29,14 +29,14 @@ module gravity_module
 
 contains
 
-  subroutine ca_put_radial_grav(lo, hi, dx, dr,&
+  subroutine ca_put_radial_grav(lo, hi, dx, dr, &
                                 grav, g_lo, g_hi, &
                                 radial_grav, problo, n1d, level) &
                                 bind(C, name="ca_put_radial_grav")
 
-    use prob_params_module, only: center
+    use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: HALF, TWO
-    use amrex_fort_module, only : rt => amrex_real
+    use prob_params_module, only: center
     use castro_error_module, only: castro_error
 
     implicit none
@@ -68,6 +68,7 @@ contains
              loc(1) = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
              loc(2) = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
              loc(3) = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
+
              r = sqrt(loc(1)**2 + loc(2)**2 + loc(3)**2)
 
              index = int(r / dr)
@@ -78,13 +79,13 @@ contains
              if (index == 0) then
 
                 ! Linear interpolation or extrapolation
-                slope = ( radial_grav(index+1) - radial_grav(index) ) / dr
+                slope = (radial_grav(index+1) - radial_grav(index)) / dr
                 mag_grav = radial_grav(index) + slope * xi
 
              else if (index == n1d-1) then
 
                 ! Linear interpolation or extrapolation
-                slope = ( radial_grav(index) - radial_grav(index-1) ) / dr
+                slope = (radial_grav(index) - radial_grav(index-1)) / dr
                 mag_grav = radial_grav(index) + slope * xi
 
              else if (index .gt. n1d-1) then
