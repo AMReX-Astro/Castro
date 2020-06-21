@@ -88,11 +88,28 @@
              const Real dt,
              Array4<Real const> const& vol);
 
+///
+/// Compute the rotational acceleration over a box
+///
+/// @param bx         the box to operate over
+/// @param rot        the rotational acceleration
+/// @param state      the input state
+////
     void
     fill_rotational_acceleration(const Box& bx,
                                  Array4<Real> const& rot,
                                  Array4<Real const> const& state);
 
+///
+/// Compute the rotational acceleration for a single zone
+/// (Coriolis and centrifugal)
+///
+/// @param r         distance from origin of rotation vector
+/// @param v         velocity
+/// @param omega     rotation vector
+/// @param corilois  do we include the Coriolis force
+/// @param Sr        rotational acceleration
+///
     void
     rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                             GpuArray<Real, 3> const& omega,
