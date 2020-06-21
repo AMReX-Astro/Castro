@@ -66,7 +66,7 @@
 
     void
     rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                            GpuArray<Real, 3> const& omega, GpuArray<Real, 3> const& domega_dt,
+                            GpuArray<Real, 3> const& omega,
                             const bool coriolis, Real* Sr);
 
     Real

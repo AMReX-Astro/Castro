@@ -25,8 +25,10 @@ Castro::estdt_cfl(const Real time)
   ca_get_center(center.begin());
 
 #ifdef ROTATION
+  auto coord_type = geom.Coord();
+
   GpuArray<Real, 3> omega;
-  get_omega(omega);
+  get_omega(coord_type, omega);
 #endif
 
   const auto dx = geom.CellSizeArray();

@@ -3,7 +3,7 @@
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-get_omega(GpuArray<Real, 3>& omega) {
+get_omega(const int coord, GpuArray<Real, 3>& omega) {
 
   // If rot_period is less than zero, that means rotation is disabled,
   // and so we should effectively shut off the source term by setting
@@ -13,8 +13,6 @@ get_omega(GpuArray<Real, 3>& omega) {
   omega[0] = 0.0_rt;
   omega[1] = 0.0_rt;
   omega[2] = 0.0_rt;
-
-  auto coord = geom.Coord();
 
   if (coord == 0 || coord == 1) {
 

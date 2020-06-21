@@ -57,8 +57,10 @@ Castro::ctoprim(const Box& bx,
   ca_get_center(center.begin());
 
 #ifdef ROTATION
+  auto coord_type = geom.Coord();
+
   GpuArray<Real, 3> omega;
-  get_omega(omega);
+  get_omega(coord_type, omega);
 #endif
 
   amrex::ParallelFor(bx,

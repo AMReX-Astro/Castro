@@ -165,8 +165,10 @@ Castro::corrrsrc(const Box& bx,
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
+  auto coord_type = geom.Coord();
+
   GpuArray<Real, 3> omega;
-  get_omega(omega);
+  get_omega(coord_type, omega);
 
   GeometryData geomdata = geom.data();
 
