@@ -479,7 +479,7 @@ contains
 
     type(eos_t) :: eos_state
 
-    call get_omega(ZERO, omega)
+    call get_omega(omega)
 
     ! Safety check: ensure that if we have a symmetric lower boundary, that the
     ! domain center (and thus the stars) are on that boundary.
@@ -982,7 +982,7 @@ contains
 
     use amrex_constants_module, only: ZERO
     use rotation_frequency_module, only: get_omega
-    use meth_params_module, only: do_rotation, rot_period, rot_period_dot
+    use meth_params_module, only: do_rotation, rot_period
 
     implicit none
 
@@ -994,33 +994,10 @@ contains
 
     !$gpu
 
-
-    ! To get the angle, we integrate omega over the time of the
-    ! simulation. Since the time rate of change is linear in the
-    ! period, let's work that variable. At some time t the current
-    ! period P is given by P = P_0 + Pdot * t. Then:
-    !
-    ! theta(t) = int( omega(t) * dt )
-    !      theta = int( omega(t) dt )
-    !            = (2 * pi / P_0) * int( dt / (1 + (dPdt / P_0) * t) )
-    !
-    ! if dPdt = 0, then theta = 2 * pi * t / P_0 = omega_0 * t, as expected.
-    ! if dPdt > 0, then theta = (2 * pi / P_0) * (P_0 / dPdt) * ln| (dPdt / P_0) * t + 1 |
-    ! Note that if dPdt << P_0, then we have ln(1 + x) = x, and we again
-    ! recover the original expression as expected.
-
     if (do_rotation .eq. 1) then
 
-       if (abs(rot_period_dot) > ZERO .and. time > ZERO) then
-          call get_omega(ZERO, omega)
-          theta = omega * (rot_period / rot_period_dot) * &
-                  log( abs( (rot_period_dot / rot_period) * time + 1 ) )
-       else
-          call get_omega(ZERO, omega)
-          theta = omega * time
-       endif
-
-       call get_omega(time, omega)
+       call get_omega(omega)
+       theta = omega * time
 
     else
 
@@ -1072,7 +1049,7 @@ contains
 
     !$gpu
 
-    call get_omega(time, omega)
+    call get_omega(omega)
 
     vel_i = vel
 
@@ -2002,16 +1979,15 @@ contains
 
   ! Returns the CASTRO rotation frequency vector.
 
-  subroutine get_omega_vec(omega_in, time) bind(C,name='get_omega_vec')
+  subroutine get_omega_vec(omega_in) bind(C,name='get_omega_vec')
 
     use rotation_frequency_module, only: get_omega
 
     implicit none
 
     real(rt), intent(inout) :: omega_in(3)
-    real(rt), intent(in   ), value :: time
 
-    call get_omega(time, omega_in)
+    call get_omega(omega_in)
 
   end subroutine get_omega_vec
 

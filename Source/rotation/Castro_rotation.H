@@ -64,18 +64,6 @@
              const Real dt, const Real time,
              Array4<Real const> const& vol);
 
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    get_omega(const Real time, GpuArray<Real, 3>& omega);
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    get_domegadt(const Real time, GpuArray<Real, 3>& domegadt);
-
-    AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-    void
-    set_rot_period(const Real period);
-
     void
     rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                             GpuArray<Real, 3> const& omega, GpuArray<Real, 3> const& domega_dt,

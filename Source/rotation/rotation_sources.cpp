@@ -165,17 +165,8 @@ Castro::corrrsrc(const Box& bx,
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
 
-  GpuArray<Real, 3> omega_old;
-  get_omega(time-dt, omega_old);
-
-  GpuArray<Real, 3> omega_new;
-  get_omega(time, omega_new);
-
-  GpuArray<Real, 3> domegadt_old;
-  get_domegadt(time-dt, domegadt_old);
-
-  GpuArray<Real, 3> domegadt_new;
-  get_domegadt(time, domegadt_new);
+  GpuArray<Real, 3> omega;
+  get_omega(omega);
 
   GeometryData geomdata = geom.data();
 
@@ -199,13 +190,13 @@ Castro::corrrsrc(const Box& bx,
       if (state_in_rotating_frame == 1) {
 
         for (int idir = 0; idir < 3; idir++) {
-          dt_omega[idir] = dt * omega_new[idir];
+          dt_omega[idir] = dt * omega[idir];
         }
 
       } else {
 
         for (int idir = 0; idir < 3; idir++) {
-          dt_omega[idir] = 0.5_rt * dt * omega_new[idir];
+          dt_omega[idir] = 0.5_rt * dt * omega[idir];
         }
 
       }
@@ -320,7 +311,7 @@ Castro::corrrsrc(const Box& bx,
 
       Real acc[3];
       bool coriolis = false;
-      rotational_acceleration(loc, vnew, omega_new, domegadt_new, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Real new_mom_tmp[3];
       for (int n = 0; n < 3; n++) {
@@ -405,7 +396,7 @@ Castro::corrrsrc(const Box& bx,
 
       Real acc[3];
       bool coriolis = true;
-      rotational_acceleration(loc, vnew, omega_new, domegadt_new, coriolis, acc);
+      rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Sr_new[0] = rhon * acc[0];
       Sr_new[1] = rhon * acc[1];
@@ -466,31 +457,6 @@ Castro::corrrsrc(const Box& bx,
                                             flux3(i,j,k    ) * (phi - phizl) -
                                             flux3(i,j,k+dg2) * (phi - phizr) ) / vol(i,j,k);
 
-      // Correct for the time rate of change of the potential, which acts
-      // purely as a source term. This is only necessary for this source type;
-      // it is captured automatically for the others since the time rate of change
-      // of omega also appears in the velocity source term.
-
-      GpuArray<Real, 3> cp_tmp;
-
-      cross_product(domegadt_old, loc, cp_tmp);
-      for (int idir = 0; idir < 3; idir++) {
-        Sr_old[idir] = - rhoo * cp_tmp[idir];
-      }
-
-      cross_product(domegadt_new, loc, cp_tmp);
-      for (int idir = 0; idir < 3; idir++) {
-        Sr_new[idir] = - rhon * cp_tmp[idir];
-      }
-
-      Real vnew[3];
-
-      vnew[0] = snew[UMX] * rhoninv;
-      vnew[1] = snew[UMY] * rhoninv;
-      vnew[2] = snew[UMZ] * rhoninv;
-
-      SrEcorr += 0.5_rt * (vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2]) +
-                          (vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2]);
 
     } else {
 #ifndef AMREX_USE_GPU

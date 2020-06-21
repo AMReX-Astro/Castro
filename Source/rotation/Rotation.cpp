@@ -5,7 +5,7 @@
 
 void
 Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                                GpuArray<Real, 3> const& omega, GpuArray<Real, 3> const& domega_dt,
+                                GpuArray<Real, 3> const& omega,
                                 const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -33,8 +33,6 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
     bool c2 = (rotation_include_coriolis == 1 && coriolis) ? true : false;
 
-    bool c3 = (rotation_include_domegadt == 1) ? true : false;
-
     GpuArray<Real, 3> omega_cross_v;
     cross_product(omega, v, omega_cross_v);
 
@@ -53,15 +51,6 @@ Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
     if (c2) {
       for (int idir = 0; idir < 3; idir++) {
         Sr[idir] -= 2.0_rt * omega_cross_v[idir];
-      }
-    }
-
-    if (c3) {
-      GpuArray<Real, 3> domega_dt_cross_r;
-      cross_product(domega_dt, r, domega_dt_cross_r);
-
-      for (int idir = 0; idir < 3; idir++) {
-        Sr[idir] -= domega_dt_cross_r[idir];
       }
     }
 
@@ -119,7 +108,7 @@ Castro::fill_rotational_potential(const Box& bx,
                                   const Real time) {
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega);
+  get_omega(omega);
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -167,10 +156,7 @@ Castro::fill_rotational_acceleration(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega);
-
-  GpuArray<Real, 3> domegadt;
-  get_domegadt(time, domegadt);
+  get_omega(omega);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -198,7 +184,7 @@ Castro::fill_rotational_acceleration(const Box& bx,
 
     bool coriolis = true;
     Real Sr[3];
-    rotational_acceleration(r, v, omega, domegadt, coriolis, Sr);
+    rotational_acceleration(r, v, omega, coriolis, Sr);
 
     for (int idir = 0; idir < 3; idir++) {
       rot(i,j,k,idir) = Sr[idir];
@@ -222,7 +208,7 @@ Castro::fill_rotational_psi(const Box& bx,
   // rotation laws, we would simply divide by v_0^2 or j_0^2 instead.
 
   GpuArray<Real, 3> omega;
-  get_omega(time, omega);
+  get_omega(omega);
 
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 

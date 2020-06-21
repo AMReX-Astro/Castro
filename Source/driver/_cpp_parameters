@@ -431,18 +431,11 @@ do_rotation                  int          -1                  y
 # the rotation period for the corotating frame
 rotational_period            Real         -1.e200             n        ROTATION
 
-# the rotation periods time evolution---this allows the rotation rate to
-# change durning the simulation time
-rotational_dPdt              Real          0.0                n        ROTATION
-
 # permits the centrifugal terms in the rotation to be turned on and off
 rotation_include_centrifugal int           1                  y        ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  y        ROTATION
-
-# permits the d(omega)/dt terms in the rotation to be turned on and off
-rotation_include_domegadt    int           1                  y        ROTATION
 
 # Which reference frame to measure the state variables with respect to.
 # The standard in the literature when using a rotating reference frame

@@ -62,7 +62,6 @@ castro.add_ext_src = 1                             # Whether or not to apply ext
 castro.ext_src_implicit = 1
 castro.do_rotation = 0                             # Whether or not to include the rotation source term
 castro.rotational_period = 100.0                   # Rotational period of the rotating reference frame
-castro.rotational_dPdt = -0.0                      # Time rate of change of the rotational period
 castro.implicit_rotation_update = 1                # Implicit rotation coupling
 
 ############################################################################################

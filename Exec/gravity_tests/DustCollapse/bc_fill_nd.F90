@@ -12,7 +12,6 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-    use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: HALF
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
@@ -37,9 +36,6 @@ contains
     real(rt) :: mom,momc
 
     !$gpu
-
-    ! Do this for all the variables, but we will overwrite the momenta below
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
 #if AMREX_SPACEDIM == 3
 #ifndef AMREX_USE_CUDA
@@ -267,8 +263,6 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C,name="denfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -280,8 +274,6 @@ contains
     real(rt), intent(in   ), value :: time
 
     !$gpu
-
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine denfill
 
