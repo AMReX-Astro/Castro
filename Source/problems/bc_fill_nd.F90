@@ -13,7 +13,6 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-    use amrex_filcc_module, only: amrex_filccn
     use meth_params_module, only: fill_ambient_bc, ambient_fill_dir, ambient_outflow_vel, UMX, UMY, UMZ, UEDEN, URHO, UEINT
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap
@@ -126,7 +125,6 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
-    use amrex_filcc_module, only: amrex_filccn
     use meth_params_module, only: fill_ambient_bc, URHO, ambient_fill_dir
     use ambient_module, only: ambient_state
     use amrex_bc_types_module, only: amrex_bc_foextrap, amrex_bc_hoextrap

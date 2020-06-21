@@ -1386,10 +1386,12 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       ca_put_radial_grav(bx.loVect(),bx.hiVect(),dx,&dr,
-                          BL_TO_FORTRAN(grav_vector[mfi]),
-                          radial_grav.dataPtr(),geom.ProbLo(),
-                          &n1d,&level);
+       ca_put_radial_grav(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                          ZFILL(dx), dr,
+                          BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
+                          radial_grav.dataPtr(),
+                          ZFILL(geom.ProbLo()),
+                          n1d, level);
     }
 }
 

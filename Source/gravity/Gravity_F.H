@@ -52,12 +52,12 @@ extern "C"
      const amrex::Real* dr, const int* numpts_1d);
 
   void ca_put_radial_grav
-    (const int lo[], const int hi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     BL_FORT_FAB_ARG(grav_vector),
+    (const int* lo, const int* hi, 
+     const amrex::Real* dx, amrex::Real dr,
+     BL_FORT_FAB_ARG_3D(grav_vector),
      const amrex::Real* radial_grav, 
      const amrex::Real* problo, 
-     const int* n1d, const int* level); 
+     int n1d, int level); 
 
   void ca_put_radial_phi
     (const int* lo, const int* hi, 
