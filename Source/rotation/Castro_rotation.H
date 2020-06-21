@@ -69,9 +69,6 @@
                             GpuArray<Real, 3> const& omega,
                             const bool coriolis, Real* Sr);
 
-    Real
-    rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega);
-
     void
     fill_rotational_potential(const Box& bx,
                               Array4<Real> const& phi,
