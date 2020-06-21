@@ -53,7 +53,7 @@ contains
 
   end subroutine inertial_to_rotational_velocity
 
-  function rotational_acceleration(r, v, time, centrifugal, coriolis) result(Sr)
+  subroutine rotational_acceleration(r, v, coriolis, Sr) bind(C, name="rotational_acceleration")
     ! Given a position and velocity, calculate
     ! the rotational acceleration. This is the sum of:
     ! the Coriolis force (-2 omega x v),
@@ -69,12 +69,12 @@ contains
 
     implicit none
 
-    real(rt)         :: r(3), v(3), time
-    real(rt)         :: Sr(3)
+    real(rt), intent(in) :: r(3), v(3)
+    real(rt), intent(out) :: Sr(3)
+    integer, intent(in), value :: coriolis
 
     real(rt)         :: omega(3), omegacrossr(3), omegacrossv(3)
 
-    logical, optional :: centrifugal, coriolis
     logical :: c1, c2
 
     !$gpu
@@ -101,18 +101,10 @@ contains
           c1 = .false.
        endif
 
-       if (present(centrifugal)) then
-          if (.not. centrifugal) c1 = .false.
-       endif
-
-       if (rotation_include_coriolis == 1) then
+       if (rotation_include_coriolis == 1 .and. coriolis == 1) then
           c2 = .true.
        else
           c2 = .false.
-       endif
-
-       if (present(coriolis)) then
-          if (.not. coriolis) c2 = .false.
        endif
 
        omegacrossr = cross_product(omega,r)
@@ -135,14 +127,10 @@ contains
        ! traditional Coriolis force, but we'll still allow it to
        ! be disabled with the same parameter.
 
-       if (rotation_include_coriolis == 1) then
+       if (rotation_include_coriolis == 1 .and. coriolis == 1) then
           c2 = .true.
        else
           c2 = .false.
-       endif
-
-       if (present(coriolis)) then
-          if (.not. coriolis) c2 = .false.
        endif
 
        Sr = ZERO
@@ -153,7 +141,7 @@ contains
 
     endif
 
-  end function rotational_acceleration
+  end subroutine rotational_acceleration
 
 
 
@@ -266,7 +254,11 @@ contains
     real(rt), value , intent(in   ) :: time
 
     integer          :: i, j, k
-    real(rt)         :: r(3), v(3)
+    real(rt)         :: r(3), v(3), rot_zone(3)
+
+    integer :: coriolis
+
+    coriolis = 1
 
     !$gpu
 
@@ -281,7 +273,8 @@ contains
 
              v(:) = state(i,j,k,UMX:UMZ) / state(i,j,k,URHO)
 
-             rot(i,j,k,:) = rotational_acceleration(r, v, time)
+             call rotational_acceleration(r, v, coriolis, rot_zone)
+             rot(i,j,k,:) = rot_zone(:)
 
           enddo
        enddo
