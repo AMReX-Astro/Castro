@@ -1,7 +1,12 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#include "Castro_util.H"
 
 #include "Gravity.H"
+
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
+#endif
 
 using namespace amrex;
 
@@ -242,6 +247,15 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
     const int* domlo = geom.Domain().loVect();
     const int* domhi = geom.Domain().hiVect();
 
+#ifdef HYBRID_MOMENTUM
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+#endif
+
+    AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -249,14 +263,108 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_gsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                BL_TO_FORTRAN_ANYD(state_in[mfi]),
-                BL_TO_FORTRAN_ANYD(phi_old[mfi]),
-                BL_TO_FORTRAN_ANYD(grav_old[mfi]),
-                BL_TO_FORTRAN_ANYD(source[mfi]),
-                AMREX_REAL_ANYD(dx), dt, time);
+        Array4<Real const> const uold = state_in.array(mfi);
+        Array4<Real const> const grav = grav_old.array(mfi);
+        Array4<Real> const source_arr = source.array(mfi);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            // Temporary array for seeing what the new state would be if the update were applied here.
+
+            GpuArray<Real, NUM_STATE> snew;
+            for (int n = 0; n < NUM_STATE; ++n) {
+                snew[n] = 0.0_rt;
+            }
+
+            // Temporary array for holding the update to the state.
+
+            GpuArray<Real, NSRC> src;
+            for (int n = 0; n < NSRC; ++n) {
+                src[n] = 0.0_rt;
+            }
+
+            // Gravitational source options for how to add the work to (rho E):
+            // grav_source_type =
+            // 1: Original version ("does work")
+            // 2: Modification of type 1 that updates the momentum before constructing the energy corrector
+            // 3: Puts all gravitational work into KE, not (rho e)
+            // 4: Conservative energy formulation
+
+            Real rho    = uold(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            for (int n = 0; n < NUM_STATE; ++n) {
+                snew[n] = uold(i,j,k,n);
+            }
+
+            Real old_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoInv;
+
+            GpuArray<Real, 3> Sr;
+            for (int n = 0; n < 3; ++n) {
+                Sr[n] = rho * grav(i,j,k,n);
+
+                src[UMX+n] = Sr[n];
+
+                snew[UMX+n] += dt * src[UMX+n];
+            }
+
+#ifdef HYBRID_MOMENTUM
+            GpuArray<Real, 3> loc;
+            for (int n = 0; n < 3; ++n) {
+                position(i, j, k, geomdata, loc);
+                loc[n] -= center[n];
+            }
+
+            GpuArray<Real, 3> hybrid_src;
+
+            set_hybrid_momentum_source(loc, Sr, hybrid_src);
+
+            for (int n = 0; n < 3; ++n) {
+                 src[UMR+n] = hybrid_src[n];
+                 snew[UMR+n] += dt * src[UMR+n];
+            }
+#endif
+
+            Real SrE;
+
+            if (castro::grav_source_type == 1 || castro::grav_source_type == 2) {
+
+                // Src = rho u dot g, evaluated with all quantities at t^n
+
+                SrE = (uold(i,j,k,UMX) * Sr[0] + uold(i,j,k,UMY) * Sr[1] + uold(i,j,k,UMZ) * Sr[2]) * rhoInv;
+
+            } else if (castro::grav_source_type == 3) {
+
+                Real new_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoInv;
+                SrE = new_ke - old_ke;
+
+            } else if (castro::grav_source_type == 4) {
+
+                // The conservative energy formulation does not strictly require
+                // any energy source-term here, because it depends only on the
+                // fluid motions from the hydrodynamical fluxes which we will only
+                // have when we get to the 'corrector' step. Nevertheless we add a
+                // predictor energy source term in the way that the other methods
+                // do, for consistency. We will fully subtract this predictor value
+                // during the corrector step, so that the final result is correct.
+                // Here we use the same approach as grav_source_type == 2.
+
+                SrE = (uold(i,j,k,UMX) * Sr[0] + uold(i,j,k,UMY) * Sr[1] + uold(i,j,k,UMZ) * Sr[2]) * rhoInv;
+
+            }
+
+            src[UEDEN] = SrE;
+
+            snew[UEDEN] += dt * SrE;
+
+            // Add to the outgoing source array.
+
+            for (int n = 0; n < NSRC; ++n) {
+                source_arr(i,j,k,n) += src[n];
+            }
+
+        });
 
     }
 
