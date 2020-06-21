@@ -1,5 +1,16 @@
 # 20.07
 
+   * The CUDA build no longer has a requirement that amr.blocking_factor
+     be a multiple of 8. Though this is recommended for performance reasons,
+     it was previously required due to correctness reasons because of the
+     use of an AMReX Fortran function, amrex_filccn. As noted in #1048, this
+     function is no longer required due to recent changes in Castro (problems
+     overriding bc_fill_nd.F90 or bc_ext_fill_nd.F90 do not need to provide an
+     initial fill of the ghost zone data before implementing their specific
+     boundary conditions; this is now done for you). Calling this function
+     may now result in race conditions and correctness issues in the CUDA
+     build, so it should be removed from any problem setups. (#1049)
+
    * The functionality that permitted the rotation rate to change as a
      function of time, castro.rotation_include_domegadt and
      castro.rotational_dPdt, has been removed. (#1045)

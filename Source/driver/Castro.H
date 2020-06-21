@@ -1198,15 +1198,6 @@ public:
 ///
     static amrex::Real num_zones_advanced;
 
-#ifdef AMREX_USE_CUDA
-///
-/// Minimum CUDA threadblock size for BC fills.
-///
-    static int numBCThreadsMin[3];
-
-    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
-#endif
-
 protected:
 
 
