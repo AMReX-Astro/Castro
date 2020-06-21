@@ -2395,7 +2395,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #ifdef GR_GRAV
                 ca_compute_avgpres(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                                    dx, dr,
-                                   BL_TO_FORTRAN_ANNYD(fab),
+                                   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
                                    priv_radial_pres[tid].dataPtr(),
 #else
