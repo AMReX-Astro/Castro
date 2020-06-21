@@ -1,6 +1,9 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_util.H"
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
+#endif
 
 void
 Castro::rsrc(const Box& bx,
@@ -55,11 +58,17 @@ Castro::rsrc(const Box& bx,
 
 #ifdef HYBRID_MOMENTUM
     if (state_in_rotating_frame == 1) {
-      set_hybrid_momentum_source(loc, src(UMR:UMP), Sr);
+      GpuArray<Real, 3> linear_source;
+      linear_source[0] = src[UMR];
+      linear_source[1] = src[UML];
+      linear_source[2] = src[UMP];
 
-      snew[UMR] += dt * src[UMR];
-      snew[UML] += dt * src[UML];
-      snew[UMP] += dt * src[UMP];
+      GpuArray<Real, 3> hybrid_source;
+      set_hybrid_momentum_source(loc, linear_source, hybrid_source);
+
+      snew[UMR] += dt * hybrid_source[0];
+      snew[UML] += dt * hybrid_source[1];
+      snew[UMP] += dt * hybrid_source[2];
     }
 #endif
 
@@ -361,11 +370,17 @@ Castro::corrrsrc(const Box& bx,
     // inertial frame; see wdmerger paper III.
 
     if (state_in_rotating_frame == 1) {
-      set_hybrid_momentum_source(loc, src(UMR:UMP), Srcorr);
+      GpuArray<Real, 3> linear_source;
+      linear_source[0] = src[UMR];
+      linear_source[1] = src[UML];
+      linear_source[2] = src[UMP];
 
-      snew[UMR] += dt * src[UMR];
-      snew[UML] += dt * src[UML];
-      snew[UMP] += dt * src[UMP];
+      GpuArray<Real, 3> hybrid_source;
+      set_hybrid_momentum_source(loc, linear_source, hybrid_source);
+
+      snew[UMR] += dt * hybrid_source[0];
+      snew[UML] += dt * hybrid_source[1];
+      snew[UMP] += dt * hybrid_source[2];
     }
 #endif
 
