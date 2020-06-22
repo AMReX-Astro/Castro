@@ -1007,6 +1007,70 @@ Gravity::get_new_grav_vector(int level, MultiFab& grav_vector, Real time)
 }
 
 void
+Gravity::test_residual (const Box& bx,
+                        Array4<Real> const& rhs,
+                        Array4<Real> const& ecx,
+#if AMREX_SPACEDIM >= 2
+                        Array4<Real> const& ecy,
+#endif
+#if AMREX_SPACEDIM == 3
+                        Array4<Real> const& ecz,
+#endif
+                        GpuArray<Real, AMREX_SPACEDIM> dx,
+                        GpuArray<Real, AMREX_SPACEDIM> problo,
+                        int coord_type)
+{
+    // Test whether using the edge-based gradients
+    // to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
+    // Fill the RHS array with the residual
+
+    AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        // Cartesian
+        if (coord_type == 0) {
+
+            Real lapphi = (ecx(i+1,j,k) - ecx(i,j,k)) / dx[0];
+#if AMREX_SPACEDIM >= 2
+            lapphi += (ecy(i,j+1,k) - ecy(i,j,k)) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+            lapphi += (ecz(i,j,k+1) - ecz(i,j,k)) / dx[2];
+#endif
+
+            rhs(i,j,k) -= lapphi;
+
+        // r-z
+        } else if (coord_type == 1) {
+
+            Real rlo  = problo[0] + static_cast<Real>(i) * dx[0];
+            Real rhi  = rlo + dx[0];
+            Real rcen = 0.5_rt * (rlo + rhi);
+
+            Real lapphi = (rhi * ecx(i+1,j,k) - rlo * ecx(i,j,k)) / (rcen * dx[0]);
+#if AMREX_SPACEDIM >= 2
+            lapphi += (ecy(i,j+1,k) - ecy(i,j,k)) / dx[1];
+#endif
+
+            rhs(i,j,k) -= lapphi;
+
+        // spherical
+        } else if (coord_type == 2) {
+
+            Real rlo  = problo[0] + static_cast<Real>(i) * dx[0];
+            Real rhi  = rlo + dx[0];
+            Real rcen = 0.5_rt * (rlo + rhi);
+
+            Real lapphi = (rhi * rhi * ecx(i+1,j,k) - rlo * rlo * ecx(i,j,k)) / (rcen * rcen * dx[0]);
+            rhs(i,j,k) -= lapphi;
+
+        }
+    });
+}
+
+void
 Gravity::test_level_grad_phi_prev(int level)
 {
     BL_PROFILE("Gravity::test_level_grad_phi_prev()");
@@ -1031,15 +1095,13 @@ Gravity::test_level_grad_phi_prev(int level)
 
     if (gravity::verbose > 1) {
        Real rhsnorm = Rhs.norm0();
-       if (ParallelDescriptor::IOProcessor()) {
-          std::cout << "... test_level_grad_phi_prev at level " << level << std::endl;
-          std::cout << "       norm of RHS             " << rhsnorm << std::endl;
-       }
+       amrex::Print() << "... test_level_grad_phi_prev at level " << level << std::endl;
+       amrex::Print() << "       norm of RHS             " << rhsnorm << std::endl;
     }
 
-    const Real* dx     = parent->Geom(level).CellSize();
-    const Real* problo = parent->Geom(level).ProbLo();
-    const int coord_type     = geom.Coord();
+    auto dx     = parent->Geom(level).CellSizeArray();
+    auto problo = parent->Geom(level).ProbLoArray();
+    const int coord_type = geom.Coord();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -1047,34 +1109,22 @@ Gravity::test_level_grad_phi_prev(int level)
     for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        // Test whether using the edge-based gradients
-        //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
-        // Fill the RHS array with the residual
-        ca_test_residual(bx.loVect(), bx.hiVect(),
-                         BL_TO_FORTRAN(Rhs[mfi]),
-                         D_DECL(BL_TO_FORTRAN((*grad_phi_prev[level][0])[mfi]),
-                                BL_TO_FORTRAN((*grad_phi_prev[level][1])[mfi]),
-                                BL_TO_FORTRAN((*grad_phi_prev[level][2])[mfi])),
-                         dx,problo,&coord_type);
+
+        test_residual(bx,
+                      Rhs.array(mfi),
+                      (*grad_phi_prev[level][0]).array(mfi),
+#if AMREX_SPACEDIM >= 2
+                      (*grad_phi_prev[level][1]).array(mfi),
+#endif
+#if AMREX_SPACEDIM == 3
+                      (*grad_phi_prev[level][2]).array(mfi),
+#endif
+                      dx, problo, coord_type);
     }
+
     if (gravity::verbose > 1) {
        Real resnorm = Rhs.norm0();
-//     Real gppxnorm = grad_phi_prev[level][0]->norm0();
-#if (BL_SPACEDIM > 1)
-//     Real gppynorm = grad_phi_prev[level][1]->norm0();
-#endif
-#if (BL_SPACEDIM > 2)
-//     Real gppznorm = grad_phi_prev[level][2]->norm0();
-#endif
-      if (ParallelDescriptor::IOProcessor())
-        std::cout << "       norm of residual        " << resnorm << std::endl;
-//      std::cout << "       norm of grad_phi_prev_x " << gppxnorm << std::endl;
-#if (BL_SPACEDIM > 1)
-//      std::cout << "       norm of grad_phi_prev_y " << gppynorm << std::endl;
-#endif
-#if (BL_SPACEDIM > 2)
-//      std::cout << "       norm of grad_phi_prev_z " << gppznorm << std::endl;
-#endif
+       amrex::Print() << "       norm of residual        " << resnorm << std::endl;
     }
 }
 
@@ -1108,8 +1158,8 @@ Gravity::test_level_grad_phi_curr(int level)
         }
     }
 
-    const Real*     dx   = geom.CellSize();
-    const Real* problo   = geom.ProbLo();
+    auto dx     = geom.CellSizeArray();
+    auto problo = geom.ProbLoArray();
     const int coord_type = geom.Coord();
 
 #ifdef _OPENMP
@@ -1118,34 +1168,22 @@ Gravity::test_level_grad_phi_curr(int level)
     for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-        // Test whether using the edge-based gradients
-        //   to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
-        // Fill the RHS array with the residual
-        ca_test_residual(bx.loVect(), bx.hiVect(),
-                         BL_TO_FORTRAN(Rhs[mfi]),
-                         D_DECL(BL_TO_FORTRAN((*grad_phi_curr[level][0])[mfi]),
-                                BL_TO_FORTRAN((*grad_phi_curr[level][1])[mfi]),
-                                BL_TO_FORTRAN((*grad_phi_curr[level][2])[mfi])),
-                         dx,problo,&coord_type);
+
+        test_residual(bx,
+                      Rhs.array(mfi),
+                      (*grad_phi_curr[level][0]).array(mfi),
+#if AMREX_SPACEDIM >= 2
+                      (*grad_phi_curr[level][1]).array(mfi),
+#endif
+#if AMREX_SPACEDIM == 3
+                      (*grad_phi_curr[level][2]).array(mfi),
+#endif
+                      dx, problo, coord_type);
     }
+
     if (gravity::verbose > 1) {
        Real resnorm = Rhs.norm0();
-//     Real gppxnorm = grad_phi_curr[level][0]->norm0();
-#if (BL_SPACEDIM > 1)
-//     Real gppynorm = grad_phi_curr[level][1]->norm0();
-#endif
-#if (BL_SPACEDIM > 2)
-//     Real gppznorm = grad_phi_curr[level][2]->norm0();
-#endif
-       if (ParallelDescriptor::IOProcessor())
-          std::cout << "       norm of residual        " << resnorm << std::endl;
-//        std::cout << "       norm of grad_phi_curr_x " << gppxnorm << std::endl;
-#if (BL_SPACEDIM > 1)
-//        std::cout << "       norm of grad_phi_curr_y " << gppynorm << std::endl;
-#endif
-#if (BL_SPACEDIM > 2)
-//        std::cout << "       norm of grad_phi_curr_z " << gppznorm << std::endl;
-#endif
+       amrex::Print() << "       norm of residual        " << resnorm << std::endl;
     }
 }
 
@@ -1348,10 +1386,12 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
        const Box& bx = mfi.growntilebox();
-       ca_put_radial_grav(bx.loVect(),bx.hiVect(),dx,&dr,
-                          BL_TO_FORTRAN(grav_vector[mfi]),
-                          radial_grav.dataPtr(),geom.ProbLo(),
-                          &n1d,&level);
+       ca_put_radial_grav(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                          ZFILL(dx), dr,
+                          BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
+                          radial_grav.dataPtr(),
+                          ZFILL(geom.ProbLo()),
+                          n1d, level);
     }
 }
 
@@ -2070,9 +2110,10 @@ void
 Gravity::applyMetricTerms(int level, MultiFab& Rhs, const Vector<MultiFab*>& coeffs)
 {
     BL_PROFILE("Gravity::applyMetricTerms()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2099,9 +2140,10 @@ void
 Gravity::unweight_cc(int level, MultiFab& cc)
 {
     BL_PROFILE("Gravity::unweight_cc()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2117,19 +2159,22 @@ void
 Gravity::unweight_edges(int level, const Vector<MultiFab*>& edges)
 {
     BL_PROFILE("Gravity::unweight_edges()");
-    
-    const Real* dx = parent->Geom(level).CellSize();
+
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
+    for (int idir = 0; idir < BL_SPACEDIM; ++idir) {
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (int idir=0; idir<BL_SPACEDIM; ++idir) {
         for (MFIter mfi(*edges[idir], TilingIfNotGPU()); mfi.isValid(); ++mfi)
         {
             const Box& bx = mfi.tilebox();
 
             do_unweight_edges(bx, (*edges[idir]).array(mfi), idir, dx, coord_type);
         }
+
     }
 }
 #endif
@@ -2350,14 +2395,15 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                                        n1d, gravity::drdxfac, lev);
 
 #ifdef GR_GRAV
-                ca_compute_avgpres(bx.loVect(), bx.hiVect(), dx, &dr,
-                                   BL_TO_FORTRAN(fab),
+                ca_compute_avgpres(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
+                                   dx, dr,
+                                   BL_TO_FORTRAN_ANYD(fab),
 #ifdef _OPENMP
                                    priv_radial_pres[tid].dataPtr(),
 #else
                                    radial_pres[lev].dataPtr(),
 #endif
-                                   geom.ProbLo(),&n1d,&gravity::drdxfac,&lev);
+                                   ZFILL(geom.ProbLo()), n1d, gravity::drdxfac, lev);
 #endif
             }
 

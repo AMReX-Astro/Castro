@@ -1,0 +1,42 @@
+p_0                real            1.0_rt        y
+
+u_x                real            0.0_rt        y
+
+u_y                real            0.0_rt        y
+
+u_z                real            0.0_rt        y
+
+rho_0              real            1.0_rt        y
+
+rhoe_0             real            1.0_rt        y
+
+
+T_0                real            1.0_rt        y
+
+
+B_0                real            1.0_rt        y
+
+B_x                real            0.0_rt        n
+B_y                real            0.0_rt        n
+B_z                real            0.0_rt        n
+
+# components of unitary vectors for the wave vector and magnetic field
+u_kx               real            0.0_rt        n    
+u_ky               real            0.0_rt        n
+u_bx               real            0.0_rt        n
+u_by               real            0.0_rt        n 
+
+# sound speed and either speed of fast or slow waves 
+c_s                real            0.0_rt        n  
+cw                 real            0.0_rt        n 
+
+#weather we want to run the test for fast wave or slow 
+# type_wave = 1 for fast and type_wave = 2 for slow
+type_wave          integer           1           y
+
+#wave vector orientations
+k_x                real            1.0_rt        y
+k_y                real            0.0_rt        y 
+
+
+ 

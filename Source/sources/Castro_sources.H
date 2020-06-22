@@ -30,7 +30,13 @@
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_old_sources(amrex::MultiFab& source,
+    void do_old_sources(
+#ifdef MHD
+                        amrex::MultiFab& Bx,
+                        amrex::MultiFab& By,
+                        amrex::MultiFab& Bz,
+#endif
+                        amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
@@ -73,7 +79,13 @@
 ///                    counter starts at 1
 /// @param amr_ncycle   the number of subcycles at this level
 ///
-    void do_new_sources(amrex::MultiFab& source,
+    void do_new_sources(
+#ifdef MHD
+                        amrex::MultiFab& Bx,
+                        amrex::MultiFab& By,
+                        amrex::MultiFab& Bz,
+#endif
+                        amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
                         amrex::Real time, amrex::Real dt, bool apply_to_state,
                         int amr_iteration = -1, int amr_ncycle = -1);
@@ -114,7 +126,7 @@
 ///                 globally over all processes
 ///                 or locally just on this processor?
 ///
-    amrex::Vector<amrex::Real> evaluate_source_change(amrex::MultiFab& update, amrex::Real dt,
+    amrex::Vector<amrex::Real> evaluate_source_change(const amrex::MultiFab& update, amrex::Real dt,
                                                       bool local = false);
 
 
@@ -138,6 +150,16 @@
 ///
     void print_all_source_changes(amrex::Real dt, bool is_new);
 
+
+///
+/// Evaluate the change to the state due to sources and then print it.
+///
+/// @param source       update to the state
+/// @param dt           timestep (will multiply the update)
+/// @param source_name  string to associate with this source
+///
+    void evaluate_and_print_source_change(const amrex::MultiFab& source, amrex::Real dt,
+                                          std::string source_name);
 
 ///
 /// Obtain the sum of all source terms.
@@ -297,8 +319,7 @@
 /// @param ext_src  MultiFab to fill with sources
 ///
     void fill_thermo_source(amrex::Real time, amrex::Real dt,
-                            amrex::MultiFab& S_old, amrex::MultiFab& S_new,
-                            amrex::MultiFab& ext_src);
+                            amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
 #ifdef REACTIONS

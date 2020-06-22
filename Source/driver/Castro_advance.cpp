@@ -54,6 +54,7 @@ Castro::advance (Real time,
 
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
+#ifndef MHD     
 #ifndef AMREX_USE_CUDA
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
@@ -65,12 +66,14 @@ Castro::advance (Real time,
 
 #endif // TRUE_SDC
 #endif // AMREX_USE_CUDA
+#endif //MHD    
     }
 
     // Optionally kill the job at this point, if we've detected a violation.
 
-    if (cfl_violation && !use_retry)
+    if (cfl_violation && !use_retry) {
         amrex::Abort("CFL is too high at this level; go back to a checkpoint and restart with lower CFL number, or set castro.use_retry = 1");
+    }
 
     // If we didn't kill the job, reset the violation counter.
 
@@ -78,8 +81,9 @@ Castro::advance (Real time,
 
     // If the user requests, indicate that we want a regrid at the end of the step.
 
-    if (use_post_step_regrid)
+    if (use_post_step_regrid) {
         post_step_regrid = 1;
+    }
 
 #ifdef AUX_UPDATE
     advance_aux(time, dt);
@@ -97,8 +101,9 @@ Castro::advance (Real time,
 
 #ifdef GRAVITY
     // Update the point mass.
-    if (use_point_mass)
+    if (use_point_mass) {
         pointmass_update(time, dt);
+    }
 #endif
 
 #ifdef RADIATION
@@ -114,7 +119,6 @@ Castro::advance (Real time,
 
     return dt_new;
 }
-
 
 
 void
@@ -138,15 +142,10 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     }
 #endif
 
-    // Reset the grid loss tracking.
-
-    if (track_grid_losses)
-      for (int i = 0; i < n_lost; i++)
-        material_lost_through_boundary_temp[i] = 0.0;
-
 #ifdef GRAVITY
-    if (moving_center == 1)
+    if (moving_center == 1) {
         define_new_center(get_old_data(State_Type), time);
+    }
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
@@ -163,6 +162,19 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
     // Sborder, which does have ghost zones.
 
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
+#ifdef MHD
+      MultiFab& Bx_old = get_old_data(Mag_Type_x);
+      MultiFab& By_old = get_old_data(Mag_Type_y);
+      MultiFab& Bz_old = get_old_data(Mag_Type_z);
+
+      Bx_old_tmp.define(Bx_old.boxArray(), Bx_old.DistributionMap(), 1, NUM_GROW);
+      By_old_tmp.define(By_old.boxArray(), By_old.DistributionMap(), 1, NUM_GROW);
+      Bz_old_tmp.define(Bz_old.boxArray(), Bz_old.DistributionMap(), 1, NUM_GROW);
+
+      FillPatch(*this, Bx_old_tmp, NUM_GROW, time, Mag_Type_x, 0, 1);
+      FillPatch(*this, By_old_tmp, NUM_GROW, time, Mag_Type_y, 0, 1);
+      FillPatch(*this, Bz_old_tmp, NUM_GROW, time, Mag_Type_z, 0, 1);
+#endif      
       // for the CTU unsplit method, we always start with the old
       // state note: a clean_state has already been done on the old
       // state in initialize_advance so we don't need to do another
@@ -257,8 +269,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // before the swap.
 
 #ifdef RADIATION
-    if (do_radiation)
+    if (do_radiation) {
         radiation->pre_timestep(level);
+    }
 
     Erborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
     lamborder.define(grids, dmap, Radiation::nGroups, NUM_GROW);
@@ -290,8 +303,9 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     swap_state_time_levels(dt);
 
 #ifdef GRAVITY
-    if (do_grav)
+    if (do_grav) {
         gravity->swapTimeLevels(level);
+    }
 #endif
 
     // Ensure data is valid before beginning advance. This addresses
@@ -301,13 +315,21 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     // (e.g. UEINT and UEDEN) that we demand in every zone.
 
     MultiFab& S_old = get_old_data(State_Type);
-    clean_state(S_old, time, S_old.nGrow());
+    clean_state(
+#ifdef MHD
+                 get_old_data(Mag_Type_x),
+                 get_old_data(Mag_Type_y),
+                 get_old_data(Mag_Type_z),
+#endif      
+                  S_old, time, S_old.nGrow());
+
 
     // Initialize the previous state data container now, so that we can
     // always ask if it has valid data.
 
-    for (int k = 0; k < num_state_type; ++k)
+    for (int k = 0; k < num_state_type; ++k) {
         prev_state[k].reset(new StateData());
+    }
 
     // This array holds the hydrodynamics update.
     if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -317,9 +339,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
+#ifdef TRUE_SDC
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
+#endif
 
 
     if (sdc_order == 4) {
@@ -378,21 +402,23 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Zero out the current fluxes.
 
-    for (int dir = 0; dir < 3; ++dir)
+    for (int dir = 0; dir < 3; ++dir) {
         fluxes[dir]->setVal(0.0);
-
-    for (int dir = 0; dir < 3; ++dir)
         mass_fluxes[dir]->setVal(0.0);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
+    if (!Geom().IsCartesian()) {
         P_radial.setVal(0.0);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int dir = 0; dir < BL_SPACEDIM; ++dir)
+    if (Radiation::rad_hydro_combined) {
+        for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
+        }
+    }
 #endif
 
 }
@@ -404,17 +430,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_PROFILE("Castro::finalize_advance()");
 
-    // Add the material lost in this timestep to the cumulative losses.
-
-    if (track_grid_losses) {
-
-      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
-
-      for (int i = 0; i < n_lost; i++)
-        material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
-
-    }
-
     if (do_reflux) {
         FluxRegCrseInit();
         FluxRegFineAdd();
@@ -425,8 +440,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       hydro_source.clear();
     }
 
+#ifdef TRUE_SDC
     q.clear();
     qaux.clear();
+#endif
 
     if (sdc_order == 4) {
       q_bar.clear();
@@ -444,8 +461,9 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
     source_corrector.clear();
     sources_for_hydro.clear();
 
-    if (!keep_prev_state)
+    if (!keep_prev_state) {
         amrex::FillNull(prev_state);
+    }
 
 #ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
@@ -461,7 +479,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 
     // Record how many zones we have advanced.
 
-    num_zones_advanced += grids.numPts() / getLevel(0).grids.numPts();
+    num_zones_advanced += static_cast<Real>(grids.numPts()) / getLevel(0).grids.numPts();
 
     Real wall_time = ParallelDescriptor::second() - wall_time_start;
     Real fom_advance = grids.numPts() / wall_time / 1.e6;

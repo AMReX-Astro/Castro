@@ -158,10 +158,39 @@ Running the Code
 Visualization of the Results
 ============================
 
-There are several options for visualizing the data. The popular VisIt
-package supports the AMReX file format natively, as does the yt python
-package [2]_. The standard tool used within the AMReX-community is
+There are several options for visualizing the data. The popular
+packages yt, VisIt, and Paraview all support the AMReX file format
+natively [1]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
+
+
+.. _sec:gettingstartedyt:
+
+yt
+^^
+
+yt is the primary visualization and analysis tool used by the
+developers.  Install yt following their instructions: `Getting yt
+<https://yt-project.org/#getyt>`_ .
+
+You should be able to read in your plotfiles using ``yt.load()`` and
+do any of the plots described in the `yt Cookbook
+<https://yt-project.org/doc/cookbook/index.html>`_ .
+
+Here we do a sample visualization and analysis of the
+plotfiles generated.  This section was generated from a
+Jupyter notebook which can be found in
+``Docs/source/yt_example.ipynb`` in the Castro repo.
+
+.. include:: yt_example.rst
+
+
+Amrvis
+^^^^^^
+
+Amrvis is a tool developed at LBNL to visualize AMReX data.  It
+provides a simple GUI that allows you to quickly visualize slices and
+the grid structure.
 
 #. Get Amrvis::
 
@@ -181,20 +210,20 @@ Amrvis, which we demonstrate here. Amrvis is available on github.
 
    Then cd into ``volpack/`` and type ``make``.
 
-   Note: Amrvisrequires the OSF/Motif libraries and headers. If you
+   Note: Amrvis requires the OSF/Motif libraries and headers. If you
    don’t have these you will need to install the development version
    of motif through your package manager.  On most Linux
    distributions, the motif library is provided by the openmotif
    package, and its header files (like ``Xm.h``) are provided by
    openmotif-devel. If those packages are not installed, then use the
    package management tool to install them, which varies from
-   distribution to distribution, but is straightforward.  lesstif
-   gives some functionality and will allow you to build the amrvis
+   distribution to distribution, but is straightforward.  ``lesstif``
+   gives some functionality and will allow you to build the Amrvis
    executable, but Amrvis may not run properly.
 
    You may then want to create an alias to amrvis2d, for example::
 
-       alias amrvis2d /tmp/Amrvis/amrvis2d...ex
+       alias amrvis2d=/tmp/Amrvis/amrvis2d...ex
 
    where ``/tmp/Amrvis/amrvis2d...ex`` is the full path and name of
    the Amrvis executable.
@@ -226,117 +255,7 @@ Amrvis, which we demonstrate here. Amrvis is available on github.
    provided in the FAQ (§ :ref:`ch:faq:vis`)—this is due
    to the default behavior of the DAC in mappuing colors.
 
-   Note: yt is a great alternative to using Amrvis for visualization,
-   and understands Castro plotfiles well.
-
-   Please know that we do have a number of conversion routines to other
-   formats (such as matlab), but it is hard to describe them all. If you
-   would like to display the data in another format, please let us know
-   (again, asalmgren@lbl.gov) and we will point you to whatever we have
-   that can help.
-
-You have now completed a brief introduction to Castro.
-
-Other Distributed Problem Setups
-================================
-
-There are a number of standard problem setups that come with Castro.
-These can be used as a starting point toward writing your own setup.
-We organize these into subdirectories by broad type (radiation, hydro,
-gravity, etc.): The standard categories and *some* of the included
-problems are:
-
-* ``gravity_tests``:
-
-   * ``DustCollapse``:
-
-     A pressureless cloud collapse that is a standard test problem for
-     gravity. An analytic solution that describes the radius of the
-     sphere as a function of time is found in Colgate and
-     White :cite:`colgwhite`. This problem is also found
-     in the FLASH User’s Guide.
-
-   * ``hydrostatic_adjust``:
-
-     Model a 1-d stellar atmosphere (plane-parallel or
-     spherical/self-gravitating) and dump energy in via an analytic
-     heat source and watch the atmosphere’s hydrostatic state adjust
-     in response. This is the counterpart to the Maestro
-     ``test_basestate`` unit test.
-
-* ``hydro_tests``:
-
-   * ``double_bubble``:
-
-     Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal
-     or isentropic) and allow for the bubbles to have the same or a
-     different :math:`\gamma` from one another / the background
-     atmosphere.  This uses the multigamma EOS.
-
-     An analogous problem is implemented in Maestro.
-
-   * ``HCBubble``:
-
-   * ``KH``:
-
-     A Kelvin-Helmholtz shear instability problem.
-
-   * ``oddeven``:
-
-     A grid-aligned shock hitting a very small density perturbation.
-     This demonstrates the odd-even decoupling problem discussed in
-     :cite:`quirk1997`. This setup serves to test the
-     castro.hybrid_riemann option to hydrodynamics.
-
-   * ``reacting_bubble``:
-
-     A reacting bubble in a stratified white dwarf atmosphere. This
-     problem was featured in the Maestro reaction
-     paper :cite:`maestro:III`.
-
-   * ``RT``:
-
-     A single-model Rayleigh-Taylor instability problem.
-
-   * ``RT_particles``:
-
-   * ``Sedov``:
-
-     The standard Sedov-Taylor blast wave problem. This setup was used
-     in the first Castro paper :cite:`castro_I`.
-
-   * ``Sod``:
-
-     A one-dimensional shock tube setup, including the classic Sod
-     problem. This setup was used in the original Castro paper.
-
-   * ``Sod_stellar``:
-
-     A version of the Sod shock tube for the general stellar equation
-     of state. This setup and the included inputs files was used
-     in :cite:`zingalekatz`.
-
-   * ``toy_convect``:
-
-     A simple nova-like convection problem with an external heating
-     source. This problem shows how to use the model parser to
-     initialize a 1-d atmosphere on the Castro grid, incorporate a
-     custom tagging routine, sponge the fluid above the atmosphere,
-     and write a custom diagnostics routine.
-
-     A Maestro version of this problem setup also exists.
-
-* ``radiation_tests``:
-
-* ``science``:
-
-* ``unit_tests``:
 
 .. [1]
-   Note: previously the radiation
-   solver was distributed separately as ``CastroRadiation.git``,
-   but this has been merged into the main Castro respository
-
-.. [2]
    Each of these will recognize it as the
-   BoxLib format.
+   BoxLib format.

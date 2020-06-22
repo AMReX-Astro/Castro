@@ -20,6 +20,7 @@
 using std::string;
 using namespace amrex;
 
+#ifndef MHD
 #ifndef AMREX_USE_CUDA
 Real
 Castro::do_advance_sdc (Real time,
@@ -40,8 +41,8 @@ Castro::do_advance_sdc (Real time,
   MultiFab& S_old = get_old_data(State_Type);
   MultiFab& S_new = get_new_data(State_Type);
 
-  const int* domain_lo = geom.Domain().loVect();
-  const int* domain_hi = geom.Domain().hiVect();
+  auto domain_lo = geom.Domain().loVect3d();
+  auto domain_hi = geom.Domain().hiVect3d();
 
   // Perform initialization steps.
 
@@ -103,10 +104,8 @@ Castro::do_advance_sdc (Real time,
 
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& gbx = mfi.growntilebox(1);
-            ca_make_cell_center(BL_TO_FORTRAN_BOX(gbx),
-                                BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                BL_TO_FORTRAN_FAB(Sburn[mfi]),
-                                AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+            make_cell_center(gbx, Sborder.array(mfi), Sburn.array(mfi), domain_lo, domain_hi);
 
           }
 
@@ -122,11 +121,16 @@ Castro::do_advance_sdc (Real time,
           AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
 
           // Now convert to cell averages.  This loop cannot be tiled.
+          FArrayBox tmp;
+
           for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
-            ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                                    BL_TO_FORTRAN_FAB(old_source[mfi]),
-                                    AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+
+            tmp.resize(bx, 1);
+            Elixir elix_tmp = tmp.elixir();
+            auto tmp_arr = tmp.array();
+
+            make_fourth_in_place(bx, old_source.array(mfi), tmp_arr, domain_lo, domain_hi);
           }
 
         } else {
@@ -166,7 +170,7 @@ Castro::do_advance_sdc (Real time,
 
       if (do_hydro) {
         // Check for CFL violations.
-        check_for_cfl_violation(dt);
+        check_for_cfl_violation(S_old, dt);
 
         // If we detect one, return immediately.
         if (cfl_violation)
@@ -305,6 +309,7 @@ Castro::do_advance_sdc (Real time,
 
   FArrayBox U_center;
   FArrayBox R_center;
+  FArrayBox tmp;
 
   // this cannot be tiled
   for (MFIter mfi(R_new); mfi.isValid(); ++mfi) {
@@ -313,33 +318,30 @@ Castro::do_advance_sdc (Real time,
 
     if (sdc_order == 4) {
 
-      const int* domain_lo = geom.Domain().loVect();
-      const int* domain_hi = geom.Domain().hiVect();
-
       // convert S_new to cell-centers
       U_center.resize(obx, NUM_STATE);
-      ca_make_cell_center(BL_TO_FORTRAN_BOX(obx),
-                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                          BL_TO_FORTRAN_FAB(U_center),
-                          AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+      Elixir elix_u_center = U_center.elixir();
+      auto const U_center_arr = U_center.array();
+
+      make_cell_center(obx, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
 
       // pass in the reaction source and state at centers, including one ghost cell
       // and derive everything that is needed including 1 ghost cell
       R_center.resize(obx, R_new.nComp());
+      Elixir elix_r_center = R_center.elixir();
+      auto const R_center_arr = R_center.array();
+
       Array4<const Real> const Sburn_arr = Sburn.array(mfi);
-      Array4<const Real> const U_center_arr = U_center.array();
-      Array4<Real> const R_center_arr = R_center.array();
+
       // we don't worry about the difference between centers and averages
-      ca_store_reaction_state(obx,
-                              Sburn_arr,
-                              U_center_arr,
-                              R_center_arr);
+      ca_store_reaction_state(obx, Sburn_arr, U_center_arr, R_center_arr);
 
       // convert R_new from centers to averages in place
-      ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(bx),
-                              BL_TO_FORTRAN_FAB(R_center),
-                              AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi));
+      tmp.resize(bx, 1);
+      Elixir elix_tmp = tmp.elixir();
+      auto const tmp_arr = tmp.array();
 
+      make_fourth_in_place(bx, R_center_arr, tmp_arr, domain_lo, domain_hi);
 
       // store
       R_new[mfi].copy(R_center, bx, 0, bx, 0, R_new.nComp());
@@ -367,4 +369,5 @@ Castro::do_advance_sdc (Real time,
   return dt;
 }
 
+#endif
 #endif

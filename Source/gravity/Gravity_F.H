@@ -1,20 +1,11 @@
-#ifndef _Gravity_F_H_
-#define _Gravity_F_H_
+#ifndef GRAVITY_F_H
+#define GRAVITY_F_H
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
-  void ca_test_residual
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG(rhs),
-     D_DECL(const BL_FORT_FAB_ARG(xgrad),
-            const BL_FORT_FAB_ARG(ygrad),
-            const BL_FORT_FAB_ARG(zgrad)), 
-            const amrex::Real* dx, const amrex::Real* problo, 
-            const int* coord_type);
 
   void ca_compute_radial_mass
     (const int* lo, const int* hi, 
@@ -23,14 +14,6 @@ extern "C"
      amrex::Real* avgmass, amrex::Real* avgvol, 
      const amrex::Real* problo, int numpts_1d, 
      int drdxfac, int level); 
-
-  void ca_compute_avgpres
-    (const int lo[], const int hi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     const BL_FORT_FAB_ARG(S), 
-     amrex::Real* avgpres, 
-     const amrex::Real* problo, const int* numpts_1d, 
-     const int* drdxfac, const int* level); 
 
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,
@@ -53,6 +36,14 @@ extern "C"
     (const amrex::Real* avgden, const amrex::Real* avgmass, 
      const amrex::Real* avgpres, amrex::Real* radial_grav, 
      const amrex::Real* dr, const int* numpts_1d);
+
+  void ca_compute_avgpres
+    (const int* lo, const int* hi,
+     const amrex::Real* dx, amrex::Real dr,
+     const BL_FORT_FAB_ARG_3D(S), 
+     amrex::Real* avgpres, 
+     const amrex::Real* problo, int numpts_1d, 
+     int drdxfac, int level); 
 #endif
 
   void ca_integrate_phi
@@ -61,12 +52,12 @@ extern "C"
      const amrex::Real* dr, const int* numpts_1d);
 
   void ca_put_radial_grav
-    (const int lo[], const int hi[], 
-     const amrex::Real* dx, const amrex::Real* dr,
-     BL_FORT_FAB_ARG(grav_vector),
+    (const int* lo, const int* hi, 
+     const amrex::Real* dx, amrex::Real dr,
+     BL_FORT_FAB_ARG_3D(grav_vector),
      const amrex::Real* radial_grav, 
      const amrex::Real* problo, 
-     const int* n1d, const int* level); 
+     int n1d, int level); 
 
   void ca_put_radial_phi
     (const int* lo, const int* hi, 

@@ -22,11 +22,11 @@ using namespace amrex;
 
 void
 Castro::compute_flux_q(const Box& bx,
-                       Array4<Real const> const qint,
-                       Array4<Real> const F,
+                       Array4<Real const> const& qint,
+                       Array4<Real> const& F,
 #ifdef RADIATION
-                       Array4<Real const> const lambda,
-                       Array4<Real> const rF,
+                       Array4<Real const> const& lambda,
+                       Array4<Real> const& rF,
 #endif
                        const int idir, const int enforce_eos) {
 
@@ -72,13 +72,6 @@ Castro::compute_flux_q(const Box& bx,
 #endif
 
   const Real lT_guess = T_guess;
-
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
 
   GeometryData geomdata = geom.data();
 
@@ -151,8 +144,8 @@ Castro::compute_flux_q(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map_p[ipassive];
-      int nqp = qpass_map_p[ipassive];
+      int n  = upassmap(ipassive);
+      int nqp = qpassmap(ipassive);
 
       F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
     }
@@ -186,17 +179,18 @@ Castro::compute_flux_q(const Box& bx,
 
 void
 Castro::store_godunov_state(const Box& bx,
-                            Array4<Real const> const qint,
+                            Array4<Real const> const& qint,
 #ifdef RADIATION
-                            Array4<Real const> const lambda,
+                            Array4<Real const> const& lambda,
 #endif
-                            Array4<Real> const qgdnv) {
+                            Array4<Real> const& qgdnv) {
 
   // this copies the full interface state (NQ -- one for each primitive
   // variable) over to a smaller subset of size NGDNV for use later in the
   // hydro advancement.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // the hybrid routine uses the Godunov indices, not the full NQ state

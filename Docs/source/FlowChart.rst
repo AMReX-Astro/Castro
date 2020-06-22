@@ -190,14 +190,14 @@ of each step.
       coarse-fine interfaces. This cleans up the memory used during
       the step.
 
-   -  If ``castro.track_grid_losses`` is set, then we
-      also add up the mass that left through the boundary over this
-      step. [1]_
-
    -  Free any memory allocated for the level advance.
+
+
+.. _sec:strangctu:
 
 CTU w/ Strang-split Reactions Flowchart
 ---------------------------------------
+
 
 This described the flow using the CTU + Strang-split reactions,
 including gravity, rotation, and diffusion.  This integration is
@@ -465,7 +465,7 @@ In the code, the objective is to evolve the state from the old time,
    correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
    add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
    and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
-   in the ``new_sources`` MultiFab [2]_.
+   in the ``new_sources`` MultiFab [1]_.
 
    In the process of updating the sources, we update the temperature to
    make it consistent with the new state.
@@ -828,10 +828,4 @@ summarize those differences.
    next iteration to approximate the time-centered source term.
 
 .. [1]
-   Note: this functionality assumes that only the
-   coarse grid touches the physical boundary. It does not use
-   any use masks to prevent double counting if multiple levels
-   touch the boundary.
-
-.. [2]
    The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.

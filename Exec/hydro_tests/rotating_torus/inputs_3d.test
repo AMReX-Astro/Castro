@@ -63,7 +63,6 @@ castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 castro.print_energy_diagnostics = 1
-castro.print_fortran_warnings = 1
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed

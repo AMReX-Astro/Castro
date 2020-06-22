@@ -20,13 +20,14 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
     Vector<int> bcrs(2 * AMREX_SPACEDIM * numcomp);
 
-    for (int n = 0; n < numcomp; ++n)
-        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k)
+    for (int n = 0; n < numcomp; ++n) {
+        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k) {
             bcrs[2 * AMREX_SPACEDIM * n + k] = bcr[n].vect()[k];
+        }
+    }
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);
-    set_bc_launch_config();
 #else
     const int* bc_f = bcrs.data();
 #endif
@@ -62,10 +63,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 
     }
-
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
 
     // we just did the standard BC fills (reflect, outflow, ...)  now
     // we consider the external ones (HSE).  Note, if we are at a
@@ -132,4 +129,83 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 #ifdef AMREX_USE_CUDA
     clean_bc(bc_f);
 #endif
+
+  }
+
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#ifdef MHD
+  void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_fillx(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
+
+  }
+
+  void ca_face_filly(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_filly(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
+
+  }
+
+  void ca_face_fillz(Real* var, const int* var_lo, const int* var_hi,
+                     const int* domlo, const int* domhi, const Real* dx, const Real* xlo,
+                     const Real* time, const int* bc)
+  {
+    int lo[3] = {0};
+    int hi[3] = {0};
+
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      lo[i] = var_lo[i];
+      hi[i] = var_hi[i];
+    }
+
+    const int* bc_f = bc;
+
+
+    face_fillz(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
+
+  }
+#endif  
+
+#ifdef __cplusplus
 }
+#endif

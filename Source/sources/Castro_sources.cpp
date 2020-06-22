@@ -47,12 +47,16 @@ Castro::source_flag(int src)
             return true;
         else
             return false;
-
+#ifndef MHD     
     case thermo_src:
         if (time_integration_method == SpectralDeferredCorrections)
           return true;
         else
           return false;
+#else
+    case thermo_src:
+        return true;
+#endif  
 
 #ifdef DIFFUSION
     case diff_src:
@@ -93,7 +97,11 @@ Castro::source_flag(int src)
 }
 
 void
-Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+Castro::do_old_sources(
+#ifdef MHD
+                MultiFab& Bx, MultiFab& By, MultiFab& Bz,
+#endif          
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -120,7 +128,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
         if (apply_sources_consecutively && apply_to_state) {
 
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time + dt, 0);
+            clean_state(
+#ifdef MHD
+                            Bx, By, Bz,
+#endif                      
+                            state_new, time + dt, 0);
 
             // Zero out the source MultiFab for the next source term.
             // Also, log the sum of all source terms since we need
@@ -142,7 +154,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
         } else {
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+                            Bx, By, Bz,
+#endif                      
+                            state_new, time, 0);
         }
 
     }
@@ -175,7 +191,11 @@ Castro::do_old_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
 }
 
 void
-Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+Castro::do_new_sources(
+#ifdef MHD
+                MultiFab& Bx, MultiFab& By, MultiFab& Bz,
+#endif          
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
 {
 
     BL_PROFILE("Castro::do_new_sources()");
@@ -207,7 +227,11 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, source.nComp());
 
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+                            Bx, By, Bz,
+#endif                      
+                            state_new, time, 0);
 
             // Zero out the source MultiFab for the next source term.
             // Also, log the sum of all source terms since we need
@@ -229,7 +253,11 @@ Castro::do_new_sources(MultiFab& source, MultiFab& state_old, MultiFab& state_ne
             MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
         } else {
             apply_source_to_state(state_new, source, dt, 0);
-            clean_state(state_new, time, 0);
+            clean_state(
+#ifdef MHD
+                            Bx, By, Bz,
+#endif                      
+                            state_new, time, 0);
         }
 
     }
@@ -336,6 +364,12 @@ Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, Mul
         construct_new_ext_source(source, state_old, state_new, time, dt);
         break;
 
+#ifdef MHD
+    case thermo_src:
+        construct_new_thermo_source(source, state_old, state_new, time, dt);
+        break;
+#endif
+
 #ifdef DIFFUSION
     case diff_src:
         construct_new_diff_source(source, state_old, state_new, time, dt);
@@ -390,11 +424,11 @@ Castro::apply_sources()
 // Note that the resultant output is volume-weighted.
 
 Vector<Real>
-Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
+Castro::evaluate_source_change(const MultiFab& source, Real dt, bool local)
 {
 
   BL_PROFILE("Castro::evaluate_source_change()");
-    
+
   Vector<Real> update(source.nComp(), 0.0);
 
   // Create a temporary array which will hold a single component
@@ -431,12 +465,8 @@ Castro::print_source_change(Vector<Real> update)
 
     std::cout << "       mass added: " << update[URHO] << std::endl;
     std::cout << "       xmom added: " << update[UMX] << std::endl;
-#if (BL_SPACEDIM >= 2)
     std::cout << "       ymom added: " << update[UMY] << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
     std::cout << "       zmom added: " << update[UMZ] << std::endl;
-#endif
     std::cout << "       eint added: " << update[UEINT] << std::endl;
     std::cout << "       ener added: " << update[UEDEN] << std::endl;
 
@@ -447,38 +477,44 @@ Castro::print_source_change(Vector<Real> update)
 
 }
 
+// Calculate the changes to the state due to a source term,
+// and also print the results.
+
+void
+Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::string source_name)
+{
+    bool local = true;
+    Vector<Real> update = evaluate_source_change(source, dt, local);
+
+#ifdef BL_LAZY
+    Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealSum(update.dataPtr(), update.size(), ParallelDescriptor::IOProcessorNumber());
+
+        if (ParallelDescriptor::IOProcessor()) {
+            if (std::abs(update[URHO]) != 0.0 || std::abs(update[UEDEN]) != 0.0) {
+                std::cout << std::endl << "  Contributions to the state from " << source_name << ":" << std::endl;
+
+                print_source_change(update);
+            }
+        }
+
+#ifdef BL_LAZY
+    });
+#endif
+}
+
 // For the old-time or new-time sources update, evaluate the change in the state
 // for all source terms, then print the results.
 
 void
 Castro::print_all_source_changes(Real dt, bool is_new)
 {
+    MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
 
-  Vector<Real> summed_updates;
+    std::string source_name = is_new? "new-time sources" : "old-time sources";
 
-  bool local = true;
-
-  MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
-
-  summed_updates = evaluate_source_change(source, dt, local);
-
-#ifdef BL_LAZY
-  Lazy::QueueReduction( [=] () mutable {
-#endif
-
-      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), source.nComp(), ParallelDescriptor::IOProcessorNumber());
-
-      std::string time = is_new ? "new" : "old";
-
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
-
-      print_source_change(summed_updates);
-
-#ifdef BL_LAZY
-    });
-#endif
-
+    evaluate_and_print_source_change(source, dt, source_name);
 }
 
 // Obtain the sum of all source terms.

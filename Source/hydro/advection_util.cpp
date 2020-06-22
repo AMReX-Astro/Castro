@@ -21,13 +21,18 @@ using namespace amrex;
 void
 Castro::ctoprim(const Box& bx,
                 const Real time,
-                Array4<Real const> const uin,
-#ifdef RADIATION
-                Array4<Real const> const Erin,
-                Array4<Real const> const lam,
+                Array4<Real const> const& uin,
+#ifdef MHD
+                Array4<Real const> const& Bx,
+                Array4<Real const> const& By,
+                Array4<Real const> const& Bz,
 #endif
-                Array4<Real> const q_arr,
-                Array4<Real> const qaux_arr) {
+#ifdef RADIATION
+                Array4<Real const> const& Erin,
+                Array4<Real const> const& lam,
+#endif
+                Array4<Real> const& q_arr,
+                Array4<Real> const& qaux_arr) {
 
 
   Real lsmall_dens = small_dens;
@@ -49,12 +54,12 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(omega.begin());
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
-
 
 #ifndef AMREX_USE_CUDA
     if (uin(i,j,k,URHO) <= 0.0_rt) {
@@ -76,6 +81,12 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QU) = uin(i,j,k,UMX) * rhoinv;
     q_arr(i,j,k,QV) = uin(i,j,k,UMY) * rhoinv;
     q_arr(i,j,k,QW) = uin(i,j,k,UMZ) * rhoinv;
+
+#ifdef MHD
+    q_arr(i,j,k,QMAGX) = 0.5_rt * (Bx(i+1,j,k) + Bx(i,j,k));
+    q_arr(i,j,k,QMAGY) = 0.5_rt * (By(i,j+1,k) + By(i,j,k));
+    q_arr(i,j,k,QMAGZ) = 0.5_rt * (Bz(i,j,k+1) + Bz(i,j,k));
+#endif
 
     // Get the internal energy, which we'll use for
     // determining the pressure.  We use a dual energy
@@ -150,6 +161,13 @@ Castro::ctoprim(const Box& bx,
     q_arr(i,j,k,QGC) = eos_state.gam1;
 #endif
 
+#ifdef MHD
+    q_arr(i,j,k,QPTOT) = q_arr(i,j,k,QPRES) +
+      0.5_rt * (q_arr(i,j,k,QMAGX) * q_arr(i,j,k,QMAGX) +
+                q_arr(i,j,k,QMAGY) * q_arr(i,j,k,QMAGY) +
+                q_arr(i,j,k,QMAGZ) * q_arr(i,j,k,QMAGZ));
+#endif
+
 #ifdef RADIATION
     qaux_arr(i,j,k,QGAMCG) = eos_state.gam1;
     qaux_arr(i,j,k,QCG) = eos_state.cs;
@@ -192,8 +210,8 @@ Castro::ctoprim(const Box& bx,
 
 void
 Castro::shock(const Box& bx,
-              Array4<Real const> const q_arr,
-              Array4<Real> const shk) {
+              Array4<Real const> const& q_arr,
+              Array4<Real> const& shk) {
 
   // This is a basic multi-dimensional shock detection algorithm.
   // This implementation follows Flash, which in turn follows
@@ -217,7 +235,8 @@ Castro::shock(const Box& bx,
   Real dzinv = 1.0_rt / dx[2];
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
     Real div_u = 0.0_rt;
 
@@ -350,8 +369,8 @@ Castro::shock(const Box& bx,
 
 void
 Castro::divu(const Box& bx,
-             Array4<Real const> const q_arr,
-             Array4<Real> const div) {
+             Array4<Real const> const& q_arr,
+             Array4<Real> const& div) {
   // this computes the *node-centered* divergence
 
   const auto dx = geom.CellSizeArray();
@@ -371,7 +390,8 @@ Castro::divu(const Box& bx,
   Real dzinv = 0.0_rt;
 #endif
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
 #if AMREX_SPACEDIM == 1
@@ -465,16 +485,16 @@ Castro::divu(const Box& bx,
 void
 Castro::apply_av(const Box& bx,
                  const int idir,
-                 Array4<Real const> const div,
-                 Array4<Real const> const uin,
-                 Array4<Real> const flux) {
+                 Array4<Real const> const& div,
+                 Array4<Real const> const& uin,
+                 Array4<Real> const& flux) {
 
   const auto dx = geom.CellSizeArray();
 
   Real diff_coeff = difmag;
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     if (n == UTEMP) return;
@@ -515,15 +535,16 @@ Castro::apply_av(const Box& bx,
 void
 Castro::apply_av_rad(const Box& bx,
                      const int idir,
-                     Array4<Real const> const div,
-                     Array4<Real const> const Erin,
-                     Array4<Real> const radflux) {
+                     Array4<Real const> const& div,
+                     Array4<Real const> const& Erin,
+                     Array4<Real> const& radflux) {
 
   const auto dx = geom.CellSizeArray();
 
   Real diff_coeff = difmag;
 
-  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, n,
+  amrex::ParallelFor(bx, Radiation::nGroups,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real div1;
@@ -558,13 +579,14 @@ Castro::apply_av_rad(const Box& bx,
 
 void
 Castro::normalize_species_fluxes(const Box& bx,
-                                 Array4<Real> const flux) {
+                                 Array4<Real> const& flux) {
 
   // Normalize the fluxes of the mass fractions so that
   // they sum to 0.  This is essentially the CMA procedure that is
   // defined in Plewa & Muller, 1999, A&A, 342, 179.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     Real sum = 0.0_rt;
@@ -588,17 +610,18 @@ Castro::normalize_species_fluxes(const Box& bx,
 void
 Castro::scale_flux(const Box& bx,
 #if AMREX_SPACEDIM == 1
-                   Array4<Real const> const qint,
+                   Array4<Real const> const& qint,
 #endif
-                   Array4<Real> const flux,
-                   Array4<Real const> const area_arr,
+                   Array4<Real> const& flux,
+                   Array4<Real const> const& area_arr,
                    const Real dt) {
 
 #if AMREX_SPACEDIM == 1
   const int coord_type = geom.Coord();
 #endif
 
-  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  amrex::ParallelFor(bx, NUM_STATE,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     flux(i,j,k,n) = dt * flux(i,j,k,n) * area_arr(i,j,k);
@@ -615,11 +638,12 @@ Castro::scale_flux(const Box& bx,
 #ifdef RADIATION
 void
 Castro::scale_rad_flux(const Box& bx,
-                       Array4<Real> const rflux,
-                       Array4<Real const> area_arr,
+                       Array4<Real> const& rflux,
+                       Array4<Real const> const& area_arr,
                        const Real dt) {
 
-  AMREX_PARALLEL_FOR_4D(bx, Radiation::nGroups, i, j, k, g,
+  amrex::ParallelFor(bx, Radiation::nGroups,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g) noexcept
   {
     rflux(i,j,k,g) = dt * rflux(i,j,k,g) * area_arr(i,j,k);
   });
@@ -1121,4 +1145,88 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
     });
 
+}
+
+
+void
+Castro::do_enforce_minimum_density(const Box& bx,
+                                   Array4<Real> const& state_arr,
+                                   const int verbose) {
+
+  GeometryData geomdata = geom.data();
+
+  GpuArray<Real, 3> center;
+  ca_get_center(center.begin());
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    if (state_arr(i,j,k,URHO) < small_dens) {
+
+#ifndef AMREX_USE_CUDA
+      if (verbose > 0) {
+        std::cout << " " << std::endl;
+        if (state_arr(i,j,k,URHO) < 0.0_rt) {
+          std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
+        } else {
+          std::cout << ">>> RESETTING SMALL DENSITY AT " << i << ", " << j << ", " << k << std::endl;
+        }
+        std::cout << ">>> FROM " << state_arr(i,j,k,URHO) << " TO " << small_dens << std::endl;
+        std::cout << ">>> IN GRID " << bx << std::endl;
+        std::cout << " " << std::endl;
+      }
+#endif
+
+      for (int ipassive = 0; ipassive < npassive; ipassive++) {
+        int n = upassmap(ipassive);
+        state_arr(i,j,k,n) *= (small_dens / state_arr(i,j,k,URHO));
+      }
+
+      eos_t eos_state;
+      eos_state.rho = small_dens;
+      eos_state.T = small_temp;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = state_arr(i,j,k,UFS+n) / small_dens;
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = state_arr(i,j,k,UFX+n) / small_dens;
+      }
+      eos(eos_input_rt, eos_state);
+
+      state_arr(i,j,k,URHO ) = eos_state.rho;
+      state_arr(i,j,k,UTEMP) = eos_state.T;
+
+      state_arr(i,j,k,UMX) = 0.0_rt;
+      state_arr(i,j,k,UMY) = 0.0_rt;
+      state_arr(i,j,k,UMZ) = 0.0_rt;
+
+      state_arr(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+      state_arr(i,j,k,UEDEN) = state_arr(i,j,k,UEINT);
+
+#ifdef HYBRID_MOMENTUM
+      GpuArray<Real, 3> loc;
+
+      position(i, j, k, geomdata, loc);
+
+      for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+        loc[dir] -= center[dir];
+      }
+
+      GpuArray<Real, 3> linear_mom;
+
+      for (int dir = 0; dir < 3; ++dir) {
+        linear_mom[dir] = state_arr(i,j,k,UMX+dir);
+      }
+
+      GpuArray<Real, 3> hybrid_mom;
+
+      linear_to_hybrid(loc, linear_mom, hybrid_mom);
+
+      for (int dir = 0; dir < 3; ++dir) {
+        state_arr(i,j,k,UMR+dir) = hybrid_mom[dir];
+      }
+#endif
+    }
+  });
 }

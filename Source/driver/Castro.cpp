@@ -75,10 +75,6 @@ Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
 #endif
 
-#ifdef AMREX_USE_CUDA
-int          Castro::numBCThreadsMin[3] = {1, 1, 1};
-#endif
-
 // the sponge parameters are controlled by Fortran, so
 // this just initializes them before we grab their values
 // from Fortran
@@ -326,11 +322,13 @@ Castro::read_params ()
 #endif
     // sanity checks
 
-    if (grown_factor < 1)
-       amrex::Error("grown_factor must be integer >= 1");
+    if (grown_factor < 1) {
+      amrex::Error("grown_factor must be integer >= 1");
+    }
 
-    if (cfl <= 0.0 || cfl > 1.0)
+    if (cfl <= 0.0 || cfl > 1.0) {
       amrex::Error("Invalid CFL factor; must be between zero and one.");
+    }
 
     // SDC does not support CUDA yet
 #ifdef AMREX_USE_CUDA
@@ -379,7 +377,9 @@ Castro::read_params ()
 
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
-    if (do_hydro == 0) do_reflux = 0;
+    if (do_hydro == 0) {
+      do_reflux = 0;
+    }
 
     if (max_dt < fixed_dt)
       {
@@ -448,7 +448,9 @@ Castro::read_params ()
     Vector<int> tilesize(BL_SPACEDIM);
     if (pp.queryarr("hydro_tile_size", tilesize, 0, BL_SPACEDIM))
     {
-        for (int i=0; i<BL_SPACEDIM; i++) hydro_tile_size[i] = tilesize[i];
+        for (int i=0; i<BL_SPACEDIM; i++) {
+          hydro_tile_size[i] = tilesize[i];
+        }
     }
 
     // Override Amr defaults. Note: this function is called after Amr::Initialize()
@@ -481,11 +483,6 @@ Castro::Castro (Amr&            papa,
 
     initMFs();
 
-    for (int i = 0; i < n_lost; i++) {
-      material_lost_through_boundary_cumulative[i] = 0.0;
-      material_lost_through_boundary_temp[i] = 0.0;
-    }
-
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
     if (do_hydro && do_reflux) {
@@ -495,17 +492,6 @@ Castro::Castro (Amr&            papa,
             }
         }
     }
-
-#ifdef AMREX_USE_CUDA
-    // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
-    for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-        for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
-            if (parent->blockingFactor(ilev)[dim] % numBCThreadsMin[dim] != 0) {
-                amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
-            }
-        }
-    }
-#endif
 
     // initialize all the new time level data to zero
     for (int k = 0; k < num_state_type; k++) {
@@ -517,8 +503,9 @@ Castro::Castro (Amr&            papa,
 
     if (do_grav) {
       // gravity is a static object, only alloc if not already there
-      if (gravity == 0)
+      if (gravity == 0) {
         gravity = new Gravity(parent,parent->finestLevel(),&phys_bc, URHO);
+      }
 
       // Passing numpts_1d at level 0
       if (!level_geom.isAllPeriodic() && gravity != 0)
@@ -535,10 +522,11 @@ Castro::Castro (Amr&            papa,
          gravity->set_numpts_in_gravity(numpts_1d);
       }
 
-      gravity->install_level(level,this,volume,area);
+      gravity->install_level(level,this,volume,area.data());
 
-      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor())
-         std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+      if (verbose && level == 0 &&  ParallelDescriptor::IOProcessor()) {
+        std::cout << "Setting the gravity type to " << gravity->get_gravity_type() << std::endl;
+      }
 
 #ifdef GRAVITY
       if (gravity->get_gravity_type() == "PoissonGrav" && gravity->NoComposite() != 0 && gravity->NoSync() == 0)
@@ -554,10 +542,11 @@ Castro::Castro (Amr&            papa,
 
 #ifdef DIFFUSION
       // diffusion is a static object, only alloc if not already there
-      if (diffusion == 0)
+      if (diffusion == 0) {
         diffusion = new Diffusion(parent,&phys_bc);
+      }
 
-      diffusion->install_level(level,this,volume,area);
+      diffusion->install_level(level,this,volume,area.data());
 #endif
 
 #ifdef RADIATION
@@ -658,23 +647,28 @@ Castro::initMFs()
 {
     fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-        fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+      fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, NUM_STATE, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-        fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+      fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, NUM_STATE, 0));
+    }
 
     mass_fluxes.resize(3);
 
-    for (int dir = 0; dir < BL_SPACEDIM; ++dir)
-        mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+    for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+      mass_fluxes[dir].reset(new MultiFab(getEdgeBoxArray(dir), dmap, 1, 0));
+    }
 
-    for (int dir = BL_SPACEDIM; dir < 3; ++dir)
-        mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+    for (int dir = BL_SPACEDIM; dir < 3; ++dir) {
+      mass_fluxes[dir].reset(new MultiFab(get_new_data(State_Type).boxArray(), dmap, 1, 0));
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
+    if (!Geom().IsCartesian()) {
+      P_radial.define(getEdgeBoxArray(0), dmap, 1, 0);
+    }
 #endif
 
 #ifdef RADIATION
@@ -812,8 +806,9 @@ Castro::setGridInfo ()
         n_error_buf_to_f[nlevs-1] = 0;
       }
 
-      for (int lev = 0; lev <= max_level; lev++)
+      for (int lev = 0; lev <= max_level; lev++) {
         blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
+      }
 
       for (int lev = 1; lev <= max_level; lev++) {
         IntVect ref_ratio = parent->refRatio(lev-1);
@@ -823,7 +818,7 @@ Castro::setGridInfo ()
         // data directly from those levels, because some potential
         // refined levels may not exist at the beginning of the simulation.
 
-        for (int dir = 0; dir < 3; dir++)
+        for (int dir = 0; dir < 3; dir++) {
           if (dir < BL_SPACEDIM) {
             dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
             int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
@@ -836,6 +831,7 @@ Castro::setGridInfo ()
             domhi_level[3 * lev + dir] = 0;
             ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
           }
+        }
 
         n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
       }
@@ -879,8 +875,21 @@ Castro::initData ()
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-       std::cout << "Initializing the data at level " << level << std::endl;
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "Initializing the data at level " << level << std::endl;
+    }
+
+#ifdef MHD
+   MultiFab& Bx_new   = get_new_data(Mag_Type_x);
+   Bx_new.setVal(0.0);
+
+   MultiFab& By_new   = get_new_data(Mag_Type_y);
+   By_new.setVal(0.0);
+
+   MultiFab& Bz_new  =  get_new_data(Mag_Type_z);
+   Bz_new.setVal(0.0);
+
+#endif
 
     // Don't profile for this code, since there will be a lot of host
     // activity and GPU page faults that we're uninterested in.
@@ -913,6 +922,34 @@ Castro::initData ()
 #else
     {
 
+#ifdef MHD
+       int nbx = Bx_new.nComp();
+       int nby = By_new.nComp();
+       int nbz = Bz_new.nComp();
+
+       Bx_new.setVal(0.0);
+       By_new.setVal(0.0);
+       Bz_new.setVal(0.0);
+
+       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+          RealBox    gridloc(grids[mfi.index()],
+                              geom.CellSize(), geom.ProbLo());
+          const Box& box = mfi.validbox();
+          const int* lo  = box.loVect();
+          const int* hi  = box.hiVect();
+
+
+          BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
+             (level, cur_time, lo, hi,
+              nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
+              nby, BL_TO_FORTRAN_3D(By_new[mfi]),
+              nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
+              dx, gridloc.lo(),gridloc.hi());
+
+       }
+
+#endif //MHD
+
 #ifdef AMREX_USE_CUDA
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
@@ -929,7 +966,6 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
-          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
@@ -942,6 +978,7 @@ Castro::initData ()
                       AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
           (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
@@ -955,7 +992,11 @@ Castro::initData ()
        // it is not a requirement that the problem setup defines the
        // temperature, so we do that here _and_ ensure that we are
        // within any small limits
-       computeTemp(S_new, cur_time, S_new.nGrow());
+       computeTemp(
+#ifdef MHD
+                   Bx_new, By_new, Bz_new,
+#endif
+                   S_new, cur_time, 0);
 
        ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
        ReduceData<int, int> reduce_data(reduce_op);
@@ -1029,7 +1070,7 @@ Castro::initData ()
          auto S_arr = S_new.array(mfi);
 
          amrex::ParallelFor(bx,
-         [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
          {
            Real spec_sum = 0.0_rt;
            for (int n = 0; n < NumSpec; n++) {
@@ -1051,7 +1092,11 @@ Castro::initData ()
          // we are assuming that the initialization was done to cell-centers
 
          // Enforce that the total and internal energies are consistent.
-         enforce_consistent_e(S_new);
+         enforce_consistent_e(
+#ifdef MHD
+                            Bx_new, By_new,Bz_new,
+#endif
+                            S_new);
 
          // For fourth-order, we need to convert to cell-averages now.
          // (to second-order, these are cell-averages, so we're done in that case).
@@ -1062,16 +1107,20 @@ Castro::initData ()
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
            // note: this cannot be tiled
-           const int* domain_lo = geom.Domain().loVect();
-           const int* domain_hi = geom.Domain().hiVect();
+           auto domain_lo = geom.Domain().loVect3d();
+           auto domain_hi = geom.Domain().hiVect3d();
+
+           FArrayBox tmp;
 
            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
              {
-               const Box& box     = mfi.validbox();
+               const Box& box = mfi.validbox();
 
-               ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                       BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                       AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+               tmp.resize(box, 1);
+               Elixir elix_tmp = tmp.elixir();
+               auto tmp_arr = tmp.array();
+
+               make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
              }
 
            // now copy back the averages
@@ -1085,16 +1134,20 @@ Castro::initData ()
          AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
 
          // convert to centers -- not tile safe
-         const int* domain_lo = geom.Domain().loVect();
-         const int* domain_hi = geom.Domain().hiVect();
+         auto domain_lo = geom.Domain().loVect3d();
+         auto domain_hi = geom.Domain().hiVect3d();
+
+         FArrayBox tmp;
 
          for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
            {
              const Box& box = mfi.growntilebox(2);
 
-             ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(box),
-                                          BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+             tmp.resize(box, 1);
+             Elixir elix_tmp = tmp.elixir();
+             auto tmp_arr = tmp.array();
+
+             make_cell_center_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
            }
 
          // reset the energy -- do this in one ghost cell so we can average in place below
@@ -1105,7 +1158,7 @@ Castro::initData ()
              auto S_arr = Sborder.array(mfi);
 
              amrex::ParallelFor(box,
-             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
              {
 
                Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
@@ -1137,9 +1190,11 @@ Castro::initData ()
            {
              const Box& box = mfi.validbox();
 
-             ca_make_fourth_in_place(BL_TO_FORTRAN_BOX(box),
-                                     BL_TO_FORTRAN_FAB(Sborder[mfi]),
-                                     AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+             tmp.resize(box, 1);
+             Elixir elix_tmp = tmp.elixir();
+             auto tmp_arr = tmp.array();
+
+             make_fourth_in_place(box, Sborder.array(mfi), tmp_arr, domain_lo, domain_hi);
            }
 
          // now copy back the averages for UEINT and UTEMP only
@@ -1150,18 +1205,28 @@ Castro::initData ()
        }
 #else
        // Enforce that the total and internal energies are consistent.
-       enforce_consistent_e(S_new);
+       enforce_consistent_e(
+#ifdef MHD
+                            Bx_new, By_new,Bz_new,
+#endif
+                            S_new);
 #endif
 
        // Do a FillPatch so that we can get the ghost zones filled.
 
        int ng = S_new.nGrow();
 
-       if (ng > 0)
-           AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+       if (ng > 0) {
+         AmrLevel::FillPatch(*this, S_new, ng, cur_time, State_Type, 0, S_new.nComp());
+       }
     }
 
-    clean_state(S_new, cur_time, S_new.nGrow());
+    clean_state(
+#ifdef MHD
+                    Bx_new, By_new, Bz_new,
+#endif
+                    S_new, cur_time, S_new.nGrow());
+
 
 #ifdef RADIATION
     if (do_radiation) {
@@ -1173,8 +1238,6 @@ Castro::initData ()
                  << i << std::endl;
           }
 
-          RealBox    gridloc(grids[mfi.index()],
-                             geom.CellSize(), geom.ProbLo());
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
@@ -1188,6 +1251,7 @@ Castro::initData ()
                AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
 
 #else
+          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
               (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
@@ -1233,16 +1297,18 @@ Castro::initData ()
 #endif
 
 #ifdef AMREX_PARTICLES
-    if (level == 0)
-        init_particles();
+    if (level == 0) {
+      init_particles();
+    }
 #endif
 
 #ifdef AMREX_USE_CUDA
     AMREX_GPU_SAFE_CALL(cudaProfilerStart());
 #endif
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-       std::cout << "Done initializing the level " << level << " data " << std::endl;
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "Done initializing the level " << level << " data " << std::endl;
+    }
 }
 
 void
@@ -1288,8 +1354,9 @@ Castro::init ()
     // If we just triggered a regrid, we need to account for the fact that
     // the data on the coarse level has already been advanced.
 
-    if (getLevel(level-1).post_step_regrid)
-        time = prev_time;
+    if (getLevel(level-1).post_step_regrid) {
+      time = prev_time;
+    }
 
     setTimeLevel(time,dt_old,dt);
 
@@ -1322,15 +1389,16 @@ Castro::estTimeStep (Real dt_old)
 {
     BL_PROFILE("Castro::estTimeStep()");
 
-    if (fixed_dt > 0.0)
-        return fixed_dt;
+    if (fixed_dt > 0.0) {
+      return fixed_dt;
+    }
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real estdt = max_dt;
 
-    const MultiFab& stateMF = get_new_data(State_Type);
     Real time = state[State_Type].curTime();
+
     const Real* dx = geom.CellSize();
 
     std::string limiter = "castro.max_dt";
@@ -1347,6 +1415,8 @@ Castro::estTimeStep (Real dt_old)
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
+
+            const MultiFab& stateMF = get_new_data(State_Type);
 
             // Compute radiation + hydro limited timestep.
 
@@ -1380,7 +1450,11 @@ Castro::estTimeStep (Real dt_old)
         {
 #endif
 
+#ifdef MHD
+          estdt_hydro = estdt_mhd();
+#else
           estdt_hydro = estdt_cfl(time);
+#endif
 
 #ifdef RADIATION
         }
@@ -1543,8 +1617,8 @@ Castro::computeNewDt (int                   finest_level,
 
               for (int i = 0; i <= finest_level; i++)
               {
-                  if (verbose && ParallelDescriptor::IOProcessor())
-                      if (dt_min[i] > change_max*dt_level[i])
+                  if (verbose && ParallelDescriptor::IOProcessor()) {
+                    if (dt_min[i] > change_max*dt_level[i])
                       {
                           std::cout << "Castro::compute_new_dt : limiting dt at level "
                                     << i << '\n';
@@ -1554,6 +1628,7 @@ Castro::computeNewDt (int                   finest_level,
                                     << change_max * dt_level[i] << " = " << change_max
                                     << " * " << dt_level[i] << '\n';
                       }
+                  }
                   dt_min[i] = std::min(dt_min[i],change_max*dt_level[i]);
               }
 
@@ -1627,8 +1702,9 @@ Castro::computeNewDt (int                   finest_level,
                 const Real epsDt = 1.e-4 * lastDtBeforePlotLimiting;
                 dt_0 = std::max(dt_0, epsDt);
 
-                if (verbose)
-                    amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                if (verbose) {
+                  amrex::Print() << " ... limiting dt to " << dt_0 << " to hit the next plot interval.\n";
+                }
             }
 
         }
@@ -1706,8 +1782,9 @@ Castro::computeInitialDt (int                   finest_level,
     //
     // Grids have been constructed, compute dt for all levels.
     //
-    if (level > 0)
-        return;
+    if (level > 0) {
+      return;
+    }
 
     int i;
 
@@ -1727,8 +1804,9 @@ Castro::computeInitialDt (int                   finest_level,
     const Real eps = 0.001*dt_0;
     Real cur_time  = state[State_Type].curTime();
     if (stop_time >= 0.0) {
-        if ((cur_time + dt_0) > (stop_time - eps))
-            dt_0 = stop_time - cur_time;
+        if ((cur_time + dt_0) > (stop_time - eps)) {
+          dt_0 = stop_time - cur_time;
+        }
     }
 
     n_factor = 1;
@@ -1771,8 +1849,9 @@ Castro::post_timestep (int iteration)
     // Now do the refluxing. If we're using gravity it
     // will also do the sync solve associated with the reflux.
 
-    if (do_reflux && level < parent->finestLevel())
-        reflux(level, level+1);
+    if (do_reflux && level < parent->finestLevel()) {
+      reflux(level, level+1);
+    }
 
     // Ensure consistency with finer grids.
 
@@ -1780,10 +1859,21 @@ Castro::post_timestep (int iteration)
         avgDown();
 
 
+#ifdef MHD
+    MultiFab& Bx_new = get_new_data(Mag_Type_x);
+    MultiFab& By_new = get_new_data(Mag_Type_y);
+    MultiFab& Bz_new = get_new_data(Mag_Type_z);
+#endif
+
     // Clean up any aberrant state data generated by the reflux and average-down,
     // and then update quantities like temperature to be consistent.
     MultiFab& S_new = get_new_data(State_Type);
-    clean_state(S_new, state[State_Type].curTime(), S_new.nGrow());
+    clean_state(
+#ifdef MHD
+                Bx_new, By_new, Bz_new,
+#endif
+                S_new, state[State_Type].curTime(), S_new.nGrow());
+
 
     // Flush Fortran output
 
@@ -1811,8 +1901,9 @@ Castro::post_timestep (int iteration)
 
         if (sum_interval > 0) {
 
-          if (nstep%sum_interval == 0)
+          if (nstep%sum_interval == 0) {
             sum_int_test = true;
+          }
 
         }
 
@@ -1823,24 +1914,29 @@ Castro::post_timestep (int iteration)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-        if (moving_center) write_center();
+        if (moving_center) {
+          write_center();
+        }
 #endif
     }
 
 #ifdef RADIATION
     // diagnostic stuff
 
-    if (level == 0)
+    if (level == 0) {
       do_energy_diagnostics();
+    }
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -1929,9 +2025,9 @@ Castro::post_restart ()
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
-    if (do_rotation)
+    if (do_rotation) {
       fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
-    else {
+    }  else {
       phirot_new.setVal(0.0);
       rot_new.setVal(0.0);
     }
@@ -2036,8 +2132,9 @@ Castro::post_regrid (int lbase,
 
                     // Update the maximum density, used in setting the solver tolerance.
 
-                    if (level == 0)
-                        gravity->update_max_rhs();
+                    if (level == 0) {
+                      gravity->update_max_rhs();
+                    }
 
                     gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
 
@@ -2056,16 +2153,18 @@ Castro::post_init (Real stop_time)
 {
     BL_PROFILE("Castro::post_init()");
 
-    if (level > 0)
+    if (level > 0) {
         return;
+    }
 
     //
     // Average data down from finer levels
     // so that conserved data is consistent between levels.
     //
     int finest_level = parent->finestLevel();
-    for (int k = finest_level-1; k>= 0; k--)
-        getLevel(k).avgDown();
+    for (int k = finest_level-1; k>= 0; k--) {
+      getLevel(k).avgDown();
+    }
 
 #ifdef GRAVITY
 
@@ -2084,8 +2183,9 @@ Castro::post_init (Real stop_time)
 
           if (gravity->NoComposite() != 1)  {
              gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1)
-                gravity->test_composite_phi(level);
+             if (gravity->test_results_of_solves() == 1) {
+               gravity->test_composite_phi(level);
+             }
           }
        }
 
@@ -2162,9 +2262,9 @@ Castro::post_init (Real stop_time)
 
         if (sum_interval > 0) {
 
-          if (nstep%sum_interval == 0)
+          if (nstep%sum_interval == 0) {
             sum_int_test = true;
-
+          }
         }
 
         bool sum_per_test = false;
@@ -2174,17 +2274,20 @@ Castro::post_init (Real stop_time)
           const int num_per_old = floor((cumtime - dtlev) / sum_per);
           const int num_per_new = floor((cumtime        ) / sum_per);
 
-          if (num_per_old != num_per_new)
+          if (num_per_old != num_per_new) {
             sum_per_test = true;
+          }
 
         }
 
-        if (sum_int_test || sum_per_test)
+        if (sum_int_test || sum_per_test) {
           sum_integrated_quantities();
+        }
 
 #ifdef GRAVITY
-    if (level == 0 && moving_center == 1)
+    if (level == 0 && moving_center == 1) {
        write_center();
+    }
 #endif
 }
 
@@ -2213,8 +2316,9 @@ Castro::post_grown_restart ()
 
           if (gravity->NoComposite() != 1)  {
              gravity->multilevel_solve_for_new_phi(level,finest_level);
-             if (gravity->test_results_of_solves() == 1)
+             if (gravity->test_results_of_solves() == 1) {
                 gravity->test_composite_phi(level);
+             }
           }
        }
 
@@ -2267,20 +2371,23 @@ Castro::post_grown_restart ()
 int
 Castro::okToContinue ()
 {
-    if (level > 0)
-        return 1;
+    if (level > 0) {
+      return 1;
+    }
 
     int test = 1;
 
     if (signalStopJob) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run due to signalStopJob = true." << std::endl;
+      }
     }
     else if (parent->dtLevel(level) < dt_cutoff * parent->cumTime()) {
       test = 0;
-      if (ParallelDescriptor::IOProcessor())
+      if (ParallelDescriptor::IOProcessor()) {
         std::cout << " Signalling a stop of the run because dt < dt_cutoff * time." << std::endl;
+      }
     }
 
     return test;
@@ -2292,8 +2399,9 @@ Castro::advance_aux(Real time, Real dt)
 {
     BL_PROFILE("Castro::advance_aux()");
 
-    if (verbose && ParallelDescriptor::IOProcessor())
-        std::cout << "... special update for auxiliary variables \n";
+    if (verbose && ParallelDescriptor::IOProcessor()) {
+      std::cout << "... special update for auxiliary variables \n";
+    }
 
     MultiFab&  S_old = get_old_data(State_Type);
     MultiFab&  S_new = get_new_data(State_Type);
@@ -2318,22 +2426,28 @@ Castro::advance_aux(Real time, Real dt)
 void
 Castro::FluxRegCrseInit() {
 
-    if (level == parent->finestLevel()) return;
+    if (level == parent->finestLevel()) {
+      return;
+    }
 
     Castro& fine_level = getLevel(level+1);
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
-        fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      fine_level.flux_reg.CrseInit(*fluxes[i], i, 0, 0, NUM_STATE, flux_crse_scale);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+    if (!Geom().IsCartesian()) {
+      fine_level.pres_reg.CrseInit(P_radial, 0, 0, 0, 1, pres_crse_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
-            fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+    if (Radiation::rad_hydro_combined) {
+      for (int i = 0; i < BL_SPACEDIM; ++i) {
+        fine_level.rad_flux_reg.CrseInit(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_crse_scale);
+      }
+    }
 #endif
 
 }
@@ -2344,20 +2458,26 @@ Castro::FluxRegFineAdd() {
 
     BL_PROFILE("Castro::FluxRegFineAdd()");
 
-    if (level == 0) return;
+    if (level == 0) {
+      return;
+    }
 
-    for (int i = 0; i < BL_SPACEDIM; ++i)
-        flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+    for (int i = 0; i < BL_SPACEDIM; ++i) {
+      flux_reg.FineAdd(*fluxes[i], i, 0, 0, NUM_STATE, flux_fine_scale);
+    }
 
 #if (BL_SPACEDIM <= 2)
-    if (!Geom().IsCartesian())
-        getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    if (!Geom().IsCartesian()) {
+      getLevel(level).pres_reg.FineAdd(P_radial, 0, 0, 0, 1, pres_fine_scale);
+    }
 #endif
 
 #ifdef RADIATION
-    if (Radiation::rad_hydro_combined)
-        for (int i = 0; i < BL_SPACEDIM; ++i)
-            getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+    if (Radiation::rad_hydro_combined) {
+      for (int i = 0; i < BL_SPACEDIM; ++i) {
+        getLevel(level).rad_flux_reg.FineAdd(*rad_fluxes[i], i, 0, 0, Radiation::nGroups, flux_fine_scale);
+      }
+    }
 #endif
 
 }
@@ -2564,8 +2684,9 @@ Castro::reflux(int crse_level, int fine_level)
     // Do the sync solve across all levels.
 
 #ifdef GRAVITY
-    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)
-        gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
+    if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0) {
+      gravity->gravity_sync(crse_level, fine_level, amrex::GetVecOfPtrs(drho), amrex::GetVecOfPtrs(dphi));
+    }
 #endif
 
     // Now subtract the new-time updates to the state data,
@@ -2586,7 +2707,13 @@ Castro::reflux(int crse_level, int fine_level)
         for (int lev = fine_level; lev >= crse_level; --lev) {
 
             MultiFab& S_old = getLevel(lev).get_old_data(State_Type);
+
             MultiFab& S_new = getLevel(lev).get_new_data(State_Type);
+#ifdef MHD
+            MultiFab& Bx_new = getLevel(lev).get_new_data(Mag_Type_x);
+            MultiFab& By_new = getLevel(lev).get_new_data(Mag_Type_y);
+            MultiFab& Bz_new = getLevel(lev).get_new_data(Mag_Type_z);
+#endif
             MultiFab& source = getLevel(lev).get_new_data(Source_Type);
             Real time = getLevel(lev).state[State_Type].curTime();
             Real dt_advance_local = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
@@ -2597,7 +2724,11 @@ Castro::reflux(int crse_level, int fine_level)
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance_local, 0);
-                getLevel(lev).clean_state(S_new, time, 0);
+                getLevel(lev).clean_state(
+#ifdef MHD
+                                          Bx_new, By_new, Bz_new,
+#endif
+                                          S_new, time, 0);
 
             }
 
@@ -2630,7 +2761,11 @@ Castro::reflux(int crse_level, int fine_level)
 
             if (getLevel(lev).apply_sources()) {
                 bool apply_sources_to_state = true;
-                getLevel(lev).do_new_sources(source, S_old, S_new, time, dt_advance_local, apply_sources_to_state);
+                getLevel(lev).do_new_sources(
+#ifdef MHD
+                                Bx_new, By_new, Bz_new,
+#endif
+                                source, S_old, S_new, time, dt_advance_local, apply_sources_to_state);
             }
 
             if (use_retry && dt_advance_local < dt_amr && getLevel(lev).keep_prev_state) {
@@ -2673,8 +2808,9 @@ Castro::reflux(int crse_level, int fine_level)
         Lazy::QueueReduction( [=] () mutable {
 #endif
         ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+        if (ParallelDescriptor::IOProcessor()) {
+          std::cout << "Castro::reflux() at level " << level << " : time = " << end << std::endl;
+        }
 #ifdef BL_LAZY
         });
 #endif
@@ -2713,7 +2849,8 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         // Ensure the species mass fractions are between small_x and 1,
         // then normalize them so that they sum to 1.
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real rhoX_sum = 0.0_rt;
 
@@ -2732,7 +2869,13 @@ Castro::normalize_species (MultiFab& S_new, int ng)
 }
 
 void
-Castro::enforce_consistent_e (MultiFab& S)
+Castro::enforce_consistent_e (
+#ifdef MHD
+                              MultiFab& Bx,
+                              MultiFab& By,
+                              MultiFab& Bz,
+#endif
+                              MultiFab& S)
 {
 
     BL_PROFILE("Castro::enforce_consistent_e()");
@@ -2746,8 +2889,14 @@ Castro::enforce_consistent_e (MultiFab& S)
 
         auto S_arr = S.array(mfi);
 
+#ifdef MHD
+        auto Bx_arr = Bx.array(mfi);
+        auto By_arr = By.array(mfi);
+        auto Bz_arr = Bz.array(mfi);
+#endif
+
         ParallelFor(box,
-        [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           Real rhoInv = 1.0_rt / S_arr(i,j,k,URHO);
           Real u = S_arr(i,j,k,UMX) * rhoInv;
@@ -2756,7 +2905,19 @@ Castro::enforce_consistent_e (MultiFab& S)
 
           S_arr(i,j,k,UEDEN) = S_arr(i,j,k,UEINT) +
             0.5_rt * S_arr(i,j,k,URHO) * (u*u + v*v + w*w);
+
+#ifdef MHD
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          S_arr(i,j,k,UEDEN) += 0.5_rt * (bx_cell_c * bx_cell_c +
+                                          by_cell_c * by_cell_c +
+                                          bz_cell_c * bz_cell_c);
+#endif
+
         });
+
     }
 }
 
@@ -2790,41 +2951,17 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_enforce_minimum_density
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(state_in[mfi]),
-             verbose);
+        do_enforce_minimum_density(bx, state_in.array(mfi), verbose);
 
     }
 
     if (print_update_diagnostics)
     {
-
         // Evaluate what the effective reset source was.
 
         MultiFab::Subtract(reset_source, state_in, 0, 0, state_in.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[0]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
-
+        evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
 }
@@ -2882,8 +3019,9 @@ Castro::errorEst (TagBoxArray& tags,
     // note that we need to use the new time here,
     // not the old time.
 
-    if (post_step_regrid)
-        ltime = get_state_data(State_Type).curTime();
+    if (post_step_regrid) {
+      ltime = get_state_data(State_Type).curTime();
+    }
 
     // Apply each of the specified tagging functions.
 
@@ -3097,8 +3235,9 @@ Castro::extern_init ()
   const int probin_file_length = probin_file.length();
   Vector<int> probin_file_name(probin_file_length);
 
-  for (int i = 0; i < probin_file_length; i++)
+  for (int i = 0; i < probin_file_length; i++) {
     probin_file_name[i] = probin_file[i];
+  }
 
   // read them in in Fortran
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
@@ -3109,12 +3248,17 @@ Castro::extern_init ()
 }
 
 void
-Castro::reset_internal_energy(const Box& bx, Array4<Real> const u)
+Castro::reset_internal_energy(const Box& bx,
+#ifdef MHD
+                              Array4<Real> const Bx, Array4<Real> const By, Array4<Real> const Bz,
+#endif
+                              Array4<Real> const u)
 {
     Real lsmall_temp = small_temp;
     Real ldual_energy_eta2 = dual_energy_eta2;
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
         Real rhoInv = 1.0_rt / u(i,j,k,URHO);
         Real Up = u(i,j,k,UMX) * rhoInv;
@@ -3137,15 +3281,27 @@ Castro::reset_internal_energy(const Box& bx, Array4<Real> const u)
 
         Real small_e = eos_state.e;
 
+#ifdef MHD
+        Real bx_cell_c = 0.5_rt * (Bx(i,j,k) + Bx(i+1,j,k));
+        Real by_cell_c = 0.5_rt * (By(i,j,k) + By(i,j+1,k));
+        Real bz_cell_c = 0.5_rt * (Bz(i,j,k) + Bz(i,j,k+1));
+
+        Real B_ener = 0.5_rt * (bx_cell_c*bx_cell_c +
+                                by_cell_c*by_cell_c +
+                                bz_cell_c*bz_cell_c);
+#else
+        Real B_ener = 0.0_rt;
+#endif
+
         // Ensure the internal energy is at least as large as this minimum
         // from the EOS; the same holds true for the total energy.
 
         u(i,j,k,UEINT) = amrex::max(u(i,j,k,UEINT), u(i,j,k,URHO) * small_e);
-        u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke));
+        u(i,j,k,UEDEN) = amrex::max(u(i,j,k,UEDEN), u(i,j,k,URHO) * (small_e + ke) + B_ener);
 
         // Apply the dual energy criterion: get e from E if (E - K) > eta * E.
 
-        Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke;
+        Real rho_eint = u(i,j,k,UEDEN) - u(i,j,k,URHO) * ke - B_ener;
 
         if (rho_eint > ldual_energy_eta2 * u(i,j,k,UEDEN)) {
             u(i,j,k,UEINT) = rho_eint;
@@ -3154,7 +3310,14 @@ Castro::reset_internal_energy(const Box& bx, Array4<Real> const u)
 }
 
 void
-Castro::reset_internal_energy(MultiFab& S_new, int ng)
+Castro::reset_internal_energy(
+#ifdef MHD
+                              MultiFab& Bx,
+                              MultiFab& By,
+                              MultiFab& Bz,
+#endif
+                              MultiFab& S_new, int ng)
+
 {
 
     BL_PROFILE("Castro::reset_internal_energy()");
@@ -3176,7 +3339,12 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.growntilebox(ng);
-        reset_internal_energy(bx, S_new.array(mfi));
+
+        reset_internal_energy(bx,
+#ifdef MHD
+                              Bx.array(mfi), By.array(mfi), Bz.array(mfi),
+#endif
+                              S_new.array(mfi));
     }
 
     if (print_update_diagnostics)
@@ -3189,30 +3357,20 @@ Castro::reset_internal_energy(MultiFab& S_new, int ng)
 
         MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[UEINT]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
+        evaluate_and_print_source_change(reset_source, 1.0, "negative energy resets");
     }
 }
 
 void
-Castro::computeTemp(MultiFab& State, Real time, int ng)
+Castro::computeTemp(
+#ifdef MHD
+                    MultiFab& Bx,
+                    MultiFab& By,
+                    MultiFab& Bz,
+#endif
+
+                    MultiFab& State, Real time, int ng)
+
 {
 
   BL_PROFILE("Castro::computeTemp()");
@@ -3245,22 +3403,24 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
     // convert to cell centers -- this will result in Stemp being
     // cell centered only on 1 ghost cells
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
+
+    FArrayBox tmp;
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(1);
       const Box& bx0 = mfi.tilebox();
       const int idx = mfi.tileIndex();
 
-      ca_compute_lap_term(BL_TO_FORTRAN_BOX(bx0),
-                          BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                          BL_TO_FORTRAN_ANYD(Eint_lap[mfi]), UEINT,
-                          AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      compute_lap_term(bx0, Stemp.array(mfi), Eint_lap.array(mfi), UEINT,
+                       domain_lo, domain_hi);
 
-      ca_make_cell_center_in_place(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_FAB(Stemp[mfi]),
-                                   AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      tmp.resize(bx, 1);
+      Elixir elix_tmp = tmp.elixir();
+      auto tmp_arr = tmp.array();
+
+      make_cell_center_in_place(bx, Stemp.array(mfi), tmp_arr, domain_lo, domain_hi);
 
     }
 
@@ -3275,8 +3435,12 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     enforce_min_density(Stemp, Stemp.nGrow());
     reset_internal_energy(Stemp, Stemp.nGrow());
   } else {
+#endif    
+    reset_internal_energy(
+#ifdef MHD
+                          Bx, By, Bz,
 #endif
-    reset_internal_energy(State, ng);
+                          State, ng);
 #ifdef TRUE_SDC
   }
 #endif
@@ -3305,7 +3469,8 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
 
       Array4<Real> const u = u_fab.array();
 
-      AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -3347,19 +3512,22 @@ Castro::computeTemp(MultiFab& State, Real time, int ng)
     // cell-averages -- this is 4th-order and will be a no-op for
     // those zones where e wasn't changed.
 
-    const int* domain_lo = geom.Domain().loVect();
-    const int* domain_hi = geom.Domain().hiVect();
+    auto domain_lo = geom.Domain().loVect3d();
+    auto domain_hi = geom.Domain().hiVect3d();
+
+    FArrayBox tmp;
 
     for (MFIter mfi(Stemp); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
       const int idx = mfi.tileIndex();
 
-      // only temperature
-      ca_make_fourth_in_place_n(BL_TO_FORTRAN_BOX(bx),
-                                BL_TO_FORTRAN_FAB(Stemp[mfi]), UTEMP,
-                                AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi));
+      tmp.resize(bx, 1);
+      Elixir elix_tmp = tmp.elixir();
+      auto tmp_arr = tmp.array();
 
+      // only temperature
+      make_fourth_in_place_n(bx, Stemp.array(mfi), UTEMP, tmp_arr, domain_lo, domain_hi);
     }
 
     // correct UEINT
@@ -3476,8 +3644,9 @@ Castro::swap_state_time_levels(const Real dt)
 #ifdef TRUE_SDC
 #ifdef REACTIONS
         if (time_integration_method == SpectralDeferredCorrections &&
-            sdc_order == 4 && k == SDC_Source_Type)
-            state[k].swapTimeLevels(0.0);
+            sdc_order == 4 && k == SDC_Source_Type) {
+          state[k].swapTimeLevels(0.0);
+        }
 #endif
 #endif
         state[k].allocOldData();
@@ -3512,8 +3681,9 @@ Castro::get_numpts ()
      numpts_1d = int(sqrt(ndiagsq))+2*NUM_GROW;
 #endif
 
-     if (verbose && ParallelDescriptor::IOProcessor())
-         std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     if (verbose && ParallelDescriptor::IOProcessor()) {
+       std::cout << "Castro::numpts_1d at level  " << level << " is " << numpts_1d << std::endl;
+     }
 
      return numpts_1d;
 }
@@ -3642,7 +3812,9 @@ Castro::define_new_center(MultiFab& S, Real time)
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
     int mi[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) mi[i] = max_index[i];
+    for (int i = 0; i < BL_SPACEDIM; i++) {
+      mi[i] = max_index[i];
+    }
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
@@ -3653,7 +3825,9 @@ Castro::define_new_center(MultiFab& S, Real time)
     ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
-    if ( Geom().IsRZ() ) center[0] = 0;
+    if ( Geom().IsRZ() ) {
+      center[0] = 0;
+    }
 
     ca_set_center(ZFILL(center));
 }
@@ -3793,7 +3967,13 @@ Castro::check_for_nan(MultiFab& state_in, int check_ghost)
 // sure the data is sensible.
 
 void
-Castro::clean_state(MultiFab& state_in, Real time, int ng) {
+Castro::clean_state(
+#ifdef MHD
+                    MultiFab& bx,
+                    MultiFab& by,
+                    MultiFab& bz,
+#endif
+                    MultiFab& state_in, Real time, int ng) {
 
     BL_PROFILE("Castro::clean_state()");
 
@@ -3816,6 +3996,11 @@ Castro::clean_state(MultiFab& state_in, Real time, int ng) {
     // Compute the temperature (note that this will also reset
     // the internal energy for consistency with the total energy).
 
-    computeTemp(state_in, time, ng);
+    computeTemp(
+#ifdef MHD
+                bx, by, bz,
+#endif
+                state_in, time, ng);
 
 }
+

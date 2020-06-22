@@ -1,3 +1,6 @@
+#ifndef CASTRO_SDC_H
+#define CASTRO_SDC_H
+
 #ifndef AMREX_USE_CUDA
 void do_sdc_update(int m1, int m2, amrex::Real dt);
 #endif
@@ -135,3 +138,4 @@ void ca_store_reaction_state(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& R_store);
 #endif
 
+#endif
