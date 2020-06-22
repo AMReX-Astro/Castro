@@ -14,9 +14,15 @@ Castro::pointmass_update(Real time, Real dt)
         MultiFab& S_old = get_old_data(State_Type);
         MultiFab& S_new = get_new_data(State_Type);
 
-        Real mass_change_at_center = 0.0;
+        const auto dx = geom.CellSizeArray();
+        const auto problo = geom.ProbLoArray();
 
-        const Real* dx = geom.CellSize();
+        GpuArray<Real, 3> center;
+        ca_get_center(center.begin());
+
+        ReduceOps<ReduceOpSum> reduce_op;
+        ReduceData<Real> reduce_data(reduce_op);
+        using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:mass_change_at_center)
@@ -25,16 +31,60 @@ Castro::pointmass_update(Real time, Real dt)
 
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            pm_compute_delta_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  AMREX_MFITER_REDUCE_SUM(&mass_change_at_center),
-                                  BL_TO_FORTRAN_ANYD(S_old[mfi]),
-                                  BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                  BL_TO_FORTRAN_ANYD(volume[mfi]),
-                                  AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx),
-                                  time, dt);
+            Array4<Real const> const uin  = S_old.array(mfi);
+            Array4<Real const> const uout = S_new.array(mfi);
+            Array4<Real const> const vol  = volume.array(mfi);
+
+            reduce_op.eval(bx, reduce_data,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            {
+                // This is just a small number to keep precision issues from making
+                // icen, jcen, kcen one cell too low.
+                const Real eps = 1.e-8_rt;
+
+                // This should be the cell whose lower left corner is at center
+                int icen = std::floor((center[0] - problo[0]) / dx[0] + eps);
+#if AMREX_SPACEDIM >= 2
+                int jcen = std::floor((center[1] - problo[1]) / dx[1] + eps);
+#else
+                int jcen = 0;
+#endif
+#if AMREX_SPACEDIM == 3
+                int kcen = std::floor((center[2] - problo[2]) / dx[2] + eps);
+#else
+                int kcen = 0;
+#endif
+
+                // Make sure we only count contributions from this grid
+
+                const int box_size = 2;
+
+                int istart = amrex::max(icen - box_size, bx.smallEnd(0));
+                int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
+                int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
+
+                int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+                int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+                int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+
+                Real delta_mass_tmp = 0.0_rt;
+
+                if (i >= istart && i <= iend &&
+                    j >= jstart && j <= jend &&
+                    k >= kstart && k <= kend) {
+
+                    delta_mass_tmp = vol(i,j,k) * (uout(i,j,k,URHO) - uin(i,j,k,URHO));
+
+                }
+
+                return delta_mass_tmp;
+
+            });
 
         }
+
+        ReduceTuple hv = reduce_data.value();
+        Real mass_change_at_center = amrex::get<0>(hv);
 
         ParallelDescriptor::ReduceRealSum(mass_change_at_center);
 
@@ -57,11 +107,54 @@ Castro::pointmass_update(Real time, Real dt)
             {
                 const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-                pm_fix_solution(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                BL_TO_FORTRAN_ANYD(S_old[mfi]), BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                AMREX_REAL_ANYD(geom.ProbLo()), AMREX_REAL_ANYD(dx), time, dt);
-             }
-          }
+                Array4<Real const> const uin = S_old.array(mfi);
+                Array4<Real> const uout = S_new.array(mfi);
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                {
+                    // This is just a small number to keep precision issues from making
+                    // icen, jcen, kcen one cell too low.
+
+                    const Real eps = 1.e-8_rt;
+
+                    // This should be the cell whose lower left corner is at center
+                    int icen = std::floor((center[0] - problo[0]) / dx[0] + eps);
+#if AMREX_SPACEDIM >= 2
+                    int jcen = std::floor((center[1] - problo[1]) / dx[1] + eps);
+#else
+                    int jcen = 0;
+#endif
+#if AMREX_SPACEDIM == 3
+                    int kcen = std::floor((center[2] - problo[2]) / dx[2] + eps);
+#else
+                    int kcen = 0;
+#endif
+
+                    // Make sure we only count contributions from this grid
+
+                    const int box_size = 2;
+
+                    int istart = amrex::max(icen - box_size, bx.smallEnd(0));
+                    int jstart = amrex::max(jcen - box_size, bx.smallEnd(1));
+                    int kstart = amrex::max(kcen - box_size, bx.smallEnd(2));
+
+                    int iend = amrex::min(icen + box_size - 1, bx.bigEnd(0));
+                    int jend = amrex::min(jcen + box_size - 1, bx.bigEnd(1));
+                    int kend = amrex::min(kcen + box_size - 1, bx.bigEnd(2));
+
+                    if (i >= istart && i <= iend &&
+                        j >= jstart && j <= jend &&
+                        k >= kstart && k <= kend) {
+
+                        for (int n = 0; n < NUM_STATE; ++n) {
+                            uout(i,j,k,n) = uin(i,j,k,n);
+                        }
+
+                    }
+
+                });
+            }
+        }
     }
 }
