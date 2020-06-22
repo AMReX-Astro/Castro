@@ -1076,60 +1076,6 @@ contains
 
 
 
-  ! Check whether we should stop the initial relaxation.
-  ! The criterion is that we're outside the critical Roche surface
-  ! and the density is greater than a specified threshold.
-  ! If so, set do_initial_relaxation to false, which will effectively
-  ! turn off the external source terms.
-
-  subroutine check_relaxation(lo, hi, &
-                              state, s_lo, s_hi, &
-                              phiEff, p_lo, p_hi, &
-                              potential, is_done) bind(C,name='check_relaxation')
-
-    use amrex_constants_module, only: ZERO, ONE
-    use meth_params_module, only: URHO, NVAR
-    use castro_util_module, only: position_to_index
-    use reduction_module, only: reduce_add
-    use probdata_module, only: relaxation_density_cutoff
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt), intent(in   ), value :: potential
-    real(rt), intent(inout) :: is_done
-
-    integer  :: i, j, k
-    real(rt) :: done
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             done = ZERO
-
-             if (phiEff(i,j,k) > potential .and. state(i,j,k,URHO) > relaxation_density_cutoff) then
-
-                done = ONE
-
-             endif
-
-             call reduce_add(is_done, done)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine check_relaxation
-
-
-
   subroutine set_relaxation_damping_factor(factor) bind(C,name='set_relaxation_damping_factor')
 
     use probdata_module, only: relaxation_damping_factor
@@ -1191,113 +1137,6 @@ contains
     problem_out = problem
 
   end subroutine get_problem_number
-
-
-
-  ! Computes the sum of the hydrodynamic and gravitational forces acting on the WDs.
-
-  subroutine sum_force_on_stars(lo, hi, &
-                                force, f_lo, f_hi, &
-                                state, s_lo, s_hi, &
-                                vol, v_lo, v_hi, &
-                                pmask, pm_lo, pm_hi, &
-                                smask, sm_lo, sm_hi, &
-                                fpx, fpy, fpz, fsx, fsy, fsz) &
-                                bind(C,name='sum_force_on_stars')
-
-    use amrex_constants_module, only: ZERO, ONE, TWO
-    use prob_params_module, only: center, physbc_lo, Symmetry, coord_type
-    use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ
-    use reduction_module, only: reduce_add
-
-    implicit none
-
-    integer :: lo(3), hi(3)
-    integer :: f_lo(3), f_hi(3)
-    integer :: s_lo(3), s_hi(3)
-    integer :: v_lo(3), v_hi(3)
-    integer :: pm_lo(3), pm_hi(3)
-    integer :: sm_lo(3), sm_hi(3)
-
-    real(rt) :: force(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3), NVAR)
-    real(rt) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3), NVAR)
-    real(rt) :: vol(v_lo(1):v_hi(1),v_lo(2):v_hi(2),v_lo(3):v_hi(3))
-    real(rt) :: pmask(pm_lo(1):pm_hi(1),pm_lo(2):pm_hi(2),pm_lo(3):pm_hi(3))
-    real(rt) :: smask(sm_lo(1):sm_hi(1),sm_lo(2):sm_hi(2),sm_lo(3):sm_hi(3))
-
-    real(rt) :: fpx, fpy, fpz, fsx, fsy, fsz, dF(3)
-    real(rt) :: dt
-
-    integer :: i, j, k
-    real(rt) :: primary_factor, secondary_factor
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             dF(:) = vol(i,j,k) * force(i,j,k,UMX:UMZ)
-
-             ! In the following we'll account for symmetry boundaries
-             ! by assuming they're on the lower boundary if they do exist.
-             ! In that case, assume the star's center is on the lower boundary.
-             ! Then we need to double the value of the force in the other dimensions,
-             ! and cancel out the force in that dimension.
-             ! We assume here that only one dimension at most has a symmetry boundary.
-
-             if (coord_type .eq. 0) then
-
-                if (physbc_lo(1) .eq. Symmetry) then
-                   dF(1) = ZERO
-                   dF(2) = TWO * dF(2)
-                   dF(3) = TWO * dF(3)
-                end if
-
-                if (physbc_lo(2) .eq. Symmetry) then
-                   dF(1) = TWO * dF(1)
-                   dF(2) = ZERO
-                   dF(3) = TWO * dF(3)
-                end if
-
-                if (physbc_lo(3) .eq. Symmetry) then
-                   dF(1) = TWO * dF(1)
-                   dF(2) = TWO * dF(2)
-                   dF(3) = ZERO
-                end if
-
-             else if (coord_type .eq. 1) then
-
-                dF(1) = ZERO
-
-             end if
-
-             primary_factor = ZERO
-             secondary_factor = ZERO
-
-             if (pmask(i,j,k) > ZERO) then
-
-                primary_factor = ONE
-
-             else if (smask(i,j,k) > ZERO) then
-
-                secondary_factor = ONE
-
-             endif
-
-             call reduce_add(fpx, dF(1) * primary_factor)
-             call reduce_add(fpy, dF(2) * primary_factor)
-             call reduce_add(fpz, dF(3) * primary_factor)
-
-             call reduce_add(fsx, dF(1) * secondary_factor)
-             call reduce_add(fsy, dF(2) * secondary_factor)
-             call reduce_add(fsz, dF(3) * secondary_factor)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine sum_force_on_stars
 
 
 
@@ -1675,64 +1514,6 @@ contains
 
 
 
-  ! Determine the critical Roche potential at the Lagrange point L1.
-  ! We will use a tri-linear interpolation that gets a contribution
-  ! from all the zone centers that bracket the Lagrange point.
-
-  subroutine get_critical_roche_potential(lo, hi, phiEff, p_lo, p_hi, potential) &
-                                          bind(C, name='get_critical_roche_potential')
-
-    use amrex_constants_module, only: ZERO, HALF, ONE
-    use castro_util_module, only: position ! function
-    use reduction_module, only: reduce_add
-    use prob_params_module, only: dim, dx_level
-    use amrinfo_module, only: amr_level
-    use probdata_module, only: L1
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
-    real(rt), intent(in   ) :: phiEff(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-    real(rt), intent(inout) :: potential
-
-    real(rt) :: r(3), dx(3), dP
-    integer  :: i, j, k
-
-    !$gpu
-
-    dx = dx_level(:,amr_level)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             r = position(i,j,k) - L1
-
-             ! Scale r by dx (in dimensions we're actually simulating).
-
-             r(1:dim) = r(1:dim) / dx(1:dim)
-             r(dim+1:3) = ZERO
-
-             ! We want a contribution from this zone if it is
-             ! less than one zone width away from the Lagrange point.
-
-             dP = ZERO
-
-             if (sum(r**2) < ONE) then
-                dP = product(ONE - abs(r)) * phiEff(i,j,k)
-             endif
-
-             call reduce_add(potential, dP)
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine get_critical_roche_potential
-
-
-
   ! Given state data in the rotating frame, transform it to the inertial frame.
 
   subroutine transform_to_inertial_frame(state, s_lo, s_hi, lo, hi, time) &
@@ -2066,6 +1847,24 @@ contains
     endif
 
   end subroutine set_job_status
+
+
+
+  ! Get the relaxation_cutoff_density parameter.
+
+  subroutine get_relaxation_density_cutoff(relaxation_density_cutoff_in) bind(C, name='get_relaxation_density_cutoff')
+
+    use probdata_module, only: relaxation_density_cutoff
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    real(rt), intent(inout) :: relaxation_density_cutoff_in
+
+    relaxation_density_cutoff_in = relaxation_density_cutoff
+
+  end subroutine get_relaxation_density_cutoff
+
 
 
 
