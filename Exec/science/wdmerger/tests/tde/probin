@@ -8,27 +8,10 @@
   tde_separation = 8.0d0
   tde_beta = 6.0d0
 
-  interp_temp = T
-
-  stellar_temp = 1.0d7
-
   max_stellar_tagging_level = 20
   max_temperature_tagging_level = 0
   max_center_tagging_level = 0
   stellar_density_threshold = 1.0d4
-  temperature_tagging_threshold = 5.0d8
-  center_tagging_radius = 0.0d0
-  max_tagging_radius = 0.75d0
-  roche_tagging_factor = 2.0d0
-
-  center_fracx = 0.5d0
-  center_fracy = 0.5d0
-  center_fracz = 0.5d0
-
-  initial_model_dx = 6.25d5	
-  initial_model_npts = 4096
-  initial_model_mass_tol = 1.d-6
-  initial_model_hse_tol = 1.d-10
 
 /
 
@@ -86,7 +69,8 @@
   rtol_enuc = 1.d-6
   atol_enuc = 1.d-6
 
-  retry_burn = T
+  abort_on_failure = F
+  retry_burn = F
 
   renormalize_abundances = T
 
