@@ -1,7 +1,7 @@
 #ifndef CASTRO_MATH_H
 #define CASTRO_MATH_H
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 cross_product(GpuArray<Real, 3> const& a, GpuArray<Real, 3> const& b, GpuArray<Real, 3>& c) {
 
