@@ -107,7 +107,7 @@
 /// @param r         distance from origin of rotation vector
 /// @param v         velocity
 /// @param omega     rotation vector
-/// @param corilois  do we include the Coriolis force
+/// @param coriolis  do we include the Coriolis force
 /// @param Sr        rotational acceleration
 ///
     void
