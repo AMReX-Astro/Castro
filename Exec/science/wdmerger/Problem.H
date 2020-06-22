@@ -37,8 +37,6 @@ void gwstrain (amrex::Real time,
 
 amrex::Real dot_product(const amrex::Real a[], const amrex::Real b[]);
 
-// Computes standard cross-product of two three-vectors.
-
 
 // Computes norm of a three vector.
 
