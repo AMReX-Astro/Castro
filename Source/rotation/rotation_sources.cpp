@@ -59,8 +59,13 @@ Castro::rsrc(const Box& bx,
 #ifdef HYBRID_MOMENTUM
     if (state_in_rotating_frame == 1) {
 
+      GpuArray<Real, 3> linear_momentum;
+      linear_momentum[0] = src[UMX];
+      linear_momentum[1] = src[UMY];
+      linear_momentum[2] = src[UMZ];
+
       GpuArray<Real, 3> hybrid_source;
-      set_hybrid_momentum_source(loc, Sr, hybrid_source);
+      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
       snew[UMR] += dt * hybrid_source[0];
       snew[UML] += dt * hybrid_source[1];
@@ -372,7 +377,13 @@ Castro::corrrsrc(const Box& bx,
 
     if (state_in_rotating_frame == 1) {
       GpuArray<Real, 3> hybrid_source;
-      set_hybrid_momentum_source(loc, Srcorr, hybrid_source);
+
+      GpuArray<Real, 3> linear_momentum;
+      linear_momentum[0] = src[UMX];
+      linear_momentum[1] = src[UMY];
+      linear_momentum[2] = src[UMZ];
+
+      set_hybrid_momentum_source(loc, linear_momentum, hybrid_source);
 
       snew[UMR] += dt * hybrid_source[0];
       snew[UML] += dt * hybrid_source[1];

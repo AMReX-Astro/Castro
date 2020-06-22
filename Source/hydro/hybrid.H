@@ -8,6 +8,14 @@ using namespace amrex;
 // Avoid the singularity in cylindrical coordinates
 static AMREX_GPU_MANAGED Real R_min = std::numeric_limits<Real>::min();
 
+///
+/// For hybrid momentum advection, convert the linear momentum into the
+/// hybrid / angular momentum components
+///
+/// @param loc         coordinate location
+/// @param linear_mom  linear momentum
+/// @param hybrid_mom  hybrid / angular momentum
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void linear_to_hybrid(const GpuArray<Real, 3>& loc,
                       const GpuArray<Real, 3>& linear_mom,
