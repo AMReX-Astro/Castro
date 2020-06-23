@@ -65,7 +65,7 @@ Castro::plm(const Box& bx,
       // component (Bx) is omitted
 
       for (int n=0; n < 5; n++) {
-        int offset = 2 - n;
+        int offset = n - 2;
         Q[IEIGN_RHO][n] = s(i+offset,j,k,QRHO);
         Q[IEIGN_U][n] = s(i+offset,j,k,QU);
         Q[IEIGN_V][n] = s(i+offset,j,k,QV);
@@ -82,7 +82,7 @@ Castro::plm(const Box& bx,
       // component (By) is omitted
 
       for (int n=0; n < 5; n++) {
-        int offset = 2 - n;
+        int offset = n - 2;
 
         Q[IEIGN_RHO][n] = s(i,j+offset,k,QRHO);
         Q[IEIGN_U][n] = s(i,j+offset,k,QU);
@@ -100,7 +100,7 @@ Castro::plm(const Box& bx,
       // component (Bz) is omitted
 
       for (int n=0; n < 5; n++) {
-        int offset = 2 - n;
+        int offset = n - 2;
 
         Q[IEIGN_RHO][n] = s(i,j,k+offset,QRHO);
         Q[IEIGN_U][n] = s(i,j,k+offset,QU);
@@ -310,21 +310,21 @@ Castro::plm(const Box& bx,
 
       if (idir == 0) {
         for (int m = 0; m < 5; m++) {
-          int offset = 2 - m;
+          int offset = m - 2;
           X[m] = s(i+offset,j,k,QFS+n);
         }
         un = s(i,j,k,QU);
 
       } else if (idir == 1) {
         for (int m = 0; m < 5; m++) {
-          int offset = 2 - m;
+          int offset = m - 2;
           X[m] = s(i,j+offset,k,QFS+n);
         }
         un = s(i,j,k,QV);
 
       } else {
         for (int m = 0; m < 5; m++) {
-          int offset = 2 - m;
+          int offset = m - 2;
           X[m] = s(i,j,k+offset,QFS+n);
         }
         un = s(i,j,k,QW);
