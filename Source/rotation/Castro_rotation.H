@@ -114,3 +114,14 @@
     rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                             GpuArray<Real, 3> const& omega,
                             const bool coriolis, Real* Sr);
+
+    void
+    fill_rotational_potential(const Box& bx,
+                              Array4<Real> const& phi,
+                              const Real time);
+
+
+    void
+    fill_rotational_psi(const Box& bx,
+                        Array4<Real> const& psi,
+                        const Real time);

@@ -13,16 +13,6 @@ extern "C"
 
   void get_omega(amrex::Real* omega);
 
-  void ca_fill_rotational_potential
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(phi),
-     const amrex::Real* dx, const amrex::Real time);
-
-  void ca_fill_rotational_psi
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(psi),
-     const amrex::Real* dx, const amrex::Real time);
-
 #ifdef __cplusplus
 }
 #endif
