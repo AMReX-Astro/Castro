@@ -1,4 +1,3 @@
-
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_util.H"
@@ -39,15 +38,8 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-#pragma gpu box(bx)
-        ca_rsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
-                BL_TO_FORTRAN_ANYD(rot_old[mfi]),
-                BL_TO_FORTRAN_ANYD(state_in[mfi]),
-                BL_TO_FORTRAN_ANYD(source[mfi]),
-                BL_TO_FORTRAN_ANYD(volume[mfi]),
-                AMREX_REAL_ANYD(dx),dt,time);
+
+        rsrc(bx, rot_old.array(mfi), state_in.array(mfi), source.array(mfi), dt);
 
     }
 
@@ -111,21 +103,13 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                        BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(source[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-                        AMREX_REAL_ANYD(dx),dt,time,
-                        BL_TO_FORTRAN_ANYD(volume[mfi]));
+            corrrsrc(bx,
+                     phirot_old.array(mfi), phirot_new.array(mfi),
+                     rot_old.array(mfi), rot_new.array(mfi),
+                     state_old.array(mfi), state_new.array(mfi),
+                     source.array(mfi),
+                     (*mass_fluxes[0]).array(mfi), (*mass_fluxes[1]).array(mfi), (*mass_fluxes[2]).array(mfi),
+                     dt, volume.array(mfi));
         }
     }
 
@@ -188,11 +172,8 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
     {
 
         const Box& bx = mfi.growntilebox(ng);
-#pragma gpu box(bx)
-        ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(rot[mfi]),
-                                        BL_TO_FORTRAN_ANYD(state_in[mfi]),
-                                        AMREX_REAL_ANYD(dx),time);
+
+        fill_rotational_acceleration(bx, rot.array(mfi), state_in.array(mfi));
 
     }
 
