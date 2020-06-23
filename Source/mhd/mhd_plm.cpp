@@ -33,8 +33,7 @@ Castro::plm(const Box& bx,
 
     // compute the 1-sided differences used for the slopes
 
-    Real dQL[NEIGN];
-    Real dQR[NEIGN];
+    Real Q[NEIGN][5];
 
     // we use a reduced eigensystem, the normal B field component is
     // omitted
@@ -43,61 +42,48 @@ Castro::plm(const Box& bx,
 
       // component (Bx) is omitted
 
-      dQL[IEIGN_RHO] = s(i,j,k,QRHO) - s(i-1,j,k,QRHO);
-      dQL[IEIGN_U] = s(i,j,k,QU) - s(i-1,j,k,QU);
-      dQL[IEIGN_V] = s(i,j,k,QV) - s(i-1,j,k,QV);
-      dQL[IEIGN_W] = s(i,j,k,QW) - s(i-1,j,k,QW);
-      dQL[IEIGN_P] = s(i,j,k,QPRES) - s(i-1,j,k,QPRES);
-      dQL[IEIGN_BT] = s(i,j,k,QMAGY) - s(i-1,j,k,QMAGY);
-      dQL[IEIGN_BTT] = s(i,j,k,QMAGZ) - s(i-1,j,k,QMAGZ);
-
-      dQR[IEIGN_RHO] = s(i+1,j,k,QRHO) - s(i,j,k,QRHO);
-      dQR[IEIGN_U] = s(i+1,j,k,QU) - s(i,j,k,QU);
-      dQR[IEIGN_V] = s(i+1,j,k,QV) - s(i,j,k,QV);
-      dQR[IEIGN_W] = s(i+1,j,k,QW) - s(i,j,k,QW);
-      dQR[IEIGN_P] = s(i+1,j,k,QPRES) - s(i,j,k,QPRES);
-      dQR[IEIGN_BT] = s(i+1,j,k,QMAGY) - s(i,j,k,QMAGY);
-      dQR[IEIGN_BTT] = s(i+1,j,k,QMAGZ) - s(i,j,k,QMAGZ);
+      for (int n=0; n < 5; n++) {
+        int offset = 2 - n;
+        Q[IEIGN_RHO][n] = s(i+offset,j,k,QRHO);
+        Q[IEIGN_U][n] = s(i+offset,j,k,QU);
+        Q[IEIGN_V][n] = s(i+offset,j,k,QV);
+        Q[IEIGN_W][n] = s(i+offset,j,k,QW);
+        Q[IEIGN_P][n] = s(i+offset,j,k,QPRES);
+        Q[IEIGN_BT][n] = s(i+offset,j,k,QMAGY);
+        Q[IEIGN_BTT][n] = s(i+offset,j,k,QMAGZ);
+      }
 
     } else if (idir == 1) {
 
       // component (By) is omitted
 
-      dQL[IEIGN_RHO] = s(i,j,k,QRHO) - s(i,j-1,k,QRHO);
-      dQL[IEIGN_U] = s(i,j,k,QU) - s(i,j-1,k,QU);
-      dQL[IEIGN_V] = s(i,j,k,QV) - s(i,j-1,k,QV);
-      dQL[IEIGN_W] = s(i,j,k,QW) - s(i,j-1,k,QW);
-      dQL[IEIGN_P] = s(i,j,k,QPRES) - s(i,j-1,k,QPRES);
-      dQL[IEIGN_BT] = s(i,j,k,QMAGX) - s(i,j-1,k,QMAGX);
-      dQL[IEIGN_BTT] = s(i,j,k,QMAGZ) - s(i,j-1,k,QMAGZ);
+      for (int n=0; n < 5; n++) {
+        int offset = 2 - n;
 
-      dQR[IEIGN_RHO] = s(i,j+1,k,QRHO) - s(i,j,k,QRHO);
-      dQR[IEIGN_U] = s(i,j+1,k,QU) - s(i,j,k,QU);
-      dQR[IEIGN_V] = s(i,j+1,k,QV) - s(i,j,k,QV);
-      dQR[IEIGN_W] = s(i,j+1,k,QW) - s(i,j,k,QW);
-      dQR[IEIGN_P] = s(i,j+1,k,QPRES) - s(i,j,k,QPRES);
-      dQR[IEIGN_BT] = s(i,j+1,k,QMAGX) - s(i,j,k,QMAGX);
-      dQR[IEIGN_BTT] = s(i,j+1,k,QMAGZ) - s(i,j,k,QMAGZ);
+        Q[IEIGN_RHO][n] = s(i,j+offset,k,QRHO);
+        Q[IEIGN_U][n] = s(i,j+offset,k,QU);
+        Q[IEIGN_V][n] = s(i,j+offset,k,QV);
+        Q[IEIGN_W][n] = s(i,j+offset,k,QW);
+        Q[IEIGN_P][n] = s(i,j+offset,k,QPRES);
+        Q[IEIGN_BT][n] = s(i,j+offset,k,QMAGX);
+        Q[IEIGN_BTT][n] = s(i,j+offset,k,QMAGZ);
+      }
 
     } else {
 
       // component (Bz) is omitted
 
-      dQL[IEIGN_RHO] = s(i,j,k,QRHO) - s(i,j,k-1,QRHO);
-      dQL[IEIGN_U] = s(i,j,k,QU) - s(i,j,k-1,QU);
-      dQL[IEIGN_V] = s(i,j,k,QV) - s(i,j,k-1,QV);
-      dQL[IEIGN_W] = s(i,j,k,QW) - s(i,j,k-1,QW);
-      dQL[IEIGN_P] = s(i,j,k,QPRES) - s(i,j,k-1,QPRES);
-      dQL[IEIGN_BT] = s(i,j,k,QMAGX) - s(i,j,k-1,QMAGX);
-      dQL[IEIGN_BTT] = s(i,j,k,QMAGY) - s(i,j,k-1,QMAGY);
+      for (int n=0; n < 5; n++) {
+        int offset = 2 - n;
 
-      dQR[IEIGN_RHO] = s(i,j,k+1,QRHO) - s(i,j,k,QRHO);
-      dQR[IEIGN_U] = s(i,j,k+1,QU) - s(i,j,k,QU);
-      dQR[IEIGN_V] = s(i,j,k+1,QV) - s(i,j,k,QV);
-      dQR[IEIGN_W] = s(i,j,k+1,QW) - s(i,j,k,QW);
-      dQR[IEIGN_P] = s(i,j,k+1,QPRES) - s(i,j,k,QPRES);
-      dQR[IEIGN_BT] = s(i,j,k+1,QMAGX) - s(i,j,k,QMAGX);
-      dQR[IEIGN_BTT] = s(i,j,k+1,QMAGY) - s(i,j,k,QMAGY);
+        Q[IEIGN_RHO][n] = s(i,j,k+offset,QRHO);
+        Q[IEIGN_U][n] = s(i,j,k+offset,QU);
+        Q[IEIGN_V][n] = s(i,j,k+offset,QV);
+        Q[IEIGN_W][n] = s(i,j,k+offset,QW);
+        Q[IEIGN_P][n] = s(i,j,k+offset,QPRES);
+        Q[IEIGN_BT][n] = s(i,j,k+offset,QMAGX);
+        Q[IEIGN_BTT][n] = s(i,j,k+offset,QMAGY);
+      }
 
     }
 
@@ -166,26 +152,63 @@ Castro::plm(const Box& bx,
       }
     }
 
+    // compute the slopes
+    Real dq[NEIGN] = {};
+
+    if (mhd_limit_characteristic == 1) {
+
+      // we are limiting on characteristic variables
+      for (int ii = 0; ii < NEIGN; ii++) {
+
+        // construct the ii-th primitive variables
+        Real W[5] = {};
+        for (int n = 0; n < NEIGN; n++) {
+          W[0] += leign(ii,n) * Q[n][0];
+          W[1] += leign(ii,n) * Q[n][1];
+          W[2] += leign(ii,n) * Q[n][2];
+          W[3] += leign(ii,n) * Q[n][3];
+          W[4] += leign(ii,n) * Q[n][4];
+        }
+
+        // now limit
+        Real dW = uslope(W, flatn(i,j,k), bnd_lo_reflect, bnd_hi_reflect);
+
+        // now add this charactistic variable's contribution to the
+        // primitive variable slope
+        for (int n = 0; n < NEIGN; n++) {
+          dq[n] += dW * reig(n, ii);
+        }
+      }
+
+    } else {
+
+      // we are limiting on primitive variables
+
+      for (int ii = 0; ii < NEIGN; ii++) {
+        dq[ii] = uslope(Q[ii], flatn(i,j,k), bnd_lo_reflect, bnd_hi_reflect);
+      }
+
+    }
+
+
     // Perform the characteristic projection.  Since we are using
     // Using HLLD, we sum over all eigenvalues -- see the discussion after Eq. 31
     Real summ_p[NEIGN] = {0.0_rt};
     Real summ_m[NEIGN] = {0.0_rt};
 
     for (int ii = 0; ii < NEIGN; ii++) {
-      Real dL = 0.0;
-      Real dR = 0.0;
+      Real Ldq = 0.0;
 
       for (int n = 0; n < NEIGN; n++) {
-        dL += leig(ii,n) * dQL[n];
-        dR += leig(ii,n) * dQR[n];
+        Ldq += leig(ii,n) * dq[n];
       }
 
       Real dW = 0.0;
       slope(dW, dL, dR, flatn(i,j,k));
 
       for (int n = 0; n < NEIGN; n++) {
-        summ_p[n] += (1.0_rt - dtdx * lam(ii)) * dW * reig(n,ii);
-        summ_m[n] -= (1.0_rt + dtdx * lam(ii)) * dW * reig(n,ii);
+        summ_p[n] += (1.0_rt - dtdx * lam(ii)) * Ldq * reig(n,ii);
+        summ_m[n] -= (1.0_rt + dtdx * lam(ii)) * Ldq * reig(n,ii);
       }
     }
 
