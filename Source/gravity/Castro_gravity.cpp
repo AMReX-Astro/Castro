@@ -243,10 +243,6 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
     // Gravitational source term for the time-level n data.
 
-    const Real* dx = geom.CellSize();
-    const int* domlo = geom.Domain().loVect();
-    const int* domhi = geom.Domain().hiVect();
-
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
 
@@ -399,6 +395,13 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
     if (!do_grav) return;
 
     const auto dx = geom.CellSizeArray();
+
+#ifdef HYBRID_MOMENTUM
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+#endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
 
