@@ -4,8 +4,7 @@
 using namespace amrex;
 
 #include "mhd_eigen.H"
-#include "mhd_slope.H"
-
+#include "slope.H"
 void
 Castro::plm(const Box& bx,
             const int idir,
@@ -25,11 +24,28 @@ Castro::plm(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  bool lo_symm = lo_bc[idir] == Symmetry;
+  bool hi_symm = hi_bc[idir] == Symmetry;
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
   Real dtdx = dt/dx[idir];
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
+
+    bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||
+                                  (idir == 1 && j == domlo[1]) ||
+                                  (idir == 2 && k == domlo[2]));
+
+    bool hi_bc_test = hi_symm && ((idir == 0 && i == domhi[0]) ||
+                                  (idir == 1 && j == domhi[1]) ||
+                                  (idir == 2 && k == domhi[2]));
 
     // compute the 1-sided differences used for the slopes
 
@@ -38,7 +54,13 @@ Castro::plm(const Box& bx,
     // we use a reduced eigensystem, the normal B field component is
     // omitted
 
+    // for reflect BCs, we need to know what the normal component of
+    // the velocity is
+    int QUN;
+
     if (idir == 0) {
+
+      QUN = IEIGN_U;
 
       // component (Bx) is omitted
 
@@ -55,6 +77,8 @@ Castro::plm(const Box& bx,
 
     } else if (idir == 1) {
 
+      QUN = IEIGN_V;
+
       // component (By) is omitted
 
       for (int n=0; n < 5; n++) {
@@ -70,6 +94,8 @@ Castro::plm(const Box& bx,
       }
 
     } else {
+
+      QUN = IEIGN_W;
 
       // component (Bz) is omitted
 
@@ -163,15 +189,15 @@ Castro::plm(const Box& bx,
         // construct the ii-th primitive variables
         Real W[5] = {};
         for (int n = 0; n < NEIGN; n++) {
-          W[0] += leign(ii,n) * Q[n][0];
-          W[1] += leign(ii,n) * Q[n][1];
-          W[2] += leign(ii,n) * Q[n][2];
-          W[3] += leign(ii,n) * Q[n][3];
-          W[4] += leign(ii,n) * Q[n][4];
+          W[0] += leig(ii,n) * Q[n][0];
+          W[1] += leig(ii,n) * Q[n][1];
+          W[2] += leig(ii,n) * Q[n][2];
+          W[3] += leig(ii,n) * Q[n][3];
+          W[4] += leig(ii,n) * Q[n][4];
         }
 
         // now limit
-        Real dW = uslope(W, flatn(i,j,k), bnd_lo_reflect, bnd_hi_reflect);
+        Real dW = uslope(W, flatn(i,j,k), false, false);
 
         // now add this charactistic variable's contribution to the
         // primitive variable slope
@@ -185,7 +211,8 @@ Castro::plm(const Box& bx,
       // we are limiting on primitive variables
 
       for (int ii = 0; ii < NEIGN; ii++) {
-        dq[ii] = uslope(Q[ii], flatn(i,j,k), bnd_lo_reflect, bnd_hi_reflect);
+        bool vtest = ii == QUN;
+        dq[ii] = uslope(Q[ii], flatn(i,j,k), lo_bc_test && vtest, hi_bc_test && vtest);
       }
 
     }
@@ -202,9 +229,6 @@ Castro::plm(const Box& bx,
       for (int n = 0; n < NEIGN; n++) {
         Ldq += leig(ii,n) * dq[n];
       }
-
-      Real dW = 0.0;
-      slope(dW, dL, dR, flatn(i,j,k));
 
       for (int n = 0; n < NEIGN; n++) {
         summ_p[n] += (1.0_rt - dtdx * lam(ii)) * Ldq * reig(n,ii);
@@ -281,37 +305,41 @@ Castro::plm(const Box& bx,
 
     // species
     for (int n = 0; n < NumSpec; n++) {
-      Real dL;
-      Real dR;
       Real un;
-      Real dW = 0.0;
+      Real X[5];
 
       if (idir == 0) {
-        dL = s(i,j,k,QFS+n) - s(i-1,j,k,QFS+n);
-        dR = s(i+1,j,k,QFS+n) - s(i,j,k,QFS+n);
+        for (int m = 0; m < 5; m++) {
+          int offset = 2 - m;
+          X[m] = s(i+offset,j,k,QFS+n);
+        }
         un = s(i,j,k,QU);
 
       } else if (idir == 1) {
-        dL = s(i,j,k,QFS+n) - s(i,j-1,k,QFS+n);
-        dR = s(i,j+1,k,QFS+n) - s(i,j,k,QFS+n);
+        for (int m = 0; m < 5; m++) {
+          int offset = 2 - m;
+          X[m] = s(i,j+offset,k,QFS+n);
+        }
         un = s(i,j,k,QV);
 
       } else {
-        dL = s(i,j,k,QFS+n) - s(i,j,k-1,QFS+n);
-        dR = s(i,j,k+1,QFS+n) - s(i,j,k,QFS+n);
+        for (int m = 0; m < 5; m++) {
+          int offset = 2 - m;
+          X[m] = s(i,j,k+offset,QFS+n);
+        }
         un = s(i,j,k,QW);
       }
 
-      slope(dW, dL, dR, flatn(i,j,k));
+      Real dX = uslope(X, flatn(i,j,k), false, false);
 
       if (idir == 0) {
-        qleft(i+1,j,k,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dW;
+        qleft(i+1,j,k,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dX;
       } else if (idir == 1) {
-        qleft(i,j+1,k,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dW;
+        qleft(i,j+1,k,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dX;
       } else {
-        qleft(i,j,k+1,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dW;
+        qleft(i,j,k+1,QFS+n) = q_zone(QFS+n) + 0.5_rt*(1.0_rt - dtdx*un) * dX;
       }
-      qright(i,j,k,QFS+n) = q_zone(QFS+n) - 0.5_rt*(1.0_rt + dtdx*un) * dW;
+      qright(i,j,k,QFS+n) = q_zone(QFS+n) - 0.5_rt*(1.0_rt + dtdx*un) * dX;
     }
 
     // rho e

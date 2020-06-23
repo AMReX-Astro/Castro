@@ -6,7 +6,6 @@
 using namespace amrex;
 
 #include "mhd_eigen.H"
-#include "mhd_slope.H"
 
 void
 Castro::ppm_mhd(const Box& bx,
