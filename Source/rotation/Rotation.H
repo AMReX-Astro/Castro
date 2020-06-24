@@ -3,7 +3,7 @@
 #ifndef ROTATION_H
 #define ROTATION_H
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
 rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega) {
 
