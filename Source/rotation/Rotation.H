@@ -1,7 +1,7 @@
 #include "math.H"
 
-#ifndef CASTRO_ROTATION_H
-#define CASTRO_ROTATION_H
+#ifndef ROTATION_H
+#define ROTATION_H
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
