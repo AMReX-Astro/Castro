@@ -434,18 +434,11 @@ do_rotation                  int          -1                  y
 # the rotation period for the corotating frame
 rotational_period            Real         -1.e200             y        ROTATION        rot_period
 
-# the rotation periods time evolution---this allows the rotation rate to
-# change durning the simulation time
-rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
-
 # permits the centrifugal terms in the rotation to be turned on and off
 rotation_include_centrifugal int           1                  y        ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  y        ROTATION
-
-# permits the d(omega)/dt terms in the rotation to be turned on and off
-rotation_include_domegadt    int           1                  y        ROTATION
 
 # Which reference frame to measure the state variables with respect to.
 # The standard in the literature when using a rotating reference frame
@@ -545,14 +538,8 @@ dump_old                     bool          false
 # last spatial dimension is vertical
 domain_is_plane_parallel     bool          false
 
-# display warnings in Fortran90 routines
-print_fortran_warnings       int           (0, 1)
-
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
-
-# calculate losses of material through physical grid boundaries
-track_grid_losses            int            0                    y
 
 # how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
 sum_interval                 int           -1

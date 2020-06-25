@@ -62,7 +62,6 @@ castro.add_ext_src = 1                             # Whether or not to apply ext
 castro.ext_src_implicit = 1
 castro.do_rotation = 0                             # Whether or not to include the rotation source term
 castro.rotational_period = 100.0                   # Rotational period of the rotating reference frame
-castro.rotational_dPdt = -0.0                      # Time rate of change of the rotational period
 castro.implicit_rotation_update = 1                # Implicit rotation coupling
 
 ############################################################################################
@@ -113,6 +112,6 @@ castro.v = 1                                       # Control verbosity in Castro
 gravity.v = 1                                      # Control verbosity in Gravity.cpp
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE

@@ -220,9 +220,6 @@ gravity.no_sync = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 # Whether to evolve state variables in the inertial or rotating frame
 castro.state_in_rotating_frame = 1
 
@@ -242,9 +239,6 @@ DistributionMapping.efficiency = 0.9
 
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
-
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -316,7 +310,7 @@ amr.derive_plot_vars = pressure x_velocity y_velocity z_velocity soundspeed
 amr.small_plot_vars = density Temp
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
 
 # Used a forced fixed dt that is known to be larger
 # than the safe hydrodynamic timestep given the above

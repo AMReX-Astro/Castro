@@ -75,10 +75,6 @@ Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
 #endif
 
-#ifdef AMREX_USE_CUDA
-int          Castro::numBCThreadsMin[3] = {1, 1, 1};
-#endif
-
 // the sponge parameters are controlled by Fortran, so
 // this just initializes them before we grab their values
 // from Fortran
@@ -487,11 +483,6 @@ Castro::Castro (Amr&            papa,
 
     initMFs();
 
-    for (int i = 0; i < n_lost; i++) {
-      material_lost_through_boundary_cumulative[i] = 0.0;
-      material_lost_through_boundary_temp[i] = 0.0;
-    }
-
     // Coterminous AMR boundaries are not supported in Castro if we're doing refluxing.
 
     if (do_hydro && do_reflux) {
@@ -501,17 +492,6 @@ Castro::Castro (Amr&            papa,
             }
         }
     }
-
-#ifdef AMREX_USE_CUDA
-    // Enforce our requirement on the blocking factor for CUDA. See Castro::variableSetUp() for details.
-    for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-        for (int ilev = 0; ilev <= parent->maxLevel(); ++ilev) {
-            if (parent->blockingFactor(ilev)[dim] % numBCThreadsMin[dim] != 0) {
-                amrex::Error("Using CUDA requires a blocking factor that is a multiple of 8.");
-            }
-        }
-    }
-#endif
 
     // initialize all the new time level data to zero
     for (int k = 0; k < num_state_type; k++) {
@@ -3057,31 +3037,11 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 
     if (print_update_diagnostics)
     {
-
         // Evaluate what the effective reset source was.
 
         MultiFab::Subtract(reset_source, state_in, 0, 0, state_in.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[0]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative density resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
-
+        evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
 }
@@ -3477,25 +3437,7 @@ Castro::reset_internal_energy(
 
         MultiFab::Subtract(reset_source, old_state, 0, 0, old_state.nComp(), 0);
 
-        bool local = true;
-        Vector<Real> reset_update = evaluate_source_change(reset_source, 1.0, local);
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-            ParallelDescriptor::ReduceRealSum(reset_update.dataPtr(), reset_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-            if (ParallelDescriptor::IOProcessor()) {
-                if (std::abs(reset_update[UEINT]) != 0.0) {
-                    std::cout << std::endl << "  Contributions to the state from negative energy resets:" << std::endl;
-
-                    print_source_change(reset_update);
-                }
-            }
-
-#ifdef BL_LAZY
-        });
-#endif
+        evaluate_and_print_source_change(reset_source, 1.0, "negative energy resets");
     }
 }
 

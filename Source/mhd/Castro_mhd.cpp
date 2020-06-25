@@ -202,7 +202,7 @@ Castro::just_the_mhd(Real time, Real dt)
             uflatten(bxi, q_arr, flatn_arr, QPRES);
             uflatten(bxi, q_arr, flatg_arr, QPTOT);
 
-            amrex::ParallelFor(obx,
+            amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
               flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);

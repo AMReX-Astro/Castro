@@ -439,7 +439,7 @@ Castro::apply_sources()
 // Note that the resultant output is volume-weighted.
 
 Vector<Real>
-Castro::evaluate_source_change(MultiFab& source, Real dt, bool local)
+Castro::evaluate_source_change(const MultiFab& source, Real dt, bool local)
 {
 
   BL_PROFILE("Castro::evaluate_source_change()");
@@ -480,12 +480,8 @@ Castro::print_source_change(Vector<Real> update)
 
     std::cout << "       mass added: " << update[URHO] << std::endl;
     std::cout << "       xmom added: " << update[UMX] << std::endl;
-#if (BL_SPACEDIM >= 2)
     std::cout << "       ymom added: " << update[UMY] << std::endl;
-#endif
-#if (BL_SPACEDIM == 3)
     std::cout << "       zmom added: " << update[UMZ] << std::endl;
-#endif
     std::cout << "       eint added: " << update[UEINT] << std::endl;
     std::cout << "       ener added: " << update[UEDEN] << std::endl;
 
@@ -496,38 +492,44 @@ Castro::print_source_change(Vector<Real> update)
 
 }
 
+// Calculate the changes to the state due to a source term,
+// and also print the results.
+
+void
+Castro::evaluate_and_print_source_change (const MultiFab& source, Real dt, std::string source_name)
+{
+    bool local = true;
+    Vector<Real> update = evaluate_source_change(source, dt, local);
+
+#ifdef BL_LAZY
+    Lazy::QueueReduction( [=] () mutable {
+#endif
+        ParallelDescriptor::ReduceRealSum(update.dataPtr(), update.size(), ParallelDescriptor::IOProcessorNumber());
+
+        if (ParallelDescriptor::IOProcessor()) {
+            if (std::abs(update[URHO]) != 0.0 || std::abs(update[UEDEN]) != 0.0) {
+                std::cout << std::endl << "  Contributions to the state from " << source_name << ":" << std::endl;
+
+                print_source_change(update);
+            }
+        }
+
+#ifdef BL_LAZY
+    });
+#endif
+}
+
 // For the old-time or new-time sources update, evaluate the change in the state
 // for all source terms, then print the results.
 
 void
 Castro::print_all_source_changes(Real dt, bool is_new)
 {
+    MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
 
-  Vector<Real> summed_updates;
+    std::string source_name = is_new? "new-time sources" : "old-time sources";
 
-  bool local = true;
-
-  MultiFab& source = is_new ? get_new_data(Source_Type) : get_old_data(Source_Type);
-
-  summed_updates = evaluate_source_change(source, dt, local);
-
-#ifdef BL_LAZY
-  Lazy::QueueReduction( [=] () mutable {
-#endif
-
-      ParallelDescriptor::ReduceRealSum(summed_updates.dataPtr(), source.nComp(), ParallelDescriptor::IOProcessorNumber());
-
-      std::string time = is_new ? "new" : "old";
-
-      if (ParallelDescriptor::IOProcessor())
-          std::cout << std::endl << "  Contributions to the state from the " << time << "-time sources:" << std::endl;
-
-      print_source_change(summed_updates);
-
-#ifdef BL_LAZY
-    });
-#endif
-
+    evaluate_and_print_source_change(source, dt, source_name);
 }
 
 // Obtain the sum of all source terms.

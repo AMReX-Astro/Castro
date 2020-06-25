@@ -27,32 +27,6 @@ extern "C"
 
   void set_pointmass(const amrex::Real* pointmass);
 
-
-  void ca_gsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(s_old),
-     const BL_FORT_FAB_ARG_3D(phi),
-     const BL_FORT_FAB_ARG_3D(grav),
-     BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
-
-  void ca_corrgsrc
-    (const int* lo, const int* hi,
-     const int* domlo, const int* domhi,
-     const BL_FORT_FAB_ARG_3D(S_old),
-     const BL_FORT_FAB_ARG_3D(S_new),
-     const BL_FORT_FAB_ARG_3D(phi_old),
-     const BL_FORT_FAB_ARG_3D(phi_new),
-     const BL_FORT_FAB_ARG_3D(grav_old),
-     const BL_FORT_FAB_ARG_3D(grav_new),
-     const BL_FORT_FAB_ARG_3D(volume),
-     const BL_FORT_FAB_ARG_3D(xflux),
-     const BL_FORT_FAB_ARG_3D(yflux),
-     const BL_FORT_FAB_ARG_3D(zflux),
-     const BL_FORT_FAB_ARG_3D(source),
-     const amrex::Real* dx, const amrex::Real dt, const amrex::Real time);
-
 #ifdef __cplusplus
 }
 #endif
