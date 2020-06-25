@@ -2,6 +2,7 @@
 #include "Castro_F.H"
 #include "math.H"
 
+AMREX_GPU_HOST_DEVICE
 void
 Castro::rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                                 GpuArray<Real, 3> const& omega,

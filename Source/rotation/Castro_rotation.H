@@ -110,6 +110,7 @@
 /// @param coriolis  do we include the Coriolis force
 /// @param Sr        rotational acceleration
 ///
+    AMREX_GPU_HOST_DEVICE
     void
     rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
                             GpuArray<Real, 3> const& omega,
