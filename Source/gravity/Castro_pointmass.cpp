@@ -25,7 +25,7 @@ Castro::pointmass_update(Real time, Real dt)
         using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:mass_change_at_center)
+#pragma omp parallel
 #endif
         for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
