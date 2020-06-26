@@ -21,6 +21,7 @@ https://github.com/amrex-astro/Castro
    mpi_plus_x
    FlowChart
    software
+   problem_setups
    timestepping
    creating_a_problem
    io
@@ -36,6 +37,7 @@ https://github.com/amrex-astro/Castro
    debugging
    gpu_porting
    Hydrodynamics
+   mhd
    gravity
    diffusion
    rotation

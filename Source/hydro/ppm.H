@@ -1,23 +1,26 @@
 
 #include <cmath>
+#include "reconstruction.H"
 
 #ifndef _ppm_H_
 #define _ppm_H_
 
 using namespace amrex;
 
-constexpr int im2 = 0;
-constexpr int im1 = 1;
-constexpr int i0 = 2;
-constexpr int ip1 = 3;
-constexpr int ip2 = 4;
-
+///
+/// Compute the coefficients of a parabolic reconstruction of the data in a zone.
+/// This uses the standard PPM limiters described in Colella & Woodward (1984)
+///
+/// @param s      Real[5] the state to be reconstructed in zones i-2, i-1, i, i+1, i+2
+/// @param flatn  The flattening coefficient
+/// @param sm     The value of the parabola on the left edge of the zone
+/// @param sp     The value of the parabola on the right edge of the zone
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_reconstruct(const Real* s,
                 const Real flatn, Real& sm, Real& sp) {
 
-  // This routine does the reconstruction of the zone data into a parabola.
 
   // Compute van Leer slopes
 
@@ -101,6 +104,21 @@ ppm_reconstruct(const Real* s,
 }
 
 
+///
+/// Integrate under the parabola using from the left and right edges
+/// with the wave speeds u-c, u, u+c
+///
+/// @param sm    The parabola value on the left edge of the zone
+/// @param sp    The parabola value on the right edge of the zone
+/// @param sc    The state value at the zone center
+/// @param u     The fluid velocity
+/// @param c     The sound speed
+/// @param dtdx  dt/dx (timestep / cell width)
+/// @param Ip    Real[3], the integrals under the parabola over
+///              the 3 waves from the right zone edge
+/// @param Im    Real[3], the integrals under the parabola over
+///              the 3 waves from the left zone edge
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 ppm_int_profile(const Real sm, const Real sp, const Real sc,
@@ -157,5 +175,45 @@ ppm_int_profile(const Real sm, const Real sp, const Real sc,
 
 }
 
+///
+/// Integrate under the parabola from the left and right edges for a
+/// single wave speed
+///
+/// @param sm    The parabola value on the left edge of the zone
+/// @param sp    The parabola value on the right edge of the zone
+/// @param sc    The state value at the zone center
+/// @param lam   The wave speed
+/// @param dtdx  dt/dx (timestep / cell width)
+/// @param Ip    integral under the parabola from the right zone edge
+/// @param Im    integral under the parabola from the left zone edge
+///
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+ppm_int_profile_single(const Real sm, const Real sp, const Real sc,
+                       const Real lam, const Real dtdx,
+                       Real& Ip, Real& Im) {
+
+  // Integrate the parabolic profile to the edge of the cell.
+  // This is the MHD version.  We come in already with the eigenvalues.
+
+  // compute x-component of Ip and Im
+  Real s6 = 6.0_rt * sc - 3.0_rt * (sm + sp);
+
+  // Ip/m is the integral under the parabola for the extent
+  // that a wave can travel over a timestep
+  //
+  // Ip integrates to the right edge of a cell
+  // Im integrates to the left edge of a cell
+
+  Real sigma = std::abs(lam) * dtdx;
+
+  if (lam <= 0.0_rt) {
+    Ip = sp;
+    Im = sm + 0.5_rt * sigma * (sp - sm + (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+  } else {
+    Ip = sp - 0.5_rt * sigma * (sp - sm - (1.0_rt - (2.0_rt/3.0_rt) * sigma) * s6);
+    Im = sm;
+  }
+}
 
 #endif

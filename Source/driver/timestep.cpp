@@ -6,7 +6,7 @@
 #endif
 
 #ifdef MHD
-#include "mhd_sound_speed.H"
+#include "mhd_util.H"
 #endif
 
 using namespace amrex;
@@ -22,7 +22,7 @@ Castro::estdt_cfl(const Real time)
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(omega.begin());
 #endif
 
   const auto dx = geom.CellSizeArray();

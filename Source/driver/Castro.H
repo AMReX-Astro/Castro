@@ -3,6 +3,10 @@
 
 #include <state_indices.H>
 
+#ifdef MHD
+#include <mhd_sizes.H>
+#endif
+
 // runtime parameters
 #include <castro_params.H>
 using namespace castro;
@@ -1194,15 +1198,6 @@ public:
 ///
     static amrex::Real num_zones_advanced;
 
-#ifdef AMREX_USE_CUDA
-///
-/// Minimum CUDA threadblock size for BC fills.
-///
-    static int numBCThreadsMin[3];
-
-    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
-#endif
-
 protected:
 
 
@@ -1257,7 +1252,9 @@ protected:
 ///
 /// The primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab q;
+#endif
 
 
 ///
@@ -1276,7 +1273,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab qaux;
+#endif
     amrex::MultiFab qaux_bar;
 
 
@@ -1425,14 +1424,6 @@ protected:
     int in_retry;
 
     amrex::Real lastDt;
-
-///
-/// For keeping track of fluid quantities lost at physical grid boundaries.
-/// This should persist through restarts, but right now only on level 0.
-///
-    static const int n_lost = 8;
-    amrex::Real             material_lost_through_boundary_cumulative[n_lost];
-    amrex::Real             material_lost_through_boundary_temp[n_lost];
 
 
 ///

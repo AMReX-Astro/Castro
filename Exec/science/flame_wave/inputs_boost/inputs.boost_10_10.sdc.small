@@ -15,13 +15,17 @@ amr.n_cell           = 2048        1024
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  3   1
-castro.hi_bc       =  2   1
+castro.hi_bc       =  2   2
 
 castro.yl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
-castro.yr_ext_bc_type = "interp"
+castro.fill_ambient_bc = 1
+castro.ambient_fill_dir = 1
+castro.ambient_outflow_vel = 1
+
+castro.domain_is_plane_parallel = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1

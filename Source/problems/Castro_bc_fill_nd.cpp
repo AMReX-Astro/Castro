@@ -28,7 +28,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
 #ifdef AMREX_USE_CUDA
     int* bc_f = prepare_bc(bcrs.data(), numcomp);
-    set_bc_launch_config();
 #else
     const int* bc_f = bcrs.data();
 #endif
@@ -64,10 +63,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 
     }
-
-#ifdef AMREX_USE_CUDA
-    clean_bc_launch_config();
-#endif
 
     // we just did the standard BC fills (reflect, outflow, ...)  now
     // we consider the external ones (HSE).  Note, if we are at a
@@ -159,10 +154,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_fillx(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_fillx(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 
@@ -181,10 +176,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_filly(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_filly(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 
@@ -203,10 +198,10 @@ extern "C"
     const int* bc_f = bc;
 
 
-    face_fillz(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-               var, AMREX_INT_ANYD(var_lo), AMREX_INT_ANYD(var_hi),
-               AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(xlo), *time, bc_f);
+    face_fillz(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
+               var, AMREX_ARLIM_ANYD(var_lo), AMREX_ARLIM_ANYD(var_hi),
+               AMREX_ARLIM_ANYD(domlo), AMREX_ARLIM_ANYD(domhi),
+               AMREX_ZFILL(dx), AMREX_ZFILL(xlo), *time, bc_f);
 
   }
 #endif  

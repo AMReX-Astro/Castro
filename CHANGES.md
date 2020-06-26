@@ -1,3 +1,56 @@
+# 20.07
+
+   * The CUDA build no longer has a requirement that amr.blocking_factor
+     be a multiple of 8. Though this is recommended for performance reasons,
+     it was previously required due to correctness reasons because of the
+     use of an AMReX Fortran function, amrex_filccn. As noted in #1048, this
+     function is no longer required due to recent changes in Castro (problems
+     overriding bc_fill_nd.F90 or bc_ext_fill_nd.F90 do not need to provide an
+     initial fill of the ghost zone data before implementing their specific
+     boundary conditions; this is now done for you). Calling this function
+     may now result in race conditions and correctness issues in the CUDA
+     build, so it should be removed from any problem setups. (#1049)
+
+   * The functionality that permitted the rotation rate to change as a
+     function of time, castro.rotation_include_domegadt and
+     castro.rotational_dPdt, has been removed. (#1045)
+
+   * A CUDA illegal memory access error in Poisson gravity and diffusion
+     has been fixed (#1039).
+
+   * The parameter castro.track_grid_losses has been removed. (#1035)
+
+   * The parameter castro.print_fortran_warnings, which no longer had any
+     effect, has been removed. (#1036)
+
+   * PPM reconstruction has been added to the MHD solver (#1002)
+
+   * The Reactions_Type StateData has been reworked so that its first
+     NumSpec components are rho * omegadot rather than omegadot; then,
+     the NumAux auxiliary components are stored, if the network has any
+     auxiliary variables; then, rho * enuc is stored (enuc itself is
+     removed), and finally the burn weights are stored. The checkpoint
+     version has been incremented, so this version of the code cannot
+     restart from checkpoints generated with earlier versions of the
+     code. (#927)
+
+   * A bug where refluxing between AMR levels resulted in incorrect results
+     when a retry occurred in the previous timestep has been fixed. (#1018)
+
+# 20.06
+
+   * The parameter castro.density_reset_method has been removed. A density
+     reset now unconditionally sets the density to small_dens, the temperature
+     to small_temp, and zeros out the velocities. (#989)
+
+   * A constrained-transport corner transport upwind MHD solver has been
+     added.  This can be used by compiling with USE_MPI = TRUE.  Presently
+     it only works for a single level (no AMR).  (#307)
+
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
+
    * The reaction weights metric implemented in version 20.05 (#863) has been
      added to the simplified SDC reactions driver. (#930)
 

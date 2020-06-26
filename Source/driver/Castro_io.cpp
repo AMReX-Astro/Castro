@@ -49,11 +49,12 @@ using namespace amrex;
 // 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
 // 6: Simplified_SDC_Source_Type removed from Castro
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
+// 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 
 namespace
 {
     int input_version = -1;
-    int current_version = 7;
+    int current_version = 8;
 }
 
 // I/O routines for Castro
@@ -161,28 +162,6 @@ Castro::restart (Amr&     papa,
       }
 
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
-
-    }
-
-    if (track_grid_losses && level == 0)
-    {
-
-      // get the current value of the diagnostic quantities
-      std::ifstream DiagFile;
-      std::string FullPathDiagFile = parent->theRestartFile();
-      FullPathDiagFile += "/Diagnostics";
-      DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
-
-      if (DiagFile.good()) {
-
-          for (int i = 0; i < n_lost; i++) {
-              DiagFile >> material_lost_through_boundary_cumulative[i];
-              material_lost_through_boundary_temp[i] = 0.0;
-          }
-
-          DiagFile.close();
-
-      }
 
     }
 
@@ -329,8 +308,9 @@ Castro::restart (Amr&     papa,
        }
     }
 
-    if (grown_factor > 1 && level == 1)
-        getLevel(0).avgDown();
+    if (grown_factor > 1 && level == 1) {
+      getLevel(0).avgDown();
+    }
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -375,8 +355,9 @@ Castro::restart (Amr&     papa,
 
     if (reset_checkpoint_time > -1.e199) {
 
-        if (!parent->RegridOnRestart())
-            amrex::Error("reset_checkpoint_time only makes sense when amr.regrid_on_restart=1");
+        if (!parent->RegridOnRestart()) {
+          amrex::Error("reset_checkpoint_time only makes sense when amr.regrid_on_restart=1");
+        }
 
         const Real cur_time = get_state_data(State_Type).curTime();
         const Real prev_time = get_state_data(State_Type).prevTime();
@@ -395,8 +376,9 @@ Castro::restart (Amr&     papa,
 
     if (reset_checkpoint_step > -1) {
 
-        if (!parent->RegridOnRestart())
-            amrex::Error("reset_checkpoint_step only makes sense when amr.regrid_on_restart=1");
+        if (!parent->RegridOnRestart()) {
+          amrex::Error("reset_checkpoint_step only makes sense when amr.regrid_on_restart=1");
+        }
 
         parent->setLevelSteps(level, reset_checkpoint_step);
         parent->setLevelCount(level, reset_checkpoint_step);
@@ -419,29 +401,11 @@ Castro::checkPoint(const std::string& dir,
                    bool dump_old_default)
 {
 
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToHost(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToHost(new_MF);
-  }
-
   const Real io_start_time = ParallelDescriptor::second();
 
   AmrLevel::checkPoint(dir, os, how, dump_old);
 
   const Real io_time = ParallelDescriptor::second() - io_start_time;
-
-  for (int s = 0; s < num_state_type; ++s) {
-      if (dump_old && state[s].hasOldData()) {
-          MultiFab& old_MF = get_old_data(s);
-          amrex::prefetchToDevice(old_MF);
-      }
-      MultiFab& new_MF = get_new_data(s);
-      amrex::prefetchToDevice(new_MF);
-  }
 
 #ifdef RADIATION
   if (do_radiation) {
@@ -506,21 +470,6 @@ Castro::checkPoint(const std::string& dir,
             CPUFile.close();
         }
 
-        if (track_grid_losses) {
-
-            // store diagnostic quantities
-            std::ofstream DiagFile;
-            std::string FullPathDiagFile = dir;
-            FullPathDiagFile += "/Diagnostics";
-            DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-            for (int i = 0; i < n_lost; i++)
-              DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-
-            DiagFile.close();
-
-        }
-
 #ifdef GRAVITY
         if (use_point_mass) {
 
@@ -546,8 +495,9 @@ Castro::checkPoint(const std::string& dir,
             int len = dir.size();
 
             Vector<int> int_dir_name(len);
-            for (int j = 0; j < len; j++)
-                int_dir_name[j] = (int) dir_for_pass[j];
+            for (int j = 0; j < len; j++) {
+              int_dir_name[j] = (int) dir_for_pass[j];
+            }
 
             problem_checkpoint(int_dir_name.dataPtr(), &len);
 
@@ -576,8 +526,9 @@ Castro::setPlotVariables ()
   // Don't add the Source_Type data to the plotfile, we only
   // want to store it in the checkpoints.
 
-  for (int i = 0; i < desc_lst[Source_Type].nComp(); i++)
-      parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+  for (int i = 0; i < desc_lst[Source_Type].nComp(); i++) {
+    parent->deleteStatePlotVar(desc_lst[Source_Type].name(i));
+  }
 
 #ifdef SIMPLIFIED_SDC
 #ifdef REACTIONS
@@ -883,8 +834,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   const int jobinfo_file_length = FullPathJobInfoFile.length();
   Vector<int> jobinfo_file_name(jobinfo_file_length);
 
-  for (int i = 0; i < jobinfo_file_length; i++)
+  for (int i = 0; i < jobinfo_file_length; i++) {
     jobinfo_file_name[i] = FullPathJobInfoFile[i];
+  }
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
@@ -996,12 +948,15 @@ Castro::plotFileOutput(const std::string& dir,
     // second component of pair is component # within the state_type
     //
     std::vector<std::pair<int,int> > plot_var_map;
-    for (int typ = 0; typ < desc_lst.size(); typ++)
-        for (int comp = 0; comp < desc_lst[typ].nComp(); comp++)
-            if (((parent->isStatePlotVar(desc_lst[typ].name(comp)) && is_small == 0) ||
-                 (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) && is_small == 1)) &&
-                desc_lst[typ].getType() == IndexType::TheCellType())
-                plot_var_map.push_back(std::pair<int,int>(typ,comp));
+    for (int typ = 0; typ < desc_lst.size(); typ++) {
+      for (int comp = 0; comp < desc_lst[typ].nComp(); comp++) {
+        if (((parent->isStatePlotVar(desc_lst[typ].name(comp)) && is_small == 0) ||
+             (parent->isStateSmallPlotVar(desc_lst[typ].name(comp)) && is_small == 1)) &&
+            desc_lst[typ].getType() == IndexType::TheCellType()) {
+          plot_var_map.push_back(std::pair<int,int>(typ,comp));
+        }
+      }
+    }
 
     int num_derive = 0;
     std::list<std::string> derive_names;
@@ -1045,8 +1000,9 @@ Castro::plotFileOutput(const std::string& dir,
         //
         os << thePlotFileType() << '\n';
 
-        if (n_data_items == 0)
-            amrex::Error("Must specify at least one valid data item to plot");
+        if (n_data_items == 0) {
+          amrex::Error("Must specify at least one valid data item to plot");
+        }
 
         os << n_data_items << '\n';
 
@@ -1074,33 +1030,40 @@ Castro::plotFileOutput(const std::string& dir,
         }
 
 #ifdef RADIATION
-        for (int i=0; i<Radiation::nplotvar; ++i)
-            os << Radiation::plotvar_names[i] << '\n';
+        for (int i=0; i<Radiation::nplotvar; ++i) {
+          os << Radiation::plotvar_names[i] << '\n';
+        }
 #endif
 
         os << BL_SPACEDIM << '\n';
         os << parent->cumTime() << '\n';
         int f_lev = parent->finestLevel();
         os << f_lev << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++) {
             os << geom.ProbLo(i) << ' ';
+        }
         os << '\n';
-        for (int i = 0; i < BL_SPACEDIM; i++)
+        for (int i = 0; i < BL_SPACEDIM; i++) {
             os << geom.ProbHi(i) << ' ';
+        }
         os << '\n';
-        for (int i = 0; i < f_lev; i++)
-            os << parent->refRatio(i)[0] << ' ';
+        for (int i = 0; i < f_lev; i++) {
+          os << parent->refRatio(i)[0] << ' ';
+        }
         os << '\n';
-        for (int i = 0; i <= f_lev; i++)
-            os << parent->Geom(i).Domain() << ' ';
+        for (int i = 0; i <= f_lev; i++) {
+          os << parent->Geom(i).Domain() << ' ';
+        }
         os << '\n';
-        for (int i = 0; i <= f_lev; i++)
-            os << parent->levelSteps(i) << ' ';
+        for (int i = 0; i <= f_lev; i++) {
+          os << parent->levelSteps(i) << ' ';
+        }
         os << '\n';
         for (int i = 0; i <= f_lev; i++)
         {
-            for (int k = 0; k < BL_SPACEDIM; k++)
-                os << parent->Geom(i).CellSize()[k] << ' ';
+            for (int k = 0; k < BL_SPACEDIM; k++) {
+              os << parent->Geom(i).CellSize()[k] << ' ';
+            }
             os << '\n';
         }
         os << (int) geom.Coord() << '\n';
@@ -1130,8 +1093,9 @@ Castro::plotFileOutput(const std::string& dir,
     // Now for the full pathname of that directory.
     //
     std::string FullPath = dir;
-    if (!FullPath.empty() && FullPath[FullPath.size()-1] != '/')
-        FullPath += '/';
+    if (!FullPath.empty() && FullPath[FullPath.size()-1] != '/') {
+      FullPath += '/';
+    }
     FullPath += Level;
     //
     // Only the I/O processor makes the directory if it doesn't already exist.
@@ -1154,8 +1118,9 @@ Castro::plotFileOutput(const std::string& dir,
         for (int i = 0; i < grids.size(); ++i)
         {
             RealBox gridloc = RealBox(grids[i],geom.CellSize(),geom.ProbLo());
-            for (int n = 0; n < BL_SPACEDIM; n++)
-                os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
+            for (int n = 0; n < BL_SPACEDIM; n++) {
+              os << gridloc.lo(n) << ' ' << gridloc.hi(n) << '\n';
+            }
         }
         //
         // The full relative pathname of the MultiFabs at this level.
@@ -1214,8 +1179,6 @@ Castro::plotFileOutput(const std::string& dir,
     }
 #endif
 
-    amrex::prefetchToHost(plotMF);
-
     //
     // Use the Full pathname when naming the MultiFab.
     //
@@ -1224,29 +1187,17 @@ Castro::plotFileOutput(const std::string& dir,
 
     const Real io_start_time = ParallelDescriptor::second();
 
-    VisMF::Write(plotMF,TheFullPath,how,true);
+    if (amrex::AsyncOut::UseAsyncOut()) {
+        VisMF::AsyncWrite(std::move(plotMF),TheFullPath);
+    } else {
+        VisMF::Write(plotMF,TheFullPath,how,true);
+    }
 
     const Real io_time = ParallelDescriptor::second() - io_start_time;
 
     if (level == 0 && ParallelDescriptor::IOProcessor()) {
         writeJobInfo(dir, io_time);
     }
-
-    if (track_grid_losses && level == 0) {
-
-        // store diagnostic quantities
-        std::ofstream DiagFile;
-        std::string FullPathDiagFile = dir;
-        FullPathDiagFile += "/Diagnostics";
-        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-        for (int i = 0; i < n_lost; i++)
-            DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-
-        DiagFile.close();
-
-    }
-
 
 #ifdef GRAVITY
     if (use_point_mass && level == 0) {

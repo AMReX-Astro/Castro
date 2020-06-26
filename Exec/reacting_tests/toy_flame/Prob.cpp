@@ -44,7 +44,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
     const Real* dx = geom.CellSize();
 
-    auto mf = derive("omegadot_fuel",time,0);
+    auto mf = derive("rho_omegadot_fuel",time,0);
 
     BL_ASSERT(mf);
 

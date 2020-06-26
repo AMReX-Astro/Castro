@@ -230,7 +230,6 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
                        Array4<Real const> const& flatn_arr,
                        Array4<Real const> const& qaux_arr,
                        Array4<Real const> const& srcQ,
-                       Array4<Real> const& dq,
                        Array4<Real> const& qxm,
                        Array4<Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
@@ -265,27 +264,11 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
   // Compute all slopes
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
-    for (int n = 0; n < NQ; n++) {
-      if (n == QTEMP) {
-        continue;
-      }
-
-      uslope(bx, idir,
-             q_arr, n,
-             flatn_arr, dq);
-    }
-
-    if (use_pslope == 1) {
-      pslope(bx, idir,
-             q_arr,
-             flatn_arr, dq, srcQ);
-    }
-
     // compute the interface states
 
     if (idir == 0) {
       trace_plm(bx, 0,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -295,7 +278,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_plm(bx, 1,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -306,7 +289,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM == 3
     } else {
       trace_plm(bx, 2,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qzm, qzp,
                 srcQ, vbx, dt);
 #endif
