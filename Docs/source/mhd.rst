@@ -77,9 +77,10 @@ components.  This is done separately from the main conserved fluid
 state.
 
 The conserved fluid state is initialized in ``ca_initdata`` just as
-with pure hydrodynamics problems.  The one change is the when
-initializing the total energy density, ``UEDEN``, you need to include
-the magnetic energy contribution.
+with pure hydrodynamics problems. Note that you do not need to include 
+the magnetic energy contribution to the total energy density, ``UEDEN``.
+After this initialization, the driver handles the addition of the magnetic
+contribution.   
 
 
 Hydrodynamics Update
