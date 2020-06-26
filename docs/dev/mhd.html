@@ -273,9 +273,10 @@ that is used to initialize the face-centered magnetic field
 components.  This is done separately from the main conserved fluid
 state.</p>
 <p>The conserved fluid state is initialized in <code class="docutils literal notranslate"><span class="pre">ca_initdata</span></code> just as
-with pure hydrodynamics problems.  The one change is the when
-initializing the total energy density, <code class="docutils literal notranslate"><span class="pre">UEDEN</span></code>, you need to include
-the magnetic energy contribution.</p>
+with pure hydrodynamics problems. Note that you do not need to include
+the magnetic energy contribution to the total energy density, <code class="docutils literal notranslate"><span class="pre">UEDEN</span></code>.
+After this initialization, the driver handles the addition of the magnetic
+contribution.</p>
 </div>
 <div class="section" id="hydrodynamics-update">
 <h2>Hydrodynamics Update<a class="headerlink" href="#hydrodynamics-update" title="Permalink to this headline">¶</a></h2>
