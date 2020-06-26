@@ -15,4 +15,4 @@ CEXE_sources += Castro_pointmass.cpp
 ca_F90EXE_sources += prescribe_phi_nd.F90
 ca_F90EXE_sources += prescribe_grav_nd.F90
 ca_F90EXE_sources += Gravity_nd.F90
-ca_F90EXE_sources += gravity_sources_nd.F90
+
