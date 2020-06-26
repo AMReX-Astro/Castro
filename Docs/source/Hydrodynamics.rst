@@ -258,7 +258,7 @@ associated production rate, :math:`\dot\omega_k`, and energy release,
 user-specified source terms. :math:`A_k` is an advected quantity,
 i.e., a tracer. We also carry around auxiliary variables, :math:`Y_k`,
 which have a user-defined evolution equation, but by default are
-treated as advected quantities.  The are meant to be defined in the network.
+treated as advected quantities.  These are meant to be defined in the network.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
