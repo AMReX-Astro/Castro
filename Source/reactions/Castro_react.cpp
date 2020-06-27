@@ -110,7 +110,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                     burn_state.xn[n] = U(i,j,k,UFS+n) * rhoInv;
                 }
 
-#if naux > 0
+#if NAUX_NET > 0
                 for (int n = 0; n < NumAux; ++n) {
                     burn_state.aux[n] = U(i,j,k,UFX+n) * rhoInv;
                 }
@@ -148,7 +148,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                         for (int n = 0; n < NumSpec; ++n) {
                             reactions(i,j,k,n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                         }
-#if naux > 0
+#if NAUX_NET > 0
                         for (int n = 0; n < NumAux; ++n) {
                             reactions(i,j,k,n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
                         }
@@ -196,7 +196,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 for (int n = 0; n < NumSpec; ++n) {
                     U(i,j,k,UFS+n) += reactions(i,j,k,n) * dt;
                 }
-#if naux > 0
+#if NAUX_NET > 0
                 for (int n = 0; n < NumAux; ++n) {
                     U(i,j,k,UFX+n) += reactions(i,j,k,n+NumSpec) * dt;
                 }
