@@ -877,6 +877,21 @@ public:
                                 amrex::Array4<amrex::Real> const u);
 
 
+#ifdef MHD
+///
+/// Add magnetic contribution to energy density
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void add_magnetic_e (
+                         amrex::MultiFab& Bx,
+                         amrex::MultiFab& By,
+                         amrex::MultiFab& Bz,
+                         amrex::MultiFab& state);
+#endif
+
 
 
 ///

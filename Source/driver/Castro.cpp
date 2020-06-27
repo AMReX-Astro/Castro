@@ -989,6 +989,12 @@ Castro::initData ()
 
        }
 
+
+#ifdef MHD
+      //correct energy density with the magnetic field contribution 
+      add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
+#endif
+
        // it is not a requirement that the problem setup defines the
        // temperature, so we do that here _and_ ensure that we are
        // within any small limits
@@ -3440,6 +3446,47 @@ Castro::reset_internal_energy(
         evaluate_and_print_source_change(reset_source, 1.0, "negative energy resets");
     }
 }
+
+
+#ifdef MHD
+void
+Castro::add_magnetic_e( MultiFab& Bx,
+                        MultiFab& By, 
+                        MultiFab& Bz,
+                        MultiFab& State)
+{
+           
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  {
+      const Box& box     = mfi.tilebox();
+      auto S_arr = State.array(mfi);
+      auto Bx_arr = Bx.array(mfi);
+      auto By_arr = By.array(mfi);
+      auto Bz_arr = Bz.array(mfi);
+
+
+      ParallelFor(box,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          S_arr(i,j,k,UEDEN) += 0.5_rt * (bx_cell_c * bx_cell_c +
+                                          by_cell_c * by_cell_c +
+                                          bz_cell_c * bz_cell_c);
+
+      });
+
+  }
+
+
+}
+#endif
 
 void
 Castro::computeTemp(

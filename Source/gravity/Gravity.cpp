@@ -2258,8 +2258,11 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
 {
     BL_PROFILE("Gravity::add_pointmass_to_gravity()");
     
-    const Real* dx     = parent->Geom(level).CellSize();
-    const Real* problo = parent->Geom(level).ProbLo();
+    const auto dx     = parent->Geom(level).CellSizeArray();
+    const auto problo = parent->Geom(level).ProbLoArray();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2268,13 +2271,36 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu box(bx)
-        pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       point_mass, BL_TO_FORTRAN_ANYD(phi[mfi]),
-                       BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                       AMREX_REAL_ANYD(problo), AMREX_REAL_ANYD(dx));
-    }
+        Array4<Real> const grav_arr = grav_vector.array(mfi);
+        Array4<Real> const phi_arr = phi.array(mfi);
 
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            // Compute radial gravity due to a point mass at center[:].
+
+            Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+            Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+            Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+
+            Real rsq = x * x + y * y + z * z;
+            Real radial_force = -C::Gconst * castro::point_mass / rsq;
+
+            Real rinv = 1.e0_rt / std::sqrt(rsq);
+
+            // Note that grav may have more ghost zones than
+            // phi, so we need to check that we're doing
+            // valid indexing here.
+
+            if (phi_arr.contains(i,j,k)) {
+                phi_arr(i,j,k) -= C::Gconst * castro::point_mass * rinv;
+            }
+
+            grav_arr(i,j,k,0) += radial_force * (x * rinv);
+            grav_arr(i,j,k,1) += radial_force * (y * rinv);
+            grav_arr(i,j,k,2) += radial_force * (z * rinv);
+        });
+    }
 }
 
 void

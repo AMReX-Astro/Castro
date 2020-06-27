@@ -142,9 +142,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx), time);
+                fill_rotational_psi(bx, (*psi[lev]).array(mfi), time);
 
             }
 
@@ -266,9 +264,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                             AMREX_ZFILL(dx), time);
+                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
 
             }
 

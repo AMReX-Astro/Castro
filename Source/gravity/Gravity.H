@@ -381,8 +381,6 @@ public:
 ///
   void make_mg_bc();
 
-protected:
-
 ///
 /// Pointers to amr,amrlevel.
 ///
@@ -488,8 +486,6 @@ protected:
 /// @param point_mass   Mass of pointmass
 ///
     void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
-
-private:
 
 ///
 /// Get the rhs
