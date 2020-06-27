@@ -15,7 +15,7 @@ Real dgforcedr (Real M, Real r)
     return 2.0_rt * C::Gconst * M / (r * r * r) * std::copysign(1.0_rt, r);
 }
 
-  
+
 Real cforce (Real M, Real a, Real r)
 {
     return C::Gconst * M / (a * a * a) * r;
@@ -45,7 +45,7 @@ Real fdLdr (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
     Real dg2 = dgforcedr(M2, r - r2);
 
     Real dc = dcforcedr(M1 + M2, a, r);
-    
+
     return dg1 + dg2 + dc;
 }
 
@@ -58,30 +58,30 @@ Real fdLdr (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real a, Real r_min, Real r_max)
 {
     // Root-find parameters
-    
+
     const Real tolerance = 1.0e-8_rt;
     const int max_iters = 200;
 
     Real rm, rp;
 
-    if (r_min < 0.0_rt || r_max < 0.0_rt) {
-        amrex::Abort("Lagrange point iteration must have at least one positive bound provided.");
+    if (r_min == 0.0_rt && r_max == 0.0_rt) {
+        amrex::Abort("Lagrange point iteration must have at least one non-zero bound provided.");
     }
-    else if (r_min > 0.0_rt && r_max > 0.0_rt) {
+    else if (r_min != 0.0_rt && r_max != 0.0_rt) {
         rm = r_min;
         rp = r_max;
     }
-    else if (r_min > 0.0_rt && r_max == 0.0_rt) {
+    else if (r_min != 0.0_rt && r_max == 0.0_rt) {
         rm = r_min;
         rp = std::abs(r_min) * 1000.0e0_rt;
     }
-    else if (r_max > 0.0_rt && r_min == 0.0_rt) {
+    else if (r_max != 0.0_rt && r_min == 0.0_rt) {
         rm = -std::abs(r_max) * 1000.0e0_rt;
         rp = r_max;
     }
 
     Real width = (rp - rm);
-    
+
     rm = rm + width / 1000.0e0_rt;
     rp = rp - width / 1000.0e0_rt;
 
