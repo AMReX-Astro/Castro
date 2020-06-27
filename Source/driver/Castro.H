@@ -890,6 +890,21 @@ public:
                          amrex::MultiFab& By,
                          amrex::MultiFab& Bz,
                          amrex::MultiFab& state);
+
+///
+/// Check if divergence of B is zero at initialization
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param time     current time
+/// @param state    the state to operate on
+///
+    void check_div_B (
+                      amrex::MultiFab& Bx,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
+                      amrex::Real time, amrex::MultiFab& state);
+
 #endif
 
 
