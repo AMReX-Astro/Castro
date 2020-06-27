@@ -119,16 +119,13 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
             rhoe_0 = rho_0*eos_state%e
             T_0 = eos_state%T
            
-            B_x = (B_0 * u_bx) - M_SQRT_2*B_0*(cw*cw-c_s)*u_ky*pert
-            B_y = (B_0 * u_by) + M_SQRT_2*B_0*(cw*cw-c_s)*u_kx*pert
 
             u = state(i,j,k,UMX)/rho_0
             v = state(i,j,k,UMY)/rho_0
             w = state(i,j,k,UMZ)/rho_0
 
-            state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 *(u*u+v*v+w*w) &
-                                 + 0.5e0_rt * (B_x**2 + B_y**2 + B_z**2)
-            state(i,j,k,UEINT) = rhoe_0 * rho_0
+            state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 *(u*u+v*v+w*w) 
+            state(i,j,k,UEINT) = rhoe_0 
             state(i,j,k,UTEMP) = T_0
 
         enddo

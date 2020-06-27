@@ -75,7 +75,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UMX) = rho*u_x
            state(i,j,k,UMY) = rho*u_y
            state(i,j,k,UMZ) = rho*u_z
-           state(i,j,k,UEDEN) = rhoe + 0.5e0_rt*rho*(u_x**2+u_y**2+u_z**2) + 0.5e0_rt * (B_x**2 + B_y**2 + B_z**2)
+           state(i,j,k,UEDEN) = rhoe + 0.5e0_rt*rho*(u_x**2+u_y**2+u_z**2) 
            state(i,j,k,UEINT) = rhoe
            state(i,j,k,UTEMP) = T
 
