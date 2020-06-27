@@ -64,6 +64,7 @@ constexpr int Shock = USHK;
 using std::istream;
 using std::ostream;
 
+#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION

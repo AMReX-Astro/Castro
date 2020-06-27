@@ -3619,9 +3619,11 @@ Castro::computeTemp(
       });
 
       if (clamp_ambient_temp == 1) {
-#pragma gpu box(bx)
-          ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(u_fab));
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          {
+              ca_clamp_temp(i, j, k, AMREX_ARR4_TO_FORTRAN_ANYD(u));
+          });
       }
 
   }
