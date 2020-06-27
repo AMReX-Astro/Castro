@@ -3168,8 +3168,8 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 
     BL_PROFILE("Castro::apply_tagging_func()");
 
-    const Real* dx        = geom.CellSize();
-    const Real* prob_lo   = geom.ProbLo();
+    const auto dx     = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     auto mf = derive(err_list_names[j], time, err_list_ng[j]);
 
@@ -3178,87 +3178,100 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
+    for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
-        {
-            // FABs
-            FArrayBox&  datfab  = (*mf)[mfi];
-            TagBox&     tagfab  = tags[mfi];
+        const Box& bx = mfi.tilebox();
 
-            // tile box
-            const Box&  bx      = mfi.validbox();
+        auto datfab = (*mf).array(mfi);
+        auto tagfab = tags.array(mfi);
 
-            const int*  lo      = bx.loVect();
-            const int*  hi      = bx.hiVect();
-            //
-            const int   ncomp   = datfab.nComp();
+        const int ncomp = datfab.nComp();
 
-            const int8_t tagval   = (int8_t) TagBox::SET;
-            const int8_t clearval = (int8_t) TagBox::CLEAR;
+        const int8_t tagval   = (int8_t) TagBox::SET;
+        const int8_t clearval = (int8_t) TagBox::CLEAR;
 
-            if (err_list_names[j] == "density") {
-#pragma gpu box(bx)
-                ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+        if (err_list_names[j] == "density") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_denerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                             tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "Temp") {
-#pragma gpu box(bx)
-                ca_temperror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+            });
+        }
+        else if (err_list_names[j] == "Temp") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_temperror(i, j, k,
+                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                              tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "pressure") {
-#pragma gpu box(bx)
-                ca_presserror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                              BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+            });
+        }
+        else if (err_list_names[j] == "pressure") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {                
+                ca_presserror(i, j, k,
+                              (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                              AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                              AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                               tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
-#pragma gpu box(bx)
-                ca_velerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+            });
+        }
+        else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_velerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                             tagval, clearval, time, level);
-            }
+            });
+        }
 #ifdef REACTIONS
-            else if (err_list_names[j] == "t_sound_t_enuc") {
-#pragma gpu box(bx)
-                ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+        else if (err_list_names[j] == "t_sound_t_enuc") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_nucerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                             tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "enuc") {
-#pragma gpu box(bx)
-                ca_enucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+            });
+        }
+        else if (err_list_names[j] == "enuc") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_enucerror(i, j, k,
+                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                              tagval, clearval, time, level);
-            }
+            });
+        }
 #endif
 #ifdef RADIATION
-            else if (err_list_names[j] == "rad") {
-#pragma gpu box(bx)
-                ca_raderror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+        else if (err_list_names[j] == "rad") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_raderror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
                             tagval, clearval, time, level);
-            }
-#endif
+            });
         }
+#endif
     }
-
 }
 
 
