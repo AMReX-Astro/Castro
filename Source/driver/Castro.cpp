@@ -995,7 +995,7 @@ Castro::initData ()
       add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
       
       //check divB
-      check_div_B(Bx_new, By_new, Bz_new, cur_time, S_new);    
+      check_div_B(Bx_new, By_new, Bz_new, S_new);    
 
 #endif
 
@@ -3495,26 +3495,13 @@ void
 Castro::check_div_B( MultiFab& Bx,
                      MultiFab& By, 
                      MultiFab& Bz,
-                     Real time, MultiFab& State)
+                     MultiFab& State)
 {
 
-  //we need a ghost cell
-  MultiFab Bx_tmp;
-  MultiFab By_tmp;
-  MultiFab Bz_tmp;
-
-  Bx_tmp.define(Bx.boxArray(), Bx.DistributionMap(), 1, 1);
-  By_tmp.define(By.boxArray(), By.DistributionMap(), 1, 1);
-  Bz_tmp.define(Bz.boxArray(), Bz.DistributionMap(), 1, 1);
-      
-  FillPatch(*this, Bx_tmp, 1, time, Mag_Type_x, 0, 1);
-  FillPatch(*this, By_tmp, 1, time, Mag_Type_y, 0, 1);
-  FillPatch(*this, Bz_tmp, 1, time, Mag_Type_z, 0, 1);
-
-
+ 
 
   ReduceOps<ReduceOpSum> reduce_op;
-  ReduceData<Real> reduce_data(reduce_op);
+  ReduceData<int> reduce_data(reduce_op);
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
            
@@ -3524,32 +3511,39 @@ Castro::check_div_B( MultiFab& Bx,
   for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
   {
       const Box& box     = mfi.tilebox();
-      auto Bx_arr = Bx_tmp.array(mfi);
-      auto By_arr = By_tmp.array(mfi);
-      auto Bz_arr = Bz_tmp.array(mfi);
+      auto Bx_arr = Bx.array(mfi);
+      auto By_arr = By.array(mfi);
+      auto Bz_arr = Bz.array(mfi);
 
       const auto dx = geom.CellSizeArray();
 
       reduce_op.eval(box, reduce_data,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
       {
+          
+          Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
+                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
+                      (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
 
-          //To compute the derivatives, lets approximate dB/dx = (Bxcc_i+1,j,k - Bxcc_i-1,j,k)/2dx 
-          //To write the cell center in terms of face center we do Bxcc_i,j,k= (Bx_i,j,k + Bx_i+1,j,k)/2
-          //Then dB/dx = [(Bx_i+1,j,k+ Bx_i+2,j,k)/2 -(Bx_i-1,j,k+Bx_i,j,k)/2]/2dx
-          //do the analogous for y and z  
-          Real divB = 0.25_rt * (Bx_arr(i+2,j,k)+Bx_arr(i+1,j,k) - Bx_arr(i,j,k)-Bx_arr(i-1,j,k))/dx[0] +
-                      0.25_rt * (By_arr(i,j+2,k)+By_arr(i,j+1,k) - By_arr(i,j,k)-By_arr(i,j-1,k))/dx[1] + 
-                      0.25_rt * (Bz_arr(i,j,k+2)+Bz_arr(i,j,k+1) - Bz_arr(i,j,k)-Bz_arr(i,j,k-1))/dx[2];
+          Real magB = std::sqrt(Bx_arr(i,j,k) * Bx_arr(i,j,k) + 
+                                By_arr(i,j,k) * By_arr(i,j,k) +
+                                Bz_arr(i,j,k) * Bz_arr(i,j,k));
+                  
+  
+          int fail_divB = 0;
 
+          if (std::abs(divB) > 1.0e-10*magB){
+             fail_divB = 1; 
+          }
+          
 
-          return {divB}; 
+          return {fail_divB}; 
       });
 
       ReduceTuple hv = reduce_data.value();
-      Real div_B = amrex::get<0>(hv);
+      int init_fail_divB = amrex::get<0>(hv);
 
-      if (std::abs(div_B) >= 1.0e-13) {
+      if (init_fail_divB != 0) {
          amrex::Error("Error: initial data has divergence of B not zero");  
       } 
 
