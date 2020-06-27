@@ -1,0 +1,16 @@
+# name               data type             default                  in namelist?           size
+
+
+p_0                    real                 1.e0_rt                      y
+
+rho_0                  real                 1.e0_rt                      y
+
+u_x                    real                 2.e0_rt                      y
+
+u_y                    real                 1.e0_rt                      y 
+
+rhoe_0                 real                 1.e0_rt                      y
+
+T_0                    real                 1.e0_rt                      y
+
+B_0                    real                 0.0_rt                       y
