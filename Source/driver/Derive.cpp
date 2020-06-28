@@ -1251,9 +1251,17 @@ extern "C"
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
       Real dBx = dat(i+1,j,k,0) - dat(i,j,k,0);
+      der(i,j,k,0) = dBx / dx[0];
+
+#if AMREX_SPACEDIM >= 2
       Real dBy = dat(i,j+1,k,1) - dat(i,j,k,1);
+      der(i,j,k,0) += dBy / dx[1];
+#endif
+
+#if AMREX_SPACEDIM == 3
       Real dBz = dat(i,j,k+1,2) - dat(i,j,k,2);
-      der(i,j,k,0) = dBx/dx[0] + dBy/dx[1] + dBz/dx[2];
+      der(i,j,k,0) += dBz / dx[2];
+#endif
     });
   }
 

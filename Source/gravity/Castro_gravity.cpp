@@ -394,7 +394,13 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
     if (!do_grav) return;
 
-    const auto dx = geom.CellSizeArray();
+    GpuArray<Real, 3> dx;
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+        dx[i] = geom.CellSizeArray()[i];
+    }
+    for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+        dx[i] = 0.0_rt;
+    }
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();

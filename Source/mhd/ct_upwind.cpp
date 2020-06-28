@@ -27,7 +27,13 @@ Castro::corner_couple(const Box& bx,
   // the normal direction (for the interface states) is d1
   // the transverse direction (for the flux difference) is d2
 
-  const auto dx = geom.CellSizeArray();
+  GpuArray<Real, 3> dx;
+  for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      dx[i] = geom.CellSizeArray()[i];
+  }
+  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+      dx[i] = 0.0_rt;
+  }
 
   // cl and cr are the offsets to the indices for the conserved state fluxes
   // they will be offset in d2 to capture the flux difference
@@ -215,7 +221,13 @@ Castro::half_step(const Box& bx,
 
   // Final transverse flux corrections to the conservative state
 
-  const auto dx = geom.CellSizeArray();
+  GpuArray<Real, 3> dx;
+  for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+      dx[i] = geom.CellSizeArray()[i];
+  }
+  for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+      dx[i] = 0.0_rt;
+  }
 
   // c1l, c1r are for indexing flxd1 offsets, c2l, c2r are for flxd2
 
