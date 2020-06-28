@@ -859,6 +859,9 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qint(i,j,k,QFS+n);
     }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qint(i,j,k,QFX+n);
+    }
 
     eos(eos_input_re, eos_state);
     conductivity(eos_state);

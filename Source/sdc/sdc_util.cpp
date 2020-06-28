@@ -418,7 +418,7 @@ void Castro::ca_store_reaction_state(const Box& bx,
         R_store(i,j,k,n) = R_old(i,j,k,UFS+n);
     });
 
-#if naux > 0
+#if NAUX_NET > 0
     AMREX_PARALLEL_FOR_4D(bx, NumAux, i, j, k, n,
     {
         R_store(i,j,k,n) = R_old(i,j,k,UFX+n);

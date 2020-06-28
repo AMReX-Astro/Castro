@@ -48,6 +48,9 @@ qflux(Real* qflx, Real* flx, Real* q_zone) {
   for (int n = 0; n < NumSpec; n++) {
     eos_state.xn[n] = q_zone[QFS+n];
   }
+  for (int n = 0; n < NumAux; n++) {
+    eos_state.aux[n] = q_zone[QFX+n];
+  }
 
   eos(eos_input_rp, eos_state);
 
@@ -126,6 +129,9 @@ ConsToPrim(Real* q_zone, Real* U_zone) {
   for (int n = 0; n < NumSpec; n++) {
     eos_state.xn[n] = q_zone[QFS+n];
   }
+  for (int n = 0; n < NumAux; n++) {
+    eos_state.aux[n] = q_zone[QFX+n];
+  }
   eos_state.T = 100.0_rt; // initial guess
 
   eos(eos_input_re, eos_state);
@@ -158,6 +164,9 @@ PToC(Array1D<Real, 0, NQ-1>& q,
   eos_state.p = q(QPRES);
   for (int n = 0; n < NumSpec; n++) {
     eos_state.xn[n] = q(QFS+n);
+  }
+  for (int n = 0; n < NumAux; n++) {
+    eos_state.aux[n] = q(QFX+n);
   }
   eos_state.T = 100.0;  // dummy initial guess
 
