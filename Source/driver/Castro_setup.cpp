@@ -683,7 +683,7 @@ Castro::variableSetUp ()
       name_react = "rho_omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
     }
-#if naux > 0
+#if NAUX_NET > 0
   std::string name_aux;
   for (int i = 0; i < NumAux; ++i) {
       set_scalar_bc(bc,phys_bc);

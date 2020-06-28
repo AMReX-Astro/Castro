@@ -7,14 +7,6 @@ extern "C"
 {
 #endif
 
-  void ca_compute_radial_mass
-    (const int* lo, const int* hi, 
-     const amrex::Real* dx, amrex::Real dr,
-     const BL_FORT_FAB_ARG_3D(S), 
-     amrex::Real* avgmass, amrex::Real* avgvol, 
-     const amrex::Real* problo, int numpts_1d, 
-     int drdxfac, int level); 
-
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,
      amrex::Real* radial_grav,

@@ -16,7 +16,7 @@ contains
     use network           , only : nspec, naux
     use meth_params_module, only : NVAR, URHO, UEDEN, UEINT, UTEMP, &
                                    UFS
-#if naux > 0
+#if NAUX_NET > 0
     use meth_params_module, only : UFX
 #endif
 #ifdef SHOCK_VAR
@@ -103,7 +103,7 @@ contains
                 burn_state_in % xn(n) = state(i,j,k,UFS+n-1) * rhoInv
              enddo
 
-#if naux > 0
+#if NAUX_NET > 0
              do n = 1, naux
                 burn_state_in % aux(n) = state(i,j,k,UFX+n-1) * rhoInv
              enddo
@@ -173,7 +173,7 @@ contains
                    do n = 1, nspec
                       reactions(i,j,k,n) = state(i,j,k,URHO) * (burn_state_out % xn(n) - burn_state_in % xn(n)) / dt_react
                    end do
-#if naux > 0
+#if NAUX_NET > 0
                    do n = 1, naux
                       reactions(i,j,k,n+nspec) = state(i,j,k,URHO) * (burn_state_out % aux(n) - burn_state_in % aux(n)) / dt_react
                    end do

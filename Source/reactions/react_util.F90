@@ -101,7 +101,7 @@ contains
 
     burn_state % xn(1:nspec_evolve) = max(min(burn_state % xn(1:nspec_evolve), ONE), SMALL_X_SAFE) 
 
-#if naux > 0
+#if NAUX_NET > 0
     do n = 1, naux
        burn_state % aux(n) = state(UFX+n-1) * rhoInv
     enddo
