@@ -598,7 +598,7 @@ associated production rate, <span class="math notranslate nohighlight">\(\dot\om
 user-specified source terms. <span class="math notranslate nohighlight">\(A_k\)</span> is an advected quantity,
 i.e., a tracer. We also carry around auxiliary variables, <span class="math notranslate nohighlight">\(Y_k\)</span>,
 which have a user-defined evolution equation, but by default are
-treated as advected quantities.</p>
+treated as advected quantities.  These are meant to be defined in the network.</p>
 <p>In the code we also carry around <span class="math notranslate nohighlight">\(T\)</span> and <span class="math notranslate nohighlight">\(\rho e\)</span> in the conservative
 state vector even though they are derived from the other conserved
 quantities. The ordering of the elements within <span class="math notranslate nohighlight">\(\Ub\)</span> is defined
@@ -621,7 +621,9 @@ directory), which range from <code class="docutils literal notranslate"><span cl
 <li><p>There are <code class="docutils literal notranslate"><span class="pre">NAUX</span></code> auxiliary variables, from <code class="docutils literal notranslate"><span class="pre">UFX:UFX+naux-1</span></code>. The
 auxiliary variables are passed into the equation of state routines
 along with the species. An example of an auxiliary variable is the
-electron fraction, <span class="math notranslate nohighlight">\(Y_e\)</span>, in core collapse simulations.</p></li>
+electron fraction, <span class="math notranslate nohighlight">\(Y_e\)</span>, in core collapse simulations.  The
+number and names of the auxiliary variables are defined in the
+network.</p></li>
 </ul>
 </div>
 <div class="section" id="source-terms">
