@@ -1404,8 +1404,16 @@ Gravity::compute_radial_mass(const Box& bx,
 {
     const Geometry& geom = parent->Geom(level);
 
-    const auto dx     = geom.CellSizeArray();
-    const auto problo = geom.ProbLoArray();
+    GpuArray<Real, 3> dx, problo, center;
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+        dx[i] = geom.CellSizeArray()[i];
+        problo[i] = geom.ProbLoArray()[i];
+    }
+    for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+        dx[i] = 0.0_rt;
+        problo[i] = 0.0_rt;
+    }
+    ca_get_center(center.begin());
 
     Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
     Real drinv = 1.0_rt / dr;
@@ -1413,9 +1421,6 @@ Gravity::compute_radial_mass(const Box& bx,
     const int coord_type = geom.Coord();
 
     AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     Real octant_factor = 1.0_rt;
 
@@ -1442,16 +1447,8 @@ Gravity::compute_radial_mass(const Box& bx,
     Real fac = static_cast<Real>(gravity::drdxfac);
 
     Real dx_frac = dx[0] / fac;
-
-    Real dy_frac = dx[1];
-    if (AMREX_SPACEDIM >= 2) {
-        dy_frac /= fac;
-    }
-
-    Real dz_frac = dx[2];
-    if (AMREX_SPACEDIM == 3) {
-        dz_frac /= fac;
-    }
+    Real dy_frac = dx[1] / fac;
+    Real dz_frac = dx[2] / fac;
 
     Real* const radial_mass_ptr = radial_mass.dataPtr();
     Real* const radial_vol_ptr = radial_vol.dataPtr();
@@ -1459,7 +1456,7 @@ Gravity::compute_radial_mass(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
-        Real xc  = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
         Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - center[0];
 
         Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
