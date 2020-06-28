@@ -428,6 +428,13 @@ contains
 
              else
 
+                ! We may be coming in here with a masked out zone (in a zone on a coarse
+                ! level underlying a fine level). We don't want to be calling the EOS in
+                ! this case, so we'll skip these masked out zones (which will have rho
+                ! exactly equal to zero).
+
+                if (var(i,j,k,URHO) == 0.0_rt) cycle
+
                 rhoInv = ONE / var(i,j,k,URHO)
 
                 eos_state % rho = var(i,j,k,URHO)
