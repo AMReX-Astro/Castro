@@ -679,6 +679,24 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii">
+<span id="_CPPv3N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii"></span><span id="_CPPv2N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii"></span><span id="Gravity::compute_radial_mass__amrex::BoxCR.amrex::Array4:amrex::RealC:C.RealVectorR.RealVectorR.i.i"></span><span class="target" id="classGravity_1ac023ae440222ae86cb209ed6e20aed5f"></span>void <code class="sig-name descname">compute_radial_mass</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> <em>u</em>, <a class="reference internal" href="../file/Gravity_8H.html#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_mass</em>, <a class="reference internal" href="../file/Gravity_8H.html#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_vol</em>, int <em>n1d</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Integrate radially outward to find radial mass distribution</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: Box </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: Density (RHS of Poisson’s equation) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radial_mass</span></code>: Radially integrated mass </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radial_vol</span></code>: Radially integrated volume </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n1d</span></code>: Number of radial points in the domain </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi">
 <span id="_CPPv3N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Gravity::make_radial_phi__i.amrex::MultiFabCR.amrex::MultiFabR.i"></span><span class="target" id="classGravity_1a2a0dcf24d4098beb82ca2f81402b83cd"></span>void <code class="sig-name descname">make_radial_phi</code><span class="sig-paren">(</span>int <em>level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Rhs</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, int <em>fill_interior</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Integrate radially outward to find radial gravitational potential</p>
