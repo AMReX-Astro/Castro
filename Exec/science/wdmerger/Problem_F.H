@@ -69,9 +69,6 @@ extern "C"
 
   void get_omega_vec(const amrex::Real* omega);
 
-  void get_lagrange_points(const amrex::Real mass_1, const amrex::Real mass_2,
-	                   const amrex::Real* com_1, const amrex::Real* com_2);
-
   void get_critical_roche_potential(const int* lo, const int* hi,
                                     BL_FORT_FAB_ARG_3D(phieff),
 				    amrex::Real* potential);
@@ -80,12 +77,9 @@ extern "C"
 				   const int* lo, const int* hi,
 				   const amrex::Real* time);
 
-  void get_relaxation_cutoff_time(amrex::Real* relaxation_cutoff_time);
+  void get_relaxation_density_cutoff(amrex::Real* relaxation_density_cutoff);
 
-  void check_relaxation(const int* lo, const int* hi,
-                        BL_FORT_FAB_ARG_3D(state),
-			BL_FORT_FAB_ARG_3D(phieff),
-			const amrex::Real potential, amrex::Real* is_done);
+  void get_relaxation_cutoff_time(amrex::Real* relaxation_cutoff_time);
 
   void set_relaxation_damping_factor(const amrex::Real factor);
 
