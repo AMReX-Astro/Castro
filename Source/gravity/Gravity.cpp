@@ -1670,12 +1670,12 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         {
 #ifdef _OPENMP
             int tid = omp_get_thread_num();
-            priv_qL0[tid]->setVal(0.0);
-            priv_qLC[tid]->setVal(0.0);
-            priv_qLS[tid]->setVal(0.0);
-            priv_qU0[tid]->setVal(0.0);
-            priv_qUC[tid]->setVal(0.0);
-            priv_qUS[tid]->setVal(0.0);
+            priv_qL0[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qLC[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qLS[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qU0[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qUC[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qUS[tid]->setVal<RunOn::Gpu>(0.0);
 #endif
             for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
@@ -1981,12 +1981,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         {
 #ifdef _OPENMP
             int tid = omp_get_thread_num();
-            priv_bcXYLo[tid]->setVal(0.0);
-            priv_bcXYHi[tid]->setVal(0.0);
-            priv_bcXZLo[tid]->setVal(0.0);
-            priv_bcXZHi[tid]->setVal(0.0);
-            priv_bcYZLo[tid]->setVal(0.0);
-            priv_bcYZHi[tid]->setVal(0.0);
+            priv_bcXYLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXYHi[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXZLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXZHi[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcYZLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcYZHi[tid]->setVal<RunOn::Gpu>(0.0);
 #endif
             for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
