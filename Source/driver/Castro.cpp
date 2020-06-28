@@ -993,6 +993,10 @@ Castro::initData ()
 #ifdef MHD
       //correct energy density with the magnetic field contribution 
       add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
+      
+      //check divB
+      check_div_B(Bx_new, By_new, Bz_new, S_new);    
+
 #endif
 
        // it is not a requirement that the problem setup defines the
@@ -3496,6 +3500,71 @@ Castro::add_magnetic_e( MultiFab& Bx,
       });
 
   }
+
+
+}
+
+void
+Castro::check_div_B( MultiFab& Bx,
+                     MultiFab& By, 
+                     MultiFab& Bz,
+                     MultiFab& State)
+{
+
+ 
+
+  ReduceOps<ReduceOpSum> reduce_op;
+  ReduceData<int> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+           
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  {
+      const Box& box     = mfi.tilebox();
+      auto Bx_arr = Bx.array(mfi);
+      auto By_arr = By.array(mfi);
+      auto Bz_arr = Bz.array(mfi);
+
+      const auto dx = geom.CellSizeArray();
+
+      reduce_op.eval(box, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          
+          Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
+                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
+                      (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
+        
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          Real magB = std::sqrt(bx_cell_c * bx_cell_c + 
+                                by_cell_c * by_cell_c +
+                                bz_cell_c * bz_cell_c);
+                  
+  
+          int fail_divB = 0;
+
+          if (std::abs(divB) > 1.0e-10*magB){
+             fail_divB = 1; 
+          }
+          
+
+          return {fail_divB}; 
+      });
+
+  }
+
+  ReduceTuple hv = reduce_data.value();
+  int init_fail_divB = amrex::get<0>(hv);
+
+  if (init_fail_divB != 0) {
+     amrex::Error("Error: initial data has divergence of B not zero");  
+  } 
 
 
 }
