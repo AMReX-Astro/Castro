@@ -3537,10 +3537,14 @@ Castro::check_div_B( MultiFab& Bx,
           Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
                       (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
                       (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
+        
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
 
-          Real magB = std::sqrt(Bx_arr(i,j,k) * Bx_arr(i,j,k) + 
-                                By_arr(i,j,k) * By_arr(i,j,k) +
-                                Bz_arr(i,j,k) * Bz_arr(i,j,k));
+          Real magB = std::sqrt(bx_cell_c * bx_cell_c + 
+                                by_cell_c * by_cell_c +
+                                bz_cell_c * bz_cell_c);
                   
   
           int fail_divB = 0;
@@ -3553,14 +3557,14 @@ Castro::check_div_B( MultiFab& Bx,
           return {fail_divB}; 
       });
 
-      ReduceTuple hv = reduce_data.value();
-      int init_fail_divB = amrex::get<0>(hv);
-
-      if (init_fail_divB != 0) {
-         amrex::Error("Error: initial data has divergence of B not zero");  
-      } 
-
   }
+
+  ReduceTuple hv = reduce_data.value();
+  int init_fail_divB = amrex::get<0>(hv);
+
+  if (init_fail_divB != 0) {
+     amrex::Error("Error: initial data has divergence of B not zero");  
+  } 
 
 
 }
