@@ -2013,13 +2013,11 @@ Castro::post_restart ()
             {
                 if (gravity->NoComposite() != 1)
                 {
-                   int use_previous_phi = 1;
-
                    // Update the maximum density, used in setting the solver tolerance.
 
                    gravity->update_max_rhs();
 
-                   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
+                   gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
                 }
@@ -2218,15 +2216,13 @@ Castro::post_regrid (int lbase,
             if ( (level == lbase) && cur_time > 0.)
             {
                 if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
-                    int use_previous_phi = 1;
-
                     // Update the maximum density, used in setting the solver tolerance.
 
                     if (level == 0) {
                       gravity->update_max_rhs();
                     }
 
-                    gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
+                    gravity->multilevel_solve_for_new_phi(level, new_finest);
 
                 }
 
