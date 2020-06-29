@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Build the documentation from the MASTER_BRANCH or DEV_BRANCH
+# Build the documentation from the MAIN_BRANCH or DEV_BRANCH
 # and push it to TARGET_BRANCH.
-MASTER_BRANCH="master"
+MAIN_BRANCH="main"
 DEV_BRANCH="development"
 TARGET_BRANCH="gh-pages"
 
 # Pull requests and commits to other branches shouldn't try to deploy
-if [ "$TRAVIS_PULL_REQUEST" != "false" ] || { [ "$TRAVIS_BRANCH" != "$MASTER_BRANCH" ] && [ "$TRAVIS_BRANCH" != "$DEV_BRANCH" ]; }; then
-    echo "Skipping deploy on $TRAVIS_BRANCH. We only deploy docs automatically from development and master."
+if [ "$TRAVIS_PULL_REQUEST" != "false" ] || { [ "$TRAVIS_BRANCH" != "$MAIN_BRANCH" ] && [ "$TRAVIS_BRANCH" != "$DEV_BRANCH" ]; }; then
+    echo "Skipping deploy on $TRAVIS_BRANCH. We only deploy docs automatically from development and main."
     exit 0
 fi
 
@@ -44,10 +44,10 @@ cd out
 git checkout $TARGET_BRANCH || git checkout --orphan $TARGET_BRANCH
 cd ..
 
-# Clean out existing contents. If it's the master branch, then 
+# Clean out existing contents. If it's the main branch, then 
 # move dev docs to a temporary directory then move back again after 
 # everything is deleted
-if [ "$TRAVIS_BRANCH" = "$MASTER_BRANCH" ]; then
+if [ "$TRAVIS_BRANCH" = "$MAIN_BRANCH" ]; then
     mkdir tmp
     mv -r out/docs/dev tmp || true
     rm -rf out/docs/**/* || exit 0
@@ -72,7 +72,7 @@ make html
 cd ../
 
 mkdir -p out/docs/
-if [ "$TRAVIS_BRANCH" = "$MASTER_BRANCH" ]; then
+if [ "$TRAVIS_BRANCH" = "$MAIN_BRANCH" ]; then
     mv Docs/build/html/* out/docs
 else 
     mkdir -p out/docs/dev/
