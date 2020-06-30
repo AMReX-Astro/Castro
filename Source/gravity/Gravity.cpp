@@ -1396,9 +1396,7 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
         Real* const radial_grav_ptr = radial_grav.dataPtr();
 
         // Note that we are interpolating onto the entire range of grav,
-        // including the ghost cells. Taking the absolute value of r ensures
-        // that we will get the correct behavior even for the ghost zones with
-        // negative indices, which have a reflecting boundary condition.
+        // including the ghost cells.
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
