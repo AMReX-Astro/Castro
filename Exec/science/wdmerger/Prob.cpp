@@ -8,6 +8,7 @@
 #include "AMReX_ParmParse.H"
 #include "AMReX_buildInfo.H"
 
+#include <wdmerger_util.H>
 #include <binary.H>
 
 #include <fstream>
@@ -440,7 +441,13 @@ Castro::gwstrain (Real time,
 
     BL_PROFILE("Castro::gwstrain()");
 
-    const Real* dx = geom.CellSize();
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
 
     auto mfrho   = derive("density",time,0);
     auto mfxmom  = derive("xmom",time,0);
@@ -501,27 +508,131 @@ Castro::gwstrain (Real time,
 #endif
 	for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-	    const Box& box  = mfi.tilebox();
-	    const int* lo   = box.loVect();
-	    const int* hi   = box.hiVect();
+	    const Box& bx = mfi.tilebox();
 
-#pragma gpu box(box)
-	    quadrupole_tensor_double_dot(BL_TO_FORTRAN_ANYD((*mfrho)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfxmom)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfymom)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfzmom)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfgravx)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfgravy)[mfi]),
-					 BL_TO_FORTRAN_ANYD((*mfgravz)[mfi]),
-					 BL_TO_FORTRAN_ANYD(volume[mfi]),
-					 AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                                         AMREX_REAL_ANYD(dx), time,
+            auto rho = (*mfrho).array(mfi);
+            auto vol = volume.array(mfi);
+            auto xmom = (*mfxmom).array(mfi);
+            auto ymom = (*mfymom).array(mfi);
+            auto zmom = (*mfzmom).array(mfi);
+            auto gravx = (*mfgravx).array(mfi);
+            auto gravy = (*mfgravy).array(mfi);
+            auto gravz = (*mfgravz).array(mfi);
+
+            // Calculate the second time derivative of the quadrupole moment tensor,
+            // according to the formula in Equation 6.5 of Blanchet, Damour and Schafer 1990.
+            // It involves integrating the mass distribution and then taking the symmetric 
+            // trace-free part of the tensor. We can do the latter operation here since the 
+            // integral is a linear operator and each part of the domain contributes independently.
+
 #ifdef _OPENMP
-					 priv_Qtt[tid]->dataPtr()
+            auto Qtt_arr = priv_Qtt[tid]->array();
 #else
-	                                 Qtt.dataPtr()
+            auto Qtt_arr = Qtt.array();
 #endif
-                                         );
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Array2D<Real, 0, 2, 0, 2> dQtt{};
+
+                GpuArray<Real, 3> r;
+                position(i, j, k, geomdata, r);
+
+                for (int n = 0; n < 3; ++n) {
+                    r[n] -= center[n];
+                }
+
+                Real rhoInv;
+                if (rho(i,j,k) > 0.0_rt) {
+                    rhoInv = 1.0_rt / rho(i,j,k);
+                } else {
+                    rhoInv = 0.0_rt;
+                }
+
+                // Account for rotation, if there is any. These will leave
+                // r and vel and changed, if not.
+
+                GpuArray<Real, 3> pos = inertial_rotation(r, omega, time);
+
+                // For constructing the velocity in the inertial frame, we need to
+                // account for the fact that we have rotated the system already, so that 
+                // the r in omega x r is actually the position in the inertial frame, and 
+                // not the usual position in the rotating frame. It has to be on physical 
+                // grounds, because for binary orbits where the stars aren't moving, that 
+                // r never changes, and so the contribution from rotation would never change.
+                // But it must, since the motion vector of the stars changes in the inertial 
+                // frame depending on where we are in the orbit.
+
+                GpuArray<Real, 3> vel;
+                vel[0] = xmom(i,j,k) * rhoInv;
+                vel[1] = ymom(i,j,k) * rhoInv;
+                vel[2] = zmom(i,j,k) * rhoInv;
+
+                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel, omega);
+
+                GpuArray<Real, 3> g;
+                g[0] = gravx(i,j,k);
+                g[1] = gravy(i,j,k);
+                g[2] = gravz(i,j,k);
+
+                // We need to rotate the gravitational field to be consistent with the rotated position.
+
+                GpuArray<Real, 3> inertial_g = inertial_rotation(g, omega, time);
+
+                // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
+
+                Real dM = 2.0_rt * rho(i,j,k) * vol(i,j,k);
+
+                if (AMREX_SPACEDIM == 3) {
+
+                    for (int m = 0; m < 3; ++m) {
+                        for (int l = 0; l < 3; ++l) {
+                            dQtt(l,m) += dM * (inertial_vel[l] * inertial_vel[m] + pos[l] * inertial_g[m]);
+                        }
+                    }
+
+                } else {
+
+                    // For axisymmetric coordinates we need to be careful here.
+                    // We want to calculate the quadrupole tensor in terms of
+                    // Cartesian coordinates but our coordinates are cylindrical (R, z).
+                    // What we can do is to first express the Cartesian coordinates
+                    // as (x, y, z) = (R cos(phi), R sin(phi), z). Then we can integrate
+                    // out the phi coordinate for each component. The off-diagonal components
+                    // all then vanish automatically. The on-diagonal components xx and yy
+                    // pick up a factor of cos**2(phi) which when integrated from (0, 2*pi)
+                    // yields pi. Note that we're going to choose that the cylindrical z axis
+                    // coincides with the Cartesian x-axis, which is our default choice.
+
+                    // We also need to then divide by the volume by 2*pi since
+                    // it has already been integrated out.
+
+                    dM /= (2.0_rt * M_PI);
+
+                    dQtt(0,0) += dM * (2.0_rt * M_PI) * (inertial_vel[1] * inertial_vel[1] + pos[1] * inertial_g[1]);
+                    dQtt(1,1) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+                    dQtt(2,2) += dM * M_PI * (inertial_vel[0] * inertial_vel[0] + pos[0] * g[0]);
+
+                }
+
+                // Now take the symmetric trace-free part of the quadrupole moment.
+                // The operator is defined in Equation 6.7 of Blanchet et al. (1990):
+                // STF(A^{ij}) = 1/2 A^{ij} + 1/2 A^{ji} - 1/3 delta^{ij} sum_{k} A^{kk}.
+
+                for (int l = 0; l < 3; ++l) {
+                    for (int m = 0; m < 3; ++m) {
+
+                        Real dQ = 0.5_rt * dQtt(l,m) + 0.5_rt * dQtt(m,l);
+                        if (l == m) {
+                            dQ -= (1.0_rt / 3.0_rt) * dQtt(m,m);
+                        }
+
+                        Gpu::Atomic::Add(&Qtt_arr(l,m,0), dQ);
+
+                    }
+                }
+            });
         }
     }
 
