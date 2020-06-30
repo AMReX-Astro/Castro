@@ -1377,21 +1377,107 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     int n1d = radial_grav.size();
 
     const Geometry& geom = parent->Geom(level);
-    const Real* dx = geom.CellSize();
-    const Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
+    const auto dx = geom.CellSizeArray();
+    const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
+
+    const auto problo = geom.ProbLoArray();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.growntilebox();
-       ca_put_radial_grav(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                          ZFILL(dx), dr,
-                          BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                          radial_grav.dataPtr(),
-                          ZFILL(geom.ProbLo()),
-                          n1d, level);
+        const Box& bx = mfi.growntilebox();
+
+        auto grav = grav_vector.array(mfi);
+        Real* const radial_grav_ptr = radial_grav.dataPtr();
+
+        // Note that we are interpolating onto the entire range of grav,
+        // including the ghost cells.
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            GpuArray<Real, 3> loc;
+
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+            loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+            loc[2] = 0.0_rt;
+#endif
+
+            Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
+
+            int index = static_cast<int>(r / dr);
+
+            Real cen = (static_cast<Real>(index) + 0.5_rt) * dr;
+            Real xi = r - cen;
+
+            Real mag_grav;
+
+            if (index == 0) {
+
+                // Linear interpolation or extrapolation
+                Real slope = (radial_grav_ptr[index+1] - radial_grav_ptr[index]) / dr;
+                mag_grav = radial_grav_ptr[index] + slope * xi;
+
+            } else if (index == n1d-1) {
+
+                // Linear interpolation or extrapolation
+                Real slope = (radial_grav_ptr[index] - radial_grav_ptr[index-1]) / dr;
+                mag_grav = radial_grav_ptr[index] + slope * xi;
+
+            } else if (index > n1d-1) {
+
+#ifndef AMREX_USE_GPU
+                if (level == 0) {
+                    std::cout << "PUT_RADIAL_GRAV: INDEX TOO BIG " << index << " > " << n1d-1 << "\n";
+                    std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
+                    std::cout << "R / DR IS " << r << " " << dr << "\n";
+                    amrex::Abort("Error:: Gravity.cpp :: interpolate_monopole_grav");
+                } else {
+                    // NOTE: we don't do anything to this point if it's outside the
+                    //       radial grid and level > 0
+                }
+#endif
+
+            } else {
+
+                // Quadratic interpolation
+                Real ghi = radial_grav_ptr[index+1];
+                Real gmd = radial_grav_ptr[index  ];
+                Real glo = radial_grav_ptr[index-1];
+                mag_grav = ( ghi -   2.0_rt * gmd + glo) * xi * xi / (2.0_rt * dr * dr) +
+                           ( ghi                  - glo) * xi      / (2.0_rt * dr     ) +
+                           (-ghi + 26.e0_rt * gmd - glo) / 24.e0_rt;
+
+                Real minvar = amrex::min(gmd, amrex::min(glo, ghi));
+                Real maxvar = amrex::max(gmd, amrex::max(glo, ghi));
+                mag_grav = amrex::max(mag_grav, minvar);
+                mag_grav = amrex::min(mag_grav, maxvar);
+
+            }
+
+            if (index <= n1d-1) {
+
+                for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                    grav(i,j,k,n) = mag_grav * (loc[n] / r);
+                }
+
+            }
+
+        });
     }
 }
 
