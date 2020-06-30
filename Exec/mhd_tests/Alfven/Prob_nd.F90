@@ -81,9 +81,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
             pert = 1.0e-5_rt*sin(TWO*M_PI*(k_x*x + k_y*y))
 
             state(i,j,k,UMZ) = (u_z - pert) * rho_0
-            state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 * u_x**2+u_y**2+(u_z-pert)**2 &
-                                 + 0.5e0_rt * (B_x**2 + B_y**2 + pert**2)
-            state(i,j,k,UEINT) = rhoe_0 * rho_0
+            state(i,j,k,UEDEN) = rhoe_0 + 0.5e0_rt*rho_0 * u_x**2+u_y**2+(u_z-pert)**2 
+            state(i,j,k,UEINT) = rhoe_0 
             state(i,j,k,UTEMP) = T_0
 
             state(i,j,k,UFS:UFS-1+nspec) = 0.0e0_rt

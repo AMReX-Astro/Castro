@@ -131,166 +131,6 @@ contains
 
 
 
-  subroutine ca_compute_radial_mass(lo, hi, &
-                                    dx, dr, &
-                                    state, s_lo, s_hi, &
-                                    radial_mass, radial_vol, problo, &
-                                    n1d, drdxfac, level) &
-                                    bind(C, name="ca_compute_radial_mass")
-
-    use amrex_constants_module, only: ONE, HALF, FOUR3RD, TWO, M_PI, EIGHT
-    use prob_params_module, only: center, coord_type, dim, dg
-    use meth_params_module, only: NVAR, URHO
-    use amrex_fort_module, only: rt => amrex_real
-    use reduction_module, only: reduce_add
-#ifndef AMREX_USE_GPU
-    use castro_error_module, only: castro_error
-#endif
-
-    implicit none
-
-    integer , intent(in   ) :: lo(3), hi(3)
-    integer , intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(in   ) :: dx(3), problo(3)
-    real(rt), intent(inout) :: radial_mass(0:n1d-1)
-    real(rt), intent(inout) :: radial_vol (0:n1d-1)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ), value :: dr
-    integer , intent(in   ), value :: n1d, drdxfac, level
-
-    integer  :: i, j, k, index
-    integer  :: ii, jj, kk
-    real(rt) :: xc, yc, zc, r, rlo, rhi, xxsq, yysq, zzsq, octant_factor
-    real(rt) :: fac, xx, yy, zz, dx_frac, dy_frac, dz_frac
-    real(rt) :: vol_frac, drinv
-    real(rt) :: lo_i, lo_j, lo_k
-
-    !$gpu
-
-    octant_factor = ONE
-
-    if (coord_type == 0) then
-
-       if ((abs(center(1) - problo(1)) .lt. 1.e-2_rt * dx(1)) .and. &
-           (abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2)) .and. &
-           (abs(center(3) - problo(3)) .lt. 1.e-2_rt * dx(3))) then
-
-          octant_factor = EIGHT
-
-       end if
-
-    else if (coord_type == 1) then
-
-       if (abs(center(2) - problo(2)) .lt. 1.e-2_rt * dx(2)) then
-
-          octant_factor = TWO
-
-       end if
-
-    end if
-
-    drinv = ONE / dr
-
-    fac = dble(drdxfac)
-
-    dx_frac = dx(1) / fac
-
-    if (dim >= 2) then
-       dy_frac = dx(2) / fac
-    else
-       dy_frac = dx(2)
-    end if
-
-    if (dim == 3) then
-       dz_frac = dx(3) / fac
-    else
-       dz_frac = dx(3)
-    end if
-
-    do k = lo(3), hi(3)
-       zc = problo(3) + (dble(k) + HALF) * dx(3) - center(3)
-       lo_k = problo(3) + dble(k) * dx(3) - center(3)
-
-       do j = lo(2), hi(2)
-          yc = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
-          lo_j = problo(2) + dble(j) * dx(2) - center(2)
-
-          do i = lo(1), hi(1)
-             xc  = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-             lo_i = problo(1) + dble(i) * dx(1) - center(1)
-
-             r = sqrt(xc**2 + yc**2 + zc**2)
-             index = int(r * drinv)
-
-             if (index .gt. n1d - 1) then
-
-#ifndef AMREX_USE_GPU
-                if (level .eq. 0) then
-                   print *, '   '
-                   print *, '>>> Error: Gravity_nd::ca_compute_radial_mass ', i, j, k
-                   print *, '>>> ... index too big: ', index, ' > ', n1d-1
-                   print *, '>>> ... at (i,j,k)   : ', i, j, k
-                   call castro_error("Error:: Gravity_nd.F90 :: ca_compute_radial_mass")
-                end if
-#endif
-
-             else
-
-                do kk = 0, dg(3) * (drdxfac - 1)
-                   zz   = lo_k + (dble(kk) + HALF) * dz_frac
-                   zzsq = zz * zz
-
-                   do jj = 0, dg(2) * (drdxfac - 1)
-                      yy   = lo_j + (dble(jj) + HALF) * dy_frac
-                      yysq = yy * yy
-
-                      do ii = 0, drdxfac - 1
-                         xx    = lo_i + (dble(ii) + HALF) * dx_frac
-                         xxsq  = xx * xx
-
-                         r     = sqrt(xxsq + yysq + zzsq)
-                         index = int(r * drinv)
-
-                         if (coord_type == 0) then
-
-                            vol_frac = octant_factor * dx_frac * dy_frac * dz_frac
-
-                         else if (coord_type == 1) then
-
-                            vol_frac = TWO * M_PI * dx_frac * dy_frac * octant_factor * xx
-
-                         else if (coord_type == 2) then
-
-                            rlo = abs(lo_i + dble(ii  ) * dx_frac)
-                            rhi = abs(lo_i + dble(ii+1) * dx_frac)
-                            vol_frac = FOUR3RD * M_PI * (rhi**3 - rlo**3)
-
-#ifndef AMREX_USE_GPU
-                         else
-                            call castro_error("Unknown coord_type")
-#endif
-
-                         end if
-
-                         if (index .le. n1d - 1) then
-                            call reduce_add(radial_mass(index), vol_frac * state(i,j,k,URHO), .false.)
-                            call reduce_add(radial_vol(index), vol_frac, .false.)
-                         end if
-
-                      end do
-                   end do
-                end do
-
-             end if
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_compute_radial_mass
-
-
-
   subroutine ca_integrate_grav (mass,den,grav,max_radius,dr,numpts_1d) &
        bind(C, name="ca_integrate_grav")
     ! Given a radial mass distribution, this computes the gravitational
@@ -587,6 +427,13 @@ contains
                 end if
 
              else
+
+                ! We may be coming in here with a masked out zone (in a zone on a coarse
+                ! level underlying a fine level). We don't want to be calling the EOS in
+                ! this case, so we'll skip these masked out zones (which will have rho
+                ! exactly equal to zero).
+
+                if (var(i,j,k,URHO) == 0.0_rt) cycle
 
                 rhoInv = ONE / var(i,j,k,URHO)
 
@@ -1042,70 +889,6 @@ contains
     end do
 
   end subroutine ca_compute_direct_sum_bc
-
-
-
-  subroutine ca_put_direct_sum_bc (lo, hi, &
-                                   phi, p_lo, p_hi, &
-                                   bcXYLo, bcXYHi, &
-                                   bcXZLo, bcXZHi, &
-                                   bcYZLo, bcYZHi, &
-                                   bc_lo, bc_hi) bind(C, name="ca_put_direct_sum_bc")
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: bc_lo(3), bc_hi(3)
-    integer,  intent(in   ) :: p_lo(3), p_hi(3)
-
-    real(rt), intent(in   ) :: bcXYLo(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
-    real(rt), intent(in   ) :: bcXYHi(bc_lo(1):bc_hi(1),bc_lo(2):bc_hi(2))
-    real(rt), intent(in   ) :: bcXZLo(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
-    real(rt), intent(in   ) :: bcXZHi(bc_lo(1):bc_hi(1),bc_lo(3):bc_hi(3))
-    real(rt), intent(in   ) :: bcYZLo(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
-    real(rt), intent(in   ) :: bcYZHi(bc_lo(2):bc_hi(2),bc_lo(3):bc_hi(3))
-
-    real(rt), intent(inout) :: phi(p_lo(1):p_hi(1),p_lo(2):p_hi(2),p_lo(3):p_hi(3))
-
-    integer :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (i .eq. bc_lo(3)) then
-                phi(i,j,k) = bcYZLo(j,k)
-             end if
-
-             if (i .eq. bc_hi(3)) then
-                phi(i,j,k) = bcYZHi(j,k)
-             end if
-
-             if (j .eq. bc_lo(2)) then
-                phi(i,j,k) = bcXZLo(i,k)
-             end if
-
-             if (j .eq. bc_hi(2)) then
-                phi(i,j,k) = bcXZHi(i,k)
-             end if
-
-             if (k .eq. bc_lo(3)) then
-                phi(i,j,k) = bcXYLo(i,j)
-             end if
-
-             if (k .eq. bc_hi(3)) then
-                phi(i,j,k) = bcXYHi(i,j)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_put_direct_sum_bc
 
 
 

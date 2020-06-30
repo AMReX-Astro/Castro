@@ -56,7 +56,7 @@ including the CCSE and Stony Brook University.
 
 Castro *core developers* are those who have made substantial
 contributions to the code. The process for becoming a core developer
-is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ in the Castro root directory.
+is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ in the Castro root directory.
 Current Castro core developers are:
 
   * Ann Almgren
@@ -79,7 +79,7 @@ page, https://github.com/AMReX-Astro/Castro
 External contributions are welcomed. Fork the Castro repo, modify your
 local copy, and issue a pull-request to the AMReX-Astro/Castro
 project. Further guidelines are given in the `README.md
-<https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ file.
+<https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ file.
 
 To get help, subscribe to the *castro-help* google group mailing list:
 https://groups.google.com/forum/#!forum/castro-help
@@ -90,7 +90,7 @@ Acknowledging and Citing Castro
 If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
 testing. A list of these can be found in the `CITATION
-<https://github.com/AMReX-Astro/Castro/blob/master/CITATION>`_ file in
+<https://github.com/AMReX-Astro/Castro/blob/main/CITATION>`_ file in
 the root ``Castro/`` directory.
 
 The development Castro is supported by the science application

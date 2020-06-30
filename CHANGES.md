@@ -1,5 +1,16 @@
 # 20.07
 
+   * The master branch has been renamed the main branch. If you have an
+     existing clone of Castro, then do the following to update for this
+     change. First, do `git checkout master` if you're not already on the
+     old master branch. Then do `git pull`. This will gather the updates
+     to the repo, but will fail with the message `Your configuration specifies
+     to merge with the ref 'refs/heads/master' from the remote, but no such ref
+     was fetched.` Then you can simply do `git checkout main` and your local
+     repo should automatically switch to that branch and track updates from
+     the upstream repo on GitHub. If you like, you can then delete the old
+     master branch with `git branch -D master`.
+
    * The CUDA build no longer has a requirement that amr.blocking_factor
      be a multiple of 8. Though this is recommended for performance reasons,
      it was previously required due to correctness reasons because of the

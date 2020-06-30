@@ -2,6 +2,7 @@
 # this is included if USE_ROTATION = TRUE
 
 CEXE_headers += Castro_rotation.H
+CEXE_headers += Rotation.H
 FEXE_headers += Castro_rotation_F.H
 
 ca_F90EXE_sources += Rotation_nd.F90

@@ -7,14 +7,6 @@ extern "C"
 {
 #endif
 
-  void ca_compute_radial_mass
-    (const int* lo, const int* hi, 
-     const amrex::Real* dx, amrex::Real dr,
-     const BL_FORT_FAB_ARG_3D(S), 
-     amrex::Real* avgmass, amrex::Real* avgvol, 
-     const amrex::Real* problo, int numpts_1d, 
-     int drdxfac, int level); 
-
   void ca_integrate_grav
     (const amrex::Real* avgmass, const amrex::Real* avgden,
      amrex::Real* radial_grav,
@@ -102,14 +94,6 @@ extern "C"
      amrex::Real* bcXZLo, amrex::Real* bcXZHi,
      amrex::Real* bcYZLo, amrex::Real* bcYZHi,
      const int* bc_lo, const int* bc_hi, const amrex::Real* bc_dx);
-
-  void ca_put_direct_sum_bc
-    (const int* lo, const int* hi, 
-     amrex::Real* phi, const int* p_lo, const int* p_hi,
-     const amrex::Real* bcXYLo, const amrex::Real* bcXYHi,
-     const amrex::Real* bcXZLo, const amrex::Real* bcXZHi,
-     const amrex::Real* bcYZLo, const amrex::Real* bcYZHi,
-     const int* bc_lo, const int* bc_hi);
 
   void pm_add_to_grav
     (const int* lo, const int* hi,

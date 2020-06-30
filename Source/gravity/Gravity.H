@@ -338,6 +338,22 @@ public:
   void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
 
 ///
+/// Integrate radially outward to find radial mass distribution
+///
+/// @param bx           Box
+/// @param u            Density (RHS of Poisson's equation)
+/// @param radial_mass  Radially integrated mass
+/// @param radial_vol   Radially integrated volume
+/// @param n1d          Number of radial points in the domain
+/// @param level        Level index
+///
+  void compute_radial_mass(const amrex::Box& bx,
+                           amrex::Array4<amrex::Real const> const u,
+                           RealVector& radial_mass,
+                           RealVector& radial_vol,
+                           int n1d, int level);
+
+///
 /// Integrate radially outward to find radial gravitational potential
 ///
 /// @param level        Current level
@@ -380,8 +396,6 @@ public:
 /// Make multigrid boundary conditions
 ///
   void make_mg_bc();
-
-protected:
 
 ///
 /// Pointers to amr,amrlevel.
@@ -488,8 +502,6 @@ protected:
 /// @param point_mass   Mass of pointmass
 ///
     void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
-
-private:
 
 ///
 /// Get the rhs
