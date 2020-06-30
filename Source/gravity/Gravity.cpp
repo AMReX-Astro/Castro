@@ -2206,15 +2206,35 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     {
         const Box& bx= mfi.growntilebox();
 
-        FArrayBox& p = phi[mfi];
+        auto p = phi[mfi].array();
 
-#pragma gpu box(bx)
-        ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                             BL_TO_FORTRAN_ANYD(p),
-                             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-                             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-                             bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-                             AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi));
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (i == bc_lo[0]) {
+                p(i,j,k) = bcYZLo_arr(0,j,k);
+            }
+
+            if (i == bc_hi[0]) {
+                p(i,j,k) = bcYZHi_arr(0,j,k);
+            }
+
+            if (j == bc_lo[1]) {
+                p(i,j,k) = bcXZLo_arr(i,0,k);
+            }
+
+            if (j == bc_hi[1]) {
+                p(i,j,k) = bcXZHi_arr(i,0,k);
+            }
+
+            if (k == bc_lo[2]) {
+                p(i,j,k) = bcXYLo_arr(i,j,0);
+            }
+
+            if (k == bc_hi[2]) {
+                p(i,j,k) = bcXYHi_arr(i,j,0);
+            }
+        });
     }
 
     if (gravity::verbose)
