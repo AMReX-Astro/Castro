@@ -2143,12 +2143,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
                 }
 
 #ifdef _OPENMP
-                auto bcXYLo_arr = priv_bcXYLo[tid].array();
-                auto bcXYHi_arr = priv_bcXYHi[tid].array();
-                auto bcXZLo_arr = priv_bcXZLo[tid].array();
-                auto bcXZHi_arr = priv_bcXZHi[tid].array();
-                auto bcYZLo_arr = priv_bcYZLo[tid].array();
-                auto bcYZHi_arr = priv_bcYZHi[tid].array();
+                auto bcXYLo_arr = priv_bcXYLo[tid]->array();
+                auto bcXYHi_arr = priv_bcXYHi[tid]->array();
+                auto bcXZLo_arr = priv_bcXZLo[tid]->array();
+                auto bcXZHi_arr = priv_bcXZHi[tid]->array();
+                auto bcYZLo_arr = priv_bcYZLo[tid]->array();
+                auto bcYZHi_arr = priv_bcYZHi[tid]->array();
 #else
                 auto bcXYLo_arr = bcXYLo.array();
                 auto bcXYHi_arr = bcXYHi.array();
