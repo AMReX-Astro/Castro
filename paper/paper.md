@@ -57,7 +57,7 @@ MAESTROeX [@maestroex], and the cosmology code Nyx [@nyx] make up the
 AMReX-Astrophysics Suite of open-source, adaptive mesh, performance
 portable astrophysical simulation codes.
 
-The core hydrodynamics solver in Castro [@castro] is based on a the
+The core hydrodynamics solver in Castro [@castro] is based on the
 directionally unsplit corner transport upwind method of [@ctu] with
 piecewise parabolic reconstruction [@ppm].  Modeling reactive flows in
 stellar environments is a core capability of Castro.  Astrophysical
@@ -68,13 +68,13 @@ is the traditional operator splitting approach, using Strang splitting
 to achieve second-order in time.  However, when the reactions are
 energetic this coupling can break down, and we have two different
 implementations based on spectral deferred corrections (SDC), a method
-that aims prevent the hydro and reactions from becoming decoupled.  The
+that aims to prevent the hydro and reactions from becoming decoupled.  The
 simplified SDC method uses the CTU PPM hydro together with an
 iterative scheme to fully couple the reactions and hydro, still to
 second order [@simple_sdc].  Both of these methods have a retry
 scheme, where a timestep will be rejected if the burning solve fails
 to meet its tolerance, negative densities are generated, or we violate
-one of the timestepping criterion.  Alternately, we have implemented a
+one of the timestepping criteria.  Alternatively, we have implemented a
 traditional SDC method that couples hydro and reactions to both second
 and fourth-order in space and time [@castro_sdc] (at present, this
 method is single-level only).
@@ -86,7 +86,7 @@ diffusion, and gray [@castroII] and multigroup [@castroIII] flux
 limited diffusion radiation hydrodynamics.  A constrained transport
 MHD solver based on the CTU algrothm is also available, and can use
 the same physics sources.  Castro can use an arbitrary equation of
-state and reaction network and these microphysics routines are
+state and reaction network, and these microphysics routines are
 provided by the StarKiller project [@starkiller].
 
 Castro is built on the AMReX [@AMReX] adaptive mesh refinement (AMR)
