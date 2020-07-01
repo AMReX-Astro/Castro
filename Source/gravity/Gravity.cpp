@@ -19,6 +19,7 @@
 
 #include "fundamental_constants.H"
 
+#include "Gravity_util.H"
 #include "MGutils.H"
 
 using namespace amrex;
@@ -2005,7 +2006,29 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int bc_lo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
     const int bc_hi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
 
-    const Real* bc_dx = crse_geom.CellSize();
+    GpuArray<Real, 3> bc_dx;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        bc_dx[n] = crse_geom.CellSizeArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        bc_dx[n] = 0.0_rt;
+    }
+
+    GpuArray<Real, 3> problo;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        problo[n] = crse_geom.ProbLoArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        problo[n] = 0.0_rt;
+    }
+
+    GpuArray<Real, 3> probhi;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        probhi[n] = crse_geom.ProbHiArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        probhi[n] = 0.0_rt;
+    }
 
     IntVect smallEndXY( loVectXY );
     IntVect bigEndXY  ( hiVectXY );
@@ -2029,35 +2052,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     FArrayBox bcYZLo(boxYZ);
     FArrayBox bcYZHi(boxYZ);
 
-    Array4<Real> const& bcXYLo_arr = bcXYLo.array();
-    Array4<Real> const& bcXYHi_arr = bcXYHi.array();
-
-    amrex::ParallelFor(boxXY,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcXYLo_arr(i,j,k) = 0.0;
-        bcXYHi_arr(i,j,k) = 0.0;
-    });
-
-    Array4<Real> const& bcXZLo_arr = bcXZLo.array();
-    Array4<Real> const& bcXZHi_arr = bcXZHi.array();
-
-    amrex::ParallelFor(boxXZ,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcXZLo_arr(i,j,k) = 0.0;
-        bcXZHi_arr(i,j,k) = 0.0;
-    });
-
-    Array4<Real> const& bcYZLo_arr = bcYZLo.array();
-    Array4<Real> const& bcYZHi_arr = bcYZHi.array();
-
-    amrex::ParallelFor(boxYZ,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcYZLo_arr(i,j,k) = 0.0;
-        bcYZHi_arr(i,j,k) = 0.0;
-    });
+    bcXYLo.setVal<RunOn::Device>(0.0);
+    bcXYHi.setVal<RunOn::Device>(0.0);
+    bcXZLo.setVal<RunOn::Device>(0.0);
+    bcXZHi.setVal<RunOn::Device>(0.0);
+    bcYZLo.setVal<RunOn::Device>(0.0);
+    bcYZHi.setVal<RunOn::Device>(0.0);
 
     // Loop through the grids and compute the individual contributions
     // to the BCs. The BC constructor is coded to only add to the
@@ -2071,8 +2071,6 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
       physbc_lo[dir] = phys_bc->lo(dir);
       physbc_lo[dir] = phys_bc->hi(dir);
     }
-
-    int symmetry_type = Symmetry;
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 
@@ -2089,7 +2087,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
             MultiFab::Multiply(source, mask, 0, 0, 1, 0);
         }
 
-        const Real* dx = parent->Geom(lev).CellSize();
+        const auto dx = parent->Geom(lev).CellSizeArray();
 
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
@@ -2123,28 +2121,262 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
             {
                 const Box bx = mfi.tilebox();
 
-                const FArrayBox& r = source[mfi];
-                const FArrayBox& v = (*volume[lev])[mfi];
+                const auto rho = source[mfi].array();
+                const auto vol = (*volume[lev])[mfi].array();
 
-#pragma gpu box(bx)
-                ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), AMREX_REAL_ANYD(dx),
-                                         symmetry_type, AMREX_INT_ANYD(physbc_lo), AMREX_INT_ANYD(physbc_hi),
-                                         BL_TO_FORTRAN_ANYD(r),
-                                         BL_TO_FORTRAN_ANYD(v),
-                                         AMREX_REAL_ANYD(crse_geom.ProbLo()), AMREX_REAL_ANYD(crse_geom.ProbHi()),
+                // Determine if we need to add contributions from any symmetric boundaries.
+
+                GpuArray<bool, 3> doSymmetricAddLo {false};
+                GpuArray<bool, 3> doSymmetricAddHi {false};
+                bool doSymmetricAdd {false};
+
+                for (int b = 0; b < 3; ++b) {
+                    if (physbc_lo[b] == Symmetry) {
+                        doSymmetricAddLo[b] = true;
+                        doSymmetricAdd      = true;
+                    }
+
+                    if (physbc_hi[b] == Symmetry) {
+                        doSymmetricAddHi[b] = true;
+                        doSymmetricAdd      = true;
+                    }
+                }
+
 #ifdef _OPENMP
-                                         priv_bcXYLo[tid]->dataPtr(),
-                                         priv_bcXYHi[tid]->dataPtr(),
-                                         priv_bcXZLo[tid]->dataPtr(),
-                                         priv_bcXZHi[tid]->dataPtr(),
-                                         priv_bcYZLo[tid]->dataPtr(),
-                                         priv_bcYZHi[tid]->dataPtr(),
+                auto bcXYLo_arr = priv_bcXYLo[tid].array();
+                auto bcXYHi_arr = priv_bcXYHi[tid].array();
+                auto bcXZLo_arr = priv_bcXZLo[tid].array();
+                auto bcXZHi_arr = priv_bcXZHi[tid].array();
+                auto bcYZLo_arr = priv_bcYZLo[tid].array();
+                auto bcYZHi_arr = priv_bcYZHi[tid].array();
 #else
-                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                auto bcXYLo_arr = bcXYLo.array();
+                auto bcXYHi_arr = bcXYHi.array();
+                auto bcXZLo_arr = bcXZLo.array();
+                auto bcXZHi_arr = bcXZHi.array();
+                auto bcYZLo_arr = bcYZLo.array();
+                auto bcYZHi_arr = bcYZHi.array();
 #endif
-                                         AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi), AMREX_REAL_ANYD(bc_dx));
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                {
+                    GpuArray<Real, 3> loc, locb;
+                    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+                    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+                    loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+                    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+                    loc[2] = 0.0_rt;
+#endif
+
+                    // Do xy interfaces first. Note that the boundary conditions
+                    // on phi are expected to live directly on the interface.
+                    // We also have to handle the domain corners correctly. We are
+                    // assuming that bc_lo = domlo - 1 and bc_hi = domhi + 1, where
+                    // domlo and domhi are the coarse domain extent.
+
+                    for (int m = bc_lo[1]; m <= bc_hi[1]; ++m) {
+                        if (m == bc_lo[1]) {
+                            locb[1] = problo[1];
+                        }
+                        else if (m == bc_hi[1]) {
+                            locb[1] = probhi[1];
+                        }
+                        else {
+                            locb[1] = problo[1] + (static_cast<Real>(m) + 0.5_rt) * bc_dx[1];
+                        }
+                        Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                        for (int l = bc_lo[0]; l <= bc_hi[0]; ++l) {
+                            if (l == bc_lo[0]) {
+                                locb[0] = problo[0];
+                            }
+                            else if (l == bc_hi[0]) {
+                                locb[0] = probhi[1];
+                            }
+                            else {
+                                locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
+                            }
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            locb[2] = problo[2];
+                            Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            // Now, add any contributions from mass that is hidden behind
+                            // a symmetric boundary.
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXYLo_arr(l,m,0), dbc);
+
+                            locb[2] = probhi[2];
+                            dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXYHi_arr(l,m,0), dbc);
+
+                        }
+
+                    }
+
+                    // Now do xz interfaces.
+
+                    for (int n = bc_lo[2]; n <= bc_hi[2]; ++n) {
+                        if (n == bc_lo[2]) {
+                            locb[2] = problo[2];
+                        }
+                        else if (n == bc_hi[2]) {
+                            locb[2] = probhi[2];
+                        }
+                        else {
+                            locb[2] = problo[2] + (static_cast<Real>(n) + 0.5_rt) * bc_dx[2];
+                        }
+                        Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                        for (int l = bc_lo[0]; l <= bc_hi[0]; ++l) {
+                            if (l == bc_lo[0]) {
+                                locb[0] = problo[0];
+                            }
+                            else if (l == bc_hi[0]) {
+                                locb[0] = probhi[0];
+                            }
+                            else {
+                                locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
+                            }
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            locb[1] = problo[1];
+                            Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXZLo_arr(l,0,n), dbc);
+
+                            locb[1] = probhi[1];
+                            dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXZHi_arr(l,0,n), dbc);
+
+                        }
+
+                    }
+
+                    // Finally, do yz interfaces.
+
+                    for (int n = bc_lo[2]; n <= bc_hi[2]; ++n) {
+                        if (n == bc_lo[2]) {
+                            locb[2] = problo[2];
+                        }
+                        else if (n == bc_hi[2]) {
+                            locb[2] = probhi[2];
+                        }
+                        else {
+                            locb[2] = problo[2] + (static_cast<Real>(n) + 0.5_rt) * bc_dx[2];
+                        }
+                        Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                        for (int m = bc_lo[1]; m <= bc_hi[1]; ++m) {
+                            if (m == bc_lo[1]) {
+                                locb[1] = problo[1];
+                            }
+                            else if (m == bc_hi[1]) {
+                                locb[1] = probhi[1];
+                            }
+                            else {
+                                locb[1] = problo[1] + (static_cast<Real>(m) + 0.5_rt) * bc_dx[1];
+                            }
+                            Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            locb[0] = problo[0];
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcYZLo_arr(0,m,n), dbc);
+
+                            locb[0] = probhi[0];
+                            dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcYZHi_arr(0,m,n), dbc);
+
+                        }
+
+                    }
+
+                });
+
             }
 
 #ifdef _OPENMP
@@ -2207,6 +2439,13 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         const Box& bx= mfi.growntilebox();
 
         auto p = phi[mfi].array();
+
+        auto bcXYLo_arr = bcXYLo.array();
+        auto bcXYHi_arr = bcXYHi.array();
+        auto bcXZLo_arr = bcXZLo.array();
+        auto bcXZHi_arr = bcXZHi.array();
+        auto bcYZLo_arr = bcYZLo.array();
+        auto bcYZHi_arr = bcYZHi.array();
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
