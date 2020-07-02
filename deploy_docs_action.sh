@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e # Exit with nonzero exit code if anything fails
 
-# Build the documentation from the MASTER_BRANCH or DEV_BRANCH
+# Build the documentation from the MAIN_BRANCH or DEV_BRANCH
 # and push it to TARGET_BRANCH.
-MASTER_BRANCH="master"
+MAIN_BRANCH="main"
 DEV_BRANCH="development"
 TARGET_BRANCH="gh-pages"
 
@@ -21,7 +21,7 @@ make html
 cd ../
 
 mkdir -p out/docs/
-if [ "$GITHUB_BRANCH" = "$MASTER_BRANCH" ]; then
+if [ "$GITHUB_BRANCH" = "$MAIN_BRANCH" ]; then
     mkdir -p out/docs
     mv Docs/build/html/* out/docs
 else 

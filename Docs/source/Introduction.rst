@@ -47,12 +47,12 @@ Development Model
 =================
 
 Castro is developed on github (https://github.com/amrex-astro/Castro
-). The ``master`` branch is stable and can be used for day-to-day
+). The ``main`` branch is stable and can be used for day-to-day
 science.  New changes are made via pull requests to the
 ``development`` branch.  This is where the ongoing regression testing
 is done (both on CPU and GPU).
 
-At the start of each month, we merge ``development`` → ``master`` and
+At the start of each month, we merge ``development`` → ``main`` and
 apply a tag of the form ``YY.MM`` (e.g. ``20.02`` for Feb. 2020).  We
 also create a github release and mint a Zenodo DOI using the
 information in the ``.zenodo.json`` file at the root level.

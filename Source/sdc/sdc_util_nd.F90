@@ -509,7 +509,7 @@ contains
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use vode_rpar_indices
-    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
+    use meth_params_module, only : nvar, URHO, UFS, UFX, UEINT, UEDEN, UMX, UMZ, UTEMP, &
          sdc_solve_for_rhoe
     use network, only : nspec
     use burn_type_module
