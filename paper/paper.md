@@ -25,6 +25,9 @@ authors:
   - name: Max Katz
     orcid: 0000-0003-0439-4556
     affiliation: 3
+  - name: Jean Sexton
+    orcid: 0000-0003-2551-1678
+    affiliation: 1
   - name: Donald Willcox
     orcid: 0000-0003-2300-5165
     affiliation: 1
@@ -43,7 +46,7 @@ affiliations:
     index: 3
   - name: Center for Computational Astrophysics, Flatiron Institute
     index: 4
-date: 17 February 2020
+date: 02 July 2020
 bibliography: paper.bib
 ---
 
