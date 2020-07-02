@@ -47,6 +47,9 @@
 #endif
 
 #include <extern_parameters.H>
+#ifdef PROB_PARAMS
+#include <prob_parameters.H>
+#endif
 
 using namespace amrex;
 
@@ -847,6 +850,11 @@ void
 Castro::initData ()
 {
     BL_PROFILE("Castro::initData()");
+
+    // initialize the C++ values of the runtime parameters
+#ifdef PROB_PARAMS
+    init_prob_parameters();
+#endif
 
     //
     // Loop over grids, call FORTRAN function to init with data.
