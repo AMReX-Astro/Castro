@@ -23,9 +23,16 @@ This script takes a template file and replaces keywords in it
 (delimited by @@...@@) with the Fortran code required to
 initialize the parameters, setup a namelist, set the defaults, etc.
 
+Note: there are two types of parameters here, the ones that are in the
+namelist are true runtime parameters.  For those we also provide the
+C++ headers and get routines to make these runtime parametrs available
+in C++.  The non-namelist parameters should be avoided if at all
+possible.
+
 """
 
 import argparse
+import os
 import re
 import sys
 
@@ -38,6 +45,38 @@ HEADER = """
 ! To add a runtime parameter, do so by editting the appropriate _prob_params
 ! file.
 
+"""
+
+CXX_F_HEADER = """
+#ifndef problem_parameters_F_H
+#define problem_parameters_F_H
+#include <AMReX.H>
+#include <AMReX_BLFort.H>
+
+#ifdef __cplusplus
+#include <AMReX.H>
+extern "C"
+{
+#endif
+"""
+
+CXX_F_FOOTER = """
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+"""
+
+CXX_HEADER = """
+#ifndef problem_parameters_H
+#define problem_parameters_H
+#include <AMReX_BLFort.H>
+
+"""
+
+CXX_FOOTER = """
+#endif
 """
 
 class Parameter:
@@ -58,6 +97,15 @@ class Parameter:
             return "character (len=256)"
 
         return self.dtype
+
+    def get_cxx_decl(self):
+        """ get the Fortran 90 declaration """
+        if self.dtype == "real":
+            return "amrex::Real"
+        elif self.dtype == "character":
+            return None
+
+        return "int"
 
     def is_array(self):
         try:
@@ -166,7 +214,7 @@ def abort(outfile):
     sys.exit(1)
 
 
-def write_probin(probin_template, param_file, out_file):
+def write_probin(probin_template, param_file, out_file, cxx_prefix):
 
     """ write_probin will read through the list of parameter files and
     output the new out_file """
@@ -302,19 +350,145 @@ def write_probin(probin_template, param_file, out_file):
                     else:
                         print("write_probdata.py: invalid datatype for variable {}".format(p.var))
 
+
+            elif keyword == "cxx_gets":
+                # this writes out the Fortran functions that can be called from C++
+                # to get the value of the parameters.  Note: we only do this for namelist
+                # parameters
+
+                for p in params:
+                    if not p.in_namelist:
+                        continue
+
+                    if p.dtype == "character":
+                        fout.write("{}subroutine get_f90_{}_len(slen) bind(C, name=\"get_f90_{}_len\")\n".format(
+                            indent, p.var, p.var))
+                        fout.write("{}   integer, intent(inout) :: slen\n".format(indent))
+                        fout.write("{}   slen = len(trim({}))\n".format(indent, p.var))
+                        fout.write("{}end subroutine get_f90_{}_len\n\n".format(indent, p.var))
+
+                        fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   character(kind=c_char) :: {}_in(*)\n".format(
+                            indent, p.var))
+                        fout.write("{}   integer :: n\n".format(indent))
+                        fout.write("{}   do n = 1, len(trim({}))\n".format(indent, p.var))
+                        fout.write("{}      {}_in(n:n) = {}(n:n)\n".format(indent, p.var, p.var))
+                        fout.write("{}   end do\n".format(indent))
+                        fout.write("{}   {}_in(len(trim({}))+1) = char(0)\n".format(indent, p.var, p.var))
+                        fout.write("{}end subroutine get_f90_{}\n\n".format(indent, p.var))
+
+                    elif p.dtype == "logical":
+                        # F90 logicals are integers in C++
+                        fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   integer, intent(inout) :: {}_in\n".format(
+                            indent, p.var))
+                        fout.write("{}   {}_in = 0\n".format(indent, p.var))
+                        fout.write("{}   if ({}) then\n".format(indent, p.var))
+                        fout.write("{}      {}_in = 1\n".format(indent, p.var))
+                        fout.write("{}   endif\n".format(indent))
+                        fout.write("{}end subroutine get_f90_{}\n\n".format(
+                            indent, p.var))
+
+                    else:
+                        fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   {}, intent(inout) :: {}_in\n".format(
+                            indent, p.get_f90_decl(), p.var))
+                        fout.write("{}   {}_in = {}\n".format(
+                            indent, p.var, p.var))
+                        fout.write("{}end subroutine get_f90_{}\n\n".format(
+                            indent, p.var))
+
         else:
             fout.write(line)
 
     print(" ")
     fout.close()
 
+    # now handle the C++ -- we need to write a header and a .cpp file
+    # for the parameters + a _F.H file for the Fortran communication
 
-if __name__ == "__main__":
+    # first the _F.H file
+    ofile = "{}_parameters_F.H".format(cxx_prefix)
+    with open(ofile, "w") as fout:
+        fout.write(CXX_F_HEADER)
+
+        for p in params:
+            if not p.in_namelist:
+                continue
+
+            if p.dtype == "character":
+                fout.write("  void get_f90_{}(char* {});\n\n".format(
+                    p.var, p.var))
+                fout.write("  void get_f90_{}_len(int& slen);\n\n".format(p.var))
+
+            else:
+                fout.write("  void get_f90_{}({}* {});\n\n".format(
+                    p.var, p.get_cxx_decl(), p.var))
+
+        fout.write(CXX_F_FOOTER)
+
+    # now the main C++ header with the global data
+    ofile = "{}_parameters.H".format(cxx_prefix)
+    with open(ofile, "w") as fout:
+        fout.write(CXX_HEADER)
+
+        fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
+
+        for p in params:
+            if not p.in_namelist:
+                continue
+
+            if p.dtype == "character":
+                fout.write("  extern std::string {};\n\n".format(p.var))
+            else:
+                fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+
+        fout.write(CXX_FOOTER)
+
+    # finally the C++ initialization routines
+    ofile = "{}_parameters.cpp".format(cxx_prefix)
+    with open(ofile, "w") as fout:
+        fout.write("#include <{}_parameters.H>\n".format(os.path.basename(cxx_prefix)))
+        fout.write("#include <{}_parameters_F.H>\n\n".format(os.path.basename(cxx_prefix)))
+
+        for p in params:
+            if not p.in_namelist:
+                continue
+
+            if p.dtype == "character":
+                fout.write("  std::string {};\n\n".format(p.var))
+            else:
+                fout.write("  AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+
+        fout.write("\n")
+        fout.write("  void init_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
+        fout.write("    int slen = 0;\n\n")
+
+        for p in params:
+            if not p.in_namelist:
+                continue
+
+            if p.dtype == "character":
+                fout.write("    get_f90_{}_len(slen);\n".format(p.var))
+                fout.write("    char _{}[slen+1];\n".format(p.var))
+                fout.write("    get_f90_{}(_{});\n".format(p.var, p.var))
+                fout.write("    {} = std::string(_{});\n\n".format(p.var, p.var))
+            else:
+                fout.write("    get_f90_{}(&{});\n\n".format(p.var, p.var))
+
+        fout.write("  }\n")
+
+def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', type=str, help='probin_template')
     parser.add_argument('-o', type=str, help='out_file')
     parser.add_argument('-p', type=str, help='parameter file name')
+    parser.add_argument('--cxx_prefix', type=str, default="prob",
+                        help="a name to use in the C++ file names")
 
     args = parser.parse_args()
 
@@ -325,4 +499,7 @@ if __name__ == "__main__":
     if probin_template == "" or out_file == "":
         sys.exit("write_probdata.py: ERROR: invalid calling sequence")
 
-    write_probin(probin_template, params, out_file)
+    write_probin(probin_template, params, out_file, args.cxx_prefix)
+
+if __name__ == "__main__":
+    main()
