@@ -7,7 +7,7 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
 
 #------------------------------------------------------------------------------
-# runtime parameters
+# Microphysics runtime parameters
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
@@ -28,10 +28,10 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/exter
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
+	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
-           --pa "$(EXTERN_PARAMETERS)" --managed
+           --pa "$(EXTERN_PARAMETERS)"
 
 
 #------------------------------------------------------------------------------
