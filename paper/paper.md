@@ -84,7 +84,7 @@ self-gravity with isolated boundary conditions and rotation, both
 implemented in an energy-conserving fashion, explicit thermal
 diffusion, and gray [@castroII] and multigroup [@castroIII] flux
 limited diffusion radiation hydrodynamics.  A constrained transport
-MHD solver based on the CTU algrothm is also available, and can use
+MHD solver based on the CTU algorithm is also available, and can use
 the same physics sources.  Castro can use an arbitrary equation of
 state and reaction network, and these microphysics routines are
 provided by the StarKiller project [@starkiller].
@@ -134,7 +134,7 @@ of the U.S. Department of Energy Office of Science and the National
 Nuclear Security Administration.  The work at LBNL was supported by
 U.S. Department of Energy under contract No. DE-AC02-05CH11231.  We
 also thank NVIDIA Corporation for the donation of a Titan X Pascal and
-Titan V used in this research.  The GPU development of \castro\
+Titan V used in this research.  The GPU development of Castro
 benefited greatly from numerous GPU hackathons arranged by OLCF.
 
 # References
