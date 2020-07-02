@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-"""
-This routine parses plain-text parameter files that list runtime
+"""This routine parses plain-text parameter files that list runtime
 parameters for use in our codes.  The general format of a parameter
 is:
 
@@ -51,6 +50,15 @@ class Parameter:
         self.size = 1
         self.in_namelist = False
 
+    def get_f90_decl(self):
+        """ get the Fortran 90 declaration """
+        if self.dtype == "real":
+            return "real (kind=rt)"
+        elif self.dtype == "character":
+            return "character (len=256)"
+
+        return self.dtype
+
     def is_array(self):
         try:
             isize = int(self.size)
@@ -67,7 +75,7 @@ class Parameter:
 
 
 def get_next_line(fin):
-    # return the next, non-blank line, with comments stripped
+    """return the next, non-blank line, with comments stripped"""
     line = fin.readline()
 
     pos = line.find("#")
@@ -209,50 +217,31 @@ def write_probin(probin_template, param_file, out_file):
 
                 # declaraction statements
                 for p in params:
-
-                    if p.dtype == "real":
-                        if p.is_array():
-                            decl_string = "{}real (kind=rt), allocatable, public :: {}(:)\n"
-                        else:
-                            decl_string = "{}real (kind=rt), allocatable, public :: {}\n"
-
-                    elif p.dtype == "character":
+                    if p.dtype == "character":
                         if p.is_array():
                             print("error, cannot have character arrays")
                             abort(out_file)
                         else:
-                            decl_string = "{}character (len=256), public :: {}\n"
-
-                    elif p.dtype == "integer":
-                        if p.is_array():
-                            decl_string = "{}integer, allocatable, public :: {}(:)\n"
-                        else:
-                            decl_string = "{}integer, allocatable, public :: {}\n"
-
-                    elif p.dtype == "logical":
-                        if p.is_array():
-                            print("error, cannot have logical arrays")
-                            abort(out_file)
-                        else:
-                            decl_string = "{}logical, allocatable, public :: {}\n"
+                            fout.write("{}{}, public :: {}\n".format(
+                                indent, p.get_f90_decl(), p.var))
 
                     else:
-                        print("write_probdata.py: invalid datatype for variable {}".format(p.var))
-
-                    fout.write(decl_string.format(indent, p.var))
-
+                        if p.is_array():
+                            fout.write("{}{}, allocatable, public :: {}(:)\n".format(
+                                indent, p.get_f90_decl(), p.var))
+                        else:
+                            fout.write("{}{}, allocatable, public :: {}\n".format(
+                                indent, p.get_f90_decl(), p.var))
 
             elif keyword == "cudaattributes":
                 for p in params:
                     if p.dtype != "character":
                         fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
 
-
             elif keyword == "namelist":
                 for p in params:
                     if p.in_namelist:
                         fout.write("{}namelist /fortin/ {}\n".format(indent, p.var))
-
 
             elif keyword == "allocations":
                 for p in params:
@@ -262,6 +251,10 @@ def write_probin(probin_template, param_file, out_file):
                         else:
                             fout.write("{}allocate({})\n".format(indent, p.var))
 
+            elif keyword == "deallocations":
+                for p in params:
+                    if p.dtype != "character":
+                        fout.write("{}deallocate({})\n".format(indent, p.var))
 
             elif keyword == "defaults":
                 for p in params:
@@ -269,13 +262,6 @@ def write_probin(probin_template, param_file, out_file):
                         fout.write("{}{}(:) = {}\n".format(indent, p.var, p.value))
                     else:
                         fout.write("{}{} = {}\n".format(indent, p.var, p.value))
-
-
-            elif keyword == "deallocations":
-                for p in params:
-                    if p.dtype != "character":
-                        fout.write("{}deallocate({})\n".format(indent, p.var))
-
 
             elif keyword == "printing":
 
