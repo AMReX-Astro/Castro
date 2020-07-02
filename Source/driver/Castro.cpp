@@ -3200,6 +3200,8 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
         const int8_t tagval   = (int8_t) TagBox::SET;
         const int8_t clearval = (int8_t) TagBox::CLEAR;
 
+        int lev = level;
+
         if (err_list_names[j] == "density") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -3208,7 +3210,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, level);
+                            tagval, clearval, time, lev);
             });
         }
         else if (err_list_names[j] == "Temp") {
@@ -3219,7 +3221,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                              (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                              AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                              AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                             tagval, clearval, time, level);
+                             tagval, clearval, time, lev);
             });
         }
         else if (err_list_names[j] == "pressure") {
@@ -3230,7 +3232,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                               (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                               AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                               AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                              tagval, clearval, time, level);
+                              tagval, clearval, time, lev);
             });
         }
         else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
@@ -3241,7 +3243,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, level);
+                            tagval, clearval, time, lev);
             });
         }
 #ifdef REACTIONS
@@ -3253,7 +3255,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, level);
+                            tagval, clearval, time, lev);
             });
         }
         else if (err_list_names[j] == "enuc") {
@@ -3264,7 +3266,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                              (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                              AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                              AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                             tagval, clearval, time, level);
+                             tagval, clearval, time, lev);
             });
         }
 #endif
@@ -3277,7 +3279,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, level);
+                            tagval, clearval, time, lev);
             });
         }
 #endif
