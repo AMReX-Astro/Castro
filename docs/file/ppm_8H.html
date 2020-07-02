@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,20 +31,15 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File riemann.H" href="riemann_8H.html" />
+    <link rel="next" title="File reconstruction.H" href="reconstruction_8H.html" />
     <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
 </head>
 
@@ -54,7 +55,7 @@
 
 
           
-            <a href="../index.html" class="icon icon-home"> Castro
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/ppm_8H.html">master</a> | <a href="../dev/file/ppm_8H.html">development</a>
+        Branch: <a href="../file/ppm_8H.html">main</a> | <a href="../dev/file/ppm_8H.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
@@ -141,7 +144,9 @@
 <li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
@@ -165,6 +170,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -203,7 +209,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
@@ -235,40 +241,57 @@
 <dl class="cpp function">
 <dt>
 <span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct (const Real *s, const Real flatn, Real &amp;sm, Real &amp;sp)</code></dt>
-<dd></dd></dl>
+<dd><p>Compute the coefficients of a parabolic reconstruction of the data in a zone. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">s</span></code>: Real(\5) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: The flattening coefficient </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The value of the parabola on the left edge of the zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The value of the parabola on the right edge of the zone </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 <dl class="cpp function">
 <dt>
 <span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile (const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real *Ip, Real *Im)</code></dt>
-<dd></dd></dl>
+<dd><p>Integrate under the parabola using from the left and right edges with the wave speeds u-c, u, u+c</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: The fluid velocity </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>: The sound speed </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the right zone edge </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the left zone edge </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Variables</p>
-<dl class="cpp var">
-<dt id="_CPPv43im2">
-<span id="_CPPv33im2"></span><span id="_CPPv23im2"></span><span id="im2__i"></span><span class="target" id="ppm_8H_1a541226b9ae2d734669d83eb543d95dce"></span><em class="property">constexpr</em> int <code class="sig-name descname">im2</code> = 0<a class="headerlink" href="#_CPPv43im2" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv43im1">
-<span id="_CPPv33im1"></span><span id="_CPPv23im1"></span><span id="im1__i"></span><span class="target" id="ppm_8H_1a2850db016736ebdb1cd32845e6deca08"></span><em class="property">constexpr</em> int <code class="sig-name descname">im1</code> = 1<a class="headerlink" href="#_CPPv43im1" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv42i0">
-<span id="_CPPv32i0"></span><span id="_CPPv22i0"></span><span id="i0__i"></span><span class="target" id="ppm_8H_1a6d185b4f897fd419f5d3670b522b2050"></span><em class="property">constexpr</em> int <code class="sig-name descname">i0</code> = 2<a class="headerlink" href="#_CPPv42i0" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv43ip1">
-<span id="_CPPv33ip1"></span><span id="_CPPv23ip1"></span><span id="ip1__i"></span><span class="target" id="ppm_8H_1a2fef602680bd28fa5b626f2376fcf2dc"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip1</code> = 3<a class="headerlink" href="#_CPPv43ip1" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp var">
-<dt id="_CPPv43ip2">
-<span id="_CPPv33ip2"></span><span id="_CPPv23ip2"></span><span id="ip2__i"></span><span class="target" id="ppm_8H_1ad52c314eb04736c6190e1ada0b9772ab"></span><em class="property">constexpr</em> int <code class="sig-name descname">ip2</code> = 4<a class="headerlink" href="#_CPPv43ip2" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dl class="cpp function">
+<dt>
+<span class="target" id="ppm_8H_1a6094d2b8700886946e674aeaf1223dc6"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile_single (const Real sm, const Real sp, const Real sc, const Real lam, const Real dtdx, Real &amp;Ip, Real &amp;Im)</code></dt>
+<dd><p>Integrate under the parabola from the left and right edges for a single wave speed</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lam</span></code>: The wave speed </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: integral under the parabola from the right zone edge </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: integral under the parabola from the left zone edge </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 </div>
 </div>
@@ -281,7 +304,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="riemann_8H.html" class="btn btn-neutral float-right" title="File riemann.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="reconstruction_8H.html" class="btn btn-neutral float-right" title="File reconstruction.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -293,11 +316,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -308,7 +339,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

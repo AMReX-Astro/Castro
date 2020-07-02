@@ -55,7 +55,7 @@ offers suggestions for performance improvements.
 It can also be run locally. This requires the ``clang-tidy`` and
 ``bear`` packages, and the python script ``run-clang-tidy.py`` (which
 can be downloaded from `here
-<https://github.com/AMReX-Astro/cpp-linter-action/blob/master/run-clang-tidy.py>`_). The
+<https://github.com/AMReX-Astro/cpp-linter-action/blob/main/run-clang-tidy.py>`_). The
 analysis is performed by first compiling a problem using the ``bear``
 package, then running the python script to analyze the source
 files. From within a problem directory, run

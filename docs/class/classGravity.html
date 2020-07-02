@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,17 +31,12 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Class HypreABec" href="classHypreABec.html" />
@@ -54,7 +55,7 @@
 
 
           
-            <a href="../index.html" class="icon icon-home"> Castro
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="../class/classGravity.html">master</a> | <a href="../dev/class/classGravity.html">development</a>
+        Branch: <a href="../class/classGravity.html">main</a> | <a href="../dev/class/classGravity.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
@@ -159,6 +162,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -197,7 +201,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../classlist.html">Class list</a> &raquo;</li>
         
@@ -563,6 +567,24 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi">
+<span id="_CPPv3N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="_CPPv2N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi"></span><span id="Gravity::test_residual__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.amrex::GpuArray:amrex::Real.AMREX_SPACEDIM:.i"></span><span class="target" id="classGravity_1a1f5722b41d2a8021f2c7d044f21cb6b1"></span>void <code class="sig-name descname">test_residual</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>rhs</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecy</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ecz</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::GpuArray&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real, AMREX_SPACEDIM&gt; <em>dx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::GpuArray&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real, AMREX_SPACEDIM&gt; <em>problo</em>, int <em>coord_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity13test_residualERKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEN5amrex8GpuArrayIN5amrex4RealE14AMREX_SPACEDIMEEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Test whether using the edge-based gradients to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: box </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: right-hand-side </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecx</span></code>: gradients wrt x </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecy</span></code>: gradients wrt y </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ecz</span></code>: gradients wrt z </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord_type</span></code>: coordinate system </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N7Gravity24test_level_grad_phi_prevEi">
 <span id="_CPPv3N7Gravity24test_level_grad_phi_prevEi"></span><span id="_CPPv2N7Gravity24test_level_grad_phi_prevEi"></span><span id="Gravity::test_level_grad_phi_prev__i"></span><span class="target" id="classGravity_1accd3fe5ed76e322701a8059b1c4985cd"></span>void <code class="sig-name descname">test_level_grad_phi_prev</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity24test_level_grad_phi_prevEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p><dl class="simple">
@@ -657,6 +679,24 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii">
+<span id="_CPPv3N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii"></span><span id="_CPPv2N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii"></span><span id="Gravity::compute_radial_mass__amrex::BoxCR.amrex::Array4:amrex::RealC:C.RealVectorR.RealVectorR.i.i"></span><span class="target" id="classGravity_1ac023ae440222ae86cb209ed6e20aed5f"></span>void <code class="sig-name descname">compute_radial_mass</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> <em>u</em>, <a class="reference internal" href="../file/Gravity_8H.html#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_mass</em>, <a class="reference internal" href="../file/Gravity_8H.html#_CPPv410RealVector" title="RealVector">RealVector</a> &amp;<em>radial_vol</em>, int <em>n1d</em>, int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19compute_radial_massERKN5amrex3BoxEKN5amrex6Array4IKN5amrex4RealEEER10RealVectorR10RealVectorii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Integrate radially outward to find radial mass distribution</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: Box </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: Density (RHS of Poisson’s equation) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radial_mass</span></code>: Radially integrated mass </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radial_vol</span></code>: Radially integrated volume </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n1d</span></code>: Number of radial points in the domain </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi">
 <span id="_CPPv3N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Gravity::make_radial_phi__i.amrex::MultiFabCR.amrex::MultiFabR.i"></span><span class="target" id="classGravity_1a2a0dcf24d4098beb82ca2f81402b83cd"></span>void <code class="sig-name descname">make_radial_phi</code><span class="sig-paren">(</span>int <em>level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Rhs</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, int <em>fill_interior</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Integrate radially outward to find radial gravitational potential</p>
@@ -717,14 +757,6 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity14get_const_gravEv">
-<span id="_CPPv3N7Gravity14get_const_gravEv"></span><span id="_CPPv2N7Gravity14get_const_gravEv"></span><span id="Gravity::get_const_grav"></span><span class="target" id="classGravity_1a02c1820217c0ff4390f3cebb6b87ffba"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">get_const_grav</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity14get_const_gravEv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Functions</p>
-<dl class="cpp function">
 <dt id="_CPPv4N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE">
 <span id="_CPPv3N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="_CPPv2N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE"></span><span id="Gravity::applyMetricTerms__i.amrex::MultiFabR.amrex::Vector:amrex::MultiFabP:CR"></span><span class="target" id="classGravity_1ac6045e2b3ac4f9b367fcb9e1b75da068"></span>void <code class="sig-name descname">applyMetricTerms</code><span class="sig-paren">(</span>int <em>level</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Rhs</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>coeffs</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity16applyMetricTermsEiRN5amrex8MultiFabERKN5amrex6VectorIPN5amrex8MultiFabEEE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Modify Rhs and coeffs with the appropriate metric terms.</p>
@@ -780,9 +812,82 @@
 </p>
 </dd></dl>
 
+<dl class="cpp function">
+<dt id="_CPPv4N7Gravity7get_rhsEiii">
+<span id="_CPPv3N7Gravity7get_rhsEiii"></span><span id="_CPPv2N7Gravity7get_rhsEiii"></span><span id="Gravity::get_rhs__i.i.i"></span><span class="target" id="classGravity_1ae454e6e5fca3298d85ef249d251fc206"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;std::unique_ptr&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab&gt;&gt; <code class="sig-name descname">get_rhs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>nlevs</em>, int <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7get_rhsEiii" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the rhs</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Index of coarse level </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nlevs</span></code>: Number of levels </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Use new (1) or old (0) state data </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N7Gravity12sanity_checkEi">
+<span id="_CPPv3N7Gravity12sanity_checkEi"></span><span id="_CPPv2N7Gravity12sanity_checkEi"></span><span id="Gravity::sanity_check__i"></span><span class="target" id="classGravity_1a46368f0b449d04582cf1b68871a25a5b"></span>void <code class="sig-name descname">sanity_check</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity12sanity_checkEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This is a sanity check on whether we are trying to fill multipole boundary conditiosn for grids at this level &gt; 0  this case is not currently supported. Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, then ask if the grids at this level are contained in the shrunken domain. If not, then grids at this level touch the domain boundary and we must abort.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv3N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Gravity::actual_solve_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabCP:CR.amrex::Vector:std::array:amrex::MultiFabP.AMREX_SPACEDIM::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabCPC.amrex::Real.amrex::Real"></span><span class="target" id="classGravity_1aaaa39eaac41e449038d1591491c98704"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">actual_solve_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>rhs</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;std::array&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*, AMREX_SPACEDIM&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>res</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab *<em class="property">const</em> <em>crse_bcdata</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>rel_eps</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>abs_eps</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Do multigrid solve</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">res</span></code>: </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">crse_bcdata</span></code>: </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rel_eps</span></code>: Relative tolerance </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abs_eps</span></code>: Absolute tolerance </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE">
+<span id="_CPPv3N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="_CPPv2N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="Gravity::solve_phi_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Real"></span><span class="target" id="classGravity_1a417e2a4501dc19e8e924591bce4abd8b"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">solve_phi_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>rhs</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>res</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Do multigrid solve to find phi</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side source term </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">res</span></code>: </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N7Gravity14get_const_gravEv">
+<span id="_CPPv3N7Gravity14get_const_gravEv"></span><span id="_CPPv2N7Gravity14get_const_gravEv"></span><span id="Gravity::get_const_grav"></span><span class="target" id="classGravity_1a02c1820217c0ff4390f3cebb6b87ffba"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">get_const_grav</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity14get_const_gravEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 <div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Attributes</p>
+<p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="cpp var">
 <dt id="_CPPv4N7Gravity6parentE">
 <span id="_CPPv3N7Gravity6parentE"></span><span id="_CPPv2N7Gravity6parentE"></span><span id="Gravity::parent__amrex::AmrP"></span><span class="target" id="classGravity_1aabb853453b6ec4af0e0c4c4cce0709a8"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Amr *<code class="sig-name descname">parent</code><a class="headerlink" href="#_CPPv4N7Gravity6parentE" title="Permalink to this definition">¶</a><br /></dt>
@@ -913,7 +1018,7 @@
 
 </div>
 <div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Protected Static Attributes</p>
+<p class="breathe-sectiondef-title rubric">Public Static Attributes</p>
 <dl class="cpp var">
 <dt id="_CPPv4N7Gravity11test_solvesE">
 <span id="_CPPv3N7Gravity11test_solvesE"></span><span id="_CPPv2N7Gravity11test_solvesE"></span><span id="Gravity::test_solves__i"></span><span class="target" id="classGravity_1ac08196542f647f011081acbb56c40001"></span>int <code class="sig-name descname">test_solves</code><a class="headerlink" href="#_CPPv4N7Gravity11test_solvesE" title="Permalink to this definition">¶</a><br /></dt>
@@ -933,77 +1038,6 @@
 <dt id="_CPPv4N7Gravity24max_radius_all_in_domainE">
 <span id="_CPPv3N7Gravity24max_radius_all_in_domainE"></span><span id="_CPPv2N7Gravity24max_radius_all_in_domainE"></span><span id="Gravity::max_radius_all_in_domain__amrex::Real"></span><span class="target" id="classGravity_1acbb91e5ff3eb2a2bf1e077926a117b68"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">max_radius_all_in_domain</code><a class="headerlink" href="#_CPPv4N7Gravity24max_radius_all_in_domainE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
-
-</div>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Private Functions</p>
-<dl class="cpp function">
-<dt id="_CPPv4N7Gravity7get_rhsEiii">
-<span id="_CPPv3N7Gravity7get_rhsEiii"></span><span id="_CPPv2N7Gravity7get_rhsEiii"></span><span id="Gravity::get_rhs__i.i.i"></span><span class="target" id="classGravity_1ae454e6e5fca3298d85ef249d251fc206"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;std::unique_ptr&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab&gt;&gt; <code class="sig-name descname">get_rhs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>nlevs</em>, int <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity7get_rhsEiii" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get the rhs</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Index of coarse level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">nlevs</span></code>: Number of levels </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Use new (1) or old (0) state data </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N7Gravity12sanity_checkEi">
-<span id="_CPPv3N7Gravity12sanity_checkEi"></span><span id="_CPPv2N7Gravity12sanity_checkEi"></span><span id="Gravity::sanity_check__i"></span><span class="target" id="classGravity_1a46368f0b449d04582cf1b68871a25a5b"></span>void <code class="sig-name descname">sanity_check</code><span class="sig-paren">(</span>int <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity12sanity_checkEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>This is a sanity check on whether we are trying to fill multipole boundary conditiosn for grids at this level &gt; 0  this case is not currently supported. Here we shrink the domain at this level by 1 in any direction which is not symmetry or periodic, then ask if the grids at this level are contained in the shrunken domain. If not, then grids at this level touch the domain boundary and we must abort.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv3N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="Gravity::actual_solve_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabCP:CR.amrex::Vector:std::array:amrex::MultiFabP.AMREX_SPACEDIM::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabCPC.amrex::Real.amrex::Real"></span><span class="target" id="classGravity_1aaaa39eaac41e449038d1591491c98704"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">actual_solve_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>rhs</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;std::array&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*, AMREX_SPACEDIM&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>res</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab *<em class="property">const</em> <em>crse_bcdata</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>rel_eps</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>abs_eps</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity22actual_solve_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPKN5amrex8MultiFabEEERKN5amrex6VectorINSt5arrayIPN5amrex8MultiFabE14AMREX_SPACEDIMEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEPCKN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Do multigrid solve</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">res</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">crse_bcdata</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rel_eps</span></code>: Relative tolerance </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">abs_eps</span></code>: Absolute tolerance </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE">
-<span id="_CPPv3N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="_CPPv2N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE"></span><span id="Gravity::solve_phi_with_mlmg__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.amrex::Vector:amrex::MultiFabP:CR.amrex::Real"></span><span class="target" id="classGravity_1a417e2a4501dc19e8e924591bce4abd8b"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">solve_phi_with_mlmg</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>rhs</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>res</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity19solve_phi_with_mlmgEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIPN5amrex8MultiFabEEERKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEERKN5amrex6VectorIPN5amrex8MultiFabEEEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Do multigrid solve to find phi</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: Coarse level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: Fine level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Gravitational potential </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rhs</span></code>: Right hand side source term </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: Grad phi </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">res</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
 
 </div>
 </dd></dl>
@@ -1030,11 +1064,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1045,7 +1087,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

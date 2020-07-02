@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,17 +31,12 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Class Diffusion" href="classDiffusion.html" />
@@ -54,7 +55,7 @@
 
 
           
-            <a href="../index.html" class="icon icon-home"> Castro
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="../class/classCastro.html">master</a> | <a href="../dev/class/classCastro.html">development</a>
+        Branch: <a href="../class/classCastro.html">main</a> | <a href="../dev/class/classCastro.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
@@ -159,6 +162,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -197,7 +201,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../classlist.html">Class list</a> &raquo;</li>
         
@@ -1012,6 +1016,36 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
+<span id="_CPPv3N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::add_magnetic_e__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a2e950ea131bbe11045b67f35926d3935"></span>void <code class="sig-name descname">add_magnetic_e</code><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>By</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bz</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add magnetic contribution to energy density <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Bx</span></code>: magnetic field in x </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">By</span></code>: magnetic field in y </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Bz</span></code>: magnetic field in z </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
+<span id="_CPPv3N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::check_div_B__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a5bf793c2b91ad3a30e0deb6b91348a2a"></span>void <code class="sig-name descname">check_div_B</code><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>By</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bz</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check if divergence of B is zero at initialization <dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Bx</span></code>: magnetic field in x </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">By</span></code>: magnetic field in y </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Bz</span></code>: magnetic field in z </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a31f5bb8b118a05389782d77766c9b1b1"></span>void <code class="sig-name descname">computeTemp</code><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>By</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bz</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the current temperature</p>
@@ -1462,17 +1496,6 @@
 <span id="_CPPv3N6Castro11theTracerPCEv"></span><span id="_CPPv2N6Castro11theTracerPCEv"></span><span id="Castro::theTracerPC"></span><span class="target" id="classCastro_1abd88ee4a3cb9cace54cfbe692c6e7f94"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::AmrTracerParticleContainer *<code class="sig-name descname">theTracerPC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11theTracerPCEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="cpp function">
-<dt>
-<span class="target" id="classCastro_1a01f599073a5e24c90775f310f76a2d05"></span><code class="sig-name descname">int numBCThreadsMin (\3\)</code></dt>
-<dd><p>Minimum CUDA threadblock size for BC fills. </p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N6Castro12minBCThreadsEi">
-<span id="_CPPv3N6Castro12minBCThreadsEi"></span><span id="_CPPv2N6Castro12minBCThreadsEi"></span><span id="Castro::minBCThreads__i"></span><span class="target" id="classCastro_1a40ef8d943b0be650fa6293c41be5d533"></span>int <code class="sig-name descname">minBCThreads</code><span class="sig-paren">(</span>int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro12minBCThreadsEi" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
 </div>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Static Attributes</p>
@@ -1520,16 +1543,6 @@
 <dl class="cpp function">
 <dt>
 <span class="target" id="classCastro_1a4e1556a32449cd5576c5c373f58c1350"></span><code class="sig-name descname">amrex::MultiFab dLogArea (\1\)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="classCastro_1aa25af2330c4023e1e88d4c43d59036f2"></span><code class="sig-name descname">amrex::Real material_lost_through_boundary_cumulative (\n_lost\)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="classCastro_1af18cb55a67616bcb8aeb58dd922daece"></span><code class="sig-name descname">amrex::Real material_lost_through_boundary_temp (\n_lost\)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -1899,12 +1912,6 @@
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt id="_CPPv4N6Castro6n_lostE">
-<span id="_CPPv3N6Castro6n_lostE"></span><span id="_CPPv2N6Castro6n_lostE"></span><span id="Castro::n_lost__iC"></span><span class="target" id="classCastro_1a1d8d1cdcaee43783ae6b665f05f3b16b"></span><em class="property">const</em> int <code class="sig-name descname">n_lost</code> = 8<a class="headerlink" href="#_CPPv4N6Castro6n_lostE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>For keeping track of fluid quantities lost at physical grid boundaries. This should persist through restarts, but right now only on level 0. </p>
-</dd></dl>
-
-<dl class="cpp var">
 <dt id="_CPPv4N6Castro19previousCPUTimeUsedE">
 <span id="_CPPv3N6Castro19previousCPUTimeUsedE"></span><span id="_CPPv2N6Castro19previousCPUTimeUsedE"></span><span id="Castro::previousCPUTimeUsed__amrex::Real"></span><span class="target" id="classCastro_1a70b586fbbe598cb01fff44db25501100"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">previousCPUTimeUsed</code><a class="headerlink" href="#_CPPv4N6Castro19previousCPUTimeUsedE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>for keeping track of the amount of CPU time used  this will persist after restarts </p>
@@ -2003,11 +2010,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -2018,7 +2033,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

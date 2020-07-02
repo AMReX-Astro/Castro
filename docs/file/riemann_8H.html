@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,21 +31,16 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Mhd" href="../mhd_files.html" />
-    <link rel="prev" title="File ppm.H" href="ppm_8H.html" /> 
+    <link rel="next" title="File slope.H" href="slope_8H.html" />
+    <link rel="prev" title="File reconstruction.H" href="reconstruction_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -54,7 +55,7 @@
 
 
           
-            <a href="../index.html" class="icon icon-home"> Castro
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/riemann_8H.html">master</a> | <a href="../dev/file/riemann_8H.html">development</a>
+        Branch: <a href="../file/riemann_8H.html">main</a> | <a href="../dev/file/riemann_8H.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
@@ -141,7 +144,9 @@
 <li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
@@ -165,6 +170,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -203,7 +209,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
@@ -231,20 +237,48 @@
   <div class="section" id="file-riemann-h">
 <h1>File riemann.H<a class="headerlink" href="#file-riemann-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann_8H_1a425f7e7ebc681ec693c8a630357f4370"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void wsqge (const Real p, const Real v, const Real gam, const Real gdot, Real &amp;gstar, const Real gmin, const Real gmax, const Real csq, const Real pstar, Real &amp;wsq)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann_8H_1ade82ea142bba30255d2730820b4fb9ee"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void pstar_bisection (Real &amp;pstar_lo, Real &amp;pstar_hi, const Real ul, const Real pl, const Real taul, const Real gamel, const Real clsql, const Real ur, const Real pr, const Real taur, const Real gamer, const Real clsqr, const Real gdot, const Real gmin, const Real gmax, const int lcg_maxiter, const Real lcg_tol, Real &amp;pstar, Real &amp;gamstar, bool &amp;converged, GpuArray&lt; Real, PSTAR_BISECT_FACTOR *HISTORY_SIZE &gt; &amp;pstar_hist_extra)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann_8H_1a545d59614ee9dc49a587e7f81e43fd07"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void cons_state (const Real *qstate, Real *U)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann_8H_1ae8742f1393d6541ac486ca554c5c78a9"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void HLLC_state (const int idir, const Real S_k, const Real S_c, const Real *qstate, Real *U)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann_8H_1afdbd420989f445d9540659c92eadf13c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_flux (const int idir, const Real bnd_fac, const int coord, const Real *U, const Real p, Real *F)</code></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="cpp var">
-<dt>
-<span class="target" id="riemann_8H_1aacaaa15a61f3a5a5ba29f1e1b0ece0ba"></span><code class="sig-name descname">const Real smlp1   = 1.e-10_rt</code></dt>
+<dt id="_CPPv45smlp1">
+<span id="_CPPv35smlp1"></span><span id="_CPPv25smlp1"></span><span id="smlp1__RealC"></span><span class="target" id="riemann_8H_1aacaaa15a61f3a5a5ba29f1e1b0ece0ba"></span><em class="property">const</em> Real <code class="sig-name descname">smlp1</code> = 1.e-10_rt<a class="headerlink" href="#_CPPv45smlp1" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt>
-<span class="target" id="riemann_8H_1ad49c8f6ceb32df0a69dbff2d7ab214ee"></span><code class="sig-name descname">const Real small   = 1.e-8_rt</code></dt>
+<dt id="_CPPv45small">
+<span id="_CPPv35small"></span><span id="_CPPv25small"></span><span id="small__RealC"></span><span class="target" id="riemann_8H_1ad49c8f6ceb32df0a69dbff2d7ab214ee"></span><em class="property">const</em> Real <code class="sig-name descname">small</code> = 1.e-8_rt<a class="headerlink" href="#_CPPv45small" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
-<dt>
-<span class="target" id="riemann_8H_1ab5a4f8f8cadcc9494a5f2f254ce2c916"></span><code class="sig-name descname">const Real smallu   = 1.e-12_rt</code></dt>
+<dt id="_CPPv46smallu">
+<span id="_CPPv36smallu"></span><span id="_CPPv26smallu"></span><span id="smallu__RealC"></span><span class="target" id="riemann_8H_1ab5a4f8f8cadcc9494a5f2f254ce2c916"></span><em class="property">const</em> Real <code class="sig-name descname">smallu</code> = 1.e-12_rt<a class="headerlink" href="#_CPPv46smallu" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
@@ -258,10 +292,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../mhd_files.html" class="btn btn-neutral float-right" title="Mhd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="slope_8H.html" class="btn btn-neutral float-right" title="File slope.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ppm_8H.html" class="btn btn-neutral float-left" title="File ppm.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="reconstruction_8H.html" class="btn btn-neutral float-left" title="File reconstruction.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -270,11 +304,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -285,7 +327,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

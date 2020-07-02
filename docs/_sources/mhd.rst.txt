@@ -77,24 +77,30 @@ components.  This is done separately from the main conserved fluid
 state.
 
 The conserved fluid state is initialized in ``ca_initdata`` just as
-with pure hydrodynamics problems.  The one change is the when
-initializing the total energy density, ``UEDEN``, you need to include
-the magnetic energy contribution.
+with pure hydrodynamics problems. Note that you do not need to include 
+the magnetic energy contribution to the total energy density, ``UEDEN``.
+After this initialization, the driver handles the addition of the magnetic
+contribution.   
 
 
 Hydrodynamics Update
 ====================
 
-We use piecewise linear reconstruction with a characteristic projection
-and the full 12-Riemann solve corner transport upwind method.  The HLLD
-Riemann solver is used.
+We use piecewise linear or piecewise parabolic reconstruction with a
+characteristic projection and the full 12-Riemann solve corner
+transport upwind method.  The HLLD Riemann solver is used.
 
 Within the solver, we use the same indexing into the primitive state
 as defined in :ref:`table:primlist`, with the additions of ``QMAGX``,
 ``QMAGY``, and ``QMAGZ`` for the cell-centered magnetic field
 components and ``QPTOT`` for the total pressure (gas + magnetic).
 
-The slope limiting for the controlled by the ``mhd_plm_slope`` variable:
+Just like with pure hydrodynamics, the reconstruction type is
+controlled by ``castro.ppm_type``, with ``0`` selecting piecewise
+linear and ``1`` selecting piecewise parabolic.
+
+For the piecewise linear method, the slope limiting for the controlled
+by the ``mhd_plm_slope`` variable:
 
   * ``mhd_plm_slope = 0`` : piecewise constant slopes
   * ``mhd_plm_slope = 1`` : van Leer limiter

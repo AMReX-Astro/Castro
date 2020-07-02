@@ -392,7 +392,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotational_dPdt, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.rotation_include_domegadt, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -410,17 +410,11 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotational_period``                  | the rotation period for the corotating frame            | -1.e200       |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotational_dPdt``                    | the rotation periods time evolution---this allows the   | 0.0           |
-|                                        | rotation rate to change durning the simulation time     |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotation_include_centrifugal``       | permits the centrifugal terms in the rotation to be     | 1             |
 |                                        | turned on and off                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``rotation_include_coriolis``          | permits the Coriolis terms in the rotation to be turned | 1             |
 |                                        | on and off                                              |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``rotation_include_domegadt``          | permits the d(omega)/dt terms in the rotation to be     | 1             |
-|                                        | turned on and off                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``state_in_rotating_frame``            | Which reference frame to measure the state variables    | 1             |
 |                                        | with respect to. The standard in the literature when    |               |
@@ -526,7 +520,7 @@ namespace: ``castro``
 
 **diagnostics, I/O**
 
-.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_fortran_warnings, castro.print_update_diagnostics, castro.track_grid_losses, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
+.. index:: castro.v, castro.dump_old, castro.domain_is_plane_parallel, castro.print_update_diagnostics, castro.sum_interval, castro.sum_per, castro.show_center_of_mass, castro.job_name, castro.output_at_completion, castro.reset_checkpoint_time, castro.reset_checkpoint_step
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -541,13 +535,8 @@ namespace: ``castro``
 |                                        | velocity).  Note: this will always assume that the last |               |
 |                                        | spatial dimension is vertical                           |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``print_fortran_warnings``             | display warnings in Fortran90 routines                  | (0, 1)        |
-+----------------------------------------+---------------------------------------------------------+---------------+
 | ``print_update_diagnostics``           | display information about updates to the state (how     | (0, 1)        |
 |                                        | much mass, momentum, energy added)                      |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``track_grid_losses``                  | calculate losses of material through physical grid      | 0             |
-|                                        | boundaries                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sum_interval``                       | how often (number of coarse timesteps) to compute       | -1            |
 |                                        | integral sums (for runtime diagnostics)                 |               |

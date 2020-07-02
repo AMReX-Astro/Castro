@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,20 +31,15 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Scf" href="../scf_files.html" />
+    <link rel="next" title="File Rotation.H" href="Rotation_8H.html" />
     <link rel="prev" title="Rotation" href="../rotation_files.html" /> 
 </head>
 
@@ -54,7 +55,7 @@
 
 
           
-            <a href="../index.html" class="icon icon-home"> Castro
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/Castro__rotation_8H.html">master</a> | <a href="../dev/file/Castro__rotation_8H.html">development</a>
+        Branch: <a href="../file/Castro__rotation_8H.html">main</a> | <a href="../dev/file/Castro__rotation_8H.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -101,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
@@ -144,6 +147,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../rotation_files.html">Rotation</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_rotation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
@@ -161,6 +165,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -199,7 +204,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
@@ -282,6 +287,89 @@
 <span class="target" id="Castro__rotation_8H_1af2c1b37113922e4f043a9dddef402ef0"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity_c (const int i, const int j, const int k, const amrex::GeometryData &amp;geomdata, const Real *center, const Real *omega, const amrex::Real time, amrex::Real *v)</code></dt>
 <dd></dd></dl>
 
+<dl class="cpp function">
+<dt id="_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real">
+<span id="_CPPv34rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="_CPPv24rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="rsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1a96c181b2072bb65dc0a06d82141e0772"></span>void <code class="sig-name descname">rsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rot</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, <em class="property">const</em> Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add the rotation source for input state uold to the full hydrodynamic source term source</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: the rotational acceleration </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: the full hydrodynamical source term </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE">
+<span id="_CPPv38corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="_CPPv28corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="corrrsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.RealC.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1aec06640c07bb5afd79ada8b45e63b688"></span>void <code class="sig-name descname">corrrsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_old</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_new</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rnew</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>unew</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em>, <em class="property">const</em> Real <em>dt</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>vol</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute the correction source term for rotation</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_old</span></code>: rotational potential at old time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_new</span></code>: rotational potential at new time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rold</span></code>: rotational acceleration at old time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rnew</span></code>: rotational acceleration at new time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uold</span></code>: old time state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unew</span></code>: new time state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: full hydrodynamic state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux0</span></code>: mass flux in x coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux1</span></code>: mass flux in y coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux2</span></code>: mass flux in z coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vol</span></code>: cell volume </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv428fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE">
+<span id="_CPPv328fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE"></span><span id="_CPPv228fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE"></span><span id="fill_rotational_acceleration__BoxCR.Array4:Real:CR.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1a5eeced08ea156e2ca98b5457a4c3f885"></span>void <code class="sig-name descname">fill_rotational_acceleration</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>rot</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv428fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute the rotational acceleration over a box</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: the rotational acceleration </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the input state </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__rotation_8H_1a9f9af5769474d6d4950d05591cf093b1"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, GpuArray&lt; Real, 3 &gt; const &amp;omega, const bool coriolis, Real *Sr)</code></dt>
+<dd><p>Compute the rotational acceleration for a single zone (Coriolis and centrifugal)</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>: distance from origin of rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>: velocity </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omega</span></code>: rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coriolis</span></code>: do we include the Coriolis force </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sr</span></code>: rotational acceleration </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv425fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real">
+<span id="_CPPv325fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real"></span><span id="_CPPv225fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real"></span><span id="fill_rotational_potential__BoxCR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1a46a558ccb6bb4c66751bc4850fb8c19c"></span>void <code class="sig-name descname">fill_rotational_potential</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>phi</em>, <em class="property">const</em> Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv419fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real">
+<span id="_CPPv319fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real"></span><span id="_CPPv219fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real"></span><span id="fill_rotational_psi__BoxCR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1abb36e9941c1071fbe79b8ecea2cc7d42"></span>void <code class="sig-name descname">fill_rotational_psi</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>psi</em>, <em class="property">const</em> Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 
@@ -293,7 +381,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../scf_files.html" class="btn btn-neutral float-right" title="Scf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Rotation_8H.html" class="btn btn-neutral float-right" title="File Rotation.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="../rotation_files.html" class="btn btn-neutral float-left" title="Rotation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -305,11 +393,19 @@
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -320,7 +416,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

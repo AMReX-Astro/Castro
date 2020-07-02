@@ -149,19 +149,19 @@ Microphysics, and wait for AMReX to release a ``20.03`` tag, then do::
 Then we can proceed with issuing our own release.
 
 
-Each month the ``development`` branch is merged into ``master`` and a
+Each month the ``development`` branch is merged into ``main`` and a
 release is tagged.  This needs to be done in coordination with its
 submodule dependencies.  The general procedure is:
 
-  * Do 'git pull' in both master and development branches.  (Use `git
+  * Do 'git pull' in both main and development branches.  (Use `git
     checkout xxx` to change to branch xxx.
 
-  * In master branch, do `git merge development`.  Fix any conflicts
+  * In main branch, do `git merge development`.  Fix any conflicts
     if there are any.  (There should not be any conflicts unless a
-    commit is checked into master directly without going through
+    commit is checked into main directly without going through
     development.)
 
-  * In master branch, commit new release notes (``CHANGES.md``)
+  * In main branch, commit new release notes (``CHANGES.md``)
     summarizing changes since last major release.
 
   * Tag the new release: ``git tag -m "Castro YY.MM" YY.MM``
@@ -172,7 +172,7 @@ submodule dependencies.  The general procedure is:
 
   * ``git checkout development``
 
-  * ``git merge master``
+  * ``git merge main``
 
   * ``git push``
 

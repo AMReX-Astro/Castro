@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -25,17 +31,12 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Software Design" href="software.html" />
@@ -54,7 +55,7 @@
 
 
           
-            <a href="index.html" class="icon icon-home"> Castro
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Castro
           
 
           
@@ -79,11 +80,12 @@
 
           
     <div class="branch">
-        Branch: <a href="./FlowChart.html">master</a> | <a href="./dev/FlowChart.html">development</a>
+        Branch: <a href="./FlowChart.html">main</a> | <a href="./dev/FlowChart.html">development</a>
     </div>
 
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -116,6 +118,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
@@ -158,6 +161,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -196,7 +200,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>Flowchart</li>
     
@@ -231,7 +235,7 @@ state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
 explicit coupling of the burning and hydro is done.  This code
 path uses the corner-transport upwind (CTU) method (the unsplit,
-characteristic tracing method of <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id1">[13]</a>).</p></li>
+characteristic tracing method of <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id1">[20]</a>).</p></li>
 <li><p>SDC: a class of iterative methods that couples the advection and reactions
 such that each process explicitly sees the effect of the other.  We have
 two SDC implementations in Castro.</p>
@@ -256,7 +260,7 @@ high-order in time convergence.  This is described in <span class="bibtex" id="i
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id3">[7]</a>.  This uses Strang splitting and the CTU
+described in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id3">[12]</a>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -379,9 +383,6 @@ advanced in this step.</p>
 <li><p>Update the flux registers to account for mismatches at
 coarse-fine interfaces. This cleans up the memory used during
 the step.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">castro.track_grid_losses</span></code> is set, then we
-also add up the mass that left through the boundary over this
-step. <a class="footnote-reference brackets" href="#id8" id="id4">1</a></p></li>
 <li><p>Free any memory allocated for the level advance.</p></li>
 </ul>
 </li>
@@ -503,7 +504,7 @@ intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)
 <li><p>sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id5">[8]</a></p></li>
+follows that of Maestro <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id4">[13]</a></p></li>
 <li><p>external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
 equations in the conservative state vector, <span class="math notranslate nohighlight">\(\Ub\)</span>, are indexed
@@ -606,7 +607,7 @@ using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
 and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
-in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id9" id="id6">2</a>.</p>
+in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id7" id="id5">1</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
 </li>
@@ -727,7 +728,7 @@ simulation.</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <span class="bibtex" id="id7">[castro_sdc]</span>.
+<p>The SDC solver follows the algorithm detailed in <span class="bibtex" id="id6">[castro_sdc]</span>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>
@@ -1015,13 +1016,7 @@ next iteration to approximate the time-centered source term.</p>
 </li>
 </ol>
 <dl class="footnote brackets">
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id4">1</a></span></dt>
-<dd><p>Note: this functionality assumes that only the
-coarse grid touches the physical boundary. It does not use
-any use masks to prevent double counting if multiple levels
-touch the boundary.</p>
-</dd>
-<dt class="label" id="id9"><span class="brackets"><a class="fn-backref" href="#id6">2</a></span></dt>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id5">1</a></span></dt>
 <dd><p>The correction for gravity is slightly different since we directly compute the time-centered gravitational source term using the hydrodynamic fluxes.</p>
 </dd>
 </dl>
@@ -1049,11 +1044,19 @@ touch the boundary.</p>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2018-2020, Castro development tem
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1064,7 +1067,6 @@ touch the boundary.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
