@@ -84,7 +84,7 @@ self-gravity with isolated boundary conditions and rotation, both
 implemented in an energy-conserving fashion, explicit thermal
 diffusion, and gray [@castroII] and multigroup [@castroIII] flux
 limited diffusion radiation hydrodynamics.  A constrained transport
-MHD solver based on the CTU algrothm is also available, and can use
+MHD solver based on the CTU algorithm is also available, and can use
 the same physics sources.  Castro can use an arbitrary equation of
 state and reaction network, and these microphysics routines are
 provided by the StarKiller project [@starkiller].
@@ -114,7 +114,7 @@ architectures.  As Castro evolved, we adopted a fully open development
 model (as does the Enzo [@enzo] code, for example).  We pride ourselves in
 making all of the science problems available in the Castro git repository as
 we are developing them—no separate repo is used for our science work.
-Other simulation codes, like Flash [@flash], work with a general equation of
+Other simulation codes, like Flash [@flash], also work with a general equation of
 state and reaction network, but Castro is unique in focusing on
 spectral deferred correction techniques for coupling the hydro and
 reactions.  Finally, while some astrophysics codes have forks that
