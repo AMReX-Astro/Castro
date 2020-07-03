@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.com/AMReX-Astro/Castro.svg?branch=development)](https://travis-ci.com/AMReX-Astro/Castro)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2301848.svg)](https://doi.org/10.5281/zenodo.2301848)
 [![AMReX](https://amrex-codes.github.io/badges/powered%20by-AMReX-red.svg)](https://amrex-codes.github.io)
 [![github pages](https://github.com/AMReX-Astro/Castro/workflows/github%20pages/badge.svg)](https://github.com/AMReX-Astro/Castro/actions?query=workflow%3A%22github+pages%22)
@@ -48,11 +47,11 @@ Development generally follows the following ideas:
     change (or if they do, that the changes were expected).
 
     If a change is critical, we can cherry-pick the commit from
-    `development` to `master`.
+    `development` to `main`.
 
   * Contributions are welcomed from anyone in the form of a pull
     request from your fork of Castro, targeting the `development`
-    branch. (If you mistakenly target `master`, we can change it
+    branch. (If you mistakenly target `main`, we can change it
     for you.)
 
     Please add a line to `CHANGES.md` summarizing your change if it
@@ -70,14 +69,14 @@ Development generally follows the following ideas:
     descriptive, since these will be used for a squashed commit message.*
 
   * On the first workday of each month, we perform a merge of
-    `development` into `master`, in coordination with `AMReX`,
+    `development` into `main`, in coordination with `AMReX`,
     `Maestro`, and `Microphysics`.  For this merge to take place, we
     need to be passing the regression tests.
 
     To accommodate this need, we close the merge window into
     `development` a few days before the merge day.  While the merge
     window is closed, only bug fixes should be pushed into
-    `development`.  Once the merge from `development` -> `master` is
+    `development`.  Once the merge from `development` -> `main` is
     done, the merge window reopens.
 
 

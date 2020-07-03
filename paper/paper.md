@@ -25,6 +25,9 @@ authors:
   - name: Max Katz
     orcid: 0000-0003-0439-4556
     affiliation: 3
+  - name: Jean Sexton
+    orcid: 0000-0003-2551-1678
+    affiliation: 1
   - name: Donald Willcox
     orcid: 0000-0003-2300-5165
     affiliation: 1
@@ -43,7 +46,7 @@ affiliations:
     index: 3
   - name: Center for Computational Astrophysics, Flatiron Institute
     index: 4
-date: 17 February 2020
+date: 02 July 2020
 bibliography: paper.bib
 ---
 
@@ -57,7 +60,7 @@ MAESTROeX [@maestroex], and the cosmology code Nyx [@nyx] make up the
 AMReX-Astrophysics Suite of open-source, adaptive mesh, performance
 portable astrophysical simulation codes.
 
-The core hydrodynamics solver in Castro [@castro] is based on a the
+The core hydrodynamics solver in Castro [@castro] is based on the
 directionally unsplit corner transport upwind method of [@ctu] with
 piecewise parabolic reconstruction [@ppm].  Modeling reactive flows in
 stellar environments is a core capability of Castro.  Astrophysical
@@ -68,13 +71,13 @@ is the traditional operator splitting approach, using Strang splitting
 to achieve second-order in time.  However, when the reactions are
 energetic this coupling can break down, and we have two different
 implementations based on spectral deferred corrections (SDC), a method
-that aims prevent the hydro and reactions from becoming decoupled.  The
+that aims to prevent the hydro and reactions from becoming decoupled.  The
 simplified SDC method uses the CTU PPM hydro together with an
 iterative scheme to fully couple the reactions and hydro, still to
 second order [@simple_sdc].  Both of these methods have a retry
 scheme, where a timestep will be rejected if the burning solve fails
 to meet its tolerance, negative densities are generated, or we violate
-one of the timestepping criterion.  Alternately, we have implemented a
+one of the timestepping criteria.  Alternatively, we have implemented a
 traditional SDC method that couples hydro and reactions to both second
 and fourth-order in space and time [@castro_sdc] (at present, this
 method is single-level only).
@@ -84,9 +87,9 @@ self-gravity with isolated boundary conditions and rotation, both
 implemented in an energy-conserving fashion, explicit thermal
 diffusion, and gray [@castroII] and multigroup [@castroIII] flux
 limited diffusion radiation hydrodynamics.  A constrained transport
-MHD solver based on the CTU algrothm is also available, and can use
+MHD solver based on the CTU algorithm is also available, and can use
 the same physics sources.  Castro can use an arbitrary equation of
-state and reaction network and these microphysics routines are
+state and reaction network, and these microphysics routines are
 provided by the StarKiller project [@starkiller].
 
 Castro is built on the AMReX [@AMReX] adaptive mesh refinement (AMR)
@@ -114,7 +117,7 @@ architectures.  As Castro evolved, we adopted a fully open development
 model (as does the Enzo [@enzo] code, for example).  We pride ourselves in
 making all of the science problems available in the Castro git repository as
 we are developing them—no separate repo is used for our science work.
-Other simulation codes, like Flash [@flash], work with a general equation of
+Other simulation codes, like Flash [@flash], also work with a general equation of
 state and reaction network, but Castro is unique in focusing on
 spectral deferred correction techniques for coupling the hydro and
 reactions.  Finally, while some astrophysics codes have forks that
@@ -134,7 +137,7 @@ of the U.S. Department of Energy Office of Science and the National
 Nuclear Security Administration.  The work at LBNL was supported by
 U.S. Department of Energy under contract No. DE-AC02-05CH11231.  We
 also thank NVIDIA Corporation for the donation of a Titan X Pascal and
-Titan V used in this research.  The GPU development of \castro\
+Titan V used in this research.  The GPU development of Castro
 benefited greatly from numerous GPU hackathons arranged by OLCF.
 
 # References

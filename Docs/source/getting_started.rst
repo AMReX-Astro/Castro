@@ -42,7 +42,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
    .. note::
 
-      By default, you will be on the ``master`` branch of the source.
+      By default, you will be on the ``main`` branch of the source.
       Development on Castro (and its primary dependencies, AMReX and
       Microphysics) is done in the ``development`` branch, so you
       should work there if you want the latest source::
@@ -52,7 +52,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
       The Castro team runs nightly regression testing on the
       ``development`` branch, so bugs are usually found and fixed
       relatively quickly, but it is generally less stable than staying
-      on the ``master`` branch.
+      on the ``main`` branch.
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
@@ -65,7 +65,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
        git pull --recurse-submodules
 
    The recommended frequency for doing this is monthly, if you are on the
-   stable ``master`` branch of the code; we issue a new release of the code
+   stable ``main`` branch of the code; we issue a new release of the code
    at the beginning of each month.
 
 #. (optional, for developers) If you prefer, you can maintain AMReX and

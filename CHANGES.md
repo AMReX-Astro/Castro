@@ -1,7 +1,12 @@
-# 20.07
+# 20.08
 
    * castro.use_post_step_regrid now unconditionally regrids after
      every timestep on every level. (#898)
+
+   * We now have the ability to access the problem-specific runtime
+     parameters in C++ (#1093)
+
+# 20.07
 
    * The CUDA build no longer has a requirement that amr.blocking_factor
      be a multiple of 8. Though this is recommended for performance reasons,

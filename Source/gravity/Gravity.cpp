@@ -19,6 +19,7 @@
 
 #include "fundamental_constants.H"
 
+#include "Gravity_util.H"
 #include "MGutils.H"
 
 using namespace amrex;
@@ -696,7 +697,7 @@ Gravity::GetCrsePhi(int level,
 }
 
 void
-Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in, int use_previous_phi_as_guess)
+Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
 {
     BL_PROFILE("Gravity::multilevel_solve_for_new_phi()");
 
@@ -713,15 +714,13 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in, int use_p
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level_in,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
-                            is_new,use_previous_phi_as_guess);
+    actual_multilevel_solve(level, finest_level_in, amrex::GetVecOfVecOfPtrs(grad_phi_curr), is_new);
 }
 
 void
 Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
                                   const Vector<Vector<MultiFab*> >& grad_phi,
-                                  int is_new,
-                                  int use_previous_phi_as_guess)
+                                  int is_new)
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
 
@@ -739,17 +738,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
         } else {
             phi_p[ilev] = &LevelData[amr_lev]->get_old_data(PhiGrav_Type);
         }
-
-        if (!use_previous_phi_as_guess)
-            phi_p[ilev]->setVal(0.);
     }
 
     const auto& rhs = get_rhs(crse_level, nlevels, is_new);
-
-    if (!use_previous_phi_as_guess && crse_level == 0 && !(parent->Geom(0).isAllPeriodic()))
-    {
-        make_radial_phi(0, *rhs[0], *phi_p[0], 1);
-    }
 
     Vector<Vector<MultiFab*> > grad_phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)
@@ -1377,22 +1368,242 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
     int n1d = radial_grav.size();
 
     const Geometry& geom = parent->Geom(level);
-    const Real* dx = geom.CellSize();
-    const Real dr        = dx[0] / static_cast<Real>(gravity::drdxfac);
+    const auto dx = geom.CellSizeArray();
+    const Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
+
+    const auto problo = geom.ProbLoArray();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(grav_vector, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-       const Box& bx = mfi.growntilebox();
-       ca_put_radial_grav(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                          ZFILL(dx), dr,
-                          BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                          radial_grav.dataPtr(),
-                          ZFILL(geom.ProbLo()),
-                          n1d, level);
+        const Box& bx = mfi.growntilebox();
+
+        auto grav = grav_vector.array(mfi);
+        Real* const radial_grav_ptr = radial_grav.dataPtr();
+
+        // Note that we are interpolating onto the entire range of grav,
+        // including the ghost cells.
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            GpuArray<Real, 3> loc;
+
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+            loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+            loc[2] = 0.0_rt;
+#endif
+
+            Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
+
+            int index = static_cast<int>(r / dr);
+
+            Real cen = (static_cast<Real>(index) + 0.5_rt) * dr;
+            Real xi = r - cen;
+
+            Real mag_grav;
+
+            if (index == 0) {
+
+                // Linear interpolation or extrapolation
+                Real slope = (radial_grav_ptr[index+1] - radial_grav_ptr[index]) / dr;
+                mag_grav = radial_grav_ptr[index] + slope * xi;
+
+            } else if (index == n1d-1) {
+
+                // Linear interpolation or extrapolation
+                Real slope = (radial_grav_ptr[index] - radial_grav_ptr[index-1]) / dr;
+                mag_grav = radial_grav_ptr[index] + slope * xi;
+
+            } else if (index > n1d-1) {
+
+#ifndef AMREX_USE_GPU
+                if (level == 0) {
+                    std::cout << "PUT_RADIAL_GRAV: INDEX TOO BIG " << index << " > " << n1d-1 << "\n";
+                    std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
+                    std::cout << "R / DR IS " << r << " " << dr << "\n";
+                    amrex::Abort("Error:: Gravity.cpp :: interpolate_monopole_grav");
+                } else {
+                    // NOTE: we don't do anything to this point if it's outside the
+                    //       radial grid and level > 0
+                }
+#endif
+
+            } else {
+
+                // Quadratic interpolation
+                Real ghi = radial_grav_ptr[index+1];
+                Real gmd = radial_grav_ptr[index  ];
+                Real glo = radial_grav_ptr[index-1];
+                mag_grav = ( ghi -   2.0_rt * gmd + glo) * xi * xi / (2.0_rt * dr * dr) +
+                           ( ghi                  - glo) * xi      / (2.0_rt * dr     ) +
+                           (-ghi + 26.e0_rt * gmd - glo) / 24.e0_rt;
+
+                Real minvar = amrex::min(gmd, amrex::min(glo, ghi));
+                Real maxvar = amrex::max(gmd, amrex::max(glo, ghi));
+                mag_grav = amrex::max(mag_grav, minvar);
+                mag_grav = amrex::min(mag_grav, maxvar);
+
+            }
+
+            if (index <= n1d-1) {
+
+                for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                    grav(i,j,k,n) = mag_grav * (loc[n] / r);
+                }
+
+            }
+
+        });
     }
+}
+
+void
+Gravity::compute_radial_mass(const Box& bx,
+                             Array4<Real const> const u,
+                             RealVector& radial_mass,
+                             RealVector& radial_vol,
+                             int n1d, int level)
+{
+    const Geometry& geom = parent->Geom(level);
+
+    GpuArray<Real, 3> dx, problo, center;
+    for (int i = 0; i < AMREX_SPACEDIM; ++i) {
+        dx[i] = geom.CellSizeArray()[i];
+        problo[i] = geom.ProbLoArray()[i];
+    }
+    for (int i = AMREX_SPACEDIM; i < 3; ++i) {
+        dx[i] = 0.0_rt;
+        problo[i] = 0.0_rt;
+    }
+    ca_get_center(center.begin());
+
+    Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
+    Real drinv = 1.0_rt / dr;
+
+    const int coord_type = geom.Coord();
+
+    AMREX_ALWAYS_ASSERT(coord_type >= 0 && coord_type <= 2);
+
+    Real octant_factor = 1.0_rt;
+
+    if (coord_type == 0) {
+
+        if ((std::abs(center[0] - problo[0]) < 1.e-2_rt * dx[0]) &&
+            (std::abs(center[1] - problo[1]) < 1.e-2_rt * dx[1]) &&
+            (std::abs(center[2] - problo[2]) < 1.e-2_rt * dx[2])) {
+
+            octant_factor = 8.0_rt;
+
+        }
+
+    } else if (coord_type == 1) {
+
+        if (std::abs(center[1] - problo[1]) < 1.e-2_rt * dx[1]) {
+
+            octant_factor = 2.0_rt;
+
+        }
+
+    }
+
+    Real fac = static_cast<Real>(gravity::drdxfac);
+
+    Real dx_frac = dx[0] / fac;
+    Real dy_frac = dx[1] / fac;
+    Real dz_frac = dx[2] / fac;
+
+    Real* const radial_mass_ptr = radial_mass.dataPtr();
+    Real* const radial_vol_ptr = radial_vol.dataPtr();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - center[0];
+
+        Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        Real lo_j = problo[1] + static_cast<Real>(j) * dx[1] - center[1];
+
+        Real zc = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        Real lo_k = problo[2] + static_cast<Real>(k) * dx[2] - center[2];
+
+        Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
+        int index = static_cast<int>(r * drinv);
+
+        if (index > n1d - 1) {
+
+#ifndef AMREX_USE_GPU
+            if (level == 0) {
+                std::cout << "   " << "\n";
+                std::cout << ">>> Error: Gravity_nd::ca_compute_radial_mass " << i << " " << j << " " << k << "\n";
+                std::cout << ">>> ... index too big: " << index << " > " << n1d-1 << "\n";
+                std::cout << ">>> ... at (i,j,k)   : " << i << " " << j << " " << k << "\n";
+                amrex::Abort("Error:: Gravity_nd.F90 :: ca_compute_radial_mass");
+            }
+#endif
+
+        } else {
+
+            for (int kk = 0; kk <= dg2 * (gravity::drdxfac - 1); ++kk) {
+                Real zz   = lo_k + (static_cast<Real>(kk) + 0.5_rt) * dz_frac;
+                Real zzsq = zz * zz;
+
+                for (int jj = 0; jj <= dg1 * (gravity::drdxfac - 1); ++jj) {
+                    Real yy   = lo_j + (static_cast<Real>(jj) + 0.5_rt) * dy_frac;
+                    Real yysq = yy * yy;
+
+                    for (int ii = 0; ii <= gravity::drdxfac - 1; ++ii) {
+                        Real xx    = lo_i + (static_cast<Real>(ii) + 0.5_rt) * dx_frac;
+                        Real xxsq  = xx * xx;
+
+                        r     = std::sqrt(xxsq + yysq + zzsq);
+                        index = static_cast<int>(r * drinv);
+
+                        Real vol_frac;
+
+                        if (coord_type == 0) {
+
+                            vol_frac = octant_factor * dx_frac * dy_frac * dz_frac;
+
+                        } else if (coord_type == 1) {
+
+                            vol_frac = 2.0_rt * M_PI * dx_frac * dy_frac * octant_factor * xx;
+
+                        } else if (coord_type == 2) {
+
+                            Real rlo = std::abs(lo_i + static_cast<Real>(ii  ) * dx_frac);
+                            Real rhi = std::abs(lo_i + static_cast<Real>(ii+1) * dx_frac);
+                            vol_frac = (4.0_rt / 3.0_rt) * M_PI * (rhi * rhi * rhi - rlo * rlo * rlo);
+
+                        }
+
+                        if (index <= n1d - 1) {
+                            Gpu::Atomic::Add(&radial_mass_ptr[index], vol_frac * u(i,j,k,URHO));
+                            Gpu::Atomic::Add(&radial_vol_ptr[index], vol_frac);
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+    });
 }
 
 void
@@ -1436,19 +1647,16 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                   AMREX_REAL_ANYD(dx), dr,
-                                   BL_TO_FORTRAN_ANYD(Rhs[mfi]),
+            compute_radial_mass(bx,
+                                Rhs.array(mfi),
 #ifdef _OPENMP
-                                   priv_radial_mass[tid].dataPtr(),
-                                   priv_radial_vol[tid].dataPtr(),
+                                priv_radial_mass[tid],
+                                priv_radial_vol[tid],
 #else
-                                   radial_mass.dataPtr(),
-                                   radial_vol.dataPtr(),
+                                radial_mass,
+                                radial_vol,
 #endif
-                                   AMREX_REAL_ANYD(geom.ProbLo()),
-                                   n1d, gravity::drdxfac, level);
+                                n1d, level);
         }
 
 #ifdef _OPENMP
@@ -1670,12 +1878,12 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
         {
 #ifdef _OPENMP
             int tid = omp_get_thread_num();
-            priv_qL0[tid]->setVal(0.0);
-            priv_qLC[tid]->setVal(0.0);
-            priv_qLS[tid]->setVal(0.0);
-            priv_qU0[tid]->setVal(0.0);
-            priv_qUC[tid]->setVal(0.0);
-            priv_qUS[tid]->setVal(0.0);
+            priv_qL0[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qLC[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qLS[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qU0[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qUC[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_qUS[tid]->setVal<RunOn::Gpu>(0.0);
 #endif
             for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
@@ -1874,7 +2082,29 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     const int bc_lo[3] = {domlo[0]-1, domlo[1]-1, domlo[2]-1};
     const int bc_hi[3] = {domhi[0]+1, domhi[1]+1, domhi[2]+1};
 
-    const Real* bc_dx = crse_geom.CellSize();
+    GpuArray<Real, 3> bc_dx;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        bc_dx[n] = crse_geom.CellSizeArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        bc_dx[n] = 0.0_rt;
+    }
+
+    GpuArray<Real, 3> problo;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        problo[n] = crse_geom.ProbLoArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        problo[n] = 0.0_rt;
+    }
+
+    GpuArray<Real, 3> probhi;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        probhi[n] = crse_geom.ProbHiArray()[n];
+    }
+    for (int n = AMREX_SPACEDIM; n < 3; ++n) {
+        probhi[n] = 0.0_rt;
+    }
 
     IntVect smallEndXY( loVectXY );
     IntVect bigEndXY  ( hiVectXY );
@@ -1898,35 +2128,12 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     FArrayBox bcYZLo(boxYZ);
     FArrayBox bcYZHi(boxYZ);
 
-    Array4<Real> const& bcXYLo_arr = bcXYLo.array();
-    Array4<Real> const& bcXYHi_arr = bcXYHi.array();
-
-    amrex::ParallelFor(boxXY,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcXYLo_arr(i,j,k) = 0.0;
-        bcXYHi_arr(i,j,k) = 0.0;
-    });
-
-    Array4<Real> const& bcXZLo_arr = bcXZLo.array();
-    Array4<Real> const& bcXZHi_arr = bcXZHi.array();
-
-    amrex::ParallelFor(boxXZ,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcXZLo_arr(i,j,k) = 0.0;
-        bcXZHi_arr(i,j,k) = 0.0;
-    });
-
-    Array4<Real> const& bcYZLo_arr = bcYZLo.array();
-    Array4<Real> const& bcYZHi_arr = bcYZHi.array();
-
-    amrex::ParallelFor(boxYZ,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k)
-    {
-        bcYZLo_arr(i,j,k) = 0.0;
-        bcYZHi_arr(i,j,k) = 0.0;
-    });
+    bcXYLo.setVal<RunOn::Device>(0.0);
+    bcXYHi.setVal<RunOn::Device>(0.0);
+    bcXZLo.setVal<RunOn::Device>(0.0);
+    bcXZHi.setVal<RunOn::Device>(0.0);
+    bcYZLo.setVal<RunOn::Device>(0.0);
+    bcYZHi.setVal<RunOn::Device>(0.0);
 
     // Loop through the grids and compute the individual contributions
     // to the BCs. The BC constructor is coded to only add to the
@@ -1940,8 +2147,6 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
       physbc_lo[dir] = phys_bc->lo(dir);
       physbc_lo[dir] = phys_bc->hi(dir);
     }
-
-    int symmetry_type = Symmetry;
 
     for (int lev = crse_level; lev <= fine_level; ++lev) {
 
@@ -1958,7 +2163,7 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
             MultiFab::Multiply(source, mask, 0, 0, 1, 0);
         }
 
-        const Real* dx = parent->Geom(lev).CellSize();
+        const auto dx = parent->Geom(lev).CellSizeArray();
 
 #ifdef _OPENMP
         int nthreads = omp_get_max_threads();
@@ -1981,39 +2186,273 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
         {
 #ifdef _OPENMP
             int tid = omp_get_thread_num();
-            priv_bcXYLo[tid]->setVal(0.0);
-            priv_bcXYHi[tid]->setVal(0.0);
-            priv_bcXZLo[tid]->setVal(0.0);
-            priv_bcXZHi[tid]->setVal(0.0);
-            priv_bcYZLo[tid]->setVal(0.0);
-            priv_bcYZHi[tid]->setVal(0.0);
+            priv_bcXYLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXYHi[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXZLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcXZHi[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcYZLo[tid]->setVal<RunOn::Gpu>(0.0);
+            priv_bcYZHi[tid]->setVal<RunOn::Gpu>(0.0);
 #endif
             for (MFIter mfi(source, TilingIfNotGPU()); mfi.isValid(); ++mfi)
             {
                 const Box bx = mfi.tilebox();
 
-                const FArrayBox& r = source[mfi];
-                const FArrayBox& v = (*volume[lev])[mfi];
+                const auto rho = source[mfi].array();
+                const auto vol = (*volume[lev])[mfi].array();
 
-#pragma gpu box(bx)
-                ca_compute_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), AMREX_REAL_ANYD(dx),
-                                         symmetry_type, AMREX_INT_ANYD(physbc_lo), AMREX_INT_ANYD(physbc_hi),
-                                         BL_TO_FORTRAN_ANYD(r),
-                                         BL_TO_FORTRAN_ANYD(v),
-                                         AMREX_REAL_ANYD(crse_geom.ProbLo()), AMREX_REAL_ANYD(crse_geom.ProbHi()),
+                // Determine if we need to add contributions from any symmetric boundaries.
+
+                GpuArray<bool, 3> doSymmetricAddLo {false};
+                GpuArray<bool, 3> doSymmetricAddHi {false};
+                bool doSymmetricAdd {false};
+
+                for (int b = 0; b < 3; ++b) {
+                    if (physbc_lo[b] == Symmetry) {
+                        doSymmetricAddLo[b] = true;
+                        doSymmetricAdd      = true;
+                    }
+
+                    if (physbc_hi[b] == Symmetry) {
+                        doSymmetricAddHi[b] = true;
+                        doSymmetricAdd      = true;
+                    }
+                }
+
 #ifdef _OPENMP
-                                         priv_bcXYLo[tid]->dataPtr(),
-                                         priv_bcXYHi[tid]->dataPtr(),
-                                         priv_bcXZLo[tid]->dataPtr(),
-                                         priv_bcXZHi[tid]->dataPtr(),
-                                         priv_bcYZLo[tid]->dataPtr(),
-                                         priv_bcYZHi[tid]->dataPtr(),
+                auto bcXYLo_arr = priv_bcXYLo[tid]->array();
+                auto bcXYHi_arr = priv_bcXYHi[tid]->array();
+                auto bcXZLo_arr = priv_bcXZLo[tid]->array();
+                auto bcXZHi_arr = priv_bcXZHi[tid]->array();
+                auto bcYZLo_arr = priv_bcYZLo[tid]->array();
+                auto bcYZHi_arr = priv_bcYZHi[tid]->array();
 #else
-                                         bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-                                         bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-                                         bcYZLo.dataPtr(), bcYZHi.dataPtr(),
+                auto bcXYLo_arr = bcXYLo.array();
+                auto bcXYHi_arr = bcXYHi.array();
+                auto bcXZLo_arr = bcXZLo.array();
+                auto bcXZHi_arr = bcXZHi.array();
+                auto bcYZLo_arr = bcYZLo.array();
+                auto bcYZHi_arr = bcYZHi.array();
 #endif
-                                         AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi), AMREX_REAL_ANYD(bc_dx));
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                {
+                    GpuArray<Real, 3> loc, locb;
+                    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+                    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+                    loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+                    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+                    loc[2] = 0.0_rt;
+#endif
+
+                    // Do xy interfaces first. Note that the boundary conditions
+                    // on phi are expected to live directly on the interface.
+                    // We also have to handle the domain corners correctly. We are
+                    // assuming that bc_lo = domlo - 1 and bc_hi = domhi + 1, where
+                    // domlo and domhi are the coarse domain extent.
+
+                    for (int m = bc_lo[1]; m <= bc_hi[1]; ++m) {
+                        if (m == bc_lo[1]) {
+                            locb[1] = problo[1];
+                        }
+                        else if (m == bc_hi[1]) {
+                            locb[1] = probhi[1];
+                        }
+                        else {
+                            locb[1] = problo[1] + (static_cast<Real>(m) + 0.5_rt) * bc_dx[1];
+                        }
+                        Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                        for (int l = bc_lo[0]; l <= bc_hi[0]; ++l) {
+                            if (l == bc_lo[0]) {
+                                locb[0] = problo[0];
+                            }
+                            else if (l == bc_hi[0]) {
+                                locb[0] = probhi[1];
+                            }
+                            else {
+                                locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
+                            }
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            locb[2] = problo[2];
+                            Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            // Now, add any contributions from mass that is hidden behind
+                            // a symmetric boundary.
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXYLo_arr(l,m,0), dbc);
+
+                            locb[2] = probhi[2];
+                            dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXYHi_arr(l,m,0), dbc);
+
+                        }
+
+                    }
+
+                    // Now do xz interfaces.
+
+                    for (int n = bc_lo[2]; n <= bc_hi[2]; ++n) {
+                        if (n == bc_lo[2]) {
+                            locb[2] = problo[2];
+                        }
+                        else if (n == bc_hi[2]) {
+                            locb[2] = probhi[2];
+                        }
+                        else {
+                            locb[2] = problo[2] + (static_cast<Real>(n) + 0.5_rt) * bc_dx[2];
+                        }
+                        Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                        for (int l = bc_lo[0]; l <= bc_hi[0]; ++l) {
+                            if (l == bc_lo[0]) {
+                                locb[0] = problo[0];
+                            }
+                            else if (l == bc_hi[0]) {
+                                locb[0] = probhi[0];
+                            }
+                            else {
+                                locb[0] = problo[0] + (static_cast<Real>(l) + 0.5_rt) * bc_dx[0];
+                            }
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            locb[1] = problo[1];
+                            Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXZLo_arr(l,0,n), dbc);
+
+                            locb[1] = probhi[1];
+                            dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcXZHi_arr(l,0,n), dbc);
+
+                        }
+
+                    }
+
+                    // Finally, do yz interfaces.
+
+                    for (int n = bc_lo[2]; n <= bc_hi[2]; ++n) {
+                        if (n == bc_lo[2]) {
+                            locb[2] = problo[2];
+                        }
+                        else if (n == bc_hi[2]) {
+                            locb[2] = probhi[2];
+                        }
+                        else {
+                            locb[2] = problo[2] + (static_cast<Real>(n) + 0.5_rt) * bc_dx[2];
+                        }
+                        Real dz2 = (loc[2] - locb[2]) * (loc[2] - locb[2]);
+
+                        for (int m = bc_lo[1]; m <= bc_hi[1]; ++m) {
+                            if (m == bc_lo[1]) {
+                                locb[1] = problo[1];
+                            }
+                            else if (m == bc_hi[1]) {
+                                locb[1] = probhi[1];
+                            }
+                            else {
+                                locb[1] = problo[1] + (static_cast<Real>(m) + 0.5_rt) * bc_dx[1];
+                            }
+                            Real dy2 = (loc[1] - locb[1]) * (loc[1] - locb[1]);
+
+                            locb[0] = problo[0];
+                            Real dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            Real r = std::sqrt(dx2 + dy2 + dz2);
+
+                            Real dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcYZLo_arr(0,m,n), dbc);
+
+                            locb[0] = probhi[0];
+                            dx2 = (loc[0] - locb[0]) * (loc[0] - locb[0]);
+
+                            r = std::sqrt(dx2 + dy2 + dz2);
+
+                            dbc = -C::Gconst * rho(i,j,k) * vol(i,j,k) / r;
+
+                            if (doSymmetricAdd) {
+
+                                dbc += direct_sum_symmetric_add(loc, locb, problo, probhi,
+                                                                rho(i,j,k), vol(i,j,k),
+                                                                doSymmetricAddLo, doSymmetricAddHi);
+
+                            }
+
+                            Gpu::Atomic::Add(&bcYZHi_arr(0,m,n), dbc);
+
+                        }
+
+                    }
+
+                });
+
             }
 
 #ifdef _OPENMP
@@ -2075,15 +2514,42 @@ Gravity::fill_direct_sum_BCs(int crse_level, int fine_level, const Vector<MultiF
     {
         const Box& bx= mfi.growntilebox();
 
-        FArrayBox& p = phi[mfi];
+        auto p = phi[mfi].array();
 
-#pragma gpu box(bx)
-        ca_put_direct_sum_bc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                             BL_TO_FORTRAN_ANYD(p),
-                             bcXYLo.dataPtr(), bcXYHi.dataPtr(),
-                             bcXZLo.dataPtr(), bcXZHi.dataPtr(),
-                             bcYZLo.dataPtr(), bcYZHi.dataPtr(),
-                             AMREX_INT_ANYD(bc_lo), AMREX_INT_ANYD(bc_hi));
+        auto bcXYLo_arr = bcXYLo.array();
+        auto bcXYHi_arr = bcXYHi.array();
+        auto bcXZLo_arr = bcXZLo.array();
+        auto bcXZHi_arr = bcXZHi.array();
+        auto bcYZLo_arr = bcYZLo.array();
+        auto bcYZHi_arr = bcYZHi.array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (i == bc_lo[0]) {
+                p(i,j,k) = bcYZLo_arr(0,j,k);
+            }
+
+            if (i == bc_hi[0]) {
+                p(i,j,k) = bcYZHi_arr(0,j,k);
+            }
+
+            if (j == bc_lo[1]) {
+                p(i,j,k) = bcXZLo_arr(i,0,k);
+            }
+
+            if (j == bc_hi[1]) {
+                p(i,j,k) = bcXZHi_arr(i,0,k);
+            }
+
+            if (k == bc_lo[2]) {
+                p(i,j,k) = bcXYLo_arr(i,j,0);
+            }
+
+            if (k == bc_hi[2]) {
+                p(i,j,k) = bcXYHi_arr(i,j,0);
+            }
+        });
     }
 
     if (gravity::verbose)
@@ -2258,8 +2724,11 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
 {
     BL_PROFILE("Gravity::add_pointmass_to_gravity()");
     
-    const Real* dx     = parent->Geom(level).CellSize();
-    const Real* problo = parent->Geom(level).ProbLo();
+    const auto dx     = parent->Geom(level).CellSizeArray();
+    const auto problo = parent->Geom(level).ProbLoArray();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -2268,13 +2737,36 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu box(bx)
-        pm_add_to_grav(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                       point_mass, BL_TO_FORTRAN_ANYD(phi[mfi]),
-                       BL_TO_FORTRAN_ANYD(grav_vector[mfi]),
-                       AMREX_REAL_ANYD(problo), AMREX_REAL_ANYD(dx));
-    }
+        Array4<Real> const grav_arr = grav_vector.array(mfi);
+        Array4<Real> const phi_arr = phi.array(mfi);
 
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            // Compute radial gravity due to a point mass at center[:].
+
+            Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+            Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+            Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+
+            Real rsq = x * x + y * y + z * z;
+            Real radial_force = -C::Gconst * castro::point_mass / rsq;
+
+            Real rinv = 1.e0_rt / std::sqrt(rsq);
+
+            // Note that grav may have more ghost zones than
+            // phi, so we need to check that we're doing
+            // valid indexing here.
+
+            if (phi_arr.contains(i,j,k)) {
+                phi_arr(i,j,k) -= C::Gconst * castro::point_mass * rinv;
+            }
+
+            grav_arr(i,j,k,0) += radial_force * (x * rinv);
+            grav_arr(i,j,k,1) += radial_force * (y * rinv);
+            grav_arr(i,j,k,2) += radial_force * (z * rinv);
+        });
+    }
 }
 
 void
@@ -2380,19 +2872,16 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
                 const Box& bx = mfi.tilebox();
                 FArrayBox& fab = S[mfi];
 
-#pragma gpu box(bx)
-                ca_compute_radial_mass(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                       AMREX_REAL_ANYD(dx), dr,
-                                       BL_TO_FORTRAN_ANYD(fab),
+                compute_radial_mass(bx,
+                                    fab.array(),
 #ifdef _OPENMP
-                                       priv_radial_mass[tid].dataPtr(),
-                                       priv_radial_vol[tid].dataPtr(),
+                                    priv_radial_mass[tid],
+                                    priv_radial_vol[tid],
 #else
-                                       radial_mass[lev].dataPtr(),
-                                       radial_vol[lev].dataPtr(),
+                                    radial_mass[lev],
+                                    radial_vol[lev],
 #endif
-                                       AMREX_REAL_ANYD(geom.ProbLo()),
-                                       n1d, gravity::drdxfac, lev);
+                                    n1d, lev);
 
 #ifdef GR_GRAV
                 ca_compute_avgpres(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),

@@ -64,6 +64,7 @@ constexpr int Shock = USHK;
 using std::istream;
 using std::ostream;
 
+#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -870,6 +871,35 @@ public:
                                 amrex::Array4<amrex::Real> const u);
 
 
+#ifdef MHD
+///
+/// Add magnetic contribution to energy density
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void add_magnetic_e (
+                         amrex::MultiFab& Bx,
+                         amrex::MultiFab& By,
+                         amrex::MultiFab& Bz,
+                         amrex::MultiFab& state);
+
+///
+/// Check if divergence of B is zero at initialization
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void check_div_B (
+                      amrex::MultiFab& Bx,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
+                      amrex::MultiFab& state);
+
+#endif
+
 
 
 ///
@@ -1385,6 +1415,11 @@ protected:
     amrex::Array<amrex::MultiFab,3> area;
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
+
+
+///
+/// For initialization of the C++ values of the runtime parameters
+  static int do_init_probparams;
 
 
 ///

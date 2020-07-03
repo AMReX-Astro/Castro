@@ -761,8 +761,18 @@ Castro::fourth_avisc(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   Real dxinv = 1.0_rt / dx[0];
+
+#if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt / dx[1];
+#else
+  Real dyinv = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
+#else
+  Real dzinv = 0.0_rt;
+#endif
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -858,6 +868,9 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
     eos_state.e = qint(i,j,k,QREINT) / qint(i,j,k,QRHO);
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qint(i,j,k,QFS+n);
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qint(i,j,k,QFX+n);
     }
 
     eos(eos_input_re, eos_state);

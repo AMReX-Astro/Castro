@@ -104,3 +104,17 @@ subroutine prob_params_pretty_print(name, namlen) bind(C, name="prob_params_pret
   close(unit=unit)
 
 end subroutine prob_params_pretty_print
+
+module probparam_f90_to_cxx
+
+  use iso_c_binding
+  use probdata_module
+  use amrex_fort_module, only: rt => amrex_real
+
+  implicit none
+
+contains
+
+  @@cxx_gets@@
+
+end module probparam_f90_to_cxx
