@@ -10,6 +10,29 @@
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
 
 ///
+/// Multipole gravity data
+///
+namespace multipole {
+    const int lnum_max = 30;
+
+    extern AMREX_GPU_MANAGED amrex::Real volumeFactor;
+    extern AMREX_GPU_MANAGED amrex::Real parityFactor;
+
+    extern AMREX_GPU_MANAGED amrex::Real rmax;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddHi;
+    extern AMREX_GPU_MANAGED bool doSymmetricAdd;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionHi;
+
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> factArray;
+    extern AMREX_GPU_MANAGED amrex::Array1D<amrex::Real, 0, lnum_max> parity_q0;
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> parity_qC_qS;
+}
+
+///
 /// @class Gravity
 /// @brief
 ///
@@ -465,7 +488,6 @@ public:
   static int   stencil_type;
 
   static amrex::Real max_radius_all_in_domain;
-
 
 #if (BL_SPACEDIM < 3)
 
