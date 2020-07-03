@@ -473,14 +473,13 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity28multilevel_solve_for_new_phiEiii">
-<span id="_CPPv3N7Gravity28multilevel_solve_for_new_phiEiii"></span><span id="_CPPv2N7Gravity28multilevel_solve_for_new_phiEiii"></span><span id="Gravity::multilevel_solve_for_new_phi__i.i.i"></span><span class="target" id="classGravity_1a349e06c20dd1409bf600bd7276a544e7"></span>void <code class="sig-name descname">multilevel_solve_for_new_phi</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity28multilevel_solve_for_new_phiEiii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv4N7Gravity28multilevel_solve_for_new_phiEii">
+<span id="_CPPv3N7Gravity28multilevel_solve_for_new_phiEii"></span><span id="_CPPv2N7Gravity28multilevel_solve_for_new_phiEii"></span><span id="Gravity::multilevel_solve_for_new_phi__i.i"></span><span class="target" id="classGravity_1a08f9dee748537aeb33feede1cf271514"></span>void <code class="sig-name descname">multilevel_solve_for_new_phi</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity28multilevel_solve_for_new_phiEii" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Multilevel solve for new phi from base level to finest level</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Base level index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </p></li>
 </ul>
 </dd>
 </dl>
@@ -488,8 +487,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii">
-<span id="_CPPv3N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii"></span><span id="_CPPv2N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii"></span><span id="Gravity::actual_multilevel_solve__i.i.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.i.i"></span><span class="target" id="classGravity_1ad1c7143abf282a75bed60ddad51ea7a2"></span>void <code class="sig-name descname">actual_multilevel_solve</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, int <em>is_new</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi">
+<span id="_CPPv3N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi"></span><span id="_CPPv2N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi"></span><span id="Gravity::actual_multilevel_solve__i.i.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.i"></span><span class="target" id="classGravity_1adb137047ea152ef86d215357d99c9096"></span>void <code class="sig-name descname">actual_multilevel_solve</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, int <em>is_new</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Actually do the multilevel solve for new phi from base level to finest level</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -497,7 +496,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: gradient of phi </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Should we use the new state (1) or previous state (0)? </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </p></li>
 </ul>
 </dd>
 </dl>
