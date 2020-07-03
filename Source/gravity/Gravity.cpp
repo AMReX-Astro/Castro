@@ -2019,12 +2019,12 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
                 const Box& bx = mfi.tilebox();
 
 #ifdef _OPENMP
-                auto qL0_arr = priv_qL0[tid].array();
-                auto qLC_arr = priv_qLC[tid].array();
-                auto qLS_arr = priv_qLS[tid].array();
-                auto qU0_arr = priv_qU0[tid].array();
-                auto qUC_arr = priv_qUC[tid].array();
-                auto qUS_arr = priv_qUS[tid].array();
+                auto qL0_arr = priv_qL0[tid]->array();
+                auto qLC_arr = priv_qLC[tid]->array();
+                auto qLS_arr = priv_qLS[tid]->array();
+                auto qU0_arr = priv_qU0[tid]->array();
+                auto qUC_arr = priv_qUC[tid]->array();
+                auto qUS_arr = priv_qUS[tid]->array();
 #else
                 auto qL0_arr = qL0.array();
                 auto qLC_arr = qLC.array();
