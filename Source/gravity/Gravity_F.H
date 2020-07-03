@@ -84,17 +84,6 @@ extern "C"
      amrex::Real* qU0, amrex::Real* qUC, amrex::Real* qUS,
      const int npts, const int boundary_only); 
 
-  void ca_compute_direct_sum_bc
-    (const int* lo, const int* hi, const amrex::Real* dx,
-     const int symmetry_type, const int* physbc_lo, const int* physbc_hi,
-     const BL_FORT_FAB_ARG_3D(rho),
-     const BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* problo, const amrex::Real* probhi,
-     amrex::Real* bcXYLo, amrex::Real* bcXYHi,
-     amrex::Real* bcXZLo, amrex::Real* bcXZHi,
-     amrex::Real* bcYZLo, amrex::Real* bcYZHi,
-     const int* bc_lo, const int* bc_hi, const amrex::Real* bc_dx);
-
   void pm_add_to_grav
     (const int* lo, const int* hi,
      const amrex::Real point_mass, BL_FORT_FAB_ARG_3D(phi), BL_FORT_FAB_ARG_3D(grav_vector),
