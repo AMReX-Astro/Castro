@@ -716,7 +716,7 @@ Gravity::GetCrsePhi(int level,
 }
 
 void
-Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in, int use_previous_phi_as_guess)
+Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in)
 {
     BL_PROFILE("Gravity::multilevel_solve_for_new_phi()");
 
@@ -733,15 +733,13 @@ Gravity::multilevel_solve_for_new_phi (int level, int finest_level_in, int use_p
     }
 
     int is_new = 1;
-    actual_multilevel_solve(level,finest_level_in,amrex::GetVecOfVecOfPtrs(grad_phi_curr),
-                            is_new,use_previous_phi_as_guess);
+    actual_multilevel_solve(level, finest_level_in, amrex::GetVecOfVecOfPtrs(grad_phi_curr), is_new);
 }
 
 void
 Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
                                   const Vector<Vector<MultiFab*> >& grad_phi,
-                                  int is_new,
-                                  int use_previous_phi_as_guess)
+                                  int is_new)
 {
     BL_PROFILE("Gravity::actual_multilevel_solve()");
 
@@ -759,17 +757,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
         } else {
             phi_p[ilev] = &LevelData[amr_lev]->get_old_data(PhiGrav_Type);
         }
-
-        if (!use_previous_phi_as_guess)
-            phi_p[ilev]->setVal(0.);
     }
 
     const auto& rhs = get_rhs(crse_level, nlevels, is_new);
-
-    if (!use_previous_phi_as_guess && crse_level == 0 && !(parent->Geom(0).isAllPeriodic()))
-    {
-        make_radial_phi(0, *rhs[0], *phi_p[0], 1);
-    }
 
     Vector<Vector<MultiFab*> > grad_phi_p(nlevels);
     for (int ilev = 0; ilev < nlevels; ilev++)

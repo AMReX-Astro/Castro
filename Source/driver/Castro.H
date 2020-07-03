@@ -1425,6 +1425,11 @@ protected:
 
 
 ///
+/// For initialization of the C++ values of the runtime parameters
+  static int do_init_probparams;
+
+
+///
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
