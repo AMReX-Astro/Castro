@@ -1012,13 +1012,13 @@ Castro::variableSetUp ()
 //
 //Magentic Field Cell Centered
 //x component
-  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
+  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, grow_box_by_one);
   derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
 //y component
-  derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, the_same_box);
+  derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, grow_box_by_one);
   derive_lst.addComponent("B_y", desc_lst, Mag_Type_y, 0, 1);
 //z component
-  derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
+  derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, grow_box_by_one);
   derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
 
 //Electric Field
@@ -1047,7 +1047,7 @@ Castro::variableSetUp ()
   derive_lst.addComponent("E_z", desc_lst, State_Type, Ymom, 1);
 
 //Divergence of B
-  derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
+  derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, grow_box_by_one);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_y, 0, 1);
   derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1); 
