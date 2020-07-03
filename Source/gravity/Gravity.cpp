@@ -2296,9 +2296,14 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
             // Only adjust ghost zones here
 
-            if (i < domlo[0] || i > domhi[0] ||
-                j < domlo[1] || j > domhi[1] ||
-                k < domlo[2] || k > domhi[2]) {
+            if (i < domlo[0] || i > domhi[0]
+#if AMREX_SPACEDIM >= 2
+                || j < domlo[1] || j > domhi[1]
+#endif
+#if AMREX_SPACEDIM >= 3
+                || k < domlo[2] || k > domhi[2]
+#endif
+                ) {
 
                 // There are some cases where r == 0. This might occur, for example,
                 // when we have symmetric BCs and our corner is at one edge.
