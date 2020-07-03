@@ -199,22 +199,17 @@ void multipole_symmetric_add(Real x, Real y, Real z,
                              int npts, int nlo, int index)
 {
     Real xLo = (2.0_rt * (problo[0] - center[0])) / multipole::rmax - x;
-    Real xHi = (2.0_rt * (probhi[0] - center[0])) / multipole::rmax - x;
 
 #if AMREX_SPACEDIM >= 2
     Real yLo = (2.0_rt * (problo[1] - center[1])) / multipole::rmax - y;
-    Real yHi = (2.0_rt * (probhi[1] - center[1])) / multipole::rmax - y;
 #else
     Real yLo = 0.0_rt;
-    Real yHi = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
     Real zLo = (2.0_rt * (problo[2] - center[2]) ) / multipole::rmax - z;
-    Real zHi = (2.0_rt * (probhi[2] - center[2]) ) / multipole::rmax - z;
 #else
     Real zLo = 0.0_rt;
-    Real zHi = 0.0_rt;
 #endif
 
     if (multipole::doSymmetricAddLo(0)) {
