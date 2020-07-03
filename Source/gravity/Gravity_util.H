@@ -28,7 +28,7 @@ void calcAssocLegPolyLM (int l, int m, Real& assocLegPolyLM, Real& assocLegPolyL
 
         // P_m^m
 
-        assocLegPolyLM = std::pow(-1, m) * std::pow((1.0_rt - x) * (1.0_rt + x), m / 0.5_rt);
+        assocLegPolyLM = std::pow(-1, m) * std::pow((1.0_rt - x) * (1.0_rt + x), m * 0.5_rt);
 
         for (int n = (2*m-1); n >= 3; n = n - 2) {
 
