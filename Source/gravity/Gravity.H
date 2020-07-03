@@ -197,10 +197,8 @@ public:
 ///
 /// @param level                        Base level index
 /// @param finest_level                 Fine level index
-/// @param use_previous_phi_as_guess    integer, should we use the previous phi as a guess?
 ///
-  void multilevel_solve_for_new_phi (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
+  void multilevel_solve_for_new_phi (int level, int finest_level);
 
 ///
 /// Actually do the multilevel solve for new phi from base level to finest level
@@ -209,12 +207,10 @@ public:
 /// @param finest_level     Fine level index
 /// @param grad_phi         gradient of phi
 /// @param is_new           Should we use the new state (1) or previous state (0)?
-/// @param use_previous_phi_as_guess    integer, should we use the previous phi as a guess?
 ///
   void actual_multilevel_solve      (int level, int finest_level,
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
-                                     int is_new,
-                                     int use_previous_phi_as_guess = 0);
+                                     int is_new);
 
 
 ///
