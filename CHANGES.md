@@ -1,3 +1,8 @@
+# 20.08
+
+   * We now have the ability to access the problem-specific runtime
+     parameters in C++ (#1093)
+
 # 20.07
 
    * The master branch has been renamed the main branch. If you have an

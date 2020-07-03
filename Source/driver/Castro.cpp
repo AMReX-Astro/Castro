@@ -47,6 +47,9 @@
 #endif
 
 #include <extern_parameters.H>
+#ifdef PROB_PARAMS
+#include <prob_parameters.H>
+#endif
 
 using namespace amrex;
 
@@ -131,6 +134,9 @@ Real         Castro::startCPUTime = 0.0;
 
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
+
+int          Castro::do_init_probparams = 0;
+
 
 namespace amrex {
     extern int compute_new_dt_on_regrid;
@@ -480,6 +486,14 @@ Castro::Castro (Amr&            papa,
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
+
+    // initialize the C++ values of the runtime parameters
+#ifdef PROB_PARAMS
+    if (do_init_probparams == 0) {
+      init_prob_parameters();
+      do_init_probparams = 1;
+    }
+#endif
 
     initMFs();
 
