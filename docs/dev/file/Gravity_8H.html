@@ -714,22 +714,6 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi">
-<span id="_CPPv3N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Gravity::make_radial_phi__i.amrex::MultiFabCR.amrex::MultiFabR.i"></span><span class="target" id="classGravity_1a2a0dcf24d4098beb82ca2f81402b83cd"></span>void <code class="sig-name descname">make_radial_phi</code><span class="sig-paren">(</span>int <em>level</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Rhs</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, int <em>fill_interior</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Integrate radially outward to find radial gravitational potential</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Current level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: density (rhs of Poisson’s equation) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Non-radial gravitational potential </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fill_interior</span></code>: integer </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
 <dt id="_CPPv4N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE">
 <span id="_CPPv3N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="_CPPv2N7Gravity18fill_multipole_BCsEiiRKN5amrex6VectorIPN5amrex8MultiFabEEERN5amrex8MultiFabE"></span><span id="Gravity::fill_multipole_BCs__i.i.amrex::Vector:amrex::MultiFabP:CR.amrex::MultiFabR"></span><span class="target" id="classGravity_1a5e450ad2f9c0bba366bd1405a7a5299e"></span>void <code class="sig-name descname">fill_multipole_BCs</code><span class="sig-paren">(</span>int <em>crse_level</em>, int <em>fine_level</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt; &amp;<em>Rhs</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Implement multipole boundary conditions</p>
