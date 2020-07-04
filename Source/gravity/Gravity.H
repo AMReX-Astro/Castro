@@ -382,7 +382,6 @@ public:
 ///
   void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
 
-#if (BL_SPACEDIM > 1)
 ///
 /// Implement multipole boundary conditions
 ///
@@ -397,7 +396,7 @@ public:
 /// Initialize multipole gravity
 ///
   void init_multipole_grav();
-#endif
+
 #if (BL_SPACEDIM == 3)
 
 ///

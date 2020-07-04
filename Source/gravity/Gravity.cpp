@@ -91,9 +91,7 @@ Gravity::Gravity(Amr* Parent, int _finest_level, BCRec* _phys_bc, int _Density)
 #endif
 
      if (gravity::gravity_type == "PoissonGrav") make_mg_bc();
-#if (BL_SPACEDIM > 1)
      if (gravity::gravity_type == "PoissonGrav") init_multipole_grav();
-#endif
      max_rhs = 0.0;
 }
 
@@ -591,8 +589,12 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
           make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
       }
 #else
-      int fill_interior = 0;
-      make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
+      if (gravity::lnum >= 0) {
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
+      } else {
+          int fill_interior = 0;
+          make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
+      }
 #endif
 
     }
@@ -1746,7 +1748,6 @@ Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill
 
 
 
-#if (BL_SPACEDIM > 1)
 void
 Gravity::init_multipole_grav()
 {
@@ -1847,6 +1848,9 @@ Gravity::init_multipole_grav()
             else if (AMREX_SPACEDIM == 2 && parent->Geom(0).Coord() == 1) {
                 multipole::parity_q0(l) = 0.0_rt;
             }
+            else if (AMREX_SPACEDIM == 1 && parent->Geom(0).Coord() == 2) {
+                multipole::parity_q0(l) = 0.0_rt;
+            }
         }
 
         for (int m = 1; m <= l; ++m) {
@@ -1864,6 +1868,9 @@ Gravity::init_multipole_grav()
                 multipole::parity_qC_qS(l,m) = 1.0_rt;
             }
             else if (AMREX_SPACEDIM == 2 && parent->Geom(0).Coord() == 1) {
+                multipole::parity_qC_qS(l,m) = 0.0_rt;
+            }
+            else if (AMREX_SPACEDIM == 1 && parent->Geom(0).Coord() == 2) {
                 multipole::parity_qC_qS(l,m) = 0.0_rt;
             }
 
@@ -2082,6 +2089,11 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
                         index = nlo; // We only do the boundary potential in 2D.
                         cosTheta = y / r;
                         phiAngle = z;
+                    }
+                    else if (AMREX_SPACEDIM == 1 && coord_type == 2) {
+                        index = nlo; // We only do the boundary potential in 1D.
+                        cosTheta = 1.0_rt;
+                        phiAngle = 0.0_rt;
                     }
 
                     // Now, compute the multipole moments.
@@ -2389,7 +2401,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     }
 
 }
-#endif
 
 #if (BL_SPACEDIM == 3)
 void
@@ -3536,8 +3547,12 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
             make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
         }
 #else
-        int fill_interior = 0;
-        make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+        if (gravity::lnum >= 0) {
+            fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
+        } else {
+            int fill_interior = 0;
+            make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
+        }
 #endif
     }
 
