@@ -236,6 +236,31 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
+<span class="target" id="Gravity__util_8H_1af41729f990479415af473f88237ea621"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real factorial (int n)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Gravity__util_8H_1aaa0c1acc52106931e26d6cdc8ee243a2"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void calcAssocLegPolyLM (int l, int m, Real &amp;assocLegPolyLM, Real &amp;assocLegPolyLM1, Real &amp;assocLegPolyLM2, Real x)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Gravity__util_8H_1a08fd64fc1a42ed42ada6e828900fbd89"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void calcLegPolyL (int l, Real &amp;legPolyL, Real &amp;legPolyL1, Real &amp;legPolyL2, Real x)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Gravity__util_8H_1abc3300c0ccb28f70149f61cc4af9907b"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void multipole_add (Real cosTheta, Real phiAngle, Real r, Real rho, Real vol, Array4&lt; Real &gt; const &amp;qL0, Array4&lt; Real &gt; const &amp;qLC, Array4&lt; Real &gt; const &amp;qLS, Array4&lt; Real &gt; const &amp;qU0, Array4&lt; Real &gt; const &amp;qUC, Array4&lt; Real &gt; const &amp;qUS, int npts, int nlo, int index, bool parity=false)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Gravity__util_8H_1acb10bdd9c12e68b843dc4ad7f760f8e7"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void multipole_symmetric_add (Real x, Real y, Real z, const GpuArray&lt; Real, AMREX_SPACEDIM &gt; &amp;problo, const GpuArray&lt; Real, AMREX_SPACEDIM &gt; &amp;probhi, const GpuArray&lt; Real, 3 &gt; &amp;center, Real rho, Real vol, Array4&lt; Real &gt; const &amp;qU0, Array4&lt; Real &gt; const &amp;qUC, Array4&lt; Real &gt; const &amp;qUS, Array4&lt; Real &gt; const &amp;qL0, Array4&lt; Real &gt; const &amp;qLC, Array4&lt; Real &gt; const &amp;qLS, int npts, int nlo, int index)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
 <span class="target" id="Gravity__util_8H_1ad161779199c19ec5ca905600a4367e2a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real direct_sum_symmetric_add (const GpuArray&lt; Real, 3 &gt; &amp;loc, const GpuArray&lt; Real, 3 &gt; &amp;locb, const GpuArray&lt; Real, 3 &gt; &amp;problo, const GpuArray&lt; Real, 3 &gt; &amp;probhi, Real rho, Real dV, const GpuArray&lt; bool, 3 &gt; &amp;doSymmetricAddLo, const GpuArray&lt; bool, 3 &gt; &amp;doSymmetricAddHi)</code></dt>
 <dd></dd></dl>
 
