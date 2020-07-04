@@ -60,9 +60,6 @@ extern "C"
      const amrex::Real* problo, 
      int numpts_1d, int fill_interior);
 
-  void init_multipole_gravity
-    (const int* lnum, const int* lo_bc, const int* hi_bc);
-
   void ca_put_multipole_phi
     (const int* lo, const int* hi,
      const int* domlo, const int* domhi,
