@@ -114,7 +114,7 @@ void Castro::problem_post_init()
 
     }
 
-    gravity->multilevel_solve_for_new_phi(0, parent->finestLevel(), 0);
+    gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
 
     const int norm_power = 2;
 
