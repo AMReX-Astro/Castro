@@ -1853,6 +1853,15 @@ Gravity::init_multipole_grav()
             }
         }
 
+        // In 1D spherical, every term above l == 0 cancels out since the integration
+        // of the Legendre polynomial from 0 to pi is zero.
+
+        if (l > 0) {
+            if (AMREX_SPACEDIM == 1 && parent->Geom(0).Coord() == 2) {
+                multipole::parity_q0(l) = 0.0_rt;
+            }
+        }
+
         for (int m = 1; m <= l; ++m) {
 
             // The parity properties of the associated Legendre polynomials are:
