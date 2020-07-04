@@ -131,20 +131,13 @@ Castro::wd_update (Real time, Real dt)
     Real old_mass_p = mass_p;
     Real old_mass_s = mass_s;
 
-    Real com_p_x = 0.0;
-    Real com_p_y = 0.0;
-    Real com_p_z = 0.0;
-    Real com_s_x = 0.0;
-    Real com_s_y = 0.0;
-    Real com_s_z = 0.0;
-    Real vel_p_x = 0.0;
-    Real vel_p_y = 0.0;
-    Real vel_p_z = 0.0;
-    Real vel_s_x = 0.0;
-    Real vel_s_y = 0.0;
-    Real vel_s_z = 0.0;
-    Real mp      = 0.0;
-    Real ms      = 0.0;
+    ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum,
+              ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum,
+              ReduceOpSum, ReduceOpSum> reduce_op;
+    ReduceData<Real, Real, Real, Real, Real, Real,
+               Real, Real, Real, Real, Real, Real,
+               Real, Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
@@ -152,7 +145,24 @@ Castro::wd_update (Real time, Real dt)
 
       Castro& c_lev = getLevel(lev);
 
-      const Real* dx = c_lev.geom.CellSize();
+      GeometryData geomdata = c_lev.geom.data();
+
+      const auto dx = c_lev.geom.CellSizeArray();
+      const auto problo = c_lev.geom.ProbLoArray();
+      const auto probhi = c_lev.geom.ProbHiArray();
+      int coord_type = c_lev.geom.Coord();
+
+      GpuArray<bool, 3> symm_bound_lo{false};
+      GpuArray<bool, 3> symm_bound_hi{false};
+
+      for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+          if (phys_bc.lo()[n] == Symmetry) {
+              symm_bound_lo[n] = true;
+          }
+          if (phys_bc.hi()[n] == Symmetry) {
+              symm_bound_hi[n] = true;
+          }
+      }
 
       // Density and momenta
 
@@ -177,67 +187,155 @@ Castro::wd_update (Real time, Real dt)
       {
           const MultiFab& mask = getLevel(lev+1).build_fine_mask();
 
-	  MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
       }
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:com_p_x,com_p_y,com_p_z,com_s_x,com_s_y,com_s_z) \
-                     reduction(+:vel_p_x,vel_p_y,vel_p_z,vel_s_x,vel_s_y,vel_s_z) \
-                     reduction(+:mp, ms)
+#pragma omp parallel
 #endif
       for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          FArrayBox& fabrho   = (*mfrho )[mfi];
-	  FArrayBox& fabxmom  = (*mfxmom)[mfi];
-	  FArrayBox& fabymom  = (*mfymom)[mfi];
-	  FArrayBox& fabzmom  = (*mfzmom)[mfi];
-	  FArrayBox& fabpmask = (*mfpmask)[mfi];
-	  FArrayBox& fabsmask = (*mfsmask)[mfi];
-	  FArrayBox& vol      = c_lev.volume[mfi];
+          auto rho   = (*mfrho )[mfi].array();
+          auto xmom  = (*mfxmom)[mfi].array();
+          auto ymom  = (*mfymom)[mfi].array();
+          auto zmom  = (*mfzmom)[mfi].array();
+          auto pmask = (*mfpmask)[mfi].array();
+          auto smask = (*mfsmask)[mfi].array();
+          auto vol   = c_lev.volume[mfi].array();
 
-	  const Box& box  = mfi.tilebox();
-	  const int* lo   = box.loVect();
-	  const int* hi   = box.hiVect();
+          const Box& box  = mfi.tilebox();
 
-#pragma gpu box(box)
-	  wdcom(BL_TO_FORTRAN_ANYD(fabrho),
-		BL_TO_FORTRAN_ANYD(fabxmom),
-		BL_TO_FORTRAN_ANYD(fabymom),
-		BL_TO_FORTRAN_ANYD(fabzmom),
-		BL_TO_FORTRAN_ANYD(fabpmask),
-		BL_TO_FORTRAN_ANYD(fabsmask),
-		BL_TO_FORTRAN_ANYD(vol),
-		AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-		AMREX_REAL_ANYD(dx), time,
-		AMREX_MFITER_REDUCE_SUM(&com_p_x), AMREX_MFITER_REDUCE_SUM(&com_p_y), AMREX_MFITER_REDUCE_SUM(&com_p_z),
-		AMREX_MFITER_REDUCE_SUM(&com_s_x), AMREX_MFITER_REDUCE_SUM(&com_s_y), AMREX_MFITER_REDUCE_SUM(&com_s_z),
-                AMREX_MFITER_REDUCE_SUM(&vel_p_x), AMREX_MFITER_REDUCE_SUM(&vel_p_y), AMREX_MFITER_REDUCE_SUM(&vel_p_z),
-                AMREX_MFITER_REDUCE_SUM(&vel_s_x), AMREX_MFITER_REDUCE_SUM(&vel_s_y), AMREX_MFITER_REDUCE_SUM(&vel_s_z),
-		AMREX_MFITER_REDUCE_SUM(&mp), AMREX_MFITER_REDUCE_SUM(&ms));
-	}
+          // Return the mass-weighted center of mass and velocity
+          // for the primary and secondary, for a given FAB.
+          // Note that ultimately what we are doing here is to use
+          // an old guess at the effective potential of the primary
+          // and secondary to generate a new estimate.
+
+          reduce_op.eval(box, reduce_data,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+          {
+              // Add to the COM locations and velocities of the primary and secondary
+              // depending on which potential dominates, ignoring unbound material.
+              // Note that in this routine we actually are summing mass-weighted
+              // quantities for the COM and the velocity; we will account for this at
+              // the end of the calculation in post_timestep() by dividing by the mass.
+
+              // Our convention is that the COM locations for the WDs are 
+              // absolute positions on the grid, not relative to the center.
+
+              GpuArray<Real, 3> r;
+              position(i, j, k, geomdata, r);
+
+              // We account for symmetric boundaries in this sum as usual,
+              // by adding to the position the locations that would exist
+              // on the opposite side of the symmetric boundary. Note that
+              // in axisymmetric coordinates, some of this work is already
+              // done for us in the definition of the zone volume.
+
+              GpuArray<Real, 3> rSymmetric{r[0], r[1], r[2]};
+              for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+                  if (symm_bound_lo[n]) {
+                      rSymmetric[n] = rSymmetric[n] + (problo[n] - rSymmetric[n]);
+                  }
+                  if (symm_bound_hi[n]) {
+                      rSymmetric[n] = rSymmetric[n] + (rSymmetric[n] - probhi[n]);
+                  }
+              }
+
+              Real dm = rho(i,j,k) * vol(i,j,k);
+
+              Real dmSymmetric = dm;
+              GpuArray<Real, 3> momSymmetric{xmom(i,j,k), ymom(i,j,k), zmom(i,j,k)};
+
+              if (coord_type == 0) {
+
+                  if (symm_bound_lo[0]) {
+                      dmSymmetric *= 2.0_rt;
+                      for (int n = 0; n < 3; ++n) {
+                          momSymmetric[n] *= 2.0_rt;
+                      }
+                  }
+
+                  if (symm_bound_lo[1]) {
+                      dmSymmetric *= 2.0_rt;
+                      for (int n = 0; n < 3; ++n) {
+                          momSymmetric[n] *= 2.0_rt;
+                      }
+                  }
+
+                  if (symm_bound_lo[2]) {
+                      dmSymmetric *= 2.0_rt;
+                      for (int n = 0; n < 3; ++n) {
+                          momSymmetric[n] *= 2.0_rt;
+                      }
+                  }
+
+              }
+
+              Real primary_factor = 0.0_rt;
+              Real secondary_factor = 0.0_rt;
+
+              if (pmask(i,j,k) > 0.0_rt) {
+
+                  primary_factor = 1.0_rt;
+
+              }
+              else if (smask(i,j,k) > 0.0_rt) {
+
+                  secondary_factor = 1.0_rt;
+
+              }
+
+              Real com_p_x = dmSymmetric * rSymmetric[0] * primary_factor;
+              Real com_p_y = dmSymmetric * rSymmetric[1] * primary_factor;
+              Real com_p_z = dmSymmetric * rSymmetric[2] * primary_factor;
+
+              Real com_s_x = dmSymmetric * rSymmetric[0] * secondary_factor;
+              Real com_s_y = dmSymmetric * rSymmetric[1] * secondary_factor;
+              Real com_s_z = dmSymmetric * rSymmetric[2] * secondary_factor;
+
+              Real vel_p_x = momSymmetric[0] * vol(i,j,k) * primary_factor;
+              Real vel_p_y = momSymmetric[1] * vol(i,j,k) * primary_factor;
+              Real vel_p_z = momSymmetric[2] * vol(i,j,k) * primary_factor;
+
+              Real vel_s_x = momSymmetric[0] * vol(i,j,k) * secondary_factor;
+              Real vel_s_y = momSymmetric[1] * vol(i,j,k) * secondary_factor;
+              Real vel_s_z = momSymmetric[2] * vol(i,j,k) * secondary_factor;
+
+              Real m_p = dmSymmetric * primary_factor;
+              Real m_s = dmSymmetric * secondary_factor;
+
+              return {com_p_x, com_p_y, com_p_z, com_s_x, com_s_y, com_s_z,
+                      vel_p_x, vel_p_y, vel_p_z, vel_s_x, vel_s_y, vel_s_z,
+                      m_p, m_s};
+          });
+
+      }
 
     }
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
-    com_p[0] = com_p_x;
-    com_p[1] = com_p_y;
-    com_p[2] = com_p_z;
-    com_s[0] = com_s_x;
-    com_s[1] = com_s_y;
-    com_s[2] = com_s_z;
-    vel_p[0] = vel_p_x;
-    vel_p[1] = vel_p_y;
-    vel_p[2] = vel_p_z;
-    vel_s[0] = vel_s_x;
-    vel_s[1] = vel_s_y;
-    vel_s[2] = vel_s_z;
-    mass_p   = mp;
-    mass_s   = ms;
+    ReduceTuple hv = reduce_data.value();
+
+    com_p[0] = amrex::get<0>(hv);
+    com_p[1] = amrex::get<1>(hv);
+    com_p[2] = amrex::get<2>(hv);
+    com_s[0] = amrex::get<3>(hv);
+    com_s[1] = amrex::get<4>(hv);
+    com_s[2] = amrex::get<5>(hv);
+    vel_p[0] = amrex::get<6>(hv);
+    vel_p[1] = amrex::get<7>(hv);
+    vel_p[2] = amrex::get<8>(hv);
+    vel_s[0] = amrex::get<9>(hv);
+    vel_s[1] = amrex::get<10>(hv);
+    vel_s[2] = amrex::get<11>(hv);
+    mass_p   = amrex::get<12>(hv);
+    mass_s   = amrex::get<13>(hv);
 
     bool local_flag = true;
 
@@ -366,7 +464,7 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
       Castro& c_lev = getLevel(lev);
 
-      const Real* dx = c_lev.geom.CellSize();
+      const auto dx = c_lev.geom.CellSizeArray();
       auto mf = c_lev.derive("density",time,0);
 
       // Effective potentials of the primary and secondary
@@ -386,36 +484,57 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 	  MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
       }
 
-      Real vp = 0.0;
-      Real vs = 0.0;
+      ReduceOps<ReduceOpSum, ReduceOpSum> reduce_op;
+      ReduceData<Real, Real> reduce_data(reduce_op);
+      using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:vp,vs)
+#pragma omp parallel
 #endif
       for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-          FArrayBox& fab      = (*mf)[mfi];
-          FArrayBox& fabpmask = (*mfpmask)[mfi];
-          FArrayBox& fabsmask = (*mfsmask)[mfi];
-          FArrayBox& vol      = c_lev.volume[mfi];
+          auto rho   = (*mf)[mfi].array();
+          auto pmask = (*mfpmask)[mfi].array();
+          auto smask = (*mfsmask)[mfi].array();
+          auto vol   = c_lev.volume[mfi].array();
 
 	  const Box& box  = mfi.tilebox();
-	  const int* lo   = box.loVect();
-	  const int* hi   = box.hiVect();
 
-#pragma gpu box(box)
-	  ca_volumeindensityboundary(BL_TO_FORTRAN_ANYD(fab),
-		                     BL_TO_FORTRAN_ANYD(fabpmask),
-				     BL_TO_FORTRAN_ANYD(fabsmask),
-				     BL_TO_FORTRAN_ANYD(vol),
-				     AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-				     AMREX_REAL_ANYD(dx),
-                                     AMREX_MFITER_REDUCE_SUM(&vp), AMREX_MFITER_REDUCE_SUM(&vs),
-                                     rho_cutoff);
+          // This function uses the known center of mass of the two white dwarfs,
+          // and given a density cutoff, computes the total volume of all zones
+          // whose density is greater or equal to that density cutoff.
+          // We also impose a distance requirement so that we only look
+          // at zones within the Roche lobe of the white dwarf.
+
+          reduce_op.eval(box, reduce_data,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+          {
+              Real primary_factor = 0.0_rt;
+              Real secondary_factor = 0.0_rt;
+
+              if (rho(i,j,k) > rho_cutoff) {
+
+                  if (pmask(i,j,k) > 0.0_rt) {
+
+                      primary_factor = 1.0_rt;
+
+                  }
+                  else if (smask(i,j,k) > 0.0_rt) {
+
+                      secondary_factor = 1.0_rt;
+
+                  }
+
+              }
+
+              return {vol(i,j,k) * primary_factor, vol(i,j,k) * secondary_factor};
+          });
 
       }
 
-      vol_p += vp;
-      vol_s += vs;
+      ReduceTuple hv = reduce_data.value();
+
+      vol_p += amrex::get<0>(hv);
+      vol_s += amrex::get<1>(hv);
 
     }
 
