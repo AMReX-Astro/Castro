@@ -187,12 +187,12 @@ Castro::wd_update (Real time, Real dt)
       {
           const MultiFab& mask = getLevel(lev+1).build_fine_mask();
 
-	  MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
-	  MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfrho,   mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfxmom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfymom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfzmom,  mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfpmask, mask, 0, 0, 1, 0);
+          MultiFab::Multiply(*mfsmask, mask, 0, 0, 1, 0);
       }
 
 #ifdef _OPENMP
@@ -200,14 +200,14 @@ Castro::wd_update (Real time, Real dt)
 #endif
       for (MFIter mfi(*mfrho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           auto rho   = (*mfrho )[mfi].array();
-	  auto xmom  = (*mfxmom)[mfi].array();
-	  auto ymom  = (*mfymom)[mfi].array();
-	  auto zmom  = (*mfzmom)[mfi].array();
-	  auto pmask = (*mfpmask)[mfi].array();
-	  auto smask = (*mfsmask)[mfi].array();
-	  auto vol   = c_lev.volume[mfi].array();
+          auto xmom  = (*mfxmom)[mfi].array();
+          auto ymom  = (*mfymom)[mfi].array();
+          auto zmom  = (*mfzmom)[mfi].array();
+          auto pmask = (*mfpmask)[mfi].array();
+          auto smask = (*mfsmask)[mfi].array();
+          auto vol   = c_lev.volume[mfi].array();
 
-	  const Box& box  = mfi.tilebox();
+          const Box& box  = mfi.tilebox();
 
           // Return the mass-weighted center of mass and velocity
           // for the primary and secondary, for a given FAB.
