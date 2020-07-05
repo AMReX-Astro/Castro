@@ -117,4 +117,6 @@ contains
 
   @@cxx_gets@@
 
+  @@cxx_sets@@
+
 end module probparam_f90_to_cxx

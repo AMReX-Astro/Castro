@@ -401,6 +401,56 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
                         fout.write("{}end subroutine get_f90_{}\n\n".format(
                             indent, p.var))
 
+            elif keyword == "cxx_sets":
+                # this writes out the Fortran functions that can be called from C++
+                # to set the value of the parameters.  Note: we only do this for namelist
+                # parameters
+
+                for p in params:
+                    if not p.in_namelist:
+                        continue
+
+                    if p.dtype == "character":
+                        fout.write("{}subroutine set_f90_{}_len(slen) bind(C, name=\"set_f90_{}_len\")\n".format(
+                            indent, p.var, p.var))
+                        fout.write("{}   integer, intent(inout) :: slen\n".format(indent))
+                        fout.write("{}   slen = len(trim({}))\n".format(indent, p.var))
+                        fout.write("{}end subroutine set_f90_{}_len\n\n".format(indent, p.var))
+
+                        fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   character(kind=c_char) :: {}_in(*)\n".format(
+                            indent, p.var))
+                        fout.write("{}   integer :: n\n".format(indent))
+                        fout.write("{}   do n = 1, len(trim({}_in))\n".format(indent, p.var))
+                        fout.write("{}      {}(n:n) = {}_in(n:n)\n".format(indent, p.var, p.var))
+                        fout.write("{}   end do\n".format(indent))
+                        fout.write("{}   {}(len(trim({}))+1) = char(0)\n".format(indent, p.var, p.var))
+                        fout.write("{}end subroutine set_f90_{}\n\n".format(indent, p.var))
+
+                    elif p.dtype == "logical":
+                        # F90 logicals are integers in C++
+                        fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   integer, intent(in) :: {}_in\n".format(
+                            indent, p.var))
+                        fout.write("{}   {} = 0\n".format(indent, p.var))
+                        fout.write("{}   if ({}_in) then\n".format(indent, p.var))
+                        fout.write("{}      {} = 1\n".format(indent, p.var))
+                        fout.write("{}   endif\n".format(indent))
+                        fout.write("{}end subroutine set_f90_{}\n\n".format(
+                            indent, p.var))
+
+                    else:
+                        fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
+                            indent, p.var, p.var, p.var))
+                        fout.write("{}   {}, intent(in) :: {}_in\n".format(
+                            indent, p.get_f90_decl(), p.var))
+                        fout.write("{}   {} = {}_in\n".format(
+                            indent, p.var, p.var))
+                        fout.write("{}end subroutine set_f90_{}\n\n".format(
+                            indent, p.var))
+
         else:
             fout.write(line)
 
@@ -423,9 +473,12 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
                 fout.write("  void get_f90_{}(char* {});\n\n".format(
                     p.var, p.var))
                 fout.write("  void get_f90_{}_len(int& slen);\n\n".format(p.var))
+                fout.write("  void set_f90_{}_len(int& slen);\n\n".format(p.var))
 
             else:
                 fout.write("  void get_f90_{}({}* {});\n\n".format(
+                    p.var, p.get_cxx_decl(), p.var))
+                fout.write("  void set_f90_{}({}* {});\n\n".format(
                     p.var, p.get_cxx_decl(), p.var))
 
         fout.write(CXX_F_FOOTER)
