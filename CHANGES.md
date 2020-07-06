@@ -1,5 +1,8 @@
 # 20.08
 
+   * If castro.speed_limit is set to a number greater than zero, this
+     will now be strictly enforced on the magnitude of the velocity. (#1115)
+
    * We now have the ability to access the problem-specific runtime
      parameters in C++ (#1093)
 
