@@ -978,6 +978,8 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     // on velocities that are too large instead. The comments are minimal since
     // the algorithm is effectively the same.
 
+    if (castro::speed_limit <= 0.0_rt) return;
+
     const Real* dx = geom.CellSize();
 
     Real dtdx = dt / dx[idir];
