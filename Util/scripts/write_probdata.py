@@ -398,36 +398,17 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
                 for p in params:
                     if not p.in_namelist:
                         continue
-                    if p.dtype == "logical":
+                    if p.dtype == "logical" or p.dtype == "character":
                         continue
 
-                    if p.dtype == "character":
-                        fout.write("{}subroutine set_f90_{}_len(slen) bind(C, name=\"set_f90_{}_len\")\n".format(
-                            indent, p.var, p.var))
-                        fout.write("{}   integer, intent(inout) :: slen\n".format(indent))
-                        fout.write("{}   slen = len(trim({}))\n".format(indent, p.var))
-                        fout.write("{}end subroutine set_f90_{}_len\n\n".format(indent, p.var))
-
-                        fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
-                            indent, p.var, p.var, p.var))
-                        fout.write("{}   character(kind=c_char) :: {}_in(*)\n".format(
-                            indent, p.var))
-                        fout.write("{}   integer :: n\n".format(indent))
-                        fout.write("{}   do n = 1, len(trim({}_in))\n".format(indent, p.var))
-                        fout.write("{}      {}(n:n) = {}_in(n:n)\n".format(indent, p.var, p.var))
-                        fout.write("{}   end do\n".format(indent))
-                        fout.write("{}   {}(len(trim({}))+1) = char(0)\n".format(indent, p.var, p.var))
-                        fout.write("{}end subroutine set_f90_{}\n\n".format(indent, p.var))
-
-                    else:
-                        fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
-                            indent, p.var, p.var, p.var))
-                        fout.write("{}   {}, intent(in) :: {}_in\n".format(
-                            indent, p.get_f90_decl(), p.var))
-                        fout.write("{}   {} = {}_in\n".format(
-                            indent, p.var, p.var))
-                        fout.write("{}end subroutine set_f90_{}\n\n".format(
-                            indent, p.var))
+                    fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
+                        indent, p.var, p.var, p.var))
+                    fout.write("{}   {}, intent(in) :: {}_in\n".format(
+                        indent, p.get_f90_decl(), p.var))
+                    fout.write("{}   {} = {}_in\n".format(
+                        indent, p.var, p.var))
+                    fout.write("{}end subroutine set_f90_{}\n\n".format(
+                        indent, p.var))
 
         else:
             fout.write(line)
