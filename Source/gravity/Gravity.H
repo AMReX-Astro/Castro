@@ -10,6 +10,29 @@
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
 
 ///
+/// Multipole gravity data
+///
+namespace multipole {
+    const int lnum_max = 30;
+
+    extern AMREX_GPU_MANAGED amrex::Real volumeFactor;
+    extern AMREX_GPU_MANAGED amrex::Real parityFactor;
+
+    extern AMREX_GPU_MANAGED amrex::Real rmax;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddHi;
+    extern AMREX_GPU_MANAGED bool doSymmetricAdd;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionHi;
+
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> factArray;
+    extern AMREX_GPU_MANAGED amrex::Array1D<amrex::Real, 0, lnum_max> parity_q0;
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> parity_qC_qS;
+}
+
+///
 /// @class Gravity
 /// @brief
 ///
@@ -350,17 +373,6 @@ public:
                            int n1d, int level);
 
 ///
-/// Integrate radially outward to find radial gravitational potential
-///
-/// @param level        Current level
-/// @param Rhs          density (rhs of Poisson's equation)
-/// @param phi          Non-radial gravitational potential
-/// @param fill_interior    integer
-///
-  void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
-
-#if (BL_SPACEDIM > 1)
-///
 /// Implement multipole boundary conditions
 ///
 /// @param crse_level
@@ -374,7 +386,7 @@ public:
 /// Initialize multipole gravity
 ///
   void init_multipole_grav();
-#endif
+
 #if (BL_SPACEDIM == 3)
 
 ///
@@ -461,7 +473,6 @@ public:
   static int   stencil_type;
 
   static amrex::Real max_radius_all_in_domain;
-
 
 #if (BL_SPACEDIM < 3)
 

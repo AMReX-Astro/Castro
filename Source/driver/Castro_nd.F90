@@ -115,7 +115,7 @@ subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abo
   if (abort_on_failure_in >= 1) then
      abort_on_failure = .true.
   else
-     abort_on_failure_in = .false.
+     abort_on_failure = .false.
   endif
 
 end subroutine ca_set_abort_on_failure

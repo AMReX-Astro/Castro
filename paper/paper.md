@@ -88,7 +88,7 @@ implemented in an energy-conserving fashion, explicit thermal
 diffusion, and gray [@castroII] and multigroup [@castroIII] flux
 limited diffusion radiation hydrodynamics.  A constrained transport
 MHD solver based on the CTU algorithm is also available, and can use
-the same physics sources.  Castro can use an arbitrary equation of
+the same physics source terms.  Castro can use an arbitrary equation of
 state and reaction network, and these microphysics routines are
 provided by the StarKiller project [@starkiller].
 

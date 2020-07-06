@@ -605,7 +605,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
         // do the conservative update -- and store the shock variable
-#pragma gpu box(bx)
         mol_consup(bx,
                    shk_arr,
                    source_in_arr,
