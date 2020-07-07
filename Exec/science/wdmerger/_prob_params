@@ -268,12 +268,6 @@ total_ener_array                real                  0.0e0_rt                 n
 
 
 
-# Lagrange points
-
-L1                              real                  0.0e0_rt                 n                      3
-L2                              real                  0.0e0_rt                 n                      3
-L3                              real                  0.0e0_rt                 n                      3
-
 #for the magnetic fields
 
 B_x                             real                  0.0e0_rt                 y

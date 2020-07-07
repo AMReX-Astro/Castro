@@ -417,6 +417,9 @@ Castro::ppm_mhd(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i+1,j,k,QFS+n);
       }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = qleft(i+1,j,k,QFX+n);
+      }
       eos(eos_input_rp, eos_state);
       qleft(i+1,j,k,QREINT) = eos_state.e * eos_state.rho;
 
@@ -426,6 +429,9 @@ Castro::ppm_mhd(const Box& bx,
       eos_state.T = q_arr(i,j,k,QTEMP); // some initial guess?
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j+1,k,QFS+n);
+      }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = qleft(i,j+1,k,QFX+n);
       }
       eos(eos_input_rp, eos_state);
       qleft(i,j+1,k,QREINT) = eos_state.e * eos_state.rho;
@@ -437,6 +443,9 @@ Castro::ppm_mhd(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j,k+1,QFS+n);
       }
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = qleft(i,j,k+1,QFX+n);
+      }
       eos(eos_input_rp, eos_state);
       qleft(i,j,k+1,QREINT) = eos_state. e * eos_state.rho;
     }
@@ -445,6 +454,9 @@ Castro::ppm_mhd(const Box& bx,
     eos_state.p = qright(i,j,k,QPRES);
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qright(i,j,k,QFS+n);
+    }
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = qright(i,j,k,QFX+n);
     }
 
     eos(eos_input_rp, eos_state);

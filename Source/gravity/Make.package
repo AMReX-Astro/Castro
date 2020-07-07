@@ -4,6 +4,7 @@
 CEXE_sources += Gravity.cpp
 CEXE_sources += gravity_params.cpp
 CEXE_headers += Gravity.H
+CEXE_headers += Gravity_util.H
 FEXE_headers += Gravity_F.H
 CEXE_headers += Castro_gravity.H
 FEXE_headers += Castro_gravity_F.H
@@ -11,15 +12,8 @@ FEXE_headers += Castro_gravity_F.H
 CEXE_sources += Castro_gravity.cpp
 
 CEXE_sources += Castro_pointmass.cpp
-ca_F90EXE_sources += pointmass_nd.F90
 
 ca_F90EXE_sources += prescribe_phi_nd.F90
 ca_F90EXE_sources += prescribe_grav_nd.F90
 ca_F90EXE_sources += Gravity_nd.F90
-ca_F90EXE_sources += gravity_sources_nd.F90
 
-ca_F90EXE_sources += Gravity_$(DIM)d.F90
-
-ifeq ($(USE_GR), TRUE)
-  ca_F90EXE_sources += GR_Gravity_$(DIM)d.F90
-endif

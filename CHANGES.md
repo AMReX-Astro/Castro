@@ -1,4 +1,45 @@
+# 20.08
+
+   * If castro.speed_limit is set to a number greater than zero, this
+     will now be strictly enforced on the magnitude of the velocity. (#1115)
+
+   * When using AMR and gravity or rotation, the source terms applied after
+     a reflux would have been incorrect if the previous timestep had a retry
+     (#1020). This has now been fixed. (#1112)
+
+   * We now have the ability to access the problem-specific runtime
+     parameters in C++ (#1093)
+
 # 20.07
+
+   * The master branch has been renamed the main branch. If you have an
+     existing clone of Castro, then do the following to update for this
+     change. First, do `git checkout master` if you're not already on the
+     old master branch. Then do `git pull`. This will gather the updates
+     to the repo, but will fail with the message `Your configuration specifies
+     to merge with the ref 'refs/heads/master' from the remote, but no such ref
+     was fetched.` Then you can simply do `git checkout main` and your local
+     repo should automatically switch to that branch and track updates from
+     the upstream repo on GitHub. If you like, you can then delete the old
+     master branch with `git branch -D master`.
+
+   * The CUDA build no longer has a requirement that amr.blocking_factor
+     be a multiple of 8. Though this is recommended for performance reasons,
+     it was previously required due to correctness reasons because of the
+     use of an AMReX Fortran function, amrex_filccn. As noted in #1048, this
+     function is no longer required due to recent changes in Castro (problems
+     overriding bc_fill_nd.F90 or bc_ext_fill_nd.F90 do not need to provide an
+     initial fill of the ghost zone data before implementing their specific
+     boundary conditions; this is now done for you). Calling this function
+     may now result in race conditions and correctness issues in the CUDA
+     build, so it should be removed from any problem setups. (#1049)
+
+   * The functionality that permitted the rotation rate to change as a
+     function of time, castro.rotation_include_domegadt and
+     castro.rotational_dPdt, has been removed. (#1045)
+
+   * A CUDA illegal memory access error in Poisson gravity and diffusion
+     has been fixed (#1039).
 
    * The parameter castro.track_grid_losses has been removed. (#1035)
 

@@ -67,7 +67,7 @@
      ! inside the primary or secondary (in which case interpolate from the respective model)
      ! or if we are in an ambient zone.
 
-     call get_omega(time, omega)
+     call get_omega(omega)
 
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, pos, mom) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state) &

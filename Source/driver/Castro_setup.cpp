@@ -683,7 +683,7 @@ Castro::variableSetUp ()
       name_react = "rho_omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
     }
-#if naux > 0
+#if NAUX_NET > 0
   std::string name_aux;
   for (int i = 0; i < NumAux; ++i) {
       set_scalar_bc(bc,phys_bc);
@@ -1145,33 +1145,6 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
-#ifdef AMREX_USE_CUDA
-  // Set the minimum number of threads needed per
-  // threadblock to do BC fills with CUDA. We will
-  // force this to be 8. The reason is that it is
-  // not otherwise guaranteed for our thread blocks
-  // to be aligned with the grid in such a way that
-  // the synchronization logic in amrex_filccn works
-  // out. We need at least NUM_GROW + 1 threads in a
-  // block for CTU. If we used this minimum of 5, we
-  // would hit cases where this doesn't work since
-  // our blocking_factor is usually a power of 2, and
-  // the thread blocks would not be aligned to guarantee
-  // that the threadblocks containing the ghost zones
-  // contained all of the ghost zones, as well as the
-  // required interior zone. And for reflecting BCs,
-  // we need NUM_GROW * 2 == 8 threads anyway. This logic
-  // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for SDC and for
-  // problems that only have outflow BCs, but the BC
-  // fill is not the expensive part of the algorithm
-  // for our production science problems anyway, so
-  // we ignore this extra cost in favor of safety.
-
-  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-      numBCThreadsMin[dim] = 8;
-  }
-#endif
 
 
 #ifdef TRUE_SDC

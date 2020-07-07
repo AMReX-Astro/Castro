@@ -3,7 +3,7 @@ name: github pages
 on:
   push:
     branches:
-      - master
+      - main
       - development
 
 jobs:
@@ -42,9 +42,9 @@ jobs:
         run: python3 -m pip install -r ./requirements.txt
 
       - name: Build docs
-        if: ${{ endsWith(github.ref, 'master') }}
+        if: ${{ endsWith(github.ref, 'main') }}
         env:
-          GITHUB_BRANCH: 'master'
+          GITHUB_BRANCH: 'main'
         run: ./deploy_docs_action.sh
 
       - name: Build docs 

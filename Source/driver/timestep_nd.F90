@@ -25,7 +25,7 @@ contains
     use meth_params_module, only : NVAR, URHO, UEINT, UTEMP, UFS, dtnuc_e, dtnuc_T, &
                                    dtnuc_X, dtnuc_X_threshold, small_temp
     use prob_params_module, only : dim
-#if naux > 0
+#if NAUX_NET > 0
     use meth_params_module, only : UFX
 #endif
     use actual_rhs_module, only: actual_rhs
@@ -103,7 +103,7 @@ contains
              state_new % T   = snew(i,j,k,UTEMP)
              state_new % e   = snew(i,j,k,UEINT) * rhoninv
              state_new % xn  = snew(i,j,k,UFS:UFS+nspec-1) * rhoninv
-#if naux > 0
+#if NAUX_NET > 0
              state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
 #endif
 

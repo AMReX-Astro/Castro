@@ -16,10 +16,18 @@
 
 using namespace amrex;
 
+///
+/// Construct the piecewise linear slopes for an input state q
+///
+/// @param q               Real[5] giving q_{i-2} through q_{i+2}, used in the reconstruction
+/// @param flatn           flattening coefficient
+/// @param bnd_lo_reflect  true if a symmetry boundary is just to the left of this zone
+/// @param bnd_hi_reflect  true if a symmetry boundary is just to the right of this zone
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 Real
-Castro::uslope(const Real* q, const Real flatn,
-               bool bnd_lo_reflect, bool bnd_hi_reflect) {
+uslope(const Real* q, const Real flatn,
+       bool bnd_lo_reflect, bool bnd_hi_reflect) {
 
   Real dq;
 
@@ -102,12 +110,23 @@ Castro::uslope(const Real* q, const Real flatn,
   return dq;
 }
 
-
+///
+/// Compute the pressure slope using a well-balanced procedure where we subtract
+/// HSE off of the pressure before limiting
+///
+/// @param rho          Real[5] giving the density in zones i-2, i-1, i, i+1, i+2
+/// @param p           Real[5] giving the pressure in zones i-2, i-1, i, i+1, i+2
+/// @param src         Real[5] the source in the velocity equation (e.g. g) in zones
+///                    i-2, i-1, i, i+2, i+2
+/// @param flatn       flattening coefficient
+/// @param lo_bc_test  true if a physical boundary is just to the left of this zone
+/// @param hi_bc_test  true if a physical boundary is just to the right of this zone
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
-               bool lo_bc_test, bool hi_bc_test,
-               const Real dx, Real& dp) {
+pslope(const Real* rho, const Real* p, const Real* src, const Real flatn,
+       bool lo_bc_test, bool hi_bc_test,
+       const Real dx, Real& dp) {
 
   // dp should come in as the current estimate of the pressure slope
   // and we overwrite it if needed

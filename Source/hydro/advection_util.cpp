@@ -54,7 +54,7 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
-  get_omega(time, omega.begin());
+  get_omega(omega.begin());
 #endif
 
   amrex::ParallelFor(bx,
@@ -977,6 +977,8 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     // This limiter is similar to the density-based limiter above, but limits
     // on velocities that are too large instead. The comments are minimal since
     // the algorithm is effectively the same.
+
+    if (castro::speed_limit <= 0.0_rt) return;
 
     const Real* dx = geom.CellSize();
 

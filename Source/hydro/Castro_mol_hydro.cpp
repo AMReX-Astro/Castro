@@ -605,10 +605,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
 
         // do the conservative update -- and store the shock variable
-#pragma gpu box(bx)
         mol_consup(bx,
                    shk_arr,
-                   uin_arr, source_in_arr,
+                   source_in_arr,
                    source_out_arr,
                    dt,
                    flux[0].array(),
@@ -626,12 +625,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                    area[2].array(mfi),
 #endif
                    qe[0].array(),
-#if AMREX_SPACEDIM >= 2
-                   qe[1].array(),
-#endif
-#if AMREX_SPACEDIM == 3
-                   qe[2].array(),
-#endif
                    volume.array(mfi));
 
 
@@ -761,25 +754,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
     flush_output();
 
 
-  if (print_update_diagnostics)
-    {
-
-      bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(A_update, dt, local);
-
-#ifdef BL_LAZY
-      Lazy::QueueReduction( [=] () mutable {
-#endif
-          ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-          if (ParallelDescriptor::IOProcessor())
-            std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
-
-          print_source_change(hydro_update);
-
-#ifdef BL_LAZY
-        });
-#endif
+  if (print_update_diagnostics) {
+      evaluate_and_print_source_change(A_update, dt, "hydro source");
     }
 
     if (verbose > 0)

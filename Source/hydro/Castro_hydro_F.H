@@ -34,10 +34,6 @@ extern "C"
      const amrex::Real* dx, const amrex::Real dt);
 #endif
 
-  void edge_state_temp_to_pres
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(qm),
-     BL_FORT_FAB_ARG_3D(qp));
 
 #ifdef __cplusplus
 }

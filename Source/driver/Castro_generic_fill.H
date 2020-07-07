@@ -10,16 +10,6 @@
 #endif
 
 #ifdef AMREX_USE_CUDA
-static void set_bc_launch_config()
-{
-    amrex::Gpu::Device::setNumThreadsMin(Castro::minBCThreads(0), Castro::minBCThreads(1), Castro::minBCThreads(2));
-}
-
-static void clean_bc_launch_config()
-{
-    amrex::Gpu::Device::setNumThreadsMin(1, 1, 1);
-}
-
 // Return a pointer to bc valid for use in Fortran. For the CPU this is a no-op.
 
 static int* prepare_bc(const int* bc, const int nvar)
