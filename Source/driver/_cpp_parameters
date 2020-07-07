@@ -181,8 +181,9 @@ limit_fluxes_on_small_dens   int           0                  y
 # Should we limit the momentum fluxes so that we do not create large velocities?
 limit_fluxes_on_large_vel    int           0                  y
 
-# If we're limiting the fluxes to avoid large velocities, this is the speed limit.
-speed_limit                  Real          2.99792458e10      y
+# Enforce the magnitude of the velocity to be no larger than this number (and
+# optionally limit the fluxes as well). Only applies if it is greater than 0.
+speed_limit                  Real          0.0                y
 
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
