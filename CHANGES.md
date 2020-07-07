@@ -1,3 +1,15 @@
+# 20.08
+
+   * If castro.speed_limit is set to a number greater than zero, this
+     will now be strictly enforced on the magnitude of the velocity. (#1115)
+
+   * When using AMR and gravity or rotation, the source terms applied after
+     a reflux would have been incorrect if the previous timestep had a retry
+     (#1020). This has now been fixed. (#1112)
+
+   * We now have the ability to access the problem-specific runtime
+     parameters in C++ (#1093)
+
 # 20.07
 
    * The master branch has been renamed the main branch. If you have an

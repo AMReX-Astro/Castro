@@ -1128,6 +1128,15 @@ public:
     void enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
+/// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
+/// in any zone.
+///
+/// @param state        state
+/// @param ng           number of ghost cells
+///
+    void enforce_speed_limit (amrex::MultiFab& state, int ng);
+
+///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
 /// sure the data is sensible.
 ///
@@ -1423,6 +1432,11 @@ protected:
     amrex::Array<amrex::MultiFab,3> area;
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
+
+
+///
+/// For initialization of the C++ values of the runtime parameters
+  static int do_init_probparams;
 
 
 ///
