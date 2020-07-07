@@ -1306,6 +1306,20 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N6Castro19enforce_speed_limitERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="Castro::enforce_speed_limit__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a5a5adfaec71edd224afe9923cdf603e4"></span>void <code class="sig-name descname">enforce_speed_limit</code><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro19enforce_speed_limitERN5amrex8MultiFabEi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Ensure the magnitude of the velocity is not larger than <code class="docutils literal notranslate"><span class="pre">castro.speed_limit</span></code> in any zone.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::clean_state__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a64f583ffe103a22b5116b026f6d46ff3"></span>void <code class="sig-name descname">clean_state</code><span class="sig-paren">(</span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bx</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>By</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Bz</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, int <em>ng</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible.</p>
