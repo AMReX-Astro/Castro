@@ -3,6 +3,10 @@
    * castro.use_post_step_regrid now unconditionally regrids after
      every timestep on every level. (#898)
 
+   * When using AMR and gravity or rotation, the source terms applied after
+     a reflux would have been incorrect if the previous timestep had a retry
+     (#1020). This has now been fixed. (#1112)
+
    * We now have the ability to access the problem-specific runtime
      parameters in C++ (#1093)
 
