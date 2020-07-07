@@ -163,18 +163,19 @@ Castro::hlld(const Box& bx,
     Real sL = amrex::min(qL(QVELN) - cfL2, qR(QVELN) - cfR);
     Real sR = amrex::max(qL(QVELN) + cfL2, qR(QVELN) + cfR);
 
-    // sM, eq.(38)
-
-    Real sM  = ((sR - qR(QVELN)) * qR(QRHO) * qR(QVELN) - (sL - qL(QVELN)) * qL(QRHO) * qL(QVELN) -
-           (qR(QPRES) + 0.5_rt * BR2) + (qL(QPRES) + 0.5_rt * BL2)) /
-      ((sR - qR(QVELN)) * qR(QRHO) - (sL - qL(QVELN)) * qL(QRHO));
-
     // Pressures in the Riemann Fan
 
     Real ptL = qL(QPRES) + 0.5_rt * BL2;
     Real ptR = qR(QPRES) + 0.5_rt * BR2;
 
-    // pst, eq.(41)
+    // sM -- the entropy wave, eq.(38)
+
+    Real sM  = ((sR - qR(QVELN)) * qR(QRHO) * qR(QVELN) - (sL - qL(QVELN)) * qL(QRHO) * qL(QVELN) -
+           ptR + ptL /
+      ((sR - qR(QVELN)) * qR(QRHO) - (sL - qL(QVELN)) * qL(QRHO));
+
+
+    // pst, eq.(41) (pstar_total)
 
     Real pst  = (sR - qR(QVELN)) * qR(QRHO) * ptL - (sL - qL(QVELN)) * qL(QRHO) * ptR +
       qL(QRHO) * qR(QRHO) * (sR - qR(QVELN)) * (sL - qL(QVELN)) * (qR(QVELN) - qL(QVELN));
@@ -204,12 +205,12 @@ Castro::hlld(const Box& bx,
 
     // Vel * states
 
-    // Normal dir
+    // Normal dir (Eq. 39)
 
     UsL(UMN) = sM;
     UsR(UMN) = sM;
 
-    // Perpendicular dir
+    // Perpendicular dir (Eq 44)
 
     if (std::abs(qL(QMAGN) * qL(QMAGP1) * (sM - qL(QVELN))) < 1.e-14_rt) {
       UsL(UMP1) = qL(QVELP1);
@@ -225,7 +226,7 @@ Castro::hlld(const Box& bx,
         ((sM - qR(QVELN)) / (qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN)*qR(QMAGN)));
     }
 
-    // Second Perpendicular dir
+    // Second Perpendicular dir (Eq 46)
 
     if (std::abs(qL(QMAGN) * qL(QMAGP2) * (sM - qL(QVELN))) <= 1.e-14) {
       UsL(UMP2) = qL(QVELP2);
@@ -256,7 +257,7 @@ Castro::hlld(const Box& bx,
     UsL(UMAGN) = qL(QMAGN);
     UsR(UMAGN) = qR(QMAGN);
 
-    // Perpendicular dir
+    // Perpendicular dir (Eq. 45)
 
     if (std::abs(qL(QMAGP1) * (qL(QRHO) * (sL - qL(QVELN)) * (sL - qL(QVELN)) - qL(QMAGN) * qL(QMAGN))) < 1.e-14_rt) {
       UsL(UMAGP1) = qL(QMAGP1);
@@ -272,7 +273,7 @@ Castro::hlld(const Box& bx,
         (qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN) * qR(QMAGN));
     }
 
-    // Second Perpendicular dir
+    // Second Perpendicular dir (Eq. 47)
 
     if (std::abs(qL(QMAGP2) * (qL(QRHO) * (sL - qL(QVELN)) * (sL - qL(QVELN)) - qL(QMAGN) * qL(QMAGN))) < 1.e-14_rt) {
       UsL(UMAGP2) = qL(QMAGP2);
@@ -308,10 +309,10 @@ Castro::hlld(const Box& bx,
 
     // ** states
 
-    // Dens
-
     Array1D<Real, 0, NUM_STATE+2> UssL;
     Array1D<Real, 0, NUM_STATE+2> UssR;
+
+    // Dens (Eq. 49)
 
     UssL(URHO) = UsL(URHO);
     UssR(URHO) = UsR(URHO);
@@ -327,7 +328,7 @@ Castro::hlld(const Box& bx,
     UssL(UEINT) = UsL(UEINT);
     UssR(UEINT) = UsR(UEINT);
 
-    // Vel in normal direction
+    // Vel in normal direction (Eq. 39)
 
     UssL(UMN) = sM;
     UssR(UMN) = sM;
@@ -361,7 +362,7 @@ Castro::hlld(const Box& bx,
     UssL(UMAGN) = UsL(UMAGN);
     UssR(UMAGN) = UsR(UMAGN);
 
-    // B in perpendicular direction
+    // B in perpendicular direction (Eq 61)
 
     UssL(UMAGP1) = (std::sqrt(UsL(URHO)) * UsR(UMAGP1) + std::sqrt(UsR(URHO)) * UsL(UMAGP1) +
                     std::sqrt(UsL(URHO) * UsR(URHO)) * (UsR(UMP1) / UsR(URHO) -
@@ -370,7 +371,7 @@ Castro::hlld(const Box& bx,
 
     UssR(UMAGP1) = UssL(UMAGP1);
 
-    // B in second perpendicular direction
+    // B in second perpendicular direction (Eq 62)
 
     UssL(UMAGP2) = (std::sqrt(UsL(URHO)) * UsR(UMAGP2) + std::sqrt(UsR(URHO)) * UsL(UMAGP2) +
                     std::sqrt(UsL(URHO) * UsR(URHO)) * (UsR(UMP2) / UsR(URHO) -
