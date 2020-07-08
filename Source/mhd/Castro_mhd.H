@@ -100,6 +100,9 @@
               amrex::Array4<amrex::Real const> const& Ed,
               amrex::Array4<amrex::Real const> const& Ed1,
               amrex::Array4<amrex::Real const> const& Ed2,
+              amrex::Array4<amrex::Real const> const& Ex,
+              amrex::Array4<amrex::Real const> const& Ey,
+              amrex::Array4<amrex::Real const> const& Ez,
               const int d, const int d1, const int d2, const amrex::Real dt);
 
     void
