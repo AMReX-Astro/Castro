@@ -83,15 +83,19 @@ evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csx)/(cfx - csx));
-  Real als = std::sqrt((cfx - as)/(cfx - csx));
-
-  if (cfx - as < 0.0) {
-    als = 0.0_rt;
-  }
+  Real alf;
+  Real als;
 
   if (as - csx < 0.0) {
     alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csx)/(cfx - csx));
+  }
+
+  if (cfx - as < 0.0) {
+    als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfx - as)/(cfx - csx));
   }
 
   Real bety;
@@ -273,15 +277,19 @@ evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csy)/(cfy - csy));
-  Real als = std::sqrt((cfy - as)/(cfy - csy));
+  Real alf;
+  Real als;
 
   if (as - csy < 0.0) {
     alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csy)/(cfy - csy));
   }
 
   if (cfy - as < 0.0) {
     als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfy - as)/(cfy - csy));
   }
 
   Real betx;
@@ -462,15 +470,19 @@ evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csz)/(cfz - csz));
-  Real als = std::sqrt((cfz - as)/(cfz - csz));
-
-  if (cfz - as < 0.0) {
-    als = 0.0_rt;
-  }
+  Real alf;
+  Real als;
 
   if (as - csz < 0.0) {
     alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csz)/(cfz - csz));
+  }
+
+  if (cfz - as < 0.0) {
+    als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfz - as)/(cfz - csz));
   }
 
   Real betx;
