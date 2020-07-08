@@ -373,16 +373,6 @@ public:
                            int n1d, int level);
 
 ///
-/// Integrate radially outward to find radial gravitational potential
-///
-/// @param level        Current level
-/// @param Rhs          density (rhs of Poisson's equation)
-/// @param phi          Non-radial gravitational potential
-/// @param fill_interior    integer
-///
-  void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
-
-///
 /// Implement multipole boundary conditions
 ///
 /// @param crse_level

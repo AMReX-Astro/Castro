@@ -2668,7 +2668,15 @@ Castro::reflux(int crse_level, int fine_level)
             }
             for (int i = 0; i < BL_SPACEDIM; ++i) {
                 MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
-                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], URHO, 0, 1, 0);
+
+                // The gravity and rotation source terms depend on the mass fluxes.
+                // These should be the same as the URHO component of the fluxes.
+                // This update must be a copy from the fluxes rather than an add
+                // from the flux register because the mass fluxes only represent
+                // the last subcycle of the previous timestep.
+
+                MultiFab::Copy(*crse_lev.mass_fluxes[i], *crse_lev.fluxes[i], URHO, 0, 1, 0);
+
                 temp_fluxes[i].reset();
             }
 
@@ -3064,6 +3072,52 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
+}
+
+void
+Castro::enforce_speed_limit (MultiFab& state_in, int ng)
+{
+    BL_PROFILE("Castro::enforce_speed_limit()");
+
+    // This routine sets the velocity in state_in to be no larger than the
+    // speed limit, if one has been applied.
+
+    if (castro::speed_limit <= 0.0_rt) return;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.growntilebox(ng);
+
+        auto u = state_in[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real rho = u(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            Real vx = u(i,j,k,UMX) * rhoInv;
+            Real vy = u(i,j,k,UMY) * rhoInv;
+            Real vz = u(i,j,k,UMZ) * rhoInv;
+
+            Real v = std::sqrt(vx * vx + vy * vy + vz * vz);
+
+            if (v > castro::speed_limit) {
+                Real reduce_factor = castro::speed_limit / v;
+
+                u(i,j,k,UMX) *= reduce_factor;
+                u(i,j,k,UMY) *= reduce_factor;
+                u(i,j,k,UMZ) *= reduce_factor;
+
+                u(i,j,k,UEDEN) -= 0.5_rt * rhoInv * (rho * vx * rho * vx - u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                     rho * vy * rho * vy - u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                     rho * vz * rho * vz - u(i,j,k,UMZ) * u(i,j,k,UMZ));
+            }
+        });
+    }
 }
 
 void
@@ -4203,6 +4257,10 @@ Castro::clean_state(
     // Enforce a minimum density.
 
     enforce_min_density(state_in, ng);
+
+    // Enforce the speed limit.
+
+    enforce_speed_limit(state_in, ng);
 
     // Ensure all species are normalized.
 
