@@ -213,30 +213,30 @@ Castro::hlld(const Box& bx,
     // Perpendicular dir (Eq 44)
     // Second Perpendicular dir (Eq 46)
 
-    Real denom1L = qL(QRHO) * (sL - qL(QVELN)) * (sL - sM) - qL(QMAGN) * qL(QMAGN);
-    Real denom1R = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN)*qR(QMAGN);
+    Real denom_upL = qL(QRHO) * (sL - qL(QVELN)) * (sL - sM) - qL(QMAGN) * qL(QMAGN);
+    Real denom_upR = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN)*qR(QMAGN);
 
-    if (std::abs(denom1L) < 1.e-14_rt) {
+    if (std::abs(denom_upL) < 1.e-14_rt) {
       UsL(UMP1) = qL(QVELP1);
       UsL(UMP2) = qL(QVELP2);
 
     } else {
       UsL(UMP1) = qL(QVELP1) - qL(QMAGN)*qL(QMAGP1) *
-        ((sM - qL(QVELN)) / denom1L);
+        ((sM - qL(QVELN)) / denom_upL);
       UsL(UMP2) = qL(QVELP2) - qL(QMAGN) * qL(QMAGP2) *
-        ((sM - qL(QVELN)) / denom1L);
+        ((sM - qL(QVELN)) / denom_upL);
 
     }
 
-    if (std::abs(denom1R) < 1.e-14_rt) {
+    if (std::abs(denom_upR) < 1.e-14_rt) {
       UsR(UMP1) = qR(QVELP1);
       UsR(UMP2) = qR(QVELP2);
 
     } else {
       UsR(UMP1) = qR(QVELP1) - qR(QMAGN)*qR(QMAGP1) *
-        ((sM - qR(QVELN)) / denom1R);
+        ((sM - qR(QVELN)) / denom_upR);
       UsR(UMP2) = qR(QVELP2) - qR(QMAGN) * qR(QMAGP2) *
-        ((sM - qR(QVELN)) / denom1R);
+        ((sM - qR(QVELN)) / denom_upR);
 
     }
 
@@ -259,30 +259,30 @@ Castro::hlld(const Box& bx,
     // Perpendicular dir (Eq. 45)
     // Second Perpendicular dir (Eq. 47)
 
-    Real denom2L = qL(QRHO) * (sL - qL(QVELN)) * (sL - sM) - qL(QMAGN) * qL(QMAGN);
-    Real denom2R = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN) * qR(QMAGN); 
+    Real denom_bpL = qL(QRHO) * (sL - qL(QVELN)) * (sL - sM) - qL(QMAGN) * qL(QMAGN);
+    Real denom_bpR = qR(QRHO) * (sR - qR(QVELN)) * (sR - sM) - qR(QMAGN) * qR(QMAGN); 
 
-    if (std::abs(denom2L) < 1.e-14_rt) {
-      UsL(UMAGP1) = 0.0_rt; //qL(QMAGP1);
-      UsL(UMAGP2) = 0.0_rt; //qL(QMAGP2);
+    if (std::abs(denom_bpL) < 1.e-14_rt) {
+      UsL(UMAGP1) = 0.0_rt; 
+      UsL(UMAGP2) = 0.0_rt; 
 
     } else {
       UsL(UMAGP1) = qL(QMAGP1) * (qL(QRHO) * (sL - qL(QVELN)) * (sL - qL(QVELN)) - qL(QMAGN) * qL(QMAGN)) /
-                    denom2L;
+                    denom_bpL;
       UsL(UMAGP2) = qL(QMAGP2) * (qL(QRHO) * (sL - qL(QVELN)) * (sL - qL(QVELN)) - qL(QMAGN) * qL(QMAGN)) /
-                    denom2L;
+                    denom_bpL;
 
     }
 
-    if (std::abs(denom2R) < 1.e-14_rt) {
-      UsR(UMAGP1) = 0.0_rt; //qR(QMAGP1);
-      UsR(UMAGP2) = 0.0_rt; //qR(QMAGP2);
+    if (std::abs(denom_bpR) < 1.e-14_rt) {
+      UsR(UMAGP1) = 0.0_rt;
+      UsR(UMAGP2) = 0.0_rt; 
 
     } else {
       UsR(UMAGP1) = qR(QMAGP1) * (qR(QRHO) * (sR - qR(QVELN)) * (sR - qR(QVELN)) - qR(QMAGN) * qR(QMAGN)) /
-                    denom2R;
+                    denom_bpR;
       UsR(UMAGP2) = qR(QMAGP2) * (qR(QRHO) * (sR - qR(QVELN)) * (sR - qR(QVELN)) - qR(QMAGN) * qR(QMAGN)) /
-                    denom2R;
+                    denom_bpR;
 
     }
 
