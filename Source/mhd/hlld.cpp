@@ -171,7 +171,7 @@ Castro::hlld(const Box& bx,
     // sM -- the entropy wave, eq.(38)
 
     Real sM  = ((sR - qR(QVELN)) * qR(QRHO) * qR(QVELN) - (sL - qL(QVELN)) * qL(QRHO) * qL(QVELN) -
-           ptR + ptL /
+           ptR + ptL) /
       ((sR - qR(QVELN)) * qR(QRHO) - (sL - qL(QVELN)) * qL(QRHO));
 
 
