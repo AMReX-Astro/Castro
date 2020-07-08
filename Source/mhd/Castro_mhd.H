@@ -103,6 +103,15 @@
               const int d, const int d1, const int d2, const amrex::Real dt);
 
     void
+    get_inplane_Bs_transverse_flux(const int face, const int comp,
+                                   const int i, const int j, const int k,
+                                   amrex::Array4<amrex::Real const> const& Ex,
+                                   amrex::Array4<amrex::Real const> const& Ey,
+                                   amrex::Array4<amrex::Real const> const& Ez,
+                                   amrex::Real& F1l, amrex::Real& Flr,
+                                   amrex::Real& F2l, amrex::Real& F2r);
+
+    void
     hlld(const amrex::Box& bx,
          amrex::Array4<amrex::Real const> const& qleft,
          amrex::Array4<amrex::Real const> const& qright,

@@ -8,6 +8,127 @@
 using namespace amrex;
 
 void
+Castro::get_inplane_Bs_transverse_flux(const int face, const int comp,
+                                       const int i, const int j, const int k,
+                                       Array4<Real const> const& Ex,
+                                       Array4<Real const> const& Ey,
+                                       Array4<Real const> const& Ez,
+                                       Real& F1l, Real& Flr,
+                                       Real& F2l, Real& F2r) {
+
+
+  // we are working on a face, and considering B field component in
+  // the plane of the face.  there are 2 transverse flux differences
+  // that we need to account for.
+
+  if (face == 0) {
+    // on the x-face, the y and z components are in plane
+
+    if (comp == 1) {
+      // By on the x-face should get corrected by an x and z flux difference
+
+      // Fx_{i+1/2,j,k}(By) = - Ez_{i+1/2,j,k}
+      //                    = -1/2 [ Ez_{i+1/2,j-1/2,k} + Ez_{i+1/2,j+1/2,k} ]
+
+      F1r = -0.5_rt * (Ez(i+1,j,k) + Ez(i+1,j+1,k));
+      F1l = -0.5_rt * (Ez(i,j,k) + Ez(i,j+1,k));
+
+      // Fz_{i,j,k+1/2}(By) = Ex_{i,j,k+1/2}
+      //                    = 1/2 [ Ex_{i,j-1/2,k+1/2} + Ex_{i,j+1/2,k+1/2} ]
+
+      F2r = 0.5_rt * (Ex(i,j,k+1) + Ex(i,j+1,k+1));
+      F2l = 0.5_rt * (Ex(i,j,k) + Ex(i,j+1,k));
+
+    } else if (comp == 2) {
+      // Bz on the x-face should get corrected by an x and y flux difference
+
+      // Fx_{i+1/2,j,k}(Bz) = Ey_{i+1/2,j,k}
+      //                    = 1/2 [ Ey_{i+1/2,j,k-1/2} + Ey_{i+1/2,j,k+1/2} ]
+
+      F1r = 0.5_rt * (Ey(i+1,j,k) + Ey(i+1,j,k+1));
+      F1l = 0.5_rt * (Ey(i,j,k) + Ey(i,j,k+1));
+
+      // Fy_{i,j+1/2,k}(Bz) = -Ex_{i,j+1/2,k}
+      //                    = -1/2 [ Ex_{i,j+1/2,k-1/2} + Ex_{i,j+1/2,k+1/2} ]
+
+      F2r = -0.5_rt * (Ex(i,j+1,k) + Ex(i,j+1,k+1));
+      F2l = -0.5_rt * (Ex(i,j,k) + Ex(i,j,k+1));
+
+    }
+
+  } else if (face == 1) {
+
+    if (comp == 0) {
+      // Bx on the y-face should get corrected by an y and z flux difference
+
+      // Fy_{i,j+1/2,k}(Bx) = Ez_{i,j+1/2,k}
+      //                    = 1/2 [ Ez_{i-1/2,j+1/2,k} + Ez_{i+1/2,j+1/2,k} ]
+
+      F1r = 0.5_rt * (Ez(i,j+1,k) + Ez(i+1,j+1,k));
+      F1l = 0.5_rt * (Ez(i,j,k) + Ez(i+1,j,k));
+
+      // Fz_{i,j,k+1/2}(Bx) = -Ey_{i,j,k+1/2}
+      //                    = -1/2 (Ey_{i-1/2,j,k+1/2} + Ey_{i+1/2,j,k+1/2})
+
+      F2r = -0.5_rt * (Ey(i,j,k+1) + Ey(i+1,j,k+1));
+      F2l = -0.5_rt * (Ey(i,j,k) + Ey(i+1,j,k));
+
+    } else if (comp == 2) {
+      // Bz on the y-face should get corrected by an x and y flux difference
+
+      // Fx_{i+1/2,j,k}(Bz) = Ey_{i+1/2,j,k}
+      //                    = 1/2 [ Ey_{i+1/2,j,k-1/2} + Ey_{i+1/2,j,k+1/2} ]
+
+      F1r = 0.5_rt * (Ey(i+1,j,k) + Ey(i+1,j,k+1));
+      F1l = 0.5_rt * (Ey(i,j,k) + Ey(i,j,k+1));
+
+      // Fy_{i,j+1/2,k}(Bz) = -Ex_{i,j+1/2,k}
+      //                    = -1/2 [ Ex_{i,j+1/2,k-1/2} + Ex_{i,j+1/2,k+1/2} ]
+
+      F2r = -0.5_rt * (Ex(i,j+1,k) + Ex(i,j+1,k+1));
+      F2l = -0.5_rt * (Ex(i,j,k) + Ex(i,j,k+1));
+
+    }
+
+  } else {  // face == 2
+
+    if (comp == 0) {
+      //  Bx on the z-face should get corrected by a y and z flux difference
+
+      // Fy_{i,j+1/2,k}(Bx) = Ez_{i,j+1/2,k}
+      //                    = 1/2 [ Ez_{i-1/2,j+1/2,k} + Ez_{i+1/2,j+1/2,k}
+
+      F1r = 0.5_rt * (Ez(i,j+1,k) + Ez(i+1,j+1,k));
+      F1l = 0.5_rt * (Ez(i,j,k) + Ez(i+1,j,k));
+
+      // Fz_{i,j,k+1/2}(Bx) = -Ey_{i,j,k+1/2}
+      //                    = -1/2 [ Ey_{i-1/2,j,k+1/2} + Ey_{i+1/2,j,k+1/2} ]
+
+      F2r = -0.5_rt * (Ey(i,j,k+1) + Ey(i+1,j,k+1));
+      F2l = -0.5_rt * (Ey(i,j,k) + Ey(i+1,j,k));
+
+    } else if (comp == 1) {
+      // By on the z-face should get corrected by a x and z flux difference
+
+      // Fx_{i+1/2,j,k}(By) = -Ez_{i+1/2,j,k}
+      //                    = -1/2 [ Ez_{i+1/2,j-1/2,k} + Ez_{i+1/2,j+1/2,k} ]
+
+      F1r = -0.5_rt * (Ez(i+1,j,k) + Ez(i+1,j+1,k));
+      F1l = -0.5_rt * (Ez(i,j,k) + Ez(i,j+1,k));
+
+      // Fz_{i,j,k+1/2}(By) = Ex_{i,j,k+1/2}
+      //                    = 1/2 [ Ex_{i,j-1/2,k+1/2} + Ex_{i,j+1/2,k+1/2} ]
+
+      F2r = 0.5_rt * (Ex(i,j,k+1) + Ex(i,j+1,k+1));
+      F2l = 0.5_rt * (Ex(i,j,k) + Ex(i,j+1,k));
+
+    }
+
+  }
+
+}
+
+void
 Castro::corner_couple(const Box& bx,
                       Array4<Real> const& qr_out,
                       Array4<Real> const& ql_out,
