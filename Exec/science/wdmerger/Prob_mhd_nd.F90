@@ -74,9 +74,10 @@
 
                   A_x(i,j,k) = -m_0*dist_S*sin(theta)*sin(phi)/(model_S %radius)**3 
 
-              !dipole outside the primary star
-              else if (dist_P .le. dist_S) then 
-                  
+              
+              else 
+               !dipole outside the primary star
+   
                   x = loc(1) - center_P_initial(1)
                   y = loc(2) - center_P_initial(2)
                   z = loc(3) - center_P_initial(3)
@@ -86,8 +87,8 @@
 
                   A_x(i,j,k) = -m_0*sin(theta)*sin(phi)/(dist_P*dist_P)
 
-              else 
-              !dipole outside the secondary star 
+              
+              ! add contribution of dipole outside the secondary star 
                   x = loc(1) - center_S_initial(1)
                   y = loc(2) - center_S_initial(2)
                   z = loc(3) - center_S_initial(3)
@@ -95,7 +96,7 @@
                   theta = atan2(sqrt(x**2+y**2),z)
                   phi = atan2(y,x)
 
-                  A_x(i,j,k) = -m_0*sin(theta)*sin(phi)/(dist_S*dist_S)
+                  A_x(i,j,k) = A_x(i,j,k) - m_0*sin(theta)*sin(phi)/(dist_S*dist_S)
 
               endif
 
@@ -134,7 +135,7 @@
     
                   A_y(i,j,k) = m_0*dist_S*sin(theta)*cos(phi)/(model_S % radius)**3
 
-              else if (dist_P .le. dist_S) then
+              else 
 
                   x = loc(1) - center_P_initial(1)
                   y = loc(2) - center_P_initial(2)
@@ -145,7 +146,7 @@
 
                   A_y(i,j,k) = m_0*sin(theta)*cos(phi)/(dist_P*dist_P)
 
-              else
+              
                   x = loc(1) - center_S_initial(1)
                   y = loc(2) - center_S_initial(2)
                   z = loc(3) - center_S_initial(3)
@@ -153,7 +154,7 @@
                   theta = atan2(sqrt(x**2+y**2),z)
                   phi = atan2(y,x)
     
-                  A_y(i,j,k) = m_0*sin(theta)*cos(phi)/(dist_S*dist_S)   
+                  A_y(i,j,k) = A_y(i,j,k) + m_0*sin(theta)*cos(phi)/(dist_S*dist_S)   
 
               endif
 
