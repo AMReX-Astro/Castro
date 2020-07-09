@@ -303,8 +303,7 @@ namespace: ``castro``
 | ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
 |                                        | current timestep by when trying again.                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
-|                                        | stability criteria were violated.                       |               |
+| ``use_post_step_regrid``               | Regrid after every timestep.                            | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
 |                                        | parameter. Set to a negative value to disable this      |               |
