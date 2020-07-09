@@ -3,6 +3,12 @@
    * castro.use_post_step_regrid now unconditionally regrids after
      every timestep on every level. (#898)
 
+   * An issue with gravity.max_solve_level resulting in accesses to invalid data
+     (#469, #1118) has been resolved. (#1123)
+
+   * If castro.speed_limit is set to a number greater than zero, this
+     will now be strictly enforced on the magnitude of the velocity. (#1115)
+
    * When using AMR and gravity or rotation, the source terms applied after
      a reflux would have been incorrect if the previous timestep had a retry
      (#1020). This has now been fixed. (#1112)
