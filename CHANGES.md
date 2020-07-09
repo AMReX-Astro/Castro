@@ -1,5 +1,8 @@
 # 20.08
 
+   * castro.use_post_step_regrid now unconditionally regrids after
+     every timestep on every level. (#898)
+
    * An issue with gravity.max_solve_level resulting in accesses to invalid data
      (#469, #1118) has been resolved. (#1123)
 

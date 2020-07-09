@@ -706,13 +706,6 @@ public:
     void postCoarseTimeStep (amrex::Real cumtime) override;
 
 ///
-/// Check whether we want to do a regrid.
-///
-/// @param time     current time
-///
-    void check_for_post_regrid (amrex::Real time);
-
-///
 /// Do work after regrid().
 ///
 /// @param lbase
