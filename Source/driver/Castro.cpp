@@ -1354,7 +1354,33 @@ Castro::init (AmrLevel &old)
     for (int s = 0; s < num_state_type; ++s) {
         MultiFab& state_MF = get_new_data(s);
         FillPatch(old, state_MF, state_MF.nGrow(), cur_time, s, 0, state_MF.nComp());
+        if (oldlev->state[s].hasOldData()) {
+            if (!state[s].hasOldData()) {
+                state[s].allocOldData();
+            }
+            MultiFab& old_state_MF = get_old_data(s);
+            FillPatch(old, old_state_MF, old_state_MF.nGrow(), prev_time, s, 0, old_state_MF.nComp());
+        }
     }
+
+    // Copy some other data we need from the old class.
+    // One reason this is necessary is if we are doing
+    // a post-timestep regrid -- then we're going to need
+    // to save information about whether there was a retry
+    // during the timestep.
+
+    iteration = oldlev->iteration;
+    sub_iteration = oldlev->sub_iteration;
+
+    sub_ncycle = oldlev->sub_ncycle;
+    dt_subcycle = oldlev->dt_subcycle;
+    dt_advance = oldlev->dt_advance;
+
+    keep_prev_state = oldlev->keep_prev_state;
+
+    lastDtRetryLimited = oldlev->lastDtRetryLimited;
+    lastDtFromRetry = oldlev->lastDtFromRetry;
+    in_retry = oldlev->in_retry;
 
 }
 
