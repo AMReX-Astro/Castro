@@ -28,7 +28,6 @@
 
    real(rt) :: A_x(lo(1):hi(1), lo(2):hi(2)+1, lo(3):hi(3)+1)
    real(rt) :: A_y(lo(1):hi(1)+1, lo(2):hi(2), lo(3):hi(3)+1)
-   real(rt) :: A_yin(lo(1):hi(1)+1, lo(2):hi(2), lo(3):hi(3)+1)
 
    real(rt) :: theta, phi
 
