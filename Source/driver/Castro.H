@@ -64,6 +64,7 @@ constexpr int Shock = USHK;
 using std::istream;
 using std::ostream;
 
+#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -877,6 +878,35 @@ public:
                                 amrex::Array4<amrex::Real> const u);
 
 
+#ifdef MHD
+///
+/// Add magnetic contribution to energy density
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void add_magnetic_e (
+                         amrex::MultiFab& Bx,
+                         amrex::MultiFab& By,
+                         amrex::MultiFab& Bz,
+                         amrex::MultiFab& state);
+
+///
+/// Check if divergence of B is zero at initialization
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void check_div_B (
+                      amrex::MultiFab& Bx,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
+                      amrex::MultiFab& state);
+
+#endif
+
 
 
 ///
@@ -1095,6 +1125,15 @@ public:
 /// @param ng           number of ghost cells
 ///
     void enforce_min_density (amrex::MultiFab& state, int ng);
+
+///
+/// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
+/// in any zone.
+///
+/// @param state        state
+/// @param ng           number of ghost cells
+///
+    void enforce_speed_limit (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
@@ -1392,6 +1431,11 @@ protected:
     amrex::Array<amrex::MultiFab,3> area;
     amrex::MultiFab             dLogArea[1];
     amrex::Vector< amrex::Vector<amrex::Real> > radius;
+
+
+///
+/// For initialization of the C++ values of the runtime parameters
+  static int do_init_probparams;
 
 
 ///

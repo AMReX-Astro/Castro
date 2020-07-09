@@ -47,6 +47,9 @@
 #endif
 
 #include <extern_parameters.H>
+#ifdef PROB_PARAMS
+#include <prob_parameters.H>
+#endif
 
 using namespace amrex;
 
@@ -131,6 +134,9 @@ Real         Castro::startCPUTime = 0.0;
 
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
+
+int          Castro::do_init_probparams = 0;
+
 
 namespace amrex {
     extern int compute_new_dt_on_regrid;
@@ -480,6 +486,14 @@ Castro::Castro (Amr&            papa,
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
+
+    // initialize the C++ values of the runtime parameters
+#ifdef PROB_PARAMS
+    if (do_init_probparams == 0) {
+      init_prob_parameters();
+      do_init_probparams = 1;
+    }
+#endif
 
     initMFs();
 
@@ -988,6 +1002,16 @@ Castro::initData ()
 #endif
 
        }
+
+
+#ifdef MHD
+      //correct energy density with the magnetic field contribution 
+      add_magnetic_e(Bx_new, By_new, Bz_new, S_new);
+      
+      //check divB
+      check_div_B(Bx_new, By_new, Bz_new, S_new);    
+
+#endif
 
        // it is not a requirement that the problem setup defines the
        // temperature, so we do that here _and_ ensure that we are
@@ -2003,13 +2027,11 @@ Castro::post_restart ()
             {
                 if (gravity->NoComposite() != 1)
                 {
-                   int use_previous_phi = 1;
-
                    // Update the maximum density, used in setting the solver tolerance.
 
                    gravity->update_max_rhs();
 
-                   gravity->multilevel_solve_for_new_phi(0,parent->finestLevel(),use_previous_phi);
+                   gravity->multilevel_solve_for_new_phi(0, parent->finestLevel());
                    if (gravity->test_results_of_solves() == 1)
                        gravity->test_composite_phi(level);
                 }
@@ -2208,15 +2230,13 @@ Castro::post_regrid (int lbase,
             if ( (level == lbase) && cur_time > 0.)
             {
                 if ( gravity->get_gravity_type() == "PoissonGrav" && (gravity->NoComposite() != 1) ) {
-                    int use_previous_phi = 1;
-
                     // Update the maximum density, used in setting the solver tolerance.
 
                     if (level == 0) {
                       gravity->update_max_rhs();
                     }
 
-                    gravity->multilevel_solve_for_new_phi(level,new_finest,use_previous_phi);
+                    gravity->multilevel_solve_for_new_phi(level, new_finest);
 
                 }
 
@@ -2648,7 +2668,15 @@ Castro::reflux(int crse_level, int fine_level)
             }
             for (int i = 0; i < BL_SPACEDIM; ++i) {
                 MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
-                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], URHO, 0, 1, 0);
+
+                // The gravity and rotation source terms depend on the mass fluxes.
+                // These should be the same as the URHO component of the fluxes.
+                // This update must be a copy from the fluxes rather than an add
+                // from the flux register because the mass fluxes only represent
+                // the last subcycle of the previous timestep.
+
+                MultiFab::Copy(*crse_lev.mass_fluxes[i], *crse_lev.fluxes[i], URHO, 0, 1, 0);
+
                 temp_fluxes[i].reset();
             }
 
@@ -3047,6 +3075,52 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
 }
 
 void
+Castro::enforce_speed_limit (MultiFab& state_in, int ng)
+{
+    BL_PROFILE("Castro::enforce_speed_limit()");
+
+    // This routine sets the velocity in state_in to be no larger than the
+    // speed limit, if one has been applied.
+
+    if (castro::speed_limit <= 0.0_rt) return;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.growntilebox(ng);
+
+        auto u = state_in[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real rho = u(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            Real vx = u(i,j,k,UMX) * rhoInv;
+            Real vy = u(i,j,k,UMY) * rhoInv;
+            Real vz = u(i,j,k,UMZ) * rhoInv;
+
+            Real v = std::sqrt(vx * vx + vy * vy + vz * vz);
+
+            if (v > castro::speed_limit) {
+                Real reduce_factor = castro::speed_limit / v;
+
+                u(i,j,k,UMX) *= reduce_factor;
+                u(i,j,k,UMY) *= reduce_factor;
+                u(i,j,k,UMZ) *= reduce_factor;
+
+                u(i,j,k,UEDEN) -= 0.5_rt * rhoInv * (rho * vx * rho * vx - u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                     rho * vy * rho * vy - u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                     rho * vz * rho * vz - u(i,j,k,UMZ) * u(i,j,k,UMZ));
+            }
+        });
+    }
+}
+
+void
 Castro::avgDown (int state_indx)
 {
     BL_PROFILE("Castro::avgDown(state_indx)");
@@ -3168,8 +3242,8 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 
     BL_PROFILE("Castro::apply_tagging_func()");
 
-    const Real* dx        = geom.CellSize();
-    const Real* prob_lo   = geom.ProbLo();
+    const auto dx     = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     auto mf = derive(err_list_names[j], time, err_list_ng[j]);
 
@@ -3178,87 +3252,102 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
+    for (MFIter mfi(tags, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        for (MFIter mfi(tags); mfi.isValid(); ++mfi)
-        {
-            // FABs
-            FArrayBox&  datfab  = (*mf)[mfi];
-            TagBox&     tagfab  = tags[mfi];
+        const Box& bx = mfi.tilebox();
 
-            // tile box
-            const Box&  bx      = mfi.validbox();
+        auto datfab = (*mf).array(mfi);
+        auto tagfab = tags.array(mfi);
 
-            const int*  lo      = bx.loVect();
-            const int*  hi      = bx.hiVect();
-            //
-            const int   ncomp   = datfab.nComp();
+        const int ncomp = datfab.nComp();
 
-            const int8_t tagval   = (int8_t) TagBox::SET;
-            const int8_t clearval = (int8_t) TagBox::CLEAR;
+        const int8_t tagval   = (int8_t) TagBox::SET;
+        const int8_t clearval = (int8_t) TagBox::CLEAR;
 
-            if (err_list_names[j] == "density") {
-#pragma gpu box(bx)
-                ca_denerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "Temp") {
-#pragma gpu box(bx)
-                ca_temperror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                             tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "pressure") {
-#pragma gpu box(bx)
-                ca_presserror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                              BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                              AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                              tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
-#pragma gpu box(bx)
-                ca_velerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            tagval, clearval, time, level);
-            }
+        int lev = level;
+
+        if (err_list_names[j] == "density") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_denerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                            tagval, clearval, time, lev);
+            });
+        }
+        else if (err_list_names[j] == "Temp") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_temperror(i, j, k,
+                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                             tagval, clearval, time, lev);
+            });
+        }
+        else if (err_list_names[j] == "pressure") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {                
+                ca_presserror(i, j, k,
+                              (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                              AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                              AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                              tagval, clearval, time, lev);
+            });
+        }
+        else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_velerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                            tagval, clearval, time, lev);
+            });
+        }
 #ifdef REACTIONS
-            else if (err_list_names[j] == "t_sound_t_enuc") {
-#pragma gpu box(bx)
-                ca_nucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            tagval, clearval, time, level);
-            }
-            else if (err_list_names[j] == "enuc") {
-#pragma gpu box(bx)
-                ca_enucerror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                             tagval, clearval, time, level);
-            }
+        else if (err_list_names[j] == "t_sound_t_enuc") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_nucerror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                            tagval, clearval, time, lev);
+            });
+        }
+        else if (err_list_names[j] == "enuc") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_enucerror(i, j, k,
+                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                             tagval, clearval, time, lev);
+            });
+        }
 #endif
 #ifdef RADIATION
-            else if (err_list_names[j] == "rad") {
-#pragma gpu box(bx)
-                ca_raderror(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                            (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                            BL_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
-                            tagval, clearval, time, level);
-            }
-#endif
+        else if (err_list_names[j] == "rad") {
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            {
+                ca_raderror(i, j, k,
+                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
+                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
+                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
+                            tagval, clearval, time, lev);
+            });
         }
+#endif
     }
-
 }
 
 
@@ -3441,6 +3530,112 @@ Castro::reset_internal_energy(
     }
 }
 
+
+#ifdef MHD
+void
+Castro::add_magnetic_e( MultiFab& Bx,
+                        MultiFab& By, 
+                        MultiFab& Bz,
+                        MultiFab& State)
+{
+           
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  {
+      const Box& box     = mfi.tilebox();
+      auto S_arr = State.array(mfi);
+      auto Bx_arr = Bx.array(mfi);
+      auto By_arr = By.array(mfi);
+      auto Bz_arr = Bz.array(mfi);
+
+
+      ParallelFor(box,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          S_arr(i,j,k,UEDEN) += 0.5_rt * (bx_cell_c * bx_cell_c +
+                                          by_cell_c * by_cell_c +
+                                          bz_cell_c * bz_cell_c);
+
+      });
+
+  }
+
+
+}
+
+void
+Castro::check_div_B( MultiFab& Bx,
+                     MultiFab& By, 
+                     MultiFab& Bz,
+                     MultiFab& State)
+{
+
+ 
+
+  ReduceOps<ReduceOpSum> reduce_op;
+  ReduceData<int> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+           
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(State, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+  {
+      const Box& box     = mfi.tilebox();
+      auto Bx_arr = Bx.array(mfi);
+      auto By_arr = By.array(mfi);
+      auto Bz_arr = Bz.array(mfi);
+
+      const auto dx = geom.CellSizeArray();
+
+      reduce_op.eval(box, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          
+          Real divB = (Bx_arr(i+1,j,k) - Bx_arr(i,j,k))/dx[0] +
+                      (By_arr(i,j+1,k) - By_arr(i,j,k))/dx[1] + 
+                      (Bz_arr(i,j,k+1) - Bz_arr(i,j,k))/dx[2];
+        
+          Real bx_cell_c = 0.5_rt * (Bx_arr(i,j,k) + Bx_arr(i+1,j,k));
+          Real by_cell_c = 0.5_rt * (By_arr(i,j,k) + By_arr(i,j+1,k));
+          Real bz_cell_c = 0.5_rt * (Bz_arr(i,j,k) + Bz_arr(i,j,k+1));
+
+          Real magB = std::sqrt(bx_cell_c * bx_cell_c + 
+                                by_cell_c * by_cell_c +
+                                bz_cell_c * bz_cell_c);
+                  
+  
+          int fail_divB = 0;
+
+          if (std::abs(divB) > 1.0e-10*magB){
+             fail_divB = 1; 
+          }
+          
+
+          return {fail_divB}; 
+      });
+
+  }
+
+  ReduceTuple hv = reduce_data.value();
+  int init_fail_divB = amrex::get<0>(hv);
+
+  if (init_fail_divB != 0) {
+     amrex::Error("Error: initial data has divergence of B not zero");  
+  } 
+
+
+}
+#endif
+
 void
 Castro::computeTemp(
 #ifdef MHD
@@ -3572,9 +3767,11 @@ Castro::computeTemp(
       });
 
       if (clamp_ambient_temp == 1) {
-#pragma gpu box(bx)
-          ca_clamp_temp(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        BL_TO_FORTRAN_ANYD(u_fab));
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+          {
+              ca_clamp_temp(i, j, k, AMREX_ARR4_TO_FORTRAN_ANYD(u));
+          });
       }
 
   }
@@ -4060,6 +4257,10 @@ Castro::clean_state(
     // Enforce a minimum density.
 
     enforce_min_density(state_in, ng);
+
+    // Enforce the speed limit.
+
+    enforce_speed_limit(state_in, ng);
 
     // Ensure all species are normalized.
 

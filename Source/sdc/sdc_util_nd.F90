@@ -509,7 +509,7 @@ contains
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use vode_rpar_indices
-    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
+    use meth_params_module, only : nvar, URHO, UFS, UFX, UEINT, UEDEN, UMX, UMZ, UTEMP, &
          sdc_solve_for_rhoe
     use network, only : nspec
     use burn_type_module
@@ -576,6 +576,7 @@ contains
     eos_state % rho = U_full(URHO)
     eos_state % T = rpar(irp_temp)   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
+    eos_state % aux(:) = U_full(UFX:UFX-1+naux)/U_full(URHO)
     eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
     call eos(eos_input_re, eos_state)

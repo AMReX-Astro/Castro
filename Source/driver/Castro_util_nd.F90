@@ -82,7 +82,7 @@ contains
   end function position
 
 
-  subroutine ca_clamp_temp(lo, hi, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
+  AMREX_CUDA_FORT_DEVICE subroutine ca_clamp_temp(i, j, k, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
 
     use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
     use ambient_module, only: ambient_state
@@ -91,30 +91,19 @@ contains
 
     implicit none
 
-    integer , intent(in   ) :: lo(3), hi(3)
-    integer , intent(in   ) :: s_lo(3), s_hi(3)
+    integer , intent(in   ), value :: i, j, k
+    integer,  intent(in   ) :: s_lo(3), s_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
 
-    integer  :: i, j, k
     real(rt) :: rhoInv
 
-    !$gpu
+    rhoInv = ONE / state(i,j,k,URHO)
 
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rhoInv = ONE / state(i,j,k,URHO)
-
-             if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-                state(i,j,k,UTEMP) = ambient_state(UTEMP)
-                state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-                state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-             end if
-
-          enddo
-       enddo
-    enddo
+    if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
+       state(i,j,k,UTEMP) = ambient_state(UTEMP)
+       state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
+       state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
+    end if
 
   end subroutine ca_clamp_temp
 

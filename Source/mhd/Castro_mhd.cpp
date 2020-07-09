@@ -202,7 +202,7 @@ Castro::just_the_mhd(Real time, Real dt)
             uflatten(bxi, q_arr, flatn_arr, QPRES);
             uflatten(bxi, q_arr, flatg_arr, QPTOT);
 
-            amrex::ParallelFor(obx,
+            amrex::ParallelFor(bxi,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
               flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
@@ -634,24 +634,38 @@ Castro::just_the_mhd(Real time, Real dt)
 
           // magnetic update
 
+          Real dtdx = dt / dx[0];
+
           amrex::ParallelFor(nbx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bxo_arr(i,j,k) = Bx_arr(i,j,k) + dt/dx[0] *
+            Bxo_arr(i,j,k) = Bx_arr(i,j,k) + dtdx *
               ((Ey_arr(i,j,k+1) - Ey_arr(i,j,k)) - (Ez_arr(i,j+1,k) - Ez_arr(i,j,k)));
           });
+
+#if AMREX_SPACEDIM >= 2
+          dtdx = dt / dx[1];
+#else
+          dtdx = 0.0_rt;
+#endif
 
           amrex::ParallelFor(nby,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Byo_arr(i,j,k) = By_arr(i,j,k) + dt/dx[1] *
+            Byo_arr(i,j,k) = By_arr(i,j,k) + dtdx *
               ((Ez_arr(i+1,j,k) - Ez_arr(i,j,k)) - (Ex_arr(i,j,k+1) - Ex_arr(i,j,k)));
           });
+
+#if AMREX_SPACEDIM == 3
+          dtdx = dt / dx[2];
+#else
+          dtdx = 0.0_rt;
+#endif
 
           amrex::ParallelFor(nbz,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-            Bzo_arr(i,j,k) = Bz_arr(i,j,k) + dt/dx[2] *
+            Bzo_arr(i,j,k) = Bz_arr(i,j,k) + dtdx *
               ((Ex_arr(i,j+1,k) - Ex_arr(i,j,k)) - (Ey_arr(i+1,j,k) - Ey_arr(i,j,k)));
           });
 

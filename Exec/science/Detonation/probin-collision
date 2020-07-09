@@ -31,7 +31,7 @@
   dengrad_rel = 0.5
   max_dengrad_rel_lev = 0
 
-  dxnuc_min = 0.01
+  dxnuc_min = 1.d-16
   max_dxnuc_lev = 20
 /
 
