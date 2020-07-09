@@ -2200,9 +2200,9 @@ Castro::post_regrid (int lbase,
 
                GradPhiPhysBCFunct gp_phys_bc;
 
-               // We need to use a nodal interpolater.
+               // We need to use a interpolater that works with data on faces.
 
-               Interpolater* gp_interp = &node_bilinear_interp;
+               Interpolater* gp_interp = &face_linear_interp;
 
                Vector<MultiFab*> grad_phi_coarse = amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level-1));
                Vector<MultiFab*> grad_phi_fine = amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level));

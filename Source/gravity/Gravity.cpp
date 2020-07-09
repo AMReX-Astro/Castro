@@ -826,9 +826,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
 
         GradPhiPhysBCFunct gp_phys_bc;
 
-        // We need to use a nodal interpolater.
+        // We need to use a interpolater that works with data on faces.
 
-        Interpolater* gp_interp = &node_bilinear_interp;
+        Interpolater* gp_interp = &face_linear_interp;
 
         // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
         // not do anything because we do not fill on physical boundaries.
