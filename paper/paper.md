@@ -42,7 +42,7 @@ affiliations:
     index: 1
   - name: Department of Physics and Astronomy, Stony Brook University
     index: 2
-  - name: NVIDIA Corp
+  - name: NVIDIA Corporation
     index: 3
   - name: Center for Computational Astrophysics, Flatiron Institute
     index: 4
@@ -74,13 +74,14 @@ implementations based on spectral deferred corrections (SDC), a method
 that aims to prevent the hydro and reactions from becoming decoupled.  The
 simplified SDC method uses the CTU PPM hydro together with an
 iterative scheme to fully couple the reactions and hydro, still to
-second order [@simple_sdc].  Both of these methods have a retry
-scheme, where a timestep will be rejected if the burning solve fails
-to meet its tolerance, negative densities are generated, or we violate
-one of the timestepping criteria.  Alternatively, we have implemented a
+second order [@simple_sdc].  Alternatively, we have implemented a
 traditional SDC method that couples hydro and reactions to both second
 and fourth-order in space and time [@castro_sdc] (at present, this
-method is single-level only).
+method is single-level only).  The Strang splitting and simplified SDC
+methods have a retry scheme, where a timestep will be rejected and retried
+at a smaller, subcycled timestep if the burning solve fails to meet its
+tolerance, negative densities are generated, or we violate one of the
+timestepping criteria.
 
 In addition to reactive hydrodynamics, Castro includes full
 self-gravity with isolated boundary conditions and rotation, both
@@ -96,14 +97,19 @@ Castro is built on the AMReX [@AMReX] adaptive mesh refinement (AMR)
 library and is largely written in C++ with a few Fortran compute
 kernels.  AMR levels are advanced at their own timestep (subcycling)
 and jumps by factors of 2 and 4 are supported between levels.  We use
-MPI to distribute AMR grids across nodes and using logical tiling with
-OpenMP to divide a grid across threads for manycore machines or CUDA
-to spread the work across GPU threads on GPU-based machines.  All of
-the core physics can run on GPUs (CTU hydro, CT-CTU MHD, self-gravity,
-diffusion, reactions) and has been shown to scale well to 1000s of
-GPUs [@castro_2019] and 100,000s of CPUs [@castro_2017].  For
-performance portability, the same compute kernel is used for CPUs or
-GPUs, using lambda-capturing for C++ kernels.
+MPI to distribute AMR grids across nodes and use logical tiling with
+OpenMP to divide a grid across threads for multi-core CPU machines
+(exposing coarse-grained parallelism) or CUDA to spread the work across
+GPU threads on GPU-based machines (fine-grained parallelism).  All of
+the core physics can run on GPUs and has been shown to scale well to
+thousands of GPUs [@castro_2019] and hundreds of thousands of CPU cores
+[@castro_2017].  For performance portability, we use the same source code
+for both CPUs and GPUs, and implement our parallel loops in an abstraction
+layer provided by AMReX. An abstract parallel for loop accepts as arguments
+a range of indices and the body of the loop to execute for a given index,
+and the AMReX backend dispatches the work appropriately (e.g. one zone per
+GPU thread). This strategy is similar to the way the Kokkos [@Kokkos] and
+RAJA [@RAJA] abstraction models provide performance portability in C++.
 
 While there are a number of astrophysical hydrodynamics simulation codes, Castro
 offers a few unique features.  The original motivation for developing
@@ -111,18 +117,21 @@ Castro was to build a simulation code based on a modern,
 well-supported AMR library (BoxLib which evolved to AMReX), using
 unsplit integration techniques and targeting problems in nuclear
 astrophysics.  The radiation solver was a key design consideration in
-the early development.  The large number of application codes using
-AMReX means that Castro continually gains optimizations for new
+the early development.  The large developer community contributing to AMReX
+(representing a large number of application codes across various domains)
+results in Castro continually gaining optimizations for new
 architectures.  As Castro evolved, we adopted a fully open development
 model (as does the Enzo [@enzo] code, for example).  We pride ourselves in
 making all of the science problems available in the Castro git repository as
-we are developing them—no separate repo is used for our science work.
+we are developing them, and the infrastructure we use for running our problems
+and writing our science papers is publicly available in the AMReX-Astro organization.
 Other simulation codes, like Flash [@flash], also work with a general equation of
 state and reaction network, but Castro is unique in focusing on
 spectral deferred correction techniques for coupling the hydro and
-reactions.  Finally, while some astrophysics codes have forks that
-support GPUs (like K-Athena [@kathena]), Castro's current design targets both
-CPUs and GPUs for all solvers in a performance portable fashion.
+reactions.  Finally, while some astrophysics codes have performance portable forks
+(like K-Athena [@kathena], which uses Kokkos), Castro's current design -- which targets both
+CPUs and GPUs for all solvers -- achieves performance portability as a core
+design principle, avoiding the need for a fractured development model.
 
 
 
