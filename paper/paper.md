@@ -136,7 +136,7 @@ design principle, avoiding the need for a fractured development model.
 
 
 
-# Acknowledgements
+# Acknowledgments
 
 The work at Stony Brook was supported by DOE/Office of Nuclear Physics
 grant DE-FG02-87ER40317 and NSF award AST-1211563.  MZ acknowledges
