@@ -284,6 +284,15 @@ Castro::wd_update (Real time, Real dt)
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
+    // Compute effective radii of stars at various density cutoffs
+
+    bool local_flag = true;
+
+    for (int i = 0; i <= 6; ++i)
+        Castro::volInBoundary(time, vol_p[i], vol_s[i], pow(10.0,i), local_flag);
+
+    // Do all of the reductions.
+
     ReduceTuple hv = reduce_data.value();
 
     com_p[0] = amrex::get<0>(hv);
@@ -300,15 +309,6 @@ Castro::wd_update (Real time, Real dt)
     vel_s[2] = amrex::get<11>(hv);
     mass_p   = amrex::get<12>(hv);
     mass_s   = amrex::get<13>(hv);
-
-    bool local_flag = true;
-
-    // Compute effective radii of stars at various density cutoffs
-
-    for (int i = 0; i <= 6; ++i)
-        Castro::volInBoundary(time, vol_p[i], vol_s[i], pow(10.0,i), local_flag);
-
-    // Do all of the reductions.
 
     const int nfoo_sum = 28;
     Real foo_sum[nfoo_sum] = { 0.0 };
