@@ -449,9 +449,6 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -462,16 +459,16 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         if (wdmerger::mass_p == 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
 
 #if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
 #else
         loc[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 #else
         loc[2] = 0.0_rt;
 #endif
@@ -496,9 +493,6 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -509,16 +503,16 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         if (wdmerger::mass_s == 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
 
 #if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
 #else
         loc[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 #else
         loc[2] = 0.0_rt;
 #endif
@@ -576,9 +570,6 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -591,16 +582,16 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
         if (wdmerger::mass_p == 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
 
 #if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
 #else
         loc[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 #else
         loc[2] = 0.0_rt;
 #endif
@@ -638,9 +629,6 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -653,16 +641,16 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
         if (wdmerger::mass_s == 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
-        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
 
 #if AMREX_SPACEDIM >= 2
-        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
 #else
         loc[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 #else
         loc[2] = 0.0_rt;
 #endif
