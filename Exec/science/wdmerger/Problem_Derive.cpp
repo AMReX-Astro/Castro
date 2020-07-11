@@ -617,8 +617,8 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                              (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
                              (loc[2] - wdmerger::com_s[2]) * (loc[2] - wdmerger::com_s[2]));
 
-        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,0);
-        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,0);
+        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,1);
 
         if (phi_p < 0.0_rt && phi_p < phi_s) {
             der(i,j,k,0) = 1.0_rt;
@@ -679,8 +679,8 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
                              (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
                              (loc[2] - wdmerger::com_s[2]) * (loc[2] - wdmerger::com_s[2]));
 
-        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,0);
-        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,0);
+        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,1);
 
         if (phi_s < 0.0_rt && phi_s < phi_p) {
             der(i,j,k,0) = 1.0_rt;
