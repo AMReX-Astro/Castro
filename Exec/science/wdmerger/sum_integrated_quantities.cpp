@@ -94,11 +94,6 @@ Castro::sum_integrated_quantities ()
     Real vel_p_phi = 0.0;
     Real vel_s_phi = 0.0;
 
-    // Gravitational free-fall timescale of the stars.
-    
-    Real t_ff_p = 0.0;
-    Real t_ff_s = 0.0;
-
     // Gravitational wave amplitudes.
     
     Real h_plus_1  = 0.0;
