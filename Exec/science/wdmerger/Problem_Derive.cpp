@@ -36,8 +36,18 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -69,8 +79,18 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -102,8 +122,18 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -135,8 +165,18 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -172,8 +212,18 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -209,8 +259,18 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
@@ -246,8 +306,18 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
         GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
@@ -281,15 +351,25 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
         GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
 
         Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[2] * loc[2]);
 
-        der(i,j,k,0) = loc[0] * radInv * inertial_mom[0] + loc[3] * radInv * inertial_mom[2];
+        der(i,j,k,0) = loc[0] * radInv * inertial_mom[0] + loc[2] * radInv * inertial_mom[2];
     });
 }
 
@@ -316,8 +396,18 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
         GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
@@ -373,8 +463,18 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real r = std::sqrt((loc[0] - wdmerger::com_p[0]) * (loc[0] - wdmerger::com_p[0]) +
                            (loc[1] - wdmerger::com_p[1]) * (loc[1] - wdmerger::com_p[1]) +
@@ -410,8 +510,18 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         Real r = std::sqrt((loc[0] - wdmerger::com_s[0]) * (loc[0] - wdmerger::com_s[0]) +
                            (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
@@ -482,8 +592,18 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         // Ignore zones whose density is too low.
 
@@ -534,8 +654,18 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
         loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
         loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
         // Ignore zones whose density is too low.
 
