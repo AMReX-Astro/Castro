@@ -1,5 +1,7 @@
 # 20.08
 
+   * Rotation_Type has been removed from StateData. (#1128)
+
    * castro.use_post_step_regrid now unconditionally regrids after
      every timestep on every level. (#898)
 

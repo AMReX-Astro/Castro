@@ -301,13 +301,6 @@ The current ``StateData`` names Castro carries are:
    When rotation is enabled, this will store the effective potential
    corresponding to the centrifugal force.
 
--  ``Rotation_Type`` : this is the rotational acceleration.
-   There are always 3 components, regardless of the dimensionality
-   (consistent with our choice of always carrying all 3 velocity
-   components). This includes the terms corresponding to the Coriolis
-   force, the centrifugal force, as well as optional terms due to the
-   change in rotation rate, :math:`\Omega`.
-
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
    ``State_Type`` variables.
