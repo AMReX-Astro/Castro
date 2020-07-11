@@ -15,11 +15,15 @@
 #include <Gravity.H>
 #include <Gravity_F.H>
 
+#include <wdmerger_data.H>
+
 using amrex::Real;
 
 void
 Castro::sum_integrated_quantities ()
 {
+    using namespace wdmerger;
+
     if (level > 0) return;
 
     bool local_flag = true;

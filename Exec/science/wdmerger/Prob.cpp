@@ -9,58 +9,20 @@
 #include "AMReX_buildInfo.H"
 
 #include <wdmerger_util.H>
+#include <wdmerger_data.H>
 #include <binary.H>
 
 #include <fstream>
 
 using namespace amrex;
 
-int Castro::relaxation_is_done = 0;
-int Castro::problem = -1;
-int Castro::use_stopping_criterion = 1;
-int Castro::use_energy_stopping_criterion = 0;
-Real Castro::ts_te_stopping_criterion = 1.e200;
-Real Castro::T_stopping_criterion = 1.e200;
-
-Real Castro::mass_p = 0.0;
-Real Castro::mass_s = 0.0;
-
-Real Castro::mdot_p = 0.0;
-Real Castro::mdot_s = 0.0;
-
-Real Castro::com_p[3] = { 0.0 };
-Real Castro::com_s[3] = { 0.0 };
-
-Real Castro::vel_p[3] = { 0.0 };
-Real Castro::vel_s[3] = { 0.0 };
-
-Real Castro::rad_p[7] = { 0.0 };
-Real Castro::rad_s[7] = { 0.0 };
-
-Real Castro::vol_p[7] = { 0.0 };
-Real Castro::vol_s[7] = { 0.0 };
-
-Real Castro::rho_avg_p = 0.0;
-Real Castro::rho_avg_s = 0.0;
-
-Real Castro::t_ff_p = 0.0;
-Real Castro::t_ff_s = 0.0;
-
-Real Castro::T_global_max = 0.0;
-Real Castro::rho_global_max = 0.0;
-Real Castro::ts_te_global_max = 0.0;
-
-Real Castro::T_curr_max = 0.0;
-Real Castro::rho_curr_max = 0.0;
-Real Castro::ts_te_curr_max = 0.0;
-
-Real Castro::total_ener_array[num_previous_ener_timesteps] = { 0.0 };
-
 void
 Castro::problem_post_timestep()
 {
 
     BL_PROFILE("Castro::problem_post_timestep()");
+
+    using namespace wdmerger;
 
     if (level != 0) return;
 
@@ -103,6 +65,8 @@ void
 Castro::wd_update (Real time, Real dt)
 {
     BL_PROFILE("Castro::wd_update()");
+
+    using namespace wdmerger;
 
     // Ensure we are either on the coarse level, or on the finest level
     // when we are not doing subcycling. The data should be sychronized
@@ -453,6 +417,8 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 {
     BL_PROFILE("Castro::volInBoundary()");
 
+    using namespace wdmerger;
+
     BL_ASSERT(level == 0);
 
     vol_p = 0.0;
@@ -559,6 +525,8 @@ Castro::gwstrain (Real time,
 		  bool local) {
 
     BL_PROFILE("Castro::gwstrain()");
+
+    using namespace wdmerger;
 
     GeometryData geomdata = geom.data();
 
@@ -819,6 +787,8 @@ Real Castro::norm(const Real a[]) {
 
 void Castro::problem_post_init() {
 
+  using namespace wdmerger;
+    
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -860,6 +830,8 @@ void Castro::problem_post_init() {
 
 void Castro::problem_post_restart() {
 
+  using namespace wdmerger;
+    
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -951,6 +923,8 @@ void Castro::writeGitHashes(std::ostream& log) {
 
 void Castro::check_to_stop(Real time, bool dump) {
 
+    using namespace wdmerger;
+    
     int jobDoneStatus;
 
     // Get the current job done status.
@@ -1104,6 +1078,8 @@ void Castro::check_to_stop(Real time, bool dump) {
 
 void Castro::update_extrema(Real time) {
 
+    using namespace wdmerger;
+
     // Compute extrema
 
     bool local_flag = true;
@@ -1171,6 +1147,8 @@ void Castro::update_extrema(Real time) {
 void
 Castro::update_relaxation(Real time, Real dt) {
 
+    using namespace wdmerger;
+    
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
