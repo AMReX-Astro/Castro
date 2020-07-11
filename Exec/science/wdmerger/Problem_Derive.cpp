@@ -454,9 +454,10 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     {
         der(i,j,k,0) = 0.0_rt;
 
-        // Don't do anything here if the star no longer exists
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
 
-        if (wdmerger::mass_p == 0.0_rt) return;
+        if (wdmerger::mass_p <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -498,9 +499,10 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     {
         der(i,j,k,0) = 0.0_rt;
 
-        // Don't do anything here if the star no longer exists
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
 
-        if (wdmerger::mass_s == 0.0_rt) return;
+        if (wdmerger::mass_s <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -577,9 +579,10 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
 
         der(i,j,k,0) = -1.0_rt;
 
-        // Don't do anything here if the star no longer exists
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
 
-        if (wdmerger::mass_p == 0.0_rt) return;
+        if (wdmerger::mass_p <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -636,9 +639,10 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
 
         der(i,j,k,0) = -1.0_rt;
 
-        // Don't do anything here if the star no longer exists
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
 
-        if (wdmerger::mass_s == 0.0_rt) return;
+        if (wdmerger::mass_s <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
