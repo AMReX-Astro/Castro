@@ -240,8 +240,8 @@ Native variables
 These variables come directly from the ``StateData``, either the
 ``State_Type`` (for the hydrodynamic variables), ``Reactions_Type``
 (for the nuclear energy generation quantities). ``PhiGrav_Type`` and
-``Gravity_Type`` (for the gravity quantities), ``PhiRot_Type`` and
-``Rotation_Type`` (for the rotation quantities) and ``Rad_Type`` (for
+``Gravity_Type`` (for the gravity quantities), ``PhiRot_Type`` 
+(for the rotation quantities) and ``Rad_Type`` (for
 radiation quantities).
 
 
@@ -280,8 +280,6 @@ radiation quantities).
 | ``grav_z``                        |                                                   |                                      |
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 | ``phiRot``                        | Effective centrifugal potential                   | :math:`{\rm erg~g^{-1}}`             |
-+-----------------------------------+---------------------------------------------------+--------------------------------------+
-| ``rot_x``. ``rot_y``, ``rot_z``   | Rotational acceleration                           | :math:`{\rm cm~s^{-2}}`              |
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 | ``rmom``                          | Radial momentum (defined for                      | :math:`{\rm g~cm^{-2}~s^{-1}}`       |
 |                                   | ``HYBRID_MOMENTUM``)                              |                                      |
