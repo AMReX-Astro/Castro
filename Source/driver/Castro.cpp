@@ -1313,9 +1313,6 @@ Castro::initData ()
     source_new.setVal(0., source_new.nGrow());
 
 #ifdef ROTATION
-    MultiFab& rot_new = get_new_data(Rotation_Type);
-    rot_new.setVal(0.);
-
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     phirot_new.setVal(0.);
 #endif
@@ -1354,7 +1351,33 @@ Castro::init (AmrLevel &old)
     for (int s = 0; s < num_state_type; ++s) {
         MultiFab& state_MF = get_new_data(s);
         FillPatch(old, state_MF, state_MF.nGrow(), cur_time, s, 0, state_MF.nComp());
+        if (oldlev->state[s].hasOldData()) {
+            if (!state[s].hasOldData()) {
+                state[s].allocOldData();
+            }
+            MultiFab& old_state_MF = get_old_data(s);
+            FillPatch(old, old_state_MF, old_state_MF.nGrow(), prev_time, s, 0, old_state_MF.nComp());
+        }
     }
+
+    // Copy some other data we need from the old class.
+    // One reason this is necessary is if we are doing
+    // a post-timestep regrid -- then we're going to need
+    // to save information about whether there was a retry
+    // during the timestep.
+
+    iteration = oldlev->iteration;
+    sub_iteration = oldlev->sub_iteration;
+
+    sub_ncycle = oldlev->sub_ncycle;
+    dt_subcycle = oldlev->dt_subcycle;
+    dt_advance = oldlev->dt_advance;
+
+    keep_prev_state = oldlev->keep_prev_state;
+
+    lastDtRetryLimited = oldlev->lastDtRetryLimited;
+    lastDtFromRetry = oldlev->lastDtFromRetry;
+    in_retry = oldlev->in_retry;
 
 }
 
@@ -2045,13 +2068,11 @@ Castro::post_restart ()
 
 #ifdef ROTATION
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
     if (do_rotation) {
-      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+      fill_rotation_field(phirot_new, S_new, cur_time);
     }  else {
       phirot_new.setVal(0.0);
-      rot_new.setVal(0.0);
     }
 #endif
 
@@ -2088,86 +2109,6 @@ Castro::postCoarseTimeStep (Real cumtime)
 }
 
 void
-Castro::check_for_post_regrid (Real time)
-{
-
-    BL_PROFILE("Castro::check_for_post_regrid()");
-
-    // Check whether we have any zones at this time signifying that they
-    // need to be tagged that do not have corresponding zones on the
-    // fine level.
-
-    if (level < parent->maxLevel()) {
-
-        TagBoxArray tags(grids, dmap);
-
-        for (int i = 0; i < err_list_names.size(); ++i) {
-            apply_tagging_func(tags, time, i);
-        }
-
-        apply_problem_tags(tags, time);
-
-        // Globally collate the tags.
-
-        Vector<IntVect> tvec;
-
-        tags.collate(tvec);
-
-        // If we requested any tags at all, we have a potential trigger for a regrid.
-
-        int num_tags = tvec.size();
-
-        bool missing_on_fine_level = false;
-
-        if (num_tags > 0) {
-
-            if (level == parent->finestLevel()) {
-
-                // If there is no level above us at all, we know a regrid is needed.
-
-                missing_on_fine_level = true;
-
-            } else {
-
-                // If there is a level above us, we need to check whether
-                // every tagged zone has a corresponding entry in the fine
-                // grid. If not, we need to trigger a regrid so we can get
-                // those other zones refined too.
-
-                const BoxArray& fgrids = getLevel(level+1).boxArray();
-
-                for (int i = 0; i < tvec.size(); ++i) {
-
-                    Box c_bx(tvec[i], tvec[i]);
-                    Box f_bx = c_bx.refine(parent->refRatio(level));
-
-                    if (!fgrids.contains(f_bx)) {
-                        missing_on_fine_level = true;
-                        break;
-                    }
-
-                }
-
-            }
-
-        }
-
-        if (missing_on_fine_level) {
-            post_step_regrid = 1;
-
-            if (amrex::ParallelDescriptor::IOProcessor()) {
-                std::cout << "\n"
-                          << "Current refinement pattern insufficient at level " << level << ".\n"
-                          << "Performing a regrid to obtain more refinement.\n";
-
-            }
-        }
-
-    }
-
-}
-
-void
 Castro::post_regrid (int lbase,
                      int new_finest)
 {
@@ -2200,9 +2141,9 @@ Castro::post_regrid (int lbase,
 
                GradPhiPhysBCFunct gp_phys_bc;
 
-               // We need to use a nodal interpolater.
+               // We need to use a interpolater that works with data on faces.
 
-               Interpolater* gp_interp = &node_bilinear_interp;
+               Interpolater* gp_interp = &face_linear_interp;
 
                Vector<MultiFab*> grad_phi_coarse = amrex::GetVecOfPtrs(gravity->get_grad_phi_prev(level-1));
                Vector<MultiFab*> grad_phi_fine = amrex::GetVecOfPtrs(gravity->get_grad_phi_curr(level));
@@ -2301,15 +2242,13 @@ Castro::post_init (Real stop_time)
 
 #ifdef ROTATION
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
     if (do_rotation) {
       Real cur_time = state[State_Type].curTime();
-      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+      fill_rotation_field(phirot_new, S_new, cur_time);
     }
     else {
       phirot_new.setVal(0.0);
-      rot_new.setVal(0.0);
     }
 #endif
 
@@ -2433,15 +2372,13 @@ Castro::post_grown_restart ()
 
 #ifdef ROTATION
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
     MultiFab& S_new = get_new_data(State_Type);
     if (do_rotation) {
       Real cur_time = state[State_Type].curTime();
-      fill_rotation_field(phirot_new, rot_new, S_new, cur_time);
+      fill_rotation_field(phirot_new, S_new, cur_time);
     }
     else {
       phirot_new.setVal(0.0);
-      rot_new.setVal(0.0);
     }
 #endif
 
@@ -2668,7 +2605,15 @@ Castro::reflux(int crse_level, int fine_level)
             }
             for (int i = 0; i < BL_SPACEDIM; ++i) {
                 MultiFab::Add(*crse_lev.fluxes[i], *temp_fluxes[i], 0, 0, crse_lev.fluxes[i]->nComp(), 0);
-                MultiFab::Add(*crse_lev.mass_fluxes[i], *temp_fluxes[i], URHO, 0, 1, 0);
+
+                // The gravity and rotation source terms depend on the mass fluxes.
+                // These should be the same as the URHO component of the fluxes.
+                // This update must be a copy from the fluxes rather than an add
+                // from the flux register because the mass fluxes only represent
+                // the last subcycle of the previous timestep.
+
+                MultiFab::Copy(*crse_lev.mass_fluxes[i], *crse_lev.fluxes[i], URHO, 0, 1, 0);
+
                 temp_fluxes[i].reset();
             }
 
@@ -3064,6 +3009,52 @@ Castro::enforce_min_density (MultiFab& state_in, int ng)
         evaluate_and_print_source_change(reset_source, 1.0, "negative density resets");
     }
 
+}
+
+void
+Castro::enforce_speed_limit (MultiFab& state_in, int ng)
+{
+    BL_PROFILE("Castro::enforce_speed_limit()");
+
+    // This routine sets the velocity in state_in to be no larger than the
+    // speed limit, if one has been applied.
+
+    if (castro::speed_limit <= 0.0_rt) return;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+
+        const Box& bx = mfi.growntilebox(ng);
+
+        auto u = state_in[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real rho = u(i,j,k,URHO);
+            Real rhoInv = 1.0_rt / rho;
+
+            Real vx = u(i,j,k,UMX) * rhoInv;
+            Real vy = u(i,j,k,UMY) * rhoInv;
+            Real vz = u(i,j,k,UMZ) * rhoInv;
+
+            Real v = std::sqrt(vx * vx + vy * vy + vz * vz);
+
+            if (v > castro::speed_limit) {
+                Real reduce_factor = castro::speed_limit / v;
+
+                u(i,j,k,UMX) *= reduce_factor;
+                u(i,j,k,UMY) *= reduce_factor;
+                u(i,j,k,UMZ) *= reduce_factor;
+
+                u(i,j,k,UEDEN) -= 0.5_rt * rhoInv * (rho * vx * rho * vx - u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                     rho * vy * rho * vy - u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                     rho * vz * rho * vz - u(i,j,k,UMZ) * u(i,j,k,UMZ));
+            }
+        });
+    }
 }
 
 void
@@ -4203,6 +4194,10 @@ Castro::clean_state(
     // Enforce a minimum density.
 
     enforce_min_density(state_in, ng);
+
+    // Enforce the speed limit.
+
+    enforce_speed_limit(state_in, ng);
 
     // Ensure all species are normalized.
 

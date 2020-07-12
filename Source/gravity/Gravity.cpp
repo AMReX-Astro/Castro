@@ -574,27 +574,12 @@ Gravity::gravity_sync (int crse_level, int fine_level, const Vector<MultiFab*>& 
       if ( gravity::direct_sum_bcs )
           fill_direct_sum_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       else {
-          if (gravity::lnum >= 0) {
-              fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
-          } else {
-              int fill_interior = 0;
-              make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
-          }
+          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
       }
 #elif (BL_SPACEDIM == 2)
-      if (gravity::lnum >= 0) {
-          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
-      } else {
-          int fill_interior = 0;
-          make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
-      }
+      fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
 #else
-      if (gravity::lnum >= 0) {
-          fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
-      } else {
-          int fill_interior = 0;
-          make_radial_phi(crse_level,*rhs[0],*delta_phi[crse_level],fill_interior);
-      }
+      fill_multipole_BCs(crse_level,fine_level,amrex::GetVecOfPtrs(rhs),*delta_phi[crse_level]);
 #endif
 
     }
@@ -841,9 +826,9 @@ Gravity::actual_multilevel_solve (int crse_level, int finest_level_in,
 
         GradPhiPhysBCFunct gp_phys_bc;
 
-        // We need to use a nodal interpolater.
+        // We need to use a interpolater that works with data on faces.
 
-        Interpolater* gp_interp = &node_bilinear_interp;
+        Interpolater* gp_interp = &face_linear_interp;
 
         // For the BCs, we will use the Gravity_Type BCs for convenience, but these will
         // not do anything because we do not fill on physical boundaries.
@@ -1628,130 +1613,11 @@ Gravity::compute_radial_mass(const Box& bx,
 }
 
 void
-Gravity::make_radial_phi(int level, const MultiFab& Rhs, MultiFab& phi, int fill_interior)
-{
-    BL_PROFILE("Gravity::make_radial_phi()");
-
-    BL_ASSERT(level==0);
-
-    const Real strt = ParallelDescriptor::second();
-
-    int n1d = gravity::drdxfac*numpts_at_level;
-
-    RealVector radial_mass(n1d,0.0);
-    RealVector radial_vol(n1d,0.0);
-    RealVector radial_phi(n1d,0.0);
-    RealVector radial_grav(n1d,0.0);
-
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx   = geom.CellSize();
-    Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
-
-    // Define total mass in each shell
-    // Note that RHS = density (we have not yet multiplied by G)
-
-#ifdef _OPENMP
-    int nthreads = omp_get_max_threads();
-    Vector< RealVector > priv_radial_mass(nthreads);
-    Vector< RealVector > priv_radial_vol (nthreads);
-    for (int i=0; i<nthreads; i++) {
-        priv_radial_mass[i].resize(n1d,0.0);
-        priv_radial_vol [i].resize(n1d,0.0);
-    }
-#pragma omp parallel
-#endif
-    {
-#ifdef _OPENMP
-        int tid = omp_get_thread_num();
-#endif
-        for (MFIter mfi(Rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-        {
-            const Box& bx = mfi.tilebox();
-
-            compute_radial_mass(bx,
-                                Rhs.array(mfi),
-#ifdef _OPENMP
-                                priv_radial_mass[tid],
-                                priv_radial_vol[tid],
-#else
-                                radial_mass,
-                                radial_vol,
-#endif
-                                n1d, level);
-        }
-
-#ifdef _OPENMP
-#pragma omp barrier
-#pragma omp for
-        for (int i=0; i<n1d; i++) {
-            for (int it=0; it<nthreads; it++) {
-                radial_mass[i] += priv_radial_mass[it][i];
-                radial_vol [i] += priv_radial_vol [it][i];
-            }
-        }
-#endif
-    }
-
-    ParallelDescriptor::ReduceRealSum(radial_mass.dataPtr(),n1d);
-
-    RealVector radial_den(n1d, 0.0);
-
-    for (int i = 0; i < n1d; ++i)
-    {
-        radial_den[i] = radial_mass[i];
-        if (radial_vol[i] > 0.0) radial_den[i] /= radial_vol[i];
-    }
-
-    // Integrate radially outward to define the gravity
-    ca_integrate_grav(radial_mass.dataPtr(), radial_den.dataPtr(),
-                      radial_grav.dataPtr(), &max_radius_all_in_domain, &dr, &n1d);
-
-    // Integrate radially inward to define the potential
-    ca_integrate_phi(radial_mass.dataPtr(),radial_grav.dataPtr(),
-                     radial_phi.dataPtr(),&dr,&n1d);
-
-    Box domain(parent->Geom(level).Domain());
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(phi, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-        const Box& bx = mfi.growntilebox();
-
-#pragma gpu box(bx)
-        ca_put_radial_phi(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          AMREX_INT_ANYD(domain.loVect()), AMREX_INT_ANYD(domain.hiVect()),
-                          AMREX_REAL_ANYD(dx), dr,
-                          BL_TO_FORTRAN_ANYD(phi[mfi]),
-                          radial_phi.dataPtr(),
-                          AMREX_REAL_ANYD(geom.ProbLo()),
-                          n1d, fill_interior);
-    }
-
-    if (gravity::verbose)
-    {
-        const int IOProc = ParallelDescriptor::IOProcessorNumber();
-        Real      end    = ParallelDescriptor::second() - strt;
-
-#ifdef BL_LAZY
-        Lazy::QueueReduction( [=] () mutable {
-#endif
-        ParallelDescriptor::ReduceRealMax(end,IOProc);
-        if (ParallelDescriptor::IOProcessor())
-            std::cout << "Gravity::make_radial_phi() time = " << end << std::endl << std::endl;
-#ifdef BL_LAZY
-        });
-#endif
-    }
-
-}
-
-
-
-void
 Gravity::init_multipole_grav()
 {
-    if (gravity::lnum < 0) return;
+    if (gravity::lnum < 0) {
+        amrex::Abort("lnum negative");
+    }
 
     if (gravity::lnum > multipole::lnum_max) {
         amrex::Abort("lnum greater than lnum_max");
@@ -3541,27 +3407,12 @@ Gravity::solve_phi_with_mlmg (int crse_level, int fine_level,
         if ( gravity::direct_sum_bcs ) {
             fill_direct_sum_BCs(crse_level, fine_level, rhs, *phi[0]);
         } else {
-            if (gravity::lnum >= 0) {
-                fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-            } else {
-                int fill_interior = 0;
-                make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-            }
+            fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
         }
 #elif (BL_SPACEDIM == 2)
-        if (gravity::lnum >= 0) {
-            fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-        } else {
-            int fill_interior = 0;
-            make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-        }
+        fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
 #else
-        if (gravity::lnum >= 0) {
-            fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
-        } else {
-            int fill_interior = 0;
-            make_radial_phi(crse_level, *rhs[0], *phi[0], fill_interior);
-        }
+        fill_multipole_BCs(crse_level, fine_level, rhs, *phi[0]);
 #endif
     }
 

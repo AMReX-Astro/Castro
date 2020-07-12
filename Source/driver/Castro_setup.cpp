@@ -474,11 +474,6 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
                          &cell_cons_interp, state_data_extrap,
                          store_in_checkpoint);
-
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
@@ -648,15 +643,6 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-  set_x_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,genericBndryFunc);
-  set_y_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,genericBndryFunc);
-  set_z_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill

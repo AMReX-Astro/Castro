@@ -76,7 +76,6 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef ROTATION
                  PhiRot_Type,
-                 Rotation_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -706,13 +705,6 @@ public:
     void postCoarseTimeStep (amrex::Real cumtime) override;
 
 ///
-/// Check whether we want to do a regrid.
-///
-/// @param time     current time
-///
-    void check_for_post_regrid (amrex::Real time);
-
-///
 /// Do work after regrid().
 ///
 /// @param lbase
@@ -1125,6 +1117,15 @@ public:
 /// @param ng           number of ghost cells
 ///
     void enforce_min_density (amrex::MultiFab& state, int ng);
+
+///
+/// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
+/// in any zone.
+///
+/// @param state        state
+/// @param ng           number of ghost cells
+///
+    void enforce_speed_limit (amrex::MultiFab& state, int ng);
 
 ///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
