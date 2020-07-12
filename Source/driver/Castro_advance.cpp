@@ -79,8 +79,10 @@ Castro::advance (Real time,
 
     cfl_violation = 0;
 
+    // If the user requests, indicate that we want a regrid at the end of the step.
+
     if (use_post_step_regrid) {
-        check_for_post_regrid(time + dt);
+        post_step_regrid = 1;
     }
 
 #ifdef AUX_UPDATE

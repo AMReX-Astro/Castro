@@ -333,8 +333,7 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
-# Check for a possible post-timestep regrid if certain stability
-# criteria were violated.
+# Regrid after every timestep.
 use_post_step_regrid         int           0
 
 # Do not permit more subcycled timesteps than this parameter.

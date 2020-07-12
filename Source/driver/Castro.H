@@ -76,7 +76,6 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef ROTATION
                  PhiRot_Type,
-                 Rotation_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -704,13 +703,6 @@ public:
 /// @param cumtime
 ///
     void postCoarseTimeStep (amrex::Real cumtime) override;
-
-///
-/// Check whether we want to do a regrid.
-///
-/// @param time     current time
-///
-    void check_for_post_regrid (amrex::Real time);
 
 ///
 /// Do work after regrid().

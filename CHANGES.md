@@ -1,5 +1,13 @@
 # 20.08
 
+   * Rotation_Type has been removed from StateData. (#1128)
+
+   * castro.use_post_step_regrid now unconditionally regrids after
+     every timestep on every level. (#898)
+
+   * An issue with gravity.max_solve_level resulting in accesses to invalid data
+     (#469, #1118) has been resolved. (#1123)
+
    * If castro.speed_limit is set to a number greater than zero, this
      will now be strictly enforced on the magnitude of the velocity. (#1115)
 
