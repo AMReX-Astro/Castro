@@ -1,0 +1,29 @@
+&fortin
+
+init_as_1d = 3
+
+/
+
+&tagging
+
+  denerr = 3
+  dengrad = 0.01
+  max_denerr_lev = 3
+  max_dengrad_lev = 3
+
+  velerr = 0.02
+  max_velerr_lev = 3
+
+  presserr = 3
+  pressgrad = 0.01
+  max_presserr_lev = 3
+  max_pressgrad_lev = 3
+
+/
+
+&extern
+
+  eos_assume_neutral = T
+  eos_gamma = 1.4
+
+/
