@@ -31,7 +31,7 @@ castro.do_grav  = 1
 # GRAVITY
 gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
 gravity.max_multipole_order = 0    # Multipole expansion includes terms up to r**(-max_multipole_order)
-gravity.abs_tol = 1.e-12           # Relative tolerance for multigrid solver
+gravity.rel_tol = 1.e-12           # Relative tolerance for multigrid solver
 gravity.direct_sum_bcs = 1         # Calculate boundary conditions exactly
 
 # DIAGNOSTICS & VERBOSITY

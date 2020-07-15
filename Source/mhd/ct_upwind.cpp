@@ -330,7 +330,7 @@ Castro::half_step(const Box& bx,
     // Bd1 -- this is one of the components of B in the plane of the face d
     // Eq.46 in Miniati
 
-    utmp[UMAGD1] = ur(i,j,k,UMAGD1) + sgn * hdtdx *
+    utmp[UMAGD1] = ur(i,j,k,UMAGD1) + sgn * 0.5_rt * hdtdx *
       ((Ed(i+err[0],j+err[1],k+err[2]) - Ed(i+erl[0],j+erl[1],k+erl[2])) +
        (Ed(i+elr[0],j+elr[1],k+elr[2]) - Ed(i+ell[0],j+ell[1],k+ell[2])) -
        (Ed2(i+e2rr[0],j+e2rr[1],k+e2rr[2]) - Ed2(i+e2lr[0],j+e2lr[1],k+e2lr[2])) -
@@ -339,7 +339,7 @@ Castro::half_step(const Box& bx,
     // Bd2 -- this is the other component of B in the plane of the face d
     // Eq. 46 in Miniati
 
-    utmp[UMAGD2] = ur(i,j,k,UMAGD2) - sgn * hdtdx *
+    utmp[UMAGD2] = ur(i,j,k,UMAGD2) - sgn * 0.5_rt * hdtdx *
       ((Ed(i+err[0],j+err[1],k+err[2]) - Ed(i+elr[0],j+elr[1],k+elr[2])) +
        (Ed(i+erl[0],j+erl[1],k+erl[2]) - Ed(i+ell[0],j+ell[1],k+ell[2])) -
        (Ed1(i+e1rr[0],j+e1rr[1],k+e1rr[2]) - Ed1(i+e1lr[0],j+e1lr[1],k+e1lr[2])) -
@@ -417,7 +417,7 @@ Castro::half_step(const Box& bx,
 
     // Bd1 -- first component on face d, eq. 46 in Miniati
 
-    utmp[UMAGD1] = ul(i,j,k,UMAGD1) + sgn * hdtdx *
+    utmp[UMAGD1] = ul(i,j,k,UMAGD1) + sgn * 0.5_rt * hdtdx *
       ((Ed(i+err[0],j+err[1],k+err[2]) - Ed(i+erl[0],j+erl[1],k+erl[2])) +
        (Ed(i+elr[0],j+elr[1],k+elr[2]) - Ed(i+ell[0],j+ell[1],k+ell[2])) -
        (Ed2(i+e2rr[0],j+e2rr[1],k+e2rr[2]) - Ed2(i+e2lr[0],j+e2lr[1],k+e2lr[2])) -
@@ -425,7 +425,7 @@ Castro::half_step(const Box& bx,
 
     // Bd2 -- second component on face d, eq. 46 in Miniati
 
-    utmp[UMAGD2] = ul(i,j,k,UMAGD2) - sgn * hdtdx *
+    utmp[UMAGD2] = ul(i,j,k,UMAGD2) - sgn * 0.5_rt * hdtdx *
       ((Ed(i+err[0],j+err[1],k+err[2]) - Ed(i+elr[0],j+elr[1],k+elr[2])) +
        (Ed(i+erl[0],j+erl[1],k+erl[2]) - Ed(i+ell[0],j+ell[1],k+ell[2])) -
        (Ed1(i+e1rr[0],j+e1rr[1],k+e1rr[2]) - Ed1(i+e1lr[0],j+e1lr[1],k+e1lr[2])) -

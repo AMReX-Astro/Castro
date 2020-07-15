@@ -15,11 +15,15 @@
 #include <Gravity.H>
 #include <Gravity_F.H>
 
+#include <wdmerger_data.H>
+
 using amrex::Real;
 
 void
 Castro::sum_integrated_quantities ()
 {
+    using namespace wdmerger;
+
     if (level > 0) return;
 
     bool local_flag = true;
@@ -68,11 +72,6 @@ Castro::sum_integrated_quantities ()
     Real com[3]       = { 0.0 };
     Real com_vel[3]   = { 0.0 };
 
-    // Stellar masses.
-
-    Real mass_p       = 0.0;
-    Real mass_s       = 0.0;
-
     // Distance between the WDs.
 
     Real wd_dist[3] = { 0.0 };
@@ -86,25 +85,14 @@ Castro::sum_integrated_quantities ()
     Real com_p_mag = 0.0;
     Real com_s_mag = 0.0;
 
-    Real com_p[3] = { 0.0 };
-    Real com_s[3] = { 0.0 };
-
     Real vel_p_mag = 0.0;
     Real vel_s_mag = 0.0;
-
-    Real vel_p[3] = { 0.0 };
-    Real vel_s[3] = { 0.0 };
 
     Real vel_p_rad = 0.0;
     Real vel_s_rad = 0.0;
 
     Real vel_p_phi = 0.0;
     Real vel_s_phi = 0.0;
-
-    // Gravitational free-fall timescale of the stars.
-    
-    Real t_ff_p = 0.0;
-    Real t_ff_s = 0.0;
 
     // Gravitational wave amplitudes.
     
@@ -292,8 +280,6 @@ Castro::sum_integrated_quantities ()
       com_vel[i]   = momentum[i] / mass;
 
     }
-
-    get_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
 
     com_p_mag += std::pow( std::pow(com_p[0],2) + std::pow(com_p[1],2) + std::pow(com_p[2],2), 0.5 );
     com_s_mag += std::pow( std::pow(com_s[0],2) + std::pow(com_s[1],2) + std::pow(com_s[2],2), 0.5 );
