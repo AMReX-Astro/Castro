@@ -5,10 +5,12 @@ Hydro
    :maxdepth: 2
 
    file/Castro__hydro_8H
+   file/advection__util_8H
    file/fourth__center__average_8H
    file/hybrid_8H
    file/ppm_8H
    file/reconstruction_8H
    file/riemann_8H
+   file/riemann__solvers_8H
    file/slope_8H
    

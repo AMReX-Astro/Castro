@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File fourth_center_average.H &mdash; Castro  documentation</title>
+  <title>File riemann_solvers.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File hybrid.H" href="hybrid_8H.html" />
-    <link rel="prev" title="File advection_util.H" href="advection__util_8H.html" /> 
+    <link rel="next" title="File slope.H" href="slope_8H.html" />
+    <link rel="prev" title="File riemann.H" href="riemann_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/fourth__center__average_8H.html">main</a> | <a href="../file/fourth__center__average_8H.html">development</a>
+        Branch: <a href="../../file/riemann__solvers_8H.html">main</a> | <a href="../file/riemann__solvers_8H.html">development</a>
     </div>
 
         </div>
@@ -142,12 +142,12 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File fourth_center_average.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File riemann_solvers.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
 </ul>
 </li>
@@ -217,13 +217,13 @@
         
           <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
         
-      <li>File fourth_center_average.H</li>
+      <li>File riemann_solvers.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/fourth__center__average_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/riemann__solvers_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -236,19 +236,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-fourth-center-average-h">
-<h1>File fourth_center_average.H<a class="headerlink" href="#file-fourth-center-average-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-riemann-solvers-h">
+<h1>File riemann_solvers.H<a class="headerlink" href="#file-riemann-solvers-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="fourth__center__average_8H_1a0213b6258ca19439274c4775be6949dd"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real compute_laplacian (int i, int j, int k, int n, Array4&lt; Real const &gt; const &amp;a, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;lo_periodic, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;hi_periodic, GpuArray&lt; int, 3 &gt; const &amp;domlo, GpuArray&lt; int, 3 &gt; const &amp;domhi)</code></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt>
-<span class="target" id="fourth__center__average_8H_1a78f6e4f6a48e5e967daaa5d13952d19c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real trans_laplacian (int i, int j, int k, int n, int idir, Array4&lt; Real const &gt; const &amp;a, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;lo_periodic, GpuArray&lt; bool, AMREX_SPACEDIM &gt; const &amp;hi_periodic, GpuArray&lt; int, 3 &gt; const &amp;domlo, GpuArray&lt; int, 3 &gt; const &amp;domhi)</code></dt>
-<dd></dd></dl>
+<span class="target" id="riemann__solvers_8H_1a9f4099280b0a984034e0a3a9a14cf881"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void HLL (const Real *ql, const Real *qr, const Real cl, const Real cr, const int idir, const int coord, Real *flux_hll)</code></dt>
+<dd><p>A simple HLL Riemann solver for pure hydrodynamics. This takes just a single interface’s data and returns the HLL flux</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ql</span></code>: the left interface state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qr</span></code>: the right interface state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cl</span></code>: sound speed on the left interface </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cr</span></code>: sound speed on the right interface </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coord</span></code>: geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">f</span></code>: the HLL fluxes </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 </div>
 </div>
@@ -261,10 +270,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hybrid_8H.html" class="btn btn-neutral float-right" title="File hybrid.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="slope_8H.html" class="btn btn-neutral float-right" title="File slope.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="advection__util_8H.html" class="btn btn-neutral float-left" title="File advection_util.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="riemann_8H.html" class="btn btn-neutral float-left" title="File riemann.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
