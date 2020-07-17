@@ -2,6 +2,8 @@
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
 
+#include "riemann_solvers.H"
+
 #ifdef RADIATION
 #include "Radiation.H"
 #endif
