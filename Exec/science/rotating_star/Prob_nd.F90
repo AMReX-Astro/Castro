@@ -84,6 +84,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer :: i, j, k, n
 
   type(eos_t) :: eos_state
+  real(rt) :: sumX
 
   do k = lo(3), hi(3)
      z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
@@ -102,6 +103,12 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            do n = 1, nspec
               call interpolate_sub(state(i,j,k,UFS-1+n), dist, ispec_model-1+n)
            end do
+
+           sumX = 0.0_rt
+           do n = 1, nspec
+              sumX = sumX + state(i,j,k,UFS-1+n)
+           end do
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) / sumX
 
 #ifdef NSE_THERMO
            ! set the aux quantities -- we need to do this if we are using the NSE network
