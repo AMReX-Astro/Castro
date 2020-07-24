@@ -301,9 +301,11 @@ Castro::plm(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i+1,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qleft(i+1,j,k,QFX+n);
       }
+#endif
       eos(eos_input_rp, eos_state);
       qleft(i+1,j,k,QREINT) = eos_state.e * eos_state.rho;
 
@@ -314,9 +316,11 @@ Castro::plm(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j+1,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qleft(i,j+1,k,QFX+n);
       }
+#endif
       eos(eos_input_rp, eos_state);
       qleft(i,j+1,k,QREINT) = eos_state.e * eos_state.rho;
 
@@ -327,9 +331,11 @@ Castro::plm(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qleft(i,j,k+1,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qleft(i,j,k+1,QFX+n);
       }
+#endif
       eos(eos_input_rp, eos_state);
       qleft(i,j,k+1,QREINT) = eos_state. e * eos_state.rho;
     }
@@ -339,9 +345,11 @@ Castro::plm(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qright(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = qright(i,j,k,QFX+n);
     }
+#endif
 
     eos(eos_input_rp, eos_state);
     qright(i,j,k,QREINT) = eos_state.e * eos_state.rho;
