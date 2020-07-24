@@ -250,9 +250,6 @@ Castro::variableSetUp ()
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
-  int abort_on_failure;
-  ca_get_abort_on_failure(&abort_on_failure);
-
 #ifdef TRUE_SDC
   // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
   if (use_retry) {
@@ -575,6 +572,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -596,6 +594,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -1041,11 +1040,13 @@ Castro::variableSetUp ()
 #endif 
 
 
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
+#endif
 
 
   //
