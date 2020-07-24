@@ -8,7 +8,11 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Get submodules 
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../..
 
       - name: Run cpp linter
         uses: AMReX-Astro/cpp-linter-action@master
