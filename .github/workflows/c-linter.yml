@@ -11,7 +11,7 @@ jobs:
         run: |
           git submodule update --init
           cd external/Microphysics
-          git fetch; git checkout development
+          git fetch; git checkout main
           cd ../..
 
       - name: Run cpp linter
