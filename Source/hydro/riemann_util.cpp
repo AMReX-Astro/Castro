@@ -95,9 +95,11 @@ Castro::compute_flux_q(const Box& bx,
         eos_state.xn[n] = qint(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess;  // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qint(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 

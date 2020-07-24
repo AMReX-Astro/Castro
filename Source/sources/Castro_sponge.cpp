@@ -255,9 +255,11 @@ Castro::apply_sponge(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 

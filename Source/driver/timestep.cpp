@@ -60,9 +60,11 @@ Castro::estdt_cfl(const Real time)
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
       }
+#endif
 
       eos(eos_input_re, eos_state);
 
@@ -188,9 +190,11 @@ Castro::estdt_mhd()
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = u_arr(i,j,k,UFS+n) * rhoInv;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = u_arr(i,j,k,UFX+n) * rhoInv;
       }
+#endif
 
       eos(eos_input_re, eos_state);
 
@@ -296,9 +300,11 @@ Castro::estdt_temp_diffusion(void)
                        for (int n = 0; n < NumSpec; n++) {
                          eos_state.xn[n]  = ustate(i,j,k,UFS+n) * rho_inv;
                        }
+#if NAUX_NET > 0
                        for (int n = 0; n < NumAux; n++) {
                          eos_state.aux[n] = ustate(i,j,k,UFX+n) * rho_inv;
                        }
+#endif
 
                        eos(eos_input_re, eos_state);
 
