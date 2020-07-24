@@ -1197,9 +1197,11 @@ Castro::initData ()
                for (int n = 0; n < NumSpec; n++) {
                  eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
                }
+#if NAUX_NET > 0
                for (int n = 0; n < NumAux; n++) {
                  eos_state.aux[n] = S_arr(i,j,k,UFX+n) * rhoInv;
                }
+#endif
 
                eos(eos_input_re, eos_state);
 
@@ -3379,9 +3381,11 @@ Castro::reset_internal_energy(const Box& bx,
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; ++n) {
             eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_rt, eos_state);
 
@@ -3692,10 +3696,14 @@ Castro::computeTemp(
           eos_state.rho = u(i,j,k,URHO);
           eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
           eos_state.e   = u(i,j,k,UEINT) * rhoInv;
-          for (int n = 0; n < NumSpec; ++n)
-              eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
-          for (int n = 0; n < NumAux; ++n)
-              eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+          for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
 
           eos(eos_input_re, eos_state);
 

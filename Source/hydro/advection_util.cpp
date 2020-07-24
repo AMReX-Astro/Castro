@@ -149,9 +149,11 @@ Castro::ctoprim(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = q_arr(i,j,k,QFX+n);
     }
+#endif
 
     eos(eos_input_re, eos_state);
 
@@ -1119,9 +1121,12 @@ Castro::do_enforce_minimum_density(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state_arr(i,j,k,UFS+n) / small_dens;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state_arr(i,j,k,UFX+n) / small_dens;
       }
+#endif
+
       eos(eos_input_rt, eos_state);
 
       state_arr(i,j,k,URHO ) = eos_state.rho;
