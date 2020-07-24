@@ -206,9 +206,11 @@ Castro::riemann_state(const Box& bx,
      for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qm(i,j,k,QFS+n);
      }
+#if NAUX_NET > 0
      for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qm(i,j,k,QFX+n);
      }
+#endif
 
      eos(eos_input_re, eos_state);
 
@@ -222,9 +224,11 @@ Castro::riemann_state(const Box& bx,
      for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qp(i,j,k,QFS+n);
      }
+#if NAUX_NET > 0
      for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qp(i,j,k,QFX+n);
      }
+#endif
 
      eos(eos_input_re, eos_state);
 

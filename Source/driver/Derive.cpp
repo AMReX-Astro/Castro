@@ -42,9 +42,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -127,9 +129,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -160,9 +164,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -193,9 +199,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -227,9 +235,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -260,9 +270,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -296,9 +308,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -461,9 +475,11 @@ extern "C"
           for (int n = 0; n < NumSpec; n++) {
             eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
           }
+#if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
             eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
           }
+#endif
 
           eos(eos_input_re, eos_state);
 

@@ -151,9 +151,11 @@ Castro::riemanncg(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = ql(i,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = ql(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 
@@ -190,9 +192,11 @@ Castro::riemanncg(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qr(i,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 
@@ -761,9 +765,11 @@ Castro::riemannus(const Box& bx,
         eos_state.xn[n] = ql(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess; // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = ql(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -775,9 +781,11 @@ Castro::riemannus(const Box& bx,
         eos_state.xn[n] = qr(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess; // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -1013,9 +1021,11 @@ Castro::riemannus(const Box& bx,
 
       eos_state.T = lT_guess;
 
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = fp*ql(i,j,k,QFX+n) + fm*qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
