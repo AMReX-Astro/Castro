@@ -81,11 +81,11 @@ Castro::cmpflx_plus_godunov(const Box& bx,
       int is_shock = 0;
 
       if (idir == 0) {
-        is_shock = shk(i-1,j,k) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i-1,j,k) + shk(i,j,k));
       } else if (idir == 1) { 
-        is_shock = shk(i,j-1,k) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i,j-1,k) + shk(i,j,k));
       } else {
-        is_shock = shk(i,j,k-1) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i,j,k-1) + shk(i,j,k));
       }
 
       if (is_shock >= 1) {

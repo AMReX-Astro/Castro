@@ -2189,6 +2189,39 @@ Castro::post_regrid (int lbase,
 
     }
 #endif
+
+    // Ensure regridded data is valid. This addresses the fact that data
+    // on this level that was interpolated from a coarser level may not
+    // respect the consistency between certain state variables
+    // (e.g. UEINT and UEDEN) that we demand in every zone.
+
+    if (state[State_Type].hasOldData()) {
+
+        MultiFab& S_old = get_old_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_old_data(Mag_Type_x),
+                    get_old_data(Mag_Type_y),
+                    get_old_data(Mag_Type_z),
+#endif
+                    S_old, state[State_Type].prevTime(), S_old.nGrow());
+
+    }
+
+    if (state[State_Type].hasNewData()) {
+
+        MultiFab& S_new = get_new_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_new_data(Mag_Type_x),
+                    get_new_data(Mag_Type_y),
+                    get_new_data(Mag_Type_z),
+#endif
+                    S_new, state[State_Type].curTime(), S_new.nGrow());
+
+    }
 }
 
 void

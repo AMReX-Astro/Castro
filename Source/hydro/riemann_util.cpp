@@ -73,7 +73,9 @@ Castro::compute_flux_q(const Box& bx,
 
   const Real lT_guess = T_guess;
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());

@@ -389,8 +389,6 @@ Castro::divu(const Box& bx,
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
-#else
-  Real dzinv = 0.0_rt;
 #endif
 
   amrex::ParallelFor(bx,
@@ -1085,7 +1083,9 @@ Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
                                    const int verbose) {
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());

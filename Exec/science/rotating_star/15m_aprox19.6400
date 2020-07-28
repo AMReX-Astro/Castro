@@ -1,5 +1,5 @@
 # npts =  6400
-# num of variables =    24
+# num of variables =    22
 # density
 # temperature
 # pressure
@@ -17,10 +17,8 @@
 # calcium-40      
 # titanium-44     
 # chromium-48     
-# chromium-56     
 # iron-52         
 # iron-54         
-# iron-56         
 # nickel-56       
 # neutron         
 # proton          
