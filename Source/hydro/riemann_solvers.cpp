@@ -1179,28 +1179,24 @@ Castro::HLLC(const Box& bx,
     Real ro;
     Real uo;
     Real po;
-    Real reo;
     Real gamco;
 
     if (ustar > 0.0_rt) {
       ro = rl;
       uo = ul;
       po = pl;
-      reo = rel;
       gamco = gamcl;
 
     } else if (ustar < 0.0_rt) {
       ro = rr;
       uo = ur;
       po = pr;
-      reo = rer;
       gamco = gamcr;
 
     } else {
       ro = 0.5_rt*(rl + rr);
       uo = 0.5_rt*(ul + ur);
       po = 0.5_rt*(pl + pr);
-      reo = 0.5_rt*(rel + rer);
       gamco = 0.5_rt*(gamcl + gamcr);
     }
 

@@ -490,7 +490,6 @@
 /// @param q_t1      Godunov state in the idir_t1 direction
 /// @param q_t2      Godunov state in the idir_t2 direction
 /// @param hdt       1/2 * timestep
-/// @param cdtdx_n   weight * timestep in idir_n direction
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
@@ -511,7 +510,6 @@
 #endif
                       amrex::Array4<amrex::Real const> const& q_t1,
                       amrex::Array4<amrex::Real const> const& q_t2,
-                      amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///

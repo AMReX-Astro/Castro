@@ -1418,7 +1418,6 @@ Castro::init ()
 Real
 Castro::initialTimeStep ()
 {
-    Real dummy_dt = 0.0;
     Real init_dt  = 0.0;
 
     if (initial_dt > 0.0)

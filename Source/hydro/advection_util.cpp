@@ -660,7 +660,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          Array4<Real const> const& q,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt)
 {
 
@@ -812,8 +812,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Coefficients of fluxes on either side of the interface.
 
-        Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-        Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+        Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+        Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
         // Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
         // If we would violate the floor, then we need to limit the flux. Since the
@@ -898,7 +898,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
                                         Array4<Real const> const& q,
                                         Array4<Real const> const& vol,
                                         Array4<Real> const& flux,
-                                        Array4<Real const> const& area,
+                                        Array4<Real const> const& area_arr,
                                         Real dt)
 {
 
@@ -1007,8 +1007,8 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
          // Coefficients of fluxes on either side of the interface.
 
-         Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-         Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+         Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+         Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
          Real theta = 1.0_rt;
 

@@ -992,7 +992,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdtdx, hdtdy, hdtdz);
+                  hdtdy, hdtdz);
 
       reset_edge_state_thermo(xbx, ql.array());
 
@@ -1063,7 +1063,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp2_arr,
                   qgdnvtmp1_arr,
-                  hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdz);
 
       reset_edge_state_thermo(ybx, ql.array());
 
@@ -1136,7 +1136,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdy);
 
       reset_edge_state_thermo(zbx, ql.array());
 
