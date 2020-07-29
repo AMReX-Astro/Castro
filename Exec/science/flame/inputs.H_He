@@ -62,4 +62,4 @@ amr.plot_per        = 5.e-5
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin
+amr.probin_file = probin.H_He
