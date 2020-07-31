@@ -20,7 +20,7 @@ jobs:
         run: |
           cd external 
           git clone https://github.com/AMReX-Astro/cpp-linter-action.git
-          cd ..
+          cd .. 
 
       - name: Run cpp linter
         run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
