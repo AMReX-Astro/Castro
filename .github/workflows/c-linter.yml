@@ -19,7 +19,7 @@ jobs:
       - name: Get cpp linter repo 
         run: |
           cd external 
-          git https://github.com/AMReX-Astro/cpp-linter-action.git
+          git clone https://github.com/AMReX-Astro/cpp-linter-action.git
           cd ..
 
       - name: Run cpp linter
