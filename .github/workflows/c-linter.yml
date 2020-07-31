@@ -23,24 +23,10 @@ jobs:
           cd ..
 
       - name: Run cpp linter
-        run: |
-          echo ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
-        #   python3 external/run_on_changed_files.py 
+        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
       
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v1
         with:
           name: clang-tidy-report
           path: clang-tidy-report.txt
-      
-    #   - name: Archive clang format report
-    #     uses: actions/upload-artifact@v1
-    #     with:
-    #       name: clang-format-report
-    #       path: clang-format-report.txt
-      
-      - name: Archive cppcheck report
-        uses: actions/upload-artifact@v1
-        with:
-          name: cppcheck-report
-          path: cppcheck-report.txt
