@@ -16,13 +16,16 @@ jobs:
           git fetch; git checkout development
           cd ../..
 
+      - name: Get cpp linter repo 
+        run: |
+          cd external 
+          git clone git@github.com:AMReX-Astro/cpp-linter-action.git
+          cd ..
+
       - name: Run cpp linter
-        uses: AMReX-Astro/cpp-linter-action@master
-        with: 
-          build_path: 'Exec/science/flame_wave'
-          make_options: '-j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
-          ignore_files: 'amrex|Microphysics'
-          header_filter: 'Castro'
+        run: |
+          echo $GITHUB_BASE_REF $GITHUB_HEAD_REF
+        #   python3 external/run_on_changed_files.py 
       
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v1
