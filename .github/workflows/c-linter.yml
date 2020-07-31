@@ -24,7 +24,7 @@ jobs:
 
       - name: Run cpp linter
         run: |
-          echo $GITHUB_BASE_REF $GITHUB_HEAD_REF
+          echo ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
         #   python3 external/run_on_changed_files.py 
       
       - name: Archive clang tidy report
