@@ -18,6 +18,7 @@ jobs:
 
       - name: install dependencies
         run: |
+          sudo apt-get update
           sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
           apt-get update
 
