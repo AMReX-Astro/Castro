@@ -21,7 +21,7 @@ CASTRO_HOME = ../../..
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := rprox
+NETWORK_DIR := aprox13
 
 #Conductivity_dir := constant_opacity
 CONDUCTIVITY_DIR := stellar
