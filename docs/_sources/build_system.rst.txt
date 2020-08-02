@@ -1,3 +1,5 @@
+.. _ch:buildsystem:
+
 *********************
 Build System Overview
 *********************

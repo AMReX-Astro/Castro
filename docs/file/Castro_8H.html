@@ -269,11 +269,6 @@
 <dd></dd></dl>
 
 <dl class="cpp enumerator">
-<dt id="_CPPv4N9StateType13Rotation_TypeE">
-<span id="_CPPv3N9StateType13Rotation_TypeE"></span><span id="_CPPv2N9StateType13Rotation_TypeE"></span><span class="target" id="Castro_8H_1a1615968a92950438f6e67a28e9d56e5ca4578fd54b25cf59ea3fee8ba3ee0f7f2"></span><em class="property">enumerator </em><code class="sig-name descname">Rotation_Type</code><a class="headerlink" href="#_CPPv4N9StateType13Rotation_TypeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp enumerator">
 <dt id="_CPPv4N9StateType11Source_TypeE">
 <span id="_CPPv3N9StateType11Source_TypeE"></span><span id="_CPPv2N9StateType11Source_TypeE"></span><span class="target" id="Castro_8H_1a1615968a92950438f6e67a28e9d56e5ca7929206ff911237e1a5b6a721c075726"></span><em class="property">enumerator </em><code class="sig-name descname">Source_Type</code><a class="headerlink" href="#_CPPv4N9StateType11Source_TypeE" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -1085,19 +1080,6 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro21check_for_post_regridEN5amrex4RealE">
-<span id="_CPPv3N6Castro21check_for_post_regridEN5amrex4RealE"></span><span id="_CPPv2N6Castro21check_for_post_regridEN5amrex4RealE"></span><span id="Castro::check_for_post_regrid__amrex::Real"></span><span class="target" id="classCastro_1a959bbb3703fe7e32aff345c749d8fc0d"></span>void <code class="sig-name descname">check_for_post_regrid</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Check whether we want to do a regrid.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
 <dt id="_CPPv4N6Castro11post_regridEii">
 <span id="_CPPv3N6Castro11post_regridEii"></span><span id="_CPPv2N6Castro11post_regridEii"></span><span id="Castro::post_regrid__i.i"></span><span class="target" id="classCastro_1a350c686834180f657c25ff1cb4a7f686"></span>void <code class="sig-name descname">post_regrid</code><span class="sig-paren">(</span>int <em>lbase</em>, int <em>new_finest</em><span class="sig-paren">)</span> <em class="property">override</em><br /></dt>
 <dd><p>Do work after regrid().</p>
@@ -1548,6 +1530,20 @@
 <dt id="_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1ada94cae9a4f263ae1f0f6695d8578a4b"></span>void <code class="sig-name descname">enforce_min_density</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This routine sets the density in <code class="docutils literal notranslate"><span class="pre">state</span></code> to be larger than the density floor. Note that it will operate everywhere on <code class="docutils literal notranslate"><span class="pre">state</span></code>, including ghost zones.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N6Castro19enforce_speed_limitERN5amrex8MultiFabEi">
+<span id="_CPPv3N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="Castro::enforce_speed_limit__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a5a5adfaec71edd224afe9923cdf603e4"></span>void <code class="sig-name descname">enforce_speed_limit</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, int <em>ng</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Ensure the magnitude of the velocity is not larger than <code class="docutils literal notranslate"><span class="pre">castro.speed_limit</span></code> in any zone.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
@@ -2118,6 +2114,12 @@
 <dt id="_CPPv4N6Castro12node_weightsE">
 <span id="_CPPv3N6Castro12node_weightsE"></span><span id="_CPPv2N6Castro12node_weightsE"></span><span id="Castro::node_weights__amrex::Vector:amrex::Real:"></span><span class="target" id="classCastro_1a2a5f3fbd41cb381646c7024d00a4e2bf"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <code class="sig-name descname">node_weights</code><br /></dt>
 <dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N6Castro18do_init_probparamsE">
+<span id="_CPPv3N6Castro18do_init_probparamsE"></span><span id="_CPPv2N6Castro18do_init_probparamsE"></span><span id="Castro::do_init_probparams__i"></span><span class="target" id="classCastro_1a61f314d668aab4bc8cfbd62a00ba3518"></span>int <code class="sig-name descname">do_init_probparams</code><br /></dt>
+<dd><p>For initialization of the C++ values of the runtime parameters. </p>
+</dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv4N6Castro13signalStopJobE">

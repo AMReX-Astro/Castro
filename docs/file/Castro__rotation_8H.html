@@ -267,8 +267,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
-<span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a7d593ea25c5aeab9468015712fb7ec3a"></span>void <code class="sig-name descname">fill_rotation_field</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>rot</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
+<span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a4c054948c6730b382771fdf342d02d0f"></span>void <code class="sig-name descname">fill_rotation_field</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Fill rotational potential and acceleration</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -288,13 +288,12 @@
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real">
-<span id="_CPPv34rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="_CPPv24rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="rsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1a96c181b2072bb65dc0a06d82141e0772"></span>void <code class="sig-name descname">rsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rot</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, <em class="property">const</em> Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real">
+<span id="_CPPv34rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="_CPPv24rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="rsrc__BoxCR.Array4:RealC:CR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1ab09ecd463e1840f10b7ba6967b98f2e7"></span>void <code class="sig-name descname">rsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, <em class="property">const</em> Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Add the rotation source for input state uold to the full hydrodynamic source term source</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: the rotational acceleration </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: the full hydrodynamical source term </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
 </ul>
@@ -304,16 +303,14 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE">
-<span id="_CPPv38corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="_CPPv28corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="corrrsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.RealC.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1aec06640c07bb5afd79ada8b45e63b688"></span>void <code class="sig-name descname">corrrsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_old</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_new</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>rnew</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>unew</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em>, <em class="property">const</em> Real <em>dt</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>vol</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE">
+<span id="_CPPv38corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="_CPPv28corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="corrrsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.RealC.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1ae33e4cf3f7de7d7b12d3c5faeb5c09c5"></span>void <code class="sig-name descname">corrrsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_old</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_new</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>unew</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em>, <em class="property">const</em> Real <em>dt</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>vol</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the correction source term for rotation</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">phi_old</span></code>: rotational potential at old time </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">phi_new</span></code>: rotational potential at new time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rold</span></code>: rotational acceleration at old time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rnew</span></code>: rotational acceleration at new time </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">uold</span></code>: old time state </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">unew</span></code>: new time state </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: full hydrodynamic state </p></li>
@@ -322,21 +319,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">flux2</span></code>: mass flux in z coord dir </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">vol</span></code>: cell volume </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv428fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE">
-<span id="_CPPv328fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE"></span><span id="_CPPv228fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE"></span><span id="fill_rotational_acceleration__BoxCR.Array4:Real:CR.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1a5eeced08ea156e2ca98b5457a4c3f885"></span>void <code class="sig-name descname">fill_rotational_acceleration</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>rot</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv428fill_rotational_accelerationRK3BoxRK6Array4I4RealERK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Compute the rotational acceleration over a box</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: the rotational acceleration </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the input state </p></li>
 </ul>
 </dd>
 </dl>

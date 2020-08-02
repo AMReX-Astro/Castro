@@ -39,7 +39,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Hydro" href="../hydro_files.html" />
+    <link rel="next" title="File Gravity_util.H" href="Gravity__util_8H.html" />
     <link rel="prev" title="File Castro_gravity.H" href="Castro__gravity_8H.html" /> 
 </head>
 
@@ -141,6 +141,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../gravity_files.html">Gravity</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__gravity_8H.html">File Castro_gravity.H</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">File Gravity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Gravity__util_8H.html">File Gravity_util.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
@@ -491,14 +492,13 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity28multilevel_solve_for_new_phiEiii">
-<span id="_CPPv3N7Gravity28multilevel_solve_for_new_phiEiii"></span><span id="_CPPv2N7Gravity28multilevel_solve_for_new_phiEiii"></span><span id="Gravity::multilevel_solve_for_new_phi__i.i.i"></span><span class="target" id="classGravity_1a349e06c20dd1409bf600bd7276a544e7"></span>void <code class="sig-name descname">multilevel_solve_for_new_phi</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N7Gravity28multilevel_solve_for_new_phiEii">
+<span id="_CPPv3N7Gravity28multilevel_solve_for_new_phiEii"></span><span id="_CPPv2N7Gravity28multilevel_solve_for_new_phiEii"></span><span id="Gravity::multilevel_solve_for_new_phi__i.i"></span><span class="target" id="classGravity_1a08f9dee748537aeb33feede1cf271514"></span>void <code class="sig-name descname">multilevel_solve_for_new_phi</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Multilevel solve for new phi from base level to finest level</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Base level index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </p></li>
 </ul>
 </dd>
 </dl>
@@ -506,8 +506,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii">
-<span id="_CPPv3N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii"></span><span id="_CPPv2N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEii"></span><span id="Gravity::actual_multilevel_solve__i.i.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.i.i"></span><span class="target" id="classGravity_1ad1c7143abf282a75bed60ddad51ea7a2"></span>void <code class="sig-name descname">actual_multilevel_solve</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, int <em>is_new</em>, int <em>use_previous_phi_as_guess</em> = 0<span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi">
+<span id="_CPPv3N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi"></span><span id="_CPPv2N7Gravity23actual_multilevel_solveEiiRKN5amrex6VectorIN5amrex6VectorIPN5amrex8MultiFabEEEEEi"></span><span id="Gravity::actual_multilevel_solve__i.i.amrex::Vector:amrex::Vector:amrex::MultiFabP::CR.i"></span><span class="target" id="classGravity_1adb137047ea152ef86d215357d99c9096"></span>void <code class="sig-name descname">actual_multilevel_solve</code><span class="sig-paren">(</span>int <em>level</em>, int <em>finest_level</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab*&gt;&gt; &amp;<em>grad_phi</em>, int <em>is_new</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Actually do the multilevel solve for new phi from base level to finest level</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -515,7 +515,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Fine level index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">grad_phi</span></code>: gradient of phi </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: Should we use the new state (1) or previous state (0)? </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">use_previous_phi_as_guess</span></code>: integer, should we use the previous phi as a guess? </p></li>
 </ul>
 </dd>
 </dl>
@@ -708,22 +707,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">radial_vol</span></code>: Radially integrated volume </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">n1d</span></code>: Number of radial points in the domain </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Level index </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv4N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi">
-<span id="_CPPv3N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N7Gravity15make_radial_phiEiRKN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Gravity::make_radial_phi__i.amrex::MultiFabCR.amrex::MultiFabR.i"></span><span class="target" id="classGravity_1a2a0dcf24d4098beb82ca2f81402b83cd"></span>void <code class="sig-name descname">make_radial_phi</code><span class="sig-paren">(</span>int <em>level</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>Rhs</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, int <em>fill_interior</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Integrate radially outward to find radial gravitational potential</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: Current level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Rhs</span></code>: density (rhs of Poisson’s equation) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Non-radial gravitational potential </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fill_interior</span></code>: integer </p></li>
 </ul>
 </dd>
 </dl>
@@ -1060,6 +1043,75 @@
 </div>
 </dd></dl>
 
+<dl class="cpp type">
+<dt id="_CPPv49multipole">
+<span id="_CPPv39multipole"></span><span id="_CPPv29multipole"></span><span id="multipole"></span><span class="target" id="namespacemultipole"></span><em class="property">namespace </em><code class="sig-name descname">multipole</code><a class="headerlink" href="#_CPPv49multipole" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Multipole gravity data </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="cpp var">
+<dt id="_CPPv4N9multipole8lnum_maxE">
+<span id="_CPPv3N9multipole8lnum_maxE"></span><span id="_CPPv2N9multipole8lnum_maxE"></span><span id="multipole::lnum_max__iC"></span><span class="target" id="namespacemultipole_1ab3813a07e17ce4054dfb7aa9555662d8"></span><em class="property">const</em> int <code class="sig-name descname">lnum_max</code> = 30<a class="headerlink" href="#_CPPv4N9multipole8lnum_maxE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1a48dcba97ba9561093440a43bb5310e3d"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Real volumeFactor</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1a73b1c02809e2c1b55cb9fad024afc027"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Real parityFactor</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1a4a6248b564971226c36effd59e97582e"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Real rmax</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1a1163a789bb82a0f3e2b703e1ab6f52ea"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array1D&lt; bool, 0, 2 &gt; doSymmetricAddLo</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1aac15bd5bec1e80c2b11858015a6e0ec4"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array1D&lt; bool, 0, 2 &gt; doSymmetricAddHi</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1a952049c8b37422f7f7e92a8099dc766a"></span><code class="sig-name descname">AMREX_GPU_MANAGED bool doSymmetricAdd</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1aff537c142a4318ea350381a83663660f"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array1D&lt; bool, 0, 2 &gt; doReflectionLo</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1af7159789004eab07a2462caf109be708"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array1D&lt; bool, 0, 2 &gt; doReflectionHi</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1aced682ccbe59598ac8a840d3196eb035"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array2D&lt; amrex::Real, 0, lnum_max, 0, lnum_max &gt; factArray</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1adbe8739c7bbd4558c4fb3fef91a5eb3e"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array1D&lt; amrex::Real, 0, lnum_max &gt; parity_q0</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt>
+<span class="target" id="namespacemultipole_1aa6aa598fc1bec112a9648680f1de0072"></span><code class="sig-name descname">AMREX_GPU_MANAGED amrex::Array2D&lt; amrex::Real, 0, lnum_max, 0, lnum_max &gt; parity_qC_qS</code></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </div>
 
 
@@ -1070,7 +1122,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../hydro_files.html" class="btn btn-neutral float-right" title="Hydro" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Gravity__util_8H.html" class="btn btn-neutral float-right" title="File Gravity_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Castro__gravity_8H.html" class="btn btn-neutral float-left" title="File Castro_gravity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

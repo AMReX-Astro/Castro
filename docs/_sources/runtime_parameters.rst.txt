@@ -158,8 +158,9 @@ namespace: ``castro``
 | ``limit_fluxes_on_large_vel``          | Should we limit the momentum fluxes so that we do not   | 0             |
 |                                        | create large velocities?                                |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``speed_limit``                        | If we're limiting the fluxes to avoid large velocities, | 2.99792458e10 |
-|                                        | this is the speed limit.                                |               |
+| ``speed_limit``                        | Enforce the magnitude of the velocity to be no larger   | 0.0           |
+|                                        | than this number (and optionally limit the fluxes as    |               |
+|                                        | well). Only applies if it is greater than 0.            |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``do_sponge``                          | permits sponge to be turned on and off                  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -302,8 +303,7 @@ namespace: ``castro``
 | ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
 |                                        | current timestep by when trying again.                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``use_post_step_regrid``               | Check for a possible post-timestep regrid if certain    | 0             |
-|                                        | stability criteria were violated.                       |               |
+| ``use_post_step_regrid``               | Regrid after every timestep.                            | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``max_subcycles``                      | Do not permit more subcycled timesteps than this        | 10            |
 |                                        | parameter. Set to a negative value to disable this      |               |

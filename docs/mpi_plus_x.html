@@ -103,6 +103,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Running Options: CPUs and GPUs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#running-on-cpus">Running on CPUs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-on-gpus">Running on GPUs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-at-supercomputing-centers">Working at Supercomputing Centers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
@@ -211,7 +212,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="running-options-cpus-and-gpus">
-<h1>Running Options: CPUs and GPUs<a class="headerlink" href="#running-options-cpus-and-gpus" title="Permalink to this headline">¶</a></h1>
+<span id="ch-mpiplusx"></span><h1>Running Options: CPUs and GPUs<a class="headerlink" href="#running-options-cpus-and-gpus" title="Permalink to this headline">¶</a></h1>
 <p>Castro uses MPI for coarse parallelization, distributing boxs across
 compute nodes.  For fine-grained parallelism, OpenMP is used for
 CPU-based computing and CUDA is used for GPUs.</p>
@@ -258,6 +259,12 @@ be run on the GPU.</p>
 <p>Best performance is obtained with bigger boxes, so setting
 <code class="docutils literal notranslate"><span class="pre">amr.max_grid_size</span> <span class="pre">=</span> <span class="pre">128</span></code> and <code class="docutils literal notranslate"><span class="pre">amr.blocking_factor</span> <span class="pre">=</span> <span class="pre">32</span></code> can give
 good performance.</p>
+</div>
+<div class="section" id="working-at-supercomputing-centers">
+<h2>Working at Supercomputing Centers<a class="headerlink" href="#working-at-supercomputing-centers" title="Permalink to this headline">¶</a></h2>
+<p>Our best practices for running any of the AMReX Astrophysics codes
+at different supercomputing centers is produced in our workflow
+documentation: <a class="reference external" href="https://amrex-astro.github.io/workflow/">https://amrex-astro.github.io/workflow/</a></p>
 </div>
 </div>
 

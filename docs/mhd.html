@@ -248,6 +248,14 @@ the remainder are reaction sources.  The MHD solver uses the same
 time-advancement driver as the hydrodynamic CTU driver
 (<a class="reference internal" href="FlowChart.html#sec-strangctu"><span class="std std-ref">CTU w/ Strang-split Reactions Flowchart</span></a>), using Strang splitting for the reactions (by
 default).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note: we are following the convention in the MHD community of setting the permeability to unity.  This is
+why the magnetic pressure has the form <span class="math notranslate nohighlight">\(\frac{1}{2} B^2\)</span> instead of <span class="math notranslate nohighlight">\(\frac{1}{8\pi} B^2\)</span>.  In
+effect, we are carrying our magnetic field as <span class="math notranslate nohighlight">\({\bf B}^\prime = {\bf B}/\sqrt{4\pi}\)</span>.</p>
+<p>If you wish to express the magnetic field in Gauss, then you will need to multiply the value Castro carries
+by <span class="math notranslate nohighlight">\(\sqrt{4\pi}\)</span>.</p>
+</div>
 <p>The constrained transport algorithm algebraically ensures that
 <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.  Throughout the algorithm, the
 magnetic fields are face-centered, the electric fields are
