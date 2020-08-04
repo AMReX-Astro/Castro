@@ -18,7 +18,7 @@ jobs:
           git fetch; git checkout development
           cd ../..
 
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update -y -qq
           sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
