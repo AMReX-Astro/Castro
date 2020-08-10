@@ -292,14 +292,6 @@ ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-else
-ifeq ($(USE_MLMG), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-endif
-endif
-
 ifeq ($(USE_MLMG), TRUE)
    DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
