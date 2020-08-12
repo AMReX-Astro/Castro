@@ -1822,7 +1822,7 @@ void
 Castro::computeInitialDt (int                   finest_level,
                           int                   /*subcycle*/,
                           Vector<int>&           n_cycle,
-                          const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
+                          const Vector<IntVect>& /*ref_ratio*/,
                           Vector<Real>&          dt_level,
                           Real                  stop_time)
 {
@@ -2346,7 +2346,7 @@ Castro::post_init (Real /*stop_time*/)
         if (sum_per > 0.0) {
 
           const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
-          const int num_per_new = static_cast<int>(floor((cumtime        ) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
