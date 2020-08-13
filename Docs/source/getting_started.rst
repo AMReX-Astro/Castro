@@ -20,7 +20,7 @@ general requirements to build Castro are:
 
  * python (>= 3.6)
 
- * GNU make (>= 3.81)
+ * GNU make (>= 3.82)
 
 GCC and the PGI compilers are the main compiler suites used by the
 developers.
