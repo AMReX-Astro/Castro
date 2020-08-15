@@ -298,16 +298,11 @@ components and <code class="docutils literal notranslate"><span class="pre">QPTO
 <p>Just like with pure hydrodynamics, the reconstruction type is
 controlled by <code class="docutils literal notranslate"><span class="pre">castro.ppm_type</span></code>, with <code class="docutils literal notranslate"><span class="pre">0</span></code> selecting piecewise
 linear and <code class="docutils literal notranslate"><span class="pre">1</span></code> selecting piecewise parabolic.</p>
-<p>For the piecewise linear method, the slope limiting for the controlled
-by the <code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span></code> variable:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">0</span></code> : piecewise constant slopes</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">1</span></code> : van Leer limiter</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">2</span></code> : unlimited center difference</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mhd_plm_slope</span> <span class="pre">=</span> <span class="pre">3</span></code> : 2nd order MC limiter</p></li>
-</ul>
-</div></blockquote>
+<p>For the piecewise linear method, the slope limiting is controlled by
+the same <code class="docutils literal notranslate"><span class="pre">plm_iorder</span></code> runtime parameter as for hydrodynamics.
+Additionally, we have an option <code class="docutils literal notranslate"><span class="pre">mhd_limit_characteristic</span></code> that
+controls whether you want to do the slope limiting on the
+characteristic variables (the default) or the primitive variables.</p>
 </div>
 <div class="section" id="electric-update">
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this headline">¶</a></h2>
