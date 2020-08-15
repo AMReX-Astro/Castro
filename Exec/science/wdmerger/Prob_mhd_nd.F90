@@ -42,10 +42,11 @@
    !to what we do for StarGrav 
    
    !get the A_x component
+   ! A_x, i, j-1/2, k-1/2
    do k = lo(3), hi(3)+1
         do j = lo(2), hi(2)+1
            do i = lo(1), hi(1)
-              loc = position(i,j,k, .true., .true., .true.)
+              loc = position(i,j,k, .false., .true., .true.)
 
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
@@ -105,14 +106,16 @@
      enddo
 
   !get the A_y component
+  !A_y, i-1/2, j, k-1/2
    do k = lo(3), hi(3)+1
         do j = lo(2), hi(2)
            do i = lo(1), hi(1)+1
-              loc = position(i,j,k, .true., .true., .true.)
+              loc = position(i,j,k, .true., .false., .true.)
 
               dist_P = sum((loc - center_P_initial)**2)**HALF
               dist_S = sum((loc - center_S_initial)**2)**HALF
-             
+            
+              !vector potential inside the primary star  
               if (mass_P > ZERO .and. (dist_P < model_P % radius ) ) then 
                   
                   x = loc(1) - center_P_initial(1)
@@ -124,6 +127,7 @@
     
                   A_y(i,j,k) = m_0*dist_P*sin(theta)*cos(phi)/(model_P % radius)**3
 
+              !vector potentential inside the secondary star
               else if (mass_S > ZERO .and. (dist_S < model_S % radius)) then
                   
                   x = loc(1) - center_S_initial(1)
@@ -137,6 +141,7 @@
 
               else 
 
+                  ! dipole outside the primary star
                   x = loc(1) - center_P_initial(1)
                   y = loc(2) - center_P_initial(2)
                   z = loc(3) - center_P_initial(3)
@@ -145,8 +150,9 @@
                   phi = atan2(y,x)
 
                   A_y(i,j,k) = m_0*sin(theta)*cos(phi)/(dist_P*dist_P)
-
-              
+             
+ 
+                  ! add contribution of dipole outside the secondary star 
                   x = loc(1) - center_S_initial(1)
                   y = loc(2) - center_S_initial(2)
                   z = loc(3) - center_S_initial(3)
@@ -163,6 +169,15 @@
          enddo
      enddo
 
+
+
+ ! A is of the form A = (A_x, A_y, 0)
+ ! B_x = -dA_x/dz
+ ! B_y = dA_y/dz
+ ! B_z = dA_y/dx - dA_x/dy 
+
+   !Initialize magnetic fields
+   !B_x, i-1/2,j,k
    do k = lo(3), hi(3)
       do j = lo(2), hi(2)
          do i = lo(1), hi(1)+1
@@ -171,6 +186,7 @@
       enddo
    enddo
 
+  !B_y, i,j-1/2,k
    do k = lo(3), hi(3)
       do j = lo(2), hi(2)+1
          do i = lo(1), hi(1)
@@ -179,6 +195,7 @@
       enddo
    enddo
 
+!B_z, i,j,k-1/2
    do k = lo(3), hi(3)+1
       do j = lo(2), hi(2)
          do i = lo(1), hi(1)

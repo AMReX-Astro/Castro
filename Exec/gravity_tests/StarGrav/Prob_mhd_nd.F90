@@ -36,12 +36,13 @@ subroutine ca_initmag(level, time, lo, hi, &
 
 
   !get the A_x component
+  ! A_x, i, j-1/2, k-1/2
   do k = lo(3), hi(3)+1
      z = problo(3) + dx(3)*(dble(k)) - center(3)
      do j = lo(2), hi(2)+1
         y = problo(2) + dx(2)*(dble(j)) - center(2)
         do i = lo(1), hi(1)
-           x = problo(1) + dx(1)*(dble(i)) - center(1)
+           x = problo(1) + dx(1)*(dble(i) + 0.5e0_rt) - center(1)
 
            theta = atan2(sqrt(x**2+y**2),z)
            phi = atan2(y,x) 
@@ -70,10 +71,11 @@ subroutine ca_initmag(level, time, lo, hi, &
   end do
 
   !get the A_y component
+  ! A_y, i-1/2, j, k-1/2
   do k = lo(3), hi(3)+1
      z = problo(3) + dx(3)*(dble(k)) - center(3)
      do j = lo(2), hi(2)
-        y = problo(2) + dx(2)*(dble(j)) - center(2)
+        y = problo(2) + dx(2)*(dble(j) + 0.5e0_rt) - center(2)
         do i = lo(1), hi(1)+1
            x = problo(1) + dx(1)*(dble(i)) - center(1)
 
@@ -102,7 +104,8 @@ subroutine ca_initmag(level, time, lo, hi, &
  ! B_y = dA_y/dz
  ! B_z = dA_y/dx - dA_x/dy 
 
- !Initialize the magnetic fields 
+ !Initialize the magnetic fields
+ !B_x, i-1/2,j,k 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)+1
@@ -113,6 +116,7 @@ subroutine ca_initmag(level, time, lo, hi, &
      end do
   end do
 
+!B_y, i,j-1/2,k
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)+1
         do i = lo(1), hi(1)
@@ -123,6 +127,7 @@ subroutine ca_initmag(level, time, lo, hi, &
      end do
   end do
 
+!B_z, i,j,k-1/2
   do k = lo(3), hi(3)+1
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
