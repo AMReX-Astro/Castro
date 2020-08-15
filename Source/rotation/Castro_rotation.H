@@ -30,7 +30,7 @@
 /// @param state    Current state
 /// @param time     current time
 ///
-    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
+    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& state, amrex::Real time);
 
 
     AMREX_GPU_HOST_DEVICE
@@ -45,13 +45,11 @@
 /// term source
 ///
 /// @param bx        the box to operate over
-/// @param rot       the rotational acceleration
 /// @param source    the full hydrodynamical source term
 /// @param dt        current timestep
 ///
     void
     rsrc(const Box& bx,
-         Array4<Real const> const& rot,
          Array4<Real const> const& uold,
          Array4<Real> const& source, 
          const Real dt);
@@ -62,8 +60,6 @@
 /// @param bx       the box to operate over
 /// @param phi_old  rotational potential at old time
 /// @param phi_new  rotational potential at new time
-/// @param rold     rotational acceleration at old time
-/// @param rnew     rotational acceleration at new time
 /// @param uold     old time state
 /// @param unew     new time state
 /// @param source   full hydrodynamic state
@@ -77,8 +73,6 @@
     corrrsrc(const Box& bx,
              Array4<Real const> const& phi_old,
              Array4<Real const> const& phi_new,
-             Array4<Real const> const& rold,
-             Array4<Real const> const& rnew,
              Array4<Real const> const& uold,
              Array4<Real const> const& unew,
              Array4<Real> const& source,
@@ -87,18 +81,6 @@
              Array4<Real const> const& flux2,
              const Real dt,
              Array4<Real const> const& vol);
-
-///
-/// Compute the rotational acceleration over a box
-///
-/// @param bx         the box to operate over
-/// @param rot        the rotational acceleration
-/// @param state      the input state
-////
-    void
-    fill_rotational_acceleration(const Box& bx,
-                                 Array4<Real> const& rot,
-                                 Array4<Real const> const& state);
 
 ///
 /// Compute the rotational acceleration for a single zone

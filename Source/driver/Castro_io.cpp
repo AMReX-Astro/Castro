@@ -50,11 +50,12 @@ using namespace amrex;
 // 6: Simplified_SDC_Source_Type removed from Castro
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
+// 9: Rotation_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 8;
+    int current_version = 9;
 }
 
 // I/O routines for Castro

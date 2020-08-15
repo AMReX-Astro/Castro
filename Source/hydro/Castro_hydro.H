@@ -511,7 +511,7 @@
 #endif
                       amrex::Array4<amrex::Real const> const& q_t1,
                       amrex::Array4<amrex::Real const> const& q_t2,
-                      amrex::Real hdt, amrex::Real cdtdx_n,
+                      amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
@@ -552,7 +552,7 @@
 #endif
                              amrex::Array4<amrex::Real const> const& q_t1,
                              amrex::Array4<amrex::Real const> const& q_t2,
-                             amrex::Real hdt, amrex::Real cdtdx_n,
+                             amrex::Real cdtdx_n,
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
@@ -802,24 +802,6 @@
               amrex::Array4<amrex::Real> const& qint,
               const int idir);
 
-///
-/// A simple HLL Riemann solver for pure hydrodynamics.  This takes just a
-/// single interface's data and returns the HLL flux
-///
-/// @param ql     the left interface state
-/// @param qr     the right interface state
-/// @param cl     sound speed on the left interface
-/// @param cr     sound speed on the right interface
-/// @param idir   coordinate direction for the solve (0 = x, 1 = y, 2 = z)
-/// @param coord  geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical)
-/// @param f      the HLL fluxes
-///
-    AMREX_GPU_HOST_DEVICE
-    void HLL(const amrex::Real* ql, const amrex::Real* qr,
-             const amrex::Real cl, const amrex::Real cr,
-             const int idir, const int coord,
-             amrex::Real* f);
-
     void
     compute_flux_q(const amrex::Box& bx,
                    amrex::Array4<amrex::Real const> const& qint,
@@ -837,17 +819,6 @@
                         amrex::Array4<amrex::Real const> const& lambda,
 #endif
                         amrex::Array4<amrex::Real> const& qgdnv);
-
-
-    AMREX_GPU_HOST_DEVICE
-    void
-    dflux(const GpuArray<Real, NUM_STATE>& u,
-          const GpuArray<Real, NQ>& q,
-          int dir, int coord,
-          const GeometryData& geomdata,
-          const GpuArray<Real, 3>& center,
-          const GpuArray<int, 3>& idx,
-          GpuArray<Real, NUM_STATE>& flux);
 
     void normalize_species_fluxes(const amrex::Box& bx, amrex::Array4<amrex::Real> const& flux);
 

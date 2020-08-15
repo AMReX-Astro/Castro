@@ -474,11 +474,6 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
                          &cell_cons_interp, state_data_extrap,
                          store_in_checkpoint);
-
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
@@ -580,6 +575,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -601,6 +597,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -648,15 +645,6 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-  set_x_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,genericBndryFunc);
-  set_y_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,genericBndryFunc);
-  set_z_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill
@@ -676,7 +664,7 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   std::string name_react;
-  for (int i=0; i<NumSpec; ++i)
+  for (int i = 0; i < NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
@@ -689,7 +677,7 @@ Castro::variableSetUp ()
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
       name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_aux, bc, genericBndryFunc);
+      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
   }
 #endif
   desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
@@ -1055,12 +1043,13 @@ Castro::variableSetUp ()
 #endif 
 
 
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
+#endif
 
   //
   // Problem-specific adds

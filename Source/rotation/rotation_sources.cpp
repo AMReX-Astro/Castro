@@ -7,7 +7,6 @@
 
 void
 Castro::rsrc(const Box& bx,
-             Array4<Real const> const& rot,
              Array4<Real const> const& uold,
              Array4<Real> const& source, 
              const Real dt) {
@@ -16,6 +15,9 @@ Castro::rsrc(const Box& bx,
   ca_get_center(center.begin());
 
   GeometryData geomdata = geom.data();
+
+  GpuArray<Real, 3> omega;
+  get_omega(omega.begin());
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -44,8 +46,17 @@ Castro::rsrc(const Box& bx,
 
     Real old_ke = 0.5_rt * (snew[UMX] * snew[UMX] + snew[UMY] * snew[UMY] + snew[UMZ] * snew[UMZ]) * rhoInv;
 
+    GpuArray<Real, 3> v;
+
+    v[0] = uold(i,j,k,UMX) * rhoInv;
+    v[1] = uold(i,j,k,UMY) * rhoInv;
+    v[2] = uold(i,j,k,UMZ) * rhoInv;
+
+    bool coriolis = true;
+    rotational_acceleration(loc, v, omega, coriolis, Sr);
+
     for (int n = 0; n < 3; n++) {
-      Sr[n] = rho * rot(i,j,k,n);
+        Sr[n] = rho * Sr[n];
     }
 
     src[UMX] = Sr[0];
@@ -135,8 +146,6 @@ void
 Castro::corrrsrc(const Box& bx,
                  Array4<Real const> const& phi_old,
                  Array4<Real const> const& phi_new,
-                 Array4<Real const> const& rold,
-                 Array4<Real const> const& rnew,
                  Array4<Real const> const& uold,
                  Array4<Real const> const& unew,
                  Array4<Real> const& source,
@@ -153,8 +162,6 @@ Castro::corrrsrc(const Box& bx,
   // be called directly from C++.
 
   // phi_old and phi_new are used to compute the time centered rotational potential
-
-  // rold and rnew are the old and new time rotational acceleration
 
   // uold and unew are the old and new time state data
 
@@ -278,14 +285,17 @@ Castro::corrrsrc(const Box& bx,
 
     // Define old source terms
 
-    Real vold[3];
+    GpuArray<Real, 3> vold;
 
     vold[0] = uold(i,j,k,UMX) * rhooinv;
     vold[1] = uold(i,j,k,UMY) * rhooinv;
     vold[2] = uold(i,j,k,UMZ) * rhooinv;
 
+    bool coriolis = true;
+    rotational_acceleration(loc, vold, omega, coriolis, Sr_old);
+
     for (int n = 0; n < 3; n++) {
-      Sr_old[n] = rhoo * rold(i,j,k,n);
+        Sr_old[n] = rhoo * Sr_old[n];
     }
 
     Real SrE_old = vold[0] * Sr_old[0] + vold[1] * Sr_old[1] + vold[2] * Sr_old[2];
@@ -299,8 +309,10 @@ Castro::corrrsrc(const Box& bx,
     vnew[1] = unew(i,j,k,UMY) * rhoninv;
     vnew[2] = unew(i,j,k,UMZ) * rhoninv;
 
+    rotational_acceleration(loc, vnew, omega, coriolis, Sr_new);
+
     for (int n = 0; n < 3; n++) {
-      Sr_new[n] = rhon * rnew(i,j,k,n);
+        Sr_new[n] = rhon * Sr_new[n];
     }
 
     Real SrE_new = vnew[0] * Sr_new[0] + vnew[1] * Sr_new[1] + vnew[2] * Sr_new[2];
@@ -321,7 +333,7 @@ Castro::corrrsrc(const Box& bx,
       // the non-Coriolis parts of the new contribution (add 1/2 of the new term).
 
       Real acc[3];
-      bool coriolis = false;
+      coriolis = false;
       rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Real new_mom_tmp[3];
@@ -417,7 +429,7 @@ Castro::corrrsrc(const Box& bx,
       vnew[2] = snew[UMZ] * rhoninv;
 
       Real acc[3];
-      bool coriolis = true;
+      coriolis = true;
       rotational_acceleration(loc, vnew, omega, coriolis, acc);
 
       Sr_new[0] = rhon * acc[0];
