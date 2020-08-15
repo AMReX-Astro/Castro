@@ -189,9 +189,11 @@ Castro::PrimToCons(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = q_arr(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = q_arr(i,j,k,QFX+n);
     }
+#endif
 
     eos(eos_input_rp, eos_state);
 

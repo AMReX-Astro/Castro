@@ -1,3 +1,5 @@
+.. _ch:mpiplusx:
+
 ******************************
 Running Options: CPUs and GPUs
 ******************************
@@ -58,4 +60,11 @@ Best performance is obtained with bigger boxes, so setting
 ``amr.max_grid_size = 128`` and ``amr.blocking_factor = 32`` can give
 good performance.
 
+
+Working at Supercomputing Centers
+=================================
+
+Our best practices for running any of the AMReX Astrophysics codes
+at different supercomputing centers is produced in our workflow
+documentation: https://amrex-astro.github.io/workflow/
 

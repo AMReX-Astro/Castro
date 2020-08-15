@@ -1197,9 +1197,11 @@ Castro::initData ()
                for (int n = 0; n < NumSpec; n++) {
                  eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
                }
+#if NAUX_NET > 0
                for (int n = 0; n < NumAux; n++) {
                  eos_state.aux[n] = S_arr(i,j,k,UFX+n) * rhoInv;
                }
+#endif
 
                eos(eos_input_re, eos_state);
 
@@ -2187,6 +2189,39 @@ Castro::post_regrid (int lbase,
 
     }
 #endif
+
+    // Ensure regridded data is valid. This addresses the fact that data
+    // on this level that was interpolated from a coarser level may not
+    // respect the consistency between certain state variables
+    // (e.g. UEINT and UEDEN) that we demand in every zone.
+
+    if (state[State_Type].hasOldData()) {
+
+        MultiFab& S_old = get_old_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_old_data(Mag_Type_x),
+                    get_old_data(Mag_Type_y),
+                    get_old_data(Mag_Type_z),
+#endif
+                    S_old, state[State_Type].prevTime(), S_old.nGrow());
+
+    }
+
+    if (state[State_Type].hasNewData()) {
+
+        MultiFab& S_new = get_new_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_new_data(Mag_Type_x),
+                    get_new_data(Mag_Type_y),
+                    get_new_data(Mag_Type_z),
+#endif
+                    S_new, state[State_Type].curTime(), S_new.nGrow());
+
+    }
 }
 
 void
@@ -3379,9 +3414,11 @@ Castro::reset_internal_energy(const Box& bx,
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; ++n) {
             eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_rt, eos_state);
 
@@ -3692,10 +3729,14 @@ Castro::computeTemp(
           eos_state.rho = u(i,j,k,URHO);
           eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
           eos_state.e   = u(i,j,k,UEINT) * rhoInv;
-          for (int n = 0; n < NumSpec; ++n)
-              eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
-          for (int n = 0; n < NumAux; ++n)
-              eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+          for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
 
           eos(eos_input_re, eos_state);
 

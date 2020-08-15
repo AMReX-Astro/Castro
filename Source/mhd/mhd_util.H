@@ -77,9 +77,11 @@ ConsToPrim(Real* q_zone, Real* U_zone) {
   for (int n = 0; n < NumSpec; n++) {
     eos_state.xn[n] = q_zone[QFS+n];
   }
+#if NAUX_NET > 0
   for (int n = 0; n < NumAux; n++) {
     eos_state.aux[n] = q_zone[QFX+n];
   }
+#endif
   eos_state.T = 100.0_rt; // initial guess
 
   eos(eos_input_re, eos_state);
@@ -113,9 +115,11 @@ PToC(Array1D<Real, 0, NQ-1>& q,
   for (int n = 0; n < NumSpec; n++) {
     eos_state.xn[n] = q(QFS+n);
   }
+#if NAUX_NET > 0
   for (int n = 0; n < NumAux; n++) {
     eos_state.aux[n] = q(QFX+n);
   }
+#endif
   eos_state.T = 100.0;  // dummy initial guess
 
   eos(eos_input_rp, eos_state);
