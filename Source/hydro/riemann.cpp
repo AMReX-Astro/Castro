@@ -2,6 +2,8 @@
 #include "Castro_F.H"
 #include "Castro_hydro_F.H"
 
+#include "riemann_solvers.H"
+
 #ifdef RADIATION
 #include "Radiation.H"
 #endif
@@ -79,11 +81,11 @@ Castro::cmpflx_plus_godunov(const Box& bx,
       int is_shock = 0;
 
       if (idir == 0) {
-        is_shock = shk(i-1,j,k) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i-1,j,k) + shk(i,j,k));
       } else if (idir == 1) { 
-        is_shock = shk(i,j-1,k) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i,j-1,k) + shk(i,j,k));
       } else {
-        is_shock = shk(i,j,k-1) + shk(i,j,k);
+        is_shock = static_cast<int>(shk(i,j,k-1) + shk(i,j,k));
       }
 
       if (is_shock >= 1) {
@@ -204,9 +206,11 @@ Castro::riemann_state(const Box& bx,
      for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qm(i,j,k,QFS+n);
      }
+#if NAUX_NET > 0
      for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qm(i,j,k,QFX+n);
      }
+#endif
 
      eos(eos_input_re, eos_state);
 
@@ -220,9 +224,11 @@ Castro::riemann_state(const Box& bx,
      for (int n = 0; n < NumSpec; n++) {
        eos_state.xn[n] = qp(i,j,k,QFS+n);
      }
+#if NAUX_NET > 0
      for (int n = 0; n < NumAux; n++) {
        eos_state.aux[n] = qp(i,j,k,QFX+n);
      }
+#endif
 
      eos(eos_input_re, eos_state);
 

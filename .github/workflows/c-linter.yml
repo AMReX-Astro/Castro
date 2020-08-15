@@ -6,32 +6,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Get submodules 
-        run: git submodule update --init
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex 
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
+
+      - name: Get cpp linter repo 
+        run: |
+          cd external 
+          git clone https://github.com/AMReX-Astro/cpp-linter-action.git
+          cd .. 
 
       - name: Run cpp linter
-        uses: AMReX-Astro/cpp-linter-action@master
-        with: 
-          build_path: 'Exec/science/flame_wave'
-          make_options: '-j 2 USE_OMP=FALSE USE_MPI=FALSE USE_CUDA=FALSE DEBUG=TRUE'
-          ignore_files: 'amrex|Microphysics'
-          header_filter: 'Castro'
+        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" 
       
       - name: Archive clang tidy report
         uses: actions/upload-artifact@v1
         with:
           name: clang-tidy-report
           path: clang-tidy-report.txt
-      
-    #   - name: Archive clang format report
-    #     uses: actions/upload-artifact@v1
-    #     with:
-    #       name: clang-format-report
-    #       path: clang-format-report.txt
-      
-      - name: Archive cppcheck report
-        uses: actions/upload-artifact@v1
-        with:
-          name: cppcheck-report
-          path: cppcheck-report.txt

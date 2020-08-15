@@ -99,6 +99,12 @@ ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
+
+  # We don't currently support host-side OpenMP being enabled
+  # when using CUDA. Throw an error to prevent this case.
+  ifeq ($(USE_OMP),TRUE)
+    $(error OpenMP is not supported by Castro when building with CUDA)
+  endif
 endif
 
 # Allow a problem to specify that we want to initialize
@@ -284,14 +290,6 @@ endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
-endif
-
-ifeq ($(USE_RAD), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-else
-ifeq ($(USE_MLMG), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-endif
 endif
 
 ifeq ($(USE_MLMG), TRUE)

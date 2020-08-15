@@ -574,7 +574,7 @@ def parse_params(infile, meth_template, out_directory):
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cp.write(p.get_decl_string())
                 cp.write("#endif\n")
-        cp.write("};\n\n")
+        cp.write("}\n\n")
         cp.write("#endif\n")
         cp.close()
 

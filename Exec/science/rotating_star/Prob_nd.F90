@@ -64,8 +64,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
-                                 UEDEN, UEINT, UFS
-  use network, only : nspec
+                                 UEDEN, UEINT, UFS, UFX
+  use network, only : nspec, naux
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
@@ -84,6 +84,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer :: i, j, k, n
 
   type(eos_t) :: eos_state
+  real(rt) :: sumX
 
   do k = lo(3), hi(3)
      z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
@@ -103,6 +104,19 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               call interpolate_sub(state(i,j,k,UFS-1+n), dist, ispec_model-1+n)
            end do
 
+           sumX = 0.0_rt
+           do n = 1, nspec
+              sumX = sumX + state(i,j,k,UFS-1+n)
+           end do
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) / sumX
+
+#ifdef NSE_THERMO
+           ! set the aux quantities -- we need to do this if we are using the NSE network
+           state(i,j,k,UFX-1+iye) = sum(state(i,j,k,UFS:UFS-1+nspec) * zion(:) * aion_inv(:))
+           state(i,j,k,UFX-1+iabar) = 1.0_rt / sum(state(i,j,k,UFS:UFS-1+nspec) * aion_inv(:))
+           state(i,j,k,UFX-1+ibea) = sum(state(i,j,k,UFS:UFS-1+nspec) * bion(:) * aion_inv(:))
+#endif
+
         end do
      end do
   end do
@@ -113,14 +127,19 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state%rho = state(i,j,k,URHO)
            eos_state%T = state(i,j,k,UTEMP)
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+           eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
 
            call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state % e
 
-           do n = 1,nspec
+           do n = 1, nspec
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+           end do
+
+           do n = 1, naux
+              state(i,j,k,UFX+n-1) = state(i,j,k,URHO) * state(i,j,k,UFX+n-1)
            end do
 
            ! initial velocities = 0
