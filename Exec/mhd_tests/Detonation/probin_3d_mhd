@@ -1,0 +1,25 @@
+&fortin
+
+ B_0 = 0.0
+
+/
+
+&tagging
+
+  denerr = 1.d20
+  dengrad = 0.01
+  max_denerr_lev = 5
+  max_dengrad_lev = 5
+
+  presserr = 1.d20
+  pressgrad = 1.d20
+  max_presserr_lev = 5
+  max_pressgrad_lev = 5
+
+/
+
+&extern
+
+  eos_assume_neutral = T
+  eos_gamma = 1.67
+/

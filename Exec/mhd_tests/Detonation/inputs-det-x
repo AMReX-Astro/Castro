@@ -1,0 +1,72 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 100000000
+stop_time =  2.5
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 1 1 0
+geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0     0     0
+geometry.prob_hi     = 0.5  0.015625  1.0
+amr.n_cell           = 128   4   256
+
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  0   0   4
+castro.hi_bc       =  0   0   4
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 0
+castro.do_grav = 1
+
+castro.ppm_type = 1
+castro.ppm_temp_fix = 0
+
+castro.transverse_reset_density = 1
+
+castro.mhd_plm_slope = 1
+castro.use_flattening = 0
+
+castro.riemann_solver = 0
+
+castro.small_temp     = 1.e7
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav   = -1.0
+castro.grav_source_type = 1
+
+# TIME STEP CONTROL
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 0.3     # scale back initial timestep
+castro.change_max     = 1.1    # scale back initial timestep
+
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+#amr.grid_log        = grdlog  # name of grid logging file
+
+# REFINEMENT / REGRIDDING 
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = det_x_chk  # root name of checkpoint file
+amr.check_int       = 300         # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file       = det_x_plt  # root name of plotfile
+amr.plot_per = 1.e-7
+amr.derive_plot_vars = ALL
+
+#PROBIN FILENAME
+amr.probin_file = probin-det-x
