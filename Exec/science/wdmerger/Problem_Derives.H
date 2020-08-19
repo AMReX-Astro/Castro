@@ -84,7 +84,7 @@
     //
     derive_lst.add("rho_phiRot",IndexType::TheCellType(),1,ca_derrhophiRot,the_same_box);
     derive_lst.addComponent("rho_phiRot",desc_lst,State_Type,URHO,1);
-    derive_lst.addComponent("rho_phiRot",desc_lst,Rotation_Type,0,1);
+    derive_lst.addComponent("rho_phiRot",desc_lst,PhiRot_Type,0,1);
 #endif
 
 #ifdef GRAVITY

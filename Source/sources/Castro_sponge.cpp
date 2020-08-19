@@ -174,8 +174,18 @@ Castro::apply_sponge(const Box& bx,
     GpuArray<Real, 3> r;
 
     r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+
+#if AMREX_SPACEDIM >= 2
     r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+#else
+    r[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
     r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+#else
+    r[2] = 0.0_rt;
+#endif
 
     Real rho = state(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
@@ -245,9 +255,11 @@ Castro::apply_sponge(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 

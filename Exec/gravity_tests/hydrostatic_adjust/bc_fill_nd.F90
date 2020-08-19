@@ -12,7 +12,6 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-    use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: ZERO, HALF
     use meth_params_module, only : NVAR, URHO, UEDEN, UMX, UMY, UMZ, UTEMP, UEINT, UFS
     use probdata_module, only: hse_rho_top, hse_t_top, hse_X_top, &
@@ -33,9 +32,6 @@ contains
 
     integer :: n, i, j, k
     real(rt) :: vel
-
-    ! call the generic ghostcell filling routine
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
     ! override the generic routine at the top physical boundary
     ! by resetting the velocity to zero there.
@@ -123,8 +119,6 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     integer,  intent(in   ) :: lo(3), hi(3)
@@ -134,8 +128,6 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
     real(rt), intent(in   ), value :: time
-
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine denfill
 

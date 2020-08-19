@@ -79,8 +79,10 @@ Castro::advance (Real time,
 
     cfl_violation = 0;
 
+    // If the user requests, indicate that we want a regrid at the end of the step.
+
     if (use_post_step_regrid) {
-        check_for_post_regrid(time + dt);
+        post_step_regrid = 1;
     }
 
 #ifdef AUX_UPDATE
@@ -139,14 +141,6 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
       get_new_data(Rad_Type).setVal(0.0);
     }
 #endif
-
-    // Reset the grid loss tracking.
-
-    if (track_grid_losses) {
-      for (int i = 0; i < n_lost; i++) {
-        material_lost_through_boundary_temp[i] = 0.0;
-      }
-    }
 
 #ifdef GRAVITY
     if (moving_center == 1) {
@@ -345,9 +339,11 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     // Allocate space for the primitive variables.
 
+#ifdef TRUE_SDC
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
+#endif
 
 
     if (sdc_order == 4) {
@@ -434,18 +430,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 {
     BL_PROFILE("Castro::finalize_advance()");
 
-    // Add the material lost in this timestep to the cumulative losses.
-
-    if (track_grid_losses) {
-
-      ParallelDescriptor::ReduceRealSum(material_lost_through_boundary_temp, n_lost);
-
-      for (int i = 0; i < n_lost; i++) {
-        material_lost_through_boundary_cumulative[i] += material_lost_through_boundary_temp[i];
-      }
-
-    }
-
     if (do_reflux) {
         FluxRegCrseInit();
         FluxRegFineAdd();
@@ -456,8 +440,10 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       hydro_source.clear();
     }
 
+#ifdef TRUE_SDC
     q.clear();
     qaux.clear();
+#endif
 
     if (sdc_order == 4) {
       q_bar.clear();

@@ -12,7 +12,7 @@ contains
     ! this is the righthand side for the ODE system that we will use
     ! with VODE
 
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
+    use meth_params_module, only : nvar, URHO, UFS, UFX, UEDEN, UTEMP, UMX, UMZ, UEINT
     use burn_type_module
     use vode_rpar_indices
     use react_util_module
@@ -65,7 +65,7 @@ contains
     ! this is the Jacobian function for use with VODE
 
     use amrex_constants_module, only : ZERO, ONE
-    use meth_params_module, only : nvar, URHO, UFS, UEDEN, UTEMP, UMX, UMZ, UEINT
+    use meth_params_module, only : nvar, URHO, UFS, UFX, UEDEN, UTEMP, UMX, UMZ, UEINT
     use burn_type_module
     use eos_type_module, only : eos_t, eos_input_re
     use eos_composition_module, only : eos_xderivs_t, composition_derivatives
@@ -108,6 +108,7 @@ contains
     eos_state % rho = U_full(URHO)
     eos_state % T = vode_state % rpar(irp_temp)   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
+    eos_state % aux(:) = U_full(UFX:UFX-1+naux)/U_full(URHO)
     eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
     call eos(eos_input_re, eos_state)

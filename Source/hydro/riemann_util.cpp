@@ -73,14 +73,9 @@ Castro::compute_flux_q(const Box& bx,
 
   const Real lT_guess = T_guess;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
   GpuArray<Real, 3> center;
   ca_get_center(center.begin());
@@ -102,9 +97,11 @@ Castro::compute_flux_q(const Box& bx,
         eos_state.xn[n] = qint(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess;  // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qint(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -151,8 +148,8 @@ Castro::compute_flux_q(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map_p[ipassive];
-      int nqp = qpass_map_p[ipassive];
+      int n  = upassmap(ipassive);
+      int nqp = qpassmap(ipassive);
 
       F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
     }

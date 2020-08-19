@@ -64,6 +64,7 @@ constexpr int Shock = USHK;
 using std::istream;
 using std::ostream;
 
+#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -75,7 +76,6 @@ enum StateType { State_Type = 0,
 #endif
 #ifdef ROTATION
                  PhiRot_Type,
-                 Rotation_Type,
 #endif
                  Source_Type,
 #ifdef REACTIONS
@@ -705,13 +705,6 @@ public:
     void postCoarseTimeStep (amrex::Real cumtime) override;
 
 ///
-/// Check whether we want to do a regrid.
-///
-/// @param time     current time
-///
-    void check_for_post_regrid (amrex::Real time);
-
-///
 /// Do work after regrid().
 ///
 /// @param lbase
@@ -876,6 +869,35 @@ public:
 #endif
                                 amrex::Array4<amrex::Real> const u);
 
+
+#ifdef MHD
+///
+/// Add magnetic contribution to energy density
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void add_magnetic_e (
+                         amrex::MultiFab& Bx,
+                         amrex::MultiFab& By,
+                         amrex::MultiFab& Bz,
+                         amrex::MultiFab& state);
+
+///
+/// Check if divergence of B is zero at initialization
+/// @param Bx       magnetic field in x    
+/// @param By       magnetic field in y
+/// @param Bz       magnetic field in z
+/// @param state    the state to operate on
+///
+    void check_div_B (
+                      amrex::MultiFab& Bx,
+                      amrex::MultiFab& By,
+                      amrex::MultiFab& Bz,
+                      amrex::MultiFab& state);
+
+#endif
 
 
 
@@ -1097,6 +1119,15 @@ public:
     void enforce_min_density (amrex::MultiFab& state, int ng);
 
 ///
+/// Ensure the magnitude of the velocity is not larger than ``castro.speed_limit``
+/// in any zone.
+///
+/// @param state        state
+/// @param ng           number of ghost cells
+///
+    void enforce_speed_limit (amrex::MultiFab& state, int ng);
+
+///
 /// Given ``State_Type`` state data, perform a number of cleaning steps to make
 /// sure the data is sensible.
 ///
@@ -1198,15 +1229,6 @@ public:
 ///
     static amrex::Real num_zones_advanced;
 
-#ifdef AMREX_USE_CUDA
-///
-/// Minimum CUDA threadblock size for BC fills.
-///
-    static int numBCThreadsMin[3];
-
-    static int minBCThreads(int dir) { return numBCThreadsMin[dir]; }
-#endif
-
 protected:
 
 
@@ -1261,7 +1283,9 @@ protected:
 ///
 /// The primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab q;
+#endif
 
 
 ///
@@ -1280,7 +1304,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
+#ifdef TRUE_SDC
     amrex::MultiFab qaux;
+#endif
     amrex::MultiFab qaux_bar;
 
 
@@ -1400,6 +1426,11 @@ protected:
 
 
 ///
+/// For initialization of the C++ values of the runtime parameters
+  static int do_init_probparams;
+
+
+///
 /// Keep track of which AMR iteration we're on.
 ///
     int iteration;
@@ -1429,14 +1460,6 @@ protected:
     int in_retry;
 
     amrex::Real lastDt;
-
-///
-/// For keeping track of fluid quantities lost at physical grid boundaries.
-/// This should persist through restarts, but right now only on level 0.
-///
-    static const int n_lost = 8;
-    amrex::Real             material_lost_through_boundary_cumulative[n_lost];
-    amrex::Real             material_lost_through_boundary_temp[n_lost];
 
 
 ///

@@ -1,4 +1,3 @@
-
 #include "Castro.H"
 #include "Castro_F.H"
 #include "Castro_util.H"
@@ -14,20 +13,18 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
     const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
-    MultiFab& rot_old = get_old_data(Rotation_Type);
 
     // Fill the rotation data.
 
     if (!do_rotation) {
 
         phirot_old.setVal(0.0);
-        rot_old.setVal(0.0);
 
         return;
 
     }
 
-    fill_rotation_field(phirot_old, rot_old, state_in, time);
+    fill_rotation_field(phirot_old, state_in, time);
 
     const Real *dx = geom.CellSize();
     const int* domlo = geom.Domain().loVect();
@@ -39,15 +36,8 @@ Castro::construct_old_rotation_source(MultiFab& source, MultiFab& state_in, Real
     for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
         const Box& bx = mfi.tilebox();
-#pragma gpu box(bx)
-        ca_rsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
-                BL_TO_FORTRAN_ANYD(rot_old[mfi]),
-                BL_TO_FORTRAN_ANYD(state_in[mfi]),
-                BL_TO_FORTRAN_ANYD(source[mfi]),
-                BL_TO_FORTRAN_ANYD(volume[mfi]),
-                AMREX_REAL_ANYD(dx),dt,time);
+
+        rsrc(bx, state_in.array(mfi), source.array(mfi), dt);
 
     }
 
@@ -79,23 +69,20 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
     const Real strt_time = ParallelDescriptor::second();
 
     MultiFab& phirot_old = get_old_data(PhiRot_Type);
-    MultiFab& rot_old = get_old_data(Rotation_Type);
 
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
-    MultiFab& rot_new = get_new_data(Rotation_Type);
 
     // Fill the rotation data.
 
     if (!do_rotation) {
 
         phirot_new.setVal(0.);
-        rot_new.setVal(0.);
 
         return;
 
     }
 
-    fill_rotation_field(phirot_new, rot_new, state_new, time);
+    fill_rotation_field(phirot_new, state_new, time);
 
     // Now do corrector part of rotation source term update
 
@@ -111,21 +98,12 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
         {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_corrrsrc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        AMREX_INT_ANYD(domlo), AMREX_INT_ANYD(domhi),
-                        BL_TO_FORTRAN_ANYD(phirot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(phirot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(rot_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_old[mfi]),
-                        BL_TO_FORTRAN_ANYD(state_new[mfi]),
-                        BL_TO_FORTRAN_ANYD(source[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[0])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[1])[mfi]),
-                        BL_TO_FORTRAN_ANYD((*mass_fluxes[2])[mfi]),
-                        AMREX_REAL_ANYD(dx),dt,time,
-                        BL_TO_FORTRAN_ANYD(volume[mfi]));
+            corrrsrc(bx,
+                     phirot_old.array(mfi), phirot_new.array(mfi),
+                     state_old.array(mfi), state_new.array(mfi),
+                     source.array(mfi),
+                     (*mass_fluxes[0]).array(mfi), (*mass_fluxes[1]).array(mfi), (*mass_fluxes[2]).array(mfi),
+                     dt, volume.array(mfi));
         }
     }
 
@@ -149,7 +127,7 @@ Castro::construct_new_rotation_source(MultiFab& source, MultiFab& state_old, Mul
 
 
 
-void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_in, Real time)
+void Castro::fill_rotation_field(MultiFab& phi, MultiFab& state_in, Real time)
 {
 
     BL_PROFILE("Castro::fill_rotation_field()");
@@ -167,32 +145,8 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& rot, MultiFab& state_i
     {
 
         const Box& bx = mfi.growntilebox(ng);
-#pragma gpu box(bx)
-        ca_fill_rotational_potential(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                     BL_TO_FORTRAN_ANYD(phi[mfi]),
-                                     AMREX_REAL_ANYD(dx),time);
 
-    }
-
-    rot.setVal(0.0);
-
-    ng = state_in.nGrow();
-
-    if (ng > rot.nGrow())
-        amrex::Error("State MF has more ghost cells than rotation MF.");
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(state_in, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-
-        const Box& bx = mfi.growntilebox(ng);
-#pragma gpu box(bx)
-        ca_fill_rotational_acceleration(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD(rot[mfi]),
-                                        BL_TO_FORTRAN_ANYD(state_in[mfi]),
-                                        AMREX_REAL_ANYD(dx),time);
+        fill_rotational_potential(bx, phi.array(mfi), time);
 
     }
 

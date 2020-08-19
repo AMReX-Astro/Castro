@@ -49,11 +49,13 @@ using namespace amrex;
 // 5: Simplified_SDC_Source_Type and Simplified_SDC_React_Type added to checkpoint
 // 6: Simplified_SDC_Source_Type removed from Castro
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
+// 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
+// 9: Rotation_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 7;
+    int current_version = 9;
 }
 
 // I/O routines for Castro
@@ -161,28 +163,6 @@ Castro::restart (Amr&     papa,
       }
 
       std::cout << "read CPU time: " << previousCPUTimeUsed << "\n";
-
-    }
-
-    if (track_grid_losses && level == 0) 
-    {
-
-      // get the current value of the diagnostic quantities
-      std::ifstream DiagFile;
-      std::string FullPathDiagFile = parent->theRestartFile();
-      FullPathDiagFile += "/Diagnostics";
-      DiagFile.open(FullPathDiagFile.c_str(), std::ios::in);
-
-      if (DiagFile.good()) {
-
-          for (int i = 0; i < n_lost; i++) {
-              DiagFile >> material_lost_through_boundary_cumulative[i];
-              material_lost_through_boundary_temp[i] = 0.0;
-          }
-
-          DiagFile.close();
-
-      }
 
     }
 
@@ -489,22 +469,6 @@ Castro::checkPoint(const std::string& dir,
 
             CPUFile << std::setprecision(17) << getCPUTime();
             CPUFile.close();
-        }
-
-        if (track_grid_losses) {
-
-            // store diagnostic quantities
-            std::ofstream DiagFile;
-            std::string FullPathDiagFile = dir;
-            FullPathDiagFile += "/Diagnostics";
-            DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-            for (int i = 0; i < n_lost; i++) {
-              DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-            }
-
-            DiagFile.close();
-
         }
 
 #ifdef GRAVITY
@@ -1235,23 +1199,6 @@ Castro::plotFileOutput(const std::string& dir,
     if (level == 0 && ParallelDescriptor::IOProcessor()) {
         writeJobInfo(dir, io_time);
     }
-
-    if (track_grid_losses && level == 0) {
-
-        // store diagnostic quantities
-        std::ofstream DiagFile;
-        std::string FullPathDiagFile = dir;
-        FullPathDiagFile += "/Diagnostics";
-        DiagFile.open(FullPathDiagFile.c_str(), std::ios::out);
-
-        for (int i = 0; i < n_lost; i++) {
-          DiagFile << std::setprecision(17) << material_lost_through_boundary_cumulative[i] << std::endl;
-        }
-
-        DiagFile.close();
-
-    }
-
 
 #ifdef GRAVITY
     if (use_point_mass && level == 0) {

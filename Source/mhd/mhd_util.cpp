@@ -16,8 +16,18 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   Real dtdx = dt / dx[0];
+
+#if AMREX_SPACEDIM >= 2
   Real dtdy = dt / dx[1];
+#else
+  Real dtdy = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
   Real dtdz = dt / dx[2];
+#else
+  Real dtdz = 0.0_rt;
+#endif
 
   ReduceOps<ReduceOpMax> reduce_op;
   ReduceData<Real> reduce_data(reduce_op);
@@ -124,8 +134,12 @@ Castro::consup_mhd(const Box& bx,
   const auto dx = geom.CellSizeArray();
 
   Real dxinv = 1.0_rt/dx[0];
+#if AMREX_SPACEDIM >= 2
   Real dyinv = 1.0_rt/dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt/dx[2];
+#endif
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
@@ -138,10 +152,13 @@ Castro::consup_mhd(const Box& bx,
       update(i,j,k,n) = 0.0_rt;
 #endif
     } else {
-      update(i,j,k,n) =
-        (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv +
-        (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv +
-        (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
+      update(i,j,k,n) = (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv;
+#if AMREX_SPACEDIM >= 2
+      update(i,j,k,n) += (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv;
+#endif
+#if AMREX_SPACEDIM == 3
+      update(i,j,k,n) += (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
+#endif
     }
 
   });
@@ -172,6 +189,11 @@ Castro::PrimToCons(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = q_arr(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = q_arr(i,j,k,QFX+n);
+    }
+#endif
 
     eos(eos_input_rp, eos_state);
 
@@ -221,9 +243,13 @@ Castro::prim_half(const Box& bx,
     Real q_zone[NQ];
 
     for (int n = 0; n < NUM_STATE+3; n++) {
-      divF[n] = (flxx(i+1,j,k,n) - flxx(i,j,k,n)) / dx[0] +
-                (flxy(i,j+1,k,n) - flxy(i,j,k,n)) / dx[1] +
-                (flxz(i,j,k+1,n) - flxz(i,j,k,n)) / dx[2];
+      divF[n] = (flxx(i+1,j,k,n) - flxx(i,j,k,n)) / dx[0];
+#if AMREX_SPACEDIM >= 2
+      divF[n] += (flxy(i,j+1,k,n) - flxy(i,j,k,n)) / dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+      divF[n] += (flxz(i,j,k+1,n) - flxz(i,j,k,n)) / dx[2];
+#endif
     }
 
     // that is a flux of conserved variables -- transform it to primitive

@@ -161,7 +161,7 @@ castro.limit_fluxes_on_small_dens = 1
 
 # Explicitly limit fluxes to avoid large velocities
 castro.limit_fluxes_on_large_vel = 0
-castro.speed_limit = 2.99792458e9
+castro.speed_limit = 1.498962290e9 # 0.05c
 
 ############################################################################################
 # Thermodynamics
@@ -227,9 +227,6 @@ gravity.do_composite_phi_correction = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 ############################################################################################
 # Load balancing
 ############################################################################################
@@ -246,9 +243,6 @@ DistributionMapping.efficiency = 0.9
 
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
-
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -327,4 +321,4 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out

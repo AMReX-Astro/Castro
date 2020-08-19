@@ -474,22 +474,17 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
                          &cell_cons_interp, state_data_extrap,
                          store_in_checkpoint);
-
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
 #ifdef REACTIONS
-  // Components 0:Numspec-1         are      omegadot_i
-  // Component    NumSpec            is      enuc =      (eout-ein)
-  // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
-  // Component    NumSpec+2          is      weights ~ number of RHS calls
+  // Components 0:NumSpec-1                are rho * omegadot_i
+  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
+  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
+  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point, NUM_GROW, NumSpec+3,
+                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -580,6 +575,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -601,6 +597,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -648,15 +645,6 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-  set_x_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,genericBndryFunc);
-  set_y_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,genericBndryFunc);
-  set_z_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill
@@ -676,16 +664,24 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   std::string name_react;
-  for (int i=0; i<NumSpec; ++i)
+  for (int i = 0; i < NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
-      name_react = "omegadot_" + short_spec_names_cxx[i];
+      name_react = "rho_omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
     }
-  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+2, "weights", bc, genericBndryFunc); 
+#if NAUX_NET > 0
+  std::string name_aux;
+  for (int i = 0; i < NumAux; ++i) {
+      set_scalar_bc(bc,phys_bc);
+      replace_inflow_bc(bc);
+      name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
+      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
+  }
+#endif
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "burn_weights", bc, genericBndryFunc); 
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -936,7 +932,14 @@ Castro::variableSetUp ()
   //
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+
+  //
+  // Nuclear energy generation rate
+  //
+  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
+  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
@@ -1040,12 +1043,13 @@ Castro::variableSetUp ()
 #endif 
 
 
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
+#endif
 
   //
   // Problem-specific adds
@@ -1130,33 +1134,6 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
-#ifdef AMREX_USE_CUDA
-  // Set the minimum number of threads needed per
-  // threadblock to do BC fills with CUDA. We will
-  // force this to be 8. The reason is that it is
-  // not otherwise guaranteed for our thread blocks
-  // to be aligned with the grid in such a way that
-  // the synchronization logic in amrex_filccn works
-  // out. We need at least NUM_GROW + 1 threads in a
-  // block for CTU. If we used this minimum of 5, we
-  // would hit cases where this doesn't work since
-  // our blocking_factor is usually a power of 2, and
-  // the thread blocks would not be aligned to guarantee
-  // that the threadblocks containing the ghost zones
-  // contained all of the ghost zones, as well as the
-  // required interior zone. And for reflecting BCs,
-  // we need NUM_GROW * 2 == 8 threads anyway. This logic
-  // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for SDC and for
-  // problems that only have outflow BCs, but the BC
-  // fill is not the expensive part of the algorithm
-  // for our production science problems anyway, so
-  // we ignore this extra cost in favor of safety.
-
-  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-      numBCThreadsMin[dim] = 8;
-  }
-#endif
 
 
 #ifdef TRUE_SDC

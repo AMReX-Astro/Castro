@@ -12,7 +12,7 @@ module bc_ext_fill_module
 #endif
   use amrex_fort_module, only: rt => amrex_real
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
-                                 UEDEN, UEINT, UFS, UTEMP, const_grav, &
+                                 UEDEN, UEINT, UFS, UFX, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
                                  xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE
   use prob_params_module, only: dim
@@ -31,9 +31,8 @@ contains
     use prob_params_module, only : problo, dim
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
-    use network, only: nspec
+    use network, only: nspec, naux
     use model_parser_module, only: idens_model, itemp_model, ispec_model, interpolate_sub
-    use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -50,7 +49,7 @@ contains
     real(rt) :: dens_above, pres_above, temp_above
     real(rt) :: dens_below, pres_below, temp_below
     real(rt) :: dens_base, p_want, pres_zone, A
-    real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), dens_zone
+    real(rt) :: drho, dpdr, temp_zone, eint, X_zone(nspec), aux_zone(naux), dens_zone
 
     integer, parameter :: MAX_ITER = 250
     real(rt), parameter :: TOL = 1.e-8_rt
@@ -77,6 +76,7 @@ contains
                 dens_above = adv(domlo(1),j,k,URHO)
                 temp_above = adv(domlo(1),j,k,UTEMP)
                 X_zone(:) = adv(domlo(1),j,k,UFS:UFS-1+nspec)/dens_above
+                aux_zone(:) = adv(domlo(1),j,k,UFX:UFX-1+naux)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
@@ -85,6 +85,7 @@ contains
                 eos_state%rho = dens_above
                 eos_state%T = temp_above
                 eos_state%xn(:) = X_zone(:)
+                eos_state%aux(:) = aux_zone(:) 
 
                 call eos(eos_input_rt, eos_state)
 
@@ -128,6 +129,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone(:)
+                      eos_state%aux(:) = aux_zone(:)
 
                       call eos(eos_input_rt, eos_state)
 
@@ -193,7 +195,8 @@ contains
                    endif
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
+                   eos_state%xn(:) = X_zone(:)
+                   eos_state%aux(:) = aux_zone(:)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -236,6 +239,7 @@ contains
                 dens_below = adv(domhi(1),j,k,URHO)
                 temp_below = adv(domhi(1),j,k,UTEMP)
                 X_zone(:) = adv(domhi(1),j,k,UFS:UFS-1+nspec)/dens_below
+                aux_zone(:) = adv(domhi(1),j,k,UFX:UFX-1+naux)/dens_below
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_below
@@ -244,6 +248,7 @@ contains
                 eos_state%rho = dens_below
                 eos_state%T = temp_below
                 eos_state%xn(:) = X_zone(:)
+                eos_state%aux(:) = aux_zone(:)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -287,6 +292,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone(:)
+                      eos_state%aux(:) = aux_zone(:)
 
                       call eos(eos_input_rt, eos_state)
 
@@ -352,7 +358,8 @@ contains
                    endif
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
+                   eos_state%xn(:) = X_zone(:)
+                   eos_state%aux(:) = aux_zone(:)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -400,6 +407,7 @@ contains
                 dens_above = adv(i,domlo(2),k,URHO)
                 temp_above = adv(i,domlo(2),k,UTEMP)
                 X_zone(:) = adv(i,domlo(2),k,UFS:UFS-1+nspec)/dens_above
+                aux_zone(:) = adv(i,domlo(2),k,UFX:UFX-1+naux)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
@@ -408,6 +416,7 @@ contains
                 eos_state%rho = dens_above
                 eos_state%T = temp_above
                 eos_state%xn(:) = X_zone(:)
+                eos_state%aux(:) = aux_zone(:)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -452,6 +461,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone(:)
+                      eos_state%aux(:) = aux_zone(:)
 
                       call eos(eos_input_rt, eos_state)
 
@@ -517,7 +527,8 @@ contains
                    endif
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
+                   eos_state%xn(:) = X_zone(:)
+                   eos_state%aux(:) = aux_zone(:)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -570,6 +581,7 @@ contains
                 eos_state%rho = dens_below
                 eos_state%T = temp_below
                 eos_state%xn(:) = X_zone(:)
+                eos_state%aux(:) = aux_zone(:)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -613,6 +625,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone(:)
+                      eos_state%aux(:) = aux_zone(:)
 
                       call eos(eos_input_rt, eos_state)
 
@@ -678,7 +691,8 @@ contains
                    endif
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone
+                   eos_state%xn(:) = X_zone(:)
+                   eos_state%aux(:) = aux_zone(:)
 
                    call eos(eos_input_rt, eos_state)
 
@@ -727,6 +741,7 @@ contains
                 dens_above = adv(i,j,domlo(3),URHO)
                 temp_above = adv(i,j,domlo(3),UTEMP)
                 X_zone(:) = adv(i,j,domlo(3),UFS:UFS-1+nspec)/dens_above
+                aux_zone(:) = adv(i,j,domlo(3),UFX:UFX-1+naux)/dens_above
 
                 ! keep track of the density at the base of the domain
                 dens_base = dens_above
@@ -735,6 +750,7 @@ contains
                 eos_state%rho = dens_above
                 eos_state%T = temp_above
                 eos_state%xn(:) = X_zone(:)
+                eos_state%aux(:) = aux_zone(:)
 
                 call eos(eos_input_rt, eos_state)
 
@@ -777,6 +793,7 @@ contains
                       eos_state%rho = dens_zone
                       eos_state%T = temp_zone
                       eos_state%xn(:) = X_zone(:)
+                      eos_state%aux(:) = aux_zone(:)
 
                       call eos(eos_input_rt, eos_state)
 
@@ -843,6 +860,7 @@ contains
                    eos_state%rho = dens_zone
                    eos_state%T = temp_zone
                    eos_state%xn(:) = X_zone
+                   eos_state%aux(:) = aux_zone
 
                    call eos(eos_input_rt, eos_state)
 
@@ -901,7 +919,6 @@ contains
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 

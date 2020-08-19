@@ -27,13 +27,14 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, s_lo, s_hi, &
                        dx, xlo, xhi)
 
-  use probdata_module, only: rho0, drho0, xn_zone
+  use probdata_module, only: rho0, drho0, xn_zone, init_as_1d
   use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
   use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS
   use prob_params_module, only: center, coord_type, problo
   use amrex_fort_module, only: rt => amrex_real
   use network, only: nspec
   use extern_probin_module, only: eos_gamma
+  use amrex_error_module
 
   implicit none
 
@@ -54,7 +55,24 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
            xx = problo(1) + dx(1) * (dble(i) + HALF)
 
-           dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
+
+           if (init_as_1d == 0) then
+              dist = sqrt((center(1) - xx)**2 + &
+                          (center(2) - yy)**2 + &
+                          (center(3) - zz)**2)
+
+           else if (init_as_1d == 1) then
+              dist = abs(center(1) - xx)
+
+           else if (init_as_1d == 2) then
+              dist = abs(center(2) - yy)
+
+           else if (init_as_1d == 3) then
+              dist = abs(center(3) - zz)
+
+           else
+              call amrex_error("invalid init_as_1d")
+           end if
 
            if (dist <= HALF) then
               state(i,j,k,URHO) = rho0 + drho0 * exp(-16.e0_rt*dist**2) * cos(M_PI*dist)**6

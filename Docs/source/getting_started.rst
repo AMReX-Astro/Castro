@@ -10,6 +10,25 @@ Getting Started
    instructions below describe how to get these dependencies automatically
    with Castro.
 
+
+The compilation process is managed by AMReX and its build system.  The
+general requirements to build Castro are:
+
+ * A C++ 11 (or later) compiler
+
+ * A Fortran 20xx compiler
+
+ * python (>= 3.6)
+
+ * GNU make (>= 3.82)
+
+GCC and the PGI compilers are the main compiler suites used by the
+developers.
+
+For running in parallel, an MPI library is required.  For running on GPUs,
+CUDA 10 or later is required.  More information on parallel builds
+is given in section :ref:`ch:mpiplusx`.
+
 Downloading the Code
 ====================
 
@@ -42,7 +61,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
 
    .. note::
 
-      By default, you will be on the ``master`` branch of the source.
+      By default, you will be on the ``main`` branch of the source.
       Development on Castro (and its primary dependencies, AMReX and
       Microphysics) is done in the ``development`` branch, so you
       should work there if you want the latest source::
@@ -52,7 +71,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
       The Castro team runs nightly regression testing on the
       ``development`` branch, so bugs are usually found and fixed
       relatively quickly, but it is generally less stable than staying
-      on the ``master`` branch.
+      on the ``main`` branch.
 
 #. We recommend setting the ``CASTRO_HOME`` environment
    variable to point to the path name where you have put Castro.
@@ -65,7 +84,7 @@ is installed on your machine—we recommend version 1.7.x or higher.
        git pull --recurse-submodules
 
    The recommended frequency for doing this is monthly, if you are on the
-   stable ``master`` branch of the code; we issue a new release of the code
+   stable ``main`` branch of the code; we issue a new release of the code
    at the beginning of each month.
 
 #. (optional, for developers) If you prefer, you can maintain AMReX and
@@ -137,6 +156,8 @@ build the Sedov problem:
    ``Castro2d.gnu.ex``, which means this is a 2-d version
    of the code compiled with ``COMP = gnu``.
 
+More information on the various build options is given in :ref:`ch:buildsystem`.
+
 Running the Code
 ================
 
@@ -158,19 +179,39 @@ Running the Code
 Visualization of the Results
 ============================
 
-There are several options for visualizing the data. The popular VisIt
-package supports the AMReX file format natively, as does the yt python
-package [2]_. The standard tool used within the AMReX-community is
+There are several options for visualizing the data. The popular
+packages yt, VisIt, and Paraview all support the AMReX file format
+natively [1]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
 
-Please know that we do have a number of conversion routines to other
-formats (such as matlab), but it is hard to describe them all. If you
-would like to display the data in another format, please let us know
-(again, asalmgren@lbl.gov) and we will point you to whatever we have
+
+.. _sec:gettingstartedyt:
+
+yt
+^^
+
+yt is the primary visualization and analysis tool used by the
+developers.  Install yt following their instructions: `Getting yt
+<https://yt-project.org/#getyt>`_ .
+
+You should be able to read in your plotfiles using ``yt.load()`` and
+do any of the plots described in the `yt Cookbook
+<https://yt-project.org/doc/cookbook/index.html>`_ .
+
+Here we do a sample visualization and analysis of the
+plotfiles generated.  This section was generated from a
+Jupyter notebook which can be found in
+``Docs/source/yt_example.ipynb`` in the Castro repo.
+
+.. include:: yt_example.rst
 
 
 Amrvis
 ^^^^^^
+
+Amrvis is a tool developed at LBNL to visualize AMReX data.  It
+provides a simple GUI that allows you to quickly visualize slices and
+the grid structure.
 
 #. Get Amrvis::
 
@@ -236,117 +277,6 @@ Amrvis
    to the default behavior of the DAC in mappuing colors.
 
 
-yt
-^^
-
-yt is a great alternative to using Amrvis for visualization,
-and understands Castro plotfiles well.  Install yt following
-their instructions: `Getting yt <https://yt-project.org/#getyt>`_ .
-
-You should be able to read in your plotfiles using ``yt.load()``
-and do any of the plots described in the `yt Cookbook <https://yt-project.org/doc/cookbook/index.html>`_ .
-
-
-Other Distributed Problem Setups
-================================
-
-There are a number of standard problem setups that come with Castro.
-These can be used as a starting point toward writing your own setup.
-We organize these into subdirectories by broad type (radiation, hydro,
-gravity, etc.): The standard categories and *some* of the included
-problems are:
-
-* ``gravity_tests``:
-
-   * ``DustCollapse``:
-
-     A pressureless cloud collapse that is a standard test problem for
-     gravity. An analytic solution that describes the radius of the
-     sphere as a function of time is found in Colgate and
-     White :cite:`colgwhite`. This problem is also found
-     in the FLASH User’s Guide.
-
-   * ``hydrostatic_adjust``:
-
-     Model a 1-d stellar atmosphere (plane-parallel or
-     spherical/self-gravitating) and dump energy in via an analytic
-     heat source and watch the atmosphere’s hydrostatic state adjust
-     in response. This is the counterpart to the Maestro
-     ``test_basestate`` unit test.
-
-* ``hydro_tests``:
-
-   * ``double_bubble``:
-
-     Initialize 1 or 2 bubbles in a stratified atmosphere (isothermal
-     or isentropic) and allow for the bubbles to have the same or a
-     different :math:`\gamma` from one another / the background
-     atmosphere.  This uses the multigamma EOS.
-
-     An analogous problem is implemented in Maestro.
-
-   * ``HCBubble``:
-
-   * ``KH``:
-
-     A Kelvin-Helmholtz shear instability problem.
-
-   * ``oddeven``:
-
-     A grid-aligned shock hitting a very small density perturbation.
-     This demonstrates the odd-even decoupling problem discussed in
-     :cite:`quirk1997`. This setup serves to test the
-     castro.hybrid_riemann option to hydrodynamics.
-
-   * ``reacting_bubble``:
-
-     A reacting bubble in a stratified white dwarf atmosphere. This
-     problem was featured in the Maestro reaction
-     paper :cite:`maestro:III`.
-
-   * ``RT``:
-
-     A single-model Rayleigh-Taylor instability problem.
-
-   * ``RT_particles``:
-
-   * ``Sedov``:
-
-     The standard Sedov-Taylor blast wave problem. This setup was used
-     in the first Castro paper :cite:`castro_I`.
-
-   * ``Sod``:
-
-     A one-dimensional shock tube setup, including the classic Sod
-     problem. This setup was used in the original Castro paper.
-
-   * ``Sod_stellar``:
-
-     A version of the Sod shock tube for the general stellar equation
-     of state. This setup and the included inputs files was used
-     in :cite:`zingalekatz`.
-
-   * ``toy_convect``:
-
-     A simple nova-like convection problem with an external heating
-     source. This problem shows how to use the model parser to
-     initialize a 1-d atmosphere on the Castro grid, incorporate a
-     custom tagging routine, sponge the fluid above the atmosphere,
-     and write a custom diagnostics routine.
-
-     A Maestro version of this problem setup also exists.
-
-* ``radiation_tests``:
-
-* ``science``:
-
-* ``unit_tests``:
-
 .. [1]
-   Note: previously the radiation
-   solver was distributed separately as ``CastroRadiation.git``,
-   but this has been merged into the main Castro respository
-
-.. [2]
    Each of these will recognize it as the
-   BoxLib format.
+   BoxLib format.

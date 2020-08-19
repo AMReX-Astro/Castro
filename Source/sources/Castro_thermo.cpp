@@ -176,9 +176,11 @@ Castro::fill_thermo_source (Real time, Real dt,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = U(i,j,k,UFS+n)/U(i,j,k,URHO);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = U(i,j,k,UFX+n)/U(i,j,k,URHO);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 
