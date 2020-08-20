@@ -70,4 +70,4 @@ amr.plot_per = 5.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin-det-x.nse.disabled
+amr.probin_file = probin-det-x.nse_disabled

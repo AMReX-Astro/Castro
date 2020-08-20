@@ -7,9 +7,9 @@ import shlex
 from multiprocessing import Pool
 import time
 
-CFL = [0.8, 0.4, 0.2]
-SDC_ITERS = [2, 3]
-DTNUC_E = [1.e200, 0.5, 0.25]
+CFL = [0.5, 0.25]
+SDC_ITERS = [2]
+DTNUC_E = [1.e200, 0.25]
 
 NZONES = [256, 512, 1024] #, 2048, 4096, 8192]
 
