@@ -43,4 +43,6 @@
    ode_max_steps = 1500000
 
    abort_on_failure = F
+
+   rho_nse = 1.e10
 /
