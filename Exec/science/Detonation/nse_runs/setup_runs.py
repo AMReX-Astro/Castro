@@ -15,8 +15,8 @@ NZONES = [256, 512, 1024] #, 2048, 4096, 8192]
 
 job_list = []
 
-NEEDED_SDC_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.SDC.ex"]
-NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.ex"]
+NEEDED_SDC_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.MPI.SMPLSDC.ex"]
+NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.MPI.ex"]
 
 def setup_runs():
 
