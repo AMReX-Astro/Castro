@@ -15,8 +15,9 @@ NZONES = [256, 512, 1024] #, 2048, 4096, 8192]
 
 job_list = []
 
-NEEDED_SDC_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.MPI.SMPLSDC.ex"]
-NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.MPI.ex"]
+COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "nse19.tbl"]
+NEEDED_SDC_FILES = ["Castro1d.gnu.MPI.SMPLSDC.ex"] + COMMON_FILES
+NEEDED_STRANG_FILES = ["Castro1d.gnu.MPI.ex"] + COMMON_FILES
 
 def setup_runs():
 
@@ -60,30 +61,32 @@ def setup_runs():
 
     # setup the simplified SDC runs
     for nz in NZONES:
-        for c in CFL:
-            for niter in SDC_ITERS:
+        for dtn in DTNUC_E:
+            for c in CFL:
+                for niter in SDC_ITERS:
 
-                # make the output directory
-                odir = "det_sdc_iter{}_cfl{}_nzones{}".format(niter, c, nz)
-                os.mkdir(odir)
+                    # make the output directory
+                    odir = "det_sdc_iter{}_cfl{}_dtnuce{}_nzones{}".format(niter, c, dtn, nz)
+                    os.mkdir(odir)
 
-                job_list.append(odir)
+                    job_list.append(odir)
 
-                # dump the metdata file
-                with open("{}/run.meta".format(odir), "w") as meta:
-                    meta.write("cfl = {}\n".format(c))
-                    meta.write("nzones = {}\n".format(nz))
-                    meta.write("integrator = SDC\n")
-                    meta.write("niters = {}\n".format(niter))
+                    # dump the metdata file
+                    with open("{}/run.meta".format(odir), "w") as meta:
+                        meta.write("cfl = {}\n".format(c))
+                        meta.write("nzones = {}\n".format(nz))
+                        meta.write("integrator = SDC\n")
+                        meta.write("niters = {}\n".format(niter))
+                        meta.write("dtnuc_e = {}\n".format(dtn))
 
-                # write the inputs file
-                with open("{}/inputs".format(odir), "w") as inpf:
-                    for line in sdc_template:
-                        inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", str(niter)).replace("@@method@@", "3"))
+                    # write the inputs file
+                    with open("{}/inputs".format(odir), "w") as inpf:
+                        for line in sdc_template:
+                            inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", str(niter)).replace("@@method@@", "3").replace("@@DTNUC_E@@", str(dtn)))
 
-                # copy the remaining files
-                for f in NEEDED_SDC_FILES:
-                    shutil.copy(f, odir)
+                    # copy the remaining files
+                    for f in NEEDED_SDC_FILES:
+                        shutil.copy(f, odir)
 
     return job_list
 
