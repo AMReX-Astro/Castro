@@ -153,8 +153,9 @@ if __name__ == "__main__":
         try:
             if not os.path.isfile(os.path.join(run, "Backtrace.0")):
                 det = Detonation(run)
-                print("{:42} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.nsteps, det.v, det.v_sigma))
-
+                print("{:45} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.nsteps, det.v, det.v_sigma))
+            else:
+                print("{:45} : crashed".format(run))
         except IndexError:
             # the run didn't produce output -- it might still be running?
             print("run {} didn't produce output".format(run))
