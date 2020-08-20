@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import shutil
 import subprocess
@@ -5,16 +7,16 @@ import shlex
 from multiprocessing import Pool
 import time
 
-CFL = [0.8, 0.4, 0.2, 0.1]
+CFL = [0.8, 0.4, 0.2]
 SDC_ITERS = [2, 3]
-DTNUC_E = [1.e200, 0.5]
+DTNUC_E = [1.e200, 0.5, 0.25]
 
-NZONES = [256, 512, 1024, 2048, 4096, 8192]
+NZONES = [256, 512, 1024] #, 2048, 4096, 8192]
 
 job_list = []
 
-NEEDED_SDC_FILES = ["helm_table.dat", "probin.nse_test.sdc", "Castro1d.gnu.SDC.ex"]
-NEEDED_STRANG_FILES = ["helm_table.dat", "probin.nse_test.strang", "Castro1d.gnu.ex"]
+NEEDED_SDC_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.SDC.ex"]
+NEEDED_STRANG_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "Castro1d.gnu.ex"]
 
 def setup_runs():
 
@@ -103,9 +105,9 @@ def do_run(name):
     print("running {}...".format(name))
 
     if "sdc" in name:
-        command = "./Castro1d.gnu.SDC.ex inputs"
+        command = "./Castro1d.gnu.MPI.SMPLSDC.ex inputs"
     else:
-        command = "./Castro1d.gnu.ex inputs"
+        command = "./Castro1d.gnu.MPI.ex inputs"
 
     cwd = os.getcwd()
     os.chdir(name)
@@ -128,5 +130,5 @@ if __name__ == "__main__":
     job_list = setup_runs()
 
     # do the runs
-    p = Pool(16)
+    p = Pool(8)
     p.map(do_run, job_list)

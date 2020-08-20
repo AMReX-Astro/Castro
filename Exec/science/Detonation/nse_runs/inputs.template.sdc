@@ -40,6 +40,10 @@ castro.cfl            = @@CFL@@     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
+castro.dtnuc_e = @@DTNUC_E@@
+castro.use_retry = 1
+castro.max_subcycles = 32
+
 castro.plot_per_is_exact = 1
 
 # DIAGNOSTICS & VERBOSITY
@@ -66,4 +70,4 @@ amr.plot_per = 5.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.nse_test.sdc
+amr.probin_file = probin-det-x.nse.disabled
