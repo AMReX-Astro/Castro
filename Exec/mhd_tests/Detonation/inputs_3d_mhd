@@ -6,8 +6,8 @@ stop_time =  2.5
 geometry.is_periodic = 1 1 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 0.5  0.015625  1.0
-amr.n_cell           = 128   4   256
+geometry.prob_hi     = 4.e4  2500  2500
+amr.n_cell           = 256   16    16
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -20,8 +20,7 @@ castro.hi_bc       =  0   0   4
 
 # WHICH PHYSICS
 castro.do_hydro = 1
-castro.do_react = 0
-castro.do_grav = 1
+castro.do_react = 1
 
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
@@ -35,14 +34,10 @@ castro.riemann_solver = 0
 
 castro.small_temp     = 1.e7
 
-gravity.gravity_type = ConstantGrav
-gravity.const_grav   = -1.0
-castro.grav_source_type = 1
-
 # TIME STEP CONTROL
-castro.cfl            = 0.8     # cfl number for hyperbolic system
-castro.init_shrink    = 0.3     # scale back initial timestep
-castro.change_max     = 1.1    # scale back initial timestep
+castro.cfl            = 0.5     # cfl number for hyperbolic system
+castro.init_shrink    = 0.1     # scale back initial timestep
+castro.change_max     = 1.05    # scale back initial timestep
 
 
 # DIAGNOSTICS & VERBOSITY

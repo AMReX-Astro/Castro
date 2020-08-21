@@ -1,6 +1,6 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
-  use probdata_module, only: T_l, T_r, dens, idir, w_T, center_T, &
-                             xn, smallx, vel, grav_acceleration, &
+  use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
+                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
@@ -17,9 +17,37 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   type(eos_t) :: eos_state
 
   call probdata_init(name, namlen)
-  
+
+  ! get the species indices
+  ihe4 = network_species_index("helium-4")
+  ic12 = network_species_index("carbon-12")
+  io16 = network_species_index("oxygen-16")
+
+  if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
+     call castro_error("ERROR: species indices not found")
+  endif
+
+  ! make sure that the carbon fraction falls between 0 and 1
+  if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
+     call castro_error("ERROR: cfrac must fall between 0 and 1")
+  endif
+
+  ! make sure that the oxygen fraction falls between 0 and 1
+  if (ofrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
+     call castro_error("ERROR: ofrac must fall between 0 and 1")
+  endif
+
+  ! make sure that the C/O fraction sums to no more than 1
+  if (cfrac + ofrac > 1.e0_rt) then
+     call castro_error("ERROR: cfrac + ofrac cannot exceed 1.")
+  end if
+
   ! set the default mass fractions
-  xn(:) = 1.e0_rt
+
+  xn(:) = smallx
+  xn(ic12) = max(cfrac, smallx)
+  xn(io16) = max(ofrac, smallx)
+  xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
 
   ! Set the ambient material
 

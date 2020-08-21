@@ -23,12 +23,10 @@ CASTRO_HOME = ../../..
 GPU_COMPATIBLE_PROBLEM = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-EOS_DIR     := gamma_law_general
+EOS_DIR     := helmholtz
 
 # This sets the network directory in Castro/Networks
-NETWORK_DIR := general_null
-NETWORK_INPUTS = gammalaw.net
-
+NETWORK_DIR := iso7
 
 Bpack   := ./Make.package
 Blocs   := .

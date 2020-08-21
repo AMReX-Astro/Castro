@@ -47,30 +47,4 @@ subroutine ca_ext_src(lo, hi, &
 
   !$gpu
 
-  ! Add a mock gravitational acceleration which points to the center
-  ! with uniform magnitude on either side of the center.
-
-  c_T = problo(1) + center_T * (probhi(1) - problo(1))
-
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
-
-           if (x > c_T) then
-              g = -grav_acceleration
-           else
-              g = grav_acceleration
-           end if
-
-           src(i,j,k,UMX) = new_state(i,j,k,URHO) * g
-
-           ! Energy source is v . momentum source
-
-           src(i,j,k,UEDEN) = new_state(i,j,k,UMX) * g
-
-        end do
-     end do
-  end do
-
 end subroutine ca_ext_src
