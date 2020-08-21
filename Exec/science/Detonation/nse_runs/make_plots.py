@@ -153,7 +153,7 @@ if __name__ == "__main__":
                 runs.append(Detonation(run))
         except IndexError:
             # the run didn't produce output -- it might still be running?
-            print("run {} didn't produce output".format(run))
+            print(f"run {run} didn't produce output")
 
     runs.sort()
     print(runs)
@@ -187,12 +187,12 @@ if __name__ == "__main__":
         ax.legend(frameon=False)
         ax.set_xlabel("CFL")
         ax.set_ylabel("velocity (cm/s)")
-        ax.set_title("number of zones: {}".format(nz))
+        ax.set_title(f"number of zones: {nz}")
 
-        fig.savefig("speed_vs_cfl_{}.png".format(nz))
+        fig.savefig(f"speed_vs_cfl_{nz}.png")
 
     # make a plot of speed vs. resolution, grouped by Strang, SDC2,
-    # SDC3, SDC4 for CFL = 0.8
+    # SDC3, SDC4 grouped by CFL
     cfls = set([q.cfl for q in runs])
     for cfl in cfls:
         strang = [q for q in runs if q.integrator == "Strang" and q.cfl == cfl and q.dtnuce == False]
@@ -223,37 +223,38 @@ if __name__ == "__main__":
         ax.legend(frameon=False)
         ax.set_xlabel("# of zones")
         ax.set_ylabel("velocity (cm/s)")
-        ax.set_title("CFL = {}".format(cfl))
+        ax.set_title(f"CFL = {cfl}")
 
-        fig.savefig("speed_vs_nzones_cfl{}.png".format(cfl))
+        fig.savefig(f"speed_vs_nzones_cfl{cfl}.png")
 
     # make a plot of T, enuc vs. x for different Strang / SDC CFL
-    strang = [q for q in runs if q.integrator == "Strang" and q.nzones == 1024]
-    sdc = [q for q in runs if q.integrator == "SDC" and q.nzones == 1024 and q.niters == 2]
+    for nz in nzones:
+        strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz]
+        sdc = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 2]
 
-    for dset, title, fname in [(strang, "Strang", "strang"), (sdc, "SDC (niters = 2)", "sdc_niter2")]:
+        for dset, title, fname in [(strang, "Strang", "strang"), (sdc, "SDC (niters = 2)", "sdc_niter2")]:
 
-        fig, axs = plt.subplots(2, 1, figsize=(7, 10), constrained_layout=True)
+            fig, axs = plt.subplots(2, 1, figsize=(7, 10), constrained_layout=True)
 
-        ax1 = axs.flatten()[0]
-        ax2 = axs.flatten()[1]
+            ax1 = axs.flatten()[0]
+            ax2 = axs.flatten()[1]
 
-        for p in dset:
-            ax1.plot(p.data.x, p.data.T, label="CFL = {}".format(p.cfl))
-            ax2.plot(p.data.x, np.abs(p.data.enuc), label="CFL = {}".format(p.cfl))
+            for p in dset:
+                ax1.plot(p.data.x, p.data.T, label=f"CFL = {p.cfl}; dtnuc_e = {p.dtnuce}")
+                ax2.plot(p.data.x, np.abs(p.data.enuc), label=f"CFL = {p.cfl}; dtnuc_e = {p.dtnuce}")
 
-        ax1.legend(frameon=False)
-        ax1.set_ylabel("T [K]")
-        ax1.set_yscale("log")
+            ax1.legend(frameon=False)
+            ax1.set_ylabel("T [K]")
+            ax1.set_yscale("log")
 
-        ax2.legend(frameon=False)
-        ax2.set_xlabel("x [cm]")
-        ax2.set_ylabel("enuc [erg/g/s]")
-        ax2.set_yscale("log")
-        ax2.set_ylim(1.e14)
+            ax2.legend(frameon=False)
+            ax2.set_xlabel("x [cm]")
+            ax2.set_ylabel("enuc [erg/g/s]")
+            ax2.set_yscale("log")
+            ax2.set_ylim(1.e14)
 
-        fig.suptitle("{}, nzones = 1024".format(title))
-        fig.savefig("profile_{}_1024.png".format(fname))
+            fig.suptitle(f"{title}, nzones = {nz}")
+            fig.savefig(f"profile_{fname}_{nz}.png")
 
     # make a plot of T, enuc vs. x for different SDC CFL
 
