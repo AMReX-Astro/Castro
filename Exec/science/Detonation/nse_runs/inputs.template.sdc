@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 100000
-stop_time =  12.e-5
+stop_time =  6.e-5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0        0    0
-geometry.prob_hi     = 6.5536e5
+geometry.prob_hi     = 1.6384e5
 amr.n_cell           = @@NZONES@@
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<

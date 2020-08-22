@@ -7,11 +7,11 @@ import shlex
 from multiprocessing import Pool
 import time
 
-CFL = [0.5] #, 0.25, 0.1]
-SDC_ITERS = [2]
+CFL = [0.5, 0.25, 0.1]
+SDC_ITERS = [2, 3]
 DTNUC_E = [1.e200, 0.25, 0.1]
 
-NZONES = [512, 1024, 2048, 4096] #, 8192]
+NZONES = [256, 512, 1024, 2048] #, 8192]
 
 job_list = []
 
@@ -31,6 +31,10 @@ def setup_runs():
     for nz in NZONES:
         for dtn in DTNUC_E:
             for c in CFL:
+
+                # don't do all the CFLs when using the nuc energy dt limiter
+                if dtn < 1.0 and c != CFL[0]:
+                    continue
 
                 # make the output directory
                 odir = "det_strang_cfl{}_dtnuce{}_nzones{}".format(c, dtn, nz)
@@ -60,6 +64,10 @@ def setup_runs():
         for dtn in DTNUC_E:
             for c in CFL:
                 for niter in SDC_ITERS:
+
+                    # don't do all the CFLs when using the nuc energy dt limiter
+                    if dtn < 1.0 and c != CFL[0]:
+                        continue
 
                     # make the output directory
                     odir = "det_sdc_iter{}_cfl{}_dtnuce{}_nzones{}".format(niter, c, dtn, nz)

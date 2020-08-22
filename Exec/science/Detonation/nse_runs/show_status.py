@@ -38,7 +38,10 @@ class Profile:
         # our strategy here assumes that the hot ash is in the early
         # part of the profile.  We then find the index of the first
         # point where T drops below T_0
-        idx = np.where(self.T < T_0)[0][0]
+        try:
+            idx = np.where(self.T < T_0)[0][0]
+        except IndexError:
+            idx = len(self.T)-1
 
         T1 = self.T[idx-1]
         x1 = self.x[idx-1]
@@ -60,6 +63,7 @@ class Detonation:
         self.integrator = None
         self.niters = None
         self.dtnuce = None
+        self.has_started = False
 
         # read the meta data
         with open(os.path.join(name, "run.meta")) as mf:
@@ -84,11 +88,21 @@ class Detonation:
         os.chdir(cwd)
 
         # precompute the velocity and the data profiles
-        self.v, self.v_sigma = self.get_velocity()
-        self.data = self.get_data()
+        if len(self.files) >= 3:
+            self.v, self.v_sigma = self.get_velocity()
+        else:
+            self.v, self.v_sigma = 0.0, 0.0
 
-        self.end_time = self.data.time
-        self.nsteps = int(self.files[-1].split("plt")[1])
+        if len(self.files) >= 1:
+            self.data = self.get_data()
+
+            self.end_time = self.data.time
+            self.nsteps = int(self.files[-1].split("plt")[1])
+            self.has_started = True
+        else:
+            self.end_time = -1.0
+            self.nsteps = -1.0
+            self.has_started = False
 
     def __repr__(self):
         return self.name
@@ -150,12 +164,16 @@ if __name__ == "__main__":
     run_dirs = glob.glob("det_s*")
     runs = []
     for run in sorted(run_dirs):
-        try:
-            if not os.path.isfile(os.path.join(run, "Backtrace.0")):
-                det = Detonation(run)
+        #try:
+        if not os.path.isfile(os.path.join(run, "Backtrace.0")):
+            det = Detonation(run)
+            if det.has_started:
                 print("{:45} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.nsteps, det.v, det.v_sigma))
             else:
-                print("{:45} : crashed".format(run))
-        except IndexError:
-            # the run didn't produce output -- it might still be running?
-            print("run {} didn't produce output".format(run))
+                print("{:45} : has not started".format(run))
+
+        else:
+            print("{:45} : crashed".format(run))
+        #except IndexError:
+        #    # the run didn't produce output -- it might still be running?
+        #    print("run {} didn't produce output".format(run))
