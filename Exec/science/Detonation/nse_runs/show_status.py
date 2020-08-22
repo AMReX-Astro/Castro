@@ -3,6 +3,7 @@
 import glob
 import os
 import operator
+import tqdm
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -64,6 +65,7 @@ class Detonation:
         self.niters = None
         self.dtnuce = None
         self.has_started = False
+        self.crashed = False
 
         # read the meta data
         with open(os.path.join(name, "run.meta")) as mf:
@@ -74,14 +76,19 @@ class Detonation:
                 elif k == "nzones":
                     self.nzones = int(v)
                 elif k == "integrator":
-                    self.integrator = v
+                    self.integrator = v.strip()
                 elif k == "niters":
                     self.niters = int(v)
                 elif k == "dtnuc_e":
-                    self.dtnuc_e = float(v)
+                    self.dtnuce = float(v)
+
+        cwd = os.getcwd()
+
+        # did we crash?
+        if os.path.isfile("Backtrace.0"):
+            self.crashed = True
 
         # find all the output (plot) files
-        cwd = os.getcwd()
         os.chdir(name)
         self.files = glob.glob("*plt?????")
         self.files.sort()
@@ -110,18 +117,36 @@ class Detonation:
     def __lt__(self, other):
         """sort by CFL number and resolution and then # of SDC
         iterations"""
-        if self.cfl == other.cfl:
-            if self.nzones == other.nzones:
-                if self.niters is None:
-                    return True
-                elif other.niters is None:
-                    return False
+
+        # first sort on integrator
+        if self.integrator == other.integrator:
+
+            # next sort on iterators
+            if self.niters == other.niters:
+
+                # next sort on CFL
+                if self.cfl == other.cfl:
+
+                    # next sort on dtnuce
+                    if self.dtnuce == other.dtnuce:
+
+                        # finally sort on the number of zones
+                        return self.nzones < other.nzones
+
+                    else:
+                        return self.dtnuce < other.dtnuce
+
                 else:
-                    return self.niters < other.niters
+                    return self.cfl < other.cfl
+
             else:
-                return self.nzones < other.nzones
+                return self.niters < other.niters
+
         else:
-            return self.cfl < other.cfl
+            # strang comes first
+            if self.integrator == "Strang":
+                return True
+            return False
 
     def get_velocity(self):
         """look at the last 2 plotfiles and estimate the velocity by
@@ -162,18 +187,15 @@ if __name__ == "__main__":
 
     # get all the data
     run_dirs = glob.glob("det_s*")
-    runs = []
-    for run in sorted(run_dirs):
-        #try:
-        if not os.path.isfile(os.path.join(run, "Backtrace.0")):
-            det = Detonation(run)
-            if det.has_started:
-                print("{:45} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(run, det.end_time, det.nsteps, det.v, det.v_sigma))
-            else:
-                print("{:45} : has not started".format(run))
+    dets = []
+    for run in tqdm.tqdm(run_dirs):
+        dets.append(Detonation(run))
 
+    for det in sorted(dets):
+
+        if det.crashed:
+            print("{:45} : crashed".format(det.name))
+        elif det.has_started:
+            print("{:45} : t = {:8.5f}, # of steps = {:5}, v = {:15.8g} +/- {:15.8g}".format(det.name, det.end_time, det.nsteps, det.v, det.v_sigma))
         else:
-            print("{:45} : crashed".format(run))
-        #except IndexError:
-        #    # the run didn't produce output -- it might still be running?
-        #    print("run {} didn't produce output".format(run))
+            print("{:45} : has not started".format(det.name))
