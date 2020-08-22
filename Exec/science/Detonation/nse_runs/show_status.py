@@ -83,13 +83,13 @@ class Detonation:
                     self.dtnuce = float(v)
 
         cwd = os.getcwd()
+        os.chdir(name)
 
         # did we crash?
         if os.path.isfile("Backtrace.0"):
             self.crashed = True
 
         # find all the output (plot) files
-        os.chdir(name)
         self.files = glob.glob("*plt?????")
         self.files.sort()
         os.chdir(cwd)
