@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     # make a plot of speed vs. resolution, grouped by Strang, SDC2,
     # SDC3, SDC4 grouped by CFL
-    cfls = set([q.cfl for q in runs])
+    cfls = {q.cfl for q in runs}
     for cfl in cfls:
         strang = [q for q in runs if q.integrator == "Strang" and q.cfl == cfl and q.dtnuce == False]
         # CFL doesn't matter for dtnuc_e
@@ -100,9 +100,12 @@ if __name__ == "__main__":
     # make a plot of T, enuc vs. x for different Strang / SDC CFL
     for nz in nzones:
         strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz]
-        sdc = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 2]
+        sdc2 = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 2]
+        sdc3 = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 3]
 
-        for dset, title, fname in [(strang, "Strang", "strang"), (sdc, "SDC (niters = 2)", "sdc_niter2")]:
+        for dset, title, fname in [(strang, "Strang", "strang"),
+                                   (sdc2, "SDC (niters = 2)", "sdc_niter2"),
+                                   (sdc3, "SDC (niters = 3)", "sdc_niter3")]:
 
             fig, axs = plt.subplots(2, 1, figsize=(7, 10), constrained_layout=True)
 
