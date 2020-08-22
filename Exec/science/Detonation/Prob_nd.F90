@@ -137,8 +137,9 @@ subroutine ca_initdata(lo, hi, &
            eos_state % rho = state(i,j,k,URHO)
            eos_state % T = state(i,j,k,UTEMP)
            eos_state % xn(:) = xn(:)
+#ifdef NSE_THERMO
            eos_state % aux(:) = aux(:)
-
+#endif
            call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))
