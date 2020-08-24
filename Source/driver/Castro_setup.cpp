@@ -1048,7 +1048,6 @@ Castro::variableSetUp ()
   }
 #endif
 
-
   //
   // Problem-specific adds
 #include <Problem_Derives.H>

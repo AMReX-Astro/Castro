@@ -34,9 +34,15 @@
    call_eos_in_rhs = T
    do_constant_volume_burn = T
 
-   rtol_spec = 1.e-10
-   rtol_enuc = 1.e-10
-   rtol_temp = 1.e-10
-   use_tables = F
+   rtol_spec = 1.e-6
+   atol_spec = 1.e-6
+   rtol_enuc = 1.e-6
+   rtol_temp = 1.e-5
+
    jacobian = 2
+   ode_max_steps = 1500000
+
+   abort_on_failure = F
+
+   rho_nse = 1.e10
 /

@@ -623,7 +623,7 @@ public:
     void computeNewDt (int                   finest_level,
                        int                   /*subcycle*/,
                        amrex::Vector<int>&           n_cycle,
-                       const amrex::Vector<amrex::IntVect>& ref_ratio,
+                       const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                        amrex::Vector<amrex::Real>&          dt_min,
                        amrex::Vector<amrex::Real>&          dt_level,
                        amrex::Real                  stop_time,
