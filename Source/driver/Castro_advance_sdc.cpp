@@ -46,7 +46,7 @@ Castro::do_advance_sdc (Real time,
 
   // Perform initialization steps.
 
-  initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
+  initialize_do_advance(time);
 
   // Check for NaN's.
 
@@ -283,7 +283,7 @@ Castro::do_advance_sdc (Real time,
     AmrLevel::FillPatch(*this, new_source, new_source.nGrow(), cur_time, Source_Type, 0, NSRC);
   }
 
-  finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
+  finalize_do_advance();
 
 #ifdef REACTIONS
   // store the reaction information as well.  Note: this will be

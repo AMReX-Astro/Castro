@@ -1427,14 +1427,14 @@ Castro::initialTimeStep ()
     }
     else
     {
-       init_dt = init_shrink*estTimeStep(dummy_dt);
+       init_dt = init_shrink*estTimeStep();
     }
 
     return init_dt;
 }
 
 Real
-Castro::estTimeStep (Real dt_old)
+Castro::estTimeStep ()
 {
     BL_PROFILE("Castro::estTimeStep()");
 
@@ -1609,14 +1609,14 @@ Castro::estTimeStep (Real dt_old)
 }
 
 void
-Castro::computeNewDt (int                   finest_level,
-                      int                   sub_cycle,
+Castro::computeNewDt (int                    finest_level,
+                      int                    /*sub_cycle*/,
                       Vector<int>&           n_cycle,
-                      const Vector<IntVect>& ref_ratio,
+                      const Vector<IntVect>& /*ref_ratio*/,
                       Vector<Real>&          dt_min,
                       Vector<Real>&          dt_level,
-                      Real                  stop_time,
-                      int                   post_regrid_flag)
+                      Real                   stop_time,
+                      int                    post_regrid_flag)
 {
     BL_PROFILE("Castro::computeNewDt()");
 
@@ -1632,7 +1632,7 @@ Castro::computeNewDt (int                   finest_level,
     for (int i = 0; i <= finest_level; i++)
     {
         Castro& adv_level = getLevel(i);
-        dt_min[i] = adv_level.estTimeStep(dt_level[i]);
+        dt_min[i] = adv_level.estTimeStep();
     }
 
     if (fixed_dt <= 0.0)
@@ -1820,9 +1820,9 @@ Castro::computeNewDt (int                   finest_level,
 
 void
 Castro::computeInitialDt (int                   finest_level,
-                          int                   sub_cycle,
+                          int                   /*subcycle*/,
                           Vector<int>&           n_cycle,
-                          const Vector<IntVect>& ref_ratio,
+                          const Vector<IntVect>& /*ref_ratio*/,
                           Vector<Real>&          dt_level,
                           Real                  stop_time)
 {
@@ -1867,13 +1867,13 @@ Castro::computeInitialDt (int                   finest_level,
 }
 
 void
-Castro::post_timestep (int iteration)
+Castro::post_timestep (int iteration_local)
 {
     BL_PROFILE("Castro::post_timestep()");
 
     // Pass some information about the state of the simulation to a Fortran module.
 
-    ca_set_amr_info(level, iteration, -1, -1.0, -1.0);
+    ca_set_amr_info(level, iteration_local, -1, -1.0, -1.0);
 
     //
     // Integration cycle on fine level grids is complete
@@ -1960,8 +1960,8 @@ Castro::post_timestep (int iteration)
 
         if (sum_per > 0.0) {
 
-          const int num_per_old = floor((cumtime - dtlev) / sum_per);
-          const int num_per_new = floor((cumtime        ) / sum_per);
+          const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
@@ -1995,9 +1995,9 @@ Castro::post_timestep (int iteration)
         //
         // Don't redistribute/timestamp on the final subiteration except on the coarsest grid.
         //
-        if (iteration < ncycle || level == 0)
+        if (iteration_local < ncycle || level == 0)
         {
-            int ngrow = (level == 0) ? 0 : iteration;
+            int ngrow = (level == 0) ? 0 : iteration_local;
 
             TracerPC->Redistribute(level, parent->finestLevel(), ngrow);
 
@@ -2225,7 +2225,7 @@ Castro::post_regrid (int lbase,
 }
 
 void
-Castro::post_init (Real stop_time)
+Castro::post_init (Real /*stop_time*/)
 {
     BL_PROFILE("Castro::post_init()");
 
@@ -2345,8 +2345,8 @@ Castro::post_init (Real stop_time)
 
         if (sum_per > 0.0) {
 
-          const int num_per_old = floor((cumtime - dtlev) / sum_per);
-          const int num_per_new = floor((cumtime        ) / sum_per);
+          const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
@@ -3129,11 +3129,11 @@ Castro::removeOldData()
 
 void
 Castro::errorEst (TagBoxArray& tags,
-                  int          clearval,
-                  int          tagval,
+                  int          /*clearval*/,
+                  int          /*tagval*/,
                   Real         time,
-                  int          n_error_buf,
-                  int          ngrow)
+                  int          /*n_error_buf*/,
+                  int          /*ngrow*/)
 {
     BL_PROFILE("Castro::errorEst()");
 
@@ -3209,7 +3209,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
 
 void
-Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
+Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
 {
 
     BL_PROFILE("Castro::apply_tagging_func()");
@@ -3217,7 +3217,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
     const auto dx     = geom.CellSizeArray();
     const auto problo = geom.ProbLoArray();
 
-    auto mf = derive(err_list_names[j], time, err_list_ng[j]);
+    auto mf = derive(err_list_names[jcomp], time, err_list_ng[jcomp]);
 
     BL_ASSERT(mf);
 
@@ -3238,7 +3238,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
 
         int lev = level;
 
-        if (err_list_names[j] == "density") {
+        if (err_list_names[jcomp] == "density") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -3249,7 +3249,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             tagval, clearval, time, lev);
             });
         }
-        else if (err_list_names[j] == "Temp") {
+        else if (err_list_names[jcomp] == "Temp") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -3260,7 +3260,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                              tagval, clearval, time, lev);
             });
         }
-        else if (err_list_names[j] == "pressure") {
+        else if (err_list_names[jcomp] == "pressure") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {                
@@ -3271,7 +3271,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                               tagval, clearval, time, lev);
             });
         }
-        else if (err_list_names[j] == "x_velocity" || err_list_names[j] == "y_velocity" || err_list_names[j] == "z_velocity") {
+        else if (err_list_names[jcomp] == "x_velocity" || err_list_names[jcomp] == "y_velocity" || err_list_names[jcomp] == "z_velocity") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -3283,7 +3283,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
             });
         }
 #ifdef REACTIONS
-        else if (err_list_names[j] == "t_sound_t_enuc") {
+        else if (err_list_names[jcomp] == "t_sound_t_enuc") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -3294,7 +3294,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
                             tagval, clearval, time, lev);
             });
         }
-        else if (err_list_names[j] == "enuc") {
+        else if (err_list_names[jcomp] == "enuc") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {
@@ -3307,7 +3307,7 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int j)
         }
 #endif
 #ifdef RADIATION
-        else if (err_list_names[j] == "rad") {
+        else if (err_list_names[jcomp] == "rad") {
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
             {

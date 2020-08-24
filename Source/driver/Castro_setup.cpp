@@ -250,9 +250,6 @@ Castro::variableSetUp ()
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
-  int abort_on_failure;
-  ca_get_abort_on_failure(&abort_on_failure);
-
 #ifdef TRUE_SDC
   // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
   if (use_retry) {
