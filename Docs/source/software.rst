@@ -322,7 +322,16 @@ The current ``StateData`` names Castro carries are:
    and for reaction timestep limiting (this in particular needs the
    data stored in checkpoints for continuity of timestepping upon restart).
 
--  ``SDC_React_Type`` : this is used with the SDC
+- ``Mag_Type_x`` : this is defined for MHD and stores the
+   face-centered (on x-faces) x-component of the magnetic field.
+
+- ``Mag_Type_y`` : this is defined for MHD and stores the
+   face-centered (on y-faces) y-component of the magnetic field.
+
+- ``Mag_Type_z`` : this is defined for MHD and stores the
+   face-centered (on z-faces) z-component of the magnetic field.
+
+-  ``Simplified_SDC_React_Type`` : this is used with the SDC
    time-advancement algorithm. This stores the ``NQSRC`` terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
