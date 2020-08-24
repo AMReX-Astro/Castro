@@ -760,45 +760,11 @@ The simplified-SDC version of the main advance loop looks similar to the Strang 
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update. So the only difference happens in step 2 of the
 flowchart outlined in § \ `2 <#flow:sec:nosdc>`__. In particular this
-step now proceeds as:
+step now proceeds as a loop over ``do_advance_ctu``.  The differences
+with the Strang CTU version are highlighted below.
 
-2. *Advancement*
 
-   Loop :math:`k` from 0 to ``sdc_iters``, doing:
-
-   A. *Hydrodynamics advance*: This is done through
-      ``do_advance``—in Simplified SDC mode, this only updates the hydrodynamics,
-      including the non-reacting sources. However, in predicting the
-      interface states, we use an iteratively-lagged approximation to the
-      reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
-
-      The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
-      stored in ``hydro_sources`` (the flux divergence)
-      and ``old_sources`` and ``new_sources``.
-
-   B. *React*: Reactions are integrated with the advective
-      update as a source—this way the reactions see the
-      time-evolution due to advection as we integrate:
-
-      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
-
-      The advective source includes both the divergence of the fluxes
-      as well as the time-centered source terms. This is computed by
-      ``sum_of_sources()`` by summing over all source components
-      ``hydro_source``, ``old_sources``, and
-      ``new_sources``.
-
-   C. *Clean state*: This ensures that the thermodynamic state is
-      valid and consistent.
-
-   D. *Construct reaction source terms*: Construct the change
-      in the primitive variables due only to reactions over the
-      timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
-      iteration.
-
-Note that is it likely that some of the other updates (like any
-non-advective auxiliary quantity updates) should be inside the Simplified-SDC
-loop, but presently they are only done at the end. Also note that the
+Note that the
 radiation implicit update is not done as part of the Simplified-SDC iterations.
 
 Simplified_SDC Hydro Advance
@@ -833,17 +799,43 @@ summarize those differences.
 
 #. *Construct the hydro update* [``construct_hydro_source()``]
 
-   The primitive variable source terms that are used for the
-   prediction include the contribution due to reactions (from the last
-   iteration). This addition is done in ``construct_ctu_hydro_source()``
-   after the source terms are converted to primitive variables.
+   In predicting the interface states, we use an iteratively-lagged
+   approximation to the reaction source on the primitive variables,
+   :math:`\mathcal{I}_q^{k-1}`.  This addition is done in
+   ``construct_ctu_hydro_source()`` after the source terms are
+   converted to primitive variables.
 
-#. *Update radial data and center of mass for monopole gravity*
+   The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
+   stored in ``hydro_sources`` (the flux divergence)
+   and ``old_sources`` and ``new_sources``.
 
 #. *Clean State* [``clean_state()``]
 
+#. *Update radial data and center of mass for monopole gravity*
+
 #. *Correct the source terms with the n+1 contribution*
-   [``construct_new_gravity()``, ``do_new_sources`` ]
+   [``construct_new_gravity()``, ``do_new_sources()`` ]
+
+#. *React* :math:`\Delta t` [``react_state()``]
+
+   We burn for the full :math:`\Delta t` including the advective
+   update as a source, integrating
+
+      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+
+   The advective source includes both the divergence of the fluxes
+   as well as the time-centered source terms. This is computed by
+   ``sum_of_sources()`` by summing over all source components
+   ``hydro_source``, ``old_sources``, and
+   ``new_sources``.
+
+#. *Clean state*: This ensures that the thermodynamic state is
+   valid and consistent.
+
+#. *Construct reaction source terms*: Construct the change
+   in the primitive variables due only to reactions over the
+   timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
+   iteration.
 
 #. *Finalize* [``finalize_do_advance()``]
 
