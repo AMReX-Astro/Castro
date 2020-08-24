@@ -1821,7 +1821,7 @@ void
 Castro::computeInitialDt (int                   finest_level,
                           int                   /*subcycle*/,
                           Vector<int>&           n_cycle,
-                          const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
+                          const Vector<IntVect>& /*ref_ratio*/,
                           Vector<Real>&          dt_level,
                           Real                  stop_time)
 {
@@ -2188,6 +2188,39 @@ Castro::post_regrid (int lbase,
 
     }
 #endif
+
+    // Ensure regridded data is valid. This addresses the fact that data
+    // on this level that was interpolated from a coarser level may not
+    // respect the consistency between certain state variables
+    // (e.g. UEINT and UEDEN) that we demand in every zone.
+
+    if (state[State_Type].hasOldData()) {
+
+        MultiFab& S_old = get_old_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_old_data(Mag_Type_x),
+                    get_old_data(Mag_Type_y),
+                    get_old_data(Mag_Type_z),
+#endif
+                    S_old, state[State_Type].prevTime(), S_old.nGrow());
+
+    }
+
+    if (state[State_Type].hasNewData()) {
+
+        MultiFab& S_new = get_new_data(State_Type);
+
+        clean_state(
+#ifdef MHD
+                    get_new_data(Mag_Type_x),
+                    get_new_data(Mag_Type_y),
+                    get_new_data(Mag_Type_z),
+#endif
+                    S_new, state[State_Type].curTime(), S_new.nGrow());
+
+    }
 }
 
 void
@@ -2312,7 +2345,7 @@ Castro::post_init (Real /*stop_time*/)
         if (sum_per > 0.0) {
 
           const int num_per_old = static_cast<int>(std::floor((cumtime - dtlev) / sum_per));
-          const int num_per_new = static_cast<int>(floor((cumtime        ) / sum_per));
+          const int num_per_new = static_cast<int>(std::floor((cumtime        ) / sum_per));
 
           if (num_per_old != num_per_new) {
             sum_per_test = true;
