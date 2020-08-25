@@ -1558,6 +1558,8 @@ Castro::estTimeStep ()
 
     if (do_react) {
 
+        const Real* dx = geom.CellSize();
+
         // Compute burning-limited timestep.
 
 #ifdef _OPENMP
