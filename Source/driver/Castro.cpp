@@ -1447,8 +1447,6 @@ Castro::estTimeStep ()
 
     Real time = state[State_Type].curTime();
 
-    const Real* dx = geom.CellSize();
-
     std::string limiter = "castro.max_dt";
 
     // Start the hydro with the max_dt value, but divide by CFL
@@ -1462,6 +1460,8 @@ Castro::estTimeStep ()
     {
 
 #ifdef RADIATION
+        const Real* dx = geom.CellSize();
+
         if (Radiation::rad_hydro_combined) {
 
             const MultiFab& stateMF = get_new_data(State_Type);
@@ -2011,8 +2011,6 @@ Castro::post_restart ()
 {
    BL_PROFILE("Castro::post_restart()");
 
-   Real cur_time = state[State_Type].curTime();
-
 #ifdef AMREX_PARTICLES
    ParticlePostRestart(parent->theRestartFile());
 #endif
@@ -2020,6 +2018,8 @@ Castro::post_restart ()
 #ifdef GRAVITY
     if (do_grav)
     {
+        Real cur_time = state[State_Type].curTime();
+
         if (level == 0)
         {
             // Passing numpts_1d at level 0
@@ -2071,6 +2071,7 @@ Castro::post_restart ()
     MultiFab& phirot_new = get_new_data(PhiRot_Type);
     MultiFab& S_new = get_new_data(State_Type);
     if (do_rotation) {
+      Real cur_time = state[State_Type].curTime();
       fill_rotation_field(phirot_new, S_new, cur_time);
     }  else {
       phirot_new.setVal(0.0);
@@ -2595,7 +2596,6 @@ Castro::reflux(int crse_level, int fine_level)
         reg = &getLevel(lev).flux_reg;
 
         Castro& crse_lev = getLevel(lev-1);
-        Castro& fine_lev = getLevel(lev);
 
         MultiFab& crse_state = crse_lev.get_new_data(State_Type);
 
@@ -2737,6 +2737,7 @@ Castro::reflux(int crse_level, int fine_level)
         if (do_grav && gravity->get_gravity_type() == "PoissonGrav" && gravity->NoSync() == 0)  {
 
             reg = &getLevel(lev).phi_reg;
+            Castro& fine_lev = getLevel(lev);
 
             // Note that the scaling by the area here is corrected for by dividing by the
             // cell volume in the reflux. In this way we get a discrete divergence that

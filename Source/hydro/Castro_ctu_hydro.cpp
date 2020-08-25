@@ -34,7 +34,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   GeometryData geomdata = geom.data();
 #endif
 
+#if AMREX_SPACEDIM == 2
   int coord = geom.Coord();
+#endif
 
   const Real *dx = geom.CellSize();
 
@@ -1232,7 +1234,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       consup_hydro(bx,
+#ifdef SHOCK_VAR
                    shk_arr,
+#endif
                    update_arr,
                    flx_arr, qx_arr, areax_arr,
 #if AMREX_SPACEDIM >= 2

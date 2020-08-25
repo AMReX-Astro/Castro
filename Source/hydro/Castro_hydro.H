@@ -357,7 +357,9 @@
 /// @param vol     cell volume
 ///
     void mol_consup(const amrex::Box& bx,
+#ifdef SHOCK_VAR
                     amrex::Array4<amrex::Real const> const& shk,
+#endif
                     amrex::Array4<amrex::Real const> const& srcU,
                     amrex::Array4<amrex::Real> const& update,
                     const amrex::Real dt,
@@ -375,7 +377,9 @@
 #if AMREX_SPACEDIM == 3
                     amrex::Array4<amrex::Real const> const& area2,
 #endif
+#if AMREX_SPACEDIM <= 2
                     amrex::Array4<amrex::Real const> const& q0,
+#endif
                     amrex::Array4<amrex::Real const> const& vol);
 
 ///
@@ -665,7 +669,9 @@
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
+#ifdef SHOCK_VAR
                       amrex::Array4<amrex::Real const> const& shk,
+#endif
                       amrex::Array4<amrex::Real> const& update,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,

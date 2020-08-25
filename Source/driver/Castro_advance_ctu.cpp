@@ -141,7 +141,7 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                       Bx_old, By_old, Bz_old,
 #endif                
-                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -252,7 +252,7 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                               Bx_new, By_new, Bz_new,
 #endif  
-                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
 
     } else {
 

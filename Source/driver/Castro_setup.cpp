@@ -447,7 +447,7 @@ Castro::variableSetUp ()
   // advance, so it behaves the same way as CTU here.
 
   store_in_checkpoint = true;
-  int source_ng;
+  int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }

@@ -1136,7 +1136,6 @@ Castro::HLLC(const Box& bx,
     Real ul  = ql(i,j,k,iu);
 
     Real pl = amrex::max(ql(i,j,k,QPRES), lsmall_pres);
-    Real rel = ql(i,j,k,QREINT);
 
     Real rr = amrex::max(qr(i,j,k,QRHO), lsmall_dens);
 
@@ -1144,7 +1143,6 @@ Castro::HLLC(const Box& bx,
     Real ur  = qr(i,j,k,iu);
 
     Real pr = amrex::max(qr(i,j,k,QPRES), lsmall_pres);
-    Real rer = qr(i,j,k,QREINT);
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
