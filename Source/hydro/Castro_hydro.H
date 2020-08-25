@@ -550,7 +550,6 @@
 #endif
                              amrex::Array4<amrex::Real const> const& q_t1,
                              amrex::Array4<amrex::Real const> const& q_t2,
-                             amrex::Real cdtdx_n,
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
