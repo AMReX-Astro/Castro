@@ -895,13 +895,13 @@ extern "C"
 
   }
 
-  void ca_dernull(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec,
-                  const int* level, const int* grid_no)
+  void ca_dernull(Real* /*der*/, const int* /*der_lo*/, const int* /*der_hi*/, const int* /*nvar*/,
+                  const Real* /*data*/, const int* /*data_lo*/, const int* /*data_hi*/, const int* /*ncomp*/,
+                  const int* /*lo*/, const int* /*hi*/,
+                  const int* /*domain_lo*/, const int* /*domain_hi*/,
+                  const Real* /*delta*/, const Real* /*xlo*/,
+                  const Real* /*time*/, const Real* /*dt*/, const int* /*bcrec*/,
+                  const int* /*level*/, const int* /*grid_no*/)
   {
 
     // This routine is used by particle_count.  Yes it does nothing.

@@ -6,7 +6,7 @@
 using namespace amrex;
 
 void ca_ext_fill(Box const& bx, FArrayBox& data,
-                 const int dcomp, const int numcomp,
+                 const int /*dcomp*/, const int /*numcomp*/,
                  Geometry const& geom, const Real time,
                  const int* bc_f)
 {
@@ -18,7 +18,7 @@ void ca_ext_fill(Box const& bx, FArrayBox& data,
 }
 
 void ca_ext_denfill(Box const& bx, FArrayBox& data,
-                    const int dcomp, const int numcomp,
+                    const int dcomp, const int /*numcomp*/,
                     Geometry const& geom, const Real time,
                     const int* bc_f)
 {
