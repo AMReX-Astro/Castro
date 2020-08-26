@@ -325,9 +325,9 @@ Castro::do_advance_ctu(Real time,
         burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
         clean_state(
             #ifdef MHD
-                Bx_new, By_new, Bz_new,
+                Bx_old, By_old, Bz_old,
             #endif
-                Sborder, prev_time, Sborder.nGrow());
+                S_new, prev_time, S_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
