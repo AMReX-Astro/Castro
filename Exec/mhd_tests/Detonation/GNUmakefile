@@ -26,7 +26,7 @@ GPU_COMPATIBLE_PROBLEM = TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in Castro/Networks
-NETWORK_DIR := iso7
+NETWORK_DIR := aprox13
 
 Bpack   := ./Make.package
 Blocs   := .

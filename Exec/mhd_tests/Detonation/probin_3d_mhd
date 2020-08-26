@@ -32,5 +32,11 @@
 
 &extern
 
+  call_eos_in_rhs = T
+  rtol_spec = 1.e-5
+  atol_spec = 1.e-5
+  jacobian = 1
+  retry_burn = F
+  abort_on_failure = F
 
 /
