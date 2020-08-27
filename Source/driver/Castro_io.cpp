@@ -399,7 +399,7 @@ void
 Castro::checkPoint(const std::string& dir,
                    std::ostream&  os,
                    VisMF::How     how,
-                   bool dump_old_default)
+                   bool /*dump_old_default*/)
 {
 
   const Real io_start_time = ParallelDescriptor::second();

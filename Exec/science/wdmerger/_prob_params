@@ -273,4 +273,4 @@ total_ener_array                real                  0.0e0_rt                 n
 B_x                             real                  0.0e0_rt                 y
 B_y                             real                  0.0e0_rt                 y
 B_z                             real                  0.0e0_rt                 y
-
+m_0                             real                  0.0e0_rt                 y

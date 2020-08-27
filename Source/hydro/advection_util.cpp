@@ -255,6 +255,7 @@ Castro::shock(const Box& bx,
       div_u += 0.5_rt * (q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW)) * dzinv;
 #endif
 
+#if AMREX_SPACEDIM <= 2
    } else if (coord_type == 1) {
 
      // r-z
@@ -269,7 +270,9 @@ Castro::shock(const Box& bx,
      div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]) +
               0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
 #endif
+#endif
 
+#if AMREX_SPACEDIM == 1
     } else if (coord_type == 2) {
 
       // 1-d spherical
@@ -278,6 +281,7 @@ Castro::shock(const Box& bx,
       Real rp = (i + 1 + 0.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
+#endif
 
 #ifndef AMREX_USE_CUDA
 
@@ -377,7 +381,10 @@ Castro::divu(const Box& bx,
   // this computes the *node-centered* divergence
 
   const auto dx = geom.CellSizeArray();
+
+#if AMREX_SPACEDIM <= 2
   const int coord_type = geom.Coord();
+#endif
 
   const auto problo = geom.ProbLoArray();
 
@@ -660,7 +667,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          Array4<Real const> const& q,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt)
 {
 
@@ -812,8 +819,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Coefficients of fluxes on either side of the interface.
 
-        Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-        Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+        Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+        Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
         // Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
         // If we would violate the floor, then we need to limit the flux. Since the
@@ -898,7 +905,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
                                         Array4<Real const> const& q,
                                         Array4<Real const> const& vol,
                                         Array4<Real> const& flux,
-                                        Array4<Real const> const& area,
+                                        Array4<Real const> const& area_arr,
                                         Real dt)
 {
 
@@ -1007,8 +1014,8 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
          // Coefficients of fluxes on either side of the interface.
 
-         Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-         Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+         Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+         Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
          Real theta = 1.0_rt;
 

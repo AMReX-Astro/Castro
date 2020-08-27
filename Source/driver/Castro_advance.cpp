@@ -115,14 +115,14 @@ Castro::advance (Real time,
     advance_particles(amr_iteration, time, dt);
 #endif
 
-    finalize_advance(time, dt, amr_iteration, amr_ncycle);
+    finalize_advance();
 
     return dt_new;
 }
 
 
 void
-Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::initialize_do_advance(Real time)
 {
     BL_PROFILE("Castro::initialize_do_advance()");
 
@@ -205,7 +205,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 
 void
-Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::finalize_do_advance()
 {
     BL_PROFILE("Castro::finalize_do_advance()");
 
@@ -426,7 +426,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 
 void
-Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::finalize_advance()
 {
     BL_PROFILE("Castro::finalize_advance()");
 

@@ -78,10 +78,13 @@ subroutine ca_initdata(lo, hi, &
                        dx, problo) bind(c, name='ca_initdata')
 
   use network, only: nspec
+#ifdef NSE_THERMO
+  use network, only: naux, aion_inv, zion, bion, iabar, iye, ibea
+#endif
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: probhi
 
@@ -97,6 +100,10 @@ subroutine ca_initdata(lo, hi, &
   integer  :: i, j, k, n
 
   type (eos_t) :: eos_state
+
+#ifdef NSE_THERMO
+  real(rt) :: aux(naux)
+#endif
 
   !$gpu
 
@@ -118,10 +125,21 @@ subroutine ca_initdata(lo, hi, &
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * xn(n)
            end do
 
-           eos_state%rho = state(i,j,k,URHO)
-           eos_state%T = state(i,j,k,UTEMP)
-           eos_state%xn(:) = xn
+#ifdef NSE_THERMO
+           ! set the aux quantities -- we need to do this if we are using the NSE network
+           aux(iye) = sum(xn(:) * zion(:) * aion_inv(:))
+           aux(iabar) = 1.0_rt / sum(xn(:) * aion_inv(:))
+           aux(ibea) = sum(xn(:) * bion(:) * aion_inv(:))
 
+           state(i,j,k,UFX:UFX-1+naux) = state(i,j,k,URHO) * aux(:)
+#endif
+
+           eos_state % rho = state(i,j,k,URHO)
+           eos_state % T = state(i,j,k,UTEMP)
+           eos_state % xn(:) = xn(:)
+#ifdef NSE_THERMO
+           eos_state % aux(:) = aux(:)
+#endif
            call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))

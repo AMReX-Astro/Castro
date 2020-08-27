@@ -101,7 +101,7 @@ Castro::do_old_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
 #endif          
-                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state)
 {
 
     BL_PROFILE("Castro::do_old_sources()");
@@ -120,7 +120,7 @@ Castro::do_old_sources(
     }
 
     for (int n = 0; n < num_src; ++n) {
-        construct_old_source(n, source, state_old, time, dt, amr_iteration, amr_ncycle);
+        construct_old_source(n, source, state_old, time, dt);
 
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
@@ -195,7 +195,7 @@ Castro::do_new_sources(
 #ifdef MHD
                 MultiFab& Bx, MultiFab& By, MultiFab& Bz,
 #endif          
-                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state, int amr_iteration, int amr_ncycle)
+                MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, bool apply_to_state)
 {
 
     BL_PROFILE("Castro::do_new_sources()");
@@ -214,7 +214,7 @@ Castro::do_new_sources(
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
-        construct_new_source(n, source, state_old, state_new, time, dt, amr_iteration, amr_ncycle);
+        construct_new_source(n, source, state_old, state_new, time, dt);
 
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
@@ -290,7 +290,7 @@ Castro::do_new_sources(
 }
 
 void
-Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_old_source()");
     
@@ -346,7 +346,7 @@ Castro::construct_old_source(int src, MultiFab& source, MultiFab& state_in, Real
 }
 
 void
-Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::construct_new_source(int src, MultiFab& source, MultiFab& state_old, MultiFab& state_new, Real time, Real dt)
 {
     BL_PROFILE("Castro::construct_new_source()");
 
