@@ -447,7 +447,7 @@ Castro::trans_final(const Box& bx,
 #endif
                     Array4<Real const> const& q_t1,
                     Array4<Real const> const& q_t2,
-                    Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                    Real cdtdx_t1, Real cdtdx_t2)
 {
     // Evaluate the transverse terms for both
     // the minus and plus states.
@@ -465,7 +465,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
     actual_trans_final(bx, idir_n, idir_t1, idir_t2, 0,
                        qp, qpo,
@@ -480,7 +480,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
 }
 
@@ -502,7 +502,7 @@ Castro::actual_trans_final(const Box& bx,
 #endif
                            Array4<Real const> const& q_t1,
                            Array4<Real const> const& q_t2,
-                           Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                           Real cdtdx_t1, Real cdtdx_t2)
 {
 
     bool reset_density = transverse_reset_density;

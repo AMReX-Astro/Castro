@@ -11,7 +11,9 @@ using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
+#ifdef SHOCK_VAR
                      Array4<Real const> const& shk,
+#endif
                      Array4<Real> const& update,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,

@@ -109,13 +109,11 @@ Just like with pure hydrodynamics, the reconstruction type is
 controlled by ``castro.ppm_type``, with ``0`` selecting piecewise
 linear and ``1`` selecting piecewise parabolic.
 
-For the piecewise linear method, the slope limiting for the controlled
-by the ``mhd_plm_slope`` variable:
-
-  * ``mhd_plm_slope = 0`` : piecewise constant slopes
-  * ``mhd_plm_slope = 1`` : van Leer limiter
-  * ``mhd_plm_slope = 2`` : unlimited center difference
-  * ``mhd_plm_slope = 3`` : 2nd order MC limiter
+For the piecewise linear method, the slope limiting is controlled by
+the same ``plm_iorder`` runtime parameter as for hydrodynamics.
+Additionally, we have an option ``mhd_limit_characteristic`` that
+controls whether you want to do the slope limiting on the
+characteristic variables (the default) or the primitive variables.
 
 Electric Update
 ===============

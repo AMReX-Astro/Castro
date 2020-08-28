@@ -48,7 +48,7 @@ Castro::do_advance_ctu(Real time,
 
     // Perform initialization steps.
 
-    initialize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    initialize_do_advance(time);
 
     // Zero out the source term data.
 
@@ -141,7 +141,7 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                       Bx_old, By_old, Bz_old,
 #endif                
-                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
       // Apply the old sources to the sources for the hydro.
       // Note that we are doing an add here, not a copy,
@@ -252,7 +252,7 @@ Castro::do_advance_ctu(Real time,
 #ifdef MHD
                               Bx_new, By_new, Bz_new,
 #endif  
-                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state, amr_iteration, amr_ncycle);
+                      new_source, Sborder, S_new, cur_time, dt, apply_sources_to_state);
 
     } else {
 
@@ -344,7 +344,7 @@ Castro::do_advance_ctu(Real time,
     // whereas in computeNewDt change_max prevents the timestep from growing
     // too much. The same reasoning applies for the other timestep limiters.
 
-    Real new_dt = estTimeStep(dt);
+    Real new_dt = estTimeStep();
 
     if (castro::change_max * new_dt < dt) {
         status.success = false;
@@ -352,7 +352,7 @@ Castro::do_advance_ctu(Real time,
         return status;
     }
 
-    finalize_do_advance(time, dt, amr_iteration, amr_ncycle);
+    finalize_do_advance();
 
     return status;
 }
@@ -362,7 +362,7 @@ Castro::do_advance_ctu(Real time,
 
 
 bool
-Castro::retry_advance_ctu(Real& time, Real dt, int amr_iteration, int amr_ncycle, advance_status status)
+Castro::retry_advance_ctu(Real dt, advance_status status)
 {
     BL_PROFILE("Castro::retry_advance_ctu()");
 
@@ -515,7 +515,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Determine whether we're below the cutoff timestep.
 
-        if (dt_subcycle < dt_cutoff * time) {
+        if (dt_subcycle < dt_cutoff * time || (time == 0.0 && dt_subcycle < eps)) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl
@@ -650,7 +650,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
             // The retry function will handle resetting the state,
             // and updating dt_subcycle.
 
-            if (retry_advance_ctu(subcycle_time, dt_subcycle, amr_iteration, amr_ncycle, status)) {
+            if (retry_advance_ctu(dt_subcycle, status)) {
                 do_swap = false;
                 lastDtRetryLimited = true;
                 lastDtFromRetry = dt_subcycle;
