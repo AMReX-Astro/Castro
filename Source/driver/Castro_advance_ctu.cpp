@@ -92,7 +92,11 @@ Castro::do_advance_ctu(Real time,
 
         // The result of the reactions is added directly to Sborder.
         burn_success = react_state(Sborder, R_old, prev_time, 0.5 * dt);
-        clean_state(Sborder, prev_time, Sborder.nGrow());
+        clean_state(
+#ifdef MHD
+                    Bx_old_tmp, By_old_tmp, Bz_old_tmp,
+#endif
+                    Sborder, prev_time, Sborder.nGrow());
 
     }
 #endif
@@ -319,7 +323,11 @@ Castro::do_advance_ctu(Real time,
     if (time_integration_method != SimplifiedSpectralDeferredCorrections) {
 
         burn_success = react_state(S_new, R_new, cur_time - 0.5 * dt, 0.5 * dt);
-        clean_state(S_new, cur_time, S_new.nGrow());
+        clean_state(
+#ifdef MHD
+                    Bx_new, By_new, Bz_new,
+#endif
+                    S_new, cur_time, S_new.nGrow());
 
         // Skip the rest of the advance if the burn was unsuccessful.
 
