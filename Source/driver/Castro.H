@@ -479,17 +479,11 @@ public:
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
 ///
-/// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, advance_status status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -530,46 +524,21 @@ public:
 /// losses, does refluxing, and clears arrays/data containers
 /// initialized at start of the level's advance.
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_advance();
 
 ///
 /// Performed at the start of ::do_advance, resets flags and
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_do_advance(amrex::Real time);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_do_advance();
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -596,9 +565,7 @@ public:
 ///
 /// Estimate time step.
 ///
-/// @param dt_old   previous timestep
-///
-    amrex::Real estTimeStep (amrex::Real dt_old);
+    amrex::Real estTimeStep ();
 
 
 ///
@@ -628,16 +595,16 @@ public:
 /// Compute initial ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_level         Real Vector, will contain initial timestep at each level.
 /// @param stop_time        End time of simulation
 ///
     void computeInitialDt (int                   finest_level,
-                           int                   sub_cycle,
+                           int                   /*subcycle*/,
                            amrex::Vector<int>&           n_cycle,
-                           const amrex::Vector<amrex::IntVect>& ref_ratio,
+                           const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                            amrex::Vector<amrex::Real>&          dt_level,
                            amrex::Real                  stop_time) override;
 
@@ -645,18 +612,18 @@ public:
 /// Compute new ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_min
 /// @param dt_level
 /// @param stop_time        End time of simulation
 /// @param post_regrid_flag Have we done regridding yet?
 ///
     void computeNewDt (int                   finest_level,
-                       int                   sub_cycle,
+                       int                   /*subcycle*/,
                        amrex::Vector<int>&           n_cycle,
-                       const amrex::Vector<amrex::IntVect>& ref_ratio,
+                       const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                        amrex::Vector<amrex::Real>&          dt_min,
                        amrex::Vector<amrex::Real>&          dt_level,
                        amrex::Real                  stop_time,
