@@ -35,7 +35,7 @@ the different code paths.  These fall into two categories:
      time using a simple quadrature rule, and integrates the hydro
      explicitly and reactions implicitly to the next time node.
      Iterations allow each process to see one another and achieve
-     high-order in time convergence.  This is described in :cite:`castro_sdc`.
+     high-order in time convergence.  This is described in :cite:`castro-sdc`.
 
 
 The time-integration method used is controlled by
@@ -63,6 +63,18 @@ The time-integration method used is controlled by
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
     method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
 
+.. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
+
+.. note::
+
+   By default, the code is compiled for Strang-split CTU evolution
+   (``time_integration_method = 0``).  Because the size of the
+   different state arrays differs with the other integration schemes,
+   support for them needs to be compiled in, using
+   ``USE_SIMPLIFIED_SDC=TRUE`` for the simplified-SDC method
+   (``time_integration_method=3``) and ``USE_TRUE_SDC=TRUE`` for the
+   true SDC method (``time_integration_method = 2``).
+
 Several helper functions are used throughout:
 
 .. index:: clean_state
@@ -74,7 +86,11 @@ Several helper functions are used throughout:
 
    #. enforces that the density is above ``castro.small_dens``
 
+   #. enforces that the speeds in the state don't exceed ``castro.speed_limit``
+
    #. normalizes the species so that the mass fractions sum to 1
+
+   #. syncs up the linear and hybrid momenta (for ``USE_HYBRID_MOMENTUM=TRUE``)
 
    #. resets the internal energy if necessary (too small or negative)
       and computes the temperature for all zones to be thermodynamically
@@ -492,25 +508,28 @@ In the code, the objective is to evolve the state from the old time,
 A summary of which state is the input and which is updated for each of
 these processes is presented below:
 
-+--------------------+-----------+---------------------+---------------------+
-| *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
-+====================+===========+=====================+=====================+
-| 1. init            | input     | updated             |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 2. react           |           | input / updated     |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 3. old sources     |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 4. hydro           |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 5. clean           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 6. radial / center |           |                     | input               |
-+--------------------+-----------+---------------------+---------------------+
-| 7. correct sources |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 8. react           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
+.. table:: update sequence of state arrays for Strang-CTU
+   :align: center
+
+   +--------------------+-----------+---------------------+---------------------+
+   | *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
+   +====================+===========+=====================+=====================+
+   | 1. init            | input     | updated             |                     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 2. react           |           | input / updated     |                     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 3. old sources     |           | input               | updated             |
+   +--------------------+-----------+---------------------+---------------------+
+   | 4. hydro           |           | input               | updated             |
+   +--------------------+-----------+---------------------+---------------------+
+   | 5. clean           |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 6. radial / center |           |                     | input               |
+   +--------------------+-----------+---------------------+---------------------+
+   | 7. correct sources |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 8. react           |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
 
 
 SDC Evolution
@@ -572,18 +591,22 @@ order methods and Simpson's rule for 4th order methods.  Choosing
 ``castro.sdc_quadrature = 1`` uses Radau IIA integration, which includes
 the ending time but not the starting time in the quadrature.
 
-+---------------------+----------------------+---------------+-------------------+------------------+
-|``castro.sdc_order`` |``castro.quadrature`` |  # of         |  temporal         |  description     |
-|                     |                      |  time nodes   |  accuracy         |                  |
-+=====================+======================+===============+===================+==================+
-|       2             |         0            |          2    |                2  | trapezoid rule   |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       2             |         1            |          3    |                2  | Simpson's rule   |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       4             |         0            |          3    |                4  | Radau 2nd order  |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       4             |         1            |          4    |                4  | Radau 4th order  |
-+---------------------+----------------------+---------------+-------------------+------------------+
+
+.. table:: SDC quadrature summary
+   :align: center
+
+   +--------------+---------------+---------------+-------------------+------------------+
+   |``sdc_order`` |``quadrature`` |  # of         |  temporal         |  description     |
+   |              |               |  time nodes   |  accuracy         |                  |
+   +==============+===============+===============+===================+==================+
+   |       2      |         0     |          2    |                2  | trapezoid rule   |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       2      |         1     |          3    |                2  | Simpson's rule   |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       4      |         0     |          3    |                4  | Radau 2nd order  |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       4      |         1     |          4    |                4  | Radau 4th order  |
+   +--------------+---------------+---------------+-------------------+------------------+
 
 The overall evolution appears as:
 
@@ -737,45 +760,11 @@ The simplified-SDC version of the main advance loop looks similar to the Strang 
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update. So the only difference happens in step 2 of the
 flowchart outlined in § \ `2 <#flow:sec:nosdc>`__. In particular this
-step now proceeds as:
+step now proceeds as a loop over ``do_advance_ctu``.  The differences
+with the Strang CTU version are highlighted below.
 
-2. *Advancement*
 
-   Loop :math:`k` from 0 to ``sdc_iters``, doing:
-
-   A. *Hydrodynamics advance*: This is done through
-      ``do_advance``—in Simplified SDC mode, this only updates the hydrodynamics,
-      including the non-reacting sources. However, in predicting the
-      interface states, we use an iteratively-lagged approximation to the
-      reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
-
-      The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
-      stored in ``hydro_sources`` (the flux divergence)
-      and ``old_sources`` and ``new_sources``.
-
-   B. *React*: Reactions are integrated with the advective
-      update as a source—this way the reactions see the
-      time-evolution due to advection as we integrate:
-
-      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
-
-      The advective source includes both the divergence of the fluxes
-      as well as the time-centered source terms. This is computed by
-      ``sum_of_sources()`` by summing over all source components
-      ``hydro_source``, ``old_sources``, and
-      ``new_sources``.
-
-   C. *Clean state*: This ensures that the thermodynamic state is
-      valid and consistent.
-
-   D. *Construct reaction source terms*: Construct the change
-      in the primitive variables due only to reactions over the
-      timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
-      iteration.
-
-Note that is it likely that some of the other updates (like any
-non-advective auxiliary quantity updates) should be inside the Simplified-SDC
-loop, but presently they are only done at the end. Also note that the
+Note that the
 radiation implicit update is not done as part of the Simplified-SDC iterations.
 
 Simplified_SDC Hydro Advance
@@ -792,33 +781,61 @@ summarize those differences.
 #. *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()``]
 
-   This corresponds to step old source part in the Strang CTU
-   algorithm. There are not differences compared to the Strang
-   algorithm, although we note, this only needs to be done for the first
-   SDC iteration in the advancement, since the old state does not change.
+   Unlike the Strang case, there is no need to extrapolate source
+   terms to the half-time for the prediction (the
+   ``castro.source_term_predictor`` parameter), since the
+   Simplified-SDC provides a natural way to approximate the
+   time-centered source—we simply use the iteratively-lagged new-time
+   source.  We add the corrector from the previous iteration to the
+   source Multifabs before adding the current source.  This will give
+   us a source that is time-centered,
+
+   .. math::
+
+      {\bf S}(\Ub)^{n+1/2} = \frac{1}{2} \left ( {\bf S}(\Ub)^n + {\bf S}(\Ub)^{n+1,(k-1)} \right )
+
+   For constructing the time-level :math:`n` source, there are no
+   differences compared to the Strang algorithm.
 
 #. *Construct the hydro update* [``construct_hydro_source()``]
 
-   There are a few major differences with the Strang case:
+   In predicting the interface states, we use an iteratively-lagged
+   approximation to the reaction source on the primitive variables,
+   :math:`\mathcal{I}_q^{k-1}`.  This addition is done in
+   ``construct_ctu_hydro_source()`` after the source terms are
+   converted to primitive variables.
 
-   A. There is no need to extrapolate source terms to the half-time
-      for the prediction (the ``castro.source_term_predictor``
-      parameter), since the Simplified-SDC provides a natural way to approximate the
-      time-centered source—we simply use the iteratively-lagged new-time
-      source.
-
-   B. The primitive variable source terms that are used for the
-      prediction include the contribution due to reactions (from the last
-      iteration). This addition is done in
-      ``construct_hydro_source()`` after the source terms are
-      converted to primitive variables.
-
-#. *Update radial data and center of mass for monopole gravity*
+   The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
+   stored in ``hydro_sources`` (the flux divergence)
+   and ``old_sources`` and ``new_sources``.
 
 #. *Clean State* [``clean_state()``]
 
+#. *Update radial data and center of mass for monopole gravity*
+
 #. *Correct the source terms with the n+1 contribution*
-   [``construct_new_gravity()``, ``do_new_sources`` ]
+   [``construct_new_gravity()``, ``do_new_sources()`` ]
+
+#. *React* :math:`\Delta t` [``react_state()``]
+
+   We burn for the full :math:`\Delta t` including the advective
+   update as a source, integrating
+
+      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+
+   The advective source includes both the divergence of the fluxes
+   as well as the time-centered source terms. This is computed by
+   ``sum_of_sources()`` by summing over all source components
+   ``hydro_source``, ``old_sources``, and
+   ``new_sources``.
+
+#. *Clean state*: This ensures that the thermodynamic state is
+   valid and consistent.
+
+#. *Construct reaction source terms*: Construct the change
+   in the primitive variables due only to reactions over the
+   timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
+   iteration.
 
 #. *Finalize* [``finalize_do_advance()``]
 
