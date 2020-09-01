@@ -131,12 +131,27 @@ Castro::cons_to_prim_fourth(const Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    FArrayBox U_cc;
+    MultiFab U_cc;
+    U_cc.define(S_new.boxArray(), S_new.DistributionMap(), NUM_STATE, NUM_GROW);
 
     // we don't support radiation here
 #ifdef RADIATION
     amrex::Abort("radiation not supported to fourth order");
 #else
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+
+      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+
+      // convert U_avg to U_cc -- this will use a Laplacian
+      // operation and will result in U_cc defined only on
+      // NUM_GROW-1 ghost cells at the end.
+      make_cell_center(qbxm1, Sborder.array(mfi), U_cc.array(mfi), domain_lo, domain_hi);
+
+    }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -148,20 +163,11 @@ Castro::cons_to_prim_fourth(const Real time)
       // note: these conversions are using a growntilebox, so it
       // will include ghost cells
 
-      // convert U_avg to U_cc -- this will use a Laplacian
-      // operation and will result in U_cc defined only on
-      // NUM_GROW-1 ghost cells at the end.
-      U_cc.resize(qbx, NUM_STATE);
-      Elixir elix_u_cc = U_cc.elixir();
-      auto const U_cc_arr = U_cc.array();
-
-      make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
-
       // enforce the minimum density on the new cell-centered state
-      do_enforce_minimum_density(qbxm1, U_cc.array(), verbose);
+      do_enforce_minimum_density(qbxm1, U_cc.array(mfi), verbose);
 
       // and ensure that the internal energy is positive
-      reset_internal_energy(qbxm1, U_cc.array());
+      reset_internal_energy(qbxm1, U_cc.array(mfi));
 
       // convert U_avg to q_bar -- this will be done on all NUM_GROW
       // ghost cells.
@@ -186,7 +192,7 @@ Castro::cons_to_prim_fourth(const Real time)
 
       ctoprim(qbxm1,
               time,
-              U_cc_arr,
+              U_cc.array(mfi),
               q_arr,
               qaux_arr);
     }
