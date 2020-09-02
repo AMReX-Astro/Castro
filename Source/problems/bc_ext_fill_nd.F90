@@ -32,7 +32,6 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use model_parser_module, only: idens_model, itemp_model, ispec_model, interpolate_sub
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
