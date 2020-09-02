@@ -24,11 +24,6 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param apply_to_state   whether to apply the source to state_new
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_old_sources(
 #ifdef MHD
@@ -38,8 +33,7 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state,
-                        int amr_iteration = -1, int amr_ncycle = -1);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state);
 
 
 ///
@@ -51,17 +45,10 @@
 /// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_old_source(int src, amrex::MultiFab& source,
                               amrex::MultiFab& state,
-                              amrex::Real time, amrex::Real dt,
-                              int amr_iteration = -1, int amr_ncycle = -1);
-
+                              amrex::Real time, amrex::Real dt);
 
 ///
 /// Construct new time sources
@@ -73,11 +60,6 @@
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
 /// @param apply_to_state   whether to apply the source to state_new
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void do_new_sources(
 #ifdef MHD
@@ -87,8 +69,8 @@
 #endif
                         amrex::MultiFab& source,
                         amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                        amrex::Real time, amrex::Real dt, bool apply_to_state,
-                        int amr_iteration = -1, int amr_ncycle = -1);
+                        amrex::Real time, amrex::Real dt, bool apply_to_state);
+
 
 ///
 /// Construct the new-time sources.
@@ -100,16 +82,11 @@
 /// @param time         the current simulation time
 /// @param dt       t   he timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
     void construct_new_source(int src, amrex::MultiFab& source,
                               amrex::MultiFab& state_old, amrex::MultiFab& state_new,
-                              amrex::Real time, amrex::Real dt,
-                              int amr_iteration = -1, int amr_ncycle = -1);
+                              amrex::Real time, amrex::Real dt);
+
 
 ///
 /// Evaluate diagnostics quantities describing the effect of an
@@ -312,14 +289,11 @@
 ///
 /// Fill ``ext_src`` with thermal sources
 ///
-/// @param time     current time
-/// @param dt       timestep
 /// @param S_old    Old state
 /// @param S_new    New state
 /// @param ext_src  MultiFab to fill with sources
 ///
-    void fill_thermo_source(amrex::Real time, amrex::Real dt,
-                            amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
+    void fill_thermo_source(amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
 #ifdef REACTIONS

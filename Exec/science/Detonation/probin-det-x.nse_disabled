@@ -1,16 +1,16 @@
 &fortin
-  T_l = 2.d9
-  T_r = 2.5d8
+  T_l = 4.d9
+  T_r = 5.d7
 
-  dens = 2.d6
+  dens = 2.d8
   cfrac = 0.d0
-
+  
   smallx = 1.e-10
 
   idir = 1
 
-  w_T = 1.d-3
-  center_T = 3.d-1
+  w_T = 5.d-4
+  center_T = 0.1
 /
 
 &tagging
@@ -31,10 +31,18 @@
 /
 
 &extern
-!  jacobian = 2
-!  centered_diff_jac = T
-!   rtol_enuc = 1.e-8
-!   call_eos_in_rhs = T
+   call_eos_in_rhs = T
    do_constant_volume_burn = T
-   use_tables = T
+
+   rtol_spec = 1.e-6
+   atol_spec = 1.e-6
+   rtol_enuc = 1.e-6
+   rtol_temp = 1.e-5
+
+   jacobian = 2
+   ode_max_steps = 1500000
+
+   abort_on_failure = F
+
+   rho_nse = 1.e10
 /

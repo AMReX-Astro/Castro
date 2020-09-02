@@ -22,8 +22,6 @@ extern "C"
   void ca_extern_init(const int* name, const int* namlen);
 
 #ifdef REACTIONS
-  void ca_get_abort_on_failure(int * abort_on_failure);
-
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 

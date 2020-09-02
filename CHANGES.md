@@ -1,3 +1,13 @@
+# 20.09
+
+   * Reactions now work with MHD (#1179)
+
+   * MHD now uses the main slope routine (#1058) The order of the
+     slope is now controlled by plm_iorder, just as with hydro.  There
+     is an additional option, mhd_limit_characteristic, that
+     determines if the limiting is done on the primitive or
+     characteristic variables (the default).
+
 # 20.08
 
    * Rotation_Type has been removed from StateData. (#1128)

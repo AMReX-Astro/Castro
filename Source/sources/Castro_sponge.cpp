@@ -122,7 +122,7 @@ Castro::sponge_finalize()
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state,
+                     Array4<Real const> const state_in,
                      Array4<Real> const source,
                      Real dt, Real mult_factor) {
 
@@ -187,7 +187,7 @@ Castro::apply_sponge(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-    Real rho = state(i,j,k,URHO);
+    Real rho = state_in(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
     // compute the update factor
@@ -250,14 +250,14 @@ Castro::apply_sponge(const Box& bx,
 
       eos_t eos_state;
 
-      eos_state.rho = state(i,j,k,URHO);
-      eos_state.T = state(i,j,k,UTEMP);
+      eos_state.rho = state_in(i,j,k,URHO);
+      eos_state.T = state_in(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
+        eos_state.xn[n] = state_in(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
+        eos_state.aux[n] = state_in(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -303,7 +303,7 @@ Castro::apply_sponge(const Box& bx,
     // now compute the source
     GpuArray<Real, 3> Sr;
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
+      Sr[n] = (state_in(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
       src[UMX+n] = Sr[n];
     }
 
@@ -314,7 +314,7 @@ Castro::apply_sponge(const Box& bx,
 
     Real SrE = 0.0;
     for (int n = 0; n < 3; n++) {
-      SrE += state(i,j,k,UMX+n) * rhoInv * Sr[n];
+      SrE += state_in(i,j,k,UMX+n) * rhoInv * Sr[n];
     }
 
     src[UEDEN] = SrE;
