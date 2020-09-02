@@ -518,31 +518,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
-  allocate(mom_flux_has_p(3))
-
-  ! sanity check on our allocations
-#ifndef AMREX_USE_CUDA
-  if (UMZ > MAX_MOM_INDEX) then
-     call castro_error("ERROR: not enough space in comp in mom_flux_has_p")
-  endif
-#endif
-
-  ! keep track of which components of the momentum flux have pressure
-  if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
-     mom_flux_has_p(1)%comp(UMX) = .false.
-  else
-     mom_flux_has_p(1)%comp(UMX) = .true.
-  endif
-  mom_flux_has_p(1)%comp(UMY) = .false.
-  mom_flux_has_p(1)%comp(UMZ) = .false.
-
-  mom_flux_has_p(2)%comp(UMX) = .false.
-  mom_flux_has_p(2)%comp(UMY) = .true.
-  mom_flux_has_p(2)%comp(UMZ) = .false.
-
-  mom_flux_has_p(3)%comp(UMX) = .false.
-  mom_flux_has_p(3)%comp(UMY) = .false.
-  mom_flux_has_p(3)%comp(UMZ) = .true.
 
   !$acc update device(physbc_lo, physbc_hi)
   !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
@@ -552,7 +527,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   !$acc update device(center, problo, probhi)
   !$acc update device(domlo_level, domhi_level, dx_level)
   !$acc update device(ref_ratio, n_error_buf, blocking_factor)
-  !$acc update device(mom_flux_has_p)
 
 end subroutine ca_set_problem_params
 
