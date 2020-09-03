@@ -1,3 +1,5 @@
+#ifndef RADHYDRO_H
+#define RADHYDRO_H
 
 // do the advection in frequency space for the radiation energy.
 // see Paper III, section 2.4
@@ -242,65 +244,51 @@ void dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
   }
 }
 
-  function MC(r) result(MCr)
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: r
-    real(rt) :: MCr
-
-    !$gpu
-
-    MCr = max(0.e0_rt, min(2.e0_rt*r, 0.5e0_rt*(1.e0_rt+r), 2.e0_rt))
-
-  end function MC
+Real MC(const Real r) {
+  return amrex::max(0.0_rt, amrex::min(2.0_rt * r, 0.5_rt * (1.0_rt + r), 2.0_rt));
+}
 
 
-  subroutine weno5(vm2, vm1, v, vp1, vp2, v_weno5)
+Real weno5(const Real vm2, const Real vm1, const Real v, const Real vp1, const Real vp2) {
 
-    use amrex_fort_module, only: rt => amrex_real
+  constexpr Real epsw = 1.0e-6_rt;
+  constexpr Real b1 = 13.0_rt/12.0_rt;
+  constexpr Real b2 = 1.0_rt/6.0_rt;
 
-    implicit none
+  Real djm1 = vm2 - 2.0_rt * vm1 + v;
+  Real ejm1 = vm2 - 4.0_rt * vm1 + 3.0_rt * v;
+  Real dj = vm1 - 2.0_rt * v + vp1;
+  Real ej = vm1 - vp1;
+  Real djp1 = v - 2.0_rt * vp1 + vp2;
+  Real ejp1 = 3.0_rt * v - 4.0_rt * vp1 + vp2;
 
-    real(rt), intent(in) :: vm2, vm1, v, vp1, vp2
-    real(rt), intent(out) :: v_weno5
+  Real dis0 = b1 * djm1 * djm1 + 0.25_rt * ejm1 * ejm1 + epsw;
+  Real dis1 = b1 * dj * dj + 0.25_rt * ej * ej + epsw;
+  Real dis2 = b1 * djp1 * djp1 + 0.25_rt * ejp1 * ejp1 + epsw;
 
-    real(rt), parameter :: epsw=1.0e-6_rt, b1=13.e0_rt/12.e0_rt, b2=1.e0_rt/6.e0_rt
+  Real q30 = 2.0_rt *vm2 - 7.0_rt * vm1 + 11.0_rt * v;
+  Real q31 = -vm1 + 5.0_rt * v + 2.0_rt * vp1;
+  Real q32 = 2.0_rt * v + 5.0_rt * vp1 - vp2;
 
-    real(rt) :: djm1, ejm1, dj, ej, djp1, ejp1, dis0, dis1, dis2, &
-                q30, q31, q32, d01, d02, a1ba0, a2ba0, w0, w1, w2
+  Real d01 = dis0 / dis1;
+  Real d02 = dis0 / dis2;
+  Real a1ba0 = 6.0_rt * d01 * d01;
+  Real a2ba0 = 3.0_rt * d02 * d02;
+  Real w0 = 1.0_rt / (1.0_rt + a1ba0 + a2ba0);
+  Real w1 = a1ba0 * w0;
+  Real w2 = 1.0_rt - w0 - w1;
 
-    !$gpu
+  if (w0 <  1.0e-10_rt) {
+    w0 = 0.0_rt;
+  }
+  if (w1 < 1.0e-10_rt) {
+    w1 = 0.0_rt;
+  }
+  if (w2 < 1.0e-10_rt) {
+    w2 = 0.e0_rt;
+  }
 
-    djm1 = vm2 - 2.e0_rt*vm1 + v
-    ejm1 = vm2 - 4.e0_rt*vm1 + 3.e0_rt*v
-    dj   = vm1 - 2.e0_rt*v + vp1
-    ej   = vm1 - vp1
-    djp1 = v - 2.e0_rt*vp1 + vp2
-    ejp1 = 3.e0_rt*v - 4.e0_rt*vp1 + vp2
+  return b2 * (w0 * q30 + w1 * q31 + w2 * q32);
+}
 
-    dis0 = b1*djm1*djm1 + 0.25e0_rt*ejm1*ejm1 + epsw
-    dis1 = b1*dj*dj     + 0.25e0_rt*ej*ej     + epsw
-    dis2 = b1*djp1*djp1 + 0.25e0_rt*ejp1*ejp1 + epsw
-
-    q30 = 2.e0_rt*vm2 - 7.e0_rt*vm1 + 11.e0_rt*v
-    q31 = -vm1 + 5.e0_rt*v + 2.e0_rt*vp1
-    q32 = 2.e0_rt*v + 5.e0_rt*vp1 - vp2
-
-    d01 = dis0 / dis1
-    d02 = dis0 / dis2
-    a1ba0 = 6.e0_rt * d01 * d01
-    a2ba0 = 3.e0_rt * d02 * d02
-    w0 = 1.e0_rt / (1.e0_rt + a1ba0 + a2ba0)
-    w1 = a1ba0 * w0
-    w2 = 1.e0_rt - w0 - w1
-
-    if (w0.lt.1.0e-10_rt) w0 = 0.e0_rt
-    if (w1.lt.1.0e-10_rt) w1 = 0.e0_rt
-    if (w2.lt.1.0e-10_rt) w2 = 0.e0_rt
-
-    v_weno5 = b2*(w0*q30 + w1*q31 + w2*q32)
-
-  end subroutine weno5
+#endif
