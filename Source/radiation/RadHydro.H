@@ -42,14 +42,17 @@ constexpr Real C63 = -32.0_rt/45.0_rt;
 constexpr Real C64 = 32.0_rt/27.0_rt;
 constexpr Real C65 = 14.0_rt/45.0_rt;
 
-
-void advect_in_fspace(Real* ustar, Real* af, const Real dt, Real& nstep_fsp) {
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void
+advect_in_fspace(Real* ustar, Real* af, const Real dt, Real& nstep_fsp) {
 
   call update_one_species(nGroups, ustar, af, dlognu, dt, nstep_fsp)
 
 }
 
-void update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int& nstepmax) {
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void
+update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int& nstepmax) {
 
   Real dt = 1.e50_rt;
   Real acfl;
@@ -151,7 +154,9 @@ void update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend
 }
 
 
-void dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
 
   // compute the RHS for the g'th energy group out of n note, since
   // this is advection in frequency space, we will need to assume some
@@ -244,12 +249,16 @@ void dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
   }
 }
 
-Real MC(const Real r) {
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real
+MC(const Real r) {
   return amrex::max(0.0_rt, amrex::min(2.0_rt * r, 0.5_rt * (1.0_rt + r), 2.0_rt));
 }
 
 
-Real weno5(const Real vm2, const Real vm1, const Real v, const Real vp1, const Real vp2) {
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real
+weno5(const Real vm2, const Real vm1, const Real v, const Real vp1, const Real vp2) {
 
   constexpr Real epsw = 1.0e-6_rt;
   constexpr Real b1 = 13.0_rt/12.0_rt;
