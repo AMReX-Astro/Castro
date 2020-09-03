@@ -155,77 +155,92 @@ void dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
   // this is advection in frequency space, we will need to assume some
   // boundary conditions on the stencil used to reconstruct over nu
 
+  Real f[n+1];
+
+  // we need 2 ghost cells on each end
+  Real ag[n+4];
+  Real ug[n+4];
+  Real fg[n+4];
+
+  int is = 2;
+  int ie = n+1;
+
+  // fill ghost cells
+  ag[is-2] = -a[is+1];
+  ag[is-1] = -a[is];
+
+  ag[ie+1] = -a[ie];
+  ag[ie+2] = -a[ie-1];
+
+  ug[is-2] = -u[is+1];
+  ug[is-1] = -u[is];
+
+  ug[ie+1] = -u[ie];
+  ug[ie+2] = -u[ie-1];
+
+  for (int g = 0; g < n) {
+    ag[is+g] = a[g];
+    ug[is+g] = u[g];
+  }
+
   if (use_WENO) {
 
-       ag(-2) = -a(1)
-       ag(-1) = -a(0)
-       ag(0:n-1) = a(0:n-1)
-       ag(n) = -ag(n-1)
-       ag(n+1) = -ag(n-2)
+    for (int gg = 0; gg < n + 4; gg++) { 
+      fg[gg] = ag[gg] * ug[gg];
+      ag[gg] = std::abs(ag[gg]);
+    }
 
-       ug(-2) = u(1)
-       ug(-1) = u(0)
-       ug(0:n-1) = u(0:n-1)
-       ug(n) = ug(n-1)
-       ug(n+1) = ug(n-2)
+    f[0] = 0.0_rt;
 
-       fg = ag*ug
-       ag = abs(ag)
+    for (int i = 1, i < n; i++) {
+      Real alpha = amrex::max(ag[is+i-3], ag[is+i-2], ag[is+i-1],
+                              ag[is+i], ag[is+i+1], ag[is+i+2]);
+      Real fp[5];
+      Real fm[5];
+      for (int m = 0; m < 5; m++) {
+        fp = 0.5e0_rt * (fg[is+m-3] + alpha * ug[is+m-3]);
+        fm = 0.5e0_rt * (fg[is+m-2] - alpha * ug[is+m-2]);
+      }
+      Real fpw = weno5(fp[0], fp[1], fp[2], fp[3], fp[4]);
+      Real fmw = weno5(fm[4], fm[3], fm[2], fm[1], fm[0]);
+      f[i] = fpw + fmw;
+    }
+    f[n] = 0.0_rt;
 
-       f(0) = 0.e0_rt
-       do i=1,n-1
-          alpha = maxval(ag(i-3:i+2))
-          fp = 0.5e0_rt * (fg(i-3:i+1) + alpha*ug(i-3:i+1))
-          fm = 0.5e0_rt * (fg(i-2:i+2) - alpha*ug(i-2:i+2))
-          call weno5(fp(1),fp(2),fp(3),fp(4),fp(5),fpw)
-          call weno5(fm(5),fm(4),fm(3),fm(2),fm(1),fmw)
-          f(i) = fpw + fmw
-       end do
-       f(n) = 0.e0_rt
+  } else {
 
-    else
+    f[0] = 0.0_rt;
 
-       ag(-1) = -a(0)
-       ag(0:n-1) = a(0:n-1)
-       ag(n) = -a(n-1)
+    for (int i = 1; i < n; i++) {
+      Real r = (ug[is+i-1] - ug[is+i-2]) / (ug[is+i] - ug[is+i-1] + 1.e-50_rt);
+      Real ul = ug[is+i-1] + 0.5_rt * (ug[is+i] - ug[is+i-1]) * MC(r);
 
-       ug(-1) = u(0)
-       ug(0:n-1) = u(0:n-1)
-       ug(n) = u(n-1)
+      r = (ag[is+i-1] - ag[is+i-2]) / (ag[is+i] - ag[is+i-1] + 1.e-50_rt);
+      Real al = ag[is+i-1] + 0.5_rt * (ag[is+i] - ag[is+i-1]) * MC(r);
 
-       f(0) = 0.e0_rt
-       do i=1,n-1
-          r = (ug(i-1)-ug(i-2)) / (ug(i)-ug(i-1) + 1.e-50_rt)
-          ul = ug(i-1) + 0.5e0_rt * (ug(i)-ug(i-1)) * MC(r)
+      fl = al*ul;
 
-          r = (ag(i-1)-ag(i-2)) / (ag(i)-ag(i-1) + 1.e-50_rt)
-          al = ag(i-1) + 0.5e0_rt * (ag(i)-ag(i-1)) * MC(r)
+      r = (ug[is+i] - ug[is+i-1]) / (ug[is+i+1] - ug[is+i] + 1.e-50_rt);
+      Real ur = ug[is+i] - 0.5_rt * (ug[is+i+1] - ug[is+i]) * MC(r);
 
-          fl = al*ul
+      r = (ag[is+i] - ag[is+i-1]) / (ag[is+i+1] - ag[is+i] + 1.e-50_rt);
+      Real ar = ag[is+i] - 0.5_rt * (ag[is+i+1] - ag[is+i]) * MC(r);
 
-          r = (ug(i) - ug(i-1)) / (ug(i+1) - ug(i) + 1.e-50_rt)
-          ur = ug(i) - 0.5e0_rt * (ug(i+1) - ug(i)) * MC(r)
+      fr = ar*ur;
 
-          r = (ag(i) - ag(i-1)) / (ag(i+1) - ag(i) + 1.e-50_rt)
-          ar = ag(i) - 0.5e0_rt * (ag(i+1) - ag(i)) * MC(r)
+      Real a_plus = amrex::max(0.0_rt, al, ar);
+      Real a_minus = amrex::max(0.e0_rt, -al, -ar);
+      f[i] = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) /
+        (a_plus + a_minus + 1.e-50_rt);
+    }
+    f[n] = 0.0_rt;
 
-          fr = ar*ur
+  }
 
-          a_plus = max(0.e0_rt, al, ar)
-          a_minus = max(0.e0_rt, -al, -ar)
-          f(i) = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) &
-                 / (a_plus + a_minus + 1.e-50_rt)
-       end do
-       f(n) = 0.e0_rt
-
-    end if
-
-    do i = 0, n-1
-       dudt(i) = (f(i) - f(i+1)) / dx(i)
-    end do
-
-  end function dudt
-
+  for (int i = 0; i < n; i++) {
+    dudt[i] = (f[i] - f[i+1]) / dx[i];
+  }
+}
 
   function MC(r) result(MCr)
 
