@@ -1,4 +1,7 @@
 
+// do the advection in frequency space for the radiation energy.
+// see Paper III, section 2.4
+
 constexpr int rk_order = 3;
 constexpr bool use_WENO = false;
 
@@ -40,117 +43,119 @@ constexpr Real C65 = 14.0_rt/45.0_rt;
 
 void advect_in_fspace(Real* ustar, Real* af, const Real dt, Real& nstep_fsp) {
 
-  call update_one_species(Radiation::nGroups, ustar, af, dlognu, dt, nstep_fsp)
+  call update_one_species(nGroups, ustar, af, dlognu, dt, nstep_fsp)
 
-    else
+}
 
-       call update_one_species(ng0, ustar(0:ng0-1), &
-                               af(0:ng0-1), &
-                               dlognu(0:ng0-1), &
-                               dt, nstep_fsp)
+void update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int& nstepmax) {
 
-       if (nnuspec >= 2) then
-          call update_one_species(ng1, ustar(ng0:ng0+ng1-1), &
-                                  af(ng0:ng0+ng1-1), &
-                                  dlognu(ng0:ng0+ng1-1), &
-                                  dt, nstep_fsp)
-       end if
+  Real dt = 1.e50_rt;
+  Real acfl;
 
-       if (nnuspec == 3) then
-          ng2 = ngroups-ng0-ng1
-          call update_one_species(ng2, ustar(ng0+ng1:), &
-                                  af(ng0+ng1:), &
-                                  dlognu(ng0+ng1:), &
-                                  dt, nstep_fsp)
-       end if
+  int nstep;
 
-    end if ! end of if nnuspec
+  for (int i = 0; i < n; i++) {
+    acfl = 1.e-50_rt + std::abs(a[i]);
+    dt = amrex::min(dt, dx[i]/acfl*cfl);
+  }
 
-  end subroutine advect_in_fspace
+  if (dt >= tend) {
+    nstep = 1;
+    dt = tend;
+  } else {
+    nstep = std::ceil(tend/dt);
+    dt = tend / static_cast<Real>(nstep);
+  }
+
+  Real u1[n];
+  Real u2[n];
+  Real u3[n];
+  Real u4[n];
+  Real u5[n];
+  Real dudt_tmp[n];
+
+  for (int istep = 1; istep < nstep; istep++) {
+    if (rk_order == 5) {
+      // RK5
+      dudt(u, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u1[g] = u[g] + B1 * dt * dudt_tmp[g];
+      }
+      dudt(u1, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u2[g] = (C20*u[g] + C21*u1[g]) + B2 * dt * dudt_tmp[g];
+      }
+      dudt(u2, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u3[g] = u[g] + B3 * dt * dudt_tmp[g];
+      }
+      dudt(u3, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u4[g] = (C40*u[g] + C41*u1[g] + C42*u2[g] + C43*u3[g]) + B4 * dt * dudt_tmp[g];
+      }
+      dudt(u4, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u5[g] = (C50*u[g] + C51*u1[g] + C52*u2[g] + C53*u3[g] + C54*u4[g]) + B5 * dt * dudt_tmp[g];
+      }
+      dudt(u5, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u[g] = (C60*u[g] + C61*u1[g] + C62*u2[g] + C63*u3[g] + C64*u4[g] + C65*u5[g]) + B6 * dt * dudt_tmp[g];
+      }
+
+    } else if (rk_order == 4) {
+      // RK4
+      dudt(u, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u1[g] = u[g] + 0.5_rt * dt * dudt_tmp[g];
+      }
+      dudt(u1, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u2[g] = u[g] + 0.5_rt * dt * dudt_tmp[g];
+      }
+      dudt(u2, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u3[g] = u[g] + dt * dudt_tmp[g];
+      }
+      dudt(u3, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u[g] = onethird * (u1 + 2.0_rt * u2 + u3 - u[g]) + onesixth * dt * dudt_tmp[g];
+      }
+
+    } else if (rk_order == 3) {
+      // RK3
+      dudt(u, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u1[g] = u[g] + dt * dudt_tmp[g];
+      }
+      dudt(u1, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u1[g] = 0.75e0_rt * u[g] + 0.25_rt * (u1[g] + dt * dudt_tmp[g]);
+      }
+      dudt(u1, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u[g] = onethird * u[g] + twothirds * (u1[g] + dt * dudt_tmp[g]);
+      }
+
+    } else {
+      // first-order
+      dudt(u, a, dx, n, dudt_tmp);
+      for (int g = 0; g < n; g++) {
+        u[g] += dt * dudt_tmp[g];
+      }
+    }
+  }
+
+  nstepmax = amrex::max(nstepmax, nstep);
+}
 
 
-  subroutine update_one_species(n, u, a, dx, tend, nstepmax)
+void dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
 
-    use amrex_fort_module, only: rt => amrex_real
+  // compute the RHS for the g'th energy group out of n note, since
+  // this is advection in frequency space, we will need to assume some
+  // boundary conditions on the stencil used to reconstruct over nu
 
-    implicit none
-
-    integer, intent(in) :: n
-    real(rt), intent(inout) :: u(0:n-1)
-    real(rt), intent(in) :: a(0:n-1), dx(0:n-1)
-    real(rt), intent(in) :: tend
-    integer, intent(inout) :: nstepmax
-
-    real(rt) :: dt, acfl
-    real(rt) :: f(0:n), u1(0:n-1), u2(0:n-1), u3(0:n-1), u4(0:n-1), u5(0:n-1)
-    integer :: i, istep, nstep
-
-    !$gpu
-
-    dt = 1.e50_rt
-    do i=0, n-1
-       acfl = 1.e-50_rt + abs(a(i))
-       dt = min(dt, dx(i)/acfl*cfl)
-    end do
-
-    if (dt >= tend) then
-       nstep = 1
-       dt = tend
-    else
-       nstep = ceiling(tend/dt)
-       dt = tend / dble(nstep)
-    end if
-
-    do istep = 1, nstep
-       if (rk_order .eq. 5) then
-          ! RK5
-          u1 = u + B1 * dt * dudt(u,a,dx,n)
-          u2 = (C20*u + C21*u1) + B2 * dt * dudt(u1,a,dx,n)
-          u3 = u + B3 * dt * dudt(u2,a,dx,n)
-          u4 = (C40*u + C41*u1 + C42*u2 + C43*u3) + B4 * dt * dudt(u3,a,dx,n)
-          u5 = (C50*u + C51*u1 + C52*u2 + C53*u3 + C54*u4) + B5 * dt * dudt(u4,a,dx,n)
-          u  = (C60*u + C61*u1 + C62*u2 + C63*u3 + C64*u4 + C65*u5) &
-               + B6 * dt * dudt(u5,a,dx,n)
-       else if (rk_order .eq. 4) then
-          ! RK4
-          u1 = u + 0.5e0_rt*dt*dudt(u,a,dx,n)
-          u2 = u + 0.5e0_rt*dt*dudt(u1,a,dx,n)
-          u3 = u + dt*dudt(u2,a,dx,n)
-          u = onethird*(u1+2.e0_rt*u2+u3-u) + onesixth*dt*dudt(u3,a,dx,n)
-       else if (rk_order .eq. 3) then
-          ! RK3
-          u1 = u + dt * dudt(u,a,dx,n)
-          u1 = 0.75e0_rt*u + 0.25e0_rt*(u1 + dt*dudt(u1,a,dx,n))
-          u = onethird*u + twothirds*(u1 + dt*dudt(u1,a,dx,n))
-       else
-          ! first-order
-          u = u + dt * dudt(u,a,dx,n)
-       end if
-    end do
-
-    nstepmax = max(nstepmax, nstep)
-
-  end subroutine update_one_species
-
-
-  function dudt(u,a,dx,n)
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer, intent(in) :: n
-    real(rt), intent(in) :: u(0:n-1), a(0:n-1), dx(0:n-1)
-    real(rt) :: dudt(0:n-1)
-
-    integer :: i
-    real(rt) :: f(0:n), ag(-2:n+1), ug(-2:n+1)
-    real(rt) :: ul, ur, al, ar, fl, fr, r, a_plus, a_minus
-    real(rt) :: fg(-2:n+1), fp(5), fm(5), fpw, fmw, alpha
-
-    !$gpu
-
-    if (use_WENO) then
+  if (use_WENO) {
 
        ag(-2) = -a(1)
        ag(-1) = -a(0)
