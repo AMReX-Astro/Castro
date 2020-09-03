@@ -838,15 +838,12 @@
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status">
-<span id="_CPPv3N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status"></span><span id="_CPPv2N6Castro17retry_advance_ctuERN5amrex4RealEN5amrex4RealEii14advance_status"></span><span id="Castro::retry_advance_ctu__amrex::RealR.amrex::Real.i.i.advance_status"></span><span class="target" id="classCastro_1a6f55e31535399f787fcae2e8c053cf11"></span>bool <code class="sig-name descname">retry_advance_ctu</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real &amp;<em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em>, <a class="reference internal" href="#_CPPv414advance_status" title="advance_status">advance_status</a> <em>status</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status">
+<span id="_CPPv3N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status"></span><span id="_CPPv2N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status"></span><span id="Castro::retry_advance_ctu__amrex::Real.advance_status"></span><span class="target" id="classCastro_1a110f286221cf998dd4ad1ce8a3f8dfa2"></span>bool <code class="sig-name descname">retry_advance_ctu</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, <a class="reference internal" href="#_CPPv414advance_status" title="advance_status">advance_status</a> <em>status</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated. This is used only for the CTU advance.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
 <li><p><code class="docutils literal notranslate"><a class="reference internal" href="#structadvance__status"><span class="std std-ref"><span class="pre">advance_status</span></span></a></code>: was the advance successful? </p></li>
 </ul>
 </dd>
@@ -887,31 +884,18 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro16finalize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::finalize_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a87c03e2e81eed5f3ec44111edc0ed5f6"></span>void <code class="sig-name descname">finalize_advance</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>If required, adds material lost in timestep to cumulative losses, does refluxing, and clears arrays/data containers initialized at start of the level’s advance.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
-</ul>
-</dd>
-</dl>
-</p>
+<dt id="_CPPv4N6Castro16finalize_advanceEv">
+<span id="_CPPv3N6Castro16finalize_advanceEv"></span><span id="_CPPv2N6Castro16finalize_advanceEv"></span><span id="Castro::finalize_advance"></span><span class="target" id="classCastro_1a68e6a604b5072e6349871d78b9dca1e8"></span>void <code class="sig-name descname">finalize_advance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>If required, adds material lost in timestep to cumulative losses, does refluxing, and clears arrays/data containers initialized at start of the level’s advance. </p>
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::initialize_do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a97609e81bb39cb77605b524a7aa0c297"></span>void <code class="sig-name descname">initialize_do_advance</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
+<dt id="_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealE">
+<span id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="Castro::initialize_do_advance__amrex::Real"></span><span class="target" id="classCastro_1af5557df72b1ea7e96b9e13bd6a1e8d44"></span>void <code class="sig-name descname">initialize_do_advance</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Performed at the start of ::do_advance, resets flags and ensures required ghost zones are filled.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
@@ -919,19 +903,9 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii">
-<span id="_CPPv3N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro19finalize_do_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::finalize_do_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a383beb5d9db6bd4844776de69fba7d29"></span>void <code class="sig-name descname">finalize_do_advance</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, int <em>amr_iteration</em>, int <em>amr_ncycle</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Performed at the end of ::do_advance, cleans up temporary data created by ::initialize_do_advance</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
-</ul>
-</dd>
-</dl>
-</p>
+<dt id="_CPPv4N6Castro19finalize_do_advanceEv">
+<span id="_CPPv3N6Castro19finalize_do_advanceEv"></span><span id="_CPPv2N6Castro19finalize_do_advanceEv"></span><span id="Castro::finalize_do_advance"></span><span class="target" id="classCastro_1a858ab43bc6c9aa537856ff19b152cb39"></span>void <code class="sig-name descname">finalize_do_advance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Performed at the end of ::do_advance, cleans up temporary data created by ::initialize_do_advance </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -949,16 +923,9 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro11estTimeStepEN5amrex4RealE">
-<span id="_CPPv3N6Castro11estTimeStepEN5amrex4RealE"></span><span id="_CPPv2N6Castro11estTimeStepEN5amrex4RealE"></span><span id="Castro::estTimeStep__amrex::Real"></span><span class="target" id="classCastro_1ac51826f3009f1c7b919ce7fafc680424"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">estTimeStep</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt_old</em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Estimate time step.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_old</span></code>: previous timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
+<dt id="_CPPv4N6Castro11estTimeStepEv">
+<span id="_CPPv3N6Castro11estTimeStepEv"></span><span id="_CPPv2N6Castro11estTimeStepEv"></span><span id="Castro::estTimeStep"></span><span class="target" id="classCastro_1a5b21a100e92b95c96cc97d7292140a3b"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">estTimeStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Estimate time step. </p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -987,14 +954,14 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE">
-<span id="_CPPv3N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="_CPPv2N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="Castro::computeInitialDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Real"></span><span class="target" id="classCastro_1a2bc5ebd07a0771b76924c0e5f4995876"></span>void <code class="sig-name descname">computeInitialDt</code><span class="sig-paren">(</span>int <em>finest_level</em>, int <em>sub_cycle</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;int&gt; &amp;<em>n_cycle</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::IntVect&gt; &amp;<em>ref_ratio</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_level</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>stop_time</em><span class="sig-paren">)</span> <em class="property">override</em><br /></dt>
+<span id="_CPPv3N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="_CPPv2N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="Castro::computeInitialDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Real"></span><span class="target" id="classCastro_1a77f71b20dd1bf977a183ae8d203c851c"></span>void <code class="sig-name descname">computeInitialDt</code><span class="sig-paren">(</span>int <em>finest_level</em>, int, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;int&gt; &amp;<em>n_cycle</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::IntVect&gt;&amp;, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_level</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>stop_time</em><span class="sig-paren">)</span> <em class="property">override</em><br /></dt>
 <dd><p>Compute initial <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sub_cycle</span></code>: </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subcycle</span></code>: unused </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: Vector of refinement ratios between levels </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: unused </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: Real Vector, will contain initial timestep at each level. </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </p></li>
 </ul>
@@ -1005,14 +972,14 @@
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi">
-<span id="_CPPv3N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="_CPPv2N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="Castro::computeNewDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Vector:amrex::Real:R.amrex::Real.i"></span><span class="target" id="classCastro_1a951082f7dee3d8d429d64118b485f902"></span>void <code class="sig-name descname">computeNewDt</code><span class="sig-paren">(</span>int <em>finest_level</em>, int <em>sub_cycle</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;int&gt; &amp;<em>n_cycle</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::IntVect&gt; &amp;<em>ref_ratio</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_min</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_level</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>stop_time</em>, int <em>post_regrid_flag</em><span class="sig-paren">)</span> <em class="property">override</em><br /></dt>
+<span id="_CPPv3N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="_CPPv2N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="Castro::computeNewDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Vector:amrex::Real:R.amrex::Real.i"></span><span class="target" id="classCastro_1a5176cd062384c8a87edbc8e9c13d2402"></span>void <code class="sig-name descname">computeNewDt</code><span class="sig-paren">(</span>int <em>finest_level</em>, int, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;int&gt; &amp;<em>n_cycle</em>, <em class="property">const</em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::IntVect&gt;&amp;, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_min</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Vector&lt;<a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; &amp;<em>dt_level</em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>stop_time</em>, int <em>post_regrid_flag</em><span class="sig-paren">)</span> <em class="property">override</em><br /></dt>
 <dd><p>Compute new <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sub_cycle</span></code>: </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">subcycle</span></code>: unused </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: Vector of refinement ratios between levels </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: unused </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt_min</span></code>: </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </p></li>
