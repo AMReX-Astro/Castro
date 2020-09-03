@@ -40,8 +40,6 @@ contains
 
     call update_one_species(ngroups, ustar, af, dlognu, dt, nstep_fsp)
 
-    end if
-
   end subroutine advect_in_fspace
 
 
