@@ -2570,6 +2570,22 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
 end subroutine ca_initgroups3
 
+subroutine ca_get_dlognu(dlognu_out) bind(C, name="ca_get_dlognu")
+
+  real(rt), intent(out) :: dlognu_out(0:ngroups-1)
+
+  dlognu_out(:) = dlognu(:)
+
+end subroutine get_dlognu
+
+subroutine ca_get_nugroup(nugroup_out) bind(C, name="ca_get_nugroup")
+
+  real(rt), intent(out) :: nugroup(0:ngroups-1)
+
+  nugroup_out(:) = nugroup(:)
+
+end subroutine ca_get_nugroup
+
 !! -----------------------------------------------------------
 
 subroutine ca_setgroup(igroup)

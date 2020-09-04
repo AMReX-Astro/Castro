@@ -3,13 +3,11 @@
 #include "Castro_util.H"
 #include "Castro_hydro_F.H"
 
-#ifdef RADIATION
 #include "Radiation.H"
-#endif
+#include "RadHydro.H"
 
 using namespace amrex;
 
-#ifdef RADIATION
 Castro::ctu_rad_consup(const Box& bx,
                        Array4<Real> const& update,
                        Array4<Real const> const& Erin,
@@ -28,21 +26,35 @@ Castro::ctu_rad_consup(const Box& bx,
                        Array4<Real const> const& qz,
                        Array4<Real const> const& area3,
 #endif
-                       Real& nstep_fsp,
+                       int& nstep_fsp,
                        Array4<Real const> const& vol,
                        const Real dt)
 {
 
-  Real Erscale = 0;
-  if (ngroups > 1) {
+  
+  GpuArray<Real, Radiation::nGroups> Erscale = {0};
+
+  int fspace_type = Radiation::fspace_advection_type;
+
+  GpuArray<Real, Radiation::nGroups> dlognu;
+  ca_get_dlognu(dlognu.begin());
+
+  GpuArray<Real, Radiation::nGroups> nugroup;
+  ca_get_nugroup(nugroup.begin());
+
+  if (Radiation::nGroups > 1) {
     if (fspace_type == 1) {
-      Erscale = dlognu;
+      for (int g = 0; g < Radiation::nGroups; g++) {
+        Erscale[g] = dlognu[g];
+      }
     } else {
-      Erscale = nugroup * dlognu;
+      for (int g = 0; g < Radiation::nGroups; g++) {
+        Erscale[g] = nugroup[g] * dlognu[g];
+      }
     }
   }
 
-  int fspace_t = Radiation::fspace_advection_type;
+
   int comov = Radiation::comoving;
   int limiter = Radiation::limiter;
   int closure = Radiation::closure;
@@ -145,7 +157,7 @@ Castro::ctu_rad_consup(const Box& bx,
     // the update is a source / dt, so scale accordingly
     update(i,j,k,UEDEN) += dek/dt;
 
-    if (! comoving) {
+    if (! comov) {
       // ! mixed-frame (single group only)
       Erout(i,j,k,0) -= dek;
     }
@@ -155,7 +167,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
   // Add radiation source terms to rho*u, rhoE, and Er
 
-  if (comoving) {
+  if (comov) {
 
     amrex:ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -288,13 +300,20 @@ Castro::ctu_rad_consup(const Box& bx,
       }
 
       if (ngroups > 1) {
-        Real ustar = Erout(i,j,k,:) / Erscale;
-        advect_in_fspace(ustar, af, dt, nstep_fsp);
-        Erout(i,j,k,:) = ustar * Erscale;
+        Real ustar[Radiation::nGroups];
+        for (int g = 0; g < Radiation::nGroups; g++) { 
+          ustar[g] = Erout(i,j,k,g) / Erscale[g];
+        }
+
+        update_one_species(Radiation::nGroups, ustar, af, dlognu.begin(), dt, nstep_fsp);
+
+        for (int g = 0; g < Radiation::nGroups; g++) {
+          Erout(i,j,k,g) = ustar[g] * Erscale[g];
+        }
       }
 
     });
 
   }
 }
-#endif
+

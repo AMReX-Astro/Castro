@@ -36,6 +36,9 @@ void ca_initradconstants
 void ca_initsinglegroup
   (const int& ngroups);
 
+void ca_get_dlognu
+  (amrex::Real* dlognu_out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -44,14 +44,6 @@ constexpr Real C65 = 14.0_rt/45.0_rt;
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-advect_in_fspace(Real* ustar, Real* af, const Real dt, Real& nstep_fsp) {
-
-  call update_one_species(nGroups, ustar, af, dlognu, dt, nstep_fsp)
-
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void
 update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int& nstepmax) {
 
   Real dt = 1.e50_rt;
