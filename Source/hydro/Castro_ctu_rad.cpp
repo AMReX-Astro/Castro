@@ -8,6 +8,7 @@
 
 using namespace amrex;
 
+void
 Castro::ctu_rad_consup(const Box& bx,
                        Array4<Real> const& update,
                        Array4<Real const> const& Erin,

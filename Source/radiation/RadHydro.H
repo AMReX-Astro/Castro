@@ -7,7 +7,7 @@
 constexpr int rk_order = 3;
 constexpr bool use_WENO = false;
 
-constexpr Real cfl = 0.5_rt;
+constexpr Real cfl_fspace = 0.5_rt;
 
 constexpr Real onethird = 1.0_rt/3.0_rt;
 constexpr Real twothirds = 2.0_rt/3.0_rt;
@@ -42,6 +42,155 @@ constexpr Real C63 = -32.0_rt/45.0_rt;
 constexpr Real C64 = 32.0_rt/27.0_rt;
 constexpr Real C65 = 14.0_rt/45.0_rt;
 
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real
+MC(const Real r) {
+  return amrex::max(0.0_rt, amrex::min(2.0_rt * r, 0.5_rt * (1.0_rt + r), 2.0_rt));
+}
+
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real
+weno5(const Real vm2, const Real vm1, const Real v, const Real vp1, const Real vp2) {
+
+  constexpr Real epsw = 1.0e-6_rt;
+  constexpr Real b1 = 13.0_rt/12.0_rt;
+  constexpr Real b2 = 1.0_rt/6.0_rt;
+
+  Real djm1 = vm2 - 2.0_rt * vm1 + v;
+  Real ejm1 = vm2 - 4.0_rt * vm1 + 3.0_rt * v;
+  Real dj = vm1 - 2.0_rt * v + vp1;
+  Real ej = vm1 - vp1;
+  Real djp1 = v - 2.0_rt * vp1 + vp2;
+  Real ejp1 = 3.0_rt * v - 4.0_rt * vp1 + vp2;
+
+  Real dis0 = b1 * djm1 * djm1 + 0.25_rt * ejm1 * ejm1 + epsw;
+  Real dis1 = b1 * dj * dj + 0.25_rt * ej * ej + epsw;
+  Real dis2 = b1 * djp1 * djp1 + 0.25_rt * ejp1 * ejp1 + epsw;
+
+  Real q30 = 2.0_rt *vm2 - 7.0_rt * vm1 + 11.0_rt * v;
+  Real q31 = -vm1 + 5.0_rt * v + 2.0_rt * vp1;
+  Real q32 = 2.0_rt * v + 5.0_rt * vp1 - vp2;
+
+  Real d01 = dis0 / dis1;
+  Real d02 = dis0 / dis2;
+  Real a1ba0 = 6.0_rt * d01 * d01;
+  Real a2ba0 = 3.0_rt * d02 * d02;
+  Real w0 = 1.0_rt / (1.0_rt + a1ba0 + a2ba0);
+  Real w1 = a1ba0 * w0;
+  Real w2 = 1.0_rt - w0 - w1;
+
+  if (w0 <  1.0e-10_rt) {
+    w0 = 0.0_rt;
+  }
+  if (w1 < 1.0e-10_rt) {
+    w1 = 0.0_rt;
+  }
+  if (w2 < 1.0e-10_rt) {
+    w2 = 0.e0_rt;
+  }
+
+  return b2 * (w0 * q30 + w1 * q31 + w2 * q32);
+}
+
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
+
+  // compute the RHS for the g'th energy group out of n note, since
+  // this is advection in frequency space, we will need to assume some
+  // boundary conditions on the stencil used to reconstruct over nu
+
+  Real f[n+1];
+
+  // we need 2 ghost cells on each end
+  Real ag[n+4];
+  Real ug[n+4];
+  Real fg[n+4];
+
+  int is = 2;
+  int ie = n+1;
+
+  // fill ghost cells
+  ag[is-2] = -a[is+1];
+  ag[is-1] = -a[is];
+
+  ag[ie+1] = -a[ie];
+  ag[ie+2] = -a[ie-1];
+
+  ug[is-2] = -u[is+1];
+  ug[is-1] = -u[is];
+
+  ug[ie+1] = -u[ie];
+  ug[ie+2] = -u[ie-1];
+
+  for (int g = 0; g < n; g++) {
+    ag[is+g] = a[g];
+    ug[is+g] = u[g];
+  }
+
+  if (use_WENO) {
+
+    for (int gg = 0; gg < n + 4; gg++) { 
+      fg[gg] = ag[gg] * ug[gg];
+      ag[gg] = std::abs(ag[gg]);
+    }
+
+    f[0] = 0.0_rt;
+
+    for (int i = 1; i < n; i++) {
+      Real alpha = amrex::max(ag[is+i-3], ag[is+i-2], ag[is+i-1],
+                              ag[is+i], ag[is+i+1], ag[is+i+2]);
+      Real fp[5];
+      Real fm[5];
+      for (int m = 0; m < 5; m++) {
+        fp[m] = 0.5e0_rt * (fg[is+m-3] + alpha * ug[is+m-3]);
+        fm[m] = 0.5e0_rt * (fg[is+m-2] - alpha * ug[is+m-2]);
+      }
+      Real fpw = weno5(fp[0], fp[1], fp[2], fp[3], fp[4]);
+      Real fmw = weno5(fm[4], fm[3], fm[2], fm[1], fm[0]);
+      f[i] = fpw + fmw;
+    }
+    f[n] = 0.0_rt;
+
+  } else {
+
+    f[0] = 0.0_rt;
+
+    for (int i = 1; i < n; i++) {
+      Real r = (ug[is+i-1] - ug[is+i-2]) / (ug[is+i] - ug[is+i-1] + 1.e-50_rt);
+      Real ul = ug[is+i-1] + 0.5_rt * (ug[is+i] - ug[is+i-1]) * MC(r);
+
+      r = (ag[is+i-1] - ag[is+i-2]) / (ag[is+i] - ag[is+i-1] + 1.e-50_rt);
+      Real al = ag[is+i-1] + 0.5_rt * (ag[is+i] - ag[is+i-1]) * MC(r);
+
+      Real fl = al*ul;
+
+      r = (ug[is+i] - ug[is+i-1]) / (ug[is+i+1] - ug[is+i] + 1.e-50_rt);
+      Real ur = ug[is+i] - 0.5_rt * (ug[is+i+1] - ug[is+i]) * MC(r);
+
+      r = (ag[is+i] - ag[is+i-1]) / (ag[is+i+1] - ag[is+i] + 1.e-50_rt);
+      Real ar = ag[is+i] - 0.5_rt * (ag[is+i+1] - ag[is+i]) * MC(r);
+
+      Real fr = ar*ur;
+
+      Real a_plus = amrex::max(0.0_rt, al, ar);
+      Real a_minus = amrex::max(0.e0_rt, -al, -ar);
+      f[i] = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) /
+        (a_plus + a_minus + 1.e-50_rt);
+    }
+    f[n] = 0.0_rt;
+
+  }
+
+  for (int i = 0; i < n; i++) {
+    dudt_tmp[i] = (f[i] - f[i+1]) / dx[i];
+  }
+}
+
+
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int& nstepmax) {
@@ -53,7 +202,7 @@ update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int
 
   for (int i = 0; i < n; i++) {
     acfl = 1.e-50_rt + std::abs(a[i]);
-    dt = amrex::min(dt, dx[i]/acfl*cfl);
+    dt = amrex::min(dt, dx[i]/acfl*cfl_fspace);
   }
 
   if (dt >= tend) {
@@ -115,7 +264,7 @@ update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int
       }
       dudt(u3, a, dx, n, dudt_tmp);
       for (int g = 0; g < n; g++) {
-        u[g] = onethird * (u1 + 2.0_rt * u2 + u3 - u[g]) + onesixth * dt * dudt_tmp[g];
+        u[g] = onethird * (u1[g] + 2.0_rt * u2[g] + u3[g] - u[g]) + onesixth * dt * dudt_tmp[g];
       }
 
     } else if (rk_order == 3) {
@@ -143,153 +292,6 @@ update_one_species(const int n, Real* u, Real* a, Real* dx, const Real tend, int
   }
 
   nstepmax = amrex::max(nstepmax, nstep);
-}
-
-
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void
-dudt(Real* u, Real* a, Real* dx, const int n, Real* dudt_tmp) {
-
-  // compute the RHS for the g'th energy group out of n note, since
-  // this is advection in frequency space, we will need to assume some
-  // boundary conditions on the stencil used to reconstruct over nu
-
-  Real f[n+1];
-
-  // we need 2 ghost cells on each end
-  Real ag[n+4];
-  Real ug[n+4];
-  Real fg[n+4];
-
-  int is = 2;
-  int ie = n+1;
-
-  // fill ghost cells
-  ag[is-2] = -a[is+1];
-  ag[is-1] = -a[is];
-
-  ag[ie+1] = -a[ie];
-  ag[ie+2] = -a[ie-1];
-
-  ug[is-2] = -u[is+1];
-  ug[is-1] = -u[is];
-
-  ug[ie+1] = -u[ie];
-  ug[ie+2] = -u[ie-1];
-
-  for (int g = 0; g < n) {
-    ag[is+g] = a[g];
-    ug[is+g] = u[g];
-  }
-
-  if (use_WENO) {
-
-    for (int gg = 0; gg < n + 4; gg++) { 
-      fg[gg] = ag[gg] * ug[gg];
-      ag[gg] = std::abs(ag[gg]);
-    }
-
-    f[0] = 0.0_rt;
-
-    for (int i = 1, i < n; i++) {
-      Real alpha = amrex::max(ag[is+i-3], ag[is+i-2], ag[is+i-1],
-                              ag[is+i], ag[is+i+1], ag[is+i+2]);
-      Real fp[5];
-      Real fm[5];
-      for (int m = 0; m < 5; m++) {
-        fp = 0.5e0_rt * (fg[is+m-3] + alpha * ug[is+m-3]);
-        fm = 0.5e0_rt * (fg[is+m-2] - alpha * ug[is+m-2]);
-      }
-      Real fpw = weno5(fp[0], fp[1], fp[2], fp[3], fp[4]);
-      Real fmw = weno5(fm[4], fm[3], fm[2], fm[1], fm[0]);
-      f[i] = fpw + fmw;
-    }
-    f[n] = 0.0_rt;
-
-  } else {
-
-    f[0] = 0.0_rt;
-
-    for (int i = 1; i < n; i++) {
-      Real r = (ug[is+i-1] - ug[is+i-2]) / (ug[is+i] - ug[is+i-1] + 1.e-50_rt);
-      Real ul = ug[is+i-1] + 0.5_rt * (ug[is+i] - ug[is+i-1]) * MC(r);
-
-      r = (ag[is+i-1] - ag[is+i-2]) / (ag[is+i] - ag[is+i-1] + 1.e-50_rt);
-      Real al = ag[is+i-1] + 0.5_rt * (ag[is+i] - ag[is+i-1]) * MC(r);
-
-      fl = al*ul;
-
-      r = (ug[is+i] - ug[is+i-1]) / (ug[is+i+1] - ug[is+i] + 1.e-50_rt);
-      Real ur = ug[is+i] - 0.5_rt * (ug[is+i+1] - ug[is+i]) * MC(r);
-
-      r = (ag[is+i] - ag[is+i-1]) / (ag[is+i+1] - ag[is+i] + 1.e-50_rt);
-      Real ar = ag[is+i] - 0.5_rt * (ag[is+i+1] - ag[is+i]) * MC(r);
-
-      fr = ar*ur;
-
-      Real a_plus = amrex::max(0.0_rt, al, ar);
-      Real a_minus = amrex::max(0.e0_rt, -al, -ar);
-      f[i] = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) /
-        (a_plus + a_minus + 1.e-50_rt);
-    }
-    f[n] = 0.0_rt;
-
-  }
-
-  for (int i = 0; i < n; i++) {
-    dudt[i] = (f[i] - f[i+1]) / dx[i];
-  }
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real
-MC(const Real r) {
-  return amrex::max(0.0_rt, amrex::min(2.0_rt * r, 0.5_rt * (1.0_rt + r), 2.0_rt));
-}
-
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-Real
-weno5(const Real vm2, const Real vm1, const Real v, const Real vp1, const Real vp2) {
-
-  constexpr Real epsw = 1.0e-6_rt;
-  constexpr Real b1 = 13.0_rt/12.0_rt;
-  constexpr Real b2 = 1.0_rt/6.0_rt;
-
-  Real djm1 = vm2 - 2.0_rt * vm1 + v;
-  Real ejm1 = vm2 - 4.0_rt * vm1 + 3.0_rt * v;
-  Real dj = vm1 - 2.0_rt * v + vp1;
-  Real ej = vm1 - vp1;
-  Real djp1 = v - 2.0_rt * vp1 + vp2;
-  Real ejp1 = 3.0_rt * v - 4.0_rt * vp1 + vp2;
-
-  Real dis0 = b1 * djm1 * djm1 + 0.25_rt * ejm1 * ejm1 + epsw;
-  Real dis1 = b1 * dj * dj + 0.25_rt * ej * ej + epsw;
-  Real dis2 = b1 * djp1 * djp1 + 0.25_rt * ejp1 * ejp1 + epsw;
-
-  Real q30 = 2.0_rt *vm2 - 7.0_rt * vm1 + 11.0_rt * v;
-  Real q31 = -vm1 + 5.0_rt * v + 2.0_rt * vp1;
-  Real q32 = 2.0_rt * v + 5.0_rt * vp1 - vp2;
-
-  Real d01 = dis0 / dis1;
-  Real d02 = dis0 / dis2;
-  Real a1ba0 = 6.0_rt * d01 * d01;
-  Real a2ba0 = 3.0_rt * d02 * d02;
-  Real w0 = 1.0_rt / (1.0_rt + a1ba0 + a2ba0);
-  Real w1 = a1ba0 * w0;
-  Real w2 = 1.0_rt - w0 - w1;
-
-  if (w0 <  1.0e-10_rt) {
-    w0 = 0.0_rt;
-  }
-  if (w1 < 1.0e-10_rt) {
-    w1 = 0.0_rt;
-  }
-  if (w2 < 1.0e-10_rt) {
-    w2 = 0.e0_rt;
-  }
-
-  return b2 * (w0 * q30 + w1 * q31 + w2 * q32);
 }
 
 #endif
