@@ -2572,15 +2572,23 @@ end subroutine ca_initgroups3
 
 subroutine ca_get_dlognu(dlognu_out) bind(C, name="ca_get_dlognu")
 
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, dlognu
+  implicit none
+
   real(rt), intent(out) :: dlognu_out(0:ngroups-1)
 
   dlognu_out(:) = dlognu(:)
 
-end subroutine get_dlognu
+end subroutine ca_get_dlognu
 
 subroutine ca_get_nugroup(nugroup_out) bind(C, name="ca_get_nugroup")
 
-  real(rt), intent(out) :: nugroup(0:ngroups-1)
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, nugroup
+  implicit none
+
+  real(rt), intent(out) :: nugroup_out(0:ngroups-1)
 
   nugroup_out(:) = nugroup(:)
 

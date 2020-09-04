@@ -21,6 +21,10 @@ ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
+ifeq ($(USE_RAD), TRUE)
+  CEXE_sources += Castro_ctu_rad.cpp
+endif
+
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
 CEXE_headers += riemann_solvers.H
