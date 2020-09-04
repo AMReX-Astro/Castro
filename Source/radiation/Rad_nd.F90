@@ -2536,7 +2536,7 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
   implicit none
 
-  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
+  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr)
   integer :: ngr, ngr0, ngr1
 
   ! Local variables
@@ -2563,7 +2563,7 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
-  allocate(xnu(0:ngroups+2))
+  allocate(xnu(0:ngroups))
   allocate(dlognu(0:ngroups-1))
   allocate(erg2rhoYe(0:ngroups-1))
   allocate(lognugroup( 0:ngroups-1))
