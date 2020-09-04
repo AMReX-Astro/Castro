@@ -5,7 +5,7 @@ subroutine ca_er_com2lab(lo, hi, &
      F,     F_l1,  F_h1, iflx, nflx, & 
      Elab, El_l1, El_h1, ier, npv)
   use meth_params_module, only : NVAR, URHO, UMX
-  use rad_params_module, only : ngroups, clight, nnuspec, ng0, ng1, dlognu
+  use rad_params_module, only : ngroups, clight, ng0, ng1, dlognu
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -39,55 +39,14 @@ subroutine ca_er_com2lab(lo, hi, &
      end do
      
      if (ngroups > 1) then
-        if (nnuspec .eq. 0) then
-           
-           do g=0,ngroups-1
-              nufnux(g) = F(i,ifx+g)*dlognuInv(g)
-           end do
-           nufnux(-1) = -nufnux(0)
-           nufnux(ngroups) = -nufnux(ngroups-1)
-           do g=0,ngroups-1
-              Elab(i,g+ier) = Elab(i,g+ier) - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1))
-           end do
-           
-        else
-           
-           do g=0,ng0-1
-              nufnux(g) = F(i,ifx+g)*dlognuInv(g)
-           end do
-           nufnux(-1) = -nufnux(0)
-           nufnux(ng0) = -nufnux(ng0-1)
-           do g=0,ng0-1
-              Elab(i,g+ier) = Elab(i,g+ier) - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1))
-           end do
-           
-           if (nnuspec >= 2) then
-              
-              do g=ng0,ng0+ng1-1
-                 nufnux(g) = F(i,ifx+g)*dlognuInv(g)
-              end do
-              nufnux(ng0-1) = -nufnux(ng0)
-              nufnux(ng0+ng1) = -nufnux(ng0+ng1-1)
-              do g=ng0,ng0+ng1-1
-                 Elab(i,g+ier) = Elab(i,g+ier) - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1))
-              end do
-              
-           end if
-           
-           if (nnuspec == 3) then
-              
-              do g=ng0+ng1,ngroups-1
-                 nufnux(g) = F(i,ifx+g)*dlognuInv(g)
-              end do
-              nufnux(ng0+ng1-1) = -nufnux(ng0+ng1)
-              nufnux(ngroups) = -nufnux(ngroups-1)
-              do g=ng0+ng1,ngroups-1
-                 Elab(i,g+ier) = Elab(i,g+ier) - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1))
-              end do
-              
-           end if
-
-        end if
+        do g=0,ngroups-1
+           nufnux(g) = F(i,ifx+g)*dlognuInv(g)
+        end do
+        nufnux(-1) = -nufnux(0)
+        nufnux(ngroups) = -nufnux(ngroups-1)
+        do g=0,ngroups-1
+           Elab(i,g+ier) = Elab(i,g+ier) - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1))
+        end do
      end if
   end do
 
@@ -127,7 +86,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      Fi,   Fi_l1, Fi_h1, ifi, nfi, & 
      Fo,   Fo_l1, Fo_h1, ifo, nfo)
   use meth_params_module, only : NVAR, URHO, UMX
-  use rad_params_module, only : ngroups, nnuspec, ng0, ng1, dlognu
+  use rad_params_module, only : ngroups, ng0, ng1, dlognu
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -170,55 +129,15 @@ subroutine ca_transform_flux (lo, hi, flag, &
      end do
 
      if (ngroups > 1) then
-        if (nnuspec .eq. 0) then
-           
-           do g=0,ngroups-1
-              nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-           end do
-           nuvpnux(-1) = -nuvpnux(0)
-           nuvpnux(ngroups) = -nuvpnux(ngroups-1)
-           do g=0,ngroups-1
-              Fo(i,ifox+g) = Fo(i,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-           end do
+        do g=0,ngroups-1
+           nuvpnux(g) = vdotpx(g)*dlognuInv(g)
+        end do
+        nuvpnux(-1) = -nuvpnux(0)
+        nuvpnux(ngroups) = -nuvpnux(ngroups-1)
+        do g=0,ngroups-1
+           Fo(i,ifox+g) = Fo(i,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
+        end do
 
-        else
-           
-           do g=0,ng0-1
-              nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-           end do
-           nuvpnux(-1) = -nuvpnux(0)
-           nuvpnux(ng0) = -nuvpnux(ng0-1)
-           do g=0,ng0-1
-              Fo(i,ifox+g) = Fo(i,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-           end do
-
-           if (nnuspec >= 2) then
-
-              do g=ng0,ng0+ng1-1
-                 nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-              end do
-              nuvpnux(ng0-1) = -nuvpnux(ng0)
-              nuvpnux(ng0+ng1) = -nuvpnux(ng0+ng1-1)
-              do g=ng0,ng0+ng1-1
-                 Fo(i,ifox+g) = Fo(i,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-              end do
-
-           end if
-
-           if (nnuspec == 3) then
-
-              do g=ng0+ng1,ngroups-1
-                 nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-              end do
-              nuvpnux(ng0+ng1-1) = -nuvpnux(ng0+ng1)
-              nuvpnux(ngroups) = -nuvpnux(ngroups-1)
-              do g=ng0+ng1,ngroups-1
-                 Fo(i,ifox+g) = Fo(i,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-              end do
-
-           end if
-
-        end if
      end if
   end do
 

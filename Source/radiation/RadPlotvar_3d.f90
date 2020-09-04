@@ -5,7 +5,7 @@ subroutine ca_er_com2lab(lo, hi, &
      F,     F_l1,  F_l2,  F_l3,  F_h1,  F_h2,  F_h3, iflx, nflx, & 
      Elab, El_l1, El_l2, El_l3, El_h1, El_h2, El_h3, ier, npv)
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
-  use rad_params_module, only : ngroups, clight, nnuspec, ng0, ng1, dlognu
+  use rad_params_module, only : ngroups, clight, ng0, ng1, dlognu
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -47,91 +47,23 @@ subroutine ca_er_com2lab(lo, hi, &
      end do
      
      if (ngroups > 1) then
-        if (nnuspec .eq. 0) then
-           
-           do g=0,ngroups-1
-              nufnux(g) = F(i,j,k,ifx+g)*dlognuInv(g)
-              nufnuy(g) = F(i,j,k,ify+g)*dlognuInv(g)
-              nufnuz(g) = F(i,j,k,ifz+g)*dlognuInv(g)
-           end do
-           nufnux(-1) = -nufnux(0)
-           nufnuy(-1) = -nufnuy(0)
-           nufnuz(-1) = -nufnuz(0)
-           nufnux(ngroups) = -nufnux(ngroups-1)
-           nufnuy(ngroups) = -nufnuy(ngroups-1)              
-           nufnuz(ngroups) = -nufnuz(ngroups-1)              
-           do g=0,ngroups-1
-              Elab(i,j,k,g+ier) = Elab(i,j,k,g+ier) &
-                   - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1)) &
-                   - vyc2*0.5e0_rt*(nufnuy(g+1)-nufnuy(g-1)) &
-                   - vzc2*0.5e0_rt*(nufnuz(g+1)-nufnuz(g-1))
-           end do
-           
-        else
-           
-           do g=0,ng0-1
-              nufnux(g) = F(i,j,k,ifx+g)*dlognuInv(g)
-              nufnuy(g) = F(i,j,k,ify+g)*dlognuInv(g)
-              nufnuz(g) = F(i,j,k,ifz+g)*dlognuInv(g)
-           end do
-           nufnux(-1) = -nufnux(0)
-           nufnuy(-1) = -nufnuy(0)
-           nufnuz(-1) = -nufnuz(0)
-           nufnux(ng0) = -nufnux(ng0-1)
-           nufnuy(ng0) = -nufnuy(ng0-1)              
-           nufnuz(ng0) = -nufnuz(ng0-1)              
-           do g=0,ng0-1
-              Elab(i,j,k,g+ier) = Elab(i,j,k,g+ier) &
-                   - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1)) &
-                   - vyc2*0.5e0_rt*(nufnuy(g+1)-nufnuy(g-1)) &
-                   - vzc2*0.5e0_rt*(nufnuz(g+1)-nufnuz(g-1))
-           end do
-           
-           if (nnuspec >= 2) then
-              
-              do g=ng0,ng0+ng1-1
-                 nufnux(g) = F(i,j,k,ifx+g)*dlognuInv(g)
-                 nufnuy(g) = F(i,j,k,ify+g)*dlognuInv(g)
-                 nufnuz(g) = F(i,j,k,ifz+g)*dlognuInv(g)
-              end do
-              nufnux(ng0-1) = -nufnux(ng0)
-              nufnuy(ng0-1) = -nufnuy(ng0)
-              nufnuz(ng0-1) = -nufnuz(ng0)
-              nufnux(ng0+ng1) = -nufnux(ng0+ng1-1)
-              nufnuy(ng0+ng1) = -nufnuy(ng0+ng1-1)              
-              nufnuz(ng0+ng1) = -nufnuz(ng0+ng1-1)              
-              do g=ng0,ng0+ng1-1
-                 Elab(i,j,k,g+ier) = Elab(i,j,k,g+ier) &
-                      - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1)) &
-                      - vyc2*0.5e0_rt*(nufnuy(g+1)-nufnuy(g-1)) &
-                      - vzc2*0.5e0_rt*(nufnuz(g+1)-nufnuz(g-1))
-              end do
-              
-           end if
-           
-           if (nnuspec == 3) then
-              
-              do g=ng0+ng1,ngroups-1
-                 nufnux(g) = F(i,j,k,ifx+g)*dlognuInv(g)
-                 nufnuy(g) = F(i,j,k,ify+g)*dlognuInv(g)
-                 nufnuz(g) = F(i,j,k,ifz+g)*dlognuInv(g)
-              end do
-              nufnux(ng0+ng1-1) = -nufnux(ng0+ng1)
-              nufnuy(ng0+ng1-1) = -nufnuy(ng0+ng1)
-              nufnuz(ng0+ng1-1) = -nufnuz(ng0+ng1)
-              nufnux(ngroups) = -nufnux(ngroups-1)
-              nufnuy(ngroups) = -nufnuy(ngroups-1)              
-              nufnuz(ngroups) = -nufnuz(ngroups-1)              
-              do g=ng0+ng1,ngroups-1
-                 Elab(i,j,k,g+ier) = Elab(i,j,k,g+ier) &
-                      - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1)) &
-                      - vyc2*0.5e0_rt*(nufnuy(g+1)-nufnuy(g-1)) &
-                      - vzc2*0.5e0_rt*(nufnuz(g+1)-nufnuz(g-1))
-              end do
-              
-           end if
-
-        end if
+        do g=0,ngroups-1
+           nufnux(g) = F(i,j,k,ifx+g)*dlognuInv(g)
+           nufnuy(g) = F(i,j,k,ify+g)*dlognuInv(g)
+           nufnuz(g) = F(i,j,k,ifz+g)*dlognuInv(g)
+        end do
+        nufnux(-1) = -nufnux(0)
+        nufnuy(-1) = -nufnuy(0)
+        nufnuz(-1) = -nufnuz(0)
+        nufnux(ngroups) = -nufnux(ngroups-1)
+        nufnuy(ngroups) = -nufnuy(ngroups-1)              
+        nufnuz(ngroups) = -nufnuz(ngroups-1)              
+        do g=0,ngroups-1
+           Elab(i,j,k,g+ier) = Elab(i,j,k,g+ier) &
+                - vxc2*0.5e0_rt*(nufnux(g+1)-nufnux(g-1)) &
+                - vyc2*0.5e0_rt*(nufnuy(g+1)-nufnuy(g-1)) &
+                - vzc2*0.5e0_rt*(nufnuz(g+1)-nufnuz(g-1))
+        end do
      end if
   end do
   end do
@@ -185,7 +117,7 @@ subroutine ca_transform_flux (lo, hi, flag, &
      Fi,   Fi_l1, Fi_l2, Fi_l3, Fi_h1, Fi_h2, Fi_h3, ifi, nfi, & 
      Fo,   Fo_l1, Fo_l2, Fo_l3, Fo_h1, Fo_h2, Fo_h3, ifo, nfo)
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ
-  use rad_params_module, only : ngroups, nnuspec, ng0, ng1, dlognu
+  use rad_params_module, only : ngroups, ng0, ng1, dlognu
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -243,87 +175,22 @@ subroutine ca_transform_flux (lo, hi, flag, &
      end do
 
      if (ngroups > 1) then
-        if (nnuspec .eq. 0) then
-           
-           do g=0,ngroups-1
-              nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-              nuvpnuy(g) = vdotpy(g)*dlognuInv(g)
-              nuvpnuz(g) = vdotpz(g)*dlognuInv(g)
-           end do
-           nuvpnux(-1) = -nuvpnux(0)
-           nuvpnuy(-1) = -nuvpnuy(0)
-           nuvpnuz(-1) = -nuvpnuz(0)
-           nuvpnux(ngroups) = -nuvpnux(ngroups-1)
-           nuvpnuy(ngroups) = -nuvpnuy(ngroups-1)              
-           nuvpnuz(ngroups) = -nuvpnuz(ngroups-1)              
-           do g=0,ngroups-1
-              Fo(i,j,k,ifox+g) = Fo(i,j,k,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-              Fo(i,j,k,ifoy+g) = Fo(i,j,k,ifoy+g) - 0.5e0_rt*(nuvpnuy(g+1)-nuvpnuy(g-1))
-              Fo(i,j,k,ifoz+g) = Fo(i,j,k,ifoz+g) - 0.5e0_rt*(nuvpnuz(g+1)-nuvpnuz(g-1))
-           end do
-
-        else
-           
-           do g=0,ng0-1
-              nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-              nuvpnuy(g) = vdotpy(g)*dlognuInv(g)
-              nuvpnuz(g) = vdotpz(g)*dlognuInv(g)
-           end do
-           nuvpnux(-1) = -nuvpnux(0)
-           nuvpnuy(-1) = -nuvpnuy(0)
-           nuvpnuz(-1) = -nuvpnuz(0)
-           nuvpnux(ng0) = -nuvpnux(ng0-1)
-           nuvpnuy(ng0) = -nuvpnuy(ng0-1)              
-           nuvpnuz(ng0) = -nuvpnuz(ng0-1)              
-           do g=0,ng0-1
-              Fo(i,j,k,ifox+g) = Fo(i,j,k,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-              Fo(i,j,k,ifoy+g) = Fo(i,j,k,ifoy+g) - 0.5e0_rt*(nuvpnuy(g+1)-nuvpnuy(g-1))
-              Fo(i,j,k,ifoz+g) = Fo(i,j,k,ifoz+g) - 0.5e0_rt*(nuvpnuz(g+1)-nuvpnuz(g-1))
-           end do
-
-           if (nnuspec >= 2) then
-
-              do g=ng0,ng0+ng1-1
-                 nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-                 nuvpnuy(g) = vdotpy(g)*dlognuInv(g)
-                 nuvpnuz(g) = vdotpz(g)*dlognuInv(g)
-              end do
-              nuvpnux(ng0-1) = -nuvpnux(ng0)
-              nuvpnuy(ng0-1) = -nuvpnuy(ng0)
-              nuvpnuz(ng0-1) = -nuvpnuz(ng0)
-              nuvpnux(ng0+ng1) = -nuvpnux(ng0+ng1-1)
-              nuvpnuy(ng0+ng1) = -nuvpnuy(ng0+ng1-1)              
-              nuvpnuz(ng0+ng1) = -nuvpnuz(ng0+ng1-1)              
-              do g=ng0,ng0+ng1-1
-                 Fo(i,j,k,ifox+g) = Fo(i,j,k,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-                 Fo(i,j,k,ifoy+g) = Fo(i,j,k,ifoy+g) - 0.5e0_rt*(nuvpnuy(g+1)-nuvpnuy(g-1))
-                 Fo(i,j,k,ifoz+g) = Fo(i,j,k,ifoz+g) - 0.5e0_rt*(nuvpnuz(g+1)-nuvpnuz(g-1))
-              end do
-
-           end if
-
-           if (nnuspec == 3) then
-
-              do g=ng0+ng1,ngroups-1
-                 nuvpnux(g) = vdotpx(g)*dlognuInv(g)
-                 nuvpnuy(g) = vdotpy(g)*dlognuInv(g)
-                 nuvpnuz(g) = vdotpz(g)*dlognuInv(g)
-              end do
-              nuvpnux(ng0+ng1-1) = -nuvpnux(ng0+ng1)
-              nuvpnuy(ng0+ng1-1) = -nuvpnuy(ng0+ng1)
-              nuvpnuz(ng0+ng1-1) = -nuvpnuz(ng0+ng1)
-              nuvpnux(ngroups) = -nuvpnux(ngroups-1)
-              nuvpnuy(ngroups) = -nuvpnuy(ngroups-1)              
-              nuvpnuz(ngroups) = -nuvpnuz(ngroups-1)              
-              do g=ng0+ng1,ngroups-1
-                 Fo(i,j,k,ifox+g) = Fo(i,j,k,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
-                 Fo(i,j,k,ifoy+g) = Fo(i,j,k,ifoy+g) - 0.5e0_rt*(nuvpnuy(g+1)-nuvpnuy(g-1))
-                 Fo(i,j,k,ifoz+g) = Fo(i,j,k,ifoz+g) - 0.5e0_rt*(nuvpnuz(g+1)-nuvpnuz(g-1))
-              end do
-
-           end if
-
-        end if
+        do g=0,ngroups-1
+           nuvpnux(g) = vdotpx(g)*dlognuInv(g)
+           nuvpnuy(g) = vdotpy(g)*dlognuInv(g)
+           nuvpnuz(g) = vdotpz(g)*dlognuInv(g)
+        end do
+        nuvpnux(-1) = -nuvpnux(0)
+        nuvpnuy(-1) = -nuvpnuy(0)
+        nuvpnuz(-1) = -nuvpnuz(0)
+        nuvpnux(ngroups) = -nuvpnux(ngroups-1)
+        nuvpnuy(ngroups) = -nuvpnuy(ngroups-1)              
+        nuvpnuz(ngroups) = -nuvpnuz(ngroups-1)              
+        do g=0,ngroups-1
+           Fo(i,j,k,ifox+g) = Fo(i,j,k,ifox+g) - 0.5e0_rt*(nuvpnux(g+1)-nuvpnux(g-1))
+           Fo(i,j,k,ifoy+g) = Fo(i,j,k,ifoy+g) - 0.5e0_rt*(nuvpnuy(g+1)-nuvpnuy(g-1))
+           Fo(i,j,k,ifoz+g) = Fo(i,j,k,ifoz+g) - 0.5e0_rt*(nuvpnuz(g+1)-nuvpnuz(g-1))
+        end do
      end if
   end do
   end do
