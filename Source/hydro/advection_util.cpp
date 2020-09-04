@@ -2,7 +2,6 @@
 #include "Castro_F.H"
 #include "Castro_util.H"
 #include "advection_util.H"
-#include "Castro_hydro_F.H"
 
 #ifdef HYBRID_MOMENTUM
 #include "hybrid.H"
