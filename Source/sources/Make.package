@@ -3,9 +3,10 @@
 CEXE_headers += Castro_sources.H
 FEXE_headers += Castro_sources_F.H
 
+CEXE_sources += Castro_ext_src.cpp
+CEXE_sources += Castro_external.cpp
 CEXE_sources += Castro_sources.cpp
 CEXE_sources += Castro_sponge.cpp
-CEXE_sources += Castro_external.cpp
 CEXE_sources += Castro_thermo.cpp
 
 ca_f90EXE_sources += update_sponge_params.f90

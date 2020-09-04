@@ -107,29 +107,3 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 #endif
     }
 }
-
-
-
-void
-Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src)
-{
-    const Real* dx = geom.CellSize();
-    const Real* prob_lo = geom.ProbLo();
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-    {
-
-        const Box& bx = mfi.tilebox();
-
-#pragma gpu box(bx)
-        ca_ext_src
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(state_old[mfi]),
-           BL_TO_FORTRAN_ANYD(state_new[mfi]),
-           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-           AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
-    }
-}
