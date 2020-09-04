@@ -343,37 +343,4 @@ subroutine hdterm3(dterm, &
   endif
 end subroutine hdterm3
 
-subroutine add_ccoef_flux(dir, &
-                          den, DIMS(den), &
-                          c, DIMS(cbox), &
-                          gamma, &
-                          dx, &
-                          flux, DIMS(fbox))
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer :: DIMDEC(den)
-  integer :: DIMDEC(cbox)
-  integer :: DIMDEC(fbox)
-
-  real(rt)         :: den(DIMV(den))
-  real(rt)         :: c(DIMV(cbox), 0:1)
-  real(rt)         :: flux(DIMV(fbox))
-
-  integer :: dir
-  real(rt)         :: gamma, dx(1)
-  integer :: i
-
-  if (dir == 0) then
-
-     !...     x-direction
-
-     do i = fbox_l1, fbox_h1
-        flux(i) = flux(i) + gamma * (c(i,0) * den(i-1) + &
-             c(i,1) * den(i))
-     enddo
-
-  endif
-end subroutine add_ccoef_flux
-
 end module habec_module
