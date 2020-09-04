@@ -37,18 +37,21 @@ Castro::ctu_rad_consup(const Box& bx,
 
   auto dx = geom.CellSizeArray();
   const int coord_type = geom.Coord();
-  
-  GpuArray<Real, NGROUPS> Erscale = {0};
+
+  GpuArray<Real, NGROUPS> Erscale = {0.0};
 
   int fspace_type = Radiation::fspace_advection_type;
 
-  GpuArray<Real, NGROUPS> dlognu;
-  ca_get_dlognu(dlognu.begin());
+  GpuArray<Real, NGROUPS> dlognu = {0.0};
 
-  GpuArray<Real, NGROUPS> nugroup;
-  ca_get_nugroup(nugroup.begin());
+  GpuArray<Real, NGROUPS> nugroup = {0.0};
+
+
 
   if (NGROUPS > 1) {
+    ca_get_nugroup(nugroup.begin());
+    ca_get_dlognu(dlognu.begin());
+
     if (fspace_type == 1) {
       for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
