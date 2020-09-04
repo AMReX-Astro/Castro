@@ -113,23 +113,24 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
   const int is = 2;
   const int ie = n+1;
 
-  // fill ghost cells
-  ag[is-2] = -a[is+1];
-  ag[is-1] = -a[is];
-
-  ag[ie+1] = -a[ie];
-  ag[ie+2] = -a[ie-1];
-
-  ug[is-2] = -u[is+1];
-  ug[is-1] = -u[is];
-
-  ug[ie+1] = -u[ie];
-  ug[ie+2] = -u[ie-1];
-
+  // ag and ug have 2 ghost cells on each end.  First fill the
+  // interiors and then the ghost cells.
   for (int g = 0; g < n; g++) {
     ag[is+g] = a[g];
     ug[is+g] = u[g];
   }
+
+  ag[is-2] = -ag[is+1];
+  ag[is-1] = -ag[is];
+
+  ag[ie+1] = -ag[ie];
+  ag[ie+2] = -ag[ie-1];
+
+  ug[is-2] = -ug[is+1];
+  ug[is-1] = -ug[is];
+
+  ug[ie+1] = -ug[ie];
+  ug[ie+2] = -ug[ie-1];
 
   if (use_WENO) {
 
