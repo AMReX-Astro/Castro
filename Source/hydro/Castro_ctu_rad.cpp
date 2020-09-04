@@ -295,7 +295,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
 #if AMREX_SPACEDIM == 1
           Real Egdc = 0.5_rt * (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g));
-          Erout(i,j,k,g) += dt * ux * Gf1E[0] - dt * f2 *Egdc * nnColonDotGu;
+          Erout(i,j,k,g) += dt * ux * Gf1E[0] - dt * f2 * Egdc * nnColonDotGu;
 #endif
 #if AMREX_SPACEDIM == 2
           Real Egdc = 0.25_rt * (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) +
