@@ -332,7 +332,7 @@ Castro::ctu_rad_consup(const Box& bx,
     });
 
     ReduceTuple hv = reduce_data.value();
-    Real nstep_fsp = amrex::get<0>(hv);
+    nstep_fsp = amrex::get<0>(hv);
 
   }
 }

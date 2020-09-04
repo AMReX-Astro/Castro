@@ -103,12 +103,12 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
   // this is advection in frequency space, we will need to assume some
   // boundary conditions on the stencil used to reconstruct over nu
 
-  Real f[n+1];
+  Real f[NGROUPS+1];
 
   // we need 2 ghost cells on each end
-  Real ag[n+4];
-  Real ug[n+4];
-  Real fg[n+4];
+  Real ag[NGROUPS+4];
+  Real ug[NGROUPS+4];
+  Real fg[NGROUPS+4];
 
   const int is = 2;
   const int ie = n+1;
@@ -214,12 +214,12 @@ update_one_species(const int n, Real* u, Real* a, const Real* dx, const Real ten
     dt = tend / static_cast<Real>(nstep);
   }
 
-  Real u1[n];
-  Real u2[n];
-  Real u3[n];
-  Real u4[n];
-  Real u5[n];
-  Real dudt_tmp[n];
+  Real u1[NGROUPS];
+  Real u2[NGROUPS];
+  Real u3[NGROUPS];
+  Real u4[NGROUPS];
+  Real u5[NGROUPS];
+  Real dudt_tmp[NGROUPS];
 
   for (int istep = 1; istep <= nstep; istep++) {
     if (rk_order == 5) {

@@ -613,7 +613,7 @@ extern "C" {
               BL_FORT_FAB_ARG_3D(accel), 
               int nTotal);
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif
