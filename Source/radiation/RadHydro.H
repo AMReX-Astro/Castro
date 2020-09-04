@@ -110,8 +110,8 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
   Real ug[n+4];
   Real fg[n+4];
 
-  int is = 2;
-  int ie = n+1;
+  const int is = 2;
+  const int ie = n+1;
 
   // fill ghost cells
   ag[is-2] = -a[is+1];
@@ -220,7 +220,7 @@ update_one_species(const int n, Real* u, Real* a, const Real* dx, const Real ten
   Real u5[n];
   Real dudt_tmp[n];
 
-  for (int istep = 1; istep < nstep; istep++) {
+  for (int istep = 1; istep <= nstep; istep++) {
     if (rk_order == 5) {
       // RK5
       dudt(u, a, dx, n, dudt_tmp);
