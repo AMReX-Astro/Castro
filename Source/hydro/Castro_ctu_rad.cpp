@@ -5,6 +5,8 @@
 
 #include "Radiation.H"
 #include "RadHydro.H"
+#include "RAD_F.H"
+#include "fluxlimiter.H"
 
 using namespace amrex;
 
@@ -32,24 +34,27 @@ Castro::ctu_rad_consup(const Box& bx,
                        const Real dt)
 {
 
+
+  auto dx = geom.CellSizeArray();
+  const int coord_type = geom.Coord();
   
-  GpuArray<Real, Radiation::nGroups> Erscale = {0};
+  GpuArray<Real, NGROUPS> Erscale = {0};
 
   int fspace_type = Radiation::fspace_advection_type;
 
-  GpuArray<Real, Radiation::nGroups> dlognu;
+  GpuArray<Real, NGROUPS> dlognu;
   ca_get_dlognu(dlognu.begin());
 
-  GpuArray<Real, Radiation::nGroups> nugroup;
+  GpuArray<Real, NGROUPS> nugroup;
   ca_get_nugroup(nugroup.begin());
 
-  if (Radiation::nGroups > 1) {
+  if (NGROUPS > 1) {
     if (fspace_type == 1) {
-      for (int g = 0; g < Radiation::nGroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = dlognu[g];
       }
     } else {
-      for (int g = 0; g < Radiation::nGroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
         Erscale[g] = nugroup[g] * dlognu[g];
       }
     }
@@ -62,7 +67,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
   // radiation energy update.  For the moment, we actually update things
   // fully here, instead of creating a source term for the update
-  amrex::ParallelFor(bx, Radiation::nGroups,
+  amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g) noexcept
   {
 
@@ -90,7 +95,7 @@ Castro::ctu_rad_consup(const Box& bx,
     // directions
 
     Real dpdx = 0;
-    if (!mom_flux_has_p(0, 0, coord)) {
+    if (!mom_flux_has_p(0, 0, coord_type)) {
       dpdx = (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES))/ dx[0];
       update(i,j,k,UMX) -= dpdx;
     }
@@ -101,7 +106,7 @@ Castro::ctu_rad_consup(const Box& bx,
     Real dprdz = 0.0;
 
     Real lamc = 0.0;
-    for (int g = 0; g < Radiation::nGroups; g++) {
+    for (int g = 0; g < NGROUPS; g++) {
 
 #if AMREX_SPACEDIM == 1
       lamc = 0.5_rt * (qx(i,j,k,GDLAMS+g) + qx(i+1,j,k,GDLAMS+g));
@@ -170,8 +175,12 @@ Castro::ctu_rad_consup(const Box& bx,
 
   if (comov) {
 
-    amrex:ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    ReduceOps<ReduceOpMax> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+    reduce_op.eval(bx, reduce_data,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
     {
 
       Real ux = 0.5_rt * (qx(i,j,k,GDU) + qx(i+1,j,k,GDU));
@@ -205,9 +214,9 @@ Castro::ctu_rad_consup(const Box& bx,
       Real divu = dudx[0] + dudy[1] + dudz[2];
 
       // Note that for single group, fspace_type is always 1
-      Real af[Radiation::nGroups];
+      Real af[NGROUPS];
 
-      for (int g = 0; g < Radiation::nGroups; g++) {
+      for (int g = 0; g < NGROUPS; g++) {
 
         Real nhat[3] = {0., 0., 0.};
 
@@ -300,20 +309,27 @@ Castro::ctu_rad_consup(const Box& bx,
         }
       }
 
-      if (ngroups > 1) {
-        Real ustar[Radiation::nGroups];
-        for (int g = 0; g < Radiation::nGroups; g++) { 
+      int nstep_fsp_tmp = 1;
+
+      if (NGROUPS > 1) {
+        Real ustar[NGROUPS];
+        for (int g = 0; g < NGROUPS; g++) { 
           ustar[g] = Erout(i,j,k,g) / Erscale[g];
         }
 
-        update_one_species(Radiation::nGroups, ustar, af, dlognu.begin(), dt, nstep_fsp);
+        update_one_species(NGROUPS, ustar, af, dlognu.begin(), dt, nstep_fsp_tmp);
 
-        for (int g = 0; g < Radiation::nGroups; g++) {
+        for (int g = 0; g < NGROUPS; g++) {
           Erout(i,j,k,g) = ustar[g] * Erscale[g];
         }
       }
 
+      return nstep_fsp_tmp;
+
     });
+
+    ReduceTuple hv = reduce_data.value();
+    Real nstep_fsp = amrex::get<0>(hv);
 
   }
 }

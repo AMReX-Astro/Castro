@@ -1273,7 +1273,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #ifdef RADIATION
-#pragma gpu box(bx)
       ctu_rad_consup(bx,
                      update_arr,
                      Erborder.array(mfi),
