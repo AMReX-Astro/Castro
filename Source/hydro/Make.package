@@ -14,7 +14,6 @@ CEXE_sources += flatten.cpp
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += Castro_mol_hydro.cpp
 endif
-FEXE_headers += Castro_hydro_F.H
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   CEXE_headers += hybrid.H
