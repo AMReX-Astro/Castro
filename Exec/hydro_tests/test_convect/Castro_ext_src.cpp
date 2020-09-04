@@ -26,8 +26,9 @@ Castro::fill_ext_source (const Real time, const Real dt,
     // speaking, you always want to use the "new" state here.  That
     // will be the time n state in the first call and the n+1 in the
     // second call.
-
-    return;
+    
+    const auto y_layer = 1.25e8_rt;
+    const auto L_x = 2.5e8_rt;
 
     const auto dx = geom.CellSizeArray();
     const auto prob_lo = geom.ProbLoArray();
@@ -39,14 +40,24 @@ Castro::fill_ext_source (const Real time, const Real dt,
     {
         const Box& bx = mfi.tilebox();
 
-        Array4<Real const> const sold = state_old.array(mfi);
         Array4<Real const> const snew = state_new.array(mfi);
         Array4<Real> const src = ext_src.array(mfi);
 
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            // by default do nothing here
+            auto x = (Real(i)+0.5e0_rt)*dx[0] + prob_lo[0];
+            auto y = (Real(j)+0.5e0_rt)*dx[1] + prob_lo[1];
+            auto ey = std::exp(-(y-y_layer)*(y-y_layer)/1.e14_rt);
+
+            auto H = ey * (1.e0_rt + 
+                0.00625_rt * std::sin( 2*M_PI*x/L_x) 
+              + 0.01875_rt * std::sin((6*M_PI*x/L_x) + M_PI/3.e0_rt) 
+              + 0.01250_rt * std::sin((8*M_PI*x/L_x) + M_PI/5.e0_rt));
+
+           // Source terms
+           src(i,j,k,UEDEN) = snew(i,j,k,URHO) * H * 2.5e16_rt;
+           src(i,j,k,UEINT) = src(i,j,k,UEDEN);
         });
     }
 }
