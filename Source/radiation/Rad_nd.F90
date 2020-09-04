@@ -2596,21 +2596,6 @@ end subroutine ca_get_nugroup
 
 !! -----------------------------------------------------------
 
-subroutine ca_setgroup(igroup)
-
-  use rad_params_module, only: current_group
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer :: igroup
-
-  current_group = igroup
-
-end subroutine ca_setgroup
-
-!! -----------------------------------------------------------
-
 subroutine ca_inelastic_sct(lo, hi, &
                             uu,uu_lo,uu_hi, &
                             Er,Er_lo,Er_hi, &
