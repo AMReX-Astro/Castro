@@ -16,6 +16,7 @@
 #include <Problem_Derive_F.H>
 
 #include "AMReX_buildInfo.H"
+#include "microphysics_F.H"
 
 using std::string;
 using namespace amrex;
@@ -226,15 +227,14 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  microphysics_init_C(small_temp, small_dens);
 
-  // Initialize the network
-  ca_network_init();
+  // now initialize the C++ Microphysics
 #ifdef CXX_REACTIONS
   network_init();
 #endif
 
-  // Initialize the EOS
-  ca_eos_init();
   eos_init();
 
   // Ensure that Castro's small variables are consistent
@@ -266,11 +266,6 @@ Castro::variableSetUp ()
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
 #endif
-#endif
-
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
 #endif
 
   // Initialize the amr info
