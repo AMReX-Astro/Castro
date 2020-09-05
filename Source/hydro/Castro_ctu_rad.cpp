@@ -124,12 +124,12 @@ Castro::ctu_rad_consup(const Box& bx,
               qz(i,j,k,GDLAMS+g) + qz(i,j,k+1,GDLAMS+g)) / 6.0_rt;
 #endif
 
-      dprdx += lamc * (qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx[0];
+      dprdx = dprdx + lamc * (qx(i+1,j,k,GDERADS+g) - qx(i,j,k,GDERADS+g))/dx[0];
 #if AMREX_SPACEDIM >= 2
-      dprdy += lamc * (qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx[1];
+      dprdy = dprdy + lamc * (qy(i,j+1,k,GDERADS+g) - qy(i,j,k,GDERADS+g))/dx[1];
 #endif
 #if AMREX_SPACEDIM == 3
-      dprdz += lamc * (qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx[2];
+      dprdz = dprdz + lamc * (qz(i,j,k+1,GDERADS+g) - qz(i,j,k,GDERADS+g))/dx[2];
 #endif
     }
 
@@ -151,9 +151,9 @@ Castro::ctu_rad_consup(const Box& bx,
     Real ek1 = (umx_new1 * umx_new1 + umy_new1 * umy_new1 + umz_new1 * umz_new1) / (2.0_rt * urho_new);
 
     // now add the radiation pressure gradient
-    update(i,j,k,UMX) -= dprdx;
-    update(i,j,k,UMY) -= dprdy;
-    update(i,j,k,UMZ) -= dprdz;
+    update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx;
+    update(i,j,k,UMY) = update(i,j,k,UMY) - dprdy;
+    update(i,j,k,UMZ) = update(i,j,k,UMZ) - dprdz;
 
     Real umx_new2 = umx_new1 - dt * dprdx;
     Real umy_new2 = umy_new1 - dt * dprdy;
@@ -164,11 +164,11 @@ Castro::ctu_rad_consup(const Box& bx,
     Real dek = ek2 - ek1;
 
     // the update is a source / dt, so scale accordingly
-    update(i,j,k,UEDEN) += dek/dt;
+    update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek/dt;
 
     if (! comov) {
       // ! mixed-frame (single group only)
-      Erout(i,j,k,0) -= dek;
+      Erout(i,j,k,0) = Erout(i,j,k,0) - dek;
     }
 
   });
@@ -295,18 +295,21 @@ Castro::ctu_rad_consup(const Box& bx,
 
 #if AMREX_SPACEDIM == 1
           Real Egdc = 0.5_rt * (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g));
-          Erout(i,j,k,g) += dt * ux * Gf1E[0] - dt * f2 * Egdc * nnColonDotGu;
+          Erout(i,j,k,g) = Erout(i,j,k,g) + dt * ux * Gf1E[0]
+            - dt * f2 * Egdc * nnColonDotGu;
 #endif
 #if AMREX_SPACEDIM == 2
           Real Egdc = 0.25_rt * (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) +
                                  qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g));
-          Erout(i,j,k,g) += dt * (ux * Gf1E[0] + uy * Gf1E[1]) - dt * f2 * Egdc * nnColonDotGu;
+          Erout(i,j,k,g) = Erout(i,j,k,g) + dt * (ux * Gf1E[0] + uy * Gf1E[1])
+            - dt * f2 * Egdc * nnColonDotGu;
 #endif
 #if AMREX_SPACEDIM == 3
           Real Egdc = (qx(i,j,k,GDERADS+g) + qx(i+1,j,k,GDERADS+g) +
                        qy(i,j,k,GDERADS+g) + qy(i,j+1,k,GDERADS+g) +
                        qz(i,j,k,GDERADS+g) + qz(i,j,k+1,GDERADS+g) ) / 6.0_rt;
-          Erout(i,j,k,g) += dt * (ux * Gf1E[0] + uy * Gf1E[1] + uz * Gf1E[2]) - dt * f2 * Egdc * nnColonDotGu;
+          Erout(i,j,k,g) = Erout(i,j,k,g) + dt * (ux * Gf1E[0] + uy * Gf1E[1] + uz * Gf1E[2])
+            - dt * f2 * Egdc * nnColonDotGu;
 #endif
 
         }
