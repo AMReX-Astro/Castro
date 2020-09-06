@@ -15,6 +15,8 @@ USE_REACT  = FALSE
 USE_ROTATION  = FALSE
 USE_DIFFUSION = FALSE
 
+USE_INTERPOLATE = TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 

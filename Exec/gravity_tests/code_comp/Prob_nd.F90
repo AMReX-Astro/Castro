@@ -64,7 +64,6 @@ subroutine ca_initdata(lo, hi, &
 
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS, T_guess
   use network, only : nspec
