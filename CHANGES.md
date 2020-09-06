@@ -1,3 +1,8 @@
+# 20.10
+
+   * The interpolate_nd.F90 file has been moved to Util/interpolate and
+     is only compiled into Castro if you set USE_INTERPOLATE=TRUE
+
 # 20.09
 
    * Reactions now work with MHD (#1179)
