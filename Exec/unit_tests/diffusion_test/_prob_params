@@ -1,0 +1,11 @@
+
+diff_coeff    real     1.0_rt       y
+
+T1            real     1.0_rt       y
+
+T2            real     1.0_rt       y
+
+rho0          real     0.0_rt
+
+t_0           real     0.001_rt     y
+
