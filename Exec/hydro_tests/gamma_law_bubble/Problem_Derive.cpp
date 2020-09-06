@@ -28,8 +28,8 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   // first make a 1D initial model for the entire domain
-  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
-    dx[AMREX_SPACEDIM];
+  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
+    dx[AMREX_SPACEDIM-1];
 
   RealVector pressure_rv(npts_1d, 0);
   RealVector density_rv(npts_1d, 0);
@@ -58,18 +58,18 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      temp[j] = T_guess;
 
      if (do_isentropic) {
-       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
+       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base *
          std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
                    (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
-          dx[AMREX_SPACEDIM] * 0.5_rt *
+          dx[AMREX_SPACEDIM-1] * 0.5_rt *
           (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
@@ -121,13 +121,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
       der(i,j,k,0) = eos_state.p;
     }
 
-#if AMREX_SPACEDIM == 1
-    der(i,j,k,0) -= pressure[i];
-#elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) -= pressure[j];
-#else
-    der(i,j,k,0) -= pressure[k];
-#endif
+    der(i,j,k,0) -= pressure[AMREX_D_PICK(i,j,k)];
 
   });
 
@@ -149,8 +143,8 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   // first make a 1D initial model for the entire domain
-  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
-    dx[AMREX_SPACEDIM];
+  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
+    dx[AMREX_SPACEDIM-1];
 
   RealVector pressure_rv(npts_1d, 0);
   RealVector density_rv(npts_1d, 0);
@@ -179,18 +173,18 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      temp[j] = T_guess;
 
      if (do_isentropic) {
-       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
+       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * 
          std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
                    (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
-          dx[AMREX_SPACEDIM] * 0.5_rt *
+          dx[AMREX_SPACEDIM-1] * 0.5_rt *
           (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
@@ -246,13 +240,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     }
 
-#if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = (der(i,j,k,0) - pressure[i]) / pressure[i];
-#elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = (der(i,j,k,0) - pressure[j]) / pressure[j];
-#else
-    der(i,j,k,0) = (der(i,j,k,0) - pressure[k]) / pressure[k];
-#endif
+    der(i,j,k,0) = (der(i,j,k,0) - pressure[AMREX_D_PICK(i,j,k)]) / pressure[AMREX_D_PICK(i,j,k)];
 
   });
 
@@ -275,8 +263,8 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   // first make a 1D initial model for the entire domain
-  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
-    dx[AMREX_SPACEDIM];
+  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
+    dx[AMREX_SPACEDIM-1];
 
   RealVector density_rv(npts_1d, 0);
   Real* const density = density_rv.dataPtr();
@@ -294,12 +282,12 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   for (int j = 0; j < npts_1d; j++) {
 
      if (do_isentropic) {
-       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
+       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * 
          std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
                    (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * std::exp(-z/H);
      }
 
@@ -308,14 +296,7 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
-
-#if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = dat(i,j,k,URHO) - density[i];
-#elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = dat(i,j,k,URHO) - density[j];
-#else
-    der(i,j,k,0) = dat(i,j,k,URHO) - density[k];
-#endif
+    der(i,j,k,0) = dat(i,j,k,URHO) - density[AMREX_D_PICK(i,j,k)];
   });
 
 }
@@ -336,8 +317,8 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   // first make a 1D initial model for the entire domain
-  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
-    dx[AMREX_SPACEDIM];
+  int npts_1d = (2.0_rt*center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
+    dx[AMREX_SPACEDIM-1];
 
   RealVector pressure_rv(npts_1d, 0);
   RealVector density_rv(npts_1d, 0);
@@ -366,18 +347,18 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      temp[j] = T_guess;
 
      if (do_isentropic) {
-       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
+       Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * 
          std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
                    (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM-1];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
-          dx[AMREX_SPACEDIM] * 0.5_rt *
+          dx[AMREX_SPACEDIM-1] * 0.5_rt *
           (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
@@ -403,13 +384,7 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
-#if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[i];
-#elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[j];
-#else
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[k];
-#endif
+    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[AMREX_D_PICK(i,j,k)];
   });
 
 }
