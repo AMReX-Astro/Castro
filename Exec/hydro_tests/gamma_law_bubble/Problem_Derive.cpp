@@ -4,9 +4,12 @@
 #include "Castro.H"
 #include "Castro_F.H"
 #include "prob_parameters.H"
+#include "extern_parameters.H"
+#include "gravity_params.H"
 
 using namespace amrex;
 
+using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
 
 void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
               const FArrayBox& datfab, const Geometry& geomdata,
@@ -28,10 +31,15 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
     dx[AMREX_SPACEDIM];
 
-  Array1D<Real, 0, npts_1d-1> pressure;
-  Array1D<Real, 0, npts_1d-1> density;
-  Array1D<Real, 0, npts_1d-1> temp;
-  Array1D<Real, 0, npts_1d-1> eint;
+  RealVector pressure_rv(npts_1d, 0);
+  RealVector density_rv(npts_1d, 0);
+  RealVector temp_rv(npts_1d, 0);
+  RealVector eint_rv(npts_1d, 0);
+
+  Real* const pressure = pressure_rv.dataPtr();
+  Real* const density = density_rv.dataPtr();
+  Real* const temp = temp_rv.dataPtr();
+  Real* const eint = eint_rv.dataPtr();
 
   pressure[0] = pres_base;
   density[0]  = dens_base;
@@ -42,7 +50,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
   // compute the pressure scale height (for an isothermal, ideal-gas
   // atmosphere)
-  Real H = pres_base / dens_base / std::abs(Gravity::const_grav);
+  Real H = pres_base / dens_base / std::abs(gravity::const_grav);
 
   for (int j = 0; j < npts_1d; j++) {
 
@@ -51,18 +59,18 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
      if (do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
-       density[j] = dens_base * 
-         (Gravity::const_grav * dens_base * (gamma_const - 1.0_rt) * z/
-          std::pow((gamma_const*pres_base) + 1.0_rt), 1.0_rt/(gamma_const - 1.0_rt));
+       density[j] = dens_base *
+         std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
+                   (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j)+HALF) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
           dx[AMREX_SPACEDIM] * 0.5_rt *
-          (density[j] + density[j-1]) * std::abs(Gravity::const_grav);
+          (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
      eos_t eos_state;
@@ -87,7 +95,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real rhoInv = 1.0_rt / dat[i,j,k,URHO];
+    Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
     Real T = dat(i,j,k,UTEMP);
 
     eos_t eos_state;
@@ -98,9 +106,11 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = dat(i,j,k,UFS+n) / dat(i,j,k,URHO);
     }
+#if NAUX > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = dat(i,j,k,UFX+n) / dat(i,j,k,URHO);
     }
+#endif
 
     if (eos_state.e <= 0.0_rt) {
       eos(eos_input_rt, eos_state);
@@ -112,11 +122,11 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     }
 
 #if AMREX_SPACEDIM == 1
-    p(i,j,k,0) -= pressure(i);
+    der(i,j,k,0) -= pressure[i];
 #elif AMREX_SPACEDIM == 2
-    p(i,j,k,0) -= pressure(j);
+    der(i,j,k,0) -= pressure[j];
 #else
-    p(i,j,k,0) -= pressure(k);
+    der(i,j,k,0) -= pressure[k];
 #endif
 
   });
@@ -142,10 +152,15 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
     dx[AMREX_SPACEDIM];
 
-  Array1D<Real, 0, npts_1d-1> pressure;
-  Array1D<Real, 0, npts_1d-1> density;
-  Array1D<Real, 0, npts_1d-1> temp;
-  Array1D<Real, 0, npts_1d-1> eint;
+  RealVector pressure_rv(npts_1d, 0);
+  RealVector density_rv(npts_1d, 0);
+  RealVector temp_rv(npts_1d, 0);
+  RealVector eint_rv(npts_1d, 0);
+
+  Real* const pressure = pressure_rv.dataPtr();
+  Real* const density = density_rv.dataPtr();
+  Real* const temp = temp_rv.dataPtr();
+  Real* const eint = eint_rv.dataPtr();
 
   pressure[0] = pres_base;
   density[0]  = dens_base;
@@ -156,7 +171,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
   // compute the pressure scale height (for an isothermal, ideal-gas
   // atmosphere)
-  Real H = pres_base / dens_base / std::abs(const_grav);
+  Real H = pres_base / dens_base / std::abs(gravity::const_grav);
 
   for (int j = 0; j < npts_1d; j++) {
 
@@ -166,17 +181,17 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      if (do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * 
-         (const_grav * dens_base * (gamma_const - 1.0_rt) * z/
-          std::pow((gamma_const*pres_base) + 1.0_rt), 1.0_rt/(gamma_const - 1.0_rt));
+         std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
+                   (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j)+HALF) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
           dx[AMREX_SPACEDIM] * 0.5_rt *
-          (density[j] + density[j-1]) * std::abs(const_grav);
+          (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
      eos_t eos_state;
@@ -202,7 +217,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real rhoInv = 1.0_rt/dat[i,j,k,URHO];
+    Real rhoInv = 1.0_rt/dat(i,j,k,URHO);
 
     Real e = dat(i,j,k,UEINT) * rhoInv;
     Real T = dat(i,j,k,UTEMP);
@@ -214,9 +229,11 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
     }
+#if NAUX > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
     }
+#endif
     eos_state.e = e;
 
     if (e <= 0.0_rt) {
@@ -230,11 +247,11 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     }
 
 #if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = (der(i,j,k,0) - pressure(i)) / pressure(i);
+    der(i,j,k,0) = (der(i,j,k,0) - pressure[i]) / pressure[i];
 #elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = (der(i,j,k,0) - pressure(j)) / pressure(j);
+    der(i,j,k,0) = (der(i,j,k,0) - pressure[j]) / pressure[j];
 #else
-    der(i,j,k,0) = (der(i,j,k,0) - pressure(k)) / pressure(k);
+    der(i,j,k,0) = (der(i,j,k,0) - pressure[k]) / pressure[k];
 #endif
 
   });
@@ -261,7 +278,8 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
     dx[AMREX_SPACEDIM];
 
-  Array1D<Real, 0, npts_1d-1> density;
+  RealVector density_rv(npts_1d, 0);
+  Real* const density = density_rv.dataPtr();
 
   density[0]  = dens_base;
 
@@ -271,17 +289,17 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
   // compute the pressure scale height (for an isothermal, ideal-gas
   // atmosphere)
-  Real H = pres_base / dens_base / std::abs(const_grav);
+  Real H = pres_base / dens_base / std::abs(gravity::const_grav);
 
   for (int j = 0; j < npts_1d; j++) {
 
      if (do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * 
-         (const_grav * dens_base * (gamma_const - 1.0_rt) * z/
-          std::pow((gamma_const*pres_base) + 1.0_rt), 1.0_rt/(gamma_const - 1.0_rt));
+         std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
+                   (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j)+HALF) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * std::exp(-z/H);
      }
 
@@ -292,11 +310,11 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   {
 
 #if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = dat(i,j,k,URHO) - density(i);
+    der(i,j,k,0) = dat(i,j,k,URHO) - density[i];
 #elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = dat(i,j,k,URHO) - density(j);
+    der(i,j,k,0) = dat(i,j,k,URHO) - density[j];
 #else
-    der(i,j,k,0) = dat(i,j,k,URHO) - density(k);
+    der(i,j,k,0) = dat(i,j,k,URHO) - density[k];
 #endif
   });
 
@@ -321,10 +339,15 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   int npts_1d = (2.0_rt*center[AMREX_SPACEDIM] + 1.e-8_rt) /
     dx[AMREX_SPACEDIM];
 
-  Array1D<Real, 0, npts_1d-1> pressure;
-  Array1D<Real, 0, npts_1d-1> density;
-  Array1D<Real, 0, npts_1d-1> temp;
-  Array1D<Real, 0, npts_1d-1> eint;
+  RealVector pressure_rv(npts_1d, 0);
+  RealVector density_rv(npts_1d, 0);
+  RealVector temp_rv(npts_1d, 0);
+  RealVector eint_rv(npts_1d, 0);
+
+  Real* const pressure = pressure_rv.dataPtr();
+  Real* const density = density_rv.dataPtr();
+  Real* const temp = temp_rv.dataPtr();
+  Real* const eint = eint_rv.dataPtr();
 
   pressure[0] = pres_base;
   density[0]  = dens_base;
@@ -335,7 +358,7 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
   // compute the pressure scale height (for an isothermal, ideal-gas
   // atmosphere)
-  Real H = pres_base / dens_base / std::abs(const_grav);
+  Real H = pres_base / dens_base / std::abs(gravity::const_grav);
 
   for (int j = 0; j < npts_1d; j++) {
 
@@ -345,17 +368,17 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
      if (do_isentropic) {
        Real z = static_cast<Real>(j) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * 
-         (const_grav * dens_base * (gamma_const - 1.0_rt) * z/
-          std::pow((gamma_const*pres_base) + 1.0_rt), 1.0_rt/(gamma_const - 1.0_rt));
+         std::pow((gravity::const_grav * dens_base * (eos_gamma - 1.0_rt) * z/
+                   (eos_gamma*pres_base) + 1.0_rt), 1.0_rt/(eos_gamma - 1.0_rt));
      } else {
-       Real z = (static_cast<Real>(j)+HALF) * dx[AMREX_SPACEDIM];
+       Real z = (static_cast<Real>(j) + 0.5_rt) * dx[AMREX_SPACEDIM];
        density[j] = dens_base * std::exp(-z/H);
      }
 
      if (j > 0) {
         pressure[j] = pressure[j-1] -
           dx[AMREX_SPACEDIM] * 0.5_rt *
-          (density[j] + density[j-1]) * std::abs(const_grav);
+          (density[j] + density[j-1]) * std::abs(gravity::const_grav);
      }
 
      eos_t eos_state;
@@ -381,11 +404,11 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 #if AMREX_SPACEDIM == 1
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp(i);
+    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[i];
 #elif AMREX_SPACEDIM == 2
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp(j);
+    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[j];
 #else
-    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp(k);
+    der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[k];
 #endif
   });
 

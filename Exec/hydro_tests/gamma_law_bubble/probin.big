@@ -1,6 +1,6 @@
 &fortin
 
-  do_isentropic = .true.
+  do_isentropic = 1
   boundary_type = 1
 
   pert_factor = 8.1d-3
