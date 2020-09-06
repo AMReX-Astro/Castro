@@ -22,8 +22,6 @@
 
 &extern
 
-  burning_mode = 1
-
   jacobian = 1
   do_constant_volume_burn = F
 

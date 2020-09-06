@@ -2469,7 +2469,7 @@ end subroutine ca_initsinglegroup
 subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup, &
-                               current_group, nnuspec
+                               current_group
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -2480,7 +2480,7 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
   ! Local variables
   integer :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   ng0     = ngr0
   ng1     = ngr1
@@ -2498,7 +2498,7 @@ end subroutine ca_initgroups
 subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup, &
-                               current_group, ng0, ng1, nnuspec
+                               current_group, ng0, ng1
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -2509,7 +2509,7 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
   ! Local variables
   integer   :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
@@ -2529,41 +2529,27 @@ end subroutine ca_initgroups2
 subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   ! used by MGFLDSolver
 
-  use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
+  use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup, &
                                xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck, &
                                current_group
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
+  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr)
   integer :: ngr, ngr0, ngr1
 
   ! Local variables
   integer :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   ng0     = ngr0
   ng1     = ngr1
 
-  if (ng0 > 0) then
-     if (ng1 .eq. 0) then
-        nnuspec = 1  ! one neutrino species
-     else if (ngroups .eq. ng0+ng1) then
-        nnuspec = 2  ! two neutrino species
-     else
-        nnuspec = 3  ! three neutrino species
-     end if
-  else
-     nnuspec = 0
-  end if
-
-  nradspec = max(nnuspec, 1)
-
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
-  allocate(xnu(0:ngroups+2))
+  allocate(xnu(0:ngroups))
   allocate(dlognu(0:ngroups-1))
   allocate(erg2rhoYe(0:ngroups-1))
   allocate(lognugroup( 0:ngroups-1))
@@ -2583,21 +2569,6 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   end if
 
 end subroutine ca_initgroups3
-
-!! -----------------------------------------------------------
-
-subroutine ca_setgroup(igroup)
-
-  use rad_params_module, only: current_group
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer :: igroup
-
-  current_group = igroup
-
-end subroutine ca_setgroup
 
 !! -----------------------------------------------------------
 

@@ -51,6 +51,8 @@
 #include <prob_parameters.H>
 #endif
 
+#include "microphysics_F.H"
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -189,10 +191,12 @@ Castro::variableCleanUp ()
 
     ca_finalize_meth_params();
 
-    ca_network_finalize();
+    // Fortran cleaning
+    microphysics_finalize();
 
+    // C++ cleaning
     eos_finalize();
-    ca_eos_finalize();
+
 
 #ifdef SPONGE
     sponge_finalize();
