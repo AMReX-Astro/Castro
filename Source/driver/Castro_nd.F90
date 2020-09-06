@@ -19,6 +19,18 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
+
+  use microphysics_module
+  use meth_params_module, only: small_dens, small_temp
+  implicit none
+
+  call microphysics_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
+
+end subroutine ca_microphysics_init
+
 
 
 #ifdef REACTIONS

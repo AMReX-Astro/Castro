@@ -228,7 +228,7 @@ Castro::variableSetUp ()
   }
 
   // Initialize the Fortran Microphysics
-  microphysics_init_C(small_temp, small_dens);
+  ca_microphysics_init();
 
   // now initialize the C++ Microphysics
 #ifdef CXX_REACTIONS
