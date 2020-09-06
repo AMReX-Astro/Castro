@@ -4,6 +4,7 @@
 #include "Problem_Derive_F.H"
 #include "Castro.H"
 #include "Castro_F.H"
+#include "prob_parameters.H"
 
 using namespace amrex;
 
@@ -45,6 +46,9 @@ void ca_deradinvariant(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
 
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
@@ -78,11 +82,14 @@ void ca_derenthalpyfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
 
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    Reak rhoInv = 1.0_rt / dat(i,j,k,URHO);
+    Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
     eos_t eos_state;
 
@@ -99,7 +106,7 @@ void ca_derenthalpyfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
 #endif
     eos(eos_input_re, eos_state);
 
-    der(i,j,k,0) = eos_state.h * s(i,j,k,UMY) / s(i,j,k,URHO);
+    der(i,j,k,0) = eos_state.h * dat(i,j,k,UMY) / dat(i,j,k,URHO);
   });
 
 }
@@ -109,6 +116,9 @@ void ca_derkinengfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
 
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
@@ -116,7 +126,7 @@ void ca_derkinengfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     der(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * 
       (dat(i,j,k,1) * dat(i,j,k,1) +
        dat(i,j,k,2) * dat(i,j,k,2) +
-       dat(i,j,k,3) * dat(i,j,k,3)) * s(i,j,k,2);
+       dat(i,j,k,3) * dat(i,j,k,3)) * dat(i,j,k,2);
 
   });
 
