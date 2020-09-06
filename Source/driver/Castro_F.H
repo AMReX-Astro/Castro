@@ -9,6 +9,8 @@ extern "C"
 {
 #endif
 
+  void ca_microphysics_init();
+
   void ca_extern_init(const int* name, const int* namlen);
 
 #ifdef REACTIONS
