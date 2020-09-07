@@ -36,6 +36,15 @@ void ca_initradconstants
 void ca_initsinglegroup
   (const int& ngroups);
 
+void ca_get_dlognu
+  (amrex::Real* dlognu_out);
+
+void ca_get_nugroup
+  (amrex::Real* nugroup);
+
+void ca_get_dnugroup
+  (amrex::Real* dnugroup);
+
 #ifdef __cplusplus
 }
 #endif
@@ -607,7 +616,7 @@ extern "C" {
               BL_FORT_FAB_ARG_3D(accel), 
               int nTotal);
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif
