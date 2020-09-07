@@ -17,6 +17,8 @@ USE_DIFFUSION = TRUE
 
 USE_PROB_PARAMS = TRUE
 
+USE_INTERPOLATE = TRUE
+
 CASTRO_HOME = ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
