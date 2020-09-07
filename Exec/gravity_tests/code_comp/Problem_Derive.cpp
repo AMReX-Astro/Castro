@@ -16,9 +16,6 @@ void ca_derextheating(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
   const auto dx = geomdata.CellSizeArray();
   const auto problo = geomdata.ProbLoArray();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto const dat = datfab.array();
   auto const der = derfab.array();
 
