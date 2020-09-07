@@ -17,8 +17,6 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                  Real time, const int* /*bcrec*/, int /*level*/)
 {
 
-  // derive the dynamic pressure
-
   const auto dx = geomdata.CellSizeArray();
   const auto problo = geomdata.ProbLoArray();
 
@@ -33,8 +31,6 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
   GpuArray<Real, NGROUPS> dnugroup = {0.0};
   ca_get_dnugroup(dnugroup.begin());
-
-  // Compute pressure from the EOS
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
