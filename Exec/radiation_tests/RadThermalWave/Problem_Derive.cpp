@@ -30,9 +30,9 @@ void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real loc[3];
 
-    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
-    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
-    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
@@ -87,9 +87,9 @@ void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real loc[3];
 
-    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
-    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
-    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
