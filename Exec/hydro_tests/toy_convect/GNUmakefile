@@ -11,7 +11,6 @@ USE_OMP          = FALSE
 USE_GRAV         = TRUE
 USE_REACT        = FALSE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
