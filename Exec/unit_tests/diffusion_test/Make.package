@@ -1,3 +1,2 @@
-ca_F90EXE_sources += probdata.F90
 ca_F90EXE_sources += prob_util.F90
 ca_F90EXE_sources += extra_derives_nd.F90
