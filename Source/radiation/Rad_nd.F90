@@ -2594,6 +2594,18 @@ subroutine ca_get_nugroup(nugroup_out) bind(C, name="ca_get_nugroup")
 
 end subroutine ca_get_nugroup
 
+subroutine ca_get_dnugroup(dnugroup_out) bind(C, name="ca_get_dnugroup")
+
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, dnugroup
+  implicit none
+
+  real(rt), intent(out) :: dnugroup_out(0:ngroups-1)
+
+  dnugroup_out(:) = dnugroup(:)
+
+end subroutine ca_get_dnugroup
+
 !! -----------------------------------------------------------
 
 subroutine ca_inelastic_sct(lo, hi, &

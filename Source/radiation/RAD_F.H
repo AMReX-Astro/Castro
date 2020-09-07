@@ -42,6 +42,9 @@ void ca_get_dlognu
 void ca_get_nugroup
   (amrex::Real* nugroup);
 
+void ca_get_dnugroup
+  (amrex::Real* dnugroup);
+
 #ifdef __cplusplus
 }
 #endif
