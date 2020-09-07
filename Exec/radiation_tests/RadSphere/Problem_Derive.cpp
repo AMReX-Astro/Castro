@@ -6,16 +6,16 @@
 #include "prob_parameters.H"
 #include "extern_parameters.H"
 #include "gravity_params.H"
+#include "problem_util.H"
+#include "RAD_F.H"
 
 using namespace amrex;
 
 
 void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                  const FArrayBox& datfab, const Geometry& geomdata,
-                 Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                 Real time, const int* /*bcrec*/, int /*level*/)
 {
-
-  // derive the dynamic pressure
 
   const auto dx = geomdata.CellSizeArray();
   const auto problo = geomdata.ProbLoArray();
@@ -26,8 +26,11 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const dat = datfab.array();
   auto const der = derfab.array();
 
+  GpuArray<Real, NGROUPS> nugroup = {0.0};
+  ca_get_nugroup(nugroup.begin());
 
-  // Compute pressure from the EOS
+  GpuArray<Real, NGROUPS> dnugroup = {0.0};
+  ca_get_dnugroup(dnugroup.begin());
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -35,9 +38,9 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real loc[3];
 
-    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_Rt) * dx[0] - center[0];
-    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_Rt) * dx[1] - center[1];
-    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_Rt) * dx[2] - center[2];
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
 
     Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
 
@@ -46,7 +49,7 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
       Real F = F_radsphere(r, time, nugroup[g]);
       Real E = planck(nugroup[g], T_0) +
         (R_sphere / r) * (planck(nugroup[g], T_sphere) - planck(nugroup[g], T_0)) * F;
-      der(i,j,k,g) = E * dnugroup(g);
+      der(i,j,k,g) = E * dnugroup[g];
     }
 
   });
