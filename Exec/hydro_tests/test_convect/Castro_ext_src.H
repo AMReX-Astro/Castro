@@ -11,7 +11,7 @@ constexpr Real L_x = 2.5e8_rt;
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
-                Array4<const Real> const& snew,
+                Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
                 const Real dt)
@@ -29,7 +29,7 @@ void do_ext_src(int i, int j, int k,
         + 0.01250_rt * std::sin((8*M_PI*x/L_x) + M_PI/5.e0_rt));
 
     // Source terms
-    src(i,j,k,UEDEN) = snew(i,j,k,URHO) * H * 2.5e16_rt;
+    src(i,j,k,UEDEN) = state(i,j,k,URHO) * H * 2.5e16_rt;
     src(i,j,k,UEINT) = src(i,j,k,UEDEN);
 }
 

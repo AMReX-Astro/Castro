@@ -12,7 +12,7 @@ constexpr Real beta = p_orb_vel * 2.0_rt / p_radius;
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
-                Array4<const Real> const& snew,
+                Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
                 const Real dt)
@@ -28,8 +28,8 @@ void do_ext_src(int i, int j, int k,
     auto ang_vel = 0.5 * beta * y;
 
 #if AMREX_SPACEDIM == 3
-    src(i,j,k,UMX) += 2.0_rt * snew(i,j,k,UMY) * ang_vel;
-    src(i,j,k,UMY) += - 2.0_rt * snew(i,j,k,UMX) * ang_vel;
+    src(i,j,k,UMX) += 2.0_rt * state(i,j,k,UMY) * ang_vel;
+    src(i,j,k,UMY) += - 2.0_rt * state(i,j,k,UMX) * ang_vel;
 #endif
 }
 

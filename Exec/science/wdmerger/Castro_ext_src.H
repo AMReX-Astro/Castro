@@ -21,7 +21,7 @@ constexpr Real relaxation_damping_timescale = relaxation_damping_factor * dynami
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
-                Array4<const Real> const& snew,
+                Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
                 const Real dt)
@@ -52,12 +52,12 @@ void do_ext_src(int i, int j, int k,
 
         auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
 
-        auto rhoInv = 1.0_rt / snew(i,j,k,URHO);
+        auto rhoInv = 1.0_rt / state(i,j,k,URHO);
         position(i, j, k, geomdata, loc);
 
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             loc[dir] -= center[dir];
-            mom[dir] = snew(i,j,k,UMX+dir);
+            mom[dir] = state(i,j,k,UMX+dir);
         }
 
 #ifdef ROTATION
@@ -67,7 +67,7 @@ void do_ext_src(int i, int j, int k,
             }
             inertial_to_rotational_velocity_c(i, j, k, geomdata, center, omega, time, vel)
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                mom[dir] = snew(i,j,k,URHO) * vel[dir];
+                mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
         }
 #endif
@@ -109,12 +109,12 @@ void do_ext_src(int i, int j, int k,
         
         auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / radial_damping_timescale)) / dt;
 
-        auto rhoInv = 1.0_rt / snew(i,j,k,URHO);
+        auto rhoInv = 1.0_rt / state(i,j,k,URHO);
         position(i, j, k, geomdata, loc);
 
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             loc[dir] -= center[dir];
-            mom[dir] = snew(i,j,k,UMX+dir);
+            mom[dir] = state(i,j,k,UMX+dir);
             vel[dir] = rhoInv * mom[dir];
         }
         auto R_prp = std::sqrt(loc[axis_1-1]*loc[axis_1-1] + loc[axis_2-1]*loc[axis_2-1]);
@@ -136,8 +136,8 @@ void do_ext_src(int i, int j, int k,
         // and |v_phi| is the magnitude of the azimuthal velocity, then
         // radial_damping_factor should be much greater than unity.
 
-        Sr[axis_1-1] = cosTheta * (snew(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
-        Sr[axis_2-1] = sinTheta * (snew(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
+        Sr[axis_1-1] = cosTheta * (state(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
+        Sr[axis_2-1] = sinTheta * (state(i,j,k,URHO) * std::abs(v_rad)) * damping_factor;
         Sr[axis_3-1] = 0.0_rt;
 
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {

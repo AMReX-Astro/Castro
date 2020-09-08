@@ -13,7 +13,7 @@ constexpr Real t_stop = heating_time;
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
-                Array4<const Real> const& snew,
+                Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
                 const Real dt)
@@ -32,8 +32,8 @@ void do_ext_src(int i, int j, int k,
 
         auto Hext = H_0 * std::exp(-((dist - r_0)*(dist - r_0))/(W_0*W_0));
 
-        src(i,j,k,UEINT) = snew(i,j,k,URHO) * Hext;
-        src(i,j,k,UEDEN) = snew(i,j,k,URHO) * Hext;
+        src(i,j,k,UEINT) = state(i,j,k,URHO) * Hext;
+        src(i,j,k,UEDEN) = state(i,j,k,URHO) * Hext;
 
     } else if (prob_type == 3) {
         const int ihe4 = network_spec_index("helium-4");
@@ -49,10 +49,10 @@ void do_ext_src(int i, int j, int k,
         auto dist = std::sqrt(x*x + y*y + z*z);
 
         auto Hext = H_0 * std::exp(-((dist - r_0)*(dist - r_0))/(W_0*W_0)) * 
-            snew(i,j,k,UFS-1+ihe4) / snew(i,j,k,URHO);
+            state(i,j,k,UFS-1+ihe4) / state(i,j,k,URHO);
 
-        src(i,j,k,UEINT) = snew(i,j,k,URHO) * Hext;
-        src(i,j,k,UEDEN) = snew(i,j,k,URHO) * Hext;
+        src(i,j,k,UEINT) = state(i,j,k,URHO) * Hext;
+        src(i,j,k,UEDEN) = state(i,j,k,URHO) * Hext;
     }
 }
 

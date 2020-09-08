@@ -8,7 +8,7 @@ using namespace amrex;
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
-                Array4<const Real> const& snew,
+                Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
                 const Real dt)
@@ -27,11 +27,11 @@ void do_ext_src(int i, int j, int k,
 
     auto g = (x > c_T) ? -grav_acceleration : grav_acceleration;
 
-    src(i,j,k,UMX) = snew(i,j,k,URHO) * g;
+    src(i,j,k,UMX) = state(i,j,k,URHO) * g;
 
     // Energy source is v . momentum source
 
-    src(i,j,k,UEDEN) = snew(i,j,k,UMX) * g;
+    src(i,j,k,UEDEN) = state(i,j,k,UMX) * g;
 }
 
 #endif
