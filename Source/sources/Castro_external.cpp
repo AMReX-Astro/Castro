@@ -1,8 +1,6 @@
 #include "Castro.H"
 #include "Castro_F.H"
-#ifdef GPU_COMPATIBLE_PROBLEM
 #include "Castro_ext_src.H"
-#endif
 
 using namespace amrex;
 
@@ -127,7 +125,6 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
     {
         const Box& bx = mfi.tilebox();
 
-#ifdef GPU_COMPATIBLE_PROBLEM
         Array4<Real const> const sold = state_old.array(mfi);
         Array4<Real const> const snew = state_new.array(mfi);
         Array4<Real> const src = ext_src.array(mfi);
@@ -137,7 +134,6 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
         {
             do_ext_src(i, j, k, geomdata, sold, snew, src, dt);
         });
-#else
 
 #pragma gpu box(bx)
         ca_ext_src
@@ -146,6 +142,5 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
            BL_TO_FORTRAN_ANYD(state_new[mfi]),
            BL_TO_FORTRAN_ANYD(ext_src[mfi]),
            AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
-#endif
     }
 }
