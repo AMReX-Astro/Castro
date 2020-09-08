@@ -148,7 +148,9 @@ Castro::ctu_rad_consup(const Box& bx,
     Real umy_new1 = uout(i,j,k,UMY) + dt * update(i,j,k,UMY);
     Real umz_new1 = uout(i,j,k,UMZ) + dt * update(i,j,k,UMZ);
 
-    Real ek1 = (umx_new1 * umx_new1 + umy_new1 * umy_new1 + umz_new1 * umz_new1) / (2.0_rt * urho_new);
+    Real ek1 = (umx_new1 * umx_new1 +
+                umy_new1 * umy_new1 +
+                umz_new1 * umz_new1) / (2.0_rt * urho_new);
 
     // now add the radiation pressure gradient
     update(i,j,k,UMX) = update(i,j,k,UMX) - dprdx;
@@ -159,7 +161,9 @@ Castro::ctu_rad_consup(const Box& bx,
     Real umy_new2 = umy_new1 - dt * dprdy;
     Real umz_new2 = umz_new1 - dt * dprdz;
 
-    Real ek2 = (umx_new2 * umx_new2 + umy_new2 * umy_new2 + umz_new2 * umz_new2) / (2.0_rt * urho_new);
+    Real ek2 = (umx_new2 * umx_new2 +
+                umy_new2 * umy_new2 +
+                umz_new2 * umz_new2) / (2.0_rt * urho_new);
 
     Real dek = ek2 - ek1;
 
