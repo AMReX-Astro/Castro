@@ -3,7 +3,6 @@
 CEXE_headers += Castro_sources.H
 FEXE_headers += Castro_sources_F.H
 
-CEXE_sources += Castro_ext_src.cpp
 CEXE_sources += Castro_external.cpp
 CEXE_sources += Castro_sources.cpp
 CEXE_sources += Castro_sponge.cpp
@@ -12,8 +11,9 @@ CEXE_sources += Castro_thermo.cpp
 ca_f90EXE_sources += update_sponge_params.f90
 ca_F90EXE_sources += sponge_nd.F90
 
+ifeq ($(GPU_COMPATIBLE_PROBLEM), TRUE)
+  CEXE_headers += Castro_ext_src.H
+endif
+  
 ca_F90EXE_sources += ext_src_nd.F90
-
-
-
 

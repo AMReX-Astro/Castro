@@ -1,5 +1,8 @@
 #include "Castro.H"
 #include "Castro_F.H"
+#ifdef GPU_COMPATIBLE_PROBLEM
+#include "Castro_ext_src.H"
+#endif
 
 using namespace amrex;
 
@@ -104,6 +107,45 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
             std::cout << "Castro::construct_new_ext_source() time = " << run_time << "\n" << "\n";
 #ifdef BL_LAZY
         });
+#endif
+    }
+}
+
+
+
+void
+Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_old, const MultiFab& state_new, MultiFab& ext_src)
+{
+    const auto dx = geom.CellSizeArray();
+    const auto prob_lo = geom.ProbLoArray();
+    GeometryData geomdata = geom.data();
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& bx = mfi.tilebox();
+
+#ifdef GPU_COMPATIBLE_PROBLEM
+        Array4<Real const> const sold = state_old.array(mfi);
+        Array4<Real const> const snew = state_new.array(mfi);
+        Array4<Real> const src = ext_src.array(mfi);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            do_ext_src(i, j, k, geomdata, sold, snew, src, dt);
+        });
+#else
+
+#pragma gpu box(bx)
+        ca_ext_src
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(state_old[mfi]),
+           BL_TO_FORTRAN_ANYD(state_new[mfi]),
+           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
+           AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
 #endif
     }
 }
