@@ -37,7 +37,6 @@ CEXE_sources += Castro_generic_fill.cpp
 ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 ca_F90EXE_sources += Castro_util_nd.F90
-ca_F90EXE_sources += interpolate_nd.F90
 ca_F90EXE_sources += io_nd.F90
 ca_F90EXE_sources += math_nd.F90
 CEXE_headers      += math.H
