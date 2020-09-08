@@ -36,6 +36,15 @@ void ca_initradconstants
 void ca_initsinglegroup
   (const int& ngroups);
 
+void ca_get_dlognu
+  (amrex::Real* dlognu_out);
+
+void ca_get_nugroup
+  (amrex::Real* nugroup);
+
+void ca_get_dnugroup
+  (amrex::Real* dnugroup);
+
 #ifdef __cplusplus
 }
 #endif
@@ -379,22 +388,6 @@ extern "C"
      const amrex::Real* delta, const amrex::Real* xlo,
      const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
      const int* level, const int* grid_no);
-  void ca_derenue
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
-  void ca_derenuae
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
 #ifdef __cplusplus
 }
 #endif
@@ -481,9 +474,6 @@ extern "C" {
   void flxlim(const int* lo, const int* hi,
               BL_FORT_FAB_ARG_3D(lambda), 
               int limiter);
-
-  void eddfac(amrex::Real* efact, ARLIM_P(rlo), ARLIM_P(rhi),
-              ARLIM_P(reglo), ARLIM_P(reghi), const int& limiter, const int& idim);
 
   void scgrd(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(R), 
@@ -626,7 +616,7 @@ extern "C" {
               BL_FORT_FAB_ARG_3D(accel), 
               int nTotal);
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

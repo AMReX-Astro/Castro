@@ -11,6 +11,8 @@ USE_GRAV   = TRUE
 
 USE_RAD = TRUE
 
+USE_INTERPOLATE = TRUE
+
 CASTRO_HOME = ../../..
 
 EOS_DIR     = breakout

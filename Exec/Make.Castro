@@ -117,6 +117,14 @@ ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
     DEFINES += -DGPU_COMPATIBLE_PROBLEM
 endif
 
+# Require GPU_COMPATIBLE_PROBLEMs to use the auto-generated
+# problem parameters
+ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
+  ifneq ($(USE_PROB_PARAMS),TRUE)
+    $(error GPU_COMPATIBLE_PROBLEM setups must USE_PROB_PARAMS)
+  endif
+endif
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
@@ -156,6 +164,10 @@ endif
 
 ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
   Bdirs += Util/conservative_interpolate
+endif
+
+ifeq ($(USE_INTERPOLATE),TRUE)
+  Bdirs += Util/interpolate
 endif
 
 # add / define any special physics we need
