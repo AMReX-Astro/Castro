@@ -5,6 +5,10 @@
 
 using namespace amrex;
 
+constexpr Real p_orb_vel = 1.e-3_rt;
+constexpr Real p_radius = 1.e10_rt;
+constexpr Real beta = p_orb_vel * 2.0_rt / p_radius;
+
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
@@ -17,13 +21,17 @@ void do_ext_src(int i, int j, int k,
     const Real* problo = geomdata.ProbLo();
     const Real* dx = geomdata.CellSize();
 
-    auto x = problo[0] + (Real(i) + 0.5_rt) * dx[0];
+    for (auto n = 0; n < NSRC; ++n) {
+        src(i,j,k,n) = 0.0_rt;
+    }
 
-    src(i,j,k,UEINT) = snew(i,j,k,URHO) * 
-        (A1*std::exp(-(x - 0.5_rt)*(x - 0.5_rt)/(sigma1*sigma1)) + 
-         A2*std::exp(-(x - 1.0_rt)*(x - 1.0_rt)/(sigma2*sigma2)));
+    auto y = problo[1] + dx[1]*(Real(j) + 0.5_rt) - center[1];
+    auto ang_vel = 0.5 * beta * y;
 
-    src(i,j,k,UEDEN) = src(i,j,k,UEINT); 
+#if AMREX_SPACEDIM == 3
+    src(i,j,k,UMX) += 2.0_rt * snew(i,j,k,UMY) * ang_vel;
+    src(i,j,k,UMY) += - 2.0_rt * snew(i,j,k,UMX) * ang_vel;
+#endif
 }
 
 #endif
