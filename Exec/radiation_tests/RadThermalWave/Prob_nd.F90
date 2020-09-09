@@ -1,9 +1,7 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_fort_module, only: rt => amrex_real
-  use probdata_module, only: rhocv, T0, Eexp, rexp, &
-                             xmin, xmax, ymin, ymax, zmin, zmax
-  use castro_error_module, only: castro_error
+  use probdata_module
 
   implicit none
 
@@ -11,57 +9,10 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
+  integer i
 
-  namelist /fortin/ rhocv, T0, Eexp, rexp
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(rhocv)
-  allocate(T0)
-  allocate(Eexp)
-  allocate(rexp)
-
-  allocate(xmin)
-  allocate(xmax)
-  allocate(ymin)
-  allocate(ymax)
-  allocate(zmin)
-  allocate(zmax)
-
-  ! Set defaults
-  rhocv = -1.0e50_rt
-  T0 = -1.0e50_rt
-  Eexp = -1.e-50_rt
-  rexp = -1.e50_rt
-
-  ! domain extrema and center
-  xmin = problo(1)
-  xmax = probhi(1)
-#if AMREX_SPACEDIM >= 2
-  ymin = problo(2)
-  ymax = probhi(2)
-#endif
-#if AMREX_SPACEDIM == 3
-  zmin = problo(3)
-  zmax = probhi(3)
-#endif
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
+  ! get the problem parameters
+  call probdata_init(name, namlen)
 
 end subroutine amrex_probinit
 
@@ -79,8 +30,7 @@ contains
                          bind(C, name='ca_initdata')
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
-    use probdata_module, only: rhocv, T0, Eexp, rexp, &
-                               xmin, xmax, ymin, ymax, zmin, zmax
+    use probdata_module, only: rhocv, T0, Eexp, rexp
     use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UTEMP, UFS
     use network, only: nspec
     use eos_module, only: eos
