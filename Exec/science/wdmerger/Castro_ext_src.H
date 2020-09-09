@@ -2,6 +2,12 @@
 #define CASTRO_EXT_SRC_H
 
 #include "prob_parameters.H"
+#include "Castro_rotation.H"
+#ifdef HYBRID_MOMENTUM
+#include "hybrid.H"
+#endif
+#include "wdmerger_util.H"
+#include "wdmerger_data.H"
 
 using namespace amrex;
 
@@ -9,30 +15,33 @@ using namespace amrex;
 // the smaller of the two WD timescales. Generally this should be the primary, but we'll
 // be careful just in case.
 
-constexpr Real dynamical_timescale = amrex::min(t_ff_P, t_ff_S);
+const Real dynamical_timescale = amrex::min(wdmerger::t_ff_p, wdmerger::t_ff_s);
 
 // The relaxation damping factor should be less than unity, so that the damping
 // timescale is less than the dynamical timescale. This ensures that the stars
 // are always responding to the damping with quasistatic motion; if the stars
 // could respond too quickly, they might expand and make contact too early.
 
-constexpr Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescal
+const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE 
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
                 GpuArray<Real, 3> center,
-                const Real dt)
+                GpuArray<Real, 3> omega,
+                const Real time, const Real dt)
 {
-    // const Real* problo = geomdata.ProbLo();
-    // const Real* probhi = geomdata.ProbHi();
-    // const Real* dx     = geomdata.CellSize();
-    // const int*  domlo  = geomdata.domain.loVect();
-    // const int*  domhi  = geomdata.domain.hiVect();
-
     // First do any relaxation source terms.
+
+    // Note that we are applying this update implicitly. The implicit and
+    // explicit methods agree in the limit where the damping timescale is
+    // much larger than dt, but the implicit method helps avoid numerical
+    // problems when the damping timescale is shorter than the timestep.
+    // For further information, see Source/sources/sponge_nd.F90.
+
+    const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
 
     if (problem == 1 && relaxation_damping_factor > 0.0_rt) {
 
@@ -44,15 +53,7 @@ void do_ext_src(int i, int j, int k,
 #endif
         GpuArray<Real, 3> Sr;
 
-        // Note that we are applying this update implicitly. The implicit and
-        // explicit methods agree in the limit where the damping timescale is
-        // much larger than dt, but the implicit method helps avoid numerical
-        // problems when the damping timescale is shorter than the timestep.
-        // For further information, see Source/sources/sponge_nd.F90.
-
-        auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
-
-        auto rhoInv = 1.0_rt / state(i,j,k,URHO);
+        const auto rhoInv = 1.0_rt / state(i,j,k,URHO);
         position(i, j, k, geomdata, loc);
 
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
@@ -65,7 +66,7 @@ void do_ext_src(int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 vel[dir] = rhoInv * mom[dir];
             }
-            inertial_to_rotational_velocity_c(i, j, k, geomdata, center, omega, time, vel)
+            inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel.begin());
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
@@ -102,12 +103,6 @@ void do_ext_src(int i, int j, int k,
         GpuArray<Real, 3> hybrid_mom;
 #endif
         GpuArray<Real, 3> Sr;
-
-        // The logic for which dynamical timescale to use and
-        // how to do the implicit coupling follows the reasoning
-        // described above for the relaxation damping.
-        
-        auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / radial_damping_timescale)) / dt;
 
         auto rhoInv = 1.0_rt / state(i,j,k,URHO);
         position(i, j, k, geomdata, loc);

@@ -5,10 +5,10 @@
 
 using namespace amrex;
 
-constexpr Real H_0 = heating_peak;
-constexpr Real W_0 = heating_sigma;
-constexpr Real r_0 = heating_rad;
-constexpr Real t_stop = heating_time;
+const Real H_0 = heating_peak;
+const Real W_0 = heating_sigma;
+const Real r_0 = heating_rad;
+const Real t_stop = heating_time;
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
@@ -36,7 +36,6 @@ void do_ext_src(int i, int j, int k,
         src(i,j,k,UEDEN) = state(i,j,k,URHO) * Hext;
 
     } else if (prob_type == 3) {
-        const int ihe4 = network_spec_index("helium-4");
 
         // sub-chandra heating -- modulate by He
 
