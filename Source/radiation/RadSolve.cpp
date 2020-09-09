@@ -5,8 +5,8 @@
 #include <AMReX_LO_BCTYPES.H>
 //#include <CompSolver.H>
 
-#include "RadSolve.H"
-#include "Radiation.H"  // for access to static physical constants only
+#include <RadSolve.H>
+#include <Radiation.H>  // for access to static physical constants only
 
 #include <iostream>
 
@@ -14,9 +14,9 @@
 #include <omp.h>
 #endif
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
-#include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?
+#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 using namespace amrex;
 
@@ -74,7 +74,7 @@ RadSolve::read_params ()
         radsolve::abstol = 0.0;
     }
 
-#include "radsolve_queries.H"
+#include <radsolve_queries.H>
 
     // Check for unsupported options.
 

@@ -1,7 +1,7 @@
 #ifndef CASTRO_HYBRID_H
 #define CASTRO_HYBRID_H
 
-#include "Castro_util.H"
+#include <Castro_util.H>
 
 using namespace amrex;
 
