@@ -81,8 +81,7 @@ void do_ext_src(int i, int j, int k,
         }
 
 #ifdef HYBRID_MOMENTUM
-        // src(i,j,k,UMR:UMP) = src(i,j,k,UMR:UMP) + linear_to_hybrid(loc, Sr)
-        linear_to_hybrid(loc, mom, hybrid_mom);
+        linear_to_hybrid(loc, Sr, hybrid_mom);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UMR+dir) += hybrid_mom[dir];
         }
@@ -152,7 +151,7 @@ void do_ext_src(int i, int j, int k,
         }
 
 #ifdef HYBRID_MOMENTUM
-        linear_to_hybrid(loc, mom, hybrid_mom);
+        linear_to_hybrid(loc, Sr, hybrid_mom);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UMR+dir) += hybrid_mom[dir];
         }
