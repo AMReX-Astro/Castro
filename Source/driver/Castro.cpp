@@ -22,8 +22,8 @@
 #include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "RAD_F.H"
+#include <Radiation.H>
+#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -31,11 +31,11 @@
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #ifdef DIFFUSION
-#include "Diffusion.H"
+#include <Diffusion.H>
 #endif
 
 #ifdef _OPENMP
@@ -51,7 +51,7 @@
 #include <prob_parameters.H>
 #endif
 
-#include "microphysics_F.H"
+#include <microphysics_F.H>
 
 using namespace amrex;
 

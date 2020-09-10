@@ -2,7 +2,7 @@
 #include <cstring>
 #include <vector>
 
-#include "riemann_F.H"
+#include <riemann_F.H>
 
 int main(int argc, char *argv[]) {
 

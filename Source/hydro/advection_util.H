@@ -1,10 +1,10 @@
 #ifndef advection_util_H
 #define advection_util_H
 
-#include "Castro_util.H"
+#include <Castro_util.H>
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 AMREX_GPU_HOST_DEVICE

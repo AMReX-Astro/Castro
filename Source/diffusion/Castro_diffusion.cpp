@@ -1,12 +1,12 @@
 
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
-#include "diffusion_util.H"
+#include <diffusion_util.H>
 
 using std::string;
 
-#include "Diffusion.H"
+#include <Diffusion.H>
 
 void
 Castro::construct_old_diff_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
