@@ -1,28 +1,17 @@
 #ifndef CASTRO_EXT_SRC_H
 #define CASTRO_EXT_SRC_H
 
-#include "prob_parameters.H"
-#include "Castro_rotation.H"
+#include <prob_parameters.H>
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
-#include "wdmerger_util.H"
-#include "wdmerger_data.H"
+#ifdef ROTATION
+#include <Rotation.H>
+#endif
+#include <wdmerger_util.H>
+#include <wdmerger_data.H>
 
 using namespace amrex;
-
-// The relevant dynamical timescale for determining this source term timescale should be
-// the smaller of the two WD timescales. Generally this should be the primary, but we'll
-// be careful just in case.
-
-const Real dynamical_timescale = amrex::min(wdmerger::t_ff_p, wdmerger::t_ff_s);
-
-// The relaxation damping factor should be less than unity, so that the damping
-// timescale is less than the dynamical timescale. This ensures that the stars
-// are always responding to the damping with quasistatic motion; if the stars
-// could respond too quickly, they might expand and make contact too early.
-
-const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
 
 AMREX_GPU_HOST_DEVICE 
 void do_ext_src(int i, int j, int k,
@@ -35,15 +24,28 @@ void do_ext_src(int i, int j, int k,
 {
     // First do any relaxation source terms.
 
-    // Note that we are applying this update implicitly. The implicit and
-    // explicit methods agree in the limit where the damping timescale is
-    // much larger than dt, but the implicit method helps avoid numerical
-    // problems when the damping timescale is shorter than the timestep.
-    // For further information, see Source/sources/sponge_nd.F90.
-
-    const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
-
     if (problem == 1 && relaxation_damping_factor > 0.0_rt) {
+
+        // The relevant dynamical timescale for determining this source term timescale should be
+        // the smaller of the two WD timescales. Generally this should be the primary, but we'll
+        // be careful just in case.
+
+        const Real dynamical_timescale = amrex::min(wdmerger::t_ff_p, wdmerger::t_ff_s);
+
+        // The relaxation damping factor should be less than unity, so that the damping
+        // timescale is less than the dynamical timescale. This ensures that the stars
+        // are always responding to the damping with quasistatic motion; if the stars
+        // could respond too quickly, they might expand and make contact too early.
+
+        const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
+
+        // Note that we are applying this update implicitly. The implicit and
+        // explicit methods agree in the limit where the damping timescale is
+        // much larger than dt, but the implicit method helps avoid numerical
+        // problems when the damping timescale is shorter than the timestep.
+        // For further information, see Source/sources/sponge_nd.F90.
+
+        const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
 
         GpuArray<Real, 3> loc;
         GpuArray<Real, 3> vel;
@@ -66,7 +68,7 @@ void do_ext_src(int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 vel[dir] = rhoInv * mom[dir];
             }
-            inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel.begin());
+            inertial_to_rotational_velocity(i, j, k, geomdata, center, omega, time, vel);
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
@@ -95,6 +97,16 @@ void do_ext_src(int i, int j, int k,
     // Now do the radial drift source terms.
 
     if (problem == 1 && radial_damping_factor > 0.0_rt) {
+
+        // The logic for which dynamical timescale to use and
+        // how to do the implicit coupling follows the reasoning
+        // described above for the relaxation damping.
+
+        const Real dynamical_timescale = amrex::max(wdmerger::t_ff_p, wdmerger::t_ff_s);
+
+        const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
+
+        const auto damping_factor = -(1.0_rt - 1.0_rt / (1.0_rt + dt / relaxation_damping_timescale)) / dt;
 
         GpuArray<Real, 3> loc;
         GpuArray<Real, 3> vel;
@@ -140,7 +152,6 @@ void do_ext_src(int i, int j, int k,
         }
 
 #ifdef HYBRID_MOMENTUM
-        // src(i,j,k,UMR:UMP) = src(i,j,k,UMR:UMP) + linear_to_hybrid(loc, Sr)
         linear_to_hybrid(loc, mom, hybrid_mom);
         for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             src(i,j,k,UMR+dir) += hybrid_mom[dir];

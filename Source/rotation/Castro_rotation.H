@@ -32,14 +32,6 @@
 ///
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& state, amrex::Real time);
 
-
-    AMREX_GPU_HOST_DEVICE 
-    void inertial_to_rotational_velocity_c(const int i, const int j, const int k,
-                                           const amrex::GeometryData& geomdata,
-                                           const amrex::Real* center,
-                                           const amrex::Real* omega,
-                                           const amrex::Real time, amrex::Real* v);
-
 ///
 /// Add the rotation source for input state uold to the full hydrodynamic source
 /// term source
