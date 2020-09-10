@@ -9,21 +9,21 @@
 #include <ctime>
 
 #include <AMReX_Utility.H>
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_io.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #ifdef DIFFUSION
-#include "Diffusion.H"
+#include <Diffusion.H>
 #endif
 
 #ifdef _OPENMP
@@ -31,7 +31,7 @@
 #endif
 
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
 
 using std::string;
 using namespace amrex;
@@ -817,9 +817,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-#include "castro_job_info_tests.H"
+#include <castro_job_info_tests.H>
 #ifdef AMREX_PARTICLES
-#include "particles_job_info_tests.H"
+#include <particles_job_info_tests.H>
 #endif
 
 #ifdef GRAVITY

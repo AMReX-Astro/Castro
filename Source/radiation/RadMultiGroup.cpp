@@ -2,9 +2,9 @@
 #define RADIATION
 #endif
 
-#include "Radiation.H"
+#include <Radiation.H>
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
 #include <AMReX_ParmParse.H>
 

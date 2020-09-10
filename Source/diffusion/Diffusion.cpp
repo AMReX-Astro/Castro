@@ -1,7 +1,7 @@
 #include <AMReX_ParmParse.H>
-#include "Diffusion.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Diffusion.H>
+#include <Castro.H>
+#include <Castro_F.H>
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
@@ -34,7 +34,7 @@ Diffusion::read_params ()
     {
         ParmParse pp("diffusion");
 
-#include "diffusion_queries.H"
+#include <diffusion_queries.H>
 
         done = true;
     }
@@ -44,7 +44,7 @@ Diffusion::read_params ()
 void 
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
-#include "diffusion_job_info_tests.H"
+#include <diffusion_job_info_tests.H>
 }
 
 

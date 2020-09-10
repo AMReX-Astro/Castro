@@ -1,9 +1,9 @@
 #ifdef SPONGE
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 using namespace amrex;

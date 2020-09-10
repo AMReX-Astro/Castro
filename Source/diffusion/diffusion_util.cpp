@@ -3,9 +3,9 @@
 
 #include <state_indices.H>
 
-#include "castro_params.H"
-#include "eos.H"
-#include "conductivity.H"
+#include <castro_params.H>
+#include <eos.H>
+#include <conductivity.H>
 
 using namespace amrex;
 
