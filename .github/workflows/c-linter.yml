@@ -31,7 +31,7 @@ jobs:
 
       - name: Check header includes
         run: |
-          HEADER_INCLUDES=$(grep -rIE --include="*.cpp" --include="*.H" "#\s?include\s+\"\w+\.\w+\"")
+          HEADER_INCLUDES=$(grep -rIE --include="*.cpp" --include="*.H" --exclude-dir=external "#\s?include\s+\"\w+\.\w+\"")
           echo $HEADER_INCLUDES
           if [[ $HEADER_INCLUDES ]]; then exit 1; fi
 
