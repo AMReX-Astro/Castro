@@ -1,7 +1,7 @@
 #ifndef CASTRO_EXT_SRC_H
 #define CASTRO_EXT_SRC_H
 
-#include "prob_parameters.H"
+#include <prob_parameters.H>
 
 using namespace amrex;
 
