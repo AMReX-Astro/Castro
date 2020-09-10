@@ -1,12 +1,12 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef DIFFUSION
-#include "conductivity.H"
+#include <conductivity.H>
 #endif
 
 #ifdef MHD
-#include "mhd_util.H"
+#include <mhd_util.H>
 #endif
 
 using namespace amrex;

@@ -51,11 +51,11 @@ constexpr int Shock = USHK;
 #endif
 
 #ifdef AMREX_PARTICLES
-#include "AMReX_AmrParticles.H"
+#include <AMReX_AmrParticles.H>
 #endif
 
 #ifdef RADIATION
-#include "RadSolve.H"
+#include <RadSolve.H>
 #endif
 
 #include <memory>

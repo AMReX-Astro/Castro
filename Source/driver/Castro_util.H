@@ -1,7 +1,7 @@
 #ifndef CASTRO_UTIL_H
 #define CASTRO_UTIL_H
 
-#include "AMReX_Geometry.H"
+#include <AMReX_Geometry.H>
 
 using namespace amrex;
 

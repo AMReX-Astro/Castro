@@ -1,8 +1,9 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 using namespace amrex;
