@@ -25,14 +25,22 @@ void do_ext_src(int i, int j, int k,
 
     if (prob_type == 1) {
 
-        if (prob_lo[0] == 0 && prob_lo[1] == 0 && prob_lo[2] == 0) {
+        if (i == 0 && j == 0 && k == 0) {
             AllPrint() << "TIME vs TSTOP " << time << " " << t_stop << std::endl;
         }
 
         // For heating at the center
         auto x = prob_lo[0] + (Real(i) + 0.5_rt)*dx[0] - center[0];
+#if AMREX_SPACEDIM == 1
+        auto y = 0.0_rt;
+#else
         auto y = prob_lo[1] + (Real(j) + 0.5_rt)*dx[1] - center[1];
+#endif
+#if AMREX_SPACEDIM < 3
+        auto z = 0.0_rt;
+#else
         auto z = prob_lo[2] + (Real(k) + 0.5_rt)*dx[2] - center[2];
+#endif
 
         auto dist = std::sqrt(x*x + y*y + z*z);
 
@@ -43,7 +51,7 @@ void do_ext_src(int i, int j, int k,
 
     } else if (prob_type == 3) {
 
-        if (prob_lo[0] == 0 && prob_lo[1] == 0 && prob_lo[2] == 0) {
+        if (i == 0 && j == 0 && k == 0) {
             AllPrint() << "TIME vs TSTOP " << time << " " << t_stop << std::endl;
         }
 
@@ -52,8 +60,16 @@ void do_ext_src(int i, int j, int k,
         const auto ihe4 = network_spec_index("helium-4");
 
         auto x = prob_lo[0] + (Real(i) + 0.5_rt)*dx[0] - center[0];
+#if AMREX_SPACEDIM == 1
+        auto y = 0.0_rt;
+#else
         auto y = prob_lo[1] + (Real(j) + 0.5_rt)*dx[1] - center[1];
+#endif
+#if AMREX_SPACEDIM < 3
+        auto z = 0.0_rt;
+#else
         auto z = prob_lo[2] + (Real(k) + 0.5_rt)*dx[2] - center[2];
+#endif
 
         auto dist = std::sqrt(x*x + y*y + z*z);
 

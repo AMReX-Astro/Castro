@@ -12,15 +12,15 @@ hse_eint_top       real             0.0_rt
 
 hse_X_top          real             0.0_rt              n         (nspec, network)
 
-xmin               real             0.0_rt
+xmin               real             0.0_rt              y
 
 xmax               real             0.0_rt
 
-ymin               real             0.0_rt
+ymin               real             0.0_rt              y
 
 ymax               real             0.0_rt
 
-zmin               real             0.0_rt
+zmin               real             0.0_rt              y
 
 zmax               real             0.0_rt
 
