@@ -4,10 +4,10 @@
 #include <AMReX_Array.H>
 #include <AMReX_MultiFab.H>
 
-#include "NGBndry.H"
+#include <NGBndry.H>
 
-#include "_hypre_utilities.h"
-#include "HYPRE_struct_ls.h"
+#include <_hypre_utilities.h>
+#include <HYPRE_struct_ls.h>
 
 ///
 /// @class HypreABec

@@ -1,10 +1,10 @@
 #ifndef CASTRO_HYPREMULTIABEC_H
 #define CASTRO_HYPREMULTIABEC_H
 
-#include "HypreABec.H"
+#include <HypreABec.H>
 
 #include <list>
-#include "HYPRE_sstruct_ls.h"
+#include <HYPRE_sstruct_ls.h>
 
 ///
 /// An AuxVar is an intermediate variable used in building up a
