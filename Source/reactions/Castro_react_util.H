@@ -104,17 +104,19 @@ single_zone_jac(const int i, const int j, const int k,
     actual_rhs(burn_state, ydot);
 
     if (sdc_use_analytic_jac == 0) {
-       // note the numerical Jacobian will be returned in terms of X
-       numerical_jac(burn_state, jac);
+        // note the numerical Jacobian will be returned in terms of X
+        numerical_jac(burn_state, jac);
     } else {
-       actual_jac(burn_state, jac);
+        actual_jac(burn_state, jac);
 
-       // The Jacobian from the nets is in terms of dYdot/dY, but we want
-       // it was dXdot/dX, so convert here.
-       for (int n = 0; n < NumSpec; ++n) {
-          jac(n,:) = jac(n,:) * aion[n]
-          jac(:,n) = jac(:,n) * aion_inv[n]
-       }
+        // The Jacobian from the nets is in terms of dYdot/dY, but we want
+        // it was dXdot/dX, so convert here.
+        for (int n = 0; n < NumSpec; ++n) {
+            for (int m = 0; m < NumSpec; ++m) {
+                jac(n,m) = jac(n,m) * aion[n];
+                jac(m,n) = jac(m,n) * aion_inv[n];
+            }
+        }
 
     }
 #endif
