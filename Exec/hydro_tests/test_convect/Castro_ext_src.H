@@ -16,8 +16,8 @@ void do_ext_src(int i, int j, int k,
                 GpuArray<Real, 3> const& center,
                 const Real dt, const Real time)
 {
-    const Real* problo = geomdata.ProbLo();
-    const Real* dx = geomdata.CellSize();
+    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geomdata.CellSizeArray();
 
     auto x = (Real(i)+0.5e0_rt)*dx[0] + problo[0];
     auto y = (Real(j)+0.5e0_rt)*dx[1] + problo[1];
