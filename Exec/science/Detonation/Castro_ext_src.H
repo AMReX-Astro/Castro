@@ -17,9 +17,9 @@ void do_ext_src(int i, int j, int k,
     // Add a mock gravitational acceleration which points to the center
     // with uniform magnitude on either side of the center.
 
-    const auto problo = geomdata.ProbLoArray();
-    const auto probhi = geomdata.ProbHiArray();
-    const auto dx = geomdata.CellSizeArray();
+    const Real* problo = geomdata.ProbLo();
+    const Real* probhi = geomdata.ProbHi();
+    const Real* dx     = geomdata.CellSize();
 
     auto c_T = problo[0] + center_T * (probhi[0] - problo[0]);
 

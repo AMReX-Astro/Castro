@@ -13,9 +13,11 @@ void do_ext_src(int i, int j, int k,
                 GpuArray<Real, 3> const& center,
                 const Real dt, const Real time)
 {
-    // const auto problo = geomdata.ProbLoArray();
-    // const auto probhi = geomdata.ProbHiArray();
-    // const auto dx = geomdata.CellSizeArray();
+    // const Real* problo = geomdata.ProbLo();
+    // const Real* probhi = geomdata.ProbHi();
+    // const Real* dx     = geomdata.CellSize();
+    // const int*  domlo  = geomdata.domain.loVect();
+    // const int*  domhi  = geomdata.domain.hiVect();
 }
 
 #endif

@@ -20,8 +20,8 @@ void do_ext_src(int i, int j, int k,
 
     if (time > t_stop) return;
 
-    const auto prob_lo = geomdata.ProbLoArray();
-    const auto dx = geomdata.CellSizeArray();
+    const Real* prob_lo = geomdata.ProbLo();
+    const Real* dx = geomdata.CellSize();
 
     if (prob_type == 1) {
 
