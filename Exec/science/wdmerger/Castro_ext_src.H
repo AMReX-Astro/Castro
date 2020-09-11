@@ -18,9 +18,9 @@ void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
-                GpuArray<Real, 3> center,
-                GpuArray<Real, 3> omega,
-                const Real time, const Real dt)
+                GpuArray<Real, 3> const& center,
+                GpuArray<Real, 3> const& omega,
+                const Real dt, const Real time)
 {
     // First do any relaxation source terms.
 
