@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Castro_react.H &mdash; Castro  documentation</title>
+  <title>File Castro_ext_src.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Rotation" href="../rotation_files.html" />
-    <link rel="prev" title="Reactions" href="../reactions_files.html" /> 
+    <link rel="next" title="File Castro_sources.H" href="Castro__sources_8H.html" />
+    <link rel="prev" title="Sources" href="../sources_files.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/Castro__react_8H.html">main</a> | <a href="../file/Castro__react_8H.html">development</a>
+        Branch: <a href="../../file/Castro__ext__src_8H.html">main</a> | <a href="../file/Castro__ext__src_8H.html">development</a>
     </div>
 
         </div>
@@ -144,14 +144,17 @@
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../reactions_files.html">Reactions</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_react.H</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_ext_src.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__defaults_8H.html">File sponge_defaults.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__params_8H.html">File sponge_params.H</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -207,15 +210,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../reactions_files.html">Reactions</a> &raquo;</li>
+          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
         
-      <li>File Castro_react.H</li>
+      <li>File Castro_ext_src.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/Castro__react_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__ext__src_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -228,54 +231,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-castro-react-h">
-<h1>File Castro_react.H<a class="headerlink" href="#file-castro-react-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-castro-ext-src-h">
+<h1>File Castro_ext_src.H<a class="headerlink" href="#file-castro-ext-src-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt id="_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv311react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv211react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="react_state__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1a959f4ff2cdd2d7f2a52e8b2d3b890d67"></span>bool <code class="sig-name descname">react_state</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>reactions</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411react_stateRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>React state through a single reaction timestep, saving reaction source terms to <code class="docutils literal notranslate"><span class="pre">reactions</span></code> MultiFab. This is the CTU version.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">reactions</span></code>: MultiFab to save reaction sources to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: reaction timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv411react_stateN5amrex4RealEN5amrex4RealE">
-<span id="_CPPv311react_stateN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv211react_stateN5amrex4RealEN5amrex4RealE"></span><span id="react_state__amrex::Real.amrex::Real"></span><span class="target" id="Castro__react_8H_1a1d1083a322ed578a27004e1ccf160c51"></span>bool <code class="sig-name descname">react_state</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411react_stateN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Simplified SDC version of react_state. Reacts the current state through a single timestep.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv419valid_zones_to_burnRN5amrex8MultiFabE">
-<span id="_CPPv319valid_zones_to_burnRN5amrex8MultiFabE"></span><span id="_CPPv219valid_zones_to_burnRN5amrex8MultiFabE"></span><span id="valid_zones_to_burn__amrex::MultiFabR"></span><span class="target" id="Castro__react_8H_1aa3ed7c5598a37d45f07dd0bd99f9f4c1"></span>bool <code class="sig-name descname">valid_zones_to_burn</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>State</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419valid_zones_to_burnRN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Are there any zones in <code class="docutils literal notranslate"><span class="pre">State</span></code> that can burn?</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">State</span></code>: State MultiFab </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<dt>
+<span class="target" id="Castro__ext__src_8H_1a52d4cbd0535d93919825a510e23a9e0e"></span><code class="sig-name descname">AMREX_GPU_DEVICE AMREX_FORCE_INLINE void do_ext_src (int i, int j, int k, GeometryData const &amp;geomdata, Array4&lt; const Real &gt; const &amp;state, Array4&lt; Real &gt; const &amp;src, GpuArray&lt; Real, 3 &gt; const &amp;center, const Real dt, const Real time)</code></dt>
+<dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt id="_CPPv45amrex">
+<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><em class="property">namespace </em><code class="sig-name descname">amrex</code><a class="headerlink" href="#_CPPv45amrex" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 
 
@@ -286,10 +256,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../rotation_files.html" class="btn btn-neutral float-right" title="Rotation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Castro__sources_8H.html" class="btn btn-neutral float-right" title="File Castro_sources.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../reactions_files.html" class="btn btn-neutral float-left" title="Reactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../sources_files.html" class="btn btn-neutral float-left" title="Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

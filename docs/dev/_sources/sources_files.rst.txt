@@ -4,6 +4,7 @@ Sources
 .. toctree::
    :maxdepth: 2
 
+   file/Castro__ext__src_8H
    file/Castro__sources_8H
    file/sponge__defaults_8H
    file/sponge__params_8H
