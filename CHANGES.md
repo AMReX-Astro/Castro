@@ -1,4 +1,35 @@
+# 20.10
+
+   * The interpolate_nd.F90 file has been moved to Util/interpolate and
+     is only compiled into Castro if you set USE_INTERPOLATE=TRUE
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
+
+# 20.09
+
+   * Reactions now work with MHD (#1179)
+
+   * MHD now uses the main slope routine (#1058) The order of the
+     slope is now controlled by plm_iorder, just as with hydro.  There
+     is an additional option, mhd_limit_characteristic, that
+     determines if the limiting is done on the primitive or
+     characteristic variables (the default).
+
 # 20.08
+
+   * Rotation_Type has been removed from StateData. (#1128)
+
+   * castro.use_post_step_regrid now unconditionally regrids after
+     every timestep on every level. (#898)
+
+   * An issue with gravity.max_solve_level resulting in accesses to invalid data
+     (#469, #1118) has been resolved. (#1123)
 
    * If castro.speed_limit is set to a number greater than zero, this
      will now be strictly enforced on the magnitude of the velocity. (#1115)
@@ -9,14 +40,6 @@
 
    * We now have the ability to access the problem-specific runtime
      parameters in C++ (#1093)
-
-   * In axisymmetric geometry, there are additional forces that arise
-     due to the changing direction of the unit vectors in the div{rho
-     U U} term. The paper by Bernand-Champmartin discusses this. See
-     issue #913. This adds those forces.  Note that the Coriolis force
-     in 2-d axisymmetry is already consistent with a right-handed
-     system despite our internal ordering of the state was r, z,
-     theta.  (#923)
 
 # 20.07
 

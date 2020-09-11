@@ -14,6 +14,8 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
+USE_INTERPOLATE = TRUE
+
 # We want to use the dimension agnostic version of certain source files.
 
 GPU_COMPATIBLE_PROBLEM = TRUE

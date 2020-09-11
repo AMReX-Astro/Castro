@@ -1,68 +1,3 @@
-
-
-subroutine ca_network_init() bind(C, name="ca_network_init")
-    !
-    ! Binds to C function `ca_network_init`
-    !
-
-  use network, only: network_init
-#ifdef REACTIONS
-  use actual_rhs_module, only: actual_rhs_init
-#endif
-
-  call network_init()
-
-#ifdef REACTIONS
-  call actual_rhs_init()
-#endif
-
-end subroutine ca_network_init
-
-
-subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
-    !
-    ! Binds to C function `ca_network_finalize`
-    !
-
-  use network, only: network_finalize
-
-  call network_finalize()
-
-end subroutine ca_network_finalize
-
-
-subroutine ca_eos_init() bind(C, name="ca_eos_init")
-
-  use meth_params_module, only: small_dens, small_temp
-  use eos_module, only: eos_init
-
-  implicit none
-
-  call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-  !$acc update device(small_dens, small_temp)
-
-end subroutine ca_eos_init
-
-
-subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
-    !
-    ! Binds to C function `ca_eos_finalize`
-    !
-
-  use eos_module, only: eos_finalize
-
-  call eos_finalize()
-
-end subroutine ca_eos_finalize
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
 subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
     ! initialize the external runtime parameters in
     ! extern_probin_module
@@ -84,26 +19,21 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
+
+  use microphysics_module
+  use meth_params_module, only: small_dens, small_temp
+  implicit none
+
+  call microphysics_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
+
+end subroutine ca_microphysics_init
+
 
 
 #ifdef REACTIONS
-subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
-
-  use extern_probin_module, only : abort_on_failure
-
-  implicit none
-
-  integer, intent(inout) :: abort_on_failure_in
-
-  if (abort_on_failure) then
-     abort_on_failure_in = 1
-  else
-     abort_on_failure_in = 0
-  endif
-
-end subroutine ca_get_abort_on_failure
-
-
 subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abort_on_failure")
 
   use extern_probin_module, only : abort_on_failure

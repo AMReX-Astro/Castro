@@ -301,13 +301,6 @@ The current ``StateData`` names Castro carries are:
    When rotation is enabled, this will store the effective potential
    corresponding to the centrifugal force.
 
--  ``Rotation_Type`` : this is the rotational acceleration.
-   There are always 3 components, regardless of the dimensionality
-   (consistent with our choice of always carrying all 3 velocity
-   components). This includes the terms corresponding to the Coriolis
-   force, the centrifugal force, as well as optional terms due to the
-   change in rotation rate, :math:`\Omega`.
-
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
    ``State_Type`` variables.
@@ -329,7 +322,16 @@ The current ``StateData`` names Castro carries are:
    and for reaction timestep limiting (this in particular needs the
    data stored in checkpoints for continuity of timestepping upon restart).
 
--  ``SDC_React_Type`` : this is used with the SDC
+- ``Mag_Type_x`` : this is defined for MHD and stores the
+   face-centered (on x-faces) x-component of the magnetic field.
+
+- ``Mag_Type_y`` : this is defined for MHD and stores the
+   face-centered (on y-faces) y-component of the magnetic field.
+
+- ``Mag_Type_z`` : this is defined for MHD and stores the
+   face-centered (on z-faces) z-component of the magnetic field.
+
+-  ``Simplified_SDC_React_Type`` : this is used with the SDC
    time-advancement algorithm. This stores the ``NQSRC`` terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface

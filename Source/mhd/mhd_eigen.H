@@ -1,7 +1,7 @@
 #ifndef CASTRO_MHD_EIGEN_H
 #define CASTRO_MHD_EIGEN_H
 
-#include "mhd_util.H"
+#include <mhd_util.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
@@ -83,16 +83,27 @@ evecx(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csx)/(cfx - csx));
-  Real als = std::sqrt((cfx - as)/(cfx - csx));
+  Real alf;
+  Real als;
+ 
+  if (std::abs(cfx-csx) <= 1e-14){
+    alf = 1.0_rt;
+    als = 0.0_rt;
+  }
+  
+  if (as - csx < 0.0) {
+    alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csx)/(cfx - csx));
+  }
 
   if (cfx - as < 0.0) {
     als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfx - as)/(cfx - csx));
   }
-
-  if (as - csx < 0.0) {
-    alf = 0.0_rt;
-  }
+  
+  
 
   Real bety;
   Real betz;
@@ -273,15 +284,24 @@ evecy(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csy)/(cfy - csy));
-  Real als = std::sqrt((cfy - as)/(cfy - csy));
+  Real alf;
+  Real als;
+  
+  if (std::abs(cfy-csy) <= 1e-14){
+    alf = 1.0_rt;
+    als = 0.0_rt;
+  }
 
   if (as - csy < 0.0) {
     alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csy)/(cfy - csy));
   }
 
   if (cfy - as < 0.0) {
     als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfy - as)/(cfy - csy));
   }
 
   Real betx;
@@ -462,15 +482,24 @@ evecz(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
 
   // useful constants
 
-  Real alf = std::sqrt((as - csz)/(cfz - csz));
-  Real als = std::sqrt((cfz - as)/(cfz - csz));
+  Real alf;
+  Real als;
 
-  if (cfz - as < 0.0) {
+  if (std::abs(cfz-csz) <= 1e-14){
+    alf = 1.0_rt;
     als = 0.0_rt;
   }
 
   if (as - csz < 0.0) {
     alf = 0.0_rt;
+  } else {
+    alf = std::sqrt((as - csz)/(cfz - csz));
+  }
+
+  if (cfz - as < 0.0) {
+    als = 0.0_rt;
+  } else {
+    als = std::sqrt((cfz - as)/(cfz - csz));
   }
 
   Real betx;

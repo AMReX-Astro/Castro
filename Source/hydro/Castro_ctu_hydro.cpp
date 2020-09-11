@@ -1,15 +1,15 @@
-#include "Castro.H"
-#include "Castro_util.H"
-#include "Castro_F.H"
-#include "Castro_hydro.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_util.H>
+#include <Castro_F.H>
+#include <Castro_hydro.H>
+#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 using namespace amrex;
@@ -34,7 +34,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   GeometryData geomdata = geom.data();
 #endif
 
+#if AMREX_SPACEDIM == 2
   int coord = geom.Coord();
+#endif
 
   const Real *dx = geom.CellSize();
 
@@ -992,7 +994,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdy, hdtdz);
 
       reset_edge_state_thermo(xbx, ql.array());
 
@@ -1063,7 +1065,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp2_arr,
                   qgdnvtmp1_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdz);
 
       reset_edge_state_thermo(ybx, ql.array());
 
@@ -1136,7 +1138,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdy);
 
       reset_edge_state_thermo(zbx, ql.array());
 
@@ -1232,7 +1234,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       consup_hydro(bx,
+#ifdef SHOCK_VAR
                    shk_arr,
+#endif
                    update_arr,
                    flx_arr, qx_arr, areax_arr,
 #if AMREX_SPACEDIM >= 2

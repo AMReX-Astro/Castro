@@ -64,7 +64,7 @@ contains
 
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
-    use burn_type_module, only : burn_t, net_ienuc, neqs
+    use burn_type_module, only : burn_t, net_ienuc, neqs, burn_to_eos, eos_to_burn
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp

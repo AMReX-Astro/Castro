@@ -9,21 +9,21 @@
 #include <ctime>
 
 #include <AMReX_Utility.H>
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_io.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #ifdef DIFFUSION
-#include "Diffusion.H"
+#include <Diffusion.H>
 #endif
 
 #ifdef _OPENMP
@@ -31,7 +31,7 @@
 #endif
 
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
 
 using std::string;
 using namespace amrex;
@@ -50,11 +50,12 @@ using namespace amrex;
 // 6: Simplified_SDC_Source_Type removed from Castro
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
+// 9: Rotation_Type was removed from Castro
 
 namespace
 {
     int input_version = -1;
-    int current_version = 8;
+    int current_version = 9;
 }
 
 // I/O routines for Castro
@@ -398,7 +399,7 @@ void
 Castro::checkPoint(const std::string& dir,
                    std::ostream&  os,
                    VisMF::How     how,
-                   bool dump_old_default)
+                   bool /*dump_old_default*/)
 {
 
   const Real io_start_time = ParallelDescriptor::second();
@@ -816,9 +817,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-#include "castro_job_info_tests.H"
+#include <castro_job_info_tests.H>
 #ifdef AMREX_PARTICLES
-#include "particles_job_info_tests.H"
+#include <particles_job_info_tests.H>
 #endif
 
 #ifdef GRAVITY

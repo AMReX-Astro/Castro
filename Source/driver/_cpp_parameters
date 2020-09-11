@@ -89,13 +89,8 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
-# MHD 
-# plm slopes:
-# 0 zero slope
-# 1 vanleer
-# 2 centered, no limit
-# 3 2nd order MC limiter
-mhd_plm_slope                int           1                  y             MHD
+# For MHD + PLM, do we limit on characteristic or primitive variables
+mhd_limit_characteristic     int           1
 
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
@@ -336,8 +331,7 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
-# Check for a possible post-timestep regrid if certain stability
-# criteria were violated.
+# Regrid after every timestep.
 use_post_step_regrid         int           0
 
 # Do not permit more subcycled timesteps than this parameter.

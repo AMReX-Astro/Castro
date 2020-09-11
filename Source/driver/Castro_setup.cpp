@@ -1,21 +1,22 @@
 #include <cstdio>
 
-#include "AMReX_LevelBld.H"
+#include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include "eos.H"
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_bc_fill_nd_F.H"
-#include "Castro_bc_fill_nd.H"
-#include "Castro_generic_fill.H"
-#include "Derive.H"
+#include <eos.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_fill_nd.H>
+#include <Castro_generic_fill.H>
+#include <Derive.H>
 #ifdef RADIATION
-# include "Radiation.H"
-# include "RAD_F.H"
+# include <Radiation.H>
+# include <RAD_F.H>
 #endif
 #include <Problem_Derive_F.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
+#include <microphysics_F.H>
 
 using std::string;
 using namespace amrex;
@@ -226,15 +227,14 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  ca_microphysics_init();
 
-  // Initialize the network
-  ca_network_init();
+  // now initialize the C++ Microphysics
 #ifdef CXX_REACTIONS
   network_init();
 #endif
 
-  // Initialize the EOS
-  ca_eos_init();
   eos_init();
 
   // Ensure that Castro's small variables are consistent
@@ -250,9 +250,6 @@ Castro::variableSetUp ()
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
-  int abort_on_failure;
-  ca_get_abort_on_failure(&abort_on_failure);
-
 #ifdef TRUE_SDC
   // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
   if (use_retry) {
@@ -269,11 +266,6 @@ Castro::variableSetUp ()
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
 #endif
-#endif
-
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
 #endif
 
   // Initialize the amr info
@@ -450,7 +442,7 @@ Castro::variableSetUp ()
   // advance, so it behaves the same way as CTU here.
 
   store_in_checkpoint = true;
-  int source_ng;
+  int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
@@ -474,11 +466,6 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
                          &cell_cons_interp, state_data_extrap,
                          store_in_checkpoint);
-
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
@@ -580,6 +567,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -601,6 +589,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -648,15 +637,6 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-  set_x_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,genericBndryFunc);
-  set_y_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,genericBndryFunc);
-  set_z_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill
@@ -676,7 +656,7 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   std::string name_react;
-  for (int i=0; i<NumSpec; ++i)
+  for (int i = 0; i < NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
@@ -689,7 +669,7 @@ Castro::variableSetUp ()
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
       name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_aux, bc, genericBndryFunc);
+      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
   }
 #endif
   desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
@@ -1055,12 +1035,13 @@ Castro::variableSetUp ()
 #endif 
 
 
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
+#endif
 
   //
   // Problem-specific adds

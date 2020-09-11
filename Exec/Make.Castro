@@ -99,6 +99,12 @@ ifeq ($(USE_CUDA),TRUE)
   USE_GPU_PRAGMA = TRUE
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
+
+  # We don't currently support host-side OpenMP being enabled
+  # when using CUDA. Throw an error to prevent this case.
+  ifeq ($(USE_OMP),TRUE)
+    $(error OpenMP is not supported by Castro when building with CUDA)
+  endif
 endif
 
 # Allow a problem to specify that we want to initialize
@@ -109,6 +115,14 @@ endif
 
 ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
     DEFINES += -DGPU_COMPATIBLE_PROBLEM
+endif
+
+# Require GPU_COMPATIBLE_PROBLEMs to use the auto-generated
+# problem parameters
+ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
+  ifneq ($(USE_PROB_PARAMS),TRUE)
+    $(error GPU_COMPATIBLE_PROBLEM setups must USE_PROB_PARAMS)
+  endif
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -145,9 +159,16 @@ USE_MLMG = FALSE
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/hydro \
            Source/problems Source/sources \
-           Source/scf Util/model_parser Util/conservative_interpolate
+           Util/model_parser
 endif
 
+ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
+  Bdirs += Util/conservative_interpolate
+endif
+
+ifeq ($(USE_INTERPOLATE),TRUE)
+  Bdirs += Util/interpolate
+endif
 
 # add / define any special physics we need
 
@@ -159,7 +180,7 @@ else
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity
+  Bdirs += Source/gravity Source/scf 
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
 endif
@@ -284,14 +305,6 @@ endif
 
 ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
-endif
-
-ifeq ($(USE_RAD), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-else
-ifeq ($(USE_MLMG), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-endif
 endif
 
 ifeq ($(USE_MLMG), TRUE)

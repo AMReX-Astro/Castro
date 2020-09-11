@@ -1,7 +1,7 @@
 #ifndef CASTRO_RADBNDRY_H
 #define CASTRO_RADBNDRY_H
 
-#include "NGBndry.H"
+#include <NGBndry.H>
 
 ///
 /// @class RadBndry
