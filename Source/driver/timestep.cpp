@@ -9,6 +9,10 @@
 #include <mhd_util.H>
 #endif
 
+#ifdef ROTATION
+#include <Rotation.H>
+#endif
+
 using namespace amrex;
 
 Real

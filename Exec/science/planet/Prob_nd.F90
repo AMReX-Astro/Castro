@@ -20,6 +20,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   real(rt) :: max_hse_err, dpdr, rhog, hse_err, dr_model
 
+  integer :: i
+
   call probdata_init(name, namlen)
 
   ! Read initial model
@@ -142,7 +144,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            eos_state % rho = state(i,j,k,URHO)
            eos_state % T = state(i,j,k,UTEMP)
-           eos_state % xn(:) = state(i,j,k,UFS:)
+           eos_state % xn(:) = state(i,j,k,UFS:UFS+nspec-1)
 
            call eos(eos_input_rt, eos_state)
 
