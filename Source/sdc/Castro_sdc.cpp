@@ -1,6 +1,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_hydro_F.H>
+#include <Castro_sdc_util.H>
 
 using namespace amrex;
 
@@ -200,8 +201,13 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             make_cell_center(bx1, Sborder.array(mfi), U_center_arr, domain_lo, domain_hi);
 
             // sometimes the Laplacian can make the species go negative near discontinuities
-            ca_normalize_species(AMREX_INT_ANYD(bx1.loVect()), AMREX_INT_ANYD(bx1.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(U_center));
+            amrex::ParallelFor(bx1,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                normalize_species_sdc(i, j, k, U_center_arr);
+            });
+            // ca_normalize_species(AMREX_INT_ANYD(bx1.loVect()), AMREX_INT_ANYD(bx1.hiVect()),
+            //                      BL_TO_FORTRAN_ANYD(U_center));
 
             // convert the C source to cell-centers
             C_center.resize(bx1, NUM_STATE);
@@ -232,9 +238,14 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             Elixir elix_R_new = R_new.elixir();
             Array4<Real> const& R_new_arr = R_new.array();
 
-            ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
-                                   BL_TO_FORTRAN_3D(U_new_center),
-                                   BL_TO_FORTRAN_3D(R_new));
+            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx1),
+            //                        BL_TO_FORTRAN_3D(U_new_center),
+            //                        BL_TO_FORTRAN_3D(R_new));
+            amrex::ParallelFor(bx1,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                instantaneous_react(i, j, k, U_new_center_arr, R_new_arr);
+            });
 
             tlap.resize(bx, 1);
             Elixir elix_tlap = tlap.elixir();
