@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
-#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
