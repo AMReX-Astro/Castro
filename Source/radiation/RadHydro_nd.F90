@@ -43,16 +43,16 @@ contains
   end subroutine advect_in_fspace
 
 
-  subroutine update_one_species(n, u, a, dx, tend, nstepmax)
+  subroutine update_one_species(n, u, a, dx, tend, nstepmax) bind(C, name="update_one_species")
 
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: n
+    integer, intent(in), value :: n
     real(rt), intent(inout) :: u(0:n-1)
     real(rt), intent(in) :: a(0:n-1), dx(0:n-1)
-    real(rt), intent(in) :: tend
+    real(rt), intent(in), value :: tend
     integer, intent(inout) :: nstepmax
 
     real(rt) :: dt, acfl

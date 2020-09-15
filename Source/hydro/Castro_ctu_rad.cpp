@@ -4,7 +4,6 @@
 #include "Castro_hydro.H"
 
 #include "Radiation.H"
-#include "RadHydro.H"
 #include "RAD_F.H"
 #include "fluxlimiter.H"
 
