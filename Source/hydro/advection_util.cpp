@@ -1,5 +1,10 @@
 #include <Castro.H>
 #include <Castro_F.H>
+
+#ifdef ROTATION
+#include <Rotation.H>
+#endif
+
 #include <Castro_util.H>
 #include <advection_util.H>
 #include <Castro_hydro_F.H>

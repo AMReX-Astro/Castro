@@ -121,6 +121,9 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
     GpuArray<Real, 3> center;
     ca_get_center(center.begin());
 
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -135,7 +138,7 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            do_ext_src(i, j, k, geomdata, snew, src, center, dt, time);
+            do_ext_src(i, j, k, geomdata, snew, src, center, omega, dt, time);
         });
 
 #pragma gpu box(bx)
@@ -147,3 +150,4 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
            AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
     }
 }
+
