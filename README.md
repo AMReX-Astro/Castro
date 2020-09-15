@@ -28,7 +28,13 @@ StarKiller Microphysics),
 
 The User's Guide in written in re-structured text using Sphinx, with
 the source in `Castro/Docs/`, and is built automatically
-via travis from the `development` branch.
+from the `development` branch.
+
+## Running at Supercomputer Centers
+
+Documentation for running the AMReX Astrophysics codes at popular
+supercomputing centers can be found at:
+https://amrex-astro.github.io/workflow/
 
 ## Call Graph
 
