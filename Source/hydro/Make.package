@@ -37,8 +37,6 @@ CEXE_headers += reconstruction.H
 CEXE_sources += trace_plm.cpp
 CEXE_sources += trace_ppm.cpp
 
-ca_F90EXE_sources += Castro_ctu_nd.F90
-
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += fourth_order.cpp
   CEXE_sources += fourth_center_average.cpp
