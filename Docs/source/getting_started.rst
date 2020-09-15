@@ -180,7 +180,7 @@ Visualization of the Results
 ============================
 
 There are several options for visualizing the data. The popular
-packages yt, VisIt, and Paraview all support the AMReX file format
+packages yt and VisIt both support the AMReX file format
 natively [1]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
 
