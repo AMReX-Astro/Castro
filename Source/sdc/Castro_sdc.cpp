@@ -172,14 +172,27 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
 
             }
 
-            ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
-                             BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
-                             BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
-                             BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
-                             BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
-                             BL_TO_FORTRAN_3D(C2),
-                             &sdc_iteration,
-                             &m_start);
+            // ca_sdc_update_o2(BL_TO_FORTRAN_BOX(bx), &dt_m,
+            //                  BL_TO_FORTRAN_3D((*k_new[m_start])[mfi]),
+            //                  BL_TO_FORTRAN_3D((*k_new[m_end])[mfi]),
+            //                  BL_TO_FORTRAN_3D((*A_new[m_start])[mfi]),
+            //                  BL_TO_FORTRAN_3D((*R_old[m_start])[mfi]),
+            //                  BL_TO_FORTRAN_3D(C2),
+            //                  &sdc_iteration,
+            //                  &m_start);
+
+            auto k_m = k_new[m_start].array(mfi);
+            auto k_n = k_new[m_end].array(mfi);
+            auto A_m = A_new[m_start].array(mfi);
+            auto A_n = A_new[m_end].array(mfi);
+            auto R_m = R_old[m_start].array(mfi);
+            auto C_arr = C2.array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                sdc_update_o2(i, j, k, k_m, k_n, A_m, A_n, C_arr, dt_m, sdc_iteration, m_start);
+            });
         }
         else
         {
@@ -356,9 +369,14 @@ Castro::construct_old_react_source(MultiFab& U_state,
             Elixir elix_r_center = R_center.elixir();
             auto const R_center_arr = R_center.array();
 
-            ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
-                                   BL_TO_FORTRAN_3D(U_center),
-                                   BL_TO_FORTRAN_3D(R_center));
+            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(obx),
+            //                        BL_TO_FORTRAN_3D(U_center),
+            //                        BL_TO_FORTRAN_3D(R_center));
+            amrex::ParallelFor(obx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                instantaneous_react(i, j, k, U_center_arr, R_center_arr);
+            });
 
             // at this point, we have the reaction term on centers,
             // including a ghost cell.  Save this into Sburn so we can use
@@ -387,12 +405,18 @@ Castro::construct_old_react_source(MultiFab& U_state,
 
             const Box& bx = mfi.tilebox();
 
+            auto const U_state_arr = U_state.array(mfi);
+            auto const R_source_arr = R_source.array(mfi);
+
             // construct the reactive source term
-            ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
-                                   BL_TO_FORTRAN_3D(U_state[mfi]),
-                                   BL_TO_FORTRAN_3D(R_source[mfi]));
-
-
+            // ca_instantaneous_react(BL_TO_FORTRAN_BOX(bx),
+            //                        BL_TO_FORTRAN_3D(U_state[mfi]),
+            //                        BL_TO_FORTRAN_3D(R_source[mfi]));
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                instantaneous_react(i, j, k, U_state_arr, R_source_arr);
+            }); 
         }
     }
 }

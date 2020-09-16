@@ -21,6 +21,18 @@ okay_to_burn(const int i, const int j, const int k,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 bool
+okay_to_burn(GpuArray<Real, NUM_STATE> const& state) {
+
+    if (state[UTEMP] < react_T_min || state[UTEMP] > react_T_max ||
+        state[URHO] < react_rho_min || state[URHO] > react_rho_max) {
+        return false;
+    }
+
+    return true;
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+bool
 okay_to_burn_type(burn_t const& state) {
 
     if (state.T < react_T_min || state.T > react_T_max ||
