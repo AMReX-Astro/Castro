@@ -1,5 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
+#include <Castro_react_util.H>
 
 #ifdef DIFFUSION
 #include <conductivity.H>
@@ -347,4 +348,121 @@ Castro::estdt_temp_diffusion(void)
 
   return estdt_diff;
 }
+#endif
+
+#ifdef REACTIONS
+
+Real
+Castro::estdt_burning(const Real time)
+{
+
+  // Reactions-limited timestep
+
+  // Set a floor on the minimum size of a derivative. This floor
+  // is small enough such that it will result in no timestep limiting.
+  const auto derivative_floor = 1.e-50_rt;
+
+  const auto dx = geom.CellSizeArray();
+
+  ReduceOps<ReduceOpMin> reduce_op;
+  ReduceData<Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
+  const MultiFab& stateMF = get_new_data(State_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+  for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+    const Box& box = mfi.tilebox();
+
+    auto u = stateMF.array(mfi);
+
+    reduce_op.eval(box, reduce_data,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    {
+
+      Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+      burn_t burn_state;
+      eos_t eos_state;
+      burn_state.rho = u(i,j,k,URHO);
+      burn_state.T = u(i,j,k,UTEMP);
+      burn_state.e = u(i,j,k,UEINT) * rhoInv;
+      for (int n = 0; n < NumSpec; n++) {
+        burn_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+      }
+#if NAUX_NET > 0
+      for (int n = 0; n < NumAux; n++) {
+        burn_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+      }
+#endif
+
+      Real dt_tmp = 1.e50_rt;
+
+      while (!okay_to_burn_type(burn_state)) {
+          auto e = burn_state.e;
+          auto T = amrex::max(burn_state.T, small_temp);
+          GpuArray<Real, NumSpec> X;
+          for (int n = 0; n < NumSpec; ++n) {
+              X[n] = amrex::max(burn_state.xn[n], small_x);
+          }
+
+          burn_to_eos(burn_state, eos_state);
+          eos(eos_input_rt, eos_state);
+          eos_to_burn(eos_state, burn_state);
+
+#ifndef SIMPLIFIED_SDC
+          burn_state.self_heat = self_heat;
+#else
+          burn_state.self_heat = true;
+#endif
+
+          actual_rhs(burn_state, ydot);
+
+          auto dedt = ydot(net_ienuc);
+          auto dTdt = ydot(net_itemp);
+          GpuArray<Real, NumSpec> dXdt;
+          for (int n = 0; n < NumSpec; ++n) {
+              dXdt[n] = ydot[1+n] * aion(n);
+          }
+
+          // Apply a floor to the derivatives. This ensures that we don't
+          // divide by zero; it also gives us a quick method to disable
+          // the timestep limiting, because the floor is small enough
+          // that the implied timestep will be very large, and thus
+          // ignored compared to other limiters.
+
+          dedt = amrex::max(std::abs(dedT), derivative_floor);
+          dTdt = amrex::max(std::abs(dTdT), derivative_floor);
+          for (int n = 0; n < NumSpec; ++n) {
+              if (X[n] >= dtnuc_X_threshold) {
+                  dXdt[n] = amrex::max(std::abs(dXdt[n]), derivative_floor);
+              } else {
+                  dXdt[n] = derivative_floor;
+              }
+          }
+
+          auto minX = 1.e50_rt;
+          for (int n = 0; n < NumSpec; ++n) {
+              minX = amrex::min(X[n] / dXdt[n]);
+          }
+
+          dt_tmp = amrex::min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt, dtnuc_X * minX);
+
+      }
+
+      return dt_tmp;
+
+    });
+
+  }
+
+  ReduceTuple hv = reduce_data.value();
+  Real estdt_burning = amrex::get<0>(hv);
+
+  return estdt_burning;
+
+}
+
 #endif
