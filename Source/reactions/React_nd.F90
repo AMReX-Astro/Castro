@@ -42,7 +42,7 @@ contains
     integer , intent(in   ) :: s_lo(3), s_hi(3)
     integer , intent(in   ) :: r_lo(3), r_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
+    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+naux+2)
     real(rt), intent(in   ), value :: time, dt_react
     real(rt) , intent(inout) :: failed
 
