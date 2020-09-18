@@ -11,8 +11,8 @@ contains
 #ifdef REACTIONS
 
   subroutine ca_estdt_burning(lo, hi, &
-                              snew, sn_lo, sn_hi, &
-                              rnew, rn_lo, rn_hi, &
+                              s, sn_lo, sn_hi, &
+                              r, rn_lo, rn_hi, &
                               dx, dt) &
                               bind(C, name="ca_estdt_burning")
     ! Reactions-limited timestep
@@ -46,8 +46,8 @@ contains
     integer,  intent(in) :: sn_lo(3), sn_hi(3)
     integer,  intent(in) :: rn_lo(3), rn_hi(3)
     integer,  intent(in) :: lo(3), hi(3)
-    real(rt), intent(in) :: snew(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
-    real(rt), intent(in) :: rnew(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+naux+2)
+    real(rt), intent(in) :: s(sn_lo(1):sn_hi(1),sn_lo(2):sn_hi(2),sn_lo(3):sn_hi(3),NVAR)
+    real(rt), intent(in) :: r(rn_lo(1):rn_hi(1),rn_lo(2):rn_hi(2),rn_lo(3):rn_hi(3),nspec+naux+2)
     real(rt), intent(in) :: dx(3)
     real(rt), intent(inout) :: dt
 
@@ -58,7 +58,7 @@ contains
     integer       :: nse_check
 #endif
 
-    type (burn_t) :: state_new
+    type (burn_t) :: state
     real(rt) :: ydot(neqs)
     type (eos_t)  :: eos_state
     real(rt)      :: rhoninv
@@ -103,32 +103,32 @@ contains
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
 
-             rhoninv = ONE / snew(i,j,k,URHO)
+             rhoninv = ONE / s(i,j,k,URHO)
 
-             state_new % rho = snew(i,j,k,URHO)
-             state_new % T   = snew(i,j,k,UTEMP)
-             state_new % e   = snew(i,j,k,UEINT) * rhoninv
-             state_new % xn  = snew(i,j,k,UFS:UFS+nspec-1) * rhoninv
+             state % rho = s(i,j,k,URHO)
+             state % T   = s(i,j,k,UTEMP)
+             state % e   = s(i,j,k,UEINT) * rhoninv
+             state % xn  = s(i,j,k,UFS:UFS+nspec-1) * rhoninv
 #if NAUX_NET > 0
-             state_new % aux = snew(i,j,k,UFX:UFX+naux-1) * rhoninv
+             state % aux = s(i,j,k,UFX:UFX+naux-1) * rhoninv
 #endif
 
-             if (.not. okay_to_burn_type(state_new)) cycle
+             if (.not. okay_to_burn_type(state)) cycle
 
-             e    = state_new % e
-             T    = max(state_new % T, small_temp)
-             X    = max(state_new % xn, small_x)
+             e    = state % e
+             T    = max(state % T, small_temp)
+             X    = max(state % xn, small_x)
 
-             call burn_to_eos(state_new, eos_state)
+             call burn_to_eos(state, eos_state)
              call eos(eos_input_rt, eos_state)
-             call eos_to_burn(eos_state, state_new)
+             call eos_to_burn(eos_state, state)
 
 #ifndef SIMPLIFIED_SDC
-             state_new % self_heat = self_heat
+             state % self_heat = self_heat
 #else
-             state_new % self_heat = .true.
+             state % self_heat = .true.
 #endif
-             call actual_rhs(state_new, ydot)
+             call actual_rhs(state, ydot)
 
              dedt = ydot(net_ienuc)
              dTdt = ydot(net_itemp)
@@ -152,7 +152,7 @@ contains
              end do
 
 #ifdef USE_NSE
-             call in_nse(state_new, nse_check)
+             call in_nse(state, nse_check)
 
              if (nse_check .eq. 1) then
                 dt_tmp = min(dtnuc_T * T / dTdt, dtnuc_X * minval(X / dXdt))
