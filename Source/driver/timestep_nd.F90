@@ -54,7 +54,9 @@ contains
     real(rt)      :: e, T, X(nspec), dedt, dTdt, dXdt(nspec)
     integer       :: i, j, k
     integer       :: n
+#ifdef USE_NSE
     integer       :: nse_check
+#endif
 
     type (burn_t) :: state_new
     real(rt) :: ydot(neqs)
