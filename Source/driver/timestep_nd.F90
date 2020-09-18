@@ -37,6 +37,9 @@ contains
     use amrex_fort_module, only : rt => amrex_real
     use extern_probin_module, only: small_x
     use reduction_module, only: reduce_min
+#ifdef USE_NSE
+    use nse_check_module, only: in_nse
+#endif
 
     implicit none
 
@@ -51,6 +54,7 @@ contains
     real(rt)      :: e, T, X(nspec), dedt, dTdt, dXdt(nspec)
     integer       :: i, j, k
     integer       :: n
+    integer       :: nse_check
 
     type (burn_t) :: state_new
     real(rt) :: ydot(neqs)
@@ -145,7 +149,17 @@ contains
                 end if
              end do
 
-             dt_tmp = min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt, dtnuc_X * minval(X / dXdt))
+#ifdef USE_NSE
+             call in_nse(state_new, nse_check)
+
+             if (nse_check .eq. 1) then
+                dt_tmp = min(dtnuc_T * T / dTdt, dtnuc_X * minval(X / dXdt))
+             else 
+#endif
+                dt_tmp = min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt, dtnuc_X * minval(X / dXdt))
+#ifdef USE_NSE
+             end if
+#endif
 
              call reduce_min(dt, dt_tmp)
 
