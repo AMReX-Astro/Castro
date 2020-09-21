@@ -13,6 +13,8 @@ USE_RAD = TRUE
 
 USE_INTERPOLATE = TRUE
 
+USE_PROB_PARAMS = TRUE
+
 CASTRO_HOME = ../../..
 
 EOS_DIR     = breakout
