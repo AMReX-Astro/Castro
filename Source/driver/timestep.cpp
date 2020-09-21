@@ -1,6 +1,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_react_util.H>
+#include <burn_type.H>
 
 #ifdef DIFFUSION
 #include <conductivity.H>
@@ -353,7 +354,7 @@ Castro::estdt_temp_diffusion(void)
 #ifdef REACTIONS
 
 Real
-Castro::estdt_burning(const Real time)
+Castro::estdt_burning()
 {
 
   // Reactions-limited timestep
@@ -413,18 +414,19 @@ Castro::estdt_burning(const Real time)
           eos_to_burn(eos_state, burn_state);
 
 #ifndef SIMPLIFIED_SDC
-          burn_state.self_heat = self_heat;
+          burn_state.self_heat = true; // self_heat; FIXME: this is not defined in temperature_integration.H 
 #else
           burn_state.self_heat = true;
 #endif
 
+          Array1D<Real, 1, neqs> ydot;
           actual_rhs(burn_state, ydot);
 
           auto dedt = ydot(net_ienuc);
           auto dTdt = ydot(net_itemp);
           GpuArray<Real, NumSpec> dXdt;
           for (int n = 0; n < NumSpec; ++n) {
-              dXdt[n] = ydot[1+n] * aion(n);
+              dXdt[n] = ydot(1+n) * aion[n];
           }
 
           // Apply a floor to the derivatives. This ensures that we don't
@@ -433,8 +435,8 @@ Castro::estdt_burning(const Real time)
           // that the implied timestep will be very large, and thus
           // ignored compared to other limiters.
 
-          dedt = amrex::max(std::abs(dedT), derivative_floor);
-          dTdt = amrex::max(std::abs(dTdT), derivative_floor);
+          dedt = amrex::max(std::abs(dedt), derivative_floor);
+          dTdt = amrex::max(std::abs(dTdt), derivative_floor);
           for (int n = 0; n < NumSpec; ++n) {
               if (X[n] >= dtnuc_X_threshold) {
                   dXdt[n] = amrex::max(std::abs(dXdt[n]), derivative_floor);
@@ -445,7 +447,7 @@ Castro::estdt_burning(const Real time)
 
           auto minX = 1.e50_rt;
           for (int n = 0; n < NumSpec; ++n) {
-              minX = amrex::min(X[n] / dXdt[n]);
+              minX = amrex::min(minX, X[n] / dXdt[n]);
           }
 
           dt_tmp = amrex::min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt, dtnuc_X * minX);

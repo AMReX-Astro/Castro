@@ -1572,19 +1572,21 @@ Castro::estTimeStep ()
         {
             Real dt = max_dt;
 
-            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.validbox();
+            // for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+            // {
+            //     const Box& box = mfi.validbox();
 
-#pragma gpu box(box)
-                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
+            estdt_burn = estdt_burning();
 
-            }
+// #pragma gpu box(box)
+//                 ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
+//                                  BL_TO_FORTRAN_ANYD(S_new[mfi]),
+//                                  BL_TO_FORTRAN_ANYD(R_new[mfi]),
+//                                  AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
 
-            estdt_burn = std::min(estdt_burn,dt);
+            // }
+
+            estdt_burn = std::min(estdt_burn, dt);
         }
 
         ParallelDescriptor::ReduceRealMin(estdt_burn);

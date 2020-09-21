@@ -576,7 +576,7 @@ public:
 
 #ifdef MHD
 ///
-/// Compute the CFL timestep
+/// Compute the MHD timestep
 ///
     amrex::Real estdt_mhd();
 #endif
@@ -585,6 +585,13 @@ public:
 /// Diffusion-limited timestep
 ///
     amrex::Real estdt_temp_diffusion();
+
+#ifdef REACTIONS
+///
+/// Compute the burning timestep
+///
+    amrex::Real estdt_burning();
+#endif
 
 ///
 /// Compute initial time step.
