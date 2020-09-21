@@ -1,5 +1,9 @@
 # 20.10
 
+   * The external heat source term routines have been ported to C++
+     (#1191).  Any problem using an external heat source should look
+     convert the code over to C++.
+
    * The interpolate_nd.F90 file has been moved to Util/interpolate and
      is only compiled into Castro if you set USE_INTERPOLATE=TRUE
 

@@ -9,7 +9,7 @@ constexpr Real p_orb_vel = 1.e-3_rt;
 constexpr Real p_radius = 1.e10_rt;
 constexpr Real beta = p_orb_vel * 2.0_rt / p_radius;
 
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
