@@ -47,9 +47,7 @@
 #endif
 
 #include <extern_parameters.H>
-#ifdef PROB_PARAMS
 #include <prob_parameters.H>
-#endif
 
 #include <microphysics_F.H>
 
@@ -492,12 +490,10 @@ Castro::Castro (Amr&            papa,
     buildMetrics();
 
     // initialize the C++ values of the runtime parameters
-#ifdef PROB_PARAMS
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
     }
-#endif
 
     initMFs();
 

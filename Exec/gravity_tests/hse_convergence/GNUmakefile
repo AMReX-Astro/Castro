@@ -9,7 +9,6 @@ USE_MPI          = TRUE
 USE_GRAV         = TRUE
 USE_REACT        = FALSE
 
-USE_PROB_PARAMS  = TRUE
 
 USE_MAESTRO_INIT = FALSE
 
