@@ -5,8 +5,9 @@
      Examples can be found in most of the problems in Castro/Exec, and you
      can look at the "Setting Up Your Own Problem" section of the documentation
      for more information. This functionality is optional, however note that
-     a file named probdata.F90 is now automatically generated, so if you have
-     a legacy file with that name it should be renamed. (#1210)
+     a file containing a Fortran module named "probdata_module" is now
+     automatically generated, so if you have a legacy probdata.F90 file
+     containing a module with that name it should be renamed. (#1210)
 
    * The external heat source term routines have been ported to C++
      (#1191).  Any problem using an external heat source should look
