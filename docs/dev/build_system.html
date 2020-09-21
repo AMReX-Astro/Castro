@@ -255,8 +255,6 @@ and diffusion.  This should always be set to <code class="docutils literal notra
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled
 for radiation.  You need to specify the path to the Hypre library via either
 <code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code> or <code class="docutils literal notranslate"><span class="pre">HYPRE_OMP_DIR</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span></code>: generate the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> at runtime by parsing
-the problem’s <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file.</p></li>
 </ul>
 </div></blockquote>
 </div>
@@ -448,12 +446,12 @@ have been read.</p></li>
 </li>
 <li><p>Problem-specific runtime parameters are parsed by <code class="docutils literal notranslate"><span class="pre">write_probdata.py</span></code></p>
 <ul class="simple">
-<li><p>If <code class="docutils literal notranslate"><span class="pre">USE_PROB_PARAMS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>, then the <code class="docutils literal notranslate"><span class="pre">_prob_param</span></code> file in
-the problem directory is parsed and used to define the Fortran
-<code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist that controls the runtime parameters for
-problem initialization.</p></li>
+<li><p>If the problem directory defines a <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> then it is parsed
+and used to define the Fortran <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist that controls the
+runtime parameters for problem initialization. Either way, the namelist
+will include all variables in <code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/_default_prob_params</span></code>.</p></li>
 <li><p>The script <code class="docutils literal notranslate"><span class="pre">Castro/Util/scripts/write_probdata.py</span></code> is used</p></li>
-<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.Castro</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> rule.</p></li>
+<li><p>The hook for this is in <code class="docutils literal notranslate"><span class="pre">Make.auto_source</span></code> in the <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> rule.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">prob_params_auto.F90</span></code> file is output into <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/castro_sources/</span></code>.</p></li>
 </ul>
 </li>
