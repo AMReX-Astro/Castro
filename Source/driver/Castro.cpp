@@ -4054,7 +4054,6 @@ Castro::define_new_center(MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
-    Real center[3];
     const Real* dx = geom.CellSize();
 
     IntVect max_index = S.maxIndex(URHO,0);
@@ -4086,7 +4085,7 @@ Castro::define_new_center(MultiFab& S, Real time)
       center[0] = 0;
     }
 
-    ca_set_center(ZFILL(center));
+    set_f90_center(center);
 }
 
 void
@@ -4100,9 +4099,6 @@ Castro::write_center ()
 
        int nstep = parent->levelSteps(0);
        Real time = state[State_Type].curTime();
-
-       Real center[3];
-       ca_get_center(center);
 
        if (time == 0.0) {
            data_logc << std::setw( 8) <<  "   nstep";

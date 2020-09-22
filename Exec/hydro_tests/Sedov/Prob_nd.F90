@@ -4,7 +4,8 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   use amrex_constants_module, only: ZERO, HALF, ONE, FOUR3RD, M_PI
   use probdata_module, only: p_ambient, dens_ambient, exp_energy, temp_ambient, e_ambient, &
                              xn_zone, r_init, nsub, e_exp
-  use prob_params_module, only: center, coord_type
+  use prob_params_module, only: coord_type
+  use probdata_module, only: center
   use castro_error_module, only: castro_error
   use eos_type_module, only: eos_t, eos_input_rt, eos_input_rp
   use eos_module, only: eos
@@ -124,7 +125,8 @@ subroutine ca_initdata(lo, hi, &
   use meth_params_module , only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, UEDEN, UEINT, UFS
   use probdata_module, only: p_ambient, dens_ambient, exp_energy, temp_ambient, e_ambient, &
                              xn_zone, r_init, nsub, e_exp
-  use prob_params_module, only: center, coord_type, dim
+  use prob_params_module, only: coord_type, dim
+  use probdata_module, only: center
   use eos_module, only : eos
   use eos_type_module, only: eos_t, eos_input_rp, eos_input_re
 

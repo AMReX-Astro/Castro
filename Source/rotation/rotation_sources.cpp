@@ -11,9 +11,6 @@ Castro::rsrc(const Box& bx,
              Array4<Real> const& source, 
              const Real dt) {
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   GeometryData geomdata = geom.data();
 
   GpuArray<Real, 3> omega;
@@ -179,9 +176,6 @@ Castro::corrrsrc(const Box& bx,
 
   // Note that the time passed to this function
   // is the new time at time-level n+1.
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());

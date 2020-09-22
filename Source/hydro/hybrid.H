@@ -97,7 +97,6 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 ///
 /// @param state          the Godunov state
 /// @param geomdata       the Castro geometry data object
-/// @param center         domain center
 /// @param idir           coordinate direction for flux computation (0 = x, 1 = y, 2 = z)
 /// @param i              x zone index
 /// @param j              y zone index
@@ -107,7 +106,7 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData& geomdata,
-                         const GpuArray<Real, 3>& center, int idir, int i, int j, int k,
+                         int idir, int i, int j, int k,
                          GpuArray<Real, NUM_STATE>& flux, bool cell_centered = false)
 {
     bool ccx = true;

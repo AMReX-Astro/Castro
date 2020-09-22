@@ -17,9 +17,6 @@ Castro::pointmass_update(Real time, Real dt)
         const auto dx = geom.CellSizeArray();
         const auto problo = geom.ProbLoArray();
 
-        GpuArray<Real, 3> center;
-        ca_get_center(center.begin());
-
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
         using ReduceTuple = typename decltype(reduce_data)::Type;

@@ -13,7 +13,6 @@ void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
-                GpuArray<Real, 3> const& center,
                 const Real dt, const Real time)
 {
     const Real* problo = geomdata.ProbLo();

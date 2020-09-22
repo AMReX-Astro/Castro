@@ -87,9 +87,6 @@ Castro::fill_rotational_potential(const Box& bx,
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto problo = geom.ProbLoArray();
 
   auto dx = geom.CellSizeArray();
@@ -141,9 +138,6 @@ Castro::fill_rotational_psi(const Box& bx,
 
   auto problo = geom.ProbLoArray();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
@@ -174,7 +168,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                     const GeometryData& geomdata,
-                                    const Real* center,
                                     const Real* omega,
                                     const Real time, Real* v) {
 
@@ -202,7 +195,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity(const int i, const int j, const int k,
                                 const GeometryData& geomdata,
-                                const GpuArray<Real, 3>& center,
                                 const GpuArray<Real, 3>& omega,
                                 const Real time, GpuArray<Real, 3>& v) {
 

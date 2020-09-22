@@ -40,9 +40,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   const Real *dx = geom.CellSize();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef RADIATION

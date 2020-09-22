@@ -580,11 +580,6 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
@@ -640,11 +635,6 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
@@ -727,10 +717,6 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    // center calculated like advection_utils.cpp
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
@@ -783,9 +769,6 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
@@ -833,9 +816,6 @@ extern "C"
     int idir = 2;
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -1047,10 +1027,6 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
 
       auto problo = geomdata.ProbLoArray();
 

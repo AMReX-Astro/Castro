@@ -21,9 +21,6 @@ Castro::estdt_cfl(const Real time)
 
   // Courant-condition limited timestep
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());

@@ -51,8 +51,7 @@ extern "C"
      const int& Outflow_value, const int& Symmetry_value,
      const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi,
-     const amrex::Real* center);
+     const amrex::Real* problo, const amrex::Real* probhi);
 
   void ca_set_grid_info
     (const int& max_level, const amrex::Real* dx_level,
@@ -130,8 +129,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-  void ca_get_center(amrex::Real* center);
-  void ca_set_center(const amrex::Real* center);
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 

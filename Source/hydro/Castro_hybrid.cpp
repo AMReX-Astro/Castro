@@ -83,9 +83,6 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -126,9 +123,6 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
     BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -175,9 +169,6 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
     BL_PROFILE("Castro::hybrid_to_linear_momentum()");
 
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel

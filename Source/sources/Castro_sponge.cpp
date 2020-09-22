@@ -139,9 +139,6 @@ Castro::apply_sponge(const Box& bx,
   auto dx = geom.CellSizeArray();
   auto problo = geom.ProbLoArray();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   const Real lsponge_upper_radius = sponge_upper_radius;
   const Real lsponge_lower_radius = sponge_lower_radius;
 

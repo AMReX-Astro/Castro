@@ -38,7 +38,7 @@ contains
                                    fspace_type, comoving, &
                                    GDU, GDV, GDW, GDLAMS, GDERADS, &
                                    GDPRES
-    use prob_params_module, only : mom_flux_has_p, center, dg
+    use prob_params_module, only : mom_flux_has_p, dg
     use rad_params_module, only : ngroups, nugroup, dlognu
     use radhydro_nd_module, only : advect_in_fspace
     use fluxlimiter_module, only : Edd_factor ! function

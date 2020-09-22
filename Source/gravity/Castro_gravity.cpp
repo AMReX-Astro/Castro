@@ -245,9 +245,6 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
@@ -404,9 +401,6 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
