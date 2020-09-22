@@ -3,9 +3,11 @@
 
 using namespace amrex;
 
-const Real smlp1 = 1.e-10_rt;
-const Real small = 1.e-8_rt;
-const Real smallu = 1.e-12_rt;
+namespace riemann_constants {
+    const Real smlp1 = 1.e-10_rt;
+    const Real small = 1.e-8_rt;
+    const Real smallu = 1.e-12_rt;
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
@@ -30,14 +32,14 @@ wsqge(const Real p, const Real v,
   // this is CG Eq. 34
   Real alpha = pstar - (gstar - 1.0_rt)*p/(gam - 1.0_rt);
   if (alpha == 0.0_rt) {
-    alpha = smlp1*(pstar + p);
+    alpha = riemann_constants::smlp1*(pstar + p);
   }
 
   Real beta = pstar + 0.5_rt*(gstar - 1.0_rt)*(pstar+p);
 
   wsq = (pstar-p)*beta/(v*alpha);
 
-  if (std::abs(pstar - p) < smlp1*(pstar + p)) {
+  if (std::abs(pstar - p) < riemann_constants::smlp1*(pstar + p)) {
     wsq = csq;
   }
   wsq = amrex::max(wsq, (0.5_rt * (gam - 1.0_rt)/gam)*csq);
