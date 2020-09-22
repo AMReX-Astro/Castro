@@ -65,7 +65,7 @@ Castro::sum_integrated_quantities ()
 
     // Mass transfer rate
 
-    Real mdot = 0.5 * (std::abs(mdot_p) + std::abs(mdot_s));
+    Real mdot = 0.5 * (std::abs(mdot_P) + std::abs(mdot_S));
 
     // Center of mass of the system.
 
@@ -82,17 +82,17 @@ Castro::sum_integrated_quantities ()
 
     // Stellar centers of mass and velocities.
 
-    Real com_p_mag = 0.0;
-    Real com_s_mag = 0.0;
+    Real com_P_mag = 0.0;
+    Real com_S_mag = 0.0;
 
-    Real vel_p_mag = 0.0;
-    Real vel_s_mag = 0.0;
+    Real vel_P_mag = 0.0;
+    Real vel_S_mag = 0.0;
 
-    Real vel_p_rad = 0.0;
-    Real vel_s_rad = 0.0;
+    Real vel_P_rad = 0.0;
+    Real vel_S_rad = 0.0;
 
-    Real vel_p_phi = 0.0;
-    Real vel_s_phi = 0.0;
+    Real vel_P_phi = 0.0;
+    Real vel_S_phi = 0.0;
 
     // Gravitational wave amplitudes.
     
@@ -281,39 +281,39 @@ Castro::sum_integrated_quantities ()
 
     }
 
-    com_p_mag += std::pow( std::pow(com_p[0],2) + std::pow(com_p[1],2) + std::pow(com_p[2],2), 0.5 );
-    com_s_mag += std::pow( std::pow(com_s[0],2) + std::pow(com_s[1],2) + std::pow(com_s[2],2), 0.5 );
-    vel_p_mag += std::pow( std::pow(vel_p[0],2) + std::pow(vel_p[1],2) + std::pow(vel_p[2],2), 0.5 );
-    vel_s_mag += std::pow( std::pow(vel_s[0],2) + std::pow(vel_s[1],2) + std::pow(vel_s[2],2), 0.5 );
+    com_P_mag += std::pow( std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5 );
+    com_S_mag += std::pow( std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5 );
+    vel_P_mag += std::pow( std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5 );
+    vel_S_mag += std::pow( std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5 );
 
 #if (BL_SPACEDIM == 3)
-    if (mass_p > 0.0) {
-      vel_p_rad = (com_p[axis_1 - 1] / com_p_mag) * vel_p[axis_1 - 1] + (com_p[axis_2 - 1] / com_p_mag) * vel_p[axis_2 - 1];
-      vel_p_phi = (com_p[axis_1 - 1] / com_p_mag) * vel_p[axis_2 - 1] - (com_p[axis_2 - 1] / com_p_mag) * vel_p[axis_1 - 1];
+    if (mass_P > 0.0) {
+      vel_P_rad = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_1 - 1] + (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_2 - 1];
+      vel_P_phi = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_2 - 1] - (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_1 - 1];
     }
 
-    if (mass_s > 0.0) {
-      vel_s_rad = (com_s[axis_1 - 1] / com_s_mag) * vel_s[axis_1 - 1] + (com_s[axis_2 - 1] / com_s_mag) * vel_s[axis_2 - 1];
-      vel_s_phi = (com_s[axis_1 - 1] / com_s_mag) * vel_s[axis_2 - 1] - (com_s[axis_2 - 1] / com_s_mag) * vel_s[axis_1 - 1];
+    if (mass_S > 0.0) {
+      vel_S_rad = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_1 - 1] + (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_2 - 1];
+      vel_S_phi = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_2 - 1] - (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_1 - 1];
     }
 #else
-    if (mass_p > 0.0) {
-      vel_p_rad = vel_p[axis_1 - 1];
-      vel_p_phi = vel_p[axis_3 - 1];
+    if (mass_P > 0.0) {
+      vel_P_rad = vel_P[axis_1 - 1];
+      vel_P_phi = vel_P[axis_3 - 1];
     }
 
-    if (mass_s > 0.0) {
-      vel_s_rad = vel_s[axis_1 - 1];
-      vel_s_phi = vel_s[axis_3 - 1];
+    if (mass_S > 0.0) {
+      vel_S_rad = vel_S[axis_1 - 1];
+      vel_S_phi = vel_S[axis_3 - 1];
     }
 #endif
 
-    if (mass_p > 0.0 && mass_s > 0.0) {
+    if (mass_P > 0.0 && mass_S > 0.0) {
 
       // Calculate the distance between the primary and secondary.
 
       for ( int i = 0; i < 3; i++ )
-	wd_dist[i] = com_s[i] - com_p[i];
+	wd_dist[i] = com_S[i] - com_P[i];
 
       separation = norm(wd_dist);
 
@@ -721,25 +721,25 @@ Castro::sum_integrated_quantities ()
 
 	   log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_p;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_p;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_P;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_P;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_p;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
 	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_p[i];
+	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
 
 	   log << std::endl;
 
@@ -815,25 +815,25 @@ Castro::sum_integrated_quantities ()
 
 	   log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_s;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_s;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_S;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_S;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_rad;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_s;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
 	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_s[i];
+	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
 
 	   log << std::endl;
 

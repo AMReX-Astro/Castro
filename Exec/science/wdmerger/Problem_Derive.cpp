@@ -457,7 +457,7 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         // Don't do anything here if the star no longer exists,
         // or if it never existed.
 
-        if (wdmerger::mass_p <= 0.0_rt) return;
+        if (mass_P <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -474,11 +474,11 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         loc[2] = 0.0_rt;
 #endif
 
-        Real r = std::sqrt((loc[0] - wdmerger::com_p[0]) * (loc[0] - wdmerger::com_p[0]) +
-                           (loc[1] - wdmerger::com_p[1]) * (loc[1] - wdmerger::com_p[1]) +
-                           (loc[2] - wdmerger::com_p[2]) * (loc[2] - wdmerger::com_p[2]));
+        Real r = std::sqrt((loc[0] - com_P[0]) * (loc[0] - com_P[0]) +
+                           (loc[1] - com_P[1]) * (loc[1] - com_P[1]) +
+                           (loc[2] - com_P[2]) * (loc[2] - com_P[2]));
 
-        der(i,j,k,0) = -C::Gconst * wdmerger::mass_p / r + dat(i,j,k,0);
+        der(i,j,k,0) = -C::Gconst * mass_P / r + dat(i,j,k,0);
     });
 }
 
@@ -502,7 +502,7 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         // Don't do anything here if the star no longer exists,
         // or if it never existed.
 
-        if (wdmerger::mass_s <= 0.0_rt) return;
+        if (mass_S <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -519,11 +519,11 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
         loc[2] = 0.0_rt;
 #endif
 
-        Real r = std::sqrt((loc[0] - wdmerger::com_s[0]) * (loc[0] - wdmerger::com_s[0]) +
-                           (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
-                           (loc[2] - wdmerger::com_s[2]) * (loc[2] - wdmerger::com_s[2]));
+        Real r = std::sqrt((loc[0] - com_S[0]) * (loc[0] - com_S[0]) +
+                           (loc[1] - com_S[1]) * (loc[1] - com_S[1]) +
+                           (loc[2] - com_S[2]) * (loc[2] - com_S[2]));
 
-        der(i,j,k,0) = -C::Gconst * wdmerger::mass_s / r + dat(i,j,k,0);
+        der(i,j,k,0) = -C::Gconst * mass_S / r + dat(i,j,k,0);
     });
 }
 
@@ -582,7 +582,7 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
         // Don't do anything here if the star no longer exists,
         // or if it never existed.
 
-        if (wdmerger::mass_p <= 0.0_rt) return;
+        if (mass_P <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -603,16 +603,16 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
 
         if (dat(i,j,k,0) < stellar_density_threshold) return;
 
-        Real r_P = std::sqrt((loc[0] - wdmerger::com_p[0]) * (loc[0] - wdmerger::com_p[0]) +
-                             (loc[1] - wdmerger::com_p[1]) * (loc[1] - wdmerger::com_p[1]) +
-                             (loc[2] - wdmerger::com_p[2]) * (loc[2] - wdmerger::com_p[2]));
+        Real r_P = std::sqrt((loc[0] - com_P[0]) * (loc[0] - com_P[0]) +
+                             (loc[1] - com_P[1]) * (loc[1] - com_P[1]) +
+                             (loc[2] - com_P[2]) * (loc[2] - com_P[2]));
 
-        Real r_S = std::sqrt((loc[0] - wdmerger::com_s[0]) * (loc[0] - wdmerger::com_s[0]) +
-                             (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
-                             (loc[2] - wdmerger::com_s[2]) * (loc[2] - wdmerger::com_s[2]));
+        Real r_S = std::sqrt((loc[0] - com_S[0]) * (loc[0] - com_S[0]) +
+                             (loc[1] - com_S[1]) * (loc[1] - com_S[1]) +
+                             (loc[2] - com_S[2]) * (loc[2] - com_S[2]));
 
-        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,1);
+        Real phi_p = -C::Gconst * mass_P / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * mass_S / r_S + dat(i,j,k,1);
 
         if (phi_p < 0.0_rt && phi_p < phi_s) {
             der(i,j,k,0) = 1.0_rt;
@@ -642,7 +642,7 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
         // Don't do anything here if the star no longer exists,
         // or if it never existed.
 
-        if (wdmerger::mass_s <= 0.0_rt) return;
+        if (mass_S <= 0.0_rt) return;
 
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
@@ -663,16 +663,16 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
 
         if (dat(i,j,k,0) < stellar_density_threshold) return;
 
-        Real r_P = std::sqrt((loc[0] - wdmerger::com_p[0]) * (loc[0] - wdmerger::com_p[0]) +
-                             (loc[1] - wdmerger::com_p[1]) * (loc[1] - wdmerger::com_p[1]) +
-                             (loc[2] - wdmerger::com_p[2]) * (loc[2] - wdmerger::com_p[2]));
+        Real r_P = std::sqrt((loc[0] - com_P[0]) * (loc[0] - com_P[0]) +
+                             (loc[1] - com_P[1]) * (loc[1] - com_P[1]) +
+                             (loc[2] - com_P[2]) * (loc[2] - com_P[2]));
 
-        Real r_S = std::sqrt((loc[0] - wdmerger::com_s[0]) * (loc[0] - wdmerger::com_s[0]) +
-                             (loc[1] - wdmerger::com_s[1]) * (loc[1] - wdmerger::com_s[1]) +
-                             (loc[2] - wdmerger::com_s[2]) * (loc[2] - wdmerger::com_s[2]));
+        Real r_S = std::sqrt((loc[0] - com_S[0]) * (loc[0] - com_S[0]) +
+                             (loc[1] - com_S[1]) * (loc[1] - com_S[1]) +
+                             (loc[2] - com_S[2]) * (loc[2] - com_S[2]));
 
-        Real phi_p = -C::Gconst * wdmerger::mass_p / r_P + dat(i,j,k,1);
-        Real phi_s = -C::Gconst * wdmerger::mass_s / r_S + dat(i,j,k,1);
+        Real phi_p = -C::Gconst * mass_P / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * mass_S / r_S + dat(i,j,k,1);
 
         if (phi_s < 0.0_rt && phi_s < phi_p) {
             der(i,j,k,0) = 1.0_rt;
