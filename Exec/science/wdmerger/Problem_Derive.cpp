@@ -25,9 +25,6 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
 
@@ -67,9 +64,6 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
@@ -111,9 +105,6 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
 
@@ -153,9 +144,6 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
@@ -201,9 +189,6 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
 
@@ -247,9 +232,6 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
@@ -295,9 +277,6 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
 
@@ -340,9 +319,6 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());
 
@@ -384,9 +360,6 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());

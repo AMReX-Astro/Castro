@@ -67,7 +67,7 @@ void do_ext_src(int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 vel[dir] = rhoInv * mom[dir];
             }
-            inertial_to_rotational_velocity(i, j, k, geomdata, center, omega, time, vel);
+            inertial_to_rotational_velocity(i, j, k, geomdata, omega, time, vel);
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
