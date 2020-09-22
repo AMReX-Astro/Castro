@@ -1970,7 +1970,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     if (multipole::doSymmetricAdd) {
 
-                        multipole_symmetric_add(x, y, z, problo, probhi, center,
+                        multipole_symmetric_add(x, y, z, problo, probhi,
                                                 rho(i,j,k), vol(i,j,k) * rmax_cubed_inv,
                                                 qL0_arr, qLC_arr, qLS_arr, qU0_arr, qUC_arr, qUS_arr,
                                                 npts, nlo, index);
