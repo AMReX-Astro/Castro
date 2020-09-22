@@ -21,6 +21,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   real(rt) :: vctr
 
+  call probdata_init(name, namlen)
 
   ! set local variable defaults
   if (coord_type == 1 .or. coord_type == 2) then
@@ -28,8 +29,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   else
      center = HALF * (problo + probhi)
   end if
-
-  call probdata_init(name, namlen)
 
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
