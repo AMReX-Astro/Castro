@@ -533,9 +533,9 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
 void
 Castro::gwstrain (Real time,
-		  Real& h_Plus_1, Real& h_cross_1,
-		  Real& h_Plus_2, Real& h_cross_2,
-		  Real& h_Plus_3, Real& h_cross_3,
+		  Real& h_plus_1, Real& h_cross_1,
+		  Real& h_plus_2, Real& h_cross_2,
+		  Real& h_plus_3, Real& h_cross_3,
 		  bool local) {
 
     BL_PROFILE("Castro::gwstrain()");
@@ -761,9 +761,9 @@ Castro::gwstrain (Real time,
     // Now that we have the second time derivative of the quadrupole
     // tensor, we can calculate the transverse-trace gauge strain tensor.
 
-    gw_strain_tensor(&h_Plus_1, &h_cross_1,
-		     &h_Plus_2, &h_cross_2,
-		     &h_Plus_3, &h_cross_3,
+    gw_strain_tensor(&h_plus_1, &h_cross_1,
+		     &h_plus_2, &h_cross_2,
+		     &h_plus_3, &h_cross_3,
 		     Qtt.dataPtr(), &time);
 
 }
@@ -934,7 +934,7 @@ void Castro::check_to_stop(Real time, bool dump) {
             // should be expanded in the future to cover that case.
 
             Real rho_E = 0.0;
-            Real rho_Phi = 0.0;
+            Real rho_phi = 0.0;
 
             // Note that we'll define the total energy using only
             // gas energy + gravitational. Rotation is never on
@@ -951,11 +951,11 @@ void Castro::check_to_stop(Real time, bool dump) {
 
 #ifdef GRAVITY
             if (do_grav) {
-                rho_Phi += volWgtSum("rho_PhiGrav", curTime,  local_flag, fine_mask);
+                rho_phi += volWgtSum("rho_phiGrav", curTime,  local_flag, fine_mask);
             }
 #endif
 
-            E_tot = rho_E + 0.5 * rho_Phi;
+            E_tot = rho_E + 0.5 * rho_phi;
 
             amrex::ParallelDescriptor::ReduceRealSum(E_tot);
 
