@@ -30,7 +30,7 @@ void do_ext_src(int i, int j, int k,
         // the smaller of the two WD timescales. Generally this should be the primary, but we'll
         // be careful just in case.
 
-        const Real dynamical_timescale = amrex::min(wdmerger::t_ff_p, wdmerger::t_ff_s);
+        const Real dynamical_timescale = amrex::min(t_ff_P, t_ff_S);
 
         // The relaxation damping factor should be less than unity, so that the damping
         // timescale is less than the dynamical timescale. This ensures that the stars
@@ -101,7 +101,7 @@ void do_ext_src(int i, int j, int k,
         // how to do the implicit coupling follows the reasoning
         // described above for the relaxation damping.
 
-        const Real dynamical_timescale = amrex::max(wdmerger::t_ff_p, wdmerger::t_ff_s);
+        const Real dynamical_timescale = amrex::max(t_ff_P, t_ff_S);
 
         const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
 
