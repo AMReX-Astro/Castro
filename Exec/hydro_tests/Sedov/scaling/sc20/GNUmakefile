@@ -13,7 +13,6 @@ USE_OMP    = FALSE
 USE_CUDA   = TRUE
 
 GPU_COMPATIBLE_PROBLEM = TRUE
-USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../../../..

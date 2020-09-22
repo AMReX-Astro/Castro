@@ -158,6 +158,10 @@ ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
   Bdirs += Util/conservative_interpolate
 endif
 
+ifeq ($(USE_INTERPOLATE),TRUE)
+  Bdirs += Util/interpolate
+endif
+
 # add / define any special physics we need
 
 ifeq ($(USE_MHD), TRUE)

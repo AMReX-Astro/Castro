@@ -79,7 +79,6 @@ subroutine derpioverp0(p, p_lo, p_hi, ncomp_p, &
   use eos_type_module, only : eos_t, eos_input_rt
   use meth_params_module, only : URHO, UEINT, UTEMP, UFS, UFX
   use probdata_module
-  use interpolate_module
   use model_parser_module
   use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
@@ -148,7 +147,6 @@ subroutine derrhopert(p, p_lo, p_hi, ncomp_p, &
   use network, only : nspec, naux
   use meth_params_module, only : URHO, UEINT, UTEMP
   use probdata_module
-  use interpolate_module
   use model_parser_module
   use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real
@@ -205,7 +203,6 @@ subroutine dertpert(p, p_lo, p_hi, ncomp_p, &
   use network, only : nspec, naux
   use meth_params_module, only : URHO, UEINT, UTEMP
   use probdata_module
-  use interpolate_module
   use model_parser_module
   use prob_params_module, only: problo
   use amrex_fort_module, only : rt => amrex_real

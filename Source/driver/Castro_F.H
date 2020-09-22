@@ -9,15 +9,7 @@ extern "C"
 {
 #endif
 
-  void ca_network_init();
-
-  void ca_network_finalize();
-
-  void ca_eos_init();
-
-  void ca_eos_finalize();
-
-  void burner_init();
+  void ca_microphysics_init();
 
   void ca_extern_init(const int* name, const int* namlen);
 
@@ -32,9 +24,7 @@ extern "C"
                        const amrex::Real& time, const amrex::Real& dt);
 
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#endif
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -139,9 +129,6 @@ extern "C"
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
-
-  void ca_normalize_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
 
   void ca_get_center(amrex::Real* center);
   void ca_set_center(const amrex::Real* center);

@@ -6,8 +6,8 @@
 #endif
 
 #include <AMReX_ParmParse.H>
-#include "Gravity.H"
-#include "Castro.H"
+#include <Gravity.H>
+#include <Castro.H>
 #include <Gravity_F.H>
 #include <Castro_F.H>
 
@@ -17,10 +17,10 @@
 
 #include <castro_limits.H>
 
-#include "fundamental_constants.H"
+#include <fundamental_constants.H>
 
-#include "Gravity_util.H"
-#include "MGutils.H"
+#include <Gravity_util.H>
+#include <MGutils.H>
 
 using namespace amrex;
 
@@ -108,7 +108,7 @@ Gravity::read_params ()
 
         ParmParse pp("gravity");
 
-#include "gravity_queries.H"
+#include <gravity_queries.H>
 
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
@@ -278,7 +278,7 @@ Gravity::read_params ()
 void
 Gravity::output_job_info_params(std::ostream& jobInfoFile)
 {
-#include "gravity_job_info_tests.H"
+#include <gravity_job_info_tests.H>
 }
 
 

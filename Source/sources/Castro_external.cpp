@@ -1,5 +1,6 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_ext_src.H>
 
 using namespace amrex;
 
@@ -111,18 +112,31 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
 
 void
-Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src)
+Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_old, const MultiFab& state_new, MultiFab& ext_src)
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
+    GeometryData geomdata = geom.data();
+
+    GpuArray<Real, 3> center;
+    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-
         const Box& bx = mfi.tilebox();
+
+        Array4<Real const> const sold = state_old.array(mfi);
+        Array4<Real const> const snew = state_new.array(mfi);
+        Array4<Real> const src = ext_src.array(mfi);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            do_ext_src(i, j, k, geomdata, snew, src, center, dt, time);
+        });
 
 #pragma gpu box(bx)
         ca_ext_src

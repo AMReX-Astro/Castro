@@ -1,21 +1,22 @@
 #include <cstdio>
 
-#include "AMReX_LevelBld.H"
+#include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include "eos.H"
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_bc_fill_nd_F.H"
-#include "Castro_bc_fill_nd.H"
-#include "Castro_generic_fill.H"
-#include "Derive.H"
+#include <eos.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_fill_nd.H>
+#include <Castro_generic_fill.H>
+#include <Derive.H>
 #ifdef RADIATION
-# include "Radiation.H"
-# include "RAD_F.H"
+# include <Radiation.H>
+# include <RAD_F.H>
 #endif
 #include <Problem_Derive_F.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
+#include <microphysics_F.H>
 
 using std::string;
 using namespace amrex;
@@ -226,15 +227,14 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  ca_microphysics_init();
 
-  // Initialize the network
-  ca_network_init();
+  // now initialize the C++ Microphysics
 #ifdef CXX_REACTIONS
   network_init();
 #endif
 
-  // Initialize the EOS
-  ca_eos_init();
   eos_init();
 
   // Ensure that Castro's small variables are consistent
@@ -266,11 +266,6 @@ Castro::variableSetUp ()
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
 #endif
-#endif
-
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
 #endif
 
   // Initialize the amr info

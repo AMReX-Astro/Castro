@@ -1,7 +1,7 @@
 #ifndef CASTRO_HYPREEXTMULTIABEC_H
 #define CASTRO_HYPREEXTMULTIABEC_H
 
-#include "HypreMultiABec.H"
+#include <HypreMultiABec.H>
 
 
 ///

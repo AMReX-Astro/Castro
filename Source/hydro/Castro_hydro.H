@@ -166,6 +166,31 @@
                       amrex::Array4<amrex::Real const> const& div,
                       amrex::Array4<amrex::Real const> const& Erin,
                       amrex::Array4<amrex::Real> const& radflux);
+
+
+    void
+    ctu_rad_consup(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const& update,
+                   amrex::Array4<amrex::Real const> const& Erin,
+                   amrex::Array4<amrex::Real> const& uout,
+                   amrex::Array4<amrex::Real> const& Erout,
+                   amrex::Array4<amrex::Real const> const& radflux1,
+                   amrex::Array4<amrex::Real const> const& qx,
+                   amrex::Array4<amrex::Real const> const& area1,
+#if AMREX_SPACEDIM >= 2
+                   amrex::Array4<amrex::Real const> const& radflux2,
+                   amrex::Array4<amrex::Real const> const& qy,
+                   amrex::Array4<amrex::Real const> const& area2,
+#endif
+#if AMREX_SPACEDIM == 3
+                   amrex::Array4<amrex::Real const> const& radflux3,
+                   amrex::Array4<amrex::Real const> const& qz,
+                   amrex::Array4<amrex::Real const> const& area3,
+#endif
+                   int& nstep_fsp,
+                   amrex::Array4<amrex::Real const> const& vol,
+                   const amrex::Real dt);
+
 #endif
 
 ///

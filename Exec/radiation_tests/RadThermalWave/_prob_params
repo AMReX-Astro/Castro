@@ -1,0 +1,9 @@
+
+rhocv       real     -1.0e50_rt    y
+
+T0          real     -1.0e50_rt    y
+
+Eexp        real     -1.0e50_rt    y
+
+rexp        real     -1.0e50_rt    y
+

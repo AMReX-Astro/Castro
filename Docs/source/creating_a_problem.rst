@@ -69,12 +69,6 @@ Here:
   ``(nspec, network)`` and the appropriate use statement will be
   added.
 
-.. note::
-
-   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
-   tell the build system to parse ``_prob_params`` and write the 
-   ``probdata_module``.
-
 The variables will all be initialized for the GPU as well.
 
 

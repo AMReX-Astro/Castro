@@ -22,8 +22,8 @@
 #include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "RAD_F.H"
+#include <Radiation.H>
+#include <RAD_F.H>
 #endif
 
 #ifdef AMREX_PARTICLES
@@ -31,11 +31,11 @@
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #ifdef DIFFUSION
-#include "Diffusion.H"
+#include <Diffusion.H>
 #endif
 
 #ifdef _OPENMP
@@ -47,9 +47,9 @@
 #endif
 
 #include <extern_parameters.H>
-#ifdef PROB_PARAMS
 #include <prob_parameters.H>
-#endif
+
+#include <microphysics_F.H>
 
 using namespace amrex;
 
@@ -189,10 +189,12 @@ Castro::variableCleanUp ()
 
     ca_finalize_meth_params();
 
-    ca_network_finalize();
+    // Fortran cleaning
+    microphysics_finalize();
 
+    // C++ cleaning
     eos_finalize();
-    ca_eos_finalize();
+
 
 #ifdef SPONGE
     sponge_finalize();
@@ -488,12 +490,10 @@ Castro::Castro (Amr&            papa,
     buildMetrics();
 
     // initialize the C++ values of the runtime parameters
-#ifdef PROB_PARAMS
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
     }
-#endif
 
     initMFs();
 
