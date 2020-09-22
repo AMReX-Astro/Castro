@@ -15,7 +15,6 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 
-USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..

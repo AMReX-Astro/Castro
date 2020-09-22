@@ -12,7 +12,6 @@ USE_MPI    = FALSE
 USE_GRAV   = TRUE
 USE_PARTICLES = FALSE
 
-USE_PROB_PARAMS = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
