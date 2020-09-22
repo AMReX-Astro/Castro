@@ -99,10 +99,10 @@ Castro::wd_update (Real time, Real dt)
     set_f90_com_S(com_S);
     set_f90_vel_P(vel_P);
     set_f90_vel_S(vel_S);
-    get_f90_mass_P(&mass_P);
-    get_f90_mass_S(&mass_S);
-    get_f90_t_ff_P(&t_ff_P);
-    get_f90_t_ff_S(&t_ff_S);
+    set_f90_mass_P(&mass_P);
+    set_f90_mass_S(&mass_S);
+    set_f90_t_ff_P(&t_ff_P);
+    set_f90_t_ff_S(&t_ff_S);
 
     // Save relevant current data.
 
