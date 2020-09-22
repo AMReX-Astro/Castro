@@ -24,9 +24,7 @@ extern "C"
                        const amrex::Real& time, const amrex::Real& dt);
 
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#endif
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)

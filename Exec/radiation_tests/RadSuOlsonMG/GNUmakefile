@@ -9,7 +9,6 @@ PROFILE    = FALSE
 
 USE_RAD = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
