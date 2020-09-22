@@ -85,7 +85,7 @@ Castro::estdt_cfl(const Real time)
         GeometryData geomdata = geom.data();
 
         inertial_to_rotational_velocity_c(i, j, k, geomdata,
-                                          center.begin(), omega.begin(), time, vel);
+                                          omega.begin(), time, vel);
 
         ux = vel[0];
         uy = vel[1];
