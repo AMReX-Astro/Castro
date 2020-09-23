@@ -9,11 +9,12 @@
      automatically generated, so if you have a legacy probdata.F90 file
      containing a module with that name it should be renamed. (#1210)
 
-     The variable "center" is now part of this automatically generated probdata
-     module, and if you adjust that in your probinit routine, make sure to call
-     probdata_init() from probdata_module to ensure it is initialized first. At
-     the present time, this is the only valid way to change the problem center
-     to a value other than zero. (#1222)
+   * The variable "center" is now part of this automatically generated probdata
+     module; at the present time, the only valid way to change the problem center
+     to a value other than zero is in amrex_probinit(). (#1222)
+
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
 
    * The external heat source term routines have been ported to C++
      (#1191).  Any problem using an external heat source should look

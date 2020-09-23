@@ -56,6 +56,8 @@ CXX_F_HEADER = """
 extern "C"
 {
 #endif
+
+void probdata_init(const int* name, const int* namlen);
 """
 
 CXX_F_FOOTER = """

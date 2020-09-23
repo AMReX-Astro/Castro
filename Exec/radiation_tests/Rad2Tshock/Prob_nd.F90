@@ -14,8 +14,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! set some defaults we will need later in the BCs
   eos_state % rho = rho0
   eos_state % T   =   T0

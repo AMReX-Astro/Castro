@@ -21,8 +21,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   real(rt) :: lambda_f, v_f
 
-  call probdata_init(name, namlen)
-
   ! output flame speed and width estimates
   eos_state%rho = rho_burn_ref
   eos_state%T = T_burn_ref

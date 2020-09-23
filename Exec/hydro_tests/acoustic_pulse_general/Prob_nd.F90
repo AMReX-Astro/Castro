@@ -16,8 +16,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! set explosion center
   center(:) = ZERO
   center(1) = HALF*(problo(1) + probhi(1))
