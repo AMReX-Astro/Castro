@@ -9,6 +9,9 @@
      automatically generated, so if you have a legacy probdata.F90 file
      containing a module with that name it should be renamed. (#1210)
 
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
+
    * The external heat source term routines have been ported to C++
      (#1191).  Any problem using an external heat source should look
      convert the code over to C++.
