@@ -16,8 +16,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   !temporarily give B_0 value here
   B_0 = 1.0 / (TWO*M_SQRT_PI)
 

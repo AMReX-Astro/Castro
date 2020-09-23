@@ -16,8 +16,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   split(1) = frac*(problo(1)+probhi(1))
   split(2) = frac*(problo(2)+probhi(2))
   split(3) = frac*(problo(3)+probhi(3))
