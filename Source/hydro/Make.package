@@ -19,7 +19,6 @@ FEXE_headers += Castro_hydro_F.H
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   CEXE_headers += hybrid.H
   CEXE_sources += Castro_hybrid.cpp
-  ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
 ifeq ($(USE_RAD), TRUE)
