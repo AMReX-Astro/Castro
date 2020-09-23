@@ -34,20 +34,6 @@ module prob_params_module
   integer         , save, allocatable :: n_error_buf(:)
   integer         , save, allocatable :: blocking_factor(:)
 
-  integer, parameter :: MAX_MOM_INDEX = 5
-
-  type momflux_t
-     ! we want this to be able to use UMX, UMY, and UMZ to index here, but
-     ! we can't use those to allocate, since they are not know until runtime.
-     ! dynamic allocation might mess with GPUs, so we make this big enough
-     ! to definitely contain UMX, UMY, and UMZ, and then check this when
-     ! we fill it
-     logical :: comp(MAX_MOM_INDEX)
-  end type momflux_t
-
-  ! one component for each coordinate direction flux
-  type (momflux_t), save, allocatable :: mom_flux_has_p(:)
-
 #ifdef AMREX_USE_CUDA
   attributes(managed) :: physbc_lo, physbc_hi
   attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
@@ -57,7 +43,6 @@ module prob_params_module
   attributes(managed) :: problo, probhi
   attributes(managed) :: domlo_level, domhi_level, dx_level
   attributes(managed) :: ref_ratio, n_error_buf, blocking_factor
-  attributes(managed) :: mom_flux_has_p
 #endif
 
   !$acc declare create(physbc_lo, physbc_hi)
@@ -68,6 +53,5 @@ module prob_params_module
   !$acc declare create(problo, probhi)
   !$acc declare create(domlo_level, domhi_level, dx_level)
   !$acc declare create(ref_ratio, n_error_buf, blocking_factor)
-  !$acc declare create(mom_flux_has_p)
 
 end module prob_params_module
