@@ -26,10 +26,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-
-  ! get the problem parameters
-  call probdata_init(name, namlen)
-
   ! set center, domain extrema
   if (coord_type == 0) then
      center(1) = HALF*(problo(1)+probhi(1))

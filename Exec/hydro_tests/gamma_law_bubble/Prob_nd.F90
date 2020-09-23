@@ -11,8 +11,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
   ! set center variable in prob_params_module
   center(1) = frac*(problo(1)+probhi(1))
   center(2) = frac*(problo(2)+probhi(2))

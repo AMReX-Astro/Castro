@@ -16,8 +16,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   integer :: i
 
-  call probdata_init(name, namlen)
-
   if (num_vortices > max_num_vortices) then
      call castro_error("num_vortices too large, please increase max_num_vortices and the size of xloc_vortices")
   end if

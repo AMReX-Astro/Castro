@@ -39,10 +39,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   type(eos_t) :: eos_state
 
-  ! get the problm parameters
-  call probdata_init(name, namlen)
-
-
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
   if (small_dens >= 0.99_rt * low_density_cutoff) then

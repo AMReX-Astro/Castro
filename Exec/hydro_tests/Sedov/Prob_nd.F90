@@ -28,8 +28,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
      center = HALF * (problo + probhi)
   end if
 
-  call probdata_init(name, namlen)
-
   xn_zone(:) = ZERO
   xn_zone(1) = ONE
 

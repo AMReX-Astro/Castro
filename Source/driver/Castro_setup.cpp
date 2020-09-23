@@ -17,6 +17,7 @@
 
 #include <AMReX_buildInfo.H>
 #include <microphysics_F.H>
+#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -200,6 +201,16 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // read the probdata parameters
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
+
+  for (int i = 0; i < probin_file_length; i++) {
+    probin_file_name[i] = probin_file[i];
+  }
+
+  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
+
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
@@ -335,13 +346,6 @@ Castro::variableSetUp ()
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
-
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
