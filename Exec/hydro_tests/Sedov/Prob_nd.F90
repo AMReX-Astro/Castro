@@ -20,8 +20,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   real(rt) :: vctr
 
-  call probdata_init(name, namlen)
-
   ! set local variable defaults
   if (coord_type == 1 .or. coord_type == 2) then
      center = ZERO
