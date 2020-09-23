@@ -276,14 +276,12 @@ added.</p></li>
 <p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
 <li><p><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
-<p>This routine is primarily responsible for reading in the <code class="docutils literal notranslate"><span class="pre">probin</span></code>
-file (by defining the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist) and doing any one-time
+<p>This routine is primarily responsible for doing any one-time
 initialization for the problem (like reading in an
 initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
 <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example).</p>
-<p>By convention, this is where we read and initialize the problem parameters
-by calling <code class="docutils literal notranslate"><span class="pre">probdata_init()</span></code>.  The parameters will then be defined in
-<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> defined in <code class="docutils literal notranslate"><span class="pre">probdata.F90</span></code>.</p>
+<p>This routine can also postprocess any of the parameters defined
+in the <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file, which are defined in <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array

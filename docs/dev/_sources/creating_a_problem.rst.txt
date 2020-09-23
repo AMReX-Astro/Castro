@@ -81,15 +81,13 @@ Here we describe the main problem initialization routines.
 
 * ``probinit()``:
 
-  This routine is primarily responsible for reading in the ``probin``
-  file (by defining the ``&fortin`` namelist) and doing any one-time
+  This routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
   initial model through the ``model_parser_module``—see the
   ``toy_convect`` problem setup for an example).
 
-  By convention, this is where we read and initialize the problem parameters
-  by calling ``probdata_init()``.  The parameters will then be defined in
-  ``probdata_module`` defined in ``probdata.F90``.
+  This routine can also postprocess any of the parameters defined
+  in the ``_prob_params`` file, which are defined in ``probdata_module``.
 
   .. note:: many problems set the value of the ``center()`` array
      from ``prob_params_module`` here.  This is used to note the
