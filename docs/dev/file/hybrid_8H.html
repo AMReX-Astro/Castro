@@ -287,13 +287,12 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="hybrid_8H_1a0df5b725a9e6d7a9f26a3da0f6da3b41"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux (const GpuArray&lt; Real, NGDNV &gt; &amp;state, const GeometryData &amp;geomdata, const GpuArray&lt; Real, 3 &gt; &amp;center, int idir, int i, int j, int k, GpuArray&lt; Real, NUM_STATE &gt; &amp;flux, bool cell_centered=false)</code></dt>
+<span class="target" id="hybrid_8H_1a46008e8cf94a0e92f02053e4b68fff93"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_hybrid_flux (const GpuArray&lt; Real, NGDNV &gt; &amp;state, const GeometryData &amp;geomdata, int idir, int i, int j, int k, GpuArray&lt; Real, NUM_STATE &gt; &amp;flux, bool cell_centered=false)</code></dt>
 <dd><p>Compute and store the flux of the hybrid momentum components</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the Godunov state </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: the <a class="reference internal" href="Castro_8H.html#classCastro"><span class="std std-ref">Castro</span></a> geometry data object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">center</span></code>: domain center </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: coordinate direction for flux computation (0 = x, 1 = y, 2 = z) </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: x zone index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: y zone index </p></li>
