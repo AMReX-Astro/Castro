@@ -30,6 +30,7 @@
 #include <omp.h>
 #endif
 
+#include <problem_setup.H>
 
 #include <AMReX_buildInfo.H>
 
@@ -283,6 +284,17 @@ Castro::restart (Amr&     papa,
            const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
+
+               auto s = S_new[mfi].array();
+               auto geomdata = geom.data();
+
+               amrex::ParallelFor(bx,
+               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+               {
+                   // C++ problem initialization; has no effect if not implemented
+                   // by a problem setup (defaults to an empty routine).
+                   problem_initialize_state_data(i, j, k, s, geomdata);
+               });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
