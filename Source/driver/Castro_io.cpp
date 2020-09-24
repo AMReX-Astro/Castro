@@ -740,9 +740,6 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << " Domain geometry info\n";
 
-  Real center[3];
-  ca_get_center(center);
-
   jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
   jobInfoFile << "\n";
 

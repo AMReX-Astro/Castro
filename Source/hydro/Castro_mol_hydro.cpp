@@ -46,9 +46,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif

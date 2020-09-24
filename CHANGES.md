@@ -9,6 +9,10 @@
      automatically generated, so if you have a legacy probdata.F90 file
      containing a module with that name it should be renamed. (#1210)
 
+   * The variable "center" is now part of this automatically generated probdata
+     module; at the present time, the only valid way to change the problem center
+     to a value other than zero is in amrex_probinit(). (#1222)
+
    * Initialization of these problem parameters is now done automatically for
      you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
 

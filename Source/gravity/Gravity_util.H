@@ -188,7 +188,6 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void multipole_symmetric_add(Real x, Real y, Real z,
                              const GpuArray<Real, AMREX_SPACEDIM>& problo,
                              const GpuArray<Real, AMREX_SPACEDIM>& probhi,
-                             const GpuArray<Real, 3>& center,
                              Real rho, Real vol,
                              Array4<Real> const& qU0,
                              Array4<Real> const& qUC,

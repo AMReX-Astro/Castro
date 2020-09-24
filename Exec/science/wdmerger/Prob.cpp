@@ -86,6 +86,7 @@ Castro::wd_update (Real time, Real dt)
 
     // Update the problem center using the system bulk velocity
     update_center(&time);
+    get_f90_center(center);
 
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
@@ -543,9 +544,6 @@ Castro::gwstrain (Real time,
     using namespace wdmerger;
 
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     GpuArray<Real, 3> omega;
     get_omega(omega.begin());

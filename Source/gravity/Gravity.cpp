@@ -341,8 +341,6 @@ Gravity::install_level (int                   level,
 #if (BL_SPACEDIM > 1)
     if (level == 0)
     {
-        Real center[3];
-        ca_get_center(center);
         Real x = geom.ProbHi(0) - center[0];
         Real y = geom.ProbHi(1) - center[1];
         max_radius_all_in_domain = std::min(x,y);
@@ -1379,9 +1377,6 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 
     const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1487,7 +1482,7 @@ Gravity::compute_radial_mass(const Box& bx,
 {
     const Geometry& geom = parent->Geom(level);
 
-    GpuArray<Real, 3> dx, problo, center;
+    GpuArray<Real, 3> dx, problo;
     for (int i = 0; i < AMREX_SPACEDIM; ++i) {
         dx[i] = geom.CellSizeArray()[i];
         problo[i] = geom.ProbLoArray()[i];
@@ -1496,7 +1491,6 @@ Gravity::compute_radial_mass(const Box& bx,
         dx[i] = 0.0_rt;
         problo[i] = 0.0_rt;
     }
-    ca_get_center(center.begin());
 
     Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
     Real drinv = 1.0_rt / dr;
@@ -1636,9 +1630,6 @@ Gravity::init_multipole_grav()
       lo_bc[dir] = -1;
       hi_bc[dir] = -1;
     }
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     const auto problo = parent->Geom(0).ProbLoArray();
     const auto probhi = parent->Geom(0).ProbHiArray();
@@ -1836,9 +1827,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     const int boundary_only = 1;
 #endif
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     // Use all available data in constructing the boundary conditions,
     // unless the user has indicated that a maximum level at which
     // to stop using the more accurate data.
@@ -1982,7 +1970,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     if (multipole::doSymmetricAdd) {
 
-                        multipole_symmetric_add(x, y, z, problo, probhi, center,
+                        multipole_symmetric_add(x, y, z, problo, probhi,
                                                 rho(i,j,k), vol(i,j,k) * rmax_cubed_inv,
                                                 qL0_arr, qLC_arr, qLS_arr, qU0_arr, qUC_arr, qUS_arr,
                                                 npts, nlo, index);
@@ -2950,9 +2938,6 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     
     const auto dx     = parent->Geom(level).CellSizeArray();
     const auto problo = parent->Geom(level).ProbLoArray();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
 #ifdef _OPENMP
 #pragma omp parallel

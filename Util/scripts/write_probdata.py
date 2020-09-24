@@ -304,7 +304,15 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                         fout.write("{}namelist /fortin/ {}\n".format(indent, p.var))
 
             elif keyword == "namelist_gets":
-                if len(params) > 0:
+                # Write the bit that reads the namelist, but only if any parameter
+                # is actually in the namelist (otherwise this code wouldn't compile).
+                namelist_used = False
+                for p in params:
+                    if p.in_namelist:
+                        namelist_used = True
+                        break
+
+                if namelist_used:
                     fout.write("  ! read in the namelist\n")
                     fout.write("  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')\n")
                     fout.write("  read (unit=un, nml=fortin, iostat=status)\n\n")

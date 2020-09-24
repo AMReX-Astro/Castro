@@ -4,6 +4,7 @@ module prob_params_module
 
   use meth_params_module, only: UMX, UMZ
   use amrex_fort_module, only: rt => amrex_real
+  use probdata_module, only: center ! for backwards compatibility
 
   implicit none
 
@@ -14,7 +15,7 @@ module prob_params_module
 
   ! geometry information
   integer,  allocatable, save :: coord_type
-  real(rt), allocatable :: center(:), problo(:), probhi(:)
+  real(rt), allocatable :: problo(:), probhi(:)
 
   ! dimension information
   integer, save, allocatable :: dim
@@ -39,7 +40,7 @@ module prob_params_module
   attributes(managed) :: dim
   attributes(managed) :: dg
   attributes(managed) :: coord_type
-  attributes(managed) :: center, problo, probhi
+  attributes(managed) :: problo, probhi
   attributes(managed) :: domlo_level, domhi_level, dx_level
   attributes(managed) :: ref_ratio, n_error_buf, blocking_factor
 #endif
@@ -49,7 +50,7 @@ module prob_params_module
   !$acc declare create(dim)
   !$acc declare create(dg)
   !$acc declare create(coord_type)
-  !$acc declare create(center, problo, probhi)
+  !$acc declare create(problo, probhi)
   !$acc declare create(domlo_level, domhi_level, dx_level)
   !$acc declare create(ref_ratio, n_error_buf, blocking_factor)
 

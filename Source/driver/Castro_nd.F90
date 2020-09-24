@@ -382,7 +382,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      Interior_in, Inflow_in, Outflow_in, &
      Symmetry_in, SlipWall_in, NoSlipWall_in, &
      coord_type_in, &
-     problo_in, probhi_in, center_in) &
+     problo_in, probhi_in) &
      bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
@@ -403,7 +403,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer,  intent(in) :: coord_type_in
-  real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+  real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
   allocate(dim)
 
@@ -426,7 +426,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(NoSlipWall)
 
   allocate(coord_type)
-  allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
 
@@ -441,11 +440,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   problo = ZERO
   probhi = ZERO
-  center = ZERO
 
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
-  center(1:dm) = center_in(1:dm)
 
   allocate(dg(3))
 
@@ -471,7 +468,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   !$acc update device(dim)
   !$acc update device(dg)
   !$acc update device(coord_type)
-  !$acc update device(center, problo, probhi)
+  !$acc update device(problo, probhi)
   !$acc update device(domlo_level, domhi_level, dx_level)
   !$acc update device(ref_ratio, n_error_buf, blocking_factor)
 

@@ -55,9 +55,6 @@ Castro::ctoprim(const Box& bx,
   int closure = Radiation::closure;
 #endif
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
@@ -124,7 +121,7 @@ Castro::ctoprim(const Box& bx,
 
       GeometryData geomdata = geom.data();
 
-      inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel);
+      inertial_to_rotational_velocity_c(i, j, k, geomdata, omega.begin(), time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
@@ -716,9 +713,6 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -806,10 +800,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // Construct cell-centered fluxes.
 
         GpuArray<Real, NUM_STATE> fluxL;
-        dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+        dflux(uL, qL, idir, coord, geomdata, idxL, fluxL);
 
         GpuArray<Real, NUM_STATE> fluxR;
-        dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+        dflux(uR, qR, idir, coord, geomdata, idxR, fluxR);
 
         // Construct the Lax-Friedrichs flux on the interface (Equation 12).
         // Note that we are using the information from Equation 9 to obtain the
@@ -929,9 +923,6 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     Real lspeed_limit = speed_limit / (2 * AMREX_SPACEDIM);
 
     amrex::ParallelFor(bx,
@@ -1005,10 +996,10 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
         // Construct cell-centered fluxes.
 
          GpuArray<Real, NUM_STATE> fluxL;
-         dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+         dflux(uL, qL, idir, coord, geomdata, idxL, fluxL);
 
          GpuArray<Real, NUM_STATE> fluxR;
-         dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+         dflux(uR, qR, idir, coord, geomdata, idxR, fluxR);
 
          // Construct the Lax-Friedrichs flux on the interface.
 
@@ -1098,9 +1089,6 @@ Castro::do_enforce_minimum_density(const Box& bx,
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept

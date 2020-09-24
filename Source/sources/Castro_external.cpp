@@ -118,9 +118,6 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
     const Real* prob_lo = geom.ProbLo();
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -135,7 +132,7 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            do_ext_src(i, j, k, geomdata, snew, src, center, dt, time);
+            do_ext_src(i, j, k, geomdata, snew, src, dt, time);
         });
 
 #pragma gpu box(bx)

@@ -9,6 +9,9 @@
 
 // runtime parameters
 #include <castro_params.H>
+#include <prob_parameters.H>
+#include <prob_parameters_F.H>
+
 using namespace castro;
 
 #ifdef AMREX_PARTICLES

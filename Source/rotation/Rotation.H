@@ -36,7 +36,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                     const GeometryData& geomdata,
-                                    const Real* center,
                                     const Real* omega,
                                     const Real time, Real* v);
 
@@ -44,7 +43,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity(const int i, const int j, const int k,
                                 const GeometryData& geomdata,
-                                const GpuArray<Real, 3>& center,
                                 const GpuArray<Real, 3>& omega,
                                 const Real time, GpuArray<Real, 3>& v);
 
