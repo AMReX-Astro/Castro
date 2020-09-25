@@ -9,4 +9,5 @@ Problems
    file/Problem_8H
    file/Problem__Derive_8H
    file/Problem__Derives_8H
+   file/problem__setup_8H
    

@@ -107,7 +107,7 @@
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#prob-nd-f90"><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#problem-initialization"><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-files">Optional Files</a></li>
 </ul>
@@ -225,7 +225,9 @@ of the groups and place in it the following files:</p>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
 Castro what options to use and what network and EOS to build.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> : this holds the problem initialization routines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code> : this holds the problem
+initialization routines, which may be implemented either in Fortran
+or in C++.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
 you problem will read.  These parameters are controlled by the
 <code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</p></li>
@@ -271,11 +273,14 @@ added.</p></li>
 </ul>
 <p>The variables will all be initialized for the GPU as well.</p>
 </div>
-<div class="section" id="prob-nd-f90">
-<h2><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code><a class="headerlink" href="#prob-nd-f90" title="Permalink to this headline">¶</a></h2>
-<p>Here we describe the main problem initialization routines.</p>
+<div class="section" id="problem-initialization">
+<h2><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code><a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
+<p>Here we describe the main problem initialization routines. There are
+two implementations, in C++ (<code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code>) and Fortran (<code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code>),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).</p>
 <ul id="index-1">
-<li><p><code class="docutils literal notranslate"><span class="pre">probinit()</span></code>:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">amrex_probinit()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code> (C++):</p>
 <p>This routine is primarily responsible for doing any one-time
 initialization for the problem (like reading in an
 initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
@@ -292,13 +297,16 @@ the center of the domain, e.g., for axisymmetric problems).
 gravity) and in computing some of the derived variables (like
 angular momentum).</p>
 </div>
-<p>The arguments include the name and length of the probin file
+<p>In Fortran the arguments include the name and length of the probin file
 as well as the physical values of the domain’s lower-left corner
-(<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>).</p>
+(<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>). The C++ version
+accepts no arguments, but for example <code class="docutils literal notranslate"><span class="pre">problo</span></code> and <code class="docutils literal notranslate"><span class="pre">probhi</span></code> can
+be obtained by constructing a <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> object using <code class="docutils literal notranslate"><span class="pre">DefaultGeometry()</span></code>
+and accessing its <code class="docutils literal notranslate"><span class="pre">ProbLo()</span></code> and <code class="docutils literal notranslate"><span class="pre">ProbHi()</span></code> methods.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code>:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem_state_data()</span></code> (C++):</p>
 <p>This routine will initialize the state data for a single grid.
-The inputs to this routine are:</p>
+In Fortran the inputs to this routine are:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: the level of refinement of the grid we are filling</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p></li>
@@ -348,6 +356,16 @@ version of Castro.</p></li>
 </div>
 <p>Here, we compute the coordinates of the zone center, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code>
 from the zone indices, <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, and <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p>
+<blockquote>
+<div><p>In C++, the arguments passed are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code>: the index of the zone to fill the data in</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: an array containing the simulation state data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GeomData</span></code>: a <code class="docutils literal notranslate"><span class="pre">GeometryData</span></code> object that can be used for obtaining
+<code class="docutils literal notranslate"><span class="pre">dx</span></code>, <code class="docutils literal notranslate"><span class="pre">problo</span></code>, <code class="docutils literal notranslate"><span class="pre">probhi</span></code>, etc.</p></li>
+</ul>
+<p>Filling data is done by simply writing to <code class="docutils literal notranslate"><span class="pre">state(i,j,k,URHO)</span></code>, etc.</p>
+</div></blockquote>
 </div>
 <div class="section" id="boundary-conditions">
 <span id="create-bcs"></span><h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
