@@ -3,7 +3,7 @@ PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 1
+DIM        = 2
 
 COMP	   = gnu
 
@@ -19,6 +19,7 @@ EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
+USE_NSE := TRUE
 
 INTEGRATOR_DIR := VODE
 
