@@ -7,14 +7,14 @@
 AMREX_INLINE
 void problem_initialize ()
 {
-  const Geometry& dgeom = DefaultGeometry();
+    const Geometry& dgeom = DefaultGeometry();
 
-  const Real* problo = dgeom.ProbLo();
-  const Real* probhi = dgeom.ProbHi();
+    const Real* problo = dgeom.ProbLo();
+    const Real* probhi = dgeom.ProbHi();
 
-  for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-    center[n] = 0.5_rt * (problo[n] + probhi[n]);
-  }
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        center[n] = 0.5_rt * (problo[n] + probhi[n]);
+    }
 
 }
 
@@ -23,67 +23,67 @@ void problem_initialize_state_data (int i, int j, int k,
                                     Array4<Real> const& state,
                                     const GeometryData& geomdata)
 {
-  int coord_type = geomdata.Coord();
+    int coord_type = geomdata.Coord();
 
-  const Real* dx = geomdata.CellSize();
-  const Real* problo = geomdata.ProbLo();
+    const Real* dx = geomdata.CellSize();
+    const Real* problo = geomdata.ProbLo();
 
-  Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+    Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 
-  Real yy = 0.0;
+    Real yy = 0.0;
 #if AMREX_SPACEDIM >= 2
-  yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
+    yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
 
-  Real zz = 0.0;
+    Real zz = 0.0;
 #if AMREX_SPACEDIM == 3
-  zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
+    zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
 
-  Real dist = 0;
-  if (init_as_1d == 0) {
-    dist = std::sqrt((center[0] - xx) * (center[0] - xx) +
-                     (center[1] - yy) * (center[1] - yy) +
-                     (center[2] - zz) * (center[2] - zz));
+    Real dist = 0;
+    if (init_as_1d == 0) {
+        dist = std::sqrt((center[0] - xx) * (center[0] - xx) +
+                         (center[1] - yy) * (center[1] - yy) +
+                         (center[2] - zz) * (center[2] - zz));
 
-  } else if (init_as_1d == 1) {
-    dist = std::abs(center[0] - xx);
+    } else if (init_as_1d == 1) {
+        dist = std::abs(center[0] - xx);
 
-  } else if (init_as_1d == 2) {
-    dist = std::abs(center[1] - yy);
+    } else if (init_as_1d == 2) {
+        dist = std::abs(center[1] - yy);
 
-  } else if (init_as_1d == 3) {
-    dist = std::abs(center[2] - zz);
+    } else if (init_as_1d == 3) {
+        dist = std::abs(center[2] - zz);
 
-  } else {
-    amrex::Error("invalid init_as_1d");
-  }
+    } else {
+        amrex::Error("invalid init_as_1d");
+    }
 
-  if (dist <= 0.5_rt) {
-    state(i,j,k,URHO) = rho0 + drho0 * std::exp(-16.0_rt * dist * dist) *
-      std::pow(std::cos(M_PI*dist), 6);
+    if (dist <= 0.5_rt) {
+        state(i,j,k,URHO) = rho0 + drho0 * std::exp(-16.0_rt * dist * dist) *
+            std::pow(std::cos(M_PI*dist), 6);
 
-  } else {
-    state(i,j,k,URHO) = rho0;
-  }
+    } else {
+        state(i,j,k,URHO) = rho0;
+    }
 
-  state(i,j,k,UMX) = 0.0_rt;
-  state(i,j,k,UMY) = 0.0_rt;
-  state(i,j,k,UMZ) = 0.0_rt;
+    state(i,j,k,UMX) = 0.0_rt;
+    state(i,j,k,UMY) = 0.0_rt;
+    state(i,j,k,UMZ) = 0.0_rt;
 
-  // we are isentropic, so p = (dens/rho0)**Gamma_1
-  Real p = std::pow(state(i,j,k,URHO)/rho0, eos_gamma);
-  Real eint = p / (eos_gamma - 1.0_rt);
+    // we are isentropic, so p = (dens/rho0)**Gamma_1
+    Real p = std::pow(state(i,j,k,URHO)/rho0, eos_gamma);
+    Real eint = p / (eos_gamma - 1.0_rt);
 
-  state(i,j,k,UEDEN) = eint;
-  state(i,j,k,UEINT) = eint;
+    state(i,j,k,UEDEN) = eint;
+    state(i,j,k,UEINT) = eint;
 
-  Real xn_zone[NumSpec] = {0.0};
-  xn_zone[0] = 1.0_rt;
+    Real xn_zone[NumSpec] = {0.0};
+    xn_zone[0] = 1.0_rt;
 
-  for (int n = 0; n < NumSpec; n++) {
-    state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn_zone[n];
-  }
+    for (int n = 0; n < NumSpec; n++) {
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn_zone[n];
+    }
 }
 
 #endif
