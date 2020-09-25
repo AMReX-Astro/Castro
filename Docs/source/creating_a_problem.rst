@@ -14,7 +14,9 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` : this holds the problem initialization routines
+  * ``Prob_nd.F90`` OR ``problem_setup.H`` : this holds the problem
+    initialization routines, which may be implemented either in Fortran
+    or in C++.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
@@ -72,14 +74,17 @@ Here:
 The variables will all be initialized for the GPU as well.
 
 
-``Prob_nd.F90``
+``Problem Initialization``
 ---------------
 
-Here we describe the main problem initialization routines.
+Here we describe the main problem initialization routines. There are
+two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).
 
 .. index:: probdata
 
-* ``probinit()``:
+* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
 
   This routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
@@ -97,15 +102,18 @@ Here we describe the main problem initialization routines.
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  The arguments include the name and length of the probin file
+  In Fortran the arguments include the name and length of the probin file
   as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``).
+  (``problo``) and upper-right corner (``probhi``). The C++ version
+  accepts no arguments, but for example ``problo`` and ``probhi`` can
+  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
-* ``ca_initdata()``:
+* ``ca_initdata()`` (Fortran) or ``initialize_problem_state_data()`` (C++):
 
   This routine will initialize the state data for a single grid.
-  The inputs to this routine are:
+  In Fortran the inputs to this routine are:
 
   -  ``level``: the level of refinement of the grid we are filling
 
@@ -160,6 +168,16 @@ Filling data is typically done in a loop like::
 Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
 from the zone indices, ``i``, ``j``, and ``k``.
 
+  In C++, the arguments passed are:
+
+  - ``i``, ``j``, ``k``: the index of the zone to fill the data in
+
+  - ``state``: an array containing the simulation state data
+
+  - ``GeomData``: a ``GeometryData`` object that can be used for obtaining
+    ``dx``, ``problo``, ``probhi``, etc.
+
+  Filling data is done by simply writing to ``state(i,j,k,URHO)``, etc.
 
 .. _create:bcs:
 

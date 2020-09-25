@@ -51,6 +51,8 @@
 
 #include <microphysics_F.H>
 
+#include <problem_setup.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -493,6 +495,12 @@ Castro::Castro (Amr&            papa,
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
+
+      // If we're doing C++ problem initialization, do it here. We have to make
+      // sure it's done after the above call to init_prob_parameters() in case
+      // any changes are made to the problem parameters.
+
+      problem_initialize();
     }
 
     initMFs();
@@ -983,6 +991,17 @@ Castro::initData ()
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
+
+          auto s = S_new[mfi].array();
+          auto geomdata = geom.data();
+
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ problem initialization; has no effect if not implemented
+              // by a problem setup (defaults to an empty routine).
+              problem_initialize_state_data(i, j, k, s, geomdata);
+          });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 

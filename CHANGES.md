@@ -16,6 +16,12 @@
    * Initialization of these problem parameters is now done automatically for
      you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
 
+   * Problems may now be initialized in C++ instead of Fortran. Instead of implementing
+     amrex_probinit() and ca_initdata(), the problem should implement the analogous
+     functions initialize_problem() and initialize_problem_state_data(). If you switch to
+     the new C++ initialization, be sure to delete your Prob_nd.F90 file. By default both
+     implementations do nothing, so you can pick either one but do not pick both. (#1227)
+
    * The external heat source term routines have been ported to C++
      (#1191).  Any problem using an external heat source should look
      convert the code over to C++.
