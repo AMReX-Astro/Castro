@@ -109,6 +109,7 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
               ye = ye0*(ONE + dye*exp(-(dist/L_pert)**2) * &
                    cos(M_PI*(dist/(probhi(1)-problo(1))))**6)
            else
+              T = T0
               ye = ye0
            endif
 
