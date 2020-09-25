@@ -13,7 +13,7 @@ void problem_initialize ()
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
 
-    for (int n = 0; n < 3; ++n) {
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         if (coord_type == 1 || coord_type == 2) {
             center[n] = 0.0_rt;
         }
@@ -137,14 +137,23 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
     int nsubz = nsub;
 #endif
 
-    Real ds[3];
-    ds[0] = dx[0] / nsubx;
-    ds[1] = dx[1] / nsuby;
-    ds[2] = dx[2] / nsubz;
+    Real ds[3] = {0.0, 0.0, 0.0};
+    Real xmin = 0.0;
+    Real ymin = 0.0;
+    Real zmin = 0.0;
 
-    Real xmin = problo[0] + dx[0] * static_cast<Real>(i);
-    Real ymin = problo[1] + dx[1] * static_cast<Real>(j);
-    Real zmin = problo[2] + dx[2] * static_cast<Real>(k);
+    ds[0] = dx[0] / nsubx;
+    xmin = problo[0] + dx[0] * static_cast<Real>(i);
+
+#if AMREX_SPACEDIM >= 2
+    ds[1] = dx[1] / nsuby;
+    ymin = problo[1] + dx[1] * static_cast<Real>(j);
+#endif
+
+#if AMREX_SPACEDIM == 3
+    ds[2] = dx[2] / nsubz;
+    zmin = problo[2] + dx[2] * static_cast<Real>(k);
+#endif
 
     Real vol_pert = 0.0_rt;
     Real vol_ambient = 0.0_rt;
