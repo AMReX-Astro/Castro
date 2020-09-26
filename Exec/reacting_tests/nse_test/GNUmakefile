@@ -7,7 +7,7 @@ DIM        = 2
 
 COMP	   = gnu
 
-USE_MPI    = FALSE
+USE_MPI    = TRUE
 
 USE_REACT  = TRUE
 
