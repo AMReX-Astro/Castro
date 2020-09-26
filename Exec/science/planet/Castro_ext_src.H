@@ -16,6 +16,8 @@ void do_ext_src(int i, int j, int k,
                 Array4<Real> const& src,
                 const Real dt, const Real time)
 {
+    using namespace problem;
+
     const Real* problo = geomdata.ProbLo();
     const Real* dx = geomdata.CellSize();
 

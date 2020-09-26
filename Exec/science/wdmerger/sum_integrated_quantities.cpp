@@ -23,6 +23,7 @@ void
 Castro::sum_integrated_quantities ()
 {
     using namespace wdmerger;
+    using namespace problem;
 
     if (level > 0) return;
 

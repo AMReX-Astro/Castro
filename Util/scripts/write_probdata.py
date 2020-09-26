@@ -522,7 +522,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 continue
 
             if p.dtype == "character":
-                fout.write("  std::string {};\n\n".format(p.var))
+                fout.write("  std::string problem::{};\n\n".format(p.var))
             else:
                 if p.is_array():
                     fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))

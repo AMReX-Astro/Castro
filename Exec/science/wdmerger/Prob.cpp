@@ -19,10 +19,10 @@ using namespace amrex;
 void
 Castro::problem_post_timestep()
 {
-
     BL_PROFILE("Castro::problem_post_timestep()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     if (level != 0) return;
 
@@ -51,7 +51,6 @@ Castro::problem_post_timestep()
     // the state of the simulation; those are checked here.
 
     check_to_stop(time);
-
 }
 
 
@@ -67,6 +66,7 @@ Castro::wd_update (Real time, Real dt)
     BL_PROFILE("Castro::wd_update()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     // Ensure we are either on the coarse level, or on the finest level
     // when we are not doing subcycling. The data should be sychronized
@@ -433,6 +433,7 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
     BL_PROFILE("Castro::volInBoundary()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     BL_ASSERT(level == 0);
 
@@ -542,6 +543,7 @@ Castro::gwstrain (Real time,
     BL_PROFILE("Castro::gwstrain()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     GeometryData geomdata = geom.data();
 
@@ -800,7 +802,8 @@ Real Castro::norm(const Real a[]) {
 void Castro::problem_post_init() {
 
   using namespace wdmerger;
-    
+  using namespace problem;
+
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -828,7 +831,8 @@ void Castro::problem_post_init() {
 void Castro::problem_post_restart() {
 
   using namespace wdmerger;
-    
+  using namespace problem;
+
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -907,7 +911,8 @@ void Castro::writeGitHashes(std::ostream& log) {
 void Castro::check_to_stop(Real time, bool dump) {
 
     using namespace wdmerger;
-    
+    using namespace problem;
+
     int jobDoneStatus;
 
     // Get the current job done status.
@@ -1062,6 +1067,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 void Castro::update_extrema(Real time) {
 
     using namespace wdmerger;
+    using namespace problem;
 
     // Compute extrema
 
@@ -1131,11 +1137,12 @@ void
 Castro::update_relaxation(Real time, Real dt) {
 
     using namespace wdmerger;
-    
+    using namespace problem;
+
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if (problem != 1 || relaxation_is_done || mass_P <= 0.0 || mass_S <= 0.0 || dt <= 0.0) return;
+    if (problem::problem != 1 || relaxation_is_done || mass_P <= 0.0 || mass_S <= 0.0 || dt <= 0.0) return;
 
     // Construct the update to the rotation frequency. We calculate
     // the gravitational force at the end of the timestep, set the
