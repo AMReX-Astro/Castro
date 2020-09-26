@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 15000
-stop_time =  0.06
+stop_time =  0.08
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 1 1 1
@@ -32,10 +32,10 @@ castro.riemann_solver = 0
 castro.small_temp     = 1.e7
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
-castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.05    # scale back initial timestep
-
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 1.0     # scale back initial timestep
+castro.change_max     = 1.1     # scale back initial timestep
+castro.fixed_dt = 5.e-4
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
