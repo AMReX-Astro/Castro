@@ -97,14 +97,14 @@ Castro::fill_rotational_potential(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif
@@ -146,14 +146,14 @@ Castro::fill_rotational_psi(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif
@@ -181,7 +181,7 @@ inertial_to_rotational_velocity_c(const int i, const int j, const int k,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
     }
 
     // do the cross product Omega x loc
@@ -208,7 +208,7 @@ inertial_to_rotational_velocity(const int i, const int j, const int k,
   position(i, j, k, geomdata, loc);
 
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    loc[dir] -= center[dir];
+    loc[dir] -= problem::center[dir];
   }
 
   // do the cross product Omega x loc

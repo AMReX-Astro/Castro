@@ -15,10 +15,10 @@ void problem_initialize ()
 
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         if (coord_type == 1 || coord_type == 2) {
-            center[n] = 0.0_rt;
+            problem::center[n] = 0.0_rt;
         }
         else {
-            center[n] = 0.5_rt * (problo[n] + probhi[n]);
+            problem::center[n] = 0.5_rt * (problo[n] + probhi[n]);
         }
     }
 
@@ -31,24 +31,24 @@ void problem_initialize ()
     eos_t eos_state;
 
     // override the pressure with the temperature
-    if (temp_ambient > 0.0_rt) {
+    if (problem::temp_ambient > 0.0_rt) {
 
-        eos_state.rho = dens_ambient;
-        eos_state.T = temp_ambient;
+        eos_state.rho = problem::dens_ambient;
+        eos_state.T = problem::temp_ambient;
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = xn_zone[n];
         }
 
         eos(eos_input_rt, eos_state);
 
-     p_ambient = eos_state.p;
+        problem::p_ambient = eos_state.p;
 
     }
 
     // Calculate ambient state data
 
-    eos_state.rho = dens_ambient;
-    eos_state.p   = p_ambient;
+    eos_state.rho = problem::dens_ambient;
+    eos_state.p   = problem::p_ambient;
     eos_state.T   = 1.e9_rt; // Initial guess for iterations
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = xn_zone[n];
@@ -56,8 +56,8 @@ void problem_initialize ()
         
     eos(eos_input_rp, eos_state);
 
-    e_ambient = eos_state.e;
-    temp_ambient = eos_state.T;
+    problem::e_ambient = eos_state.e;
+    problem::temp_ambient = eos_state.T;
 
     // set explosion pressure -- we will convert the point-explosion energy into
     // a corresponding pressure distributed throughout the perturbed volume
@@ -74,13 +74,13 @@ void problem_initialize ()
 
         // Cylindrical problem in Cartesian coordinates
 
-        vctr = M_PI * r_init * r_init;
+        vctr = M_PI * problem::r_init * problem::r_init;
 
 #else
 
         // Spherical problem in Cartesian coordinates
 
-        vctr = (4.0_rt / 3.0_rt) * M_PI * r_init * r_init * r_init;
+        vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
 
 #endif
 
@@ -89,11 +89,11 @@ void problem_initialize ()
 
 #if AMREX_SPACEDIM == 1
 
-        vctr = M_PI * r_init * r_init;
+        vctr = M_PI * problem::r_init * problem::r_init;
 
 #elif AMREX_SPACEDIM == 2
 
-        vctr = (4.0_rt / 3.0_rt) * M_PI * r_init * r_init * r_init;
+        vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
 
 #else
 
@@ -106,11 +106,11 @@ void problem_initialize ()
 
         // Must have AMREX_SPACEDIM == 1 for this coord_type.
 
-        vctr = (4.0_rt / 3.0_rt) * M_PI * r_init * r_init * r_init;
+        vctr = (4.0_rt / 3.0_rt) * M_PI * problem::r_init * problem::r_init * problem::r_init;
 
     }
 
-    e_exp = exp_energy / vctr / dens_ambient;
+    problem::e_exp = problem::exp_energy / vctr / problem::dens_ambient;
 }
 
 
@@ -124,17 +124,17 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
     const Real* problo = geomdata.ProbLo();
     
 #if AMREX_SPACEDIM == 1
-    int nsubx = nsub;
+    int nsubx = problem::nsub;
     int nsuby = 1;
     int nsubz = 1;
 #elif AMREX_SPACEDIM == 2
-    int nsubx = nsub;
-    int nsuby = nsub;
+    int nsubx = problem::nsub;
+    int nsuby = problem::nsub;
     int nsubz = 1;
 #else
-    int nsubx = nsub;
-    int nsuby = nsub;
-    int nsubz = nsub;
+    int nsubx = problem::nsub;
+    int nsuby = problem::nsub;
+    int nsubz = problem::nsub;
 #endif
 
     Real ds[3] = {0.0, 0.0, 0.0};
@@ -167,13 +167,13 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
             for (int ii = 0; ii <= nsubx-1; ++ii) {
                 Real xx = xmin + ds[0] * (static_cast<Real>(ii) + 0.5_rt);
 
-                Real dist = (center[0] - xx) * (center[0] - xx) +
-                            (center[1] - yy) * (center[1] - yy) +
-                            (center[2] - zz) * (center[2] - zz);
+                Real dist = (problem::center[0] - xx) * (problem::center[0] - xx) +
+                            (problem::center[1] - yy) * (problem::center[1] - yy) +
+                            (problem::center[2] - zz) * (problem::center[2] - zz);
 
                 bool pert = false;
 
-                if (dist <= r_init * r_init) {
+                if (dist <= problem::r_init * problem::r_init) {
                     pert = true;
                 }
 
@@ -231,11 +231,11 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
         }
     }
 
-    Real e_zone = (vol_pert * e_exp + vol_ambient * e_ambient) / (vol_pert + vol_ambient);
+    Real e_zone = (vol_pert * problem::e_exp + vol_ambient * problem::e_ambient) / (vol_pert + vol_ambient);
 
-    Real eint = dens_ambient * e_zone;
+    Real eint = problem::dens_ambient * e_zone;
 
-    state(i,j,k,URHO) = dens_ambient;
+    state(i,j,k,URHO) = problem::dens_ambient;
     state(i,j,k,UMX) = 0.e0_rt;
     state(i,j,k,UMY) = 0.e0_rt;
     state(i,j,k,UMZ) = 0.e0_rt;
@@ -253,7 +253,7 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
     // data for an initial guess for the EOS, we initialize
     // to the ambient temperature everywhere.
 
-    state(i,j,k,UTEMP) = temp_ambient;
+    state(i,j,k,UTEMP) = problem::temp_ambient;
 
     state(i,j,k,UFS) = state(i,j,k,URHO);
 }

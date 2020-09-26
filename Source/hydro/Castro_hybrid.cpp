@@ -100,8 +100,8 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 
             position(i, j, k, geomdata, loc);
 
-            loc[0] -= center[0];
-            loc[1] -= center[1];
+            loc[0] -= problem::center[0];
+            loc[1] -= problem::center[1];
 
             Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
 
@@ -143,7 +143,7 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-                loc[dir] -= center[dir];
+                loc[dir] -= problem::center[dir];
 
             GpuArray<Real, 3> linear_mom;
 
@@ -189,7 +189,7 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
             position(i, j, k, geomdata, loc);
 
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-                loc[dir] -= center[dir];
+                loc[dir] -= problem::center[dir];
 
             GpuArray<Real, 3> hybrid_mom;
 
