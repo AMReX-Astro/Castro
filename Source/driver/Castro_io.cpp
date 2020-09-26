@@ -752,7 +752,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << " Domain geometry info\n";
 
-  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "     center: " << problem::center[0] << " , " << problem::center[1] << " , " << problem::center[2] << "\n";
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";

@@ -95,7 +95,8 @@ we will switch the whole code to C++).
   in the ``_prob_params`` file, which are defined in ``probdata_module``.
 
   .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here.  This is used to note the
+     from ``prob_params_module`` here (in C++, the ``center[]`` variable
+     from the ``problem`` namespace).  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and

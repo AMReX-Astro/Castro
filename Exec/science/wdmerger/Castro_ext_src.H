@@ -21,9 +21,11 @@ void do_ext_src(int i, int j, int k,
                 GpuArray<Real, 3> const& omega,
                 const Real dt, const Real time)
 {
+    using namespace problem;
+
     // First do any relaxation source terms.
 
-    if (problem == 1 && relaxation_damping_factor > 0.0_rt) {
+    if (problem::problem == 1 && relaxation_damping_factor > 0.0_rt) {
 
         // The relevant dynamical timescale for determining this source term timescale should be
         // the smaller of the two WD timescales. Generally this should be the primary, but we'll
@@ -94,7 +96,7 @@ void do_ext_src(int i, int j, int k,
 
     // Now do the radial drift source terms.
 
-    if (problem == 1 && radial_damping_factor > 0.0_rt) {
+    if (problem::problem == 1 && radial_damping_factor > 0.0_rt) {
 
         // The logic for which dynamical timescale to use and
         // how to do the implicit coupling follows the reasoning

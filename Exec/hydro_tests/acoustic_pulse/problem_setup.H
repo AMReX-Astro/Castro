@@ -13,7 +13,7 @@ void problem_initialize ()
     const Real* probhi = dgeom.ProbHi();
 
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-        center[n] = 0.5_rt * (problo[n] + probhi[n]);
+        problem::center[n] = 0.5_rt * (problo[n] + probhi[n]);
     }
 
 }
@@ -41,19 +41,19 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
     Real dist = 0;
-    if (init_as_1d == 0) {
-        dist = std::sqrt((center[0] - xx) * (center[0] - xx) +
-                         (center[1] - yy) * (center[1] - yy) +
-                         (center[2] - zz) * (center[2] - zz));
+    if (problem::init_as_1d == 0) {
+        dist = std::sqrt((problem::center[0] - xx) * (problem::center[0] - xx) +
+                         (problem::center[1] - yy) * (problem::center[1] - yy) +
+                         (problem::center[2] - zz) * (problem::center[2] - zz));
 
-    } else if (init_as_1d == 1) {
-        dist = std::abs(center[0] - xx);
+    } else if (problem::init_as_1d == 1) {
+        dist = std::abs(problem::center[0] - xx);
 
-    } else if (init_as_1d == 2) {
-        dist = std::abs(center[1] - yy);
+    } else if (problem::init_as_1d == 2) {
+        dist = std::abs(problem::center[1] - yy);
 
-    } else if (init_as_1d == 3) {
-        dist = std::abs(center[2] - zz);
+    } else if (problem::init_as_1d == 3) {
+        dist = std::abs(problem::center[2] - zz);
 
     } else {
 #ifndef AMREX_USE_GPU 
@@ -62,11 +62,11 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     if (dist <= 0.5_rt) {
-        state(i,j,k,URHO) = rho0 + drho0 * std::exp(-16.0_rt * dist * dist) *
+        state(i,j,k,URHO) = problem::rho0 + problem::drho0 * std::exp(-16.0_rt * dist * dist) *
             std::pow(std::cos(M_PI*dist), 6);
 
     } else {
-        state(i,j,k,URHO) = rho0;
+        state(i,j,k,URHO) = problem::rho0;
     }
 
     state(i,j,k,UMX) = 0.0_rt;
@@ -74,7 +74,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMZ) = 0.0_rt;
 
     // we are isentropic, so p = (dens/rho0)**Gamma_1
-    Real p = std::pow(state(i,j,k,URHO)/rho0, eos_gamma);
+    Real p = std::pow(state(i,j,k,URHO) / problem::rho0, eos_gamma);
     Real eint = p / (eos_gamma - 1.0_rt);
 
     state(i,j,k,UEDEN) = eint;

@@ -20,11 +20,11 @@ void do_ext_src(int i, int j, int k,
     const Real* probhi = geomdata.ProbHi();
     const Real* dx     = geomdata.CellSize();
 
-    auto c_T = problo[0] + center_T * (probhi[0] - problo[0]);
+    auto c_T = problo[0] + problem::center_T * (probhi[0] - problo[0]);
 
-    auto x = problo[0] + (Real(i) + 0.5_rt) * dx[0] - center[0];
+    auto x = problo[0] + (Real(i) + 0.5_rt) * dx[0] - problem::center[0];
 
-    auto g = (x > c_T) ? -grav_acceleration : grav_acceleration;
+    auto g = (x > c_T) ? -problem::grav_acceleration : problem::grav_acceleration;
 
     src(i,j,k,UMX) = state(i,j,k,URHO) * g;
 

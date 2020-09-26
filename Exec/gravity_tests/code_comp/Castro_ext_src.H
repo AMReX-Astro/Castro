@@ -24,7 +24,7 @@ void do_ext_src(int i, int j, int k,
     if (y < 1.125_rt * 4.8e8_rt) {
         auto fheat = std::sin(8.0_rt * M_PI * (y / 4.e8_rt - 1.0_rt));
 
-        src(i,j,k,UEDEN) = heating_factor * fheat;
+        src(i,j,k,UEDEN) = problem::heating_factor * fheat;
         src(i,j,k,UEINT) = src(i,j,k,UEDEN);
     }
 }

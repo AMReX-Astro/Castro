@@ -4094,17 +4094,17 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
-        ca_find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
+        ca_find_center(mf[mfi].dataPtr(),&problem::center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
     }
     // Now broadcast to everyone else.
-    ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
+    ParallelDescriptor::Bcast(&problem::center[0], BL_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
     if ( Geom().IsRZ() ) {
-      center[0] = 0;
+      problem::center[0] = 0;
     }
 
-    set_f90_center(center);
+    set_f90_center(problem::center);
 }
 
 void
@@ -4127,12 +4127,12 @@ Castro::write_center ()
 
            data_logc << std::setw( 8) <<  nstep;
            data_logc << std::setw(14) <<  std::setprecision(6) <<  time;
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[0];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[0];
 #if (BL_SPACEDIM >= 2)
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[1];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[1];
 #endif
 #if (BL_SPACEDIM == 3)
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[2];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[2];
 #endif
            data_logc << std::endl;
     }

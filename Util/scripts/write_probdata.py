@@ -491,6 +491,8 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
         fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
 
+        fout.write("  namespace problem {\n\n")
+
         for p in params:
             if p.is_array() and p.has_module():
                 continue
@@ -502,6 +504,8 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                     fout.write("  extern AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
                 else:
                     fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+
+        fout.write("  }\n\n")
 
         fout.write(CXX_FOOTER)
 
@@ -518,12 +522,12 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 continue
 
             if p.dtype == "character":
-                fout.write("  std::string {};\n\n".format(p.var))
+                fout.write("  std::string problem::{};\n\n".format(p.var))
             else:
                 if p.is_array():
-                    fout.write("  AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
                 else:
-                    fout.write("  AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{};\n\n".format(p.get_cxx_decl(), p.var))
 
         fout.write("\n")
         fout.write("  void init_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
@@ -539,12 +543,12 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 fout.write("    get_f90_{}_len(slen);\n".format(p.var))
                 fout.write("    char _{}[slen+1];\n".format(p.var))
                 fout.write("    get_f90_{}(_{});\n".format(p.var, p.var))
-                fout.write("    {} = std::string(_{});\n\n".format(p.var, p.var))
+                fout.write("    problem::{} = std::string(_{});\n\n".format(p.var, p.var))
             else:
                 if p.is_array():
-                    fout.write("    get_f90_{}({});\n\n".format(p.var, p.var))
+                    fout.write("    get_f90_{}(problem::{});\n\n".format(p.var, p.var))
                 else:
-                    fout.write("    get_f90_{}(&{});\n\n".format(p.var, p.var))
+                    fout.write("    get_f90_{}(&problem::{});\n\n".format(p.var, p.var))
 
         fout.write("  }\n")
 

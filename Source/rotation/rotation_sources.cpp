@@ -31,7 +31,7 @@ Castro::rsrc(const Box& bx,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= center[dir];
+      loc[dir] -= problem::center[dir];
     }
 
     Real rho = uold(i,j,k,URHO);
@@ -261,7 +261,7 @@ Castro::corrrsrc(const Box& bx,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= center[dir];
+      loc[dir] -= problem::center[dir];
     }
 
     Real rhoo = uold(i,j,k,URHO);

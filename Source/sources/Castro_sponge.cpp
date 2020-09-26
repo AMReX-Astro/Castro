@@ -170,16 +170,16 @@ Castro::apply_sponge(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif

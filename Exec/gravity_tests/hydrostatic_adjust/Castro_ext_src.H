@@ -12,6 +12,8 @@ void do_ext_src(int i, int j, int k,
                 Array4<Real> const& src,
                 const Real dt, const Real time)
 {
+    using namespace problem;
+
     const Real H_0 = heating_peak;
     const Real W_0 = heating_sigma;
     const Real r_0 = heating_rad;

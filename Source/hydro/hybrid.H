@@ -128,7 +128,7 @@ void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData&
     position(i, j, k, geomdata, loc, ccx, ccy, ccz);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
 
     GpuArray<Real, 3> linear_mom;
 
