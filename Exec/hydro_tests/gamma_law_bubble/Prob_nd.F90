@@ -71,7 +71,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      ! initial guess
      temp(j) = T_guess
 
-     if (do_isentropic) then
+     if (do_isentropic == 1) then
         z = dble(j) * delta(AMREX_SPACEDIM)
         density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))
