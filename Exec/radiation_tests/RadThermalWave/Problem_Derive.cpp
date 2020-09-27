@@ -54,7 +54,7 @@ void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real xi0 = std::pow(num / fac1, ex1) * fac2;
 
-    fac1 = a * std::pow(Q, pe) * max(time, 1.e-50_rt);
+    fac1 = a * std::pow(Q, pe) * amrex::max(time, 1.e-50_rt);
     ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
 
     Real xf = xi0 * std::pow(fac1, ex1);
@@ -112,7 +112,7 @@ void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real xi0 = std::pow(num / fac1, ex1) * fac2;
 
-    fac1 = a * std::pow(Q, pe) * max(time, 1.e-50_rt);
+    fac1 = a * std::pow(Q, pe) * amrex::max(time, 1.e-50_rt);
     ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
 
     Real xf = xi0 * std::pow(fac1, ex1);
