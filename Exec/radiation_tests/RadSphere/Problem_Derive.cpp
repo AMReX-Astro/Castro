@@ -20,9 +20,6 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   const auto dx = geomdata.CellSizeArray();
   const auto problo = geomdata.ProbLoArray();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto const dat = datfab.array();
   auto const der = derfab.array();
 
@@ -38,17 +35,17 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real loc[3];
 
-    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
-    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
-    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 
     Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
 
     // compute the analytic radiating sphere solution for each point
     for (int g = 0; g < NGROUPS; g++) {
       Real F = F_radsphere(r, time, nugroup[g]);
-      Real E = planck(nugroup[g], T_0) +
-        (R_sphere / r) * (planck(nugroup[g], T_sphere) - planck(nugroup[g], T_0)) * F;
+      Real E = planck(nugroup[g], problem::T_0) +
+        (R_sphere / r) * (planck(nugroup[g], T_sphere) - planck(nugroup[g], problem::T_0)) * F;
       der(i,j,k,g) = E * dnugroup[g];
     }
 
