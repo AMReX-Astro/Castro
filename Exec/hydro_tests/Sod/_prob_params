@@ -32,7 +32,7 @@ T_l                real            1.0_rt        y
 T_r                real            1.0_rt        y
 
 # do we use temperature or pressure to set initial conditions?
-use_Tinit          logical         .false.       y
+use_Tinit          integer         0             y
 
 # coordinate direction normal to the interface
 idir               integer         1             y
