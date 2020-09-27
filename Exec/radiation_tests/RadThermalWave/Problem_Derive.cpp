@@ -26,11 +26,15 @@ void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real loc[3];
+    Real loc[3] = {0.0};
 
     loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
     loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
     loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#endif
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
@@ -80,11 +84,15 @@ void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
-    Real loc[3];
+    Real loc[3] = {0.0};
 
     loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
     loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
     loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#endif
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
