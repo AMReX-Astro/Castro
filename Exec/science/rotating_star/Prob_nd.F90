@@ -72,7 +72,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 #ifdef NSE_THERMO
   use burn_type_module
   use nse_check_module
-  use nse_module
+  use nse_module, only: nse_interp
 #endif
 
   implicit none
