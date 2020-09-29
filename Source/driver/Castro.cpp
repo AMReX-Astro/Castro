@@ -74,6 +74,8 @@ Vector<std::string> Castro::source_names;
 Vector<int> Castro::upass_map;
 Vector<int> Castro::qpass_map;
 
+Vector<AMRErrorTag> Castro::custom_error_tags;
+
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
@@ -468,6 +470,54 @@ Castro::read_params ()
     // override our overriding, they can do so.
 
     compute_new_dt_on_regrid = 1;
+
+    // Read in custom refinement scheme.
+
+    Vector<std::string> refinement_indicators;
+    ppa.queryarr("refinement_indicators", refinement_indicators, 0, ppa.countval("refinement_indicators"));
+
+    for (int i = 0; i < refinement_indicators.size(); ++i)
+    {
+        std::string ref_prefix = "amr.refine." + refinement_indicators[i];
+
+        ParmParse ppr(ref_prefix);
+
+        AMRErrorTagInfo info;
+
+        if (ppr.countval("start_time") > 0) {
+            Real min_time;
+            ppr.get("start_time", min_time);
+            info.SetMinTime(min_time);
+        }
+        if (ppr.countval("end_time") > 0) {
+            Real max_time;
+            ppr.get("end_time", max_time);
+            info.SetMaxTime(max_time);
+        }
+        if (ppr.countval("max_level") > 0) {
+            int max_level;
+            ppr.get("max_level", max_level);
+            info.SetMaxLevel(max_level);
+        }
+
+        if (ppr.countval("value_greater") > 0) {
+            Real value;
+            ppr.get("value_greater", value);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+        }
+        else if (ppr.countval("value_less") > 0) {
+            Real value;
+            ppr.get("value_less", value);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+        }
+        else {
+            amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
+        }
+    }
 
 }
 
@@ -3174,6 +3224,16 @@ Castro::errorEst (TagBoxArray& tags,
 
     for (int j = 0; j < num_err_list_default; j++) {
         apply_tagging_func(tags, ltime, j);
+    }
+
+    // Apply each of the custom tagging criteria.
+
+    for (int j = 0; j < custom_error_tags.size(); j++) {
+        std::unique_ptr<MultiFab> mf;
+        if (custom_error_tags[j].Field() != std::string()) {
+            mf = derive(custom_error_tags[j].Field(), time, custom_error_tags[j].NGrow());
+        }
+        custom_error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
     }
 
     // Now we'll tag any user-specified zones using the full state array.
