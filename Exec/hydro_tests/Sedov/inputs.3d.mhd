@@ -45,6 +45,24 @@ amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 32
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad
+
+amr.refine.denerr.max_level = 3
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+
+amr.refine.dengrad.max_level = 3
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+
+amr.refine.presserr.max_level = 3
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+
+amr.refine.pressgrad.max_level = 3
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+
 # CHECKPOINT FILES
 amr.check_file      = sedov_3d_chk     # root name of checkpoint file
 amr.check_int       = 200       # number of timesteps between checkpoints
