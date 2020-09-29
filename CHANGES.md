@@ -1,7 +1,7 @@
 # 20.10
 
    * A new refinement scheme using the inputs file rather than the Fortran
-     tagging namelist has been added. (#1243, #1245) As an example, consider:
+     tagging namelist has been added. (#1243, #1246) As an example, consider:
 
      ```
      amr.refinement_indicators = dens temp
