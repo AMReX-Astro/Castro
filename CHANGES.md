@@ -1,7 +1,7 @@
 # 20.10
 
    * A new refinement scheme using the inputs file rather than the Fortran
-     tagging namelist has been added. (#1243). The scheme looks like:
+     tagging namelist has been added. (#1243) As an example, consider:
 
      ```
      amr.refinement_indicators = dens temp
@@ -19,7 +19,7 @@
      schemes. For each defined name, amr.refine.<name> accepts predefined fields
      describing when to tag. In the current implementation, these are `max_level`
      (maximum level to refine to), `start_time` (when to start tagging), `end_time`
-     (when to stop tagging), `value_greater` (value above which we refine), and
+     (when to stop tagging), `value_greater` (value above which we refine),
      `value_less` (value below which to refine), and `field_name` (name of the
      string defining the field in the code). If a refinement indicator is added,
      either `value_greater` or `value_less` must be provided. (In the future we
