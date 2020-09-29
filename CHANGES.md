@@ -1,5 +1,30 @@
 # 20.10
 
+   * A new refinement scheme using the inputs file rather than the Fortran
+     tagging namelist has been added. (#1243) As an example, consider:
+
+     ```
+     amr.refinement_indicators = dens temp
+
+     amr.refine.dens.max_level = 1
+     amr.refine.dens.value_greater = 2.0
+     amr.refine.dens.field_name = Density
+
+     amr.refine.temp.max_level = 2
+     amr.refine.temp.value_less = 1.0
+     amr.refine.temp.field_name = Temp
+     ```
+
+     `amr.refinement_indicators` is a list of user-defined names for refinement
+     schemes. For each defined name, amr.refine.<name> accepts predefined fields
+     describing when to tag. In the current implementation, these are `max_level`
+     (maximum level to refine to), `start_time` (when to start tagging), `end_time`
+     (when to stop tagging), `value_greater` (value above which we refine),
+     `value_less` (value below which to refine), and `field_name` (name of the
+     string defining the field in the code). If a refinement indicator is added,
+     either `value_greater` or `value_less` must be provided. (In the future we
+     will support other refinement schemes such as gradients.)
+
    * Automatic problem parameter configuration is now available to every
      problem by placing a _prob_params file in your problem directory.
      Examples can be found in most of the problems in Castro/Exec, and you
