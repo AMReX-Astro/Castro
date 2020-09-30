@@ -119,7 +119,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 #ifndef CXX_MODEL_PARSER
         ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
 #else
-        ext_denfill_c(bx, data, dcomp, geom, bcr[dcomp], time);
+        ext_denfill_c(bx, data.array(), dcomp, geom, bcr[dcomp], time);
 #endif
 
     }
