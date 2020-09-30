@@ -3,6 +3,7 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
+#include <model_parser.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -13,7 +14,7 @@ void problem_initialize ()
     const Real* problo = dgeom.ProbLo();
     const Real* probhi = dgeom.ProbHi();
 
-    if (num_vortices > problem::max_num_vortices) {
+    if (problem::num_vortices > problem::max_num_vortices) {
         amrex::Error("num_vortices too large, please increase max_num_vortices and the size of xloc_vortices");
     }
 
@@ -22,7 +23,7 @@ void problem_initialize ()
 
     if (ParallelDescriptor::IOProcessor()) {
         for (int i = 0; i < model::npts; i++) {
-            std::cout << i << " " << model::r(i) << model::state(MODELINDEX(i,model::idens));
+            std::cout << i << " " << model::r[i] << model::state[MODELINDEX(i,model::idens)];
         }
     }
 
@@ -31,7 +32,7 @@ void problem_initialize ()
     Real offset = (probhi[0] - problo[0]) / problem::num_vortices;
 
     for (int i = 0; i < problem::num_vortices; i++) {
-        xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
+        problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
     }
 }
 
@@ -58,14 +59,14 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
 #if AMREX_SPACEDIM == 2
-    height = y;
+    Real height = y;
 #else
-    height = z;
+    Real height = z;
 #endif
 
 
     state(i,j,k,URHO) = interpolate(height, model::idens);
-    state(i,j,k,UTEMP) = interpolate_sub(height, model::itemp);
+    state(i,j,k,UTEMP) = interpolate(height, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
     }
@@ -87,12 +88,12 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
     // Initial velocities = 0
-    state(:,:,:,UMX) = 0.0_rt;
-    state(:,:,:,UMY) = 0.0_rt;
-    state(:,:,:,UMZ) = 0.0_rt;
+    state(i,j,k,UMX) = 0.0_rt;
+    state(i,j,k,UMY) = 0.0_rt;
+    state(i,j,k,UMZ) = 0.0_rt;
 
     //  Now add the velocity perturbation
-    if (apply_vel_field) {
+    if (problem::apply_vel_field) {
 
         Real ydist = y - problem::velpert_height_loc;
 
@@ -104,16 +105,16 @@ void problem_initialize_state_data (int i, int j, int k,
 
         for (int vortex = 0; vortex < problem::num_vortices; vortex++) {
 
-            Real xdist = x - xloc_vortices[vortex];
+            Real xdist = x - problem::xloc_vortices[vortex];
 
-            Real r = std::sqrt(xdist * xdist + ydist  ydist);
+            Real r = std::sqrt(xdist * xdist + ydist * ydist);
 
             upert[0] += -(ydist/problem::velpert_scale) * problem::velpert_amplitude *
                 std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
                 std::pow(-1.0_rt, vortex);
 
             upert[1] += (xdist/problem::velpert_scale) * problem::velpert_amplitude *
-                std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale2)) *
+                std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
                 std::pow(-1.0_rt, vortex);
         }
 
