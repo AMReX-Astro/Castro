@@ -942,7 +942,6 @@ contains
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-#ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
        imin = adv_lo(1)
@@ -982,7 +981,6 @@ contains
           end do
        end do
     endif
-#endif
 
 #if AMREX_SPACEDIM >= 2
     ! YLO
