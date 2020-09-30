@@ -17,6 +17,7 @@ void ca_ext_fill(Box const& bx, FArrayBox& data,
              AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 }
 
+#ifndef CXX_MODEL_PARSER
 void ca_ext_denfill(Box const& bx, FArrayBox& data,
                     const int dcomp, const int /*numcomp*/,
                     Geometry const& geom, const Real time,
@@ -28,3 +29,4 @@ void ca_ext_denfill(Box const& bx, FArrayBox& data,
                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 }
+#endif
