@@ -12,10 +12,10 @@ namespace model
     constexpr int ipres = 2;
     constexpr int ispec = 3;
 
-    AMREX_GPU_MANAGED int npts;
-    AMREX_GPU_MANAGED bool initialized;
+    extern AMREX_GPU_MANAGED int npts;
+    extern AMREX_GPU_MANAGED bool initialized;
 
-    amrex::Gpu::ManagedVector<amrex::Real> state;
-    amrex::Gpu::ManagedVector<amrex::Real> r;
+    extern amrex::Gpu::ManagedVector<amrex::Real> state;
+    extern amrex::Gpu::ManagedVector<amrex::Real> r;
 }
 #endif

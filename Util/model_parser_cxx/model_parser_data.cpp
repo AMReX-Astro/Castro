@@ -5,10 +5,10 @@
 namespace model
 {
 
-    extern AMREX_GPU_MANAGED int npts;
-    extern AMREX_GPU_MANAGED bool initialized;
+    AMREX_GPU_MANAGED int npts;
+    AMREX_GPU_MANAGED bool initialized;
 
-    extern amrex::Gpu::ManagedVector<amrex::Real> state;
-    extern amrex::Gpu::ManagedVector<amrex::Real> r;
+    amrex::Gpu::ManagedVector<amrex::Real> state;
+    amrex::Gpu::ManagedVector<amrex::Real> r;
 
 }

@@ -34,9 +34,26 @@ using namespace amrex;
 /// composition is assumed to be in terms of mass fractions
 
 // remove whitespace -- from stackoverflow
-static inline std::string &ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int c) {return !std::isspace(c);}));
-    return s;
+
+
+inline std::string& ltrim(std::string& s)
+{
+	auto it = std::find_if(s.begin(), s.end(),
+					[](int c) {
+						return !std::isspace(c);
+					});
+	s.erase(s.begin(), it);
+	return s;
+}
+
+inline std::string& rtrim(std::string& s)
+{
+	auto it = std::find_if(s.rbegin(), s.rend(),
+					[](int c) {
+						return !std::isspace(c);
+					});
+	s.erase(it.base(), s.end());
+	return s;
 }
 
 
@@ -158,7 +175,7 @@ read_model_file(std::string& model_file) {
 
     std::ifstream initial_model_file;
 
-    initial_model_file.open("model.hse.cool.coulomb", std::ios::in);
+    initial_model_file.open(model_file, std::ios::in);
     if (!initial_model_file.is_open()) {
         amrex::Error("Error opening the initial model");
     }
@@ -183,9 +200,12 @@ read_model_file(std::string& model_file) {
     for (int n = 0; n < nvars_model_file; n++) {
         getline(initial_model_file, line);
         std::string var_string = line.substr(line.find("#")+1, line.length());
-        varnames_stored.push_back(ltrim(var_string));
+        varnames_stored.push_back(ltrim(rtrim(var_string)));
     }
 
+//    for (auto v: varnames_stored) {
+//        std::cout << v << std::endl;
+//    }
 
     // allocate storage for the model data
 
