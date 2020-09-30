@@ -1,0 +1,2 @@
+CEXE_headers += model_parser.H
+CEXE_sources += model_parser_data.cpp
