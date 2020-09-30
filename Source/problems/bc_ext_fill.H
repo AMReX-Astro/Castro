@@ -121,5 +121,6 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         });
     }
 #endif
+}
 #endif
 
