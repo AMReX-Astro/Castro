@@ -909,6 +909,7 @@ contains
   end subroutine ext_fill
 
 
+#ifndef CXX_MODEL_PARSER
   subroutine ext_denfill(lo, hi, adv, adv_lo, adv_hi, &
                          domlo, domhi, delta, xlo, time, bc) &
                          bind(C, name="ext_denfill")
@@ -1066,5 +1067,6 @@ contains
 #endif
 
   end subroutine ext_denfill
+#endif
 
 end module bc_ext_fill_module

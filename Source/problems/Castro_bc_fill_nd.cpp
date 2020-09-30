@@ -115,8 +115,11 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
     if (numcomp == 1) {
 
+#ifndef CXX_MODEL_PARSER
         ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
+#else
 
+#endif
     }
     else {
 
