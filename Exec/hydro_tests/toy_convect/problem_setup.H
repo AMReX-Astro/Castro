@@ -23,7 +23,7 @@ void problem_initialize ()
 
     if (ParallelDescriptor::IOProcessor()) {
         for (int i = 0; i < model::npts; i++) {
-            std::cout << i << " " << model::r[i] << model::state[MODELINDEX(i,model::idens)];
+            std::cout << i << " " << model::r[i] << " " << model::state[MODELINDEX(i,model::idens)] << std::endl;
         }
     }
 
@@ -63,7 +63,6 @@ void problem_initialize_state_data (int i, int j, int k,
 #else
     Real height = z;
 #endif
-
 
     state(i,j,k,URHO) = interpolate(height, model::idens);
     state(i,j,k,UTEMP) = interpolate(height, model::itemp);
