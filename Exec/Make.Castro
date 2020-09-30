@@ -155,6 +155,7 @@ endif
 
 ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser_cxx
+  DEFINES += -DCXX_MODEL_PARSER
 else
   Bdirs += Util/model_parser
 endif
