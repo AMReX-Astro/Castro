@@ -5,6 +5,7 @@
 #include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
+#include <bc_ext_fill.H>
 
 using namespace amrex;
 
@@ -80,7 +81,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
@@ -109,7 +110,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
          (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
         (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
@@ -118,8 +119,9 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 #ifndef CXX_MODEL_PARSER
         ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
 #else
-
+        ext_denfill_c(bx, data, dcomp, geom, bcr[dcomp], time);
 #endif
+
     }
     else {
 
@@ -136,10 +138,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
   }
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #ifdef MHD
   void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
@@ -209,6 +207,3 @@ extern "C"
   }
 #endif  
 
-#ifdef __cplusplus
-}
-#endif

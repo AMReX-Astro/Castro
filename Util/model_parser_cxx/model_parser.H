@@ -5,7 +5,10 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <network.H>
+#include <model_parser_data.H>
 
+using namespace amrex;
 
 ///
 /// read in an initial model and return arrays with the model data.
@@ -37,24 +40,6 @@ static inline std::string &ltrim(std::string &s) {
 }
 
 
-
-namespace model
-{
-
-    // integer keys for indexing the model_state array
-
-    constexpr int nvars = 3 + NumSpec;
-    constexpr int idens = 0;
-    constexpr int itemp = 1;
-    constexpr int ipres = 2;
-    constexpr int ispec = 3;
-
-    AMREX_GPU_MANAGED int npts;
-    AMREX_GPU_MANAGED bool initialized;
-
-    amrex::Gpu::ManagedVector<Real> state;
-    amrex::Gpu::ManagedVector<Real> r;
-}
 
 #define MODELINDEX(I, J) model::npts*I+J
 
