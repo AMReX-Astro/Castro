@@ -121,6 +121,9 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UMY) = state(i,j,k,URHO) * upert[1];
         state(i,j,k,UMZ) = 0.0_rt;
 
+        state(i,j,k,UEDEN) += 0.5_rt * state(i,j,k,URHO) * (upert[0] * upert[0] +
+                                                            upert[1] * upert[1] +
+                                                            upert[2] * upert[2]);
     }
 
 }

@@ -58,7 +58,7 @@ inline std::string& rtrim(std::string& s)
 
 
 
-#define MODELINDEX(I, J) model::npts*I+J
+#define MODELINDEX(I, J) model::nvars*(I)+(J)
 
 
 
@@ -142,21 +142,21 @@ interpolate(const Real r, const int var_index) {
 
     } else {
 
-       if (r >= model::r[id]) {
+        if (r >= model::r[id]) {
 
-          slope = (model::state[MODELINDEX(id+1, var_index)] -
-                   model::state[MODELINDEX(id, var_index)]) /
-              (model::r[id+1] - model::r[id]);
-          interp = slope * (r - model::r[id]) + model::state[MODELINDEX(id, var_index)];
+            slope = (model::state[MODELINDEX(id+1, var_index)] -
+                     model::state[MODELINDEX(id, var_index)]) /
+                (model::r[id+1] - model::r[id]);
+            interp = slope * (r - model::r[id]) + model::state[MODELINDEX(id, var_index)];
 
-       } else {
+        } else {
 
-           slope = (model::state[MODELINDEX(id, var_index)] -
-                    model::state[MODELINDEX(id-1, var_index)]) /
-               (model::r[id] - model::r[id-1]);
-           interp = slope * (r - model::r[id]) + model::state[MODELINDEX(id, var_index)];
+            slope = (model::state[MODELINDEX(id, var_index)] -
+                     model::state[MODELINDEX(id-1, var_index)]) /
+                (model::r[id] - model::r[id-1]);
+            interp = slope * (r - model::r[id]) + model::state[MODELINDEX(id, var_index)];
 
-       }
+        }
 
     }
 
@@ -203,10 +203,6 @@ read_model_file(std::string& model_file) {
         varnames_stored.push_back(ltrim(rtrim(var_string)));
     }
 
-//    for (auto v: varnames_stored) {
-//        std::cout << v << std::endl;
-//    }
-
     // allocate storage for the model data
 
     model::state.resize(model::npts * model::nvars);
@@ -217,6 +213,7 @@ read_model_file(std::string& model_file) {
     amrex::Print() << nvars_model_file << " variables found in the initial model file" << std::endl;
 
     // start reading in the data
+
     Real vars_stored[nvars_model_file];
 
     for (int i = 0; i < model::npts; i++) {
@@ -300,7 +297,7 @@ read_model_file(std::string& model_file) {
             }
         }
 
-    }
+    }  // end of loop over lines in the model file
 
     initial_model_file.close();
 
