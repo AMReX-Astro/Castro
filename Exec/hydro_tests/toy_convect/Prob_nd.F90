@@ -92,8 +92,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   real(rt) :: upert(3)
   integer :: i, j, k, n, vortex
 
-  real(rt) :: temppres(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-
   type (eos_t) :: eos_state
 
   do k = lo(3), hi(3)
@@ -121,8 +119,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
            call eos(eos_input_rt, eos_state)
-
-           temppres(i,j,k) = eos_state%p
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,UEINT)
@@ -175,6 +171,9 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UMX) = state(i,j,k,URHO) * upert(1)
               state(i,j,k,UMY) = state(i,j,k,URHO) * upert(2)
               state(i,j,k,UMZ) = ZERO
+
+              ! update the kinetic energy too
+              state(i,j,k,UEDEN) = state(i,j,k,UEDEN) + 0.5_rt * state(i,j,k,URHO) * sum(upert**2)
 
            end do
         end do
