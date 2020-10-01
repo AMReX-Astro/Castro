@@ -380,6 +380,28 @@ problem_tagging_3d.f90 to our work directory and set it up as follows:</p>
 <span class="n">end</span> <span class="n">subroutine</span> <span class="n">set_problem_tags</span>
 </pre></div>
 </div>
+<p>We also provide a mechanism for defining a limited set of refinement
+schemes from the inputs file; for example,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">refinement_indicators</span> <span class="o">=</span> <span class="n">dens</span> <span class="n">temp</span>
+
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">max_level</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">value_greater</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">density</span>
+
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">max_level</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">value_less</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">Temp</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">amr.refinement_indicators</span></code> is a list of user-defined names for refinement
+schemes. For each defined name, <code class="docutils literal notranslate"><span class="pre">amr.refine.&lt;name&gt;</span></code> accepts predefined fields
+describing when to tag. These are <code class="docutils literal notranslate"><span class="pre">max_level</span></code> (maximum level to refine to),
+<code class="docutils literal notranslate"><span class="pre">start_time</span></code> (when to start tagging), <code class="docutils literal notranslate"><span class="pre">end_time</span></code> (when to stop tagging),
+<code class="docutils literal notranslate"><span class="pre">value_greater</span></code> (value above which we refine), <code class="docutils literal notranslate"><span class="pre">value_less</span></code> (value below
+which to refine), <code class="docutils literal notranslate"><span class="pre">gradient</span></code> (absolute value of the difference between
+adjacent cells above which we refine), and <code class="docutils literal notranslate"><span class="pre">field_name</span></code> (name of the string
+defining the field in the code). If a refinement indicator is added, either
+<code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
 </div>
 <div class="section" id="synchronization-algorithm">
 <span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>

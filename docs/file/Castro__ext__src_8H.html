@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File advection_util.H &mdash; Castro  documentation</title>
+  <title>File Castro_ext_src.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File fourth_center_average.H" href="fourth__center__average_8H.html" />
-    <link rel="prev" title="File Castro_hydro.H" href="Castro__hydro_8H.html" /> 
+    <link rel="next" title="File Castro_sources.H" href="Castro__sources_8H.html" />
+    <link rel="prev" title="Sources" href="../sources_files.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/advection__util_8H.html">main</a> | <a href="../dev/file/advection__util_8H.html">development</a>
+        Branch: <a href="../file/Castro__ext__src_8H.html">main</a> | <a href="../dev/file/Castro__ext__src_8H.html">development</a>
     </div>
 
         </div>
@@ -139,18 +139,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File advection_util.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ppm_8H.html">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
@@ -159,7 +148,13 @@
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../sources_files.html">Sources</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_ext_src.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__sources_8H.html">File Castro_sources.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__defaults_8H.html">File sponge_defaults.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sponge__params_8H.html">File sponge_params.H</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
@@ -215,15 +210,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+          <li><a href="../sources_files.html">Sources</a> &raquo;</li>
         
-      <li>File advection_util.H</li>
+      <li>File Castro_ext_src.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/advection__util_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__ext__src_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -236,16 +231,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-advection-util-h">
-<h1>File advection_util.H<a class="headerlink" href="#file-advection-util-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-castro-ext-src-h">
+<h1>File Castro_ext_src.H<a class="headerlink" href="#file-castro-ext-src-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="advection__util_8H_1afbcd4da676b67548f1911e99ca401711"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void dflux (const GpuArray&lt; Real, NUM_STATE &gt; &amp;u, const GpuArray&lt; Real, NQ &gt; &amp;q, int dir, int coord, const GeometryData &amp;geomdata, const GpuArray&lt; int, 3 &gt; &amp;idx, GpuArray&lt; Real, NUM_STATE &gt; &amp;flux)</code></dt>
+<span class="target" id="Castro__ext__src_8H_1a79d7540bbdb3608c0525317f8d0f0478"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void do_ext_src (int i, int j, int k, GeometryData const &amp;geomdata, Array4&lt; const Real &gt; const &amp;state, Array4&lt; Real &gt; const &amp;src, const Real dt, const Real time)</code></dt>
 <dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt id="_CPPv45amrex">
+<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><em class="property">namespace </em><code class="sig-name descname">amrex</code><a class="headerlink" href="#_CPPv45amrex" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </div>
 
 
@@ -256,10 +256,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="fourth__center__average_8H.html" class="btn btn-neutral float-right" title="File fourth_center_average.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Castro__sources_8H.html" class="btn btn-neutral float-right" title="File Castro_sources.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__hydro_8H.html" class="btn btn-neutral float-left" title="File Castro_hydro.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../sources_files.html" class="btn btn-neutral float-left" title="Sources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

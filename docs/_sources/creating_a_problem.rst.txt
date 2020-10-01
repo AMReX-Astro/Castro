@@ -14,7 +14,9 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` : this holds the problem initialization routines
+  * ``Prob_nd.F90`` OR ``problem_setup.H`` : this holds the problem
+    initialization routines, which may be implemented either in Fortran
+    or in C++.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
@@ -69,51 +71,50 @@ Here:
   ``(nspec, network)`` and the appropriate use statement will be
   added.
 
-.. note::
-
-   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
-   tell the build system to parse ``_prob_params`` and write the 
-   ``probdata_module``.
-
 The variables will all be initialized for the GPU as well.
 
 
-``Prob_nd.F90``
+``Problem Initialization``
 ---------------
 
-Here we describe the main problem initialization routines.
+Here we describe the main problem initialization routines. There are
+two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).
 
 .. index:: probdata
 
-* ``probinit()``:
+* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
 
-  This routine is primarily responsible for reading in the ``probin``
-  file (by defining the ``&fortin`` namelist) and doing any one-time
+  This routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
   initial model through the ``model_parser_module``—see the
   ``toy_convect`` problem setup for an example).
 
-  By convention, this is where we read and initialize the problem parameters
-  by calling ``probdata_init()``.  The parameters will then be defined in
-  ``probdata_module`` defined in ``probdata.F90``.
+  This routine can also postprocess any of the parameters defined
+  in the ``_prob_params`` file, which are defined in ``probdata_module``.
 
   .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here.  This is used to note the
+     from ``prob_params_module`` here (in C++, the ``center[]`` variable
+     from the ``problem`` namespace).  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  The arguments include the name and length of the probin file
+  In Fortran the arguments include the name and length of the probin file
   as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``).
+  (``problo``) and upper-right corner (``probhi``). The C++ version
+  accepts no arguments, but for example ``problo`` and ``probhi`` can
+  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
-* ``ca_initdata()``:
+* ``ca_initdata()`` (Fortran) or ``initialize_problem_state_data()`` (C++):
 
   This routine will initialize the state data for a single grid.
-  The inputs to this routine are:
+  In Fortran the inputs to this routine are:
 
   -  ``level``: the level of refinement of the grid we are filling
 
@@ -168,6 +169,16 @@ Filling data is typically done in a loop like::
 Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
 from the zone indices, ``i``, ``j``, and ``k``.
 
+  In C++, the arguments passed are:
+
+  - ``i``, ``j``, ``k``: the index of the zone to fill the data in
+
+  - ``state``: an array containing the simulation state data
+
+  - ``GeomData``: a ``GeometryData`` object that can be used for obtaining
+    ``dx``, ``problo``, ``probhi``, etc.
+
+  Filling data is done by simply writing to ``state(i,j,k,URHO)``, etc.
 
 .. _create:bcs:
 
