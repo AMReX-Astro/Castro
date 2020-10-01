@@ -1,5 +1,5 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
-  use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
+  use probdata_module, only: T_l, T_r, dens_l, dens_r, cfrac, ofrac, idir, w_T, center_T, &
                              xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
@@ -51,7 +51,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   ! Set the ambient material
 
-  ambient_dens = dens
+  ambient_dens = dens_l
   ambient_comp = xn
 
   eos_state % rho = ambient_dens
@@ -79,20 +79,20 @@ subroutine ca_initdata(lo, hi, &
   use network, only: nspec
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
-  use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
+  use probdata_module, only: T_l, T_r, center_T, w_T, dens_l, dens_r, vel, xn
   use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: probhi
 
   implicit none
-
+  
   integer,  intent(in   ) :: lo(3), hi(3)
   integer,  intent(in   ) :: state_lo(3), state_hi(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
   real(rt), intent(in   ) :: dx(3), problo(3)
 
-  real(rt) :: sigma, width, c_T
-  real(rt) :: xcen
+  real(rt) :: sigma, width, height, c_T
+  real(rt) :: xcen, ycen
   integer  :: i, j, k, n
 
   type (eos_t) :: eos_state
@@ -101,15 +101,17 @@ subroutine ca_initdata(lo, hi, &
 
   width = w_T * (probhi(1) - problo(1))
   c_T = problo(1) + center_T * (probhi(1) - problo(1))
+  height = probhi(2) - problo(2)
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
+           ycen = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
            xcen = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
-           state(i,j,k,URHO) = dens
+           sigma = 1.0 / (1.0 + exp(-(c_T + width * sin(ycen / (4.0_rt * height)) - xcen)/ width))
 
-           sigma = 1.0 / (1.0 + exp(-(c_T - xcen)/ width))
+           state(i,j,k,URHO) = dens_l + (dens_r - dens_l) * (1 - sigma)
 
            state(i,j,k,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
 

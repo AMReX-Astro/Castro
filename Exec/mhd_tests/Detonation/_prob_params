@@ -2,7 +2,9 @@ T_l                  real          1.e9_rt        y
 
 T_r                  real          5.e7_rt        y
 
-dens                 real          1.e8_rt        y
+dens_l               real          1.e8_rt        y
+
+dens_r               real          1.e8_rt        y
 
 cfrac                real          0.5_rt         y
 

@@ -3,7 +3,7 @@ PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 3
+DIM        = 2
 
 COMP	   = gnu
 
@@ -14,7 +14,7 @@ USE_REACT  = TRUE
 USE_GRAV   = FALSE
 USE_PARTICLES = FALSE
 
-USE_MHD = TRUE
+USE_MHD = FALSE
 
 USE_PROB_PARAMS = TRUE
 
