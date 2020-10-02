@@ -1,7 +1,0 @@
-rho_ambient     real     1.0_rt        y
-
-rho_peak        real     2.0_rt        y
-
-T_ambient       real     1.0_rt        y
-
-sigma           real     0.1_rt        y
