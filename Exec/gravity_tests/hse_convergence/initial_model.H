@@ -5,10 +5,36 @@
 //   ds/dr = 0
 
 
+#ifndef INITIAL_MODEL_H
+#define INITIAL_MODEL_H
+
+#include <network.H>
+#include <eos.H>
+
 struct model_t {
     Real dens_base = -1;
     Real T_base = -1;
     Real xn[NumSpec] = {0.0};
+}
+
+
+AMREX_INLINE
+Real
+f(const Real p, const Real s, const Real g, const Real rho, const Real T, Real* xn) {
+
+    eos_t eos_state;
+
+    eos_state.T = T; // initial guess
+    eos_state.rho = rho; // initial guess
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = xn[n];
+    }
+    eos_state.p = p;
+    eos_state.s = s;
+
+    eos(eos_input_ps, eos_state);
+
+    return eos_state.rho * g;
 }
 
 
@@ -315,27 +341,4 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
     }
 }
 
-
-  function f(p, s, g, rho, T, xn) result (rhs)
-
-    use eos_type_module, only : eos_t, eos_input_ps
-    use eos_module, only : eos
-
-    real(rt), intent(in) :: p, s, g, rho, T, xn(nspec)
-
-    real(rt) :: rhs
-    type(eos_t) :: eos_state
-
-    eos_state % T = T ! initial guess
-    eos_state % rho = rho ! initial guess
-    eos_state % xn(:) = xn(:)
-    eos_state % p = p
-    eos_state % s = s
-
-    call eos(eos_input_ps, eos_state)
-
-    rhs = eos_state % rho * g
-
-  end function f
-
-end module initial_model_module
+#endif
