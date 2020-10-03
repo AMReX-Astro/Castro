@@ -15,12 +15,12 @@ struct model_t {
     Real dens_base = -1;
     Real T_base = -1;
     Real xn[NumSpec] = {0.0};
-}
+};
 
 
 AMREX_INLINE
 Real
-f(const Real p, const Real s, const Real g, const Real rho, const Real T, Real* xn) {
+f(const Real p, const Real s, const Real g, const Real rho, const Real T, const Real* xn) {
 
     eos_t eos_state;
 
@@ -104,8 +104,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 rho = eos_state.rho;
                 T = eos_state.T;
             } else {
-                rho = model::state(MODELINDEX(i-1, model::idens));
-                T = model::state(MODELINDEX(i-1, model::itemp));
+                rho = model::state[MODELINDEX(i-1, model::idens)];
+                T = model::state[MODELINDEX(i-1, model::itemp)];
             }
 
             Real xn[NumSpec];
@@ -126,10 +126,10 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             Real s = entropy_fixed;
 
-            Real k1 = f(p, s, const_grav, rho, T, xn);
-            Real k2 = f(p + 0.5_rt * h * k1, s, const_grav, rho, T, xn);
-            Real k3 = f(p + 0.5_rt * h * k2, s, const_grav, rho, T, xn);
-            Real k4 = f(p + h * k3, s, const_grav, rho, T, xn);
+            Real k1 = f(p, s, gravity::const_grav, rho, T, xn);
+            Real k2 = f(p + 0.5_rt * h * k1, s, gravity::const_grav, rho, T, xn);
+            Real k3 = f(p + 0.5_rt * h * k2, s, gravity::const_grav, rho, T, xn);
+            Real k4 = f(p + h * k3, s, gravity::const_grav, rho, T, xn);
 
             Real pnew = p + (1.0_rt/6.0_rt) * h * (k1 + 2.0_rt * k2 + 2.0_rt * k3 + k4);
 
@@ -148,11 +148,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // update the thermodynamics in this zone
 
-            model::state(MODELINDEX(i, idens_model)) = eos_state.rho;
-            model::state(MODELINDEX(i, itemp_model)) = eos_state.T;
-            model::state(MODELINDEX(i, ipres_model)) = eos_state.p;
+            model::state[MODELINDEX(i, model::idens)] = eos_state.rho;
+            model::state[MODELINDEX(i, model::itemp)] = eos_state.T;
+            model::state[MODELINDEX(i, model::ipres)] = eos_state.p;
             for (int n = 0; n < NumSpec; n++) {
-                model::state(MODELINDEX(i, ispec_model+n)) = eos_state.xn[n];
+                model::state[MODELINDEX(i, model::ispec+n)] = eos_state.xn[n];
             }
 
             // reset for the next iteration
@@ -163,15 +163,12 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
         // now integrate down
 
-        p = model::state(MODELINDEX(ibase, ipres_model));
+        p = model::state[MODELINDEX(ibase, model::ipres)];
 
-        for (int i = ibase-1; i >= 0, --i) {
+        for (int i = ibase-1; i >= 0; --i) {
 
-            Real rho = model::state(MODELINDEX(i+1, idens_model));
-            Real T = model::state(MODELINDEX(i+1, itemp_model));
-            for (int n = 0; n < NumSpec; n++) {
-                xn[n] = model_params.xn[n];
-            }
+            Real rho = model::state[MODELINDEX(i+1, model::idens)];
+            Real T = model::state[MODELINDEX(i+1, model::itemp)];
 
             Real h = -dx;
 
@@ -179,10 +176,10 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             Real s = entropy_fixed;
 
-            Real k1 = f(p, s, const_grav, rho, T, xn);
-            Real k2 = f(p + 0.5_rt * h * k1, s, const_grav, rho, T, xn);
-            Real k3 = f(p + 0.5_rt * h * k2, s, const_grav, rho, T, xn);
-            Real k4 = f(p + h * k3, s, const_grav, rho, T, xn);
+            Real k1 = f(p, s, gravity::const_grav, rho, T, model_params.xn);
+            Real k2 = f(p + 0.5_rt * h * k1, s, gravity::const_grav, rho, T, model_params.xn);
+            Real k3 = f(p + 0.5_rt * h * k2, s, gravity::const_grav, rho, T, model_params.xn);
+            Real k4 = f(p + h * k3, s, gravity::const_grav, rho, T, model_params.xn);
 
             Real pnew = p + (1.0_rt/6.0_rt) * h * (k1 + 2.0_rt*k2 + 2.0_rt*k3 + k4);
 
@@ -200,11 +197,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // update the thermodynamics in this zone
 
-            model::state(MODELINDEX(i, idens_model)) = eos_state.rho;
-            model::state(MODELINDEX(i, itemp_model)) = eos_state.T;
-            model::state(MODELINDEX(i, ipres_model)) = eos_state.p;
+            model::state[MODELINDEX(i, model::idens)] = eos_state.rho;
+            model::state[MODELINDEX(i, model::itemp)] = eos_state.T;
+            model::state[MODELINDEX(i, model::ipres)] = eos_state.p;
             for (int n = 0; n < NumSpec; n++) {
-                model::state(MODELINDEX(i, ispec_model+n)) = eos_state.xn[n];
+                model::state[MODELINDEX(i, model::ispec+n)] = eos_state.xn[n];
             }
 
             // reset for the next iteration
@@ -220,14 +217,14 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
         for (int i = ibase; i <= itop + nbuf; i++) {
 
             if (i == ibase) {
-                model_state(MODELINDEX(i, idens_model)) = model_params.dens_base; // initial guess
-                model_state(MODELINDEX(i, ipres_model)) =
-                    p + 0.5_rt * dx * model_params.dens_base * const_grav;
+                model::state[MODELINDEX(i, model::idens)] = model_params.dens_base; // initial guess
+                model::state[MODELINDEX(i, model::ipres)] =
+                    p + 0.5_rt * dx * model_params.dens_base * gravity::const_grav;
 
                 eos_t eos_state;
-                eos_state.rho = model_state(MODELINDEX(i, idens_model));
+                eos_state.rho = model::state[MODELINDEX(i, model::idens)];
                 eos_state.T = model_params.dens_base;
-                eos_state.p = model_state(MODELINDEX(i, ipres_model));
+                eos_state.p = model::state[MODELINDEX(i, model::ipres)];
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = model_params.xn[n];
                 }
@@ -235,26 +232,28 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                 eos(eos_input_ps, eos_state);
 
-                model_state(MODELINDEX(i, idens_model)) = eos_state.rho;
-                model_state(MODELINDEX(i, itemp_model)) = eos_state.T;
+                model::state[MODELINDEX(i, model::idens)] = eos_state.rho;
+                model::state[MODELINDEX(i, model::itemp)] = eos_state.T;
                 for (int n = 0; n < NumSpec; n++) {
-                    model::state(MODELINDEX(i, ispec_model+n)) = model_params.xn[n];
+                    model::state[MODELINDEX(i, model::ispec+n)] = model_params.xn[n];
                 }
 
             } else {
 
-                Real dens_zone = model_state(MODELINDEX(i-1, idens_model));
+                Real dens_zone = model::state[MODELINDEX(i-1, model::idens)];
 
                 bool converged_hse = false;
 
+                Real p_want;
+                eos_t eos_state;
+
                 for (int iter = 0; iter < MAX_ITER; iter++) {
 
-                    Real p_want = model_state(MODELINDEX(i-1, ipres_model)) +
-                        dx * 0.5_rt * (dens_zone + model_state(MODELINDEX(i-1, idens_model))) * const_grav;
+                    p_want = model::state[MODELINDEX(i-1, model::ipres)] +
+                        dx * 0.5_rt * (dens_zone + model::state[MODELINDEX(i-1, model::idens)]) * gravity::const_grav;
 
                     // use the EOS with constant entropy to find corrected state
 
-                    eos_t eos_state;
                     eos_state.p = p_want;
                     eos_state.s = entropy_fixed;
                     for (int n = 0; n < NumSpec; n++) {
@@ -276,37 +275,40 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                     amrex::Error("ERROR: failed to convergence in initial model generation");
                 }
 
+                // initialze zone
+
+                model::state[MODELINDEX(i, model::idens)] = dens_zone;
+                model::state[MODELINDEX(i, model::ipres)] = p_want;
+                model::state[MODELINDEX(i, model::itemp)] = eos_state.T;
+                for (int n = 0; n < NumSpec; n++) {
+                    model::state[MODELINDEX(i, model::ispec+n)] = model_params.xn[n];
+                }
+
+
             }
 
-            // initialze zone
-
-            model_state(MODELINDEX(i, model::idens)) = dens_zone;
-            model_state(MODELINDEX(i, model::ipres)) = p_want;
-            model_state(MODELINDEX(i, model::itemp)) = eos_state.T;
-            for (int n = 0; n < NumSpec; n++) {
-                model_state(MODELINDEX(i, model::ispec+n)) = model_params.xn[n];
-            }
+            amrex::Print() << i << " " << model::state[MODELINDEX(i, model::idens)] << " " << model::state[MODELINDEX(i, model::ipres)] << std::endl;
 
         }
-
-        amrex::Print() << i << " " model_state(MODELINDEX(i, idens_model)) << " " << model_state(MODELINDEX(i, ipres_model)) << std::endl;
 
         //  now integrate down
 
         for (int i = ibase-1; i >= 0; --i) {
 
-            Real dens_zone = model::state(MODELINDEX(i+1, model::idens));
+            Real dens_zone = model::state[MODELINDEX(i+1, model::idens)];
 
             bool converged_hse = false;
 
+            Real p_want;
+            eos_t eos_state;
+
             for (int iter = 0; iter < MAX_ITER; iter++) {
 
-                Real p_want = model_state(MODELINDEX(i+1, model::ipres)) -
-                    dx * 0.5_rt * (dens_zone + model::state(MODELINDEX(i+1, model::idens))) * const_grav;
+                p_want = model::state[MODELINDEX(i+1, model::ipres)] -
+                    dx * 0.5_rt * (dens_zone + model::state[MODELINDEX(i+1, model::idens)]) * gravity::const_grav;
 
                 // use the EOS with constant entropy to find corrected state
 
-                eos_t eos_state;
                 eos_state.p = p_want;
                 eos_state.s = entropy_fixed;
                 for (int n = 0; n < NumSpec; n++) {
@@ -329,11 +331,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // initialze zone
 
-            model::state(MODELINDEX(i, model::idens)) = dens_zone;
-            model::state(MODELINDEX(i, model::ipres)) = p_want;
-            model::state(MODELINDEX(i, model::itemp)) = eos_state.T;
+            model::state[MODELINDEX(i, model::idens)] = dens_zone;
+            model::state[MODELINDEX(i, model::ipres)] = p_want;
+            model::state[MODELINDEX(i, model::itemp)] = eos_state.T;
             for (int n = 0; n < NumSpec; n++) {
-                model_state(MODELINDEX(i, model::ispec+n)) = model_params.xn[n];
+                model::state[MODELINDEX(i, model::ispec+n)] = model_params.xn[n];
             }
 
         }
