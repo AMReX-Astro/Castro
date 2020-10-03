@@ -60,7 +60,15 @@ inline std::string& rtrim(std::string& s)
 
 #define MODELINDEX(I, J) model::nvars*(I)+(J)
 
+AMREX_INLINE
+void
+allocate_model_parser_data(const int npts_in) {
 
+    model::npts = npts_in;
+    model::state.resize(model::npts * model::nvars);
+    model::r.resize(model::npts);
+
+}
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
