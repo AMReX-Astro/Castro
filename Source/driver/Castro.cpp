@@ -552,13 +552,8 @@ Castro::Castro (Amr&            papa,
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
-
-      // If we're doing C++ problem initialization, do it here. We have to make
-      // sure it's done after the above call to init_prob_parameters() in case
-      // any changes are made to the problem parameters.
-
-      problem_initialize();
     }
+
 
     initMFs();
 
@@ -639,6 +634,12 @@ Castro::Castro (Amr&            papa,
       rad_solver.reset(new RadSolve(parent, level, grids, dmap));
     }
 #endif
+
+    // If we're doing C++ problem initialization, do it here. We have to make
+    // sure it's done after the above call to init_prob_parameters() in case
+    // any changes are made to the problem parameters.
+
+    problem_initialize();
 
 }
 
