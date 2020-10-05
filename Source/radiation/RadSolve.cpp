@@ -74,7 +74,6 @@ RadSolve::read_params ()
         radsolve::abstol = 0.0;
     }
 
-#include <radsolve_queries.H>
 
     // Check for unsupported options.
 
