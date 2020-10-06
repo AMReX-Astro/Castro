@@ -188,7 +188,7 @@ schemes from the inputs file; for example,
 
    amr.refine.dens.max_level = 1
    amr.refine.dens.value_greater = 2.0
-   amr.refine.dens.field_name = Density
+   amr.refine.dens.field_name = density
 
    amr.refine.temp.max_level = 2
    amr.refine.temp.value_less = 1.0
@@ -199,9 +199,10 @@ schemes. For each defined name, ``amr.refine.<name>`` accepts predefined fields
 describing when to tag. These are ``max_level`` (maximum level to refine to),
 ``start_time`` (when to start tagging), ``end_time`` (when to stop tagging),
 ``value_greater`` (value above which we refine), ``value_less`` (value below
-which to refine), and ``field_name`` (name of the string defining the field
-in the code). If a refinement indicator is added, either ``value_greater`` or
-``value_less`` must be provided.
+which to refine), ``gradient`` (absolute value of the difference between
+adjacent cells above which we refine), and ``field_name`` (name of the string
+defining the field in the code). If a refinement indicator is added, either
+``value_greater``, ``value_less``, or ``gradient`` must be provided.
 
 .. _sec:amr_synchronization:
 
