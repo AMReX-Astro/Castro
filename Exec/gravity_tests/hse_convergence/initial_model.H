@@ -256,6 +256,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                     eos_state.p = p_want;
                     eos_state.s = entropy_fixed;
+                    eos_state.rho = dens_zone; // initial guess
+                    eos_state.T = model_params.T_base; // initial guess
                     for (int n = 0; n < NumSpec; n++) {
                         eos_state.xn[n] = model_params.xn[n];
                     }
@@ -311,6 +313,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                 eos_state.p = p_want;
                 eos_state.s = entropy_fixed;
+                eos_state.rho = dens_zone; // initial guess
+                eos_state.T = model_params.T_base; // initial guess
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = model_params.xn[n];
                 }
