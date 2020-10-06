@@ -55,10 +55,6 @@ initialize_cpp_runparams()
         ParmParse pp("radiation");
 #include <radiation_queries.H>
     }
-    {
-        ParmParse pp("radsolve");
-#include <radsolve_queries.H>
-    }
 #endif
 
 }
