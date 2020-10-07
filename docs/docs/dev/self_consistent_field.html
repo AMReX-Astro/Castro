@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Self-Consistent Field Initialization &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Restarting from Maestro" href="MAESTRO_restart.html" />
+    <link rel="prev" title="Checkpoint Embiggener" href="ConvertCheckpoint.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../self_consistent_field.html">main</a> | <a href="./self_consistent_field.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Self-Consistent Field Initialization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-and-code-parameters">Usage and Code Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#single-star-algorithm">Single Star Algorithm</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Self-Consistent Field Initialization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/self_consistent_field.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="self-consistent-field-initialization">
+<h1>Self-Consistent Field Initialization<a class="headerlink" href="#self-consistent-field-initialization" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The Hachisu self-consistent field (SCF) method is a way to generate
+equilibrium rotating (or non-rotating) initial configurations. It can
+generate single or multiple star systems. The SCF method was originally
+developed in the 1960s, but it was a variant proposed by Hachisu in 1986
+(<a class="bibtex reference internal" href="zreferences.html#hachisu-1986a" id="id1">[35]</a><a class="bibtex reference internal" href="zreferences.html#hachisu-1986b" id="id2">[36]</a>) that ended up becoming the
+most popular technique. The SCF method was originally developed
+for rapidly rotating single stars, but was soon extended to apply
+to rotating binary systems, and it has been applied to construct
+initial conditions by several groups studying binary white dwarf
+or neutron star systems using several types of rotation laws
+(<a class="bibtex reference internal" href="zreferences.html#newtohline-1997" id="id3">[50]</a><a class="bibtex reference internal" href="zreferences.html#swc-2000" id="id4">[59]</a><a class="bibtex reference internal" href="zreferences.html#motl-2002" id="id5">[49]</a><a class="bibtex reference internal" href="zreferences.html#dsouza-2006" id="id6">[26]</a><a class="bibtex reference internal" href="zreferences.html#motl-2007" id="id7">[48]</a><a class="bibtex reference internal" href="zreferences.html#even-2009" id="id8">[29]</a><a class="bibtex reference internal" href="zreferences.html#kadam-2018" id="id9">[40]</a><a class="bibtex reference internal" href="zreferences.html#yoshida-2018" id="id10">[61]</a>).
+It has also been used for constructing toroidal configurations
+(<a class="bibtex reference internal" href="zreferences.html#kim-2016" id="id11">[44]</a>).
+The technique assumes a uniform temperature and composition (more generally,
+a barotropic equation of state), self-gravitation represented by the
+Poisson equation, and a well-defined rotation law (often rigid-body rotation).
+The user is required to specify three quantities: the maximum density of
+the equilibrium star(s), and two points on the stellar surface. For a
+single star this is usually a point on the equator and a point on a pole.
+For a detached binary system this corresponds to the inner and outer points
+of the teardrop-shape configuration along the axis joining the binary.</p>
+<p>At present we only support generating a single star using the Hachisu
+SCF method, but we plan to extend this in a later release to rotating
+toroidal configurations and binary star systems.</p>
+<p>We note that while the Hachisu SCF method iteratively solves the
+integral form of the Euler equations (essentially, it solves the Bernoulli
+equation from classical fluid dynamics), other approaches have been used
+in the literature. Usually these directly solve the coupled Poisson and
+Bernoulli equations rather than relying on indirect iterative coupling
+between them. See, for example, <a class="bibtex reference internal" href="zreferences.html#eriguchi-1985" id="id12">[28]</a><a class="bibtex reference internal" href="zreferences.html#fujisawa-2015" id="id13">[32]</a> and
+<a class="bibtex reference internal" href="zreferences.html#clement-1974" id="id14">[19]</a><a class="bibtex reference internal" href="zreferences.html#aksenov-1994" id="id15">[11]</a>. These alternative methods are generally
+more powerful and promise faster convergence, but are also more difficult
+to implement. See also <a class="bibtex reference internal" href="zreferences.html#jackson-2005" id="id16">[39]</a> for yet another approach.</p>
+</div>
+<div class="section" id="usage-and-code-parameters">
+<h2>Usage and Code Parameters<a class="headerlink" href="#usage-and-code-parameters" title="Permalink to this headline">¶</a></h2>
+<p>To use the SCF initialization technique, you must compile with
+<code class="docutils literal notranslate"><span class="pre">USE_GRAV=TRUE</span></code> and <code class="docutils literal notranslate"><span class="pre">USE_ROTATION=TRUE</span></code>, and enable the method
+with <code class="docutils literal notranslate"><span class="pre">castro.do_scf_initial_model</span></code> = <code class="docutils literal notranslate"><span class="pre">1</span></code>. You are responsible
+for initializing the grid with an initial guess at the mass distribution.
+This guess does not need to be accurate – for example, just initializing
+with a uniform spherical mass distribution should be sufficient.
+(See <code class="docutils literal notranslate"><span class="pre">Exec/scf_tests/single_star</span></code>.) However, it is important that
+the grid is isothermal and has a uniform composition. This temperature
+and composition will be retained for the final equilibrium configuration.</p>
+<p>Several code parameters are available for controlling problem initialization
+with SCF:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_maximum_density</span></code>: the target maximum density on the domain</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_equatorial_radius</span></code>: the target equatorial radius of the star</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_polar_radius</span></code>: the target polar radius of the star</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.scf_relax_tol</span></code>: tolerance required for SCF convergence</p></li>
+</ul>
+<p>The first three options are required and must be set. One limitation of this
+method is that (to our knowledge) there is no known way to specify more natural
+parameters such as the total mass of the star.</p>
+</div>
+<div class="section" id="single-star-algorithm">
+<h2>Single Star Algorithm<a class="headerlink" href="#single-star-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>The Bernoulli equation tells us</p>
+<div class="math notranslate nohighlight">
+\[\Phi + \phi + H = \mathrm{constant}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Phi\)</span> is the gravitational potential, <span class="math notranslate nohighlight">\(\phi\)</span> is the
+rotational potential (<span class="math notranslate nohighlight">\(\phi = -\omega^2 R^2\)</span> for rigid-body rotation,
+where <span class="math notranslate nohighlight">\(R\)</span> is the radius in the equatorial plane), and <span class="math notranslate nohighlight">\(H\)</span> is the
+enthalpy.</p>
+<p>We denote the prescribed maximum density as <span class="math notranslate nohighlight">\(\rho_0\)</span> and the equatorial
+and polar radii as <span class="math notranslate nohighlight">\(r_A\)</span> and <span class="math notranslate nohighlight">\(r_B\)</span> respectively (the A and B indices
+are chosen to be consistent with Hachisu). At these radii the enthalpy should
+vanish, so we have:</p>
+<div class="math notranslate nohighlight">
+\[C = \Phi_A + \phi_A\]</div>
+<div class="math notranslate nohighlight">
+\[C = \Phi_B + \phi_B\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(C = C_A = C_B\)</span> is constant everywhere on the body.</p>
+<p>Then, given the value of a Bernoulli constant, we can invert the Bernoulli equation to
+obtain the enthalpy:</p>
+<div class="math notranslate nohighlight">
+\[H = C - \Phi - \phi\]</div>
+<p>Given an enthalpy, we can call the equation of state given the enthalpy (and
+composition and temperature) as an input to obtain the density. (Note that
+this inversion generally requires a Newton-Raphson iteration in realistic
+equations of state.)</p>
+<div class="math notranslate nohighlight">
+\[\rho = \rho(T, H, X)\]</div>
+<p>As one more housekeeping item, we’ll notate the rotational potential as</p>
+<div class="math notranslate nohighlight">
+\[\phi = \omega^2 \psi\]</div>
+<p>where <span class="math notranslate nohighlight">\(\psi = -R^2\)</span> for rigid body rotation.</p>
+<p>The above ingredients are all that is needed to construct the algorithm for
+obtaining an equilibrium rotating single star. Given an initial density distribution,
+<span class="math notranslate nohighlight">\(\rho^n\)</span>, gravitational field, <span class="math notranslate nohighlight">\(\Phi^n\)</span>, and rotational field,
+<span class="math notranslate nohighlight">\(\phi^n\)</span>, we first calculate an updated guess for the rotation frequency
+<span class="math notranslate nohighlight">\(\omega\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\omega^{n+1} = \sqrt{\frac{\Phi_B^n - \Phi_A^n}{\psi_A^n - \psi_B^n}}\]</div>
+<p>which simply involves finding <span class="math notranslate nohighlight">\(\Phi\)</span> and <span class="math notranslate nohighlight">\(\psi\)</span> at these vanishing points.</p>
+<p>With the updated rotation frequency, we can reconstruct the rotational potential
+<span class="math notranslate nohighlight">\(\phi\)</span>, and then update the enthalpy everywhere on the domain as:</p>
+<div class="math notranslate nohighlight">
+\[H^{n+1} = C - \Phi - \Phi_R\]</div>
+<p>However, we want to guarantee that the maximum density on the domain is fixed. Given
+that this maximum density corresponds to a maximum enthalpy,</p>
+<div class="math notranslate nohighlight">
+\[H_0 = H(\rho_0, T, X)\]</div>
+<p>we can rescale all of the updated enthalpies such that the maximum is fixed:</p>
+<div class="math notranslate nohighlight">
+\[H^{n+1} \rightarrow H^{n+1} \left( \frac{H_0}{H^{n+1}_{\mathrm{max}}} \right)\]</div>
+<p>and then invert the EOS to obtain <span class="math notranslate nohighlight">\(\rho^{n+1}\)</span>. Given the new density
+distribution, we can then update the gravitational potential, <span class="math notranslate nohighlight">\(\Phi^{n+1}\)</span>,
+by solving the Poisson equation. This procedure is iterated until no zone
+changes its density by more than a factor of <code class="docutils literal notranslate"><span class="pre">castro.scf_relax_tol</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="MAESTRO_restart.html" class="btn btn-neutral float-right" title="Restarting from Maestro" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ConvertCheckpoint.html" class="btn btn-neutral float-left" title="Checkpoint Embiggener" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

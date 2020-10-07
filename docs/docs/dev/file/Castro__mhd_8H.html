@@ -1,0 +1,363 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_mhd.H &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File mhd_eigen.H" href="mhd__eigen_8H.html" />
+    <link rel="prev" title="Mhd" href="../mhd_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Castro__mhd_8H.html">main</a> | <a href="../file/Castro__mhd_8H.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../mhd_files.html">Mhd</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_mhd.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__eigen_8H.html">File mhd_eigen.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__sizes_8H.html">File mhd_sizes.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mhd__util_8H.html">File mhd_util.H</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../mhd_files.html">Mhd</a> &raquo;</li>
+        
+      <li>File Castro_mhd.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__mhd_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-mhd-h">
+<h1>File Castro_mhd.H<a class="headerlink" href="#file-castro-mhd-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv412just_the_mhdN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv312just_the_mhdN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv212just_the_mhdN5amrex4RealEN5amrex4RealE"></span><span id="just_the_mhd__amrex::Real.amrex::Real"></span><span class="target" id="Castro__mhd_8H_1a315adeb8ef338f7899a692678d408b69"></span>void <code class="sig-name descname">just_the_mhd</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv412just_the_mhdN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv427check_for_mhd_cfl_violationRKN5amrex3BoxEKN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
+<span id="_CPPv327check_for_mhd_cfl_violationRKN5amrex3BoxEKN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv227check_for_mhd_cfl_violationRKN5amrex3BoxEKN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="check_for_mhd_cfl_violation__amrex::BoxCR.amrex::RealC.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1ab5e2d53d25db016240f1bbb6784ad064"></span>void <code class="sig-name descname">check_for_mhd_cfl_violation</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qaux_arr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427check_for_mhd_cfl_violationRKN5amrex3BoxEKN5amrex4RealERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">
+<span id="_CPPv33plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="_CPPv23plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="plm__amrex::BoxCR.iC.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1ac3a61c9734174849d79bfcb4519491f3"></span>void <code class="sig-name descname">plm</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <em class="property">const</em> int <em>idir</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>s</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qaux</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flatn</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>By</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bz</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qleft</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qright</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>srcQ</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv43plmRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv47ppm_mhdRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">
+<span id="_CPPv37ppm_mhdRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="_CPPv27ppm_mhdRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="ppm_mhd__amrex::BoxCR.iC.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1ac935c5dfffef2bf8ad50ba4294c947c8"></span>void <code class="sig-name descname">ppm_mhd</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <em class="property">const</em> int <em>idir</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qaux</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flatn</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>By</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Bz</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qleft</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qright</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>srcQ</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv47ppm_mhdRKN5amrex3BoxEKiRKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
+<span id="_CPPv310consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv210consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="consup_mhd__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1ab9045d4ddc5cb0be58c6c8cc457202d7"></span>void <code class="sig-name descname">consup_mhd</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>update</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410consup_mhdRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv410PrimToConsRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">
+<span id="_CPPv310PrimToConsRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv210PrimToConsRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE"></span><span id="PrimToCons__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR"></span><span class="target" id="Castro__mhd_8H_1aaead7d537473fe27aab95abe5e53df07"></span>void <code class="sig-name descname">PrimToCons</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>u_arr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv410PrimToConsRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv49prim_halfRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE">
+<span id="_CPPv39prim_halfRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="_CPPv29prim_halfRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE"></span><span id="prim_half__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1a555ac63a0d622cf6b6e612f772c52722"></span>void <code class="sig-name descname">prim_half</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>q2D</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxy</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxz</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49prim_halfRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv415electric_edge_xRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
+<span id="_CPPv315electric_edge_xRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv215electric_edge_xRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="electric_edge_x__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1aa377f3aa51ce0b9120cf6e1e2ed58c70"></span>void <code class="sig-name descname">electric_edge_x</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>E</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxy</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxz</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415electric_edge_xRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv415electric_edge_yRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
+<span id="_CPPv315electric_edge_yRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv215electric_edge_yRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="electric_edge_y__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1a2e98f40ece6b0569a4c423460eb6f850"></span>void <code class="sig-name descname">electric_edge_y</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>E</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxz</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415electric_edge_yRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv415electric_edge_zRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE">
+<span id="_CPPv315electric_edge_zRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="_CPPv215electric_edge_zRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE"></span><span id="electric_edge_z__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR"></span><span class="target" id="Castro__mhd_8H_1a78f7b3d05451714bfcaaa2359e909e3e"></span>void <code class="sig-name descname">electric_edge_z</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>q_arr</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>E</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxy</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv415electric_edge_zRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv413corner_coupleRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE">
+<span id="_CPPv313corner_coupleRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE"></span><span id="_CPPv213corner_coupleRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE"></span><span id="corner_couple__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.iC.iC.iC.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1ad3c344224a347c5d75b9c3f28925a054"></span>void <code class="sig-name descname">corner_couple</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qr_out</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ql_out</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>ur</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>ul</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxd2</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Ed1</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Ed3</em>, <em class="property">const</em> int <em>d1</em>, <em class="property">const</em> int <em>d2</em>, <em class="property">const</em> int <em>d3</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413corner_coupleRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv49half_stepRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE">
+<span id="_CPPv39half_stepRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE"></span><span id="_CPPv29half_stepRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE"></span><span id="half_step__amrex::BoxCR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::Real:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.iC.iC.iC.amrex::RealC"></span><span class="target" id="Castro__mhd_8H_1aa99d6ba4cfab786756bf242161ede4a7"></span>void <code class="sig-name descname">half_step</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>qr_out</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>ql_out</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>ur</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>ul</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxd1</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flxd2</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Ed</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Ed1</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>Ed2</em>, <em class="property">const</em> int <em>d</em>, <em class="property">const</em> int <em>d1</em>, <em class="property">const</em> int <em>d2</em>, <em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv49half_stepRKN5amrex3BoxERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEEKiKiKiKN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv44hlldRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEKi">
+<span id="_CPPv34hlldRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEKi"></span><span id="_CPPv24hlldRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEKi"></span><span id="hlld__amrex::BoxCR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::RealC:CR.amrex::Array4:amrex::Real:CR.iC"></span><span class="target" id="Castro__mhd_8H_1a67625f675e8a19cc93c622df6402880f"></span>void <code class="sig-name descname">hlld</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Box &amp;<em>bx</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qleft</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>qright</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Array4&lt;<a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real&gt; <em class="property">const</em> &amp;<em>flx</em>, <em class="property">const</em> int <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44hlldRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEEKi" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mhd__eigen_8H.html" class="btn btn-neutral float-right" title="File mhd_eigen.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../mhd_files.html" class="btn btn-neutral float-left" title="Mhd" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

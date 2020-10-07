@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Setting Up Your Own Problem &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Outputting" href="io.html" />
+    <link rel="prev" title="Timestepping and Retries" href="timestepping.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../creating_a_problem.html">main</a> | <a href="./creating_a_problem.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#problem-initialization"><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-files">Optional Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Setting Up Your Own Problem</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/creating_a_problem.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="setting-up-your-own-problem">
+<h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this headline">¶</a></h1>
+<p>Castro problems are organized loosely into groups describing their
+intent (e.g., science, hydro tests, …).  These groups are
+sub-directories under the <cite>Castro/Exec/</cite> directory.  Each problem is
+then placed in a sub-directory of the appropriate group (for example,
+<code class="docutils literal notranslate"><span class="pre">Castro/Exec/hydro_tests/Sedov</span></code> holds the Sedov test problem).</p>
+<p>To create a new problem, you will create a new directory under one
+of the groups and place in it the following files:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
+Castro what options to use and what network and EOS to build.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code> : this holds the problem
+initialization routines, which may be implemented either in Fortran
+or in C++.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
+you problem will read.  These parameters are controlled by the
+<code class="docutils literal notranslate"><span class="pre">probin</span></code> file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Make.package</span></code> : this is a makefile fragment that is included
+during the build process.  It tells the build system about any
+problem-specific files that need to be compiled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code> : this is the main inputs file that controls Castro and
+AMReX’s behavior.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">probin</span></code> : this is the problem-specific inputs file that
+contains Fortran namelists with problem parameters as well as any
+paramters for external physics (e.g., from the StarKiller
+Microphysics)</p></li>
+</ul>
+</div></blockquote>
+<p>The best way to get started writing a new problem is to copy an
+existing problem setup into a new directory.</p>
+<div class="section" id="runtime-parameters">
+<span id="index-0"></span><h2>Runtime parameters<a class="headerlink" href="#runtime-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The problem-specific runtime parameters are defined in <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code>.
+This has the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>name       datatype    default      namelist?     size
+</pre></div>
+</div>
+<p>Here:</p>
+<ul class="simple">
+<li><p><cite>name</cite> is the name of the variable to put into <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code></p></li>
+<li><p><cite>datatype</cite> is one of <code class="docutils literal notranslate"><span class="pre">real</span></code>, <code class="docutils literal notranslate"><span class="pre">integer</span></code>, <code class="docutils literal notranslate"><span class="pre">character</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">logical</span></code>.</p></li>
+<li><p><cite>default</cite> is the default value of the runtime parameter.  It may be
+overridden at runtime by reading from the namelist.</p></li>
+<li><p><cite>namelist</cite> indicates if the variable should be in the namelist and
+controlled at runtime.  The namelist column should have a <code class="docutils literal notranslate"><span class="pre">y</span></code> if
+you want the parameter to be read from the <code class="docutils literal notranslate"><span class="pre">&amp;fortin</span></code> namelist in
+the <code class="docutils literal notranslate"><span class="pre">probin</span></code> file at runtime.  If it is empty or marked with
+<code class="docutils literal notranslate"><span class="pre">n</span></code>, then the variable will still be put into the
+<code class="docutils literal notranslate"><span class="pre">probdata_module</span></code> but it will not be initialized via the namelist.</p></li>
+<li><p><cite>size</cite> is for arrays, and gives their size.  It can be any integer
+or variable that is known to the <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.  If you need a
+variable from a different module to specify the size (for example,
+<code class="docutils literal notranslate"><span class="pre">nspec</span></code> from <code class="docutils literal notranslate"><span class="pre">network</span></code>), then you express the size as a tuple:
+<code class="docutils literal notranslate"><span class="pre">(nspec,</span> <span class="pre">network)</span></code> and the appropriate use statement will be
+added.</p></li>
+</ul>
+<p>The variables will all be initialized for the GPU as well.</p>
+</div>
+<div class="section" id="problem-initialization">
+<h2><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code><a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
+<p>Here we describe the main problem initialization routines. There are
+two implementations, in C++ (<code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code>) and Fortran (<code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code>),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).</p>
+<ul id="index-1">
+<li><p><code class="docutils literal notranslate"><span class="pre">amrex_probinit()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code> (C++):</p>
+<p>This routine is primarily responsible for doing any one-time
+initialization for the problem (like reading in an
+initial model through the <code class="docutils literal notranslate"><span class="pre">model_parser_module</span></code>—see the
+<code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup for an example).</p>
+<p>This routine can also postprocess any of the parameters defined
+in the <code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> file, which are defined in <code class="docutils literal notranslate"><span class="pre">probdata_module</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>many problems set the value of the <code class="docutils literal notranslate"><span class="pre">center()</span></code> array
+from <code class="docutils literal notranslate"><span class="pre">prob_params_module</span></code> here (in C++, the <code class="docutils literal notranslate"><span class="pre">center[]</span></code> variable
+from the <code class="docutils literal notranslate"><span class="pre">problem</span></code> namespace).  This is used to note the
+center of the problem (which does not necessarily need to be
+the center of the domain, e.g., for axisymmetric problems).
+<code class="docutils literal notranslate"><span class="pre">center</span></code> is used in source terms (including rotation and
+gravity) and in computing some of the derived variables (like
+angular momentum).</p>
+</div>
+<p>In Fortran the arguments include the name and length of the probin file
+as well as the physical values of the domain’s lower-left corner
+(<code class="docutils literal notranslate"><span class="pre">problo</span></code>) and upper-right corner (<code class="docutils literal notranslate"><span class="pre">probhi</span></code>). The C++ version
+accepts no arguments, but for example <code class="docutils literal notranslate"><span class="pre">problo</span></code> and <code class="docutils literal notranslate"><span class="pre">probhi</span></code> can
+be obtained by constructing a <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> object using <code class="docutils literal notranslate"><span class="pre">DefaultGeometry()</span></code>
+and accessing its <code class="docutils literal notranslate"><span class="pre">ProbLo()</span></code> and <code class="docutils literal notranslate"><span class="pre">ProbHi()</span></code> methods.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem_state_data()</span></code> (C++):</p>
+<p>This routine will initialize the state data for a single grid.
+In Fortran the inputs to this routine are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: the level of refinement of the grid we are filling</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lo()</span></code>, <code class="docutils literal notranslate"><span class="pre">hi()</span></code>: the integer indices of the box’s
+<em>valid data region</em> lower left and upper right corners. These
+integers refer to a global index space for the level and
+identify where in the computational domain the box lives.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nscal</span></code>: the number of scalar quantities—this is not typically
+used in Castro.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state()</span></code>: the main state array. This is dimensioned as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">NVAR</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">NVAR</span></code> comes from the <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>.  The
+spatial dimensions of the array come in through the arguments
+<code class="docutils literal notranslate"><span class="pre">s_lo</span></code> and <code class="docutils literal notranslate"><span class="pre">s_hi</span></code>.</p>
+<p>When accessing this array, we use the index keys provided by
+meth_params_module (e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>) to refer to specific
+quantities</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: this is an array containing the zone width (<span class="math notranslate nohighlight">\(\Delta x\)</span>)
+in each coordinate direction: <code class="docutils literal notranslate"><span class="pre">delta(1)</span></code> = <span class="math notranslate nohighlight">\(\Delta x\)</span>,
+<code class="docutils literal notranslate"><span class="pre">delta(2)</span></code> = <span class="math notranslate nohighlight">\(\Delta y\)</span>, …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">xhi()</span></code>: these are the physical coordinates of the
+lower left and upper right corners of the <em>valid region</em>
+of the box.  These should not be used, and will be removed in a future
+version of Castro.</p></li>
+</ul>
+</li>
+</ul>
+<p>Filling data is typically done in a loop like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">do</span> <span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+   <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+   <span class="n">do</span> <span class="n">j</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+      <span class="n">do</span> <span class="n">i</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+         <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+         <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span> <span class="o">=</span> <span class="o">...</span>
+
+      <span class="n">end</span> <span class="n">do</span>
+   <span class="n">end</span> <span class="n">do</span>
+<span class="n">end</span> <span class="n">do</span>
+</pre></div>
+</div>
+<p>Here, we compute the coordinates of the zone center, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code>
+from the zone indices, <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, and <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p>
+<blockquote>
+<div><p>In C++, the arguments passed are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code>: the index of the zone to fill the data in</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: an array containing the simulation state data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GeomData</span></code>: a <code class="docutils literal notranslate"><span class="pre">GeometryData</span></code> object that can be used for obtaining
+<code class="docutils literal notranslate"><span class="pre">dx</span></code>, <code class="docutils literal notranslate"><span class="pre">problo</span></code>, <code class="docutils literal notranslate"><span class="pre">probhi</span></code>, etc.</p></li>
+</ul>
+<p>Filling data is done by simply writing to <code class="docutils literal notranslate"><span class="pre">state(i,j,k,URHO)</span></code>, etc.</p>
+</div></blockquote>
+</div>
+<div class="section" id="boundary-conditions">
+<span id="create-bcs"></span><h2>Boundary conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">Standard boundary conditions, including outflow (zero-gradient), periodic,
+and symmetry (reflect) are handled by AMReX directly.  Castro has a special
+hydrostatic boundary condition that can be used for the lower boundary.  It
+is accessed by setting the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> flag to 1 in the vertical coordinate
+direction, e.g., for 2-d as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">lo_bc</span>       <span class="o">=</span>  <span class="mi">0</span>   <span class="mi">1</span>
+</pre></div>
+</div>
+<p>The flag value 1 is traditionally named “inflow” by AMReX, but generally means that
+the boundary implementation is left to the user.  To tell Castro to use the
+hydrostatic boundary condition here, we set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">yl_ext_bc_type</span> <span class="o">=</span> <span class="s2">&quot;hse&quot;</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">hse_interp_temp</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">hse_reflect_vels</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>The first parameter tells Castro to use the HSE boundary condition.
+In filling the ghost cells, hydrostatic equilibrum will be integrated
+from the last interior zone into the boundary.  We need one more
+equation for this integration, so we either interpolate the density or
+temperature into the ghost cells, depending on the value of
+<code class="docutils literal notranslate"><span class="pre">castro.hse_interp_temp</span></code>.  Finally, <code class="docutils literal notranslate"><span class="pre">castro.hse_reflect_vels</span></code>
+determines how we treat the velocity.  The default is to give is a
+zero gradient, but in tests we’ve found that reflecting the velocity
+while integrating the HSE profile can be better.  For modeling a
+plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
+conditions instead of a simple symmetry boundary is essential when
+using the standard CTU PPM solver.</p>
+<p>A different special boundary condition, based on outflow, is available at
+the upper boundary.  This works together with the <code class="docutils literal notranslate"><span class="pre">model_parser</span></code>
+module to fill the ghost cells at the upper boundary with the initial
+model data.  You set this as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">hi_bc</span> <span class="o">=</span> <span class="mi">2</span> <span class="mi">2</span>
+
+<span class="n">castro</span><span class="o">.</span><span class="n">fill_ambient_bc</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">ambient_fill_dir</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">castro</span><span class="o">.</span><span class="n">ambient_outflow_vel</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">ambient_fill_dir</span></code> is the 0-based direction to fill using an
+ambient state defined by the problem setup.  In this example, we will
+override the outflow (2) boundary condition in the y-direction.  That
+problem setup needs to fill the <code class="docutils literal notranslate"><span class="pre">ambient_state(:)</span></code> array defined in
+<code class="docutils literal notranslate"><span class="pre">ambient_module</span></code>.  An example of using this boundary is in the
+<code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> problem.</p>
+<p>The implementations of these boundary conditions is found in
+<code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/bc_ext_fill_nd.F90</span></code>.</p>
+<p>If a problem requires different initial conditions, then they should
+put a version of <code class="docutils literal notranslate"><span class="pre">bc_ext_fill_nd.F90</span></code> into the problem directory and
+modify it as needed.  See the <code class="docutils literal notranslate"><span class="pre">double_mach_reflection</span></code> problem for
+an example of this.</p>
+</div>
+<div class="section" id="optional-files">
+<h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this headline">¶</a></h2>
+<p>The follow problem-specific files are optional. There are stubs for
+each of these in the main source tree.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem.f90</span></code> :</p>
+<p>This provides two routines, <code class="docutils literal notranslate"><span class="pre">problem_checkpoint</span></code> and
+<code class="docutils literal notranslate"><span class="pre">problem_restart</span></code> that can be used to add information to the
+checkpoint files and read it in upon restart. This is useful for
+some global problem-specific quantities. For instance, the
+<code class="docutils literal notranslate"><span class="pre">wdmerger</span></code> problem uses this to store center of mass position and
+velocity information in the checkpoint files that are used for
+runtime diagnostics.</p>
+<p>The name of the checkpoint directory is passed in as an argument.
+<code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code> provides the C++ interfaces for these routines.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_tagging_?d.F90</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code></p>
+<p>This implements problem-specific tagging for refinement, through a
+subroutine <code class="docutils literal notranslate"><span class="pre">set_problem_tags</span></code>. The full hydrodynamic state
+(State_Type) is passed in, and the problem can mark zones for
+refinement by setting the tag variable for a zone to
+set. An example is provided by the <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>
+problem which refines a rectangular region (fuel layer) based on
+a density parameter and the H mass fraction.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem_Derive_F.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code></p>
+<p>Together, these provide a mechanism to create derived quantities
+that can be stored in the plotfile. <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>
+provides the C++ code that defines these new plot variables. It
+does this by adding them to the <code class="docutils literal notranslate"><span class="pre">derive_lst</span></code>—a list of
+derived variables that Castro knows about. When adding new
+variables, a descriptive name, Fortran routine that does the
+deriving, and component of <code class="docutils literal notranslate"><span class="pre">StateData</span></code> are specified.</p>
+<p>The Fortran routine that does the deriving is put in the
+problem-specific <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code> (and a prototype for
+C++ is put in <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>). A example is provided by
+the <code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code> problem, which derives several new
+quantities (perturbations against a background one-dimensional
+model, in this case).</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code></p>
+<p>These files provide problem-specific routines for computing global
+diagnostic information through the sum_integrated_quantities
+functionality that is part of the <code class="docutils literal notranslate"><span class="pre">Castro</span></code> class.</p>
+<p>An example is provided by <code class="docutils literal notranslate"><span class="pre">toy_flame</span></code>, where an estimate
+of the flame speed is computed by integrating the mass of fuel on
+the grid.</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="io.html" class="btn btn-neutral float-right" title="Outputting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="timestepping.html" class="btn btn-neutral float-left" title="Timestepping and Retries" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

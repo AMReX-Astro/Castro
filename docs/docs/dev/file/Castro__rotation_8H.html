@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>File Castro_rotation.H &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="File Rotation.H" href="Rotation_8H.html" />
+    <link rel="prev" title="Rotation" href="../rotation_files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="../_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../../file/Castro__rotation_8H.html">main</a> | <a href="../file/Castro__rotation_8H.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../rotation_files.html">Rotation</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_rotation.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Rotation_8H.html">File Rotation.H</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
+        
+          <li><a href="../rotation_files.html">Rotation</a> &raquo;</li>
+        
+      <li>File Castro_rotation.H</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/file/Castro__rotation_8H.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="file-castro-rotation-h">
+<h1>File Castro_rotation.H<a class="headerlink" href="#file-castro-rotation-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv329construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a47cc1e70495745d2a5a3ed83590477bb"></span>void <code class="sig-name descname">construct_old_rotation_source</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>source</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct rotation source terms at old time</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
+<span id="_CPPv329construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a35ddccae23393f527f14f985ffaee436"></span>void <code class="sig-name descname">construct_new_rotation_source</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>source</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state_old</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state_new</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Construct rotation source terms at new time.</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old State </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New State </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
+<span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a4c054948c6730b382771fdf342d02d0f"></span>void <code class="sig-name descname">fill_rotation_field</code><span class="sig-paren">(</span><a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>phi</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::MultiFab &amp;<em>state</em>, <a class="reference internal" href="Castro__ext__src_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Fill rotational potential and acceleration</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Rotational potential </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: Rotational acceleration </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real">
+<span id="_CPPv34rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="_CPPv24rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="rsrc__BoxCR.Array4:RealC:CR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1ab09ecd463e1840f10b7ba6967b98f2e7"></span>void <code class="sig-name descname">rsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, <em class="property">const</em> Real <em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add the rotation source for input state uold to the full hydrodynamic source term source</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: the full hydrodynamical source term </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE">
+<span id="_CPPv38corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="_CPPv28corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="corrrsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.RealC.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1ae33e4cf3f7de7d7b12d3c5faeb5c09c5"></span>void <code class="sig-name descname">corrrsrc</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_old</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>phi_new</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>uold</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>unew</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>source</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux0</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux1</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>flux2</em>, <em class="property">const</em> Real <em>dt</em>, Array4&lt;Real <em class="property">const</em>&gt; <em class="property">const</em> &amp;<em>vol</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Compute the correction source term for rotation</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_old</span></code>: rotational potential at old time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">phi_new</span></code>: rotational potential at new time </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uold</span></code>: old time state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unew</span></code>: new time state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: full hydrodynamic state </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux0</span></code>: mass flux in x coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux1</span></code>: mass flux in y coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux2</span></code>: mass flux in z coord dir </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vol</span></code>: cell volume </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__rotation_8H_1a9f9af5769474d6d4950d05591cf093b1"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, GpuArray&lt; Real, 3 &gt; const &amp;omega, const bool coriolis, Real *Sr)</code></dt>
+<dd><p>Compute the rotational acceleration for a single zone (Coriolis and centrifugal)</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>: distance from origin of rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>: velocity </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omega</span></code>: rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coriolis</span></code>: do we include the Coriolis force </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sr</span></code>: rotational acceleration </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv425fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real">
+<span id="_CPPv325fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real"></span><span id="_CPPv225fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real"></span><span id="fill_rotational_potential__BoxCR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1a46a558ccb6bb4c66751bc4850fb8c19c"></span>void <code class="sig-name descname">fill_rotational_potential</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>phi</em>, <em class="property">const</em> Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425fill_rotational_potentialRK3BoxRK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv419fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real">
+<span id="_CPPv319fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real"></span><span id="_CPPv219fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real"></span><span id="fill_rotational_psi__BoxCR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1abb36e9941c1071fbe79b8ecea2cc7d42"></span>void <code class="sig-name descname">fill_rotational_psi</code><span class="sig-paren">(</span><em class="property">const</em> Box &amp;<em>bx</em>, Array4&lt;Real&gt; <em class="property">const</em> &amp;<em>psi</em>, <em class="property">const</em> Real <em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotational_psiRK3BoxRK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Rotation_8H.html" class="btn btn-neutral float-right" title="File Rotation.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../rotation_files.html" class="btn btn-neutral float-left" title="Rotation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

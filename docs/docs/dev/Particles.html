@@ -1,0 +1,408 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tracer particles &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Microphysics" href="EOSNetwork.html" />
+    <link rel="prev" title="Radiation" href="radiation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../Particles.html">main</a> | <a href="./Particles.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tracer particles</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#initializing-the-particles">Initializing the Particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-file">Output file</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#run-time-screen-output">Run-time Screen Output</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AMR.html">Adaptive Mesh Refinement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Tracer particles</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Particles.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tracer-particles">
+<h1>Tracer particles<a class="headerlink" href="#tracer-particles" title="Permalink to this headline">¶</a></h1>
+<p>Tracer particles are to track the Lagrangian evolution of a model
+fluid using discrete particles. In hydrodynamical simulations based on
+an Eulerian grid (including CASTRO), thermodynamic variables at a
+given time are derived by solving the equations of motion of a fluid
+between cells. Therefore, in this scheme, the physical quantities that
+we can access to are not discretized quantities at any given position,
+but rather average values over each cell. However, employing discrete
+particles, passively advected with the fluid flow, allows us to obtain
+local instantaneous thermodynamic variables, such as the temperature
+and the density, at well-defined positions, independent of the spatial
+resolution, i.e., the spatial cell size. This means that we can follow
+the evolution of the fluid at any given position and time.</p>
+<p>CASTRO provides a tracer particle scheme with useful options. In this
+scheme, particles are advanced using the midpoint method either with
+the cell-centered velocities or the face-centered velocities
+(Marker-And-Cell method) <a class="footnote-reference brackets" href="#id2" id="id1">1</a>. The number and the initial positions of
+particles are flexibly determined according to the purpose of a given
+model.</p>
+<div class="section" id="initializing-the-particles">
+<h2>Initializing the Particles<a class="headerlink" href="#initializing-the-particles" title="Permalink to this headline">¶</a></h2>
+<p>One must include the tracer particles in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">USE_PARTICLES</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p>And the particles can be initialized via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">do_tracer_particles</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>in the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file.</p>
+<p>If one wants to investigate the evolution of fluid motions starting from specific positions (or a certain range of area or volume), one should manually specify the positions of particles by providing an input file containing the total number and the initial positions of the particles.
+The input file should be in the same directory where your inputs file is located. The name of the input file is determined via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particles</span><span class="o">.</span><span class="n">particle_init_file</span> <span class="o">=</span> <span class="n">particle_file</span>
+</pre></div>
+</div>
+<p>Here <em>particle_file</em> is the user-specified name of the file. The first
+line in this file is assumed to contain the number of particles. Each
+line after that contains the positions in a coordinate system adopted
+for your model. For 3-D cartesian coordinates, <span class="math notranslate nohighlight">\(x ~y ~z\)</span> For
+example, an input file for a model fluid with 6 particles in 2-D
+Cartesian coordinates may look like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">6</span>
+<span class="mf">3.28125e+08</span> <span class="mf">9.9198e+08</span>
+<span class="mf">5.46875e+08</span> <span class="mf">9.9198e+08</span>
+<span class="mf">7.65625e+08</span> <span class="mf">9.9198e+08</span>
+<span class="mf">9.84375e+08</span> <span class="mf">9.9198e+08</span>
+<span class="mf">1.20312e+09</span> <span class="mf">9.9198e+08</span>
+<span class="mf">1.42188e+09</span> <span class="mf">9.9198e+08</span>
+</pre></div>
+</div>
+<p>According to this input file, the 6 particles will be positioned at
+the same height (same <span class="math notranslate nohighlight">\(y\)</span> coordinate in the second column),
+equally spaced in <span class="math notranslate nohighlight">\(x\)</span> direction (the first column except for the
+particle number on the first line) from <span class="math notranslate nohighlight">\(3.28\times10^{8} {\rm
+~cm}\)</span> to <span class="math notranslate nohighlight">\(1.42\times 10^{9} {\rm ~cm}\)</span>.</p>
+</div>
+<div class="section" id="output-file">
+<span id="particles-output-file"></span><h2>Output file<a class="headerlink" href="#output-file" title="Permalink to this headline">¶</a></h2>
+<p>The output files are stored in a directory whose name is determined by
+a variable <code class="docutils literal notranslate"><span class="pre">particles.timestamp_dir</span></code>. For example, if the variable is
+set as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particles</span><span class="o">.</span><span class="n">timestamp_dir</span> <span class="o">=</span> <span class="n">particle</span>\<span class="n">_dir</span>
+</pre></div>
+</div>
+<p>A directory <em>particle_dir</em> is automatically made with the directories
+for the main CASTRO output file (<code class="docutils literal notranslate"><span class="pre">pltXXXXX</span></code>) once a simulation starts
+and the particle output files are stored inside that directory.</p>
+<p>The name of the output file consists of <code class="docutils literal notranslate"><span class="pre">Timestamp_</span></code> along with a
+number at the end. The number increases (typically from 00) as more
+processors are involved in following the trajectories of particles. In
+parallel computing, a computational domain is divided according to the
+number of processors requested. Then each processor only follows the
+particles on the domain assigned to that processor and records their
+positions and velocities at any given time in a different output
+file. Since it is possible for particles to move from one domain to
+another during the evolution, its history can be stored in different
+files. More output files (with larger numbers at the end of the file
+name) can be produced as more processors track the particles.</p>
+<p>By default, the output file contains the positions and velocities of
+all particles at a given time, meaning [<span class="math notranslate nohighlight">\(3+ 2\times\)</span>dimensionality] columns. For example, for particles in a 3-D domain,
+the columns in the output file are,</p>
+<p><span class="math notranslate nohighlight">\({\rm index1}~~{\rm index2}~~x~~ y~~ z~~ t~~ v_{\rm x} ~~v_{\rm y}~~ v_{\rm z}~~ [\rho ~~ T]\)</span></p>
+<p>The first two integers correspond to the particle index and the
+processor number.  One should use the two numbers in order to identify
+a particle and extract its history (i.e., the trajectory in <a class="reference internal" href="#fig-particletrajectory"><span class="std std-numref">Fig. 8</span></a>.</p>
+<div class="figure align-default" id="id3">
+<img alt="_images/fluid_motion.png" src="_images/fluid_motion.png" />
+<p class="caption"><span class="caption-number">Fig. 7 </span><span class="caption-text">A model atmosphere with the arrows showing the direction of the fluid motion.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<div class="figure align-default" id="id4">
+<span id="fig-particletrajectory"></span><img alt="_images/tracer_trajectory.png" src="_images/tracer_trajectory.png" />
+<p class="caption"><span class="caption-number">Fig. 8 </span><span class="caption-text">The trajectories of 500 particles following the fluid motion on the
+atmosphere. The particles are initially positioned at five
+different heights, <span class="math notranslate nohighlight">\(y=13000\mathrm{~km},~11000\mathrm{~km},~
+8000\mathrm{~km},~ 6000\mathrm{~km}, ~38000\mathrm{~km}\)</span> (100
+particles at each height).  The solid lines represent the
+trajectories of the particles.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+</div>
+<p>One can also add the last two columns <span class="math notranslate nohighlight">\([\rho ~~ T]\)</span>, i.e., the
+local density and local temperature of fluid at the position of each
+particle by setting the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particles</span><span class="o">.</span><span class="n">timestamp_temperature</span><span class="o">=</span> <span class="mi">1</span>
+<span class="n">particles</span><span class="o">.</span><span class="n">timestamp_density</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>For example, let’s consider 10 particles on a domain. If 4 out 10
+particles are initially on a processor and the rest are on another
+processor, this means two processors are tracking the particles and
+two output files are produced. In the output file written by the
+processor with 4 particles, one can find that four lines are stored at
+the same time and each line corresponds to each particle info. while
+in the other output file for the other 6 particles, 6 lines are stored
+at the same time.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">particles.write_in_plotfile</span></code> = 1, the particle data are stored
+in a binary file along with the main CASTRO output plotfile in
+directories <code class="docutils literal notranslate"><span class="pre">pltXXXXX/Tracer/</span></code>.</p>
+<div class="section" id="run-time-screen-output">
+<h3>Run-time Screen Output<a class="headerlink" href="#run-time-screen-output" title="Permalink to this headline">¶</a></h3>
+<p>The verbosity written to the screen at run-time is turned off by setting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">particles</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>One can simplify interpolation with the cell-centered
+velocity. However, this can lead to decoupling of the pressure and
+the velocity components, possibly resulting in instability. This
+can be avoided with the face-centered velocity</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="EOSNetwork.html" class="btn btn-neutral float-right" title="Microphysics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="radiation.html" class="btn btn-neutral float-left" title="Radiation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>

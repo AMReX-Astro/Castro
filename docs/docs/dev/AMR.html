@@ -1,0 +1,756 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Adaptive Mesh Refinement &mdash; Castro  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Checkpoint Embiggener" href="ConvertCheckpoint.html" />
+    <link rel="prev" title="Spectral Deferred Corrections" href="sdc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Castro
+          
+
+          
+            
+            <img src="_static/castro_logo_hot_200.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+    <div class="branch">
+        Branch: <a href="../AMR.html">main</a> | <a href="./AMR.html">development</a>
+    </div>
+
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Castro basics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Preface.html">Preface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction to Castro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inputs.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rp_intro.html">Runtime Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FlowChart.html">Flowchart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="software.html">Software Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="problem_setups.html">Distributed Problem Setups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="creating_a_problem.html">Setting Up Your Own Problem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">Outputting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Castro reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="build_system.html">Build System Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu_porting.html">Offloading a routine to GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Hydrodynamics.html">Hydrodynamics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mhd.html">MHD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">Gravity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="diffusion.html">Diffusion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rotation.html">Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sponge.html">Sponge</a></li>
+<li class="toctree-l1"><a class="reference internal" href="radiation.html">Radiation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Particles.html">Tracer particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EOSNetwork.html">Microphysics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sdc.html">Spectral Deferred Corrections</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adaptive Mesh Refinement</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tagging-for-refinement">Tagging for Refinement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#synchronization-algorithm">Synchronization Algorithm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#synchronization-methodology">Synchronization Methodology</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-terms">Source Terms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#synchronization-timing">Synchronization Timing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConvertCheckpoint.html">Checkpoint Embiggener</a></li>
+<li class="toctree-l1"><a class="reference internal" href="self_consistent_field.html">Self-Consistent Field Initialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MAESTRO_restart.html">Restarting from Maestro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Verification.html">Verification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development Best Practices</a></li>
+</ul>
+<p class="caption"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="filelist.html">File list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlist.html">Class list</a></li>
+</ul>
+<p class="caption"><span class="caption-text">References</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="zreferences.html">References</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Castro</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Adaptive Mesh Refinement</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/AMR.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="adaptive-mesh-refinement">
+<span id="ch-amr"></span><h1>Adaptive Mesh Refinement<a class="headerlink" href="#adaptive-mesh-refinement" title="Permalink to this headline">¶</a></h1>
+<p>Our approach to adaptive refinement in Castro uses a nested hierarchy
+of logically-rectangular grids with simultaneous refinement of the
+grids in both space and time. The integration algorithm on the grid
+hierarchy is a recursive procedure in which coarse grids are advanced
+in time, fine grids are advanced multiple steps to reach the same time
+as the coarse grids and the data at different levels are then
+synchronized.</p>
+<p>During the regridding step, increasingly finer grids
+are recursively embedded in coarse grids until the solution is
+sufficiently resolved. An error estimation procedure based on
+user-specified criteria (described in Section <a class="reference external" href="#sec:tagging">1</a>)
+evaluates where additional refinement is needed
+and grid generation procedures dynamically create or
+remove rectangular fine grid patches as resolution requirements change.</p>
+<p>A good introduction to the style of AMR used here is in Lecture 1
+of the Adaptive Mesh Refinement Short Course at
+<a class="reference external" href="https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf">https://ccse.lbl.gov/people/jbb/shortcourse/lecture1.pdf</a>.</p>
+<div class="section" id="tagging-for-refinement">
+<span id="sec-tagging"></span><h2>Tagging for Refinement<a class="headerlink" href="#tagging-for-refinement" title="Permalink to this headline">¶</a></h2>
+<p>Castro determines what zones should be tagged for refinement at the
+next regridding step by using a set of built-in routines that test on
+quantities such as the density and pressure and determining whether
+the quantities themselves or their gradients pass a user-specified
+threshold. This may then be extended if amr.n_error_buf <span class="math notranslate nohighlight">\(&gt; 0\)</span>
+to a certain number of zones beyond these tagged zones. This section
+describes the process by which zones are tagged, and describes how to
+add customized tagging criteria.</p>
+<p>The routines for tagging cells are located in the
+Tagging_nd.f90 file in the Source/driver/ directory. (These are
+dimension-agnostic routines that loop over all three dimensional
+indices even for 1D or 2D problems.) The main routines are
+ca_denerror, ca_temperror, ca_presserror,
+ca_velerror, and ca_raderror. They refine based on
+density, temperature, pressure, velocity, and radiation energy density
+(if enabled), respectively. The same approach is used for all of
+them. As an example, we consider the density tagging routine. There
+are four parameters that control tagging. If the density in a zone is
+greater than the user-specified parameter denerr, then that
+zone will be tagged for refinement, but only if the current AMR level
+is less than the user-specified parameter max_denerr_lev.
+Similarly, if the absolute density gradient between a zone and any
+adjacent zone is greater than the user-specified parameter
+dengrad, that zone will be tagged for refinement, but only
+if we are currently on a level below
+max_dengrad_lev. Note that setting denerr alone
+will not do anything; you’ll need to set max_dengrad_lev <span class="math notranslate nohighlight">\(&gt;=
+1\)</span> for this to have any effect.</p>
+<p>All four of these parameters are set in the &amp;tagging namelist
+in your probin file. If left unmodified, they
+default to a value that means we will never tag. The complete set of
+parameters that can be controlled this way is the following:</p>
+<ul class="simple">
+<li><p>density:</p>
+<ul>
+<li><p>value: denerr, max_denerr_lev</p></li>
+<li><p>gradient: dengrad, max_dengrad_lev</p></li>
+</ul>
+</li>
+<li><p>temperature:</p>
+<ul>
+<li><p>value: temperr, max_temperr_lev</p></li>
+<li><p>gradient: tempgrad, max_tempgrad_lev</p></li>
+</ul>
+</li>
+<li><p>velocity (magnitude):</p>
+<ul>
+<li><p>value: velerr, max_velerr_lev</p></li>
+<li><p>gradient: velgrad, max_velgrad_lev</p></li>
+</ul>
+</li>
+<li><p>pressure:</p>
+<ul>
+<li><p>value: presserr, max_presserr_lev</p></li>
+<li><p>gradient: pressgrad, max_pressgrad_lev</p></li>
+</ul>
+</li>
+<li><p>radiation energy density:</p>
+<ul>
+<li><p>value: raderr, max_raderr_lev</p></li>
+<li><p>gradient: radgrad, max_radgrad_lev</p></li>
+</ul>
+</li>
+</ul>
+<p>Since there are multiple algorithms for determining
+whether a zone is tagged or not, it is worthwhile to specify
+in detail what is happening to a zone in the code during this step.
+We show this in the following pseudocode section. A zone
+is tagged if the variable itag = SET, and is not tagged
+if itag = CLEAR (these are mapped to 1 and 0, respectively).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">itag</span> <span class="o">=</span> <span class="n">CLEAR</span>
+
+<span class="k">for</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="kn">from</span> <span class="nn">k</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">...</span> <span class="n">N</span>
+    <span class="o">//</span> <span class="n">Three</span> <span class="n">possibilities</span> <span class="k">for</span> <span class="n">itag</span><span class="p">:</span> <span class="n">SET</span> <span class="ow">or</span> <span class="n">CLEAR</span> <span class="ow">or</span> <span class="n">remaining</span> <span class="n">unchanged</span>
+    <span class="n">call</span> <span class="n">errfunc</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">itag</span><span class="p">)</span>
+<span class="n">end</span> <span class="k">for</span>
+</pre></div>
+</div>
+<p>In particular, notice that there is an order dependence of this operation; if errfunc[2]
+CLEARs a zone and then errfunc[3] SETs that zone, the final operation will
+be to tag that zone (and vice versa). In practice by default this does not matter, because the
+built-in tagging routines never explicitly perform a <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code>. However,
+it is possible to overwrite the Tagging_nd.f90 file if you want to change how
+ca_denerror, ca_temperror, etc. operate. This is not recommended, and if you do so
+be aware that CLEARing a zone this way may not have the desired effect.</p>
+<p>We provide also the ability for the user to define their own tagging criteria.
+This is done through the Fortran function set_problem_tags in the
+problem_tagging_d.f90 files. This function is provided the entire
+state (including density, temperature, velocity, etc.) and the array
+of tagging status for every zone. As an example of how to use this, suppose we
+have a 3D Cartesian simulation where we want to tag any zone that has a
+density gradient greater than 10, but we don’t care about any regions
+outside a radius <span class="math notranslate nohighlight">\(r &gt; 75\)</span> from the problem origin; we leave them always unrefined.
+We also want to ensure that the region <span class="math notranslate nohighlight">\(r \leq 10\)</span> is always refined.
+In our probin file we would set denerr = 10 and max_denerr_lev = 1
+in the &amp;tagging namelist. We would also make a copy of
+problem_tagging_3d.f90 to our work directory and set it up as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">subroutine</span> <span class="n">set_problem_tags</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span><span class="n">tagl1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">,</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagh3</span><span class="p">,</span> <span class="o">&amp;</span>
+                            <span class="n">state</span><span class="p">,</span><span class="n">state_l1</span><span class="p">,</span><span class="n">state_l2</span><span class="p">,</span><span class="n">state_l3</span><span class="p">,</span> <span class="o">&amp;</span>
+                            <span class="n">state_h1</span><span class="p">,</span><span class="n">state_h2</span><span class="p">,</span><span class="n">state_h3</span><span class="p">,</span><span class="o">&amp;</span>
+                            <span class="nb">set</span><span class="p">,</span><span class="n">clear</span><span class="p">,</span><span class="o">&amp;</span>
+                            <span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">,</span><span class="o">&amp;</span>
+                            <span class="n">dx</span><span class="p">,</span><span class="n">problo</span><span class="p">,</span><span class="n">time</span><span class="p">,</span><span class="n">level</span><span class="p">)</span>
+
+  <span class="n">use</span> <span class="n">bl_constants_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">ZERO</span><span class="p">,</span> <span class="n">HALF</span>
+  <span class="n">use</span> <span class="n">prob_params_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">center</span>
+  <span class="n">use</span> <span class="n">meth_params_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">URHO</span><span class="p">,</span> <span class="n">UMX</span><span class="p">,</span> <span class="n">UMY</span><span class="p">,</span> <span class="n">UMZ</span><span class="p">,</span> <span class="n">UEDEN</span><span class="p">,</span> <span class="n">NVAR</span>
+
+  <span class="n">implicit</span> <span class="n">none</span>
+
+  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">state_l1</span><span class="p">,</span><span class="n">state_l2</span><span class="p">,</span><span class="n">state_l3</span><span class="p">,</span> <span class="o">&amp;</span>
+                                    <span class="n">state_h1</span><span class="p">,</span><span class="n">state_h2</span><span class="p">,</span><span class="n">state_h3</span>
+  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">tagl1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">,</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagh3</span>
+  <span class="n">double</span> <span class="n">precision</span><span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">state_l1</span><span class="p">:</span><span class="n">state_h1</span><span class="p">,</span> <span class="o">&amp;</span>
+                                          <span class="n">state_l2</span><span class="p">:</span><span class="n">state_h2</span><span class="p">,</span> <span class="o">&amp;</span>
+                                          <span class="n">state_l3</span><span class="p">:</span><span class="n">state_h3</span><span class="p">,</span><span class="n">NVAR</span><span class="p">)</span>
+  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">tag</span><span class="p">(</span><span class="n">tagl1</span><span class="p">:</span><span class="n">tagh1</span><span class="p">,</span><span class="n">tagl2</span><span class="p">:</span><span class="n">tagh2</span><span class="p">,</span><span class="n">tagl3</span><span class="p">:</span><span class="n">tagh3</span><span class="p">)</span>
+  <span class="n">double</span> <span class="n">precision</span><span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">dx</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="n">time</span>
+  <span class="n">integer</span>         <span class="p">,</span><span class="n">intent</span><span class="p">(</span><span class="ow">in</span>   <span class="p">)</span> <span class="p">::</span> <span class="n">level</span><span class="p">,</span><span class="nb">set</span><span class="p">,</span><span class="n">clear</span>
+
+  <span class="n">double</span> <span class="n">precision</span> <span class="p">::</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">r</span>
+
+  <span class="n">do</span> <span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+     <span class="n">z</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+     <span class="n">do</span> <span class="n">j</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">do</span> <span class="n">i</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+           <span class="n">x</span> <span class="o">=</span> <span class="n">problo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">HALF</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+           <span class="n">r</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">HALF</span><span class="p">)</span>
+
+           <span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">&gt;</span> <span class="mf">75.0</span><span class="p">)</span> <span class="n">then</span>
+             <span class="n">tag</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="n">clear</span>
+           <span class="n">elseif</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="mf">10.0</span><span class="p">)</span> <span class="n">then</span>
+             <span class="n">tag</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="nb">set</span>
+           <span class="n">endif</span>
+        <span class="n">enddo</span>
+     <span class="n">enddo</span>
+  <span class="n">enddo</span>
+
+<span class="n">end</span> <span class="n">subroutine</span> <span class="n">set_problem_tags</span>
+</pre></div>
+</div>
+<p>We also provide a mechanism for defining a limited set of refinement
+schemes from the inputs file; for example,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">amr</span><span class="o">.</span><span class="n">refinement_indicators</span> <span class="o">=</span> <span class="n">dens</span> <span class="n">temp</span>
+
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">max_level</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">value_greater</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">dens</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">density</span>
+
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">max_level</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">value_less</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">amr</span><span class="o">.</span><span class="n">refine</span><span class="o">.</span><span class="n">temp</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">Temp</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">amr.refinement_indicators</span></code> is a list of user-defined names for refinement
+schemes. For each defined name, <code class="docutils literal notranslate"><span class="pre">amr.refine.&lt;name&gt;</span></code> accepts predefined fields
+describing when to tag. These are <code class="docutils literal notranslate"><span class="pre">max_level</span></code> (maximum level to refine to),
+<code class="docutils literal notranslate"><span class="pre">start_time</span></code> (when to start tagging), <code class="docutils literal notranslate"><span class="pre">end_time</span></code> (when to stop tagging),
+<code class="docutils literal notranslate"><span class="pre">value_greater</span></code> (value above which we refine), <code class="docutils literal notranslate"><span class="pre">value_less</span></code> (value below
+which to refine), <code class="docutils literal notranslate"><span class="pre">gradient</span></code> (absolute value of the difference between
+adjacent cells above which we refine), and <code class="docutils literal notranslate"><span class="pre">field_name</span></code> (name of the string
+defining the field in the code). If a refinement indicator is added, either
+<code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
+</div>
+<div class="section" id="synchronization-algorithm">
+<span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>Here we present the AMR algorithm for the compressible equations with
+self-gravity. The gravity component of the algorithm is closely
+related to (but not identical to) that in Miniati and Colella, JCP,
+2007. The content here is largely based on the content in the original
+Castro paper (<a class="bibtex reference internal" href="zreferences.html#castro-i" id="id1">[12]</a>). The most significant difference is the
+addition of a different strategy for when to employ the synchronization;
+but regardless of whether the original or new strategy is used, the fundamental
+synchronization step is identical.</p>
+<div class="section" id="synchronization-methodology">
+<span id="sec-synchronization-methodology"></span><h3>Synchronization Methodology<a class="headerlink" href="#synchronization-methodology" title="Permalink to this headline">¶</a></h3>
+<p>Over a coarse grid time step we collect flux register information for
+the hyperbolic part of the synchronization:</p>
+<div class="math notranslate nohighlight">
+\[\delta\Fb = -\Delta t_c A^c F^c + \sum \Delta t_f A^f F^f\]</div>
+<p>Analogously, at the end of a coarse grid time step we store the
+mismatch in normal gradients of <span class="math notranslate nohighlight">\(\phi\)</span> at the coarse-fine interface:</p>
+<div class="math notranslate nohighlight">
+\[\delta F_\phi =  - A^c \frac{\partial \phi^c}{\partial n}
++ \sum A^f \frac{\partial \phi^f}{\partial n}\]</div>
+<p>We want the composite <span class="math notranslate nohighlight">\(\phi^{c-f}\)</span> to satisfy the multilevel
+version of (<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(4)</a>) at the synchronization time, just
+as we want the coarse and fine fluxes at that time to match. So the goal
+is to synchronize <span class="math notranslate nohighlight">\(\phi\)</span> across levels at that time and then zero out
+this mismatch register.</p>
+<p>At the end of a coarse grid time step we can define
+<span class="math notranslate nohighlight">\({\overline{\Ub}}^{c-f}\)</span> and <span class="math notranslate nohighlight">\(\overline{\phi}^{c-f}\)</span> as the composite
+of the data from coarse and fine grids as a provisional solution at
+time <span class="math notranslate nohighlight">\(n+1\)</span>. (Assume <span class="math notranslate nohighlight">\(\overline{\Ub}\)</span> has been averaged down so that
+the data on coarse cells underlying fine cells is the average of the
+fine cell data above it.)</p>
+<p>The synchronization consists of two parts:</p>
+<ul>
+<li><p>Step 1: Hyperbolic reflux</p>
+<p>In the hyperbolic reflux step, we update the conserved variables with
+the flux synchronization and adjust the gravitational terms to reflect
+the changes in <span class="math notranslate nohighlight">\(\rho\)</span> and <span class="math notranslate nohighlight">\(\ub\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[{\Ub}^{c, \star} = \overline{\Ub}^{c} + \frac{\delta\Fb}{V},\]</div>
+<p>where <span class="math notranslate nohighlight">\(V\)</span> is the volume of the cell and the correction from
+<span class="math notranslate nohighlight">\(\delta\Fb\)</span> is supported only on coarse cells adjacent to fine grids.</p>
+<p>Note: this can be enabled/disabled via castro.do_reflux. Generally,
+it should be enabled (1).</p>
+<p>Also note that for axisymmetric or 1D spherical coordinates, the
+reflux of the pressure gradient is different, since it cannot be
+expressed as a divergence in those geometries. We use a separate
+flux register in the hydro code to store the pressure term in these
+cases.</p>
+</li>
+<li><p>Step 2: Gravitational synchronization</p>
+<p>In this step we correct for the mismatch in normal derivative in
+<span class="math notranslate nohighlight">\(\phi^{c-f}\)</span> at the coarse-fine interface, as well as accounting for
+the changes in source terms for <span class="math notranslate nohighlight">\((\rho \ub)\)</span> and <span class="math notranslate nohighlight">\((\rho E)\)</span> due to the
+change in <span class="math notranslate nohighlight">\(\rho.\)</span></p>
+<p>On the coarse grid only, we define</p>
+<div class="math notranslate nohighlight">
+\[(\delta \rho)^{c} =  \rho^{c, \star} - {\overline{\rho}}^{c}  .\]</div>
+<p>We then form the composite residual, which is composed of two
+contributions. The first is the degree to which the current <span class="math notranslate nohighlight">\(\overline{\phi}^{c-f}\)</span> does not satisfy the original equation on a
+composite grid (since we have solved for <span class="math notranslate nohighlight">\(\overline{\phi}^{c-f}\)</span>
+separately on the coarse and fine levels). The second is the response
+of <span class="math notranslate nohighlight">\(\phi\)</span> to the change in <span class="math notranslate nohighlight">\(\rho.\)</span> We define</p>
+<div class="math notranslate nohighlight">
+\[R \equiv  4 \pi G \rho^{\star,c-f} - \Delta^{c-f} \; \overline{\phi}^{c-f}
+= - 4 \pi G (\delta \rho)^c - (\nabla \cdot \delta F_\phi ) |_c   .\]</div>
+<p>Then we solve</p>
+<div class="math notranslate nohighlight">
+\[\Delta^{c-f} \; \delta \phi^{c-f} = R
+\label{eq:gravsync}\]</div>
+<p>as a two level solve at the coarse and fine levels.
+We define the update to gravity,</p>
+<div class="math notranslate nohighlight">
+\[\delta {\bf g}^{c-f} = \nabla (\delta \phi^{c-f})  .\]</div>
+<p>Finally, we need to</p>
+<ul>
+<li><p>add <span class="math notranslate nohighlight">\(\delta \phi^{c-f}\)</span> directly to
+to <span class="math notranslate nohighlight">\(\phi^{c}\)</span> and <span class="math notranslate nohighlight">\(\phi^{f}\)</span> and interpolate <span class="math notranslate nohighlight">\(\delta \phi^{c-f}\)</span> to any finer
+levels and add to the current <span class="math notranslate nohighlight">\(\phi\)</span> at those levels.</p></li>
+<li><p>if level <span class="math notranslate nohighlight">\(c\)</span> is not the coarsest level in the calculation, then we must transmit the
+effect of this change in <span class="math notranslate nohighlight">\(\phi\)</span> to the coarser levels by updating the flux register between
+level <span class="math notranslate nohighlight">\(c\)</span> and the next coarser level, <span class="math notranslate nohighlight">\(cc.\)</span> In particular, we set</p>
+<div class="math notranslate nohighlight">
+\[\delta {F_\phi}^{cc-c} = \delta F_\phi^{cc-c}
++ \sum A^c \frac{\partial (\delta \phi)^{c-f}}{\partial n}  .\]</div>
+</li>
+</ul>
+<p>The gravity synchronization algorithm can be disabled with
+gravity.no_sync = 1. This should be done with care. Generally,
+it is okay only if he refluxing happens in regions of low density that
+don’t affect the gravity substantially.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="source-terms">
+<span id="sec-synchronization-sources"></span><h3>Source Terms<a class="headerlink" href="#source-terms" title="Permalink to this headline">¶</a></h3>
+<p>After a synchronization has been applied, the state on the coarse grid
+has changed, due to the change in fluxes at the coarse-fine boundary as
+well as the change in the gravitational field. This poses a problem
+regarding the source terms, all of which generally rely either on the
+state itself, or on the global variables affected by the synchronization
+such as the gravitational field. The new-time sources constructed on the
+coarse grid all depended on what the state was after the coarse-grid
+hydrodynamic update, but the synchronization and associated flux
+correction step retroactively changed that hydrodynamic update. So one
+can imagine that in a perfect world, we would have calculated the
+hydrodynamic update first, including the coarse-fine mismatch
+corrections, and only then computed the source terms at the new time.
+Indeed, an algorithm that did not subcycle, but marched every zone along
+at the same timestep, could do so – and some codes, like FLASH,
+actually do this, where no new-time source terms are computed on any
+level until the hydrodynamic update has been fully completed and the
+coarse-fine mismatches corrected. But in Castro we cannot do this; in
+general we assume the ability to subcycle, so the architecture is set up
+to always calculate the new-time source terms on a given level
+immediately after the hydrodynamic update on that level. Hence on the
+coarse level we calculate the new-time source terms before any fine grid
+timesteps occur.</p>
+<p>One way to fix this, as suggested by Miniati and Colella for the case
+of gravity, is to explicitly compute what the difference in the source
+term is as a result of any flux corrections across coarse-fine
+boundaries. They work out the form of this update for the case of a
+cell-centered gravitational force, which has contributions from both
+the density advected across the coarse-fine interfaces
+(i.e. <span class="math notranslate nohighlight">\(\delta \rho \mathbf{g}\)</span>, where <span class="math notranslate nohighlight">\(\delta \rho\)</span> is the density
+change due to the coarse-fine synchronization on the coarse rid), as
+well as the global change in the gravitational field due to the
+collective mass motion (see Miniati and Colella for the explicit form
+of the source term). This has a couple of severe limitations. First,
+it means that when the form of the source term is changed, the form of
+the corrector term is changed too. For example, it is less easy to
+write down the form of this corrector term for the flux-based
+gravitational energy source term that is now standard in Castro.
+Second, gravity is a relatively easy case due to its linearity in the
+density and the gravitational acceleration; other source terms
+representing more complicated physics might not have an easily
+expressible representation in terms of the reflux contribution. For
+example, for a general nuclear reaction network (that does not have an
+analytic solution), it is not possible to write down an analytic
+expression for the nuclear reactions that occur because of
+<span class="math notranslate nohighlight">\(\delta \rho\)</span>.</p>
+<p>Instead we choose a more general approach. On the coarse level, we save
+the new-time source terms that were applied until the end of the fine
+timesteps. We also save the fine level new-time source terms. Then, when
+we do the AMR synchronization after a fine timestep, we first subtract
+the previously applied new-time source terms to both the coarse and the
+fine level, then do the flux correction and associated gravitational
+sync solve, and then re-compute the new-time source terms on both the
+coarse and the fine level <a class="footnote-reference brackets" href="#id5" id="id2">1</a>. In this way, we get almost
+the ideal behavior – if we aren’t subcycling, then we get essentially
+the same state at the end of the fine timestep as we would in a code
+that explicitly had no subcycling. The cost is re-computing the new-time
+source terms that second time on each level. For most common source
+terms such as gravity, this is not a serious problem – the cost of
+re-computing <span class="math notranslate nohighlight">\(\rho \mathbf{g}\)</span> (for example, once you already know
+<span class="math notranslate nohighlight">\(\mathbf{g}\)</span>) is negligible compared to the cost of actually computing
+<span class="math notranslate nohighlight">\(\mathbf{g}\)</span> itself (say, for self-gravity). If you believe that the
+error in not recomputing the source terms is sufficiently low, or the
+computational cost of computing them too high, you can disable this
+behavior <a class="footnote-reference brackets" href="#id6" id="id3">2</a> using the
+code parameter castro.update_sources_after_reflux.</p>
+<p>Note that at present nuclear reactions are not enabled as part of this
+scheme, and at present are not automatically updated after an AMR
+synchronization. This will be amended in a future release of Castro.</p>
+</div>
+<div class="section" id="synchronization-timing">
+<span id="sec-synchronization-timing"></span><h3>Synchronization Timing<a class="headerlink" href="#synchronization-timing" title="Permalink to this headline">¶</a></h3>
+<p>The goal of the synchronization step is for the coarse and fine grid to
+match at the end of a coarse timesteps, after all subcycled fine grid
+timesteps have been completed and the two levels have reached the same
+simulation time. If subcycling is disabled, so that the coarse and fine
+grid take the same timestep, then this is sufficient. However, in the
+general subcycling case, the situation is more complicated. Consider the
+discussion about source terms in <a class="reference external" href="#sec:synchronization_sources">2.2</a>. If
+we have a coarse level and one fine level with a refinement ratio of
+two, then for normal subcycling the fine grid takes two timesteps for
+every one timestep taken by the coarse level. The strategy advocated by
+the original Castro paper (and Miniati and Colella) is to only do the
+AMR synchronization at the actual synchronization time between coarse
+and fine levels, that is, at the end of the second fine timestep.
+Consequently, we actually only update the source terms after that second
+fine timestep. Thus note that on the fine grid, only the <em>new-time</em>
+source terms in the <em>second</em> fine timestep are updated. But a
+moment’s thought should reveal a limitation of this. The first fine grid
+timestep was also responsible for modifying the fluxes on the coarse
+grid, but the algorithm as presented above didn’t take full account of
+this information. So, the gravitational field at the old time in
+the second fine timestep is actually missing information that would have
+been present if we had updated the coarse grid already. Is there a way
+to use this information? For the assumptions we make in Castro, the
+answer is actually yes. If we apply the effect of the synchronization
+not at the synchronization time but at the end of every fine
+timestep, then every fine timestep always has the most up-to-date
+information possible about the state of the gravitational field. Now, of
+course, in fine timesteps before the last one, we have not actually
+reached the synchronization time. But we already know at the end of the
+first fine timestep what the synchronization correction will be from
+that fine timestep: it will be equal to 1/2 of the coarse contribution
+to the flux register and the normal contribution to the flux register
+for just that timestep. This is true because in Castro, we assume that
+the fluxes provided by the hydrodynamic solver are piecewise-constant
+over the timestep, which is all that is needed to be second-order
+accurate in time if the fluxes are time centered <a class="footnote-reference brackets" href="#id7" id="id4">3</a>. So it is fair to say
+that halfway through the coarse timestep, half of the coarse flux has
+been advected, and we can mathematically split the flux register into
+two contributions that have equal weighting from the coarse flux. (In
+general, of course, the coarse flux contribution at each fine timestep
+is weighted by <span class="math notranslate nohighlight">\(1/R\)</span> where <span class="math notranslate nohighlight">\(R\)</span> is the refinement ratio between the
+coarse and fine levels.) So, there is nothing preventing us from
+updating the coarse solution at the synchronization time <span class="math notranslate nohighlight">\(t^{n+1}_c\)</span>
+after this first fine timestep; we already know at that point how the
+coarse solution will change, so why not use that information? We can
+then update the gravitational potential at <span class="math notranslate nohighlight">\(t^{n+1/2}_c\)</span> that is used to
+construct the boundary conditions for the gravitational potential solve
+on the fine grid at the beginning of the second fine timestep.</p>
+<p>In practice, this just means calling the synchronization routine
+described in <a class="reference external" href="#sec:synchronization_methodology">2.1</a>, with the only
+modification being that the flux register contribution from the coarse
+grid is appropriately weighted by the fine grid timestep instead of
+the coarse grid timestep, and we only include the current fine step:</p>
+<div class="math notranslate nohighlight">
+\[\delta\Fb = -\Delta t_f A^c F^c + \Delta t_f A^f F^f\]</div>
+<p>The form of the <span class="math notranslate nohighlight">\(\phi\)</span> flux register remains unchanged, because the
+intent of the gravity sync solve is to simply instantaneously correct
+the mismatch between the fine and coarse grid. The only difference,
+then, between the old strategy and this new method is that we call the
+synchronization at the end of every fine timestep instead of only the
+last subcycled one, and we change the weighting appropriately. This
+new method is more expensive as currently implemented because we have
+to do <span class="math notranslate nohighlight">\(R\)</span> gravitational sync solves, refluxes, and source term
+recalculations instead of only one. However, it results in maximal
+possible accuracy, especially in cases where significant amounts of
+material are crossing refinement boundaries. The reflux strategy is
+controlled by the parameter castro.reflux_strategy. At present
+the old method is still the default.</p>
+<p>Note that one does not need to be using self-gravity for this to be
+beneficial. Even in pure hydrodynamics this can matter. If a regrid
+occurs on the fine level, new zones on the boundaries of the current
+fine level are filled by interpolation from the coarse level. In the
+old method, that interpolation is not using the most up-to-date data
+that accounts for the synchronization.</p>
+<p>For multiple levels of refinement, the scheme extends naturally. In
+the old method, we always call the synchronization at the
+synchronization time between any two levels. So for example with two
+jumps in refinement by a factor of two, there is a synchronization at
+the end of the first two timesteps on level 2 (between level 1 and
+level 2), a synchronization after the next two timesteps on level 2
+(again between level 1 and level 2), and then a synchronization
+between level 0 and level 1. In the new method, we always call the
+synchronization at the end of every timestep <em>on the finest level
+only</em>, and we simultaneously do the synchronization <em>on every
+level</em>. The timestep <span class="math notranslate nohighlight">\(\Delta t_f\)</span> in the flux register is just the
+timestep on the finest level. (If this is unclear, give it a sanity
+check: when the sum of all flux register totals is added up, the level
+0 contribution will have a factor of <span class="math notranslate nohighlight">\(\Delta t\)</span> equal to the coarse
+grid timestep since the sum of the timesteps on the finest level over
+the entire advance must equal the level 0 timestep. So, the final
+contribution from the flux register is the same as if we had saved up
+the flux mismatch until the end of the level 0 timestep.) The
+synchronization no longer needs to be called at the end of any coarser
+level’s timestep because it will already be up to date as a result of
+the synchronizations applied at the end of the fine level timesteps.</p>
+<dl class="footnote brackets">
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">1</a></span></dt>
+<dd><p>In the absence of a global field like
+the gravitational potential, this would only need to be done on the
+coarse level, as we always assume that the solution on the fine grid is
+correct and average it down to the coarse grid. In Castro we do it by
+default on the fine level too in anticipation of the fact that gravity
+is a common component of many of our production science
+simulations. This could be generalized so that if you aren’t using any
+global force fields, you don’t bother updating the fine level. If this
+is important to the science you want to do, please let the Castro developers know and we can look into it.</p>
+</dd>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">2</a></span></dt>
+<dd><p>in general it may be desirable for this to be a
+source-term specific setting, so that some source terms that are cheap
+or physically important are re-computed after a synchronization can be
+set to update, while others can be disabled. If this is important for
+your science application, please let the developers know, as this would
+be a straightforward extension of the current architecture.</p>
+</dd>
+<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id4">3</a></span></dt>
+<dd><p>If this scheme
+is generalized to higher-order methods, in principle all one would need
+to do is integrate the fluxes until <span class="math notranslate nohighlight">\(\Delta t / 2\)</span>, which is what we are
+doing here for the constant-in-time flux case.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="ConvertCheckpoint.html" class="btn btn-neutral float-right" title="Checkpoint Embiggener" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sdc.html" class="btn btn-neutral float-left" title="Spectral Deferred Corrections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2020, Castro development tem
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+
+</body>
+</html>
