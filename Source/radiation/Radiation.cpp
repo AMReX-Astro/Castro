@@ -78,8 +78,6 @@ void Radiation::read_static_params()
 {
   ParmParse pp("radiation");
 
-#include <radiation_queries.H>
-
   {
     int solver_type = Radiation::SolverType;
     pp.get("SolverType", solver_type);

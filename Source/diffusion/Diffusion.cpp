@@ -19,26 +19,10 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
-    read_params();
     make_mg_bc();
 }
 
 Diffusion::~Diffusion() {}
-
-void
-Diffusion::read_params ()
-{
-    static bool done = false;
-
-    if (!done)
-    {
-        ParmParse pp("diffusion");
-
-#include <diffusion_queries.H>
-
-        done = true;
-    }
-}
 
 
 void 
