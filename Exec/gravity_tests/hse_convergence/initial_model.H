@@ -290,7 +290,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
             }
 
             amrex::Print() << i << " " << model::state[MODELINDEX(i, model::idens)] << " " << model::state[MODELINDEX(i, model::ipres)] << std::endl;
-
         }
 
         //  now integrate down
@@ -322,7 +321,7 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 eos(eos_input_ps, eos_state);
 
                 Real drho = eos_state.rho - dens_zone;
-                Real dens_zone = eos_state.rho;
+                dens_zone = eos_state.rho;
                 if (std::abs(drho) < TOL * dens_zone) {
                     converged_hse = true;
                     break;
@@ -330,7 +329,7 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
             }
 
             if (!converged_hse) {
-                amrex::Error("failed to convergence in initial model generation");
+                amrex::Error("failed to convergence in initial model generation (down)");
             }
 
             // initialze zone
