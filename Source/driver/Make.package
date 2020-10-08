@@ -21,7 +21,7 @@ CEXE_headers += Castro.H
 CEXE_headers += castro_limits.H
 CEXE_headers += Castro_io.H
 CEXE_headers += state_indices.H
-
+CEXE_headers += runtime_parameters.H
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 

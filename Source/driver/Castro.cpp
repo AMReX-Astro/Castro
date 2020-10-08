@@ -16,6 +16,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_error_F.H>
+#include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
@@ -215,11 +216,14 @@ Castro::read_params ()
 
     done = true;
 
+    // this gets all of the parameters defined in _cpp_params, regardless of
+    // namespace
+    initialize_cpp_runparams();
+
     ParmParse pp("castro");
 
     using namespace castro;
 
-#include <castro_queries.H>
 
     // Get boundary conditions
     Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
