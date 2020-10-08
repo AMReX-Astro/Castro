@@ -38,9 +38,9 @@ void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
-    Real Q = Eexp / rhocv;
+    Real Q = problem::Eexp / problem::rhocv;
 
-    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / rhocv;
+    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / problem::rhocv;
     Real pe = kappa_r_exp_n + 3.0_rt;
 
     Real pfac = std::exp(std::lgamma(2.5_rt + 1.0_rt / pe) -
@@ -96,9 +96,9 @@ void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 
     Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
-    Real Q = Eexp / rhocv;
+    Real Q = problem::Eexp / problem::rhocv;
 
-    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / rhocv;
+    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / problem::rhocv;
     Real pe = kappa_r_exp_n + 3.0_rt;
 
     Real pfac = std::exp(std::lgamma(2.5_rt + 1.0_rt / pe) -
