@@ -1,13 +1,13 @@
 
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 using namespace amrex;
@@ -523,7 +523,7 @@ Castro::subcycle_advance_ctu(const Real time, const Real dt, int amr_iteration, 
 
         // Determine whether we're below the cutoff timestep.
 
-        if (dt_subcycle < dt_cutoff * time || (time == 0.0 && dt_subcycle < eps)) {
+        if (dt_subcycle <= dt_cutoff * time) {
             if (ParallelDescriptor::IOProcessor()) {
                 std::cout << std::endl;
                 std::cout << "  The subcycle mechanism requested subcycled timesteps of maximum length dt = " << dt_subcycle << "," << std::endl

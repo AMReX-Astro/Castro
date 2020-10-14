@@ -1,12 +1,16 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef DIFFUSION
-#include "conductivity.H"
+#include <conductivity.H>
 #endif
 
 #ifdef MHD
-#include "mhd_util.H"
+#include <mhd_util.H>
+#endif
+
+#ifdef ROTATION
+#include <Rotation.H>
 #endif
 
 using namespace amrex;
@@ -16,9 +20,6 @@ Castro::estdt_cfl(const Real time)
 {
 
   // Courant-condition limited timestep
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
@@ -84,7 +85,7 @@ Castro::estdt_cfl(const Real time)
         GeometryData geomdata = geom.data();
 
         inertial_to_rotational_velocity_c(i, j, k, geomdata,
-                                          center.begin(), omega.begin(), time, vel);
+                                          omega.begin(), time, vel);
 
         ux = vel[0];
         uy = vel[1];

@@ -1,5 +1,5 @@
-#include "AMReX_LO_BCTYPES.H"
-#include "AMReX_ArrayLim.H"
+#include <AMReX_LO_BCTYPES.H>
+#include <AMReX_ArrayLim.H>
 
 module rad_module
 
@@ -68,36 +68,6 @@ subroutine sphe(r, s, n, &
      enddo
   endif
 end subroutine sphe
-
-subroutine eddfac(efact, &
-                  DIMS(rbox), &
-                  DIMS(reg), limiter, n) bind(C, name="eddfac")
-
-  use amrex_fort_module, only : rt => amrex_real
-  integer :: DIMDEC(rbox)
-  integer :: DIMDEC(reg)
-  integer :: n, limiter
-  real(rt)         :: efact(DIMV(rbox))
-  integer :: i, j
-  real(rt)         :: r, lambda
-  if (n == 0) then
-     do j = reg_l2, reg_h2
-        do i = reg_l1, reg_h1 + 1
-           r = efact(i,j)
-           lambda = FLDlambda(r,limiter)
-           efact(i,j) = lambda + (lambda * r)**2
-        enddo
-     enddo
-  else
-     do j = reg_l2, reg_h2 + 1
-        do i = reg_l1, reg_h1
-           r = efact(i,j)
-           lambda = FLDlambda(r,limiter)
-           efact(i,j) = lambda + (lambda * r)**2
-        enddo
-     enddo
-  endif
-end subroutine eddfac
 
 subroutine ceupdterm( DIMS(reg), relres, absres, &
      frhoes, DIMS(grd), &

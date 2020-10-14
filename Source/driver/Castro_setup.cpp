@@ -1,21 +1,23 @@
 #include <cstdio>
 
-#include "AMReX_LevelBld.H"
+#include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include "eos.H"
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_bc_fill_nd_F.H"
-#include "Castro_bc_fill_nd.H"
-#include "Castro_generic_fill.H"
-#include "Derive.H"
+#include <eos.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_fill_nd.H>
+#include <Castro_generic_fill.H>
+#include <Derive.H>
 #ifdef RADIATION
-# include "Radiation.H"
-# include "RAD_F.H"
+# include <Radiation.H>
+# include <RAD_F.H>
 #endif
 #include <Problem_Derive_F.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
+#include <microphysics_F.H>
+#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -199,6 +201,16 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // read the probdata parameters
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
+
+  for (int i = 0; i < probin_file_length; i++) {
+    probin_file_name[i] = probin_file[i];
+  }
+
+  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
+
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
@@ -226,15 +238,14 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  ca_microphysics_init();
 
-  // Initialize the network
-  ca_network_init();
+  // now initialize the C++ Microphysics
 #ifdef CXX_REACTIONS
   network_init();
 #endif
 
-  // Initialize the EOS
-  ca_eos_init();
   eos_init();
 
   // Ensure that Castro's small variables are consistent
@@ -266,11 +277,6 @@ Castro::variableSetUp ()
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
 #endif
-#endif
-
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
 #endif
 
   // Initialize the amr info
@@ -329,24 +335,12 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  // Get the center variable from the inputs and pass it directly to Fortran.
-  Vector<Real> center(BL_SPACEDIM, 0.0);
-  ParmParse ppc("castro");
-  ppc.queryarr("center",center,0,BL_SPACEDIM);
-
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
                         Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
+                        dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
-
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 

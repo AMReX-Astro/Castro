@@ -14,7 +14,6 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

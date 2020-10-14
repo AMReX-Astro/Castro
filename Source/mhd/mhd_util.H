@@ -1,8 +1,8 @@
 #ifndef CASTRO_MHD_SOUND_SPEED_H
 #define CASTRO_MHD_SOUND_SPEED_H
 
-#include "Castro_util.H"
-#include "mhd_sizes.H"
+#include <Castro_util.H>
+#include <mhd_sizes.H>
 
 using namespace amrex;
 

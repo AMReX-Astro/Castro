@@ -18,8 +18,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
                     single
 
 
-  call probdata_init(name, namlen)
-
   ! model composition
   xn_model(:) = 0.0e0_rt
   xn_model(1) = 1.0e0_rt

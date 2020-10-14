@@ -154,14 +154,6 @@ extern "C" {
               amrex::Real flux_factor,
               BL_FORT_FAB_ARG_3D(spa));
 
-  // not used?
-  void add_ccoef_flux(const int& idir,
-                      amrex::Real* Erborder, ARLIM_P(erlo), ARLIM_P(erhi),
-                      amrex::Real* ccoef, ARLIM_P(cclo), ARLIM_P(cchi),
-                      const amrex::Real& gamma,
-                      const amrex::Real* dx,
-                      amrex::Real* Flux, ARLIM_P(flo), ARLIM_P(fhi));
-
   void set_abec_flux(const int* lo, const int* hi,
                      int idir,
                      BL_FORT_FAB_ARG_3D(c), 

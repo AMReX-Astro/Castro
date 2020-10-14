@@ -13,8 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
   ! read initial model
   call read_model_file(model_name)
 
@@ -71,6 +69,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module
   use amrex_constants_module, only : ZERO, HALF, ONE, TWO
   use amrex_fort_module, only : rt => amrex_real
+#ifdef NSE_THERMO
+  use burn_type_module
+  use nse_check_module
+  use nse_module, only: nse_interp
+#endif
 
   implicit none
 
@@ -85,6 +88,10 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
   type(eos_t) :: eos_state
   real(rt) :: sumX
+  real(rt) :: abar, dq, dyedt
+  real(rt) :: xn(nspec)
+  type(burn_t) :: burn_state
+  integer :: nse_check
 
   do k = lo(3), hi(3)
      z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
@@ -115,6 +122,27 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            state(i,j,k,UFX-1+iye) = sum(state(i,j,k,UFS:UFS-1+nspec) * zion(:) * aion_inv(:))
            state(i,j,k,UFX-1+iabar) = 1.0_rt / sum(state(i,j,k,UFS:UFS-1+nspec) * aion_inv(:))
            state(i,j,k,UFX-1+ibea) = sum(state(i,j,k,UFS:UFS-1+nspec) * bion(:) * aion_inv(:))
+
+           burn_state % rho = state(i,j,k,URHO)
+           burn_state % T = state(i,j,k,UTEMP)
+           burn_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+
+           call in_nse(burn_state, nse_check)
+           if (nse_check == 1) then
+              call nse_interp(state(i,j,k,UTEMP), state(i,j,k,URHO), &
+                              state(i,j,k,UFS-1+iye), abar, dq, dyedt, xn)
+
+              state(i,j,k,UFX-1+iabar) = abar
+              state(i,j,k,UFX-1+ibea) = dq
+              state(i,j,k,UFS:UFS-1+nspec) = xn(:)
+
+              sumX = 0.0_rt
+              do n = 1, nspec
+                 sumX = sumX + state(i,j,k,UFS-1+n)
+              end do
+              state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) / sumX
+
+           end if
 #endif
 
         end do

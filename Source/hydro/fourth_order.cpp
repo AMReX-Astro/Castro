@@ -1,7 +1,7 @@
-#include "Castro.H"
+#include <Castro.H>
 
 #ifdef DIFFUSION
-#include "conductivity.H"
+#include <conductivity.H>
 #endif
 
 void

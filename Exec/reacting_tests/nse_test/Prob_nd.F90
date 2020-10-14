@@ -17,8 +17,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   real(rt) :: smallx
 
-  call probdata_init(name, namlen)
-
   ! get the species indices
   ihe4 = network_species_index("helium-4")
   ic12 = network_species_index("carbon-12")
