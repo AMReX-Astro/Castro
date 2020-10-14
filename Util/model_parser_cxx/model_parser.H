@@ -36,26 +36,28 @@ using namespace amrex;
 // remove whitespace -- from stackoverflow
 
 
-inline std::string& ltrim(std::string& s)
+namespace model_string
 {
+    inline std::string& ltrim(std::string& s)
+    {
 	auto it = std::find_if(s.begin(), s.end(),
-					[](int c) {
-						return !std::isspace(c);
-					});
+                               [](int c) {
+                                   return !std::isspace(c);
+                               });
 	s.erase(s.begin(), it);
 	return s;
-}
+    }
 
-inline std::string& rtrim(std::string& s)
-{
+    inline std::string& rtrim(std::string& s)
+    {
 	auto it = std::find_if(s.rbegin(), s.rend(),
-					[](int c) {
-						return !std::isspace(c);
-					});
+                               [](int c) {
+                                   return !std::isspace(c);
+                               });
 	s.erase(it.base(), s.end());
 	return s;
+    }
 }
-
 
 
 #define MODELINDEX(I, J) model::nvars*(I)+(J)
@@ -200,7 +202,7 @@ read_model_file(std::string& model_file) {
     for (int n = 0; n < nvars_model_file; n++) {
         getline(initial_model_file, line);
         std::string var_string = line.substr(line.find("#")+1, line.length());
-        varnames_stored.push_back(ltrim(rtrim(var_string)));
+        varnames_stored.push_back(model_string::ltrim(model_string::rtrim(var_string)));
     }
 
     // allocate storage for the model data
