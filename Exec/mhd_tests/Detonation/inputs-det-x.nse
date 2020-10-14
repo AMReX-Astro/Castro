@@ -6,8 +6,8 @@ stop_time =  12.e-5
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 6.5536e5
-amr.n_cell           = 256
+geometry.prob_hi     = 256  32  
+amr.n_cell           = 20480  2560 
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -15,8 +15,8 @@ amr.n_cell           = 256
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  3   4   4
-castro.hi_bc       =  2   4   4
+castro.lo_bc       =  2   2   4
+castro.hi_bc       =  2   2   4
 
 # WHICH PHYSICS
 castro.do_hydro = 1
