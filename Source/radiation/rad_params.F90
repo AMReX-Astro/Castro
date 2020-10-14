@@ -13,8 +13,7 @@ module rad_params_module
 
   implicit none
 
-  integer, allocatable, save :: current_group, ng0, ng1, nnuspec
-  integer, save :: nradspec = 1
+  integer, allocatable, save :: current_group, ng0, ng1
   real(rt), save, allocatable :: nugroup(:), dnugroup(:), xnu(:), dlognu(:), &
                                  erg2rhoYe(:), lognugroup(:)
 
@@ -32,7 +31,7 @@ module rad_params_module
   ! (tiny a generic very small quantity without units, currently 1.e-50_rt)
 
 #ifdef AMREX_USE_CUDA
-  attributes(managed) :: current_group, ng0, ng1, nnuspec
+  attributes(managed) :: current_group, ng0, ng1
   attributes(managed) :: nugroup, dnugroup, xnu, dlognu, erg2rhoYe, lognugroup
   attributes(managed) :: pi, clight, hplanck, kboltz, stefbol, arad, avogadro
   attributes(managed) :: Hz2MeV, mev2erg, tiny

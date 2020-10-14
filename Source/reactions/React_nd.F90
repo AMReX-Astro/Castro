@@ -42,12 +42,12 @@ contains
     integer , intent(in   ) :: s_lo(3), s_hi(3)
     integer , intent(in   ) :: r_lo(3), r_hi(3)
     real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+3)
+    real(rt), intent(inout) :: reactions(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),nspec+naux+2)
     real(rt), intent(in   ), value :: time, dt_react
     real(rt) , intent(inout) :: failed
 
     integer          :: i, j, k, n
-    real(rt)         :: rhoInv, dx_min
+    real(rt)         :: rhoInv
     logical          :: do_burn
 
     type (burn_t) :: burn_state_in, burn_state_out
@@ -59,13 +59,8 @@ contains
     ! This interface is currently unsupported with simplified SDC.
 #ifndef SIMPLIFIED_SDC
 
-    ! Minimum zone width
-
-    dx_min = minval(dx_level(1:dim, amr_level))
-
     !$acc data &
     !$acc copyin(lo, hi, r_lo, r_hi, s_lo, s_hi, dt_react, time) &
-    !$acc copyin(dx_min) &
     !$acc copy(state, reactions) if(do_acc == 1)
 
     !$acc parallel if(do_acc == 1)
@@ -126,8 +121,6 @@ contains
              else
                 burn_state_in % k = -1
              endif
-
-             burn_state_in % dx = dx_min
 
              ! Ensure we start with no RHS or Jacobian calls registered.
 

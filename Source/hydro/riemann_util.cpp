@@ -1,15 +1,15 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_hydro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
 #endif
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 #include <eos.H>
@@ -76,9 +76,6 @@ Castro::compute_flux_q(const Box& bx,
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -172,7 +169,7 @@ Castro::compute_flux_q(const Box& bx,
     for (int n = 0; n < NUM_STATE; n++) {
         F_zone[n] = F(i,j,k,n);
     }
-    compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F_zone);
+    compute_hybrid_flux(qgdnv_zone, geomdata, idir, i, j, k, F_zone);
     for (int n = 0; n < NUM_STATE; n++) {
         F(i,j,k,n) = F_zone[n];
     }

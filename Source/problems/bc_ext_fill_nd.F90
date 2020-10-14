@@ -32,7 +32,6 @@ contains
     use eos_module, only: eos
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec, naux
-    use model_parser_module, only: idens_model, itemp_model, ispec_model, interpolate_sub
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -942,7 +941,6 @@ contains
     ! that the same function is called here and in hypfill where all the
     ! states are filled.
 
-#ifndef AMREX_USE_CUDA
     ! XLO
     if ( bc(1,1) == EXT_DIR .and. lo(1) < domlo(1)) then
        imin = adv_lo(1)
@@ -982,7 +980,6 @@ contains
           end do
        end do
     endif
-#endif
 
 #if AMREX_SPACEDIM >= 2
     ! YLO

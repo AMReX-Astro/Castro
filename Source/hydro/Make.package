@@ -19,7 +19,10 @@ FEXE_headers += Castro_hydro_F.H
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   CEXE_headers += hybrid.H
   CEXE_sources += Castro_hybrid.cpp
-  ca_F90EXE_sources += hybrid_advection_nd.F90
+endif
+
+ifeq ($(USE_RAD), TRUE)
+  CEXE_sources += Castro_ctu_rad.cpp
 endif
 
 CEXE_headers += ppm.H
@@ -32,8 +35,6 @@ CEXE_headers += slope.H
 CEXE_headers += reconstruction.H
 CEXE_sources += trace_plm.cpp
 CEXE_sources += trace_ppm.cpp
-
-ca_F90EXE_sources += Castro_ctu_nd.F90
 
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += fourth_order.cpp

@@ -15,8 +15,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
 
   integer untin, i
 
-  call probdata_init(name, namlen)
-
   ! read initial model
   call read_model_file(model_name)
 

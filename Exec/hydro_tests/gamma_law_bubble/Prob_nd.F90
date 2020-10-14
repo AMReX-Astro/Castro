@@ -11,8 +11,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
   ! set center variable in prob_params_module
   center(1) = frac*(problo(1)+probhi(1))
   center(2) = frac*(problo(2)+probhi(2))
@@ -73,7 +71,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
      ! initial guess
      temp(j) = T_guess
 
-     if (do_isentropic) then
+     if (do_isentropic == 1) then
         z = dble(j) * delta(AMREX_SPACEDIM)
         density(j) = dens_base*(const_grav*dens_base*(gamma_const - 1.0)*z/ &
              (gamma_const*pres_base) + 1.e0_rt)**(1.e0_rt/(gamma_const - 1.e0_rt))

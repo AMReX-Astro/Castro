@@ -1,7 +1,9 @@
-#include "math.H"
-
 #ifndef ROTATION_H
 #define ROTATION_H
+
+#include <math.H>
+#include <Castro.H>
+#include <Castro_util.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
@@ -29,5 +31,19 @@ rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega) {
   return phi;
 
 }
+
+AMREX_GPU_HOST_DEVICE 
+void
+inertial_to_rotational_velocity_c(const int i, const int j, const int k,
+                                    const GeometryData& geomdata,
+                                    const Real* omega,
+                                    const Real time, Real* v);
+
+AMREX_GPU_HOST_DEVICE 
+void
+inertial_to_rotational_velocity(const int i, const int j, const int k,
+                                const GeometryData& geomdata,
+                                const GpuArray<Real, 3>& omega,
+                                const Real time, GpuArray<Real, 3>& v);
 
 #endif

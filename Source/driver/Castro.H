@@ -9,6 +9,9 @@
 
 // runtime parameters
 #include <castro_params.H>
+#include <prob_parameters.H>
+#include <prob_parameters_F.H>
+
 using namespace castro;
 
 #ifdef AMREX_PARTICLES
@@ -51,11 +54,11 @@ constexpr int Shock = USHK;
 #endif
 
 #ifdef AMREX_PARTICLES
-#include "AMReX_AmrParticles.H"
+#include <AMReX_AmrParticles.H>
 #endif
 
 #ifdef RADIATION
-#include "RadSolve.H"
+#include <RadSolve.H>
 #endif
 
 #include <memory>
@@ -1176,6 +1179,11 @@ public:
 
     static amrex::Vector<int> upass_map;
     static amrex::Vector<int> qpass_map;
+
+///
+/// Vector storing list of custom error tags.
+///
+    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level

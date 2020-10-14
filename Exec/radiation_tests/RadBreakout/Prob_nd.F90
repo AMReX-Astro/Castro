@@ -13,42 +13,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer untin, i
   character(1) dummy
 
-  namelist /fortin/ &
-       rwind0, rwind1, rhowind1, Twind1, rbasefac, filter_rhomax, filter_timemax, model_file
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error('probin file name too long')
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  rbasefac = 0.99e0_rt
-  rwind0 = 0.7e14_rt
-  rwind1 = 1.e14_rt
-  rhowind1 = 1.e-14_rt
-  Twind1 = 1.1e3_rt
-
-  filter_rhomax = -1.e20_rt
-  filter_timemax = -1.e20_rt
-
   xmin = problo(1)
   xmax = probhi(1)
-
-  model_file = "model.input"
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin,fortin)
-  close(unit=untin)
 
   open(newunit=untin, file=trim(model_file))
   print*,'reading model inputs'

@@ -1,7 +1,7 @@
 #ifndef riemann_solvers_H
 #define riemann_solvers_H
 
-#include "Castro_util.H"
+#include <Castro_util.H>
 
 ///
 /// A simple HLL Riemann solver for pure hydrodynamics.  This takes just a

@@ -9,29 +9,30 @@
 #include <ctime>
 
 #include <AMReX_Utility.H>
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_io.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_io.H>
 #include <AMReX_ParmParse.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #ifdef DIFFUSION
-#include "Diffusion.H"
+#include <Diffusion.H>
 #endif
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
+#include <problem_setup.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
 
 using std::string;
 using namespace amrex;
@@ -283,6 +284,17 @@ Castro::restart (Amr&     papa,
            const int* hi      = bx.hiVect();
 
            if (! orig_domain.contains(bx)) {
+
+               auto s = S_new[mfi].array();
+               auto geomdata = geom.data();
+
+               amrex::ParallelFor(bx,
+               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+               {
+                   // C++ problem initialization; has no effect if not implemented
+                   // by a problem setup (defaults to an empty routine).
+                   problem_initialize_state_data(i, j, k, s, geomdata);
+               });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
@@ -740,10 +752,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << " Domain geometry info\n";
 
-  Real center[3];
-  ca_get_center(center);
-
-  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "     center: " << problem::center[0] << " , " << problem::center[1] << " , " << problem::center[2] << "\n";
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
@@ -817,9 +826,9 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile << " Inputs File Parameters\n";
   jobInfoFile << PrettyLine;
 
-#include "castro_job_info_tests.H"
+#include <castro_job_info_tests.H>
 #ifdef AMREX_PARTICLES
-#include "particles_job_info_tests.H"
+#include <particles_job_info_tests.H>
 #endif
 
 #ifdef GRAVITY
@@ -841,9 +850,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
-#ifdef PROB_PARAMS
   prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
-#endif
 
 }
 

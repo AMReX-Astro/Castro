@@ -25,7 +25,7 @@ contains
 
   subroutine advect_in_fspace(ustar, af, dt, nstep_fsp)
 
-    use rad_params_module, only: ngroups, nnuspec, ng0, ng1, dlognu
+    use rad_params_module, only: ngroups, ng0, ng1, dlognu
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
@@ -38,47 +38,21 @@ contains
 
     !$gpu
 
-    if (nnuspec .eq. 0) then
-
-       call update_one_species(ngroups, ustar, af, dlognu, dt, nstep_fsp)
-
-    else
-
-       call update_one_species(ng0, ustar(0:ng0-1), &
-                               af(0:ng0-1), &
-                               dlognu(0:ng0-1), &
-                               dt, nstep_fsp)
-
-       if (nnuspec >= 2) then
-          call update_one_species(ng1, ustar(ng0:ng0+ng1-1), &
-                                  af(ng0:ng0+ng1-1), &
-                                  dlognu(ng0:ng0+ng1-1), &
-                                  dt, nstep_fsp)
-       end if
-
-       if (nnuspec == 3) then
-          ng2 = ngroups-ng0-ng1
-          call update_one_species(ng2, ustar(ng0+ng1:), &
-                                  af(ng0+ng1:), &
-                                  dlognu(ng0+ng1:), &
-                                  dt, nstep_fsp)
-       end if
-
-    end if ! end of if nnuspec
+    call update_one_species(ngroups, ustar, af, dlognu, dt, nstep_fsp)
 
   end subroutine advect_in_fspace
 
 
-  subroutine update_one_species(n, u, a, dx, tend, nstepmax)
+  subroutine update_one_species(n, u, a, dx, tend, nstepmax) bind(C, name="update_one_species")
 
     use amrex_fort_module, only: rt => amrex_real
 
     implicit none
 
-    integer, intent(in) :: n
+    integer, intent(in), value :: n
     real(rt), intent(inout) :: u(0:n-1)
     real(rt), intent(in) :: a(0:n-1), dx(0:n-1)
-    real(rt), intent(in) :: tend
+    real(rt), intent(in), value :: tend
     integer, intent(inout) :: nstepmax
 
     real(rt) :: dt, acfl

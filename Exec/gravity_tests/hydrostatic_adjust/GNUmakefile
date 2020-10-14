@@ -11,7 +11,6 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 

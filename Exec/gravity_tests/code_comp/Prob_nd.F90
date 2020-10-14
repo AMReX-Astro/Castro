@@ -15,9 +15,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-
-  call probdata_init(name, namlen)
-
 #if AMREX_SPACEDIM == 1
   center(1) = ZERO
 
@@ -64,7 +61,6 @@ subroutine ca_initdata(lo, hi, &
 
   use amrex_constants_module
   use probdata_module
-  use interpolate_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
                                  UEDEN, UEINT, UFS, T_guess
   use network, only : nspec
