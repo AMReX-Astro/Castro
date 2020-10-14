@@ -80,9 +80,10 @@ subroutine ca_initdata(lo, hi, &
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use probdata_module, only: T_l, T_r, center_T, w_T, dens_l, dens_r, vel, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP, small_temp
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: probhi
+  use amrex_constants_module, only: M_PI
 
   implicit none
   
@@ -109,11 +110,10 @@ subroutine ca_initdata(lo, hi, &
            ycen = problo(2) + dx(2)*(dble(j) + 0.5e0_rt)
            xcen = problo(1) + dx(1)*(dble(i) + 0.5e0_rt)
 
-           sigma = 1.0 / (1.0 + exp(-(c_T + width * sin(ycen / (4.0_rt * height)) - xcen)/ width))
-
+           sigma = 1.0_rt / (1.0_rt + exp(-(c_T - xcen)/ width))
            state(i,j,k,URHO) = dens_l + (dens_r - dens_l) * (1 - sigma)
 
-           state(i,j,k,UTEMP) = T_l + (T_r - T_l) * (1 - sigma)
+           state(i,j,k,UTEMP) = max(small_temp, T_l + (T_r - T_l) * (1 - sigma))
 
            do n = 1, nspec
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * xn(n)
