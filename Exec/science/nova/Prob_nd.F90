@@ -15,6 +15,10 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   real(rt) :: offset
   integer :: i
 
+  if (num_vortices > max_num_vortices) then
+     call castro_error("num_vortices too large, please increase max_num_vortices and the size of xloc_vortices")
+  end if
+
   ! Read initial model
   call read_model_file(model_name)
 
@@ -148,7 +152,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   state(:,:,:,UMX:UMZ) = ZERO
 
   ! Now add the velocity perturbation
-  if (apply_vel_field) then
+  if (apply_vel_field == 1) then
 
      do k = lo(3), hi(3)
         z = problo(3) + delta(3)*(dble(k) + HALF)
