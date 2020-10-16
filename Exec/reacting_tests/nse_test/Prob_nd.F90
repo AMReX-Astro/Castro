@@ -1,55 +1,36 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_constants_module
-  use probdata_module, only: T_min, T_max, rho_ambient, width, xn, cfrac, ofrac
-  use network, only: network_species_index, nspec
-  use castro_error_module, only: castro_error
-  use amrex_fort_module, only: rt => amrex_real
+  use probdata_module
   use prob_params_module, only : center
+  use castro_error_module
+  use amrex_fort_module, only : rt => amrex_real
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use extern_probin_module, only : small_x
+  use network
 
   implicit none
 
-  integer,  intent(in) :: init, namlen
-  integer,  intent(in) :: name(namlen)
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer, save :: ihe4, ic12, io16
 
-  real(rt) :: smallx
+  ! set explosion center
+  center(:) = ZERO
+  center(1) = HALF*(problo(1) + probhi(1))
+#if BL_SPACEDIM >= 2
+  center(2) = HALF*(problo(2) + probhi(2))
+#endif
+#if BL_SPACEDIM == 3
+  center(3) = HALF*(problo(3) + probhi(3))
+#endif
 
-  ! get the species indices
-  ihe4 = network_species_index("helium-4")
-  ic12 = network_species_index("carbon-12")
-  io16 = network_species_index("oxygen-16")
-
-  if (ihe4 < 0 .or. ic12 < 0 .or. io16 < 0) then
-     call castro_error("ERROR: species indices not found")
-  endif
-
-  ! make sure that the carbon fraction falls between 0 and 1
-  if (cfrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
-     call castro_error("ERROR: cfrac must fall between 0 and 1")
-  endif
-
-  ! make sure that the oxygen fraction falls between 0 and 1
-  if (ofrac > 1.e0_rt .or. cfrac < 0.e0_rt) then
-     call castro_error("ERROR: ofrac must fall between 0 and 1")
-  endif
-
-  ! make sure that the C/O fraction sums to no more than 1
-  if (cfrac + ofrac > 1.e0_rt) then
-     call castro_error("ERROR: cfrac + ofrac cannot exceed 1.")
-  end if
-
-  ! set the default mass fractions
-  allocate(xn(nspec))
-
-  xn(:) = smallx
-  xn(ic12) = max(cfrac, smallx)
-  xn(io16) = max(ofrac, smallx)
-  xn(ihe4) = 1.e0_rt - cfrac - ofrac - (nspec - 2) * smallx
-
-  center(:) = HALF*(problo(:) + probhi(:))
+  ! we only work in NSE mode, so the mass fractions are not used by the EOS
+#ifndef NSE_THERMO
+  call castro_error("Error: this problem requires USE_NSE=TRUE")
+#endif
 
 end subroutine amrex_probinit
 
@@ -79,58 +60,84 @@ subroutine ca_initdata(level,time,lo,hi,nscal, &
                        state,state_lo,state_hi, &
                        delta,xlo,xhi)
 
-  use amrex_constants_module
-  use network, only: nspec
-  use eos_module, only: eos
-  use eos_type_module, only: eos_t, eos_input_rt
-  use probdata_module, only: T_min, T_max, rho_ambient, width, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use amrex_fort_module, only: rt => amrex_real
-  use prob_params_module, only: problo, probhi, center
+  use probdata_module
+  use amrex_constants_module, only: M_PI, FOUR3RD, ZERO, HALF, ONE
+  use meth_params_module , only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
+  use prob_params_module, only : center, coord_type, problo, probhi
+  use amrex_fort_module, only : rt => amrex_real
+  use network
+  use eos_type_module, only : eos_t, eos_input_rt
+  use eos_module, only : eos
+  use nse_module
 
   implicit none
 
-  integer,  intent(in   ) :: level, nscal
-  integer,  intent(in   ) :: lo(3), hi(3)
-  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  integer, intent(in) :: level, nscal
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: state_lo(3), state_hi(3)
+  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
-  real(rt), intent(in   ) :: time, delta(3)
-  real(rt), intent(in   ) :: xlo(3), xhi(3)
 
-  integer  :: i, j, k
+  real(rt) :: xx, yy, zz
+  real(rt) :: dist, T, eint
+  real(rt) :: ye0, dye, ye, abar, dq, dyedt
+  real(rt) :: xn(nspec)
+  integer :: i, j, k
 
-  type (eos_t) :: eos_state
+  type(eos_t) :: eos_state
 
-  real(rt) :: xcen, ycen, zcen, r
-  real(rt) :: T
+  ye0 = 0.5
+  dye = -0.05
 
   do k = lo(3), hi(3)
-     zcen = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
+     zz = problo(3) + delta(3)*(dble(k) + HALF)
 
      do j = lo(2), hi(2)
-        xcen = problo(2) + delta(2)*(dble(j) + HALF) - center(2)
+        yy = problo(2) + delta(2)*(dble(j) + HALF)
 
         do i = lo(1), hi(1)
-           xcen = problo(1) + delta(1)*(dble(i) + HALF) - center(1)
+           xx = problo(1) + delta(1)*(dble(i) + HALF)
 
-           r = sqrt(xcen**2 + ycen**2 + zcen**2)
+           dist = sqrt((center(1)-xx)**2 + (center(2)-yy)**2 + (center(3)-zz)**2)
 
-           T = T_min + (T_max - T_min)**exp(-(r/width)**2)
+           if (dist <= center(1)) then
+              T = T0*(ONE + dT_fact*exp(-(dist/L_pert)**2) * &
+                   cos(M_PI*(dist/(probhi(1)-problo(1))))**6)
+              ye = ye0*(ONE + dye*exp(-(dist/L_pert)**2) * &
+                   cos(M_PI*(dist/(probhi(1)-problo(1))))**6)
+           else
+              T = T0
+              ye = ye0
+           endif
 
-           state(i,j,k,URHO ) = rho_ambient
-           state(i,j,k,URHO ) = T
+           state(i,j,k,UMX:UMZ) = 0.e0_rt
 
-           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO)*xn(1:nspec)
+           ! we are isentropic, so find rho
+           eos_state % T = T
+           eos_state % rho = rho0  ! initial guess
 
-           eos_state % rho = state(i,j,k,URHO)
-           eos_state % T = state(i,j,k,UTEMP)
+           call nse_interp(T, rho0, Ye, abar, dq, dyedt, xn)
+
+           ! since the species are interpolated, normalize them
+           xn(:) = xn(:) / sum(xn(:))
+
            eos_state % xn(:) = xn(:)
+           eos_state % aux(iye) = Ye
+           eos_state % aux(iabar) = abar
+           eos_state % aux(ibea) = dq
 
            call eos(eos_input_rt, eos_state)
 
-           state(i,j,k,UMX:UMZ) = ZERO
-           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * sum(state(i,j,k,UMX:UMZ)**2) / state(i,j,k,URHO)
+           state(i,j,k,URHO) = eos_state % rho
+
+           state(i,j,k,UEDEN) = eos_state % rho * eos_state % e
+           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
+
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,URHO) * xn(:)
+
+           state(i,j,k,UFX:UFX-1+naux) = state(i,j,k,URHO) * eos_state % aux(:)
+
+           state(i,j,k,UTEMP) = eos_state % T
         enddo
      enddo
   enddo

@@ -1,34 +1,14 @@
 &fortin
-  T_min = 6.e9
-  T_max = 8.e9
 
-  rho_ambient = 1.e7
-  cfrac = 0.d0
+  T0 = 4.e9
+  dT_fact = 0.2
+  rho0 = 5.e8
+  L_pert = 2.e7
 
-  width = 2.e4
 /
 
 &tagging
-  denerr = 3
-  dengrad = 0.01
-  max_denerr_lev = 0
-  max_dengrad_lev = 0
-
-  presserr = 3
-  pressgrad = 0.01
-  max_presserr_lev = 0
-  max_pressgrad_lev = 0
-
-  temperr = 4.e9
-  tempgrad = 1.e8
-  max_temperr_lev = 5
-  max_tempgrad_lev = 5
 /
 
 &extern
-!  jacobian = 2
-!  centered_diff_jac = T
-!   rtol_enuc = 1.e-8
-   call_eos_in_rhs = T
-   do_constant_volume_burn = T
 /
