@@ -10,7 +10,7 @@
   idir = 1
 
   w_T = 5.d-4
-  center_T = 0.1
+  center_T = 0.3
 /
 
 &tagging
@@ -42,6 +42,7 @@
    jacobian = 2
    ode_max_steps = 1500000
 
+   retry_burn = F
    abort_on_failure = F
 
    rho_nse = 1.e10
