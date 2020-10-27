@@ -194,14 +194,40 @@ Castro::do_advance_ctu(Real time,
 
       Real minimum_density = S_new.min(URHO);
 
-      if (minimum_density < 0.0_rt) {
+      if (minimum_density < small_dens) {
           status.success = false;
-          status.reason = "negative density";
-          return status;
-      }
-      else if (minimum_density < small_dens) {
-          status.success = false;
-          status.reason = "small density";
+
+          if (minimum_density < 0.0_rt) {
+              status.reason = "negative density";
+          }
+          else {
+              status.reason = "small density";
+          }
+
+          // Add some diagnostic information to the stdout
+          // so the user has an idea of what went wrong: the
+          // new minimum density, the index it is located at,
+          // and the density before the update.
+
+          IntVect min_index = S_new.minIndex(URHO, 0);
+
+          Real starting_density = 0.0_rt;
+
+          for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
+              if (S_new[mfi].box().contains(min_index)) {
+                  starting_density = S_old[mfi](min_index, URHO);
+                  break;
+              }
+          }
+
+          ParallelDescriptor::ReduceRealMax(starting_density);
+
+          std::ostringstream ss;
+          ss << std::scientific;
+          ss << " (density = " << minimum_density << " at index " << min_index << ";";
+          ss << " started at " << starting_density << ")";
+          status.reason += ss.str();
+
           return status;
       }
     }
