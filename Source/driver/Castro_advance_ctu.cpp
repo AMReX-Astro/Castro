@@ -195,7 +195,6 @@ Castro::do_advance_ctu(Real time,
       Real minimum_density = S_new.min(URHO);
 
       if (minimum_density < small_dens) {
-
           // Obtain the location of the zone with minimum density.
 
           IntVect min_index = S_new.minIndex(URHO, 0);
@@ -219,7 +218,6 @@ Castro::do_advance_ctu(Real time,
           // dynamically important; in that case, a density reset suffices.
 
           if (starting_density >= retry_small_density_cutoff) {
-
               status.success = false;
 
               if (minimum_density < 0.0_rt) {
