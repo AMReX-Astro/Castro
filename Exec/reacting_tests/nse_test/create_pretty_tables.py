@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 import numpy as np
@@ -21,14 +22,19 @@ class Variable():
         self.o2 = float(o2)
         self.hi = float(hi)
 
-    def get_table_line(self, pretty_name=None):
+    def get_table_line(self, pretty_name=None, simple=False):
         if pretty_name is not None:
             name = pretty_name
         else:
             name = self.name
 
-        _str = r" {:27} & {:23} & {:5.3f}  & {:23} & {:5.3f}  & {:23} \\"
-        return _str.format(name, sci_not(self.lo), round(self.o1, 3), sci_not(self.med), round(self.o2, 3), sci_not(self.hi))
+        if simple:
+            _str = r" {:27}   {:23.10g}   {:5.3f}    {:23.10g}   {:5.3f}    {:23.10g}"
+            return _str.format(name, self.lo, round(self.o1, 3), self.med, round(self.o2, 3), self.hi)
+
+        else:
+            _str = r" {:27} & {:23} & {:5.3f}  & {:23} & {:5.3f}  & {:23} \\"
+            return _str.format(name, sci_not(self.lo), round(self.o1, 3), sci_not(self.med), round(self.o2, 3), sci_not(self.hi))
 
 class ConvergenceData():
     def __init__(self):
@@ -91,6 +97,15 @@ def read_convergence(file_lo, file_hi):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--simple', action="store_true", help='no latex output')
+    parser.add_argument("lofile", type=str, nargs=1,
+                        help="name of the low resolution convergence output file")
+    parser.add_argument("hifile", type=str, nargs=1,
+                        help="name of the high resolution convergence output file")
+
+    args = parser.parse_args()
+
     good_vars = {"density": r"$\rho$",
                  "xmom": r"$\rho u$",
                  "ymom": r"$\rho v$",
@@ -107,12 +122,12 @@ if __name__ == "__main__":
                  }
 
     # sdc4
-    file_lo = sys.argv[-2]
-    file_hi = sys.argv[-1]
+    file_lo = args.lofile[0]
+    file_hi = args.hifile[0]
 
     sdc4 = read_convergence(file_lo, file_hi)
 
     for v in sdc4.data:
         if v.name in good_vars.keys():
-            print(v.get_table_line(pretty_name=good_vars[v.name]))
+            print(v.get_table_line(pretty_name=good_vars[v.name], simple=args.simple))
 
