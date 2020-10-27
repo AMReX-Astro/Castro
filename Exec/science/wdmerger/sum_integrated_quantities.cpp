@@ -338,6 +338,16 @@ Castro::sum_integrated_quantities ()
     if (time > 0.0)
         wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
 
+    // Calculate GPU memory consumption.
+
+#ifdef AMREX_USE_GPU
+    Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
+    ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
+
+    Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
+    ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
+#endif
+
     // Write data out to the log.
 
     if ( amrex::ParallelDescriptor::IOProcessor() )
@@ -620,6 +630,10 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(fixwidth) << "                       DT"; ++n;
 	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
              header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
+#ifdef AMREX_USE_GPU
+             header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
+             header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
+#endif
 
 	     header << std::endl;
 
@@ -647,6 +661,10 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
 	   log << std::setw(intwidth)                                     << parent->finestLevel();
            log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
+#ifdef AMREX_USE_GPU
+           log << std::setw(datwidth)                                     << gpu_size_used_MB;
+           log << std::setw(datwidth)                                     << gpu_size_free_MB;
+#endif
 
 	   log << std::endl;
 
