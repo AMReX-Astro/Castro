@@ -195,21 +195,12 @@ Castro::do_advance_ctu(Real time,
       Real minimum_density = S_new.min(URHO);
 
       if (minimum_density < small_dens) {
-          status.success = false;
 
-          if (minimum_density < 0.0_rt) {
-              status.reason = "negative density";
-          }
-          else {
-              status.reason = "small density";
-          }
-
-          // Add some diagnostic information to the stdout
-          // so the user has an idea of what went wrong: the
-          // new minimum density, the index it is located at,
-          // and the density before the update.
+          // Obtain the location of the zone with minimum density.
 
           IntVect min_index = S_new.minIndex(URHO, 0);
+
+          // Determine its density prior to the update.
 
           Real starting_density = 0.0_rt;
 
@@ -222,13 +213,35 @@ Castro::do_advance_ctu(Real time,
 
           ParallelDescriptor::ReduceRealMax(starting_density);
 
-          std::ostringstream ss;
-          ss << std::scientific;
-          ss << " (density = " << minimum_density << " at index " << min_index << ";";
-          ss << " started at " << starting_density << ")";
-          status.reason += ss.str();
+          // Optionally, the user can ignore this if the starting
+          // density is lower than a certain threshold. This is useful
+          // if the minimum density occurs in material that is not
+          // dynamically important; in that case, a density reset suffices.
 
-          return status;
+          if (starting_density >= retry_small_density_cutoff) {
+
+              status.success = false;
+
+              if (minimum_density < 0.0_rt) {
+                  status.reason = "negative density";
+              }
+              else {
+                  status.reason = "small density";
+              }
+
+              // Add some diagnostic information to the stdout
+              // so the user has an idea of what went wrong: the
+              // new minimum density, the index it is located at,
+              // and the density before the update.
+
+              std::ostringstream ss;
+              ss << std::scientific;
+              ss << " (density = " << minimum_density << " at index " << min_index << ";";
+              ss << " started at " << starting_density << ")";
+              status.reason += ss.str();
+
+              return status;
+          }
       }
     }
 

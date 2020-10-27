@@ -1,3 +1,14 @@
+# 20.11
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
 # 20.10
 
    * A new refinement scheme using the inputs file rather than the Fortran
