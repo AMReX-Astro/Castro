@@ -260,7 +260,7 @@ namespace: ``castro``
 
 **timestep control**
 
-.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
+.. index:: castro.fixed_dt, castro.initial_dt, castro.dt_cutoff, castro.max_dt, castro.cfl, castro.init_shrink, castro.change_max, castro.plot_per_is_exact, castro.small_plot_per_is_exact, castro.use_retry, castro.retry_subcycle_factor, castro.retry_small_density_cutoff, castro.use_post_step_regrid, castro.max_subcycles, castro.sdc_iters
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -302,6 +302,10 @@ namespace: ``castro``
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``retry_subcycle_factor``              | When performing a retry, the factor to multiply the     | 0.5           |
 |                                        | current timestep by when trying again.                  |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``retry_small_density_cutoff``         | Skip retries for small (or negative) density if the     | -1.e200       |
+|                                        | zone's density prior to the update was below this       |               |
+|                                        | threshold.                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``use_post_step_regrid``               | Regrid after every timestep.                            | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
