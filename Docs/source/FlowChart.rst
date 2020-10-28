@@ -12,12 +12,14 @@ the different code paths.  These fall into two categories:
 
 .. index:: castro.time_integration_method, USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
--  Strang-splitting: the Strang evolution does the burning on the
+-  Strang+CTU: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
    burned state, and then does the final :math:`\Delta t/2` burning. No
    explicit coupling of the burning and hydro is done.  This code
    path uses the corner-transport upwind (CTU) method (the unsplit,
-   characteristic tracing method of :cite:`colella:1990`).
+   characteristic tracing method of :cite:`colella:1990`).  This is the default method.
+
+   The MHD solver uses this same driver.
 
 -  SDC: a class of iterative methods that couples the advection and reactions
    such that each process explicitly sees the effect of the other.  We have
@@ -30,7 +32,7 @@ the different code paths.  These fall into two categories:
      explicit advective source included in a
      piecewise-constant-in-time fastion.
 
-   - The main SDC method.  This fully couples the hydro and reactions
+   - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
      time using a simple quadrature rule, and integrates the hydro
      explicitly and reactions implicitly to the next time node.
@@ -58,7 +60,7 @@ The time-integration method used is controlled by
     additional EOS derivatives).
 
   * ``time_integration_method = 3``: this is the simplifed SDC method
-    described above.that uses the CTU hydro advection and an ODE
+    described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
     method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
@@ -74,6 +76,11 @@ The time-integration method used is controlled by
    ``USE_SIMPLIFIED_SDC=TRUE`` for the simplified-SDC method
    (``time_integration_method=3``) and ``USE_TRUE_SDC=TRUE`` for the
    true SDC method (``time_integration_method = 2``).
+
+.. note::
+
+   MHD and radiation are currently only supported by the Strang+CTU
+   evolution time integration method.
 
 Several helper functions are used throughout:
 
@@ -98,8 +105,8 @@ Several helper functions are used throughout:
 
 .. _flow:sec:nosdc:
 
-Strang-Split Evolution
-======================
+Main Driver—All Time Integration Methods
+========================================
 
 This driver supports the Strang CTU integration.
 (``castro.time_integration_method`` = 0)
@@ -117,9 +124,11 @@ of each step.
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
 
-   -  Sync up the level information to the Fortran-side of Castro
+   -  Sync up the level information to the Fortran-side of Castro.
 
-   -  Do any radiation initialization
+   -  Do any radiation initialization.
+
+   -  Set the maximum density used for Poisson gravity tolerances.
 
    -  Initialize all of the intermediate storage arrays (like those
       that hold source terms, etc.).
@@ -127,12 +136,14 @@ of each step.
    -  Swap the StateData from the new to old (e.g., ensures that
       the next evolution starts with the result from the previous step).
 
-   -  Do a ``clean_state``
+   -  Call ``clean_state``.
 
    -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
-   -  Zero out all of the fluxes
+   -  Zero out all of the fluxes.
+
+   -  For true SDC, initialize the data at all time nodes (see :ref:`sec:flow_true_sdc`).
 
 #. *Advancement*
 
@@ -144,6 +155,8 @@ of each step.
    Source terms, including gravity, rotation, and diffusion are
    included in this step, and are time-centered to achieve second-order
    accuracy.
+
+   .. index:: retry
 
    If ``castro.use_retry`` is set, then we subcycle the current
    step if we violated any stability criteria to reach the desired
@@ -158,6 +171,11 @@ of each step.
    data, with a series of subcycled timesteps that should be small
    enough to satisfy the criteria. Note that this will effectively
    double the memory footprint on each level if you choose to use it.
+   See :ref:`ch:retry` for more details on the retry mechanism.
+
+   .. note::
+
+      Only Strang+CTU and simplified-SDC support retries.
 
 #. [AUX_UPDATE] *Auxiliary quantitiy evolution*
 
@@ -211,13 +229,14 @@ of each step.
 
 .. _sec:strangctu:
 
-CTU w/ Strang-split Reactions Flowchart
----------------------------------------
+Strang+CTU Evolution
+====================
 
 
-This described the flow using the CTU + Strang-split reactions,
-including gravity, rotation, and diffusion.  This integration is
-selected via ``castro.time_integration_method = 0``.
+This described the flow using Strang splitting and the CTU
+hydrodynamics (or MHD) method, including gravity, rotation, and
+diffusion.  This integration is selected via
+``castro.time_integration_method = 0``.
 
 The system advancement (reactions, hydrodynamics, diffusion, rotation,
 and gravity) is done by ``do_advance()``. Consider our system of
@@ -254,9 +273,15 @@ predict the standard primitive variables, as well as :math:`\rho e`, at
 time-centered edges and use an approximate Riemann solver construct
 fluxes.
 
-At the beginning of the time step, we assume that :math:`\Ub` and :math:`\phi` are
-defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy equation
-:eq:`eq:Self Gravity`. Note that in
+At the beginning of the time step, we assume that :math:`\Ub` and the gravitational potential, :math:`\phi`, are
+defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy the Poisson equation:
+
+.. math::
+
+   \Delta \phi^n = 4\pi G\rho^n
+
+(see :ref:`ch:gravity` for more details about how the Poisson equation is solved.)  
+Note that in
 :eq:`eq:source_correct`, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
@@ -264,7 +289,7 @@ make the update more akin to:
 
 .. math:: \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 
-Castro also supports radiation. This part of the update algorithm
+If we are including radiation, then this part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
@@ -307,9 +332,9 @@ In the code, the objective is to evolve the state from the old time,
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+          (\rho e)^\star &= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
    Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
@@ -321,18 +346,8 @@ In the code, the objective is to evolve the state from the old time,
    Note that the density, :math:`\rho`, does not change via reactions in the
    Strang-split formulation.
 
-   The reaction data needs to be valid in the ghost cells. The logic
-   in this routine (accomplished throuh the use of a mask) will burn
-   only in the valid interior cells or in any ghost cells that are on a
-   coarse-fine interface or physical boundary. This allows us to just
-   use a level ``FillBoundary()`` call to fill all of the ghost cells
-   on the same level with valid data.
-
-   An experimental option (enabled via
-   ``use_custom_knapsack_weights``) will create a custom
-   distribution map based on the work needed in burning a zone and
-   redistribute the boxes across processors before burning, to better
-   load balance.
+   The reaction data needs to be valid in the ghost cells, so the reactions
+   are applied to the entire patch, including ghost cells.
 
    After reactions, ``clean_state`` is called.
 
@@ -531,6 +546,8 @@ these processes is presented below:
    | 8. react           |           |                     | input / updated     |
    +--------------------+-----------+---------------------+---------------------+
 
+
+.. _sec:flow_true_sdc:
 
 SDC Evolution
 =============
