@@ -4,7 +4,7 @@
 using namespace amrex;
 
 void
-Castro::just_the_mhd(Real time, Real dt)
+Castro::construct_ctu_mhd_source(Real time, Real dt)
 {
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;

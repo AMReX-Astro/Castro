@@ -185,7 +185,7 @@ Castro::do_advance_ctu(Real time,
           evaluate_and_print_source_change(hydro_source, dt, "hydro source");
       }
 #else
-      just_the_mhd(time, dt);
+      construct_ctu_mhd_source(time, dt);
       apply_source_to_state(S_new, hydro_source, dt, 0);
 #endif
 
