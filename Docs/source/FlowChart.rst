@@ -313,6 +313,10 @@ here, consistent with the names used in the code:
 
 - ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
 
+
+Single Step Flowchat
+--------------------
+
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
 
@@ -794,6 +798,9 @@ The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by ``castro.time_integration_method = 3``.
 
+We use one additional StateData type here, ``Simplified_SDC_React_Type``,
+which will hold the reactive source needed by hydrodynamics.
+
 .. note::
 
    The code must be compiled with ``USE_SIMPLIFIED_SDC = TRUE`` to use this
@@ -840,7 +847,17 @@ summarize those differences.
    Simplified-SDC provides a natural way to approximate the
    time-centered source—we simply use the iteratively-lagged new-time
    source.  We add the corrector from the previous iteration to the
-   source Multifabs before adding the current source.  This will give
+   source Multifabs before adding the current source.  The corrector
+   (stored in ``source_corrector``) has the form:
+
+   .. math::
+
+      \Sb^\mathrm{corr} = \frac{1}{2} \left ( \Sb^{n+1,(k-1)} - S^n \right )
+
+   where :math:`\Sb^n` does not have an iteration subscript, since we always have the
+   same old time state.  
+
+   Applying this corrector to the the source at time :math:`n`, will give
    us a source that is time-centered,
 
    .. math::
@@ -858,9 +875,8 @@ summarize those differences.
    ``construct_ctu_hydro_source()`` after the source terms are
    converted to primitive variables.
 
-   The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
-   stored in ``hydro_sources`` (the flux divergence)
-   and ``old_sources`` and ``new_sources``.
+   The result of this is an approximation to :math:`- [\nabla \cdot {\bf F}]^{n+1/2}` (not yet the full :math:`\mathcal{A}(\Ub)`)
+   stored in ``hydro_sources``.
 
 #. *Clean State* [``clean_state()``]
 
@@ -871,16 +887,24 @@ summarize those differences.
 
 #. *React* :math:`\Delta t` [``react_state()``]
 
+   We first compute :math:`\mathcal{A}(\Ub)` using ``hydro_sources``,
+   ``old_source``, and ``new_source`` via the ``sum_of_source()``
+   function.  This produces an advective source of the form:
+   
+   .. math::
+
+      \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} = - [\nabla \cdot {\bf F}]^{n+1/2} + \frac{1}{2} (S^n + S^{n+1})
+
    We burn for the full :math:`\Delta t` including the advective
    update as a source, integrating
 
       .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
 
-   The advective source includes both the divergence of the fluxes
-   as well as the time-centered source terms. This is computed by
-   ``sum_of_sources()`` by summing over all source components
-   ``hydro_source``, ``old_sources``, and
-   ``new_sources``.
+   The result of evolving this equation is stored in ``S_new``.
+
+   Note, if we do not actually burn in a zone (because we don't meet
+   the thermodynamic threshold) then this step does nothing, and the
+   state updated just via hydrodynamics in ``S_new`` is kept.
 
 #. *Clean state*: This ensures that the thermodynamic state is
    valid and consistent.
