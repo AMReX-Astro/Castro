@@ -302,11 +302,49 @@ Castro::react_state(Real time, Real dt)
 
         const Box& bx = mfi.growntilebox(ng);
 
+#ifdef CXX_REACTIONS
+        U_old = S_old.array(mfi);
+        U_new = S_new.array(mfi);
+        asrc = A_src.array(mfi);
+        react_src = reactions.array(mfi);
+        mask = interior_mask.array(mfi);
+
+        reduce_op.eval(bx, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+
+            burn_t burn_state;
+
+            // Initialize some data for later.
+
+            bool do_burn = true;
+            burn_state.success = true;
+
+            if (mask(i,j,k) != 1) {
+                do_burn = false;
+            }
+
+            // Don't burn on zones inside shock regions, if the
+            // relevant option is set.
+
+#ifdef SHOCK_VAR
+            if (U(i,j,k,USHK) > 0.0_rt && disable_shock_burning == 1) {
+                do_burn = false;
+            }
+#endif
+
+
+            return {burn_failed};
+        });
+#else
+
         FArrayBox& uold    = S_old[mfi];
         FArrayBox& unew    = S_new[mfi];
         FArrayBox& a       = A_src[mfi];
         FArrayBox& r       = reactions[mfi];
         const IArrayBox& m = interior_mask[mfi];
+
+
 
 #pragma gpu box(bx)
         ca_react_state_simplified_sdc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -317,6 +355,8 @@ Castro::react_state(Real time, Real dt)
                                       BL_TO_FORTRAN_ANYD(m),
                                       time, dt, sdc_iteration,
                                       AMREX_MFITER_REDUCE_SUM(&burn_failed));
+
+#endif
 
     }
 
