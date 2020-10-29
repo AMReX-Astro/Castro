@@ -232,15 +232,17 @@ of each step.
 Strang+CTU Evolution
 ====================
 
+``do_advance_ctu()`` in ``Castro_advance_ctu.cpp`` 
 
 This described the flow using Strang splitting and the CTU
 hydrodynamics (or MHD) method, including gravity, rotation, and
 diffusion.  This integration is selected via
 ``castro.time_integration_method = 0``.
 
-The system advancement (reactions, hydrodynamics, diffusion, rotation,
-and gravity) is done by ``do_advance()``. Consider our system of
-equations as:
+The system advancement: reactions, hydrodynamics, diffusion, rotation,
+and gravity are all considered here.
+
+Consider our system of equations as:
 
 .. math:: \frac{\partial\Ub}{\partial t} = {\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 
@@ -307,6 +309,10 @@ here, consistent with the names used in the code:
 -  ``S_new`` is a MultiFab reference to the new-time-level
    ``State_Type`` data.
 
+- ``old_source`` is a MultiFab reference to the old-time-level ``Source_Type`` data.
+
+- ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
+
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
 
@@ -314,7 +320,16 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. Check for NaNs in the initial state, ``S_old``.
+   B. If ``source_term_predictor == 1``, then aply
+      ``source_corrector`` to ``sources_for_hydro``.  For Strang+CTU,
+      this was the effect of initializing the source terms as:
+
+      .. math::
+
+         \Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}
+
+   C. Check for NaNs in the initial state, ``S_old``.
+
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
 
@@ -358,10 +373,7 @@ In the code, the objective is to evolve the state from the old time,
    [``construct_old_gravity()``, ``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
-   StateData ``Source_Type``. The sources are then applied
-   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
-   weighting (this will be corrected later). This produces the
-   intermediate state, :math:`\Ub^{n+1,(a)}`.
+   StateData ``Source_Type``. 
 
    The sources that we deal with here are:
 
@@ -380,7 +392,12 @@ In the code, the objective is to evolve the state from the old time,
       ``toy_convect`` problem setup) for an example. But most
       problems will not use this.
 
-   C. [``DIFFUSION``] diffusion : thermal diffusion can be
+   C. [``MHD``] thermal source: for the MHD system, we are including
+      the "pdV" work for the internal energy equation as a source term
+      rather than computing it from the Riemann problem.  This source is
+      computed here for the internal energy equation.
+
+   D. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -391,10 +408,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   D. [``HYBRID_MOMENTUM``] angular momentum
+   E. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   E. [``GRAVITY``] gravity:
+   F. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -409,7 +426,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   F. [``ROTATION``] rotation
+   G. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -425,10 +442,14 @@ In the code, the objective is to evolve the state from the old time,
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
-   Note that the source terms are already applied to ``S_new``
-   in this step, with a full :math:`\Delta t`—this will be corrected later.
+   The old-time source terms are stored in ``old_source``.
 
-#. *Construct the hydro update* [``construct_hydro_source()``]
+   The sources are then applied to the state after the burn,
+   :math:`\Ub^\star` with a full :math:`\Delta t` weighting (this will
+   be corrected later). This produces the intermediate state,
+   :math:`\Ub^{n+1,(a)}` (stored in ``S_new``).
+
+#. *Construct the hydro / MHD update* [``construct_ctu_hydro_source()``, ``construct_ctu_mhd_source()``]
 
    The goal is to advance our system considering only the advective
    terms (which in Cartesian coordinates can be written as the
@@ -444,35 +465,44 @@ In the code, the objective is to evolve the state from the old time,
    the state after burning, :math:`\Ub^\star` (``Sborder``).  For the
    CTU method, we predict to the half-time (:math:`n+1/2`) to get a
    second-order accurate method. Note: ``Sborder`` does not know of
-   any sources except for reactions. The advection step is
-   complicated, and more detail is given in Section
-   :ref:`Sec:Advection Step`. Here is the summarized version:
+   any sources except for reactions. 
 
-   A. Compute primitive variables.
+   The method done here differs depending on whether we are doing hydro or MHD.
 
-   B. Convert the source terms to those acting on primitive variables
+   A. hydrodynamics
 
-   C. Predict primitive variables to time-centered edges.
+      The advection step is complicated, and more detail is given in
+      Section :ref:`Sec:Advection Step`. Here is the summarized version:
 
-   D. Solve the Riemann problem.
+      i. Compute primitive variables.
 
-   E. Compute fluxes and update.
+      ii. Convert the source terms to those acting on primitive variables
 
-      To start the hydrodynamics, we need to know the hydrodynamics source
-      terms at time-level :math:`n`, since this enters into the prediction to
-      the interface states. This is essentially the same vector that was
-      computed in the previous step, with a few modifications. The most
-      important is that if we set
-      ``castro.source_term_predictor``, then we extrapolate the
-      source terms from :math:`n` to :math:`n+1/2`, using the change from the previous
-      step.
+      iii. Predict primitive variables to time-centered edges.
 
-      Note: we neglect the reaction source terms, since those are already
-      accounted for in the state directly, due to the Strang-splitting
-      nature of this method.
+      iv. Solve the Riemann problem.
 
-      The update computed here is then immediately applied to
-      ``S_new``.
+      v. Compute fluxes and advective term.
+
+   B. MHD
+
+      The MHD update is described in :ref:`ch:mhd`.
+
+   To start the hydrodynamics/MHD source construction, we need to know
+   the hydrodynamics source terms at time-level :math:`n`, since this
+   enters into the prediction to the interface states. This is
+   essentially the same vector that was computed in the previous step,
+   with a few modifications. The most important is that if we set
+   ``castro.source_term_predictor``, then we extrapolate the source
+   terms from :math:`n` to :math:`n+1/2`, using the change from the
+   previous step.
+
+   Note: we neglect the reaction source terms, since those are already
+   accounted for in the state directly, due to the Strang-splitting
+   nature of this method.
+
+   The update computed here is then immediately applied to
+   ``S_new``.
 
 #. *Clean State* [``clean_state()``]
 
@@ -487,15 +517,21 @@ In the code, the objective is to evolve the state from the old time,
 #. *Correct the source terms with the n+1
    contribution* [``construct_new_gravity()``, ``do_new_sources`` ]
 
+   If we are doing self-gravity, then we first compute the updated gravitational
+   potential using the updated density from ``S_new``.
+
+   Now we correct the source terms applied to ``S_new`` so they are time-centered.
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
-   we really want a time-centered approach, 
-   :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` . We fix that here.
+   we really want 
+   :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` .
 
    We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
    using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
    correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
    add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
-   and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
+   and the fully updated state, :math:`\Ub^{n+1,(c)}`. 
+
+   This correction is stored
    in the ``new_sources`` MultiFab [1]_.
 
    In the process of updating the sources, we update the temperature to
