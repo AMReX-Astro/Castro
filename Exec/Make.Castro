@@ -377,14 +377,6 @@ include $(TOP)/Exec/Make.auto_source
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
-ifeq ($(USE_CUDA),TRUE)
-ifeq ($(USE_GPU_PRAGMA), TRUE)
-
-include $(TOP)/Exec/Make.cuda_rules
-
-endif
-endif
-
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
