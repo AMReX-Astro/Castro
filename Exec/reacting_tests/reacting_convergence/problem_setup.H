@@ -3,6 +3,8 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
+#include <network.H>
+#include <actual_network.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -26,6 +28,21 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = xn[n];
     }
+
+#ifdef NSE_THERMO
+    Real aux[NumAux] = {0.0_rt};
+
+    for (int n = 0; n < NumSpec; n++) {
+        aux[AuxZero::iye] += xn[n] * zion[n] * aion_inv[n];
+        aux[AuxZero::iabar] += xn[n] * aion_inv[n];
+        aux[AuxZero::ibea] += xn[n] * aprox19::bion(n+1) * aion_inv[n];
+    }
+    aux[AuxZero::iabar] = 1.0_rt/aux[AuxZero::iabar];
+
+    for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = aux[n];
+    }
+#endif
 
     eos(eos_input_rt, eos_state);
 
@@ -89,6 +106,21 @@ void problem_initialize_state_data (int i, int j, int k,
         eos_state.xn[n] = xn[n];
     }
 
+#ifdef NSE_THERMO
+    Real aux[NumAux] = {0.0_rt};
+
+    for (int n = 0; n < NumSpec; n++) {
+        aux[AuxZero::iye] += xn[n] * zion[n] * aion_inv[n];
+        aux[AuxZero::iabar] += xn[n] * aion_inv[n];
+        aux[AuxZero::ibea] += xn[n] * aprox19::bion(n+1) * aion_inv[n];
+    }
+    aux[AuxZero::iabar] = 1.0_rt/aux[AuxZero::iabar];
+
+    for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = aux[n];
+    }
+#endif
+
     eos(eos_input_ps, eos_state);
 
     state(i,j,k,URHO) = eos_state.rho;
@@ -98,6 +130,10 @@ void problem_initialize_state_data (int i, int j, int k,
 
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
+    }
+
+    for (int n = 0; n < NumAux; n++) {
+        state(i,j,k,UFX+n) = state(i,j,k,URHO) * aux[n];
     }
 
     state(i,j,k,UTEMP) = eos_state.T;

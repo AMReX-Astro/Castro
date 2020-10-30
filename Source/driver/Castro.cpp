@@ -16,6 +16,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_error_F.H>
+#include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
@@ -215,11 +216,14 @@ Castro::read_params ()
 
     done = true;
 
+    // this gets all of the parameters defined in _cpp_params, regardless of
+    // namespace
+    initialize_cpp_runparams();
+
     ParmParse pp("castro");
 
     using namespace castro;
 
-#include <castro_queries.H>
 
     // Get boundary conditions
     Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
@@ -500,23 +504,23 @@ Castro::read_params ()
             info.SetMaxLevel(max_level);
         }
 
-        if (ppr.countval("value_greater") > 0) {
-            Real value;
-            ppr.get("value_greater", value);
+        if (int nval = ppr.countval("value_greater")) {
+            Vector<Real> value;
+            ppr.getarr("value_greater", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
             custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
         }
-        else if (ppr.countval("value_less") > 0) {
-            Real value;
-            ppr.get("value_less", value);
+        else if (int nval = ppr.countval("value_less")) {
+            Vector<Real> value;
+            ppr.getarr("value_less", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
             custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
         }
-        else if (ppr.countval("gradient") > 0) {
-            Real value;
-            ppr.get("gradient", value);
+        else if (int nval = ppr.countval("gradient")) {
+            Vector<Real> value;
+            ppr.getarr("gradient", value, 0, nval);
             std::string field;
             ppr.get("field_name", field);
             custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));

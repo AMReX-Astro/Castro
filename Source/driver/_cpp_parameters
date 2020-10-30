@@ -328,6 +328,10 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
+# Skip retries for small (or negative) density if the zone's density prior
+# to the update was below this threshold.
+retry_small_density_cutoff   Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
