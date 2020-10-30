@@ -132,9 +132,11 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * xn[n];
     }
 
+#ifdef NSE_THERMO
     for (int n = 0; n < NumAux; n++) {
         state(i,j,k,UFX+n) = state(i,j,k,URHO) * aux[n];
     }
+#endif
 
     state(i,j,k,UTEMP) = eos_state.T;
 }
