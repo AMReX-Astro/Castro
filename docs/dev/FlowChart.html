@@ -103,8 +103,9 @@
 <li class="toctree-l1"><a class="reference internal" href="mpi_plus_x.html">Running Options: CPUs and GPUs</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Flowchart</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#strang-split-evolution">Strang-Split Evolution</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#ctu-w-strang-split-reactions-flowchart">CTU w/ Strang-split Reactions Flowchart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#main-driverall-time-integration-methods">Main Driver—All Time Integration Methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#strang-ctu-evolution">Strang+CTU Evolution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-step-flowchat">Single Step Flowchat</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#sdc-evolution">SDC Evolution</a><ul>
@@ -229,24 +230,26 @@
 implemented in Castro. As best as possible, they share the same
 driver routines and use preprocessor or runtime variables to separate
 the different code paths.  These fall into two categories:</p>
-<ul class="simple" id="index-0">
-<li><p>Strang-splitting: the Strang evolution does the burning on the
+<ul id="index-0">
+<li><p>Strang+CTU: the Strang evolution does the burning on the
 state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then updates the hydrodynamics using the
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
 explicit coupling of the burning and hydro is done.  This code
 path uses the corner-transport upwind (CTU) method (the unsplit,
-characteristic tracing method of <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id1">[20]</a>).</p></li>
+characteristic tracing method of <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id1">[20]</a>).  This is the default method.</p>
+<p>The MHD solver uses this same driver.</p>
+</li>
 <li><p>SDC: a class of iterative methods that couples the advection and reactions
 such that each process explicitly sees the effect of the other.  We have
 two SDC implementations in Castro.</p>
-<ul>
+<ul class="simple">
 <li><p>The “simplified SDC” method is based on the CTU hydro update.  We
 iterate over the construction of this term, using a lagged
 reaction source as inputs and do the final conservative update by
 integrating the reaction system using an ODE solver with the
 explicit advective source included in a
 piecewise-constant-in-time fastion.</p></li>
-<li><p>The main SDC method.  This fully couples the hydro and reactions
+<li><p>The “true SDC” method.  This fully couples the hydro and reactions
 to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
@@ -273,7 +276,7 @@ default Strang method, you must compile with <code class="docutils literal notra
 method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">EXTRA_THERMO</span></code> which enables some
 additional EOS derivatives).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>: this is the simplifed SDC method
-described above.that uses the CTU hydro advection and an ODE
+described above that uses the CTU hydro advection and an ODE
 reaction solve.  Note: because this requires a different set of
 state variables, you must compile with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> for this
 method to work (in particular, this defines <code class="docutils literal notranslate"><span class="pre">PRIM_SPECIES_HAVE_SOURCES</span></code>).</p></li>
@@ -288,6 +291,11 @@ support for them needs to be compiled in, using
 <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC=TRUE</span></code> for the simplified-SDC method
 (<code class="docutils literal notranslate"><span class="pre">time_integration_method=3</span></code>) and <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC=TRUE</span></code> for the
 true SDC method (<code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>).</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>MHD and radiation are currently only supported by the Strang+CTU
+evolution time integration method.</p>
 </div>
 <p>Several helper functions are used throughout:</p>
 <ul class="simple" id="index-2">
@@ -307,8 +315,8 @@ consistent with the state.</p></li>
 </li>
 </ul>
 </div>
-<div class="section" id="strang-split-evolution">
-<span id="flow-sec-nosdc"></span><h2>Strang-Split Evolution<a class="headerlink" href="#strang-split-evolution" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="main-driverall-time-integration-methods">
+<span id="flow-sec-nosdc"></span><h2>Main Driver—All Time Integration Methods<a class="headerlink" href="#main-driverall-time-integration-methods" title="Permalink to this headline">¶</a></h2>
 <p>This driver supports the Strang CTU integration.
 (<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span></code> = 0)</p>
 <p>The main evolution for a single step is contained in
@@ -323,16 +331,18 @@ of each step.</p>
 actions are performend (note, we omit the actions taken for a retry,
 which we will describe later):</p>
 <ul class="simple">
-<li><p>Sync up the level information to the Fortran-side of Castro</p></li>
-<li><p>Do any radiation initialization</p></li>
+<li><p>Sync up the level information to the Fortran-side of Castro.</p></li>
+<li><p>Do any radiation initialization.</p></li>
+<li><p>Set the maximum density used for Poisson gravity tolerances.</p></li>
 <li><p>Initialize all of the intermediate storage arrays (like those
 that hold source terms, etc.).</p></li>
 <li><p>Swap the StateData from the new to old (e.g., ensures that
 the next evolution starts with the result from the previous step).</p></li>
-<li><p>Do a <code class="docutils literal notranslate"><span class="pre">clean_state</span></code></p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">clean_state</span></code>.</p></li>
 <li><p>Create the MultiFabs that hold the primitive variable information
 for the hydro solve.</p></li>
-<li><p>Zero out all of the fluxes</p></li>
+<li><p>Zero out all of the fluxes.</p></li>
+<li><p>For true SDC, initialize the data at all time nodes (see <a class="reference internal" href="#sec-flow-true-sdc"><span class="std std-ref">SDC Evolution</span></a>).</p></li>
 </ul>
 </li>
 <li><p><em>Advancement</em></p>
@@ -343,7 +353,7 @@ advective (hyperbolic) portion of the radiation update only.
 Source terms, including gravity, rotation, and diffusion are
 included in this step, and are time-centered to achieve second-order
 accuracy.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">castro.use_retry</span></code> is set, then we subcycle the current
+<p id="index-3">If <code class="docutils literal notranslate"><span class="pre">castro.use_retry</span></code> is set, then we subcycle the current
 step if we violated any stability criteria to reach the desired
 <span class="math notranslate nohighlight">\(\Delta t\)</span>. The idea is the following: if the timestep that you
 took had a timestep that was not sufficient to enforce the stability
@@ -355,7 +365,12 @@ beginning of the level advance, and then if the criteria are not
 satisfied, will reject that advance and start over from the old
 data, with a series of subcycled timesteps that should be small
 enough to satisfy the criteria. Note that this will effectively
-double the memory footprint on each level if you choose to use it.</p>
+double the memory footprint on each level if you choose to use it.
+See <a class="reference internal" href="timestepping.html#ch-retry"><span class="std std-ref">Retry Mechanism</span></a> for more details on the retry mechanism.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only Strang+CTU and simplified-SDC support retries.</p>
+</div>
 </li>
 <li><p>[AUX_UPDATE] <em>Auxiliary quantitiy evolution</em></p>
 <p>Auxiliary variables in Castro are those that obey a continuity
@@ -399,14 +414,17 @@ the step.</p></li>
 </ul>
 </li>
 </ol>
-<div class="section" id="ctu-w-strang-split-reactions-flowchart">
-<span id="sec-strangctu"></span><h3>CTU w/ Strang-split Reactions Flowchart<a class="headerlink" href="#ctu-w-strang-split-reactions-flowchart" title="Permalink to this headline">¶</a></h3>
-<p>This described the flow using the CTU + Strang-split reactions,
-including gravity, rotation, and diffusion.  This integration is
-selected via <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
-<p>The system advancement (reactions, hydrodynamics, diffusion, rotation,
-and gravity) is done by <code class="docutils literal notranslate"><span class="pre">do_advance()</span></code>. Consider our system of
-equations as:</p>
+</div>
+<div class="section" id="strang-ctu-evolution">
+<span id="sec-strangctu"></span><h2>Strang+CTU Evolution<a class="headerlink" href="#strang-ctu-evolution" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">do_advance_ctu()</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_advance_ctu.cpp</span></code></p>
+<p>This described the flow using Strang splitting and the CTU
+hydrodynamics (or MHD) method, including gravity, rotation, and
+diffusion.  This integration is selected via
+<code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
+<p>The system advancement: reactions, hydrodynamics, diffusion, rotation,
+and gravity are all considered here.</p>
+<p>Consider our system of equations as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial\Ub}{\partial t} = {\bf A}(\Ub) + \Rb(\Ub) + \Sb,\]</div>
 <p>where <span class="math notranslate nohighlight">\({\bf A}(\Ub) = -\nabla \cdot \Fb(\Ub)\)</span>, with <span class="math notranslate nohighlight">\(\Fb\)</span> the flux vector, <span class="math notranslate nohighlight">\(\Rb\)</span> are the reaction
@@ -434,16 +452,19 @@ explicit, and based on an unsplit second-order Godunov method. We
 predict the standard primitive variables, as well as <span class="math notranslate nohighlight">\(\rho e\)</span>, at
 time-centered edges and use an approximate Riemann solver construct
 fluxes.</p>
-<p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and <span class="math notranslate nohighlight">\(\phi\)</span> are
-defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy equation
-<a class="reference internal" href="gravity.html#equation-eq-self-gravity">(4)</a>. Note that in
+<p>At the beginning of the time step, we assume that <span class="math notranslate nohighlight">\(\Ub\)</span> and the gravitational potential, <span class="math notranslate nohighlight">\(\phi\)</span>, are
+defined consistently, i.e., <span class="math notranslate nohighlight">\(\rho^n\)</span> and <span class="math notranslate nohighlight">\(\phi^n\)</span> satisfy the Poisson equation:</p>
+<div class="math notranslate nohighlight">
+\[\Delta \phi^n = 4\pi G\rho^n\]</div>
+<p>(see <a class="reference internal" href="gravity.html#ch-gravity"><span class="std std-ref">Gravity</span></a> for more details about how the Poisson equation is solved.)
+Note that in
 <a class="reference internal" href="#equation-eq-source-correct">(1)</a>, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
 make the update more akin to:</p>
 <div class="math notranslate nohighlight">
 \[\Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]\]</div>
-<p>Castro also supports radiation. This part of the update algorithm
+<p>If we are including radiation, then this part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.</p>
 <p>Here is the single-level algorithm. The goal here is to update the
 <code class="docutils literal notranslate"><span class="pre">State_Type</span></code>  <code class="docutils literal notranslate"><span class="pre">StateData</span></code> from the old to new time (see
@@ -457,13 +478,23 @@ initialized from <code class="docutils literal notranslate"><span class="pre">S_
 reconstruction will work from.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code> is a MultiFab reference to the new-time-level
 <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">old_source</span></code> is a MultiFab reference to the old-time-level <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code> data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">new_source</span></code> is a MultiFab reference to the new-time-level <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code> data.</p></li>
 </ul>
+<div class="section" id="single-step-flowchat">
+<h3>Single Step Flowchat<a class="headerlink" href="#single-step-flowchat" title="Permalink to this headline">¶</a></h3>
 <p>In the code, the objective is to evolve the state from the old time,
 <code class="docutils literal notranslate"><span class="pre">S_old</span></code>, to the new time, <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <ol class="arabic">
 <li><p><em>Initialize</em></p>
-<ol class="upperalpha simple">
+<ol class="upperalpha">
 <li><p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>, create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">source_term_predictor</span> <span class="pre">==</span> <span class="pre">1</span></code>, then aply
+<code class="docutils literal notranslate"><span class="pre">source_corrector</span></code> to <code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code>.  For Strang+CTU,
+this was the effect of initializing the source terms as:</p>
+<div class="math notranslate nohighlight">
+\[\Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}\]</div>
+</li>
 <li><p>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</p></li>
 </ol>
 </li>
@@ -479,9 +510,9 @@ temperature through <span class="math notranslate nohighlight">\(\Delta t/2\)</s
 <span class="math notranslate nohighlight">\(\Ub^\star\)</span>.</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{aligned}
-    (\rho e)^\star &amp;= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho E)^\star &amp;= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-    (\rho X_k)^\star &amp;= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+    (\rho e)^\star &amp;= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho E)^\star &amp;= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+    (\rho X_k)^\star &amp;= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
   \end{aligned}\end{split}\]</div>
 <p>Here, <span class="math notranslate nohighlight">\(H_\mathrm{nuc}\)</span> is the energy release (erg/g/s) over the
 burn, and <span class="math notranslate nohighlight">\(\omegadot_k\)</span> is the creation rate for species <span class="math notranslate nohighlight">\(k\)</span>.</p>
@@ -489,17 +520,8 @@ burn, and <span class="math notranslate nohighlight">\(\omegadot_k\)</span> is t
 <span class="math notranslate nohighlight">\(e^\star\)</span>, and <span class="math notranslate nohighlight">\(X_k^\star\)</span> to get the new temperature, <span class="math notranslate nohighlight">\(T^\star\)</span>.</p>
 <p>Note that the density, <span class="math notranslate nohighlight">\(\rho\)</span>, does not change via reactions in the
 Strang-split formulation.</p>
-<p>The reaction data needs to be valid in the ghost cells. The logic
-in this routine (accomplished throuh the use of a mask) will burn
-only in the valid interior cells or in any ghost cells that are on a
-coarse-fine interface or physical boundary. This allows us to just
-use a level <code class="docutils literal notranslate"><span class="pre">FillBoundary()</span></code> call to fill all of the ghost cells
-on the same level with valid data.</p>
-<p>An experimental option (enabled via
-<code class="docutils literal notranslate"><span class="pre">use_custom_knapsack_weights</span></code>) will create a custom
-distribution map based on the work needed in burning a zone and
-redistribute the boxes across processors before burning, to better
-load balance.</p>
+<p>The reaction data needs to be valid in the ghost cells, so the reactions
+are applied to the entire patch, including ghost cells.</p>
 <p>After reactions, <code class="docutils literal notranslate"><span class="pre">clean_state</span></code> is called.</p>
 <p>At the end of this step, <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> sees the effects of the
 reactions.</p>
@@ -507,10 +529,7 @@ reactions.</p>
 <li><p><em>Construct time-level n sources and apply</em>
 [<code class="docutils literal notranslate"><span class="pre">construct_old_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_old_sources()</span></code> ]</p>
 <p>The time level <span class="math notranslate nohighlight">\(n\)</span> sources are computed, and added to the
-StateData <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>. The sources are then applied
-to the state after the burn, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> with a full <span class="math notranslate nohighlight">\(\Delta t\)</span>
-weighting (this will be corrected later). This produces the
-intermediate state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)</span>.</p>
+StateData <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>.</p>
 <p>The sources that we deal with here are:</p>
 <ol class="upperalpha">
 <li><p>sponge : the sponge is a damping term added to
@@ -526,6 +545,10 @@ using the integer keys defined in <code class="docutils literal notranslate"><sp
 <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code> problem setup) for an example. But most
 problems will not use this.</p>
 </li>
+<li><p>[<code class="docutils literal notranslate"><span class="pre">MHD</span></code>] thermal source: for the MHD system, we are including
+the “pdV” work for the internal energy equation as a source term
+rather than computing it from the Riemann problem.  This source is
+computed here for the internal energy equation.</p></li>
 <li><p>[<code class="docutils literal notranslate"><span class="pre">DIFFUSION</span></code>] diffusion : thermal diffusion can be
 added in an explicit formulation. Second-order accuracy is
 achieved by averaging the time-level <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(n+1\)</span> terms, using
@@ -561,10 +584,13 @@ given in Chapter <a class="reference internal" href="rotation.html#ch-rotation">
 new state just before the burn, <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span>. This is compatible
 with Strang-splitting, since the hydro and sources takes place
 completely inside of the surrounding burn operations.</p>
-<p>Note that the source terms are already applied to <code class="docutils literal notranslate"><span class="pre">S_new</span></code>
-in this step, with a full <span class="math notranslate nohighlight">\(\Delta t\)</span>—this will be corrected later.</p>
+<p>The old-time source terms are stored in <code class="docutils literal notranslate"><span class="pre">old_source</span></code>.</p>
+<p>The sources are then applied to the state after the burn,
+<span class="math notranslate nohighlight">\(\Ub^\star\)</span> with a full <span class="math notranslate nohighlight">\(\Delta t\)</span> weighting (this will
+be corrected later). This produces the intermediate state,
+<span class="math notranslate nohighlight">\(\Ub^{n+1,(a)}\)</span> (stored in <code class="docutils literal notranslate"><span class="pre">S_new</span></code>).</p>
 </li>
-<li><p><em>Construct the hydro update</em> [<code class="docutils literal notranslate"><span class="pre">construct_hydro_source()</span></code>]</p>
+<li><p><em>Construct the hydro / MHD update</em> [<code class="docutils literal notranslate"><span class="pre">construct_ctu_hydro_source()</span></code>, <code class="docutils literal notranslate"><span class="pre">construct_ctu_mhd_source()</span></code>]</p>
 <p>The goal is to advance our system considering only the advective
 terms (which in Cartesian coordinates can be written as the
 divergence of a flux).</p>
@@ -577,30 +603,37 @@ complex time-integration schemes.</p>
 the state after burning, <span class="math notranslate nohighlight">\(\Ub^\star\)</span> (<code class="docutils literal notranslate"><span class="pre">Sborder</span></code>).  For the
 CTU method, we predict to the half-time (<span class="math notranslate nohighlight">\(n+1/2\)</span>) to get a
 second-order accurate method. Note: <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> does not know of
-any sources except for reactions. The advection step is
-complicated, and more detail is given in Section
-<a class="reference internal" href="Hydrodynamics.html#sec-advection-step"><span class="std std-ref">Hydrodynamics Update</span></a>. Here is the summarized version:</p>
+any sources except for reactions.</p>
+<p>The method done here differs depending on whether we are doing hydro or MHD.</p>
 <ol class="upperalpha">
+<li><p>hydrodynamics</p>
+<p>The advection step is complicated, and more detail is given in
+Section <a class="reference internal" href="Hydrodynamics.html#sec-advection-step"><span class="std std-ref">Hydrodynamics Update</span></a>. Here is the summarized version:</p>
+<ol class="lowerroman simple">
 <li><p>Compute primitive variables.</p></li>
 <li><p>Convert the source terms to those acting on primitive variables</p></li>
 <li><p>Predict primitive variables to time-centered edges.</p></li>
 <li><p>Solve the Riemann problem.</p></li>
-<li><p>Compute fluxes and update.</p>
-<p>To start the hydrodynamics, we need to know the hydrodynamics source
-terms at time-level <span class="math notranslate nohighlight">\(n\)</span>, since this enters into the prediction to
-the interface states. This is essentially the same vector that was
-computed in the previous step, with a few modifications. The most
-important is that if we set
-<code class="docutils literal notranslate"><span class="pre">castro.source_term_predictor</span></code>, then we extrapolate the
-source terms from <span class="math notranslate nohighlight">\(n\)</span> to <span class="math notranslate nohighlight">\(n+1/2\)</span>, using the change from the previous
-step.</p>
+<li><p>Compute fluxes and advective term.</p></li>
+</ol>
+</li>
+<li><p>MHD</p>
+<p>The MHD update is described in <a class="reference internal" href="mhd.html#ch-mhd"><span class="std std-ref">MHD</span></a>.</p>
+</li>
+</ol>
+<p>To start the hydrodynamics/MHD source construction, we need to know
+the hydrodynamics source terms at time-level <span class="math notranslate nohighlight">\(n\)</span>, since this
+enters into the prediction to the interface states. This is
+essentially the same vector that was computed in the previous step,
+with a few modifications. The most important is that if we set
+<code class="docutils literal notranslate"><span class="pre">castro.source_term_predictor</span></code>, then we extrapolate the source
+terms from <span class="math notranslate nohighlight">\(n\)</span> to <span class="math notranslate nohighlight">\(n+1/2\)</span>, using the change from the
+previous step.</p>
 <p>Note: we neglect the reaction source terms, since those are already
 accounted for in the state directly, due to the Strang-splitting
 nature of this method.</p>
 <p>The update computed here is then immediately applied to
 <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
-</li>
-</ol>
 </li>
 <li><p><em>Clean State</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p>
 <p>This is done on <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
@@ -611,14 +644,18 @@ nature of this method.</p>
 </li>
 <li><p><em>Correct the source terms with the n+1
 contribution</em> [<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources</span></code> ]</p>
-<p>Previously we added <span class="math notranslate nohighlight">\(\Delta t\, \Sb(\Ub^\star)\)</span> to the state, when
-we really want a time-centered approach,
-<span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]\)</span> . We fix that here.</p>
+<p>If we are doing self-gravity, then we first compute the updated gravitational
+potential using the updated density from <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
+<p>Now we correct the source terms applied to <code class="docutils literal notranslate"><span class="pre">S_new</span></code> so they are time-centered.
+Previously we added <span class="math notranslate nohighlight">\(\Delta t\, \Sb(\Ub^\star)\)</span> to the state, when
+we really want
+<span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]\)</span> .</p>
 <p>We start by computing the source term vector <span class="math notranslate nohighlight">\(\Sb(\Ub^{n+1,(b)})\)</span>
 using the updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span>. We then compute the
 correction, <span class="math notranslate nohighlight">\((\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]\)</span> to
 add to <span class="math notranslate nohighlight">\(\Ub^{n+1,(b)}\)</span> to give us the properly time-centered source,
-and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>. This correction is stored
+and the fully updated state, <span class="math notranslate nohighlight">\(\Ub^{n+1,(c)}\)</span>.</p>
+<p>This correction is stored
 in the <code class="docutils literal notranslate"><span class="pre">new_sources</span></code> MultiFab <a class="footnote-reference brackets" href="#id7" id="id5">1</a>.</p>
 <p>In the process of updating the sources, we update the temperature to
 make it consistent with the new state.</p>
@@ -727,7 +764,7 @@ these processes is presented below:</p>
 </div>
 </div>
 <div class="section" id="sdc-evolution">
-<h2>SDC Evolution<a class="headerlink" href="#sdc-evolution" title="Permalink to this headline">¶</a></h2>
+<span id="sec-flow-true-sdc"></span><h2>SDC Evolution<a class="headerlink" href="#sdc-evolution" title="Permalink to this headline">¶</a></h2>
 <p>The SDC evolution is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">2</span></code>.  It
 does away with Strang splitting and instead couples the reactions and hydro
 together directly.</p>
@@ -756,7 +793,7 @@ updates the solution from node <span class="math notranslate nohighlight">\(m\)<
                                 &amp;+ \Delta t \left [ \avg{{\bf R}(\Ub)}^{m+1,(k+1)} - \avg{{\bf R}(\Ub)}^{m+1,(k)} \right ] \\
                                 &amp;+ \int_{t^m}^{t^{m+1}} \left [ \avg{{\bf A}(\Ub)}^{(k)} + \avg{{\bf R}(\Ub)}^{(k)} \right ] dt
 \end{align}\end{split}\]</div>
-<p id="index-3">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
+<p id="index-4">Where <span class="math notranslate nohighlight">\(k\)</span> is the iteration index.  In the SDC formalism, each
 iteration gains us an order of accuracy in time, up to the order with
 which we discretize the integral at the end of the above expression.
 We also write the conservative state as <span class="math notranslate nohighlight">\(\avg{\Ub}\)</span> to remind us
@@ -819,7 +856,7 @@ accuracy</p></th>
 </tbody>
 </table>
 <p>The overall evolution appears as:</p>
-<ol class="arabic" id="index-4">
+<ol class="arabic" id="index-5">
 <li><p><em>Initialization</em> (<code class="docutils literal notranslate"><span class="pre">initialize_advance</span></code>)</p>
 <p>Here we create the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> s that store the needed information
 at the different time nodes.  Each of the quantities below is a
@@ -853,7 +890,7 @@ all the time nodes for a single iteration.</p>
 </ol>
 <div class="section" id="sdc-single-iteration-flowchart">
 <h3>SDC Single Iteration Flowchart<a class="headerlink" href="#sdc-single-iteration-flowchart" title="Permalink to this headline">¶</a></h3>
-<p id="index-5">The update through all time nodes for a single iteration is done by
+<p id="index-6">The update through all time nodes for a single iteration is done by
 <code class="docutils literal notranslate"><span class="pre">do_advance_sdc</span></code>.  The basic update appears as:</p>
 <p>Throughout this driver we use the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> <code class="docutils literal notranslate"><span class="pre">StateData</span></code> as
 storage for the current node.  In particular, we use the new time slot
@@ -933,6 +970,8 @@ time node.</p>
 <p>The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by <code class="docutils literal notranslate"><span class="pre">castro.time_integration_method</span> <span class="pre">=</span> <span class="pre">3</span></code>.</p>
+<p>We use one additional StateData type here, <code class="docutils literal notranslate"><span class="pre">Simplified_SDC_React_Type</span></code>,
+which will hold the reactive source needed by hydrodynamics.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_SIMPLIFIED_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
@@ -970,7 +1009,13 @@ terms to the half-time for the prediction (the
 Simplified-SDC provides a natural way to approximate the
 time-centered source—we simply use the iteratively-lagged new-time
 source.  We add the corrector from the previous iteration to the
-source Multifabs before adding the current source.  This will give
+source Multifabs before adding the current source.  The corrector
+(stored in <code class="docutils literal notranslate"><span class="pre">source_corrector</span></code>) has the form:</p>
+<div class="math notranslate nohighlight">
+\[\Sb^\mathrm{corr} = \frac{1}{2} \left ( \Sb^{n+1,(k-1)} - S^n \right )\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Sb^n\)</span> does not have an iteration subscript, since we always have the
+same old time state.</p>
+<p>Applying this corrector to the the source at time <span class="math notranslate nohighlight">\(n\)</span>, will give
 us a source that is time-centered,</p>
 <div class="math notranslate nohighlight">
 \[{\bf S}(\Ub)^{n+1/2} = \frac{1}{2} \left ( {\bf S}(\Ub)^n + {\bf S}(\Ub)^{n+1,(k-1)} \right )\]</div>
@@ -983,26 +1028,29 @@ approximation to the reaction source on the primitive variables,
 <span class="math notranslate nohighlight">\(\mathcal{I}_q^{k-1}\)</span>.  This addition is done in
 <code class="docutils literal notranslate"><span class="pre">construct_ctu_hydro_source()</span></code> after the source terms are
 converted to primitive variables.</p>
-<p>The result of this is an approximation to <span class="math notranslate nohighlight">\(\mathcal{A}(\Ub)\)</span>,
-stored in <code class="docutils literal notranslate"><span class="pre">hydro_sources</span></code> (the flux divergence)
-and <code class="docutils literal notranslate"><span class="pre">old_sources</span></code> and <code class="docutils literal notranslate"><span class="pre">new_sources</span></code>.</p>
+<p>The result of this is an approximation to <span class="math notranslate nohighlight">\(- [\nabla \cdot {\bf F}]^{n+1/2}\)</span> (not yet the full <span class="math notranslate nohighlight">\(\mathcal{A}(\Ub)\)</span>)
+stored in <code class="docutils literal notranslate"><span class="pre">hydro_sources</span></code>.</p>
 </li>
 <li><p><em>Clean State</em> [<code class="docutils literal notranslate"><span class="pre">clean_state()</span></code>]</p></li>
 <li><p><em>Update radial data and center of mass for monopole gravity</em></p></li>
 <li><p><em>Correct the source terms with the n+1 contribution</em>
 [<code class="docutils literal notranslate"><span class="pre">construct_new_gravity()</span></code>, <code class="docutils literal notranslate"><span class="pre">do_new_sources()</span></code> ]</p></li>
 <li><p><em>React</em> <span class="math notranslate nohighlight">\(\Delta t\)</span> [<code class="docutils literal notranslate"><span class="pre">react_state()</span></code>]</p>
+<p>We first compute <span class="math notranslate nohighlight">\(\mathcal{A}(\Ub)\)</span> using <code class="docutils literal notranslate"><span class="pre">hydro_sources</span></code>,
+<code class="docutils literal notranslate"><span class="pre">old_source</span></code>, and <code class="docutils literal notranslate"><span class="pre">new_source</span></code> via the <code class="docutils literal notranslate"><span class="pre">sum_of_source()</span></code>
+function.  This produces an advective source of the form:</p>
+<div class="math notranslate nohighlight">
+\[\left [ \mathcal{A}(\Ub) \right ]^{n+1/2} = - [\nabla \cdot {\bf F}]^{n+1/2} + \frac{1}{2} (S^n + S^{n+1})\]</div>
 <p>We burn for the full <span class="math notranslate nohighlight">\(\Delta t\)</span> including the advective
 update as a source, integrating</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \[\frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)\]</div>
 </div></blockquote>
-<p>The advective source includes both the divergence of the fluxes
-as well as the time-centered source terms. This is computed by
-<code class="docutils literal notranslate"><span class="pre">sum_of_sources()</span></code> by summing over all source components
-<code class="docutils literal notranslate"><span class="pre">hydro_source</span></code>, <code class="docutils literal notranslate"><span class="pre">old_sources</span></code>, and
-<code class="docutils literal notranslate"><span class="pre">new_sources</span></code>.</p>
+<p>The result of evolving this equation is stored in <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
+<p>Note, if we do not actually burn in a zone (because we don’t meet
+the thermodynamic threshold) then this step does nothing, and the
+state updated just via hydrodynamics in <code class="docutils literal notranslate"><span class="pre">S_new</span></code> is kept.</p>
 </li>
 <li><p><em>Clean state</em>: This ensures that the thermodynamic state is
 valid and consistent.</p></li>
