@@ -253,6 +253,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
 }
 
+#ifdef SIMPLIFIED_SDC
 // Simplified SDC version
 
 bool
@@ -524,7 +525,7 @@ Castro::react_state(Real time, Real dt)
     }
 
 }
-
+#endif
 
 
 bool
