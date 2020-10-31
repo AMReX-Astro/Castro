@@ -64,40 +64,63 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
                                        Real& rel_T,    Real& abs_T, 
                                        Real delta_t)
 {
-  rel_rhoe = 0.0;
-  rel_FT   = 0.0;
-  rel_T    = 0.0;
-  abs_rhoe = 0.0;
-  abs_FT   = 0.0;
-  abs_T    = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real, Real, Real, Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T)
+#pragma omp parallel
 #endif
   for (MFIter mfi(rhoe_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_check_conv
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_star[mfi]),
-           BL_TO_FORTRAN_ANYD(rho[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(jg[mfi]),
-           BL_TO_FORTRAN_ANYD(dedT[mfi]),
-           AMREX_MFITER_REDUCE_MAX(&rel_rhoe),
-           AMREX_MFITER_REDUCE_MAX(&abs_rhoe),
-           AMREX_MFITER_REDUCE_MAX(&rel_FT),
-           AMREX_MFITER_REDUCE_MAX(&abs_FT),
-           AMREX_MFITER_REDUCE_MAX(&rel_T),
-           AMREX_MFITER_REDUCE_MAX(&abs_T),
-           delta_t);
+      auto ren = rhoe_new[mfi].array();
+      auto res = rhoe_star[mfi].array();
+      auto re2 = rhoe_step[mfi].array();
+      auto Ern = Er_new[mfi].array();
+      auto Tmn = temp_new[mfi].array();
+      auto Tms = temp_star[mfi].array();
+      auto rho_arr = rho[mfi].array();
+      auto kap = kappa_p[mfi].array();
+      auto jg_arr = jg[mfi].array();
+      auto deT = dedT[mfi].array();
+
+      int ng = Radiation::nGroups;
+      Real cdt = C::c_light * delta_t;
+
+      reduce_op.eval(bx, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          Real abschg_re = std::abs(ren(i,j,k) - res(i,j,k));
+          Real relchg_re = std::abs(abschg_re / (ren(i,j,k) + 1.e-50_rt));
+
+          Real abschg_T = std::abs(Tmn(i,j,k) - Tms(i,j,k));
+          Real relchg_T = std::abs(abschg_T / (Tmn(i,j,k) + 1.e-50_rt));
+
+          Real FT = ren(i,j,k) - re2(i,j,k);
+          for (int g = 0; g < ng; ++g) {
+              FT -= cdt * (kap(i,j,k,g) * Ern(i,j,k,g) - jg_arr(i,j,k,g));
+          }
+          FT = std::abs(FT);
+
+          Real dTe = Tmn(i,j,k);
+          Real FTdenom = rho_arr(i,j,k) * std::abs(deT(i,j,k) * dTe);
+          //Real FTdenom = amrex::max(std::abs(ren(i,j,k) - re2(i,j,k)), std::abs(ren(i,j,k) * 1.e-15_rt))
+
+          Real abschg_FT = FT;
+          Real relchg_FT = FT / (FTdenom + 1.e-50_rt);
+
+          return {relchg_re, abschg_re, relchg_FT, abschg_FT, relchg_T, abschg_T};
+      });
   }
+
+  ReduceTuple hv = reduce_data.value();
+  rel_rhoe = amrex::get<0>(hv);
+  abs_rhoe = amrex::get<1>(hv);
+  rel_FT   = amrex::get<2>(hv);
+  abs_FT   = amrex::get<3>(hv);
+  rel_T    = amrex::get<4>(hv);
+  abs_T    = amrex::get<5>(hv);
 
   int ndata = 6;
   Real data[6] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T};
@@ -123,13 +146,22 @@ void Radiation::compute_coupling(MultiFab& coupT,
     for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_compute_coupt
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(coupT[mfi]),
-             BL_TO_FORTRAN_ANYD(kpp[mfi]),
-             BL_TO_FORTRAN_ANYD(Eg[mfi]),    
-             BL_TO_FORTRAN_ANYD(jg[mfi]));
+        auto coupT_arr = coupT[mfi].array();
+        auto kpp_arr = kpp[mfi].array();
+        auto Eg_arr = Eg[mfi].array();
+        auto jg_arr = jg[mfi].array();
+
+        int ng = Radiation::nGroups;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            coupT_arr(i,j,k) = 0.0_rt;
+
+            for (int g = 0; g < ng; ++g) {
+                coupT_arr(i,j,k) = coupT_arr(i,j,k) + (kpp_arr(i,j,k,g) * Eg_arr(i,j,k,g) - jg_arr(i,j,k,g));
+            }
+        });
     }
 }
 
