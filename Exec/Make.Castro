@@ -51,6 +51,26 @@ endif
 # Require C++14
 CXXSTD := c++14
 
+# Implement any machine-specific workarounds.
+
+include $(AMREX_HOME)/Tools/GNUMake/Make.machines
+
+# On Summit if we have the PGI module loaded then we cannot simultaneously
+# have the gcc module loaded, which means we are stuck with the system
+# default (gcc 4.8.5). Since CUDA builds use gcc as the host compiler,
+# we would be prevented from using C++14. To work around this, if we're
+# using CUDA, then we reset the C++ host compiler to a known good
+# version of gcc on the system.
+
+ifeq ($(which_computer),summit)
+  ifeq ($(USE_CUDA),TRUE)
+    SUMMIT_GCC_OVERRIDE_DIR := /sw/summit/gcc/7.4.0
+    NVCC_CCBIN := $(SUMMIT_GCC_OVERRIDE_DIR)/bin/g++
+    LIBRARY_LOCATIONS += $(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+    LIBRARIES += -Wl,-rpath,$(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+  endif
+endif
+
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
