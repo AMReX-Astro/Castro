@@ -17,8 +17,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   real(rt) :: xn(nspec)
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! compute T_in from the input data
   xn(:) = 0.0_rt
   xn(1) = 1.0_rt

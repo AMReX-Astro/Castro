@@ -1,4 +1,46 @@
+# 20.11
+
+   * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
+     support C++14; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 5.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1284)
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
 # 20.10
+
+   * A new refinement scheme using the inputs file rather than the Fortran
+     tagging namelist has been added. (#1243, #1246) As an example, consider:
+
+     ```
+     amr.refinement_indicators = dens temp
+
+     amr.refine.dens.max_level = 1
+     amr.refine.dens.value_greater = 2.0
+     amr.refine.dens.field_name = density
+
+     amr.refine.temp.max_level = 2
+     amr.refine.temp.value_less = 1.0
+     amr.refine.temp.field_name = Temp
+     ```
+
+     `amr.refinement_indicators` is a list of user-defined names for refinement
+     schemes. For each defined name, amr.refine.<name> accepts predefined fields
+     describing when to tag. In the current implementation, these are `max_level`
+     (maximum level to refine to), `start_time` (when to start tagging), `end_time`
+     (when to stop tagging), `value_greater` (value above which we refine),
+     `value_less` (value below which to refine), `gradient` (absolute value of the
+     difference between adjacent cells above which we refine), and `field_name`
+     (name of the string defining the field in the code). If a refinement indicator
+     is added, either `value_greater`, `value_less`, or `gradient` must be provided.
 
    * Automatic problem parameter configuration is now available to every
      problem by placing a _prob_params file in your problem directory.
@@ -8,6 +50,20 @@
      a file containing a Fortran module named "probdata_module" is now
      automatically generated, so if you have a legacy probdata.F90 file
      containing a module with that name it should be renamed. (#1210)
+
+   * The variable "center" (in the `problem` namespace) is now part of this
+     automatically generated probdata module; at the present time, the only
+     valid way to change the problem center to a value other than zero is in
+     amrex_probinit(). (#1222)
+
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
+
+   * Problems may now be initialized in C++ instead of Fortran. Instead of implementing
+     amrex_probinit() and ca_initdata(), the problem should implement the analogous
+     functions initialize_problem() and initialize_problem_state_data(). If you switch to
+     the new C++ initialization, be sure to delete your Prob_nd.F90 file. By default both
+     implementations do nothing, so you can pick either one but do not pick both. (#1227)
 
    * The external heat source term routines have been ported to C++
      (#1191).  Any problem using an external heat source should look

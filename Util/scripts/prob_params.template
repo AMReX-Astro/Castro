@@ -15,7 +15,7 @@ module probdata_module
 
 end module probdata_module
 
-subroutine probdata_init(name, namlen)
+subroutine probdata_init(name, namlen) bind(C, name='probdata_init')
 
   use probdata_module
   use castro_error_module, only: castro_error

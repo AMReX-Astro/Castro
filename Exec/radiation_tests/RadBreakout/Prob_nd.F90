@@ -13,8 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer untin, i
   character(1) dummy
 
-  call probdata_init(name, namlen)
-
   xmin = problo(1)
   xmax = probhi(1)
 

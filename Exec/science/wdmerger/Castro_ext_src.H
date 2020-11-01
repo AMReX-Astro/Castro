@@ -18,19 +18,20 @@ void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
-                GpuArray<Real, 3> const& center,
                 GpuArray<Real, 3> const& omega,
                 const Real dt, const Real time)
 {
+    using namespace problem;
+
     // First do any relaxation source terms.
 
-    if (problem == 1 && relaxation_damping_factor > 0.0_rt) {
+    if (problem::problem == 1 && relaxation_damping_factor > 0.0_rt) {
 
         // The relevant dynamical timescale for determining this source term timescale should be
         // the smaller of the two WD timescales. Generally this should be the primary, but we'll
         // be careful just in case.
 
-        const Real dynamical_timescale = amrex::min(wdmerger::t_ff_p, wdmerger::t_ff_s);
+        const Real dynamical_timescale = amrex::min(t_ff_P, t_ff_S);
 
         // The relaxation damping factor should be less than unity, so that the damping
         // timescale is less than the dynamical timescale. This ensures that the stars
@@ -68,7 +69,7 @@ void do_ext_src(int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 vel[dir] = rhoInv * mom[dir];
             }
-            inertial_to_rotational_velocity(i, j, k, geomdata, center, omega, time, vel);
+            inertial_to_rotational_velocity(i, j, k, geomdata, omega, time, vel);
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
@@ -95,13 +96,13 @@ void do_ext_src(int i, int j, int k,
 
     // Now do the radial drift source terms.
 
-    if (problem == 1 && radial_damping_factor > 0.0_rt) {
+    if (problem::problem == 1 && radial_damping_factor > 0.0_rt) {
 
         // The logic for which dynamical timescale to use and
         // how to do the implicit coupling follows the reasoning
         // described above for the relaxation damping.
 
-        const Real dynamical_timescale = amrex::max(wdmerger::t_ff_p, wdmerger::t_ff_s);
+        const Real dynamical_timescale = amrex::max(t_ff_P, t_ff_S);
 
         const Real relaxation_damping_timescale = relaxation_damping_factor * dynamical_timescale;
 

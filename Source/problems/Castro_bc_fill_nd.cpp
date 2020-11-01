@@ -3,7 +3,7 @@
 #include <Castro.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_bc_fill_nd_F.H>
-#include <Castro_bc_ext_fill_nd.H>
+#include <Castro_bc_ext_fill_nd_F.H>
 #include <Castro_generic_fill.H>
 
 using namespace amrex;
@@ -115,14 +115,22 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
     if (numcomp == 1) {
 
-        ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
+#pragma gpu box(bx)
+        ext_denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_N_ANYD(data, dcomp),
+                    AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                    AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 
     }
     else {
 
         AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
 
-        ca_ext_fill(bx, data, dcomp, numcomp, geom, time, bc_f);
+#pragma gpu box(bx)
+        ext_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                 BL_TO_FORTRAN_ANYD(data),
+                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
+                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
 
     }
 

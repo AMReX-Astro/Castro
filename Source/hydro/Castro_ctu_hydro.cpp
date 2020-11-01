@@ -39,9 +39,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   const Real *dx = geom.CellSize();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   MultiFab& S_new = get_new_data(State_Type);
 
 #ifdef RADIATION
@@ -1260,7 +1257,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-              loc[dir] -= center[dir];
+              loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;

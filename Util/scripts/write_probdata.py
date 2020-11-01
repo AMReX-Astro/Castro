@@ -24,10 +24,8 @@ This script takes a template file and replaces keywords in it
 initialize the parameters, setup a namelist, set the defaults, etc.
 
 Note: there are two types of parameters here, the ones that are in the
-namelist are true runtime parameters.  For those we also provide the
-C++ headers and get routines to make these runtime parametrs available
-in C++.  The non-namelist parameters should be avoided if at all
-possible.
+namelist are true runtime parameters.  The non-namelist parameters
+should be avoided if at all possible.
 
 """
 
@@ -58,6 +56,8 @@ CXX_F_HEADER = """
 extern "C"
 {
 #endif
+
+void probdata_init(const int* name, const int* namlen);
 """
 
 CXX_F_FOOTER = """
@@ -117,6 +117,9 @@ class Parameter:
                 return False
             else:
                 return True
+
+    def has_module(self):
+        return self.module != None
 
     def __str__(self):
         return "{} : {}, {} elements".format(self.var, self.dtype, self.size)
@@ -301,7 +304,15 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                         fout.write("{}namelist /fortin/ {}\n".format(indent, p.var))
 
             elif keyword == "namelist_gets":
-                if len(params) > 0:
+                # Write the bit that reads the namelist, but only if any parameter
+                # is actually in the namelist (otherwise this code wouldn't compile).
+                namelist_used = False
+                for p in params:
+                    if p.in_namelist:
+                        namelist_used = True
+                        break
+
+                if namelist_used:
                     fout.write("  ! read in the namelist\n")
                     fout.write("  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')\n")
                     fout.write("  read (unit=un, nml=fortin, iostat=status)\n\n")
@@ -376,11 +387,12 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
             elif keyword == "cxx_gets":
                 # this writes out the Fortran functions that can be called from C++
-                # to get the value of the parameters.  Note: we only do this for namelist
-                # parameters
+                # to get the value of the parameters.
 
                 for p in params:
-                    if not p.in_namelist:
+                    # We don't currently support the case where a module
+                    # is required since we have no C++ equivalent for the module.
+                    if p.is_array() and p.has_module():
                         continue
                     if p.dtype == "logical":
                         continue
@@ -406,8 +418,12 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                     else:
                         fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
                             indent, p.var, p.var, p.var))
-                        fout.write("{}   {}, intent(inout) :: {}_in\n".format(
-                            indent, p.get_f90_decl(), p.var))
+                        if p.is_array():
+                            fout.write("{}   {}, intent(inout) :: {}_in({})\n".format(
+                                indent, p.get_f90_decl(), p.var, p.size))
+                        else:
+                            fout.write("{}   {}, intent(inout) :: {}_in\n".format(
+                                indent, p.get_f90_decl(), p.var))
                         fout.write("{}   {}_in = {}\n".format(
                             indent, p.var, p.var))
                         fout.write("{}end subroutine get_f90_{}\n\n".format(
@@ -415,19 +431,22 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
             elif keyword == "cxx_sets":
                 # this writes out the Fortran functions that can be called from C++
-                # to set the value of the parameters.  Note: we only do this for namelist
-                # parameters
+                # to set the value of the parameters.
 
                 for p in params:
-                    if not p.in_namelist:
+                    if p.is_array() and p.has_module():
                         continue
                     if p.dtype == "logical" or p.dtype == "character":
                         continue
 
                     fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
                         indent, p.var, p.var, p.var))
-                    fout.write("{}   {}, intent(in) :: {}_in\n".format(
-                        indent, p.get_f90_decl(), p.var))
+                    if p.is_array():
+                        fout.write("{}   {}, intent(in) :: {}_in({})\n".format(
+                            indent, p.get_f90_decl(), p.var, p.size))
+                    else:
+                        fout.write("{}   {}, intent(in) :: {}_in\n".format(
+                            indent, p.get_f90_decl(), p.var))
                     fout.write("{}   {} = {}_in\n".format(
                         indent, p.var, p.var))
                     fout.write("{}end subroutine set_f90_{}\n\n".format(
@@ -448,7 +467,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
         fout.write(CXX_F_HEADER)
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
 
             if p.dtype == "character":
@@ -472,14 +491,21 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
         fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
 
+        fout.write("  namespace problem {\n\n")
+
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
 
             if p.dtype == "character":
                 fout.write("  extern std::string {};\n\n".format(p.var))
             else:
-                fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+                if p.is_array():
+                    fout.write("  extern AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                else:
+                    fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+
+        fout.write("  }\n\n")
 
         fout.write(CXX_FOOTER)
 
@@ -490,22 +516,25 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
         fout.write("#include <{}_parameters_F.H>\n\n".format(os.path.basename(cxx_prefix)))
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
             if p.dtype == "logical":
                 continue
 
             if p.dtype == "character":
-                fout.write("  std::string {};\n\n".format(p.var))
+                fout.write("  std::string problem::{};\n\n".format(p.var))
             else:
-                fout.write("  AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+                if p.is_array():
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                else:
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{};\n\n".format(p.get_cxx_decl(), p.var))
 
         fout.write("\n")
         fout.write("  void init_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
         fout.write("    int slen = 0;\n\n")
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
             if p.dtype == "logical":
                 continue
@@ -514,9 +543,12 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 fout.write("    get_f90_{}_len(slen);\n".format(p.var))
                 fout.write("    char _{}[slen+1];\n".format(p.var))
                 fout.write("    get_f90_{}(_{});\n".format(p.var, p.var))
-                fout.write("    {} = std::string(_{});\n\n".format(p.var, p.var))
+                fout.write("    problem::{} = std::string(_{});\n\n".format(p.var, p.var))
             else:
-                fout.write("    get_f90_{}(&{});\n\n".format(p.var, p.var))
+                if p.is_array():
+                    fout.write("    get_f90_{}(problem::{});\n\n".format(p.var, p.var))
+                else:
+                    fout.write("    get_f90_{}(&problem::{});\n\n".format(p.var, p.var))
 
         fout.write("  }\n")
 

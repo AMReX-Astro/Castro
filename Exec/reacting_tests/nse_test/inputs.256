@@ -1,13 +1,13 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 15000
-stop_time =  1.e-4
+stop_time =  0.08
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic = 1 0 0
+geometry.is_periodic = 1 1 1
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0     0     0
-geometry.prob_hi     = 1.024e5 6400.0 6400.0
-amr.n_cell           = 256   16    16
+geometry.prob_hi     = 1.e8  1.e8  1.e8
+amr.n_cell           = 256   256   256
 
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -15,8 +15,8 @@ amr.n_cell           = 256   16    16
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   4   4
-castro.hi_bc       =  0   4   4
+castro.lo_bc       =  0   0   0
+castro.hi_bc       =  0   0   0
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -25,8 +25,6 @@ castro.do_react = 1
 castro.ppm_type = 1
 castro.ppm_temp_fix = 0
 
-castro.transverse_reset_density = 1
-
 castro.use_flattening = 1
 
 castro.riemann_solver = 0
@@ -34,10 +32,10 @@ castro.riemann_solver = 0
 castro.small_temp     = 1.e7
 
 # TIME STEP CONTROL
-castro.cfl            = 0.5     # cfl number for hyperbolic system
-castro.init_shrink    = 0.1     # scale back initial timestep
-castro.change_max     = 1.05    # scale back initial timestep
-
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 1.0     # scale back initial timestep
+castro.change_max     = 1.1     # scale back initial timestep
+castro.fixed_dt = 2.5e-4
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
@@ -54,12 +52,13 @@ amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
 # CHECKPOINT FILES
-amr.check_file      = det_x_chk  # root name of checkpoint file
+amr.checkpoint_files_output = 0
+amr.check_file      = nse_test_256_chk  # root name of checkpoint file
 amr.check_int       = 300         # number of timesteps between checkpoints
 
 # PLOTFILES
-amr.plot_file       = det_x_plt  # root name of plotfile
-amr.plot_per = 1.e-7
+amr.plot_file       = nse_test_256_plt  # root name of plotfile
+amr.plot_per = 0.24
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME

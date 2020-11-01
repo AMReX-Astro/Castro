@@ -16,6 +16,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_error_F.H>
+#include <runtime_parameters.H>
 #include <AMReX_VisMF.H>
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
@@ -51,6 +52,8 @@
 
 #include <microphysics_F.H>
 
+#include <problem_setup.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -71,6 +74,8 @@ Vector<std::string> Castro::source_names;
 
 Vector<int> Castro::upass_map;
 Vector<int> Castro::qpass_map;
+
+Vector<AMRErrorTag> Castro::custom_error_tags;
 
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
@@ -211,11 +216,14 @@ Castro::read_params ()
 
     done = true;
 
+    // this gets all of the parameters defined in _cpp_params, regardless of
+    // namespace
+    initialize_cpp_runparams();
+
     ParmParse pp("castro");
 
     using namespace castro;
 
-#include <castro_queries.H>
 
     // Get boundary conditions
     Vector<int> lo_bc(BL_SPACEDIM), hi_bc(BL_SPACEDIM);
@@ -467,6 +475,61 @@ Castro::read_params ()
 
     compute_new_dt_on_regrid = 1;
 
+    // Read in custom refinement scheme.
+
+    Vector<std::string> refinement_indicators;
+    ppa.queryarr("refinement_indicators", refinement_indicators, 0, ppa.countval("refinement_indicators"));
+
+    for (int i = 0; i < refinement_indicators.size(); ++i)
+    {
+        std::string ref_prefix = "amr.refine." + refinement_indicators[i];
+
+        ParmParse ppr(ref_prefix);
+
+        AMRErrorTagInfo info;
+
+        if (ppr.countval("start_time") > 0) {
+            Real min_time;
+            ppr.get("start_time", min_time);
+            info.SetMinTime(min_time);
+        }
+        if (ppr.countval("end_time") > 0) {
+            Real max_time;
+            ppr.get("end_time", max_time);
+            info.SetMaxTime(max_time);
+        }
+        if (ppr.countval("max_level") > 0) {
+            int max_level;
+            ppr.get("max_level", max_level);
+            info.SetMaxLevel(max_level);
+        }
+
+        if (int nval = ppr.countval("value_greater")) {
+            Vector<Real> value;
+            ppr.getarr("value_greater", value, 0, nval);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GREATER, field, info));
+        }
+        else if (int nval = ppr.countval("value_less")) {
+            Vector<Real> value;
+            ppr.getarr("value_less", value, 0, nval);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::LESS, field, info));
+        }
+        else if (int nval = ppr.countval("gradient")) {
+            Vector<Real> value;
+            ppr.getarr("gradient", value, 0, nval);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+        }
+        else {
+            amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
+        }
+    }
+
 }
 
 Castro::Castro ()
@@ -493,6 +556,12 @@ Castro::Castro (Amr&            papa,
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
+
+      // If we're doing C++ problem initialization, do it here. We have to make
+      // sure it's done after the above call to init_prob_parameters() in case
+      // any changes are made to the problem parameters.
+
+      problem_initialize();
     }
 
     initMFs();
@@ -983,6 +1052,17 @@ Castro::initData ()
           const Box& box     = mfi.validbox();
           const int* lo      = box.loVect();
           const int* hi      = box.hiVect();
+
+          auto s = S_new[mfi].array();
+          auto geomdata = geom.data();
+
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ problem initialization; has no effect if not implemented
+              // by a problem setup (defaults to an empty routine).
+              problem_initialize_state_data(i, j, k, s, geomdata);
+          });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
@@ -3157,6 +3237,16 @@ Castro::errorEst (TagBoxArray& tags,
         apply_tagging_func(tags, ltime, j);
     }
 
+    // Apply each of the custom tagging criteria.
+
+    for (int j = 0; j < custom_error_tags.size(); j++) {
+        std::unique_ptr<MultiFab> mf;
+        if (custom_error_tags[j].Field() != std::string()) {
+            mf = derive(custom_error_tags[j].Field(), time, custom_error_tags[j].NGrow());
+        }
+        custom_error_tags[j](tags, mf.get(), TagBox::CLEAR, TagBox::SET, time, level, geom);
+    }
+
     // Now we'll tag any user-specified zones using the full state array.
 
     apply_problem_tags(tags, ltime);
@@ -4054,7 +4144,6 @@ Castro::define_new_center(MultiFab& S, Real time)
 {
     BL_PROFILE("Castro::define_new_center()");
 
-    Real center[3];
     const Real* dx = geom.CellSize();
 
     IntVect max_index = S.maxIndex(URHO,0);
@@ -4076,17 +4165,17 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
-        ca_find_center(mf[mfi].dataPtr(),&center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
+        ca_find_center(mf[mfi].dataPtr(),&problem::center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
     }
     // Now broadcast to everyone else.
-    ParallelDescriptor::Bcast(&center[0], BL_SPACEDIM, owner);
+    ParallelDescriptor::Bcast(&problem::center[0], BL_SPACEDIM, owner);
 
     // Make sure if R-Z that center stays exactly on axis
     if ( Geom().IsRZ() ) {
-      center[0] = 0;
+      problem::center[0] = 0;
     }
 
-    ca_set_center(ZFILL(center));
+    set_f90_center(problem::center);
 }
 
 void
@@ -4101,9 +4190,6 @@ Castro::write_center ()
        int nstep = parent->levelSteps(0);
        Real time = state[State_Type].curTime();
 
-       Real center[3];
-       ca_get_center(center);
-
        if (time == 0.0) {
            data_logc << std::setw( 8) <<  "   nstep";
            data_logc << std::setw(14) <<  "         time  ";
@@ -4112,12 +4198,12 @@ Castro::write_center ()
 
            data_logc << std::setw( 8) <<  nstep;
            data_logc << std::setw(14) <<  std::setprecision(6) <<  time;
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[0];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[0];
 #if (BL_SPACEDIM >= 2)
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[1];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[1];
 #endif
 #if (BL_SPACEDIM == 3)
-           data_logc << std::setw(14) <<  std::setprecision(6) << center[2];
+           data_logc << std::setw(14) <<  std::setprecision(6) << problem::center[2];
 #endif
            data_logc << std::endl;
     }

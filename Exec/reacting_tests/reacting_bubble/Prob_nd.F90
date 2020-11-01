@@ -17,8 +17,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! Read initial model
   call read_model_file(model_name)
 

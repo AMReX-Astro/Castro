@@ -45,9 +45,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
@@ -643,7 +640,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-            loc[dir] -= center[dir];
+            loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;

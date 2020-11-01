@@ -87,9 +87,6 @@ Castro::fill_rotational_potential(const Box& bx,
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto problo = geom.ProbLoArray();
 
   auto dx = geom.CellSizeArray();
@@ -100,14 +97,14 @@ Castro::fill_rotational_potential(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif
@@ -141,9 +138,6 @@ Castro::fill_rotational_psi(const Box& bx,
 
   auto problo = geom.ProbLoArray();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
@@ -152,14 +146,14 @@ Castro::fill_rotational_psi(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+    r[0] = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+    r[1] = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+    r[2] = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif
@@ -174,7 +168,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                     const GeometryData& geomdata,
-                                    const Real* center,
                                     const Real* omega,
                                     const Real time, Real* v) {
 
@@ -188,7 +181,7 @@ inertial_to_rotational_velocity_c(const int i, const int j, const int k,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
     }
 
     // do the cross product Omega x loc
@@ -202,7 +195,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity(const int i, const int j, const int k,
                                 const GeometryData& geomdata,
-                                const GpuArray<Real, 3>& center,
                                 const GpuArray<Real, 3>& omega,
                                 const Real time, GpuArray<Real, 3>& v) {
 
@@ -216,7 +208,7 @@ inertial_to_rotational_velocity(const int i, const int j, const int k,
   position(i, j, k, geomdata, loc);
 
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    loc[dir] -= center[dir];
+    loc[dir] -= problem::center[dir];
   }
 
   // do the cross product Omega x loc

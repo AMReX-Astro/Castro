@@ -10,9 +10,10 @@ void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
-                GpuArray<Real, 3> const& center,
                 const Real dt, const Real time)
 {
+    using namespace problem;
+
     const Real H_0 = heating_peak;
     const Real W_0 = heating_sigma;
     const Real r_0 = heating_rad;

@@ -9,6 +9,9 @@
 
 // runtime parameters
 #include <castro_params.H>
+#include <prob_parameters.H>
+#include <prob_parameters_F.H>
+
 using namespace castro;
 
 #ifdef AMREX_PARTICLES
@@ -1178,6 +1181,11 @@ public:
     static amrex::Vector<int> qpass_map;
 
 ///
+/// Vector storing list of custom error tags.
+///
+    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+
+///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
 ///     to mask out the finer level.  We only build this when it is needed.
 ///     This coarse MultiFab has to live on the fine level because it must be updated
@@ -1241,6 +1249,8 @@ protected:
 #endif
 
 
+
+#ifdef TRUE_SDC
 ///
 /// A state array for the some reaction stuff with SDC
 ///
@@ -1250,16 +1260,12 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab q;
-#endif
-
 
 ///
 /// we need a second version when doing fourth order
 ///
     amrex::MultiFab q_bar;
-
 
 ///
 /// for diffusion in fourth order we need the cell-center temperature
@@ -1271,10 +1277,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab qaux;
-#endif
     amrex::MultiFab qaux_bar;
+#endif
 
 
 ///
