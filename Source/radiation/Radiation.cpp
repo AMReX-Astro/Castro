@@ -839,12 +839,18 @@ void Radiation::compute_exchange(MultiFab& exch,
     for (MFIter mfi(exch, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        cexch(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-              BL_TO_FORTRAN_ANYD(exch[mfi]),
-              BL_TO_FORTRAN_ANYD(Er[mfi]),
-              BL_TO_FORTRAN_ANYD(fkp[mfi]),
-              sigma, c);
+        auto exch_arr = exch[mfi].array();
+        auto Er_arr = Er[mfi].array();
+        auto fkp_arr = fkp[mfi].array();
+
+        Real lsigma = sigma;
+        Real lc = c;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            exch_arr(i,j,k) = fkp_arr(i,j,k) * (4.e0_rt * lsigma * std::pow(exch_arr(i,j,k), 4) - lc * Er_arr(i,j,k));
+        });
     }
 }
 
