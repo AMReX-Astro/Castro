@@ -18,6 +18,7 @@ using namespace castro;
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
