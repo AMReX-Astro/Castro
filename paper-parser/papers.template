@@ -48,10 +48,15 @@
 	    <section>
 	      <ul class="unstyled">
 		<li><h3>acknowledging Castro</h3>
+
+
 		  If you find Castro useful for your
-		  research, please cite the original
-		  Castro paper <a href="https://ui.adsabs.harvard.edu/abs/2010ApJ...715.1221A/exportcitation">[bibtex]</a>.  If you are using the radiation capabilities, please
-		  cite the gray <a href="https://ui.adsabs.harvard.edu/abs/2011ApJS..196...20Z/exportcitation">[bibtex]</a> or multigroup <a href="https://ui.adsabs.harvard.edu/abs/2013ApJS..204....7Z/exportcitation">[bibtex]</a> papers.
+		  research, please cite the <a href="https://joss.theoj.org/papers/10.21105/joss.02513">Castro JOSS
+                  paper</a>.
+
+                  You can also cite the original
+		  Castro paper <a href="https://ui.adsabs.harvard.edu/abs/2010ApJ...715.1221A/exportcitation">[bibtex]</a>, or for radiation, 
+		  the gray <a href="https://ui.adsabs.harvard.edu/abs/2011ApJS..196...20Z/exportcitation">[bibtex]</a> or multigroup <a href="https://ui.adsabs.harvard.edu/abs/2013ApJS..204....7Z/exportcitation">[bibtex]</a> papers.
 
 		  For AAS journals, please use the new
 		  <var>\software{}</var> tag to highlight your
