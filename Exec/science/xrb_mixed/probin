@@ -8,8 +8,6 @@
  velpert_amplitude = 1.d5
  num_vortices = 16
 
- interp_BC = F
-
 /
 
 &sponge

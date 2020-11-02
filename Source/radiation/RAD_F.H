@@ -179,23 +179,6 @@ extern "C"
     BL_FORT_FAB_ARG_3D(spec), 
     amrex::Real dt, amrex::Real ptc_tau);
 
-  void ca_check_conv
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(rhoe_new),
-    const BL_FORT_FAB_ARG_3D(rhoe_star),
-    const BL_FORT_FAB_ARG_3D(rhoe_step),
-    const BL_FORT_FAB_ARG_3D(Er_new),
-    const BL_FORT_FAB_ARG_3D(temp_new),
-    const BL_FORT_FAB_ARG_3D(temp_star),
-    const BL_FORT_FAB_ARG_3D(rho),
-    const BL_FORT_FAB_ARG_3D(kappa_p),
-    const BL_FORT_FAB_ARG_3D(jg),
-    const BL_FORT_FAB_ARG_3D(dedT),
-    amrex::Real* rel_rhoe, amrex::Real* abs_rhoe,
-    amrex::Real* rel_FT, amrex::Real* abs_FT,
-    amrex::Real* rel_T, amrex::Real* abs_T,
-    amrex::Real delta_t);
-
   void ca_check_conv_er
    (const int* lo, const int* hi,
     const BL_FORT_FAB_ARG_3D(Ern),
@@ -205,13 +188,6 @@ extern "C"
     const BL_FORT_FAB_ARG_3D(temp),
     amrex::Real* rel, amrex::Real* abs, amrex::Real *errr,
     amrex::Real dt);
-
-  void ca_compute_coupt
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(coupt), 
-     const BL_FORT_FAB_ARG_3D(kpp),
-     const BL_FORT_FAB_ARG_3D(Eg),
-     const BL_FORT_FAB_ARG_3D(jg));
 
   void ca_compute_etat
     (const int* lo, const int* hi, 
@@ -499,12 +475,6 @@ extern "C" {
   void cfrhoe(const int* lo, const int* hi, 
               BL_FORT_FAB_ARG_3D(frhoe), 
               BL_FORT_FAB_ARG_3D(state));
-
-  void cexch(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(exch), 
-             BL_FORT_FAB_ARG_3D(Er), 
-             BL_FORT_FAB_ARG_3D(fkp), 
-             amrex::Real sigma, amrex::Real c);
 
   void ceta2(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(eta),
