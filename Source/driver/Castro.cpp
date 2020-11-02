@@ -53,6 +53,7 @@
 #include <microphysics_F.H>
 
 #include <problem_setup.H>
+#include <problem_tagging.H>
 
 using namespace amrex;
 
@@ -3278,6 +3279,16 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
             const int8_t tagval   = (int8_t) TagBox::SET;
             const int8_t clearval = (int8_t) TagBox::CLEAR;
+
+            auto tag_arr = tagfab.array();
+            const auto state_arr = S_new[mfi].array();
+            const GeometryData& geomdata = geom.data();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                problem_tagging(i, j, k, tag_arr, state_arr, geomdata);
+            });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 #pragma gpu box(bx)
