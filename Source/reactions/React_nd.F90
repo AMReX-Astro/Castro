@@ -248,7 +248,6 @@ contains
     real(rt) , intent(inout) :: failed
 
     integer  :: i, j, k, n
-    real(rt) :: rhooInv, rhonInv
     real(rt) :: sold(NVAR)
     real(rt) :: failed_tmp
     logical  :: do_burn
@@ -310,8 +309,6 @@ contains
 
              ! Dual energy formalism: in doing EOS calls in the burn,
              ! switch between e and (E - K) depending on (E - K) / E.
-
-             rhooInv = ONE / uold(i,j,k,URHO)
 
              burn_state_in % T_from_eden = .false.
 
