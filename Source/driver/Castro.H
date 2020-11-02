@@ -18,6 +18,7 @@ using namespace castro;
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
@@ -1249,6 +1250,8 @@ protected:
 #endif
 
 
+
+#ifdef TRUE_SDC
 ///
 /// A state array for the some reaction stuff with SDC
 ///
@@ -1258,16 +1261,12 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab q;
-#endif
-
 
 ///
 /// we need a second version when doing fourth order
 ///
     amrex::MultiFab q_bar;
-
 
 ///
 /// for diffusion in fourth order we need the cell-center temperature
@@ -1279,10 +1278,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab qaux;
-#endif
     amrex::MultiFab qaux_bar;
+#endif
 
 
 ///

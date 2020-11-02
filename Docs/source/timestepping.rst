@@ -198,6 +198,8 @@ Alternately, we could do::
 which will subcycle twice at every level (except level 0).
 
 
+.. index:: retry
+
 .. _ch:retry:
 
 Retry Mechanism

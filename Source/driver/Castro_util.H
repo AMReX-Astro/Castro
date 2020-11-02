@@ -5,6 +5,7 @@
 
 using namespace amrex;
 
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)
 {
