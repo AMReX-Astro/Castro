@@ -1,3 +1,7 @@
+# 20.12
+
+   * The radiation frequency space advection was converted to C++ (#1189)
+
 # 20.11
 
    * The minimum C++ standard supported by Castro is now C++14. Most modern compilers

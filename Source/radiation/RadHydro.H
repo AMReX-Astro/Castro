@@ -103,38 +103,35 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
   // this is advection in frequency space, we will need to assume some
   // boundary conditions on the stencil used to reconstruct over nu
 
-  Real f[NGROUPS+1];
+  Array1D<Real, 0, NGROUPS> f;
 
   // we need 2 ghost cells on each end
-  Real ag[NGROUPS+4];
-  Real ug[NGROUPS+4];
-  Real fg[NGROUPS+4];
-
-  const int is = 2;
-  const int ie = n+1;
+  Array1D<Real, -2, NGROUPS+1> ag;
+  Array1D<Real, -2, NGROUPS+1> ug;
+  Array1D<Real, -2, NGROUPS+1> fg;
 
   // ag and ug have 2 ghost cells on each end.  First fill the
   // interiors and then the ghost cells.
   for (int g = 0; g < n; g++) {
-    ag[is+g] = a[g];
-    ug[is+g] = u[g];
+    ag[g] = a[g];
+    ug[g] = u[g];
   }
 
-  ag[is-2] = -ag[is+1];
-  ag[is-1] = -ag[is];
+  ag[-2] = -a[1];
+  ag[-1] = -a[0];
 
-  ag[ie+1] = -ag[ie];
-  ag[ie+2] = -ag[ie-1];
+  ag[n] = -ag[n-1];
+  ag[n+1] = -ag[n-2];
 
-  ug[is-2] = -ug[is+1];
-  ug[is-1] = -ug[is];
+  ug[-2] = u[1];
+  ug[-1] = u[0];
 
-  ug[ie+1] = -ug[ie];
-  ug[ie+2] = -ug[ie-1];
+  ug[n] = ug[n-1];
+  ug[n+1] = ug[n-2];
 
   if (use_WENO) {
 
-    for (int gg = 0; gg < n + 4; gg++) { 
+    for (int gg = 2; gg <= NGROUPS+1; gg++) { 
       fg[gg] = ag[gg] * ug[gg];
       ag[gg] = std::abs(ag[gg]);
     }
@@ -142,13 +139,13 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
     f[0] = 0.0_rt;
 
     for (int i = 1; i < n; i++) {
-      Real alpha = amrex::max(ag[is+i-3], ag[is+i-2], ag[is+i-1],
-                              ag[is+i], ag[is+i+1], ag[is+i+2]);
+      Real alpha = amrex::max(ag[i-3], ag[i-2], ag[i-1],
+                              ag[i], ag[i+1], ag[i+2]);
       Real fp[5];
       Real fm[5];
       for (int m = 0; m < 5; m++) {
-        fp[m] = 0.5e0_rt * (fg[is+m-3] + alpha * ug[is+m-3]);
-        fm[m] = 0.5e0_rt * (fg[is+m-2] - alpha * ug[is+m-2]);
+        fp[m] = 0.5e0_rt * (fg[m-3] + alpha * ug[m-3]);
+        fm[m] = 0.5e0_rt * (fg[m-2] - alpha * ug[m-2]);
       }
       Real fpw = weno5(fp[0], fp[1], fp[2], fp[3], fp[4]);
       Real fmw = weno5(fm[4], fm[3], fm[2], fm[1], fm[0]);
@@ -161,19 +158,19 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
     f[0] = 0.0_rt;
 
     for (int i = 1; i < n; i++) {
-      Real r = (ug[is+i-1] - ug[is+i-2]) / (ug[is+i] - ug[is+i-1] + 1.e-50_rt);
-      Real ul = ug[is+i-1] + 0.5_rt * (ug[is+i] - ug[is+i-1]) * MC(r);
+      Real r = (ug[i-1] - ug[i-2]) / (ug[i] - ug[i-1] + 1.e-50_rt);
+      Real ul = ug[i-1] + 0.5_rt * (ug[i] - ug[i-1]) * MC(r);
 
-      r = (ag[is+i-1] - ag[is+i-2]) / (ag[is+i] - ag[is+i-1] + 1.e-50_rt);
-      Real al = ag[is+i-1] + 0.5_rt * (ag[is+i] - ag[is+i-1]) * MC(r);
+      r = (ag[i-1] - ag[i-2]) / (ag[i] - ag[i-1] + 1.e-50_rt);
+      Real al = ag[i-1] + 0.5_rt * (ag[i] - ag[i-1]) * MC(r);
 
       Real fl = al*ul;
 
-      r = (ug[is+i] - ug[is+i-1]) / (ug[is+i+1] - ug[is+i] + 1.e-50_rt);
-      Real ur = ug[is+i] - 0.5_rt * (ug[is+i+1] - ug[is+i]) * MC(r);
+      r = (ug[i] - ug[i-1]) / (ug[i+1] - ug[i] + 1.e-50_rt);
+      Real ur = ug[i] - 0.5_rt * (ug[i+1] - ug[i]) * MC(r);
 
-      r = (ag[is+i] - ag[is+i-1]) / (ag[is+i+1] - ag[is+i] + 1.e-50_rt);
-      Real ar = ag[is+i] - 0.5_rt * (ag[is+i+1] - ag[is+i]) * MC(r);
+      r = (ag[i] - ag[i-1]) / (ag[i+1] - ag[i] + 1.e-50_rt);
+      Real ar = ag[i] - 0.5_rt * (ag[i+1] - ag[i]) * MC(r);
 
       Real fr = ar*ur;
 
