@@ -14,7 +14,7 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++ 11 (or later) compiler
+ * A C++14 (or later) compiler (e.g. gcc >= 5.0)
 
  * A Fortran 20xx compiler
 

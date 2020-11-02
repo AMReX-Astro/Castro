@@ -703,17 +703,23 @@ same level until we reach the original target time.</p></td>
 current timestep by when trying again.</p></td>
 <td><p>0.5</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry_small_density_cutoff</span></code></p></td>
+<td><p>Skip retries for small (or negative) density if the
+zone’s density prior to the update was below this
+threshold.</p></td>
+<td><p>-1.e200</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">use_post_step_regrid</span></code></p></td>
 <td><p>Regrid after every timestep.</p></td>
 <td><p>0</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_subcycles</span></code></p></td>
 <td><p>Do not permit more subcycled timesteps than this
 parameter. Set to a negative value to disable this
 criterion.</p></td>
 <td><p>10</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sdc_iters</span></code></p></td>
 <td><p>Number of iterations for the SDC advance.</p></td>
 <td><p>2</p></td>
 </tr>

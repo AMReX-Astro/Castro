@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Problem_Derive.H &mdash; Castro  documentation</title>
+  <title>File runtime_parameters.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Problem_Derives.H" href="Problem__Derives_8H.html" />
-    <link rel="prev" title="File Problem.H" href="Problem_8H.html" /> 
+    <link rel="next" title="Gravity" href="../gravity_files.html" />
+    <link rel="prev" title="File math.H" href="math_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/Problem__Derive_8H.html">main</a> | <a href="../dev/file/Problem__Derive_8H.html">development</a>
+        Branch: <a href="../file/runtime__parameters_8H.html">main</a> | <a href="../dev/file/runtime__parameters_8H.html">development</a>
     </div>
 
         </div>
@@ -137,19 +137,23 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../driver_files.html">Driver</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro_8H.html">File Castro.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__generic__fill_8H.html">File Castro_generic_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__io_8H.html">File Castro_io.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Castro__util_8H.html">File Castro_util.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Derive_8H.html">File Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="MGutils_8H.html">File MGutils.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="castro__limits_8H.html">File castro_limits.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="math_8H.html">File math.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File runtime_parameters.H</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File Problem_Derive.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="problem__setup_8H.html">File problem_setup.H</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
@@ -211,15 +215,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../problems_files.html">Problems</a> &raquo;</li>
+          <li><a href="../driver_files.html">Driver</a> &raquo;</li>
         
-      <li>File Problem_Derive.H</li>
+      <li>File runtime_parameters.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/Problem__Derive_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/runtime__parameters_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -232,8 +236,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-problem-derive-h">
-<h1>File Problem_Derive.H<a class="headerlink" href="#file-problem-derive-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-runtime-parameters-h">
+<h1>File runtime_parameters.H<a class="headerlink" href="#file-runtime-parameters-h" title="Permalink to this headline">¶</a></h1>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Functions</p>
+<dl class="cpp function">
+<dt>
+<span class="target" id="runtime__parameters_8H_1a23d123a58609378cd7ef395d6a0540f7"></span><code class="sig-name descname">AMREX_INLINE void initialize_cpp_runparams ()</code></dt>
+<dd><p>Initialize all of the runtime parameters defined in _cpp_parameters regardless of the namespace </p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -244,10 +257,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Problem__Derives_8H.html" class="btn btn-neutral float-right" title="File Problem_Derives.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../gravity_files.html" class="btn btn-neutral float-right" title="Gravity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Problem_8H.html" class="btn btn-neutral float-left" title="File Problem.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="math_8H.html" class="btn btn-neutral float-left" title="File math.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
