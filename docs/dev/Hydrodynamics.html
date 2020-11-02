@@ -269,9 +269,9 @@ several main data structures that hold the state.</p>
 <li><p>conserved state: these arrays generally begin with <code class="docutils literal notranslate"><span class="pre">u</span></code>,
 e.g., <code class="docutils literal notranslate"><span class="pre">uin</span></code>, <code class="docutils literal notranslate"><span class="pre">uout</span></code>. The <code class="docutils literal notranslate"><span class="pre">NVAR</span></code>
 components for the state data in the array are accessed using
-integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 24</span></a>.</p>
+integer keys defined in <a class="reference internal" href="#table-consints"><span class="std std-numref">Table 6</span></a>.</p>
 <span id="table-consints"></span><table class="docutils align-default" id="id19">
-<caption><span class="caption-number">Table 24 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 6 </span><span class="caption-text">The integer variables to index the conservative state array</span><a class="headerlink" href="#id19" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 32%" />
 <col style="width: 32%" />
@@ -365,11 +365,11 @@ source terms.  <code class="docutils literal notranslate"><span class="pre">NQSR
 <p>if <code class="docutils literal notranslate"><span class="pre">RADIATION</span></code> is defined, then only the gas/hydro terms are
 present in <code class="docutils literal notranslate"><span class="pre">NQSRC</span></code>.</p>
 </div>
-<p><a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 25</span></a> gives the names of the primitive variable integer
+<p><a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 7</span></a> gives the names of the primitive variable integer
 keys for accessing these arrays. Note, unless otherwise specified the quantities without a subscript
 are “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-primlist"></span><table class="docutils align-default" id="id20">
-<caption><span class="caption-number">Table 25 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 7 </span><span class="caption-text">Primitive State Vector Integer Keys</span><a class="headerlink" href="#id20" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 33%" />
 <col style="width: 34%" />
@@ -448,11 +448,11 @@ these)</p></td>
 qaux. The main difference between these and the regular
 primitive variables is that we do not attempt to do any
 reconstruction on their profiles. There are <code class="docutils literal notranslate"><span class="pre">NQAUX</span></code> quantities, indexed
-by the integer keys listed in <a class="reference internal" href="#table-qauxlist"><span class="std std-numref">Table 26</span></a>.
+by the integer keys listed in <a class="reference internal" href="#table-qauxlist"><span class="std std-numref">Table 8</span></a>.
 Note, unless otherwise specified the quantities without a subscript are “gas”
 only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-qauxlist"></span><table class="docutils align-default" id="id21">
-<caption><span class="caption-number">Table 26 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 8 </span><span class="caption-text">The integer variable keys for accessing the auxiliary primitive state vector, quax.</span><a class="headerlink" href="#id21" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 33%" />
 <col style="width: 33%" />
@@ -508,11 +508,11 @@ returned by the Riemann solver. They are used to discretize some
 non-conservative terms in the equations. These arrays are generally
 called <code class="docutils literal notranslate"><span class="pre">q1</span></code>, <code class="docutils literal notranslate"><span class="pre">q2</span></code>, and <code class="docutils literal notranslate"><span class="pre">q3</span></code> for the x, y, and z
 interfaces respectively. There are <code class="docutils literal notranslate"><span class="pre">NGDNV</span></code> components accessed with
-the integer keys defined in <a class="reference internal" href="#table-gdlist"><span class="std std-numref">Table 27</span></a>
+the integer keys defined in <a class="reference internal" href="#table-gdlist"><span class="std std-numref">Table 9</span></a>
 Note, unless otherwise specified the quantities without a subscript are
 “gas” only and those with the “tot” subscript are “gas + radiation”.</p>
 <span id="table-gdlist"></span><table class="docutils align-default" id="id22">
-<caption><span class="caption-number">Table 27 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 9 </span><span class="caption-text">The integer variable keys for accessing the Godunov interface state vectors.</span><a class="headerlink" href="#id22" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 33%" />
 <col style="width: 33%" />
@@ -603,7 +603,7 @@ treated as advected quantities.  These are meant to be defined in the network.</
 state vector even though they are derived from the other conserved
 quantities. The ordering of the elements within <span class="math notranslate nohighlight">\(\Ub\)</span> is defined
 by integer variables into the array—see
-<a class="reference internal" href="#table-consints"><span class="std std-numref">Table 24</span></a>.</p>
+<a class="reference internal" href="#table-consints"><span class="std std-numref">Table 6</span></a>.</p>
 <p>Some notes:</p>
 <ul>
 <li><p>Regardless of the dimensionality of the problem, we always carry
@@ -703,7 +703,7 @@ interface states that are input to the Riemann problem.</p>
 <p>All of the primitive variables are derived from the conservative state
 vector, as described in Section <a class="reference external" href="#Sec:ComputePrimitiveVariables">6.1</a>.
 When accessing the primitive variable state vector, the integer variable
-keys for the different quantities are listed in <a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 25</span></a>.</p>
+keys for the different quantities are listed in <a class="reference internal" href="#table-primlist"><span class="std std-numref">Table 7</span></a>.</p>
 <div class="section" id="internal-energy-and-temperature">
 <h3>Internal energy and temperature<a class="headerlink" href="#internal-energy-and-temperature" title="Permalink to this headline">¶</a></h3>
 <p>We augment the above system with an internal energy equation:</p>
