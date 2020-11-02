@@ -261,13 +261,13 @@ each of these in the main source tree.
    The name of the checkpoint directory is passed in as an argument.
    ``Problem_F.H`` provides the C++ interfaces for these routines.
 
--  ``problem_tagging_?d.F90``, ``problem_tagging_nd.F90``
+-  ``problem_tagging_nd.F90`` OR ``problem_tagging.H``
 
    This implements problem-specific tagging for refinement, through a
-   subroutine ``set_problem_tags``. The full hydrodynamic state
-   (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the tag variable for a zone to
-   set. An example is provided by the ``toy_convect``
+   subroutine ``set_problem_tags`` (Fortran) or function ``problem_tagging``
+   (C++). The full hydrodynamic state (State_Type) is passed in, and the
+   problem can mark zones for refinement by setting the tag variable for
+   a zone to set. An example is provided by the ``toy_convect``
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
