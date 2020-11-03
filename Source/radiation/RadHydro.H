@@ -113,78 +113,78 @@ dudt(Real* u, Real* a, const Real* dx, const int n, Real* dudt_tmp) {
   // ag and ug have 2 ghost cells on each end.  First fill the
   // interiors and then the ghost cells.
   for (int g = 0; g < n; g++) {
-    ag[g] = a[g];
-    ug[g] = u[g];
+    ag(g) = a[g];
+    ug(g) = u[g];
   }
 
-  ag[-2] = -a[1];
-  ag[-1] = -a[0];
+  ag(-2) = -a[1];
+  ag(-1) = -a[0];
 
-  ag[n] = -ag[n-1];
-  ag[n+1] = -ag[n-2];
+  ag(n) = -ag(n-1);
+  ag(n+1) = -ag(n-2);
 
-  ug[-2] = u[1];
-  ug[-1] = u[0];
+  ug(-2) = u[1];
+  ug(-1) = u[0];
 
-  ug[n] = ug[n-1];
-  ug[n+1] = ug[n-2];
+  ug(n) = ug(n-1);
+  ug(n+1) = ug(n-2);
 
   if (use_WENO) {
 
     for (int gg = 2; gg <= NGROUPS+1; gg++) { 
-      fg[gg] = ag[gg] * ug[gg];
-      ag[gg] = std::abs(ag[gg]);
+      fg(gg) = ag(gg) * ug(gg);
+      ag(gg) = std::abs(ag(gg));
     }
 
-    f[0] = 0.0_rt;
+    f(0) = 0.0_rt;
 
     for (int i = 1; i < n; i++) {
-      Real alpha = amrex::max(ag[i-3], ag[i-2], ag[i-1],
-                              ag[i], ag[i+1], ag[i+2]);
+      Real alpha = amrex::max(ag(i-3), ag(i-2), ag(i-1),
+                              ag(i), ag(i+1), ag(i+2));
       Real fp[5];
       Real fm[5];
       for (int m = 0; m < 5; m++) {
-        fp[m] = 0.5e0_rt * (fg[m-3] + alpha * ug[m-3]);
-        fm[m] = 0.5e0_rt * (fg[m-2] - alpha * ug[m-2]);
+        fp[m] = 0.5e0_rt * (fg(m-3) + alpha * ug(m-3));
+        fm[m] = 0.5e0_rt * (fg(m-2) - alpha * ug(m-2));
       }
       Real fpw = weno5(fp[0], fp[1], fp[2], fp[3], fp[4]);
       Real fmw = weno5(fm[4], fm[3], fm[2], fm[1], fm[0]);
-      f[i] = fpw + fmw;
+      f(i) = fpw + fmw;
     }
-    f[n] = 0.0_rt;
+    f(n) = 0.0_rt;
 
   } else {
 
-    f[0] = 0.0_rt;
+    f(0) = 0.0_rt;
 
     for (int i = 1; i < n; i++) {
-      Real r = (ug[i-1] - ug[i-2]) / (ug[i] - ug[i-1] + 1.e-50_rt);
-      Real ul = ug[i-1] + 0.5_rt * (ug[i] - ug[i-1]) * MC(r);
+      Real r = (ug(i-1) - ug(i-2)) / (ug(i) - ug(i-1) + 1.e-50_rt);
+      Real ul = ug(i-1) + 0.5_rt * (ug(i) - ug(i-1)) * MC(r);
 
-      r = (ag[i-1] - ag[i-2]) / (ag[i] - ag[i-1] + 1.e-50_rt);
-      Real al = ag[i-1] + 0.5_rt * (ag[i] - ag[i-1]) * MC(r);
+      r = (ag(i-1) - ag(i-2)) / (ag(i) - ag(i-1) + 1.e-50_rt);
+      Real al = ag(i-1) + 0.5_rt * (ag(i) - ag(i-1)) * MC(r);
 
       Real fl = al*ul;
 
-      r = (ug[i] - ug[i-1]) / (ug[i+1] - ug[i] + 1.e-50_rt);
-      Real ur = ug[i] - 0.5_rt * (ug[i+1] - ug[i]) * MC(r);
+      r = (ug(i) - ug(i-1)) / (ug(i+1) - ug(i) + 1.e-50_rt);
+      Real ur = ug(i) - 0.5_rt * (ug(i+1) - ug(i)) * MC(r);
 
-      r = (ag[i] - ag[i-1]) / (ag[i+1] - ag[i] + 1.e-50_rt);
-      Real ar = ag[i] - 0.5_rt * (ag[i+1] - ag[i]) * MC(r);
+      r = (ag(i) - ag(i-1)) / (ag(i+1) - ag(i) + 1.e-50_rt);
+      Real ar = ag(i) - 0.5_rt * (ag(i+1) - ag(i)) * MC(r);
 
       Real fr = ar*ur;
 
       Real a_plus = amrex::max(0.0_rt, al, ar);
       Real a_minus = amrex::max(0.e0_rt, -al, -ar);
-      f[i] = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) /
+      f(i) = (a_plus*fl + a_minus*fr - a_plus*a_minus*(ur-ul)) /
         (a_plus + a_minus + 1.e-50_rt);
     }
-    f[n] = 0.0_rt;
+    f(n) = 0.0_rt;
 
   }
 
   for (int i = 0; i < n; i++) {
-    dudt_tmp[i] = (f[i] - f[i+1]) / dx[i];
+    dudt_tmp[i] = (f(i) - f(i+1)) / dx[i];
   }
 }
 
