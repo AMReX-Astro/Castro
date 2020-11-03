@@ -69,8 +69,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use eos_type_module
   use amrex_constants_module, only : ZERO, HALF, ONE, TWO
   use amrex_fort_module, only : rt => amrex_real
-#ifdef NSE_THERMO
   use burn_type_module
+#ifdef NSE_THERMO
   use nse_check_module
   use nse_module, only: nse_interp
 #endif

@@ -108,8 +108,6 @@ Gravity::read_params ()
 
         ParmParse pp("gravity");
 
-#include <gravity_queries.H>
-
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
              (gravity::gravity_type != "MonopoleGrav") &&
@@ -257,13 +255,6 @@ Gravity::read_params ()
 
         }
 
-        // Warn user about obsolete tolerance parameters.
-
-        if (pp.contains("delta_tol"))
-            amrex::Warning("The gravity parameter delta_tol is no longer used.");
-
-        if (pp.contains("sl_tol"))
-            amrex::Warning("The gravity parameter sl_tol is no longer used.");
         Ggravity = 4.0 * M_PI * C::Gconst;
         if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
         {
