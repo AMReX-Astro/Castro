@@ -7,6 +7,7 @@ CEXE_headers += Problem_Derive.H
 CEXE_sources += Problem_Derive.cpp
 FEXE_headers += Problem_Derive_F.H
 CEXE_headers += problem_setup.H
+CEXE_headers += problem_tagging.H
 
 ca_F90EXE_sources += bc_fill_nd.F90
 ca_F90EXE_sources += bc_ext_fill_nd.F90

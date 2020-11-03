@@ -1,3 +1,7 @@
+# 20.12
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
 # 20.11
 
    * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
