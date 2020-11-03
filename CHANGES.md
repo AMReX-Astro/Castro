@@ -1,6 +1,3 @@
-# 20.12
-
-   * The radiation frequency space advection was converted to C++ (#1189)
 
 # 20.11
 
