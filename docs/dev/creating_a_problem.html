@@ -438,12 +438,12 @@ runtime diagnostics.</p>
 <p>The name of the checkpoint directory is passed in as an argument.
 <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code> provides the C++ interfaces for these routines.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">problem_tagging_?d.F90</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code></p>
 <p>This implements problem-specific tagging for refinement, through a
-subroutine <code class="docutils literal notranslate"><span class="pre">set_problem_tags</span></code>. The full hydrodynamic state
-(State_Type) is passed in, and the problem can mark zones for
-refinement by setting the tag variable for a zone to
-set. An example is provided by the <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>
+subroutine <code class="docutils literal notranslate"><span class="pre">set_problem_tags</span></code> (Fortran) or function <code class="docutils literal notranslate"><span class="pre">problem_tagging</span></code>
+(C++). The full hydrodynamic state (State_Type) is passed in, and the
+problem can mark zones for refinement by setting the tag variable for
+a zone to set. An example is provided by the <code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>
 problem which refines a rectangular region (fuel layer) based on
 a density parameter and the H mass fraction.</p>
 </li>

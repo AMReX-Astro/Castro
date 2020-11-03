@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File Problem.H &mdash; Castro  documentation</title>
+  <title>File problem_tagging.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File Problem_Derive.H" href="Problem__Derive_8H.html" />
-    <link rel="prev" title="File Castro_bc_fill_nd.H" href="Castro__bc__fill__nd_8H.html" /> 
+    <link rel="next" title="Radiation" href="../radiation_files.html" />
+    <link rel="prev" title="File problem_setup.H" href="problem__setup_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/Problem_8H.html">main</a> | <a href="../file/Problem_8H.html">development</a>
+        Branch: <a href="../../file/problem__tagging_8H.html">main</a> | <a href="../file/problem__tagging_8H.html">development</a>
     </div>
 
         </div>
@@ -144,11 +144,11 @@
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File Problem.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__setup_8H.html">File problem_setup.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_tagging.H</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
@@ -214,13 +214,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File Problem.H</li>
+      <li>File problem_tagging.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/Problem_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/problem__tagging_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -233,24 +233,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-problem-h">
-<h1>File Problem.H<a class="headerlink" href="#file-problem-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-problem-tagging-h">
+<h1>File problem_tagging.H<a class="headerlink" href="#file-problem-tagging-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt id="_CPPv421problem_post_timestepv">
-<span id="_CPPv321problem_post_timestepv"></span><span id="_CPPv221problem_post_timestepv"></span><span id="problem_post_timestep"></span><span class="target" id="Problem_8H_1a868a9c42448fa7a49362e8985696c2ea"></span>void <code class="sig-name descname">problem_post_timestep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421problem_post_timestepv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv420problem_post_restartv">
-<span id="_CPPv320problem_post_restartv"></span><span id="_CPPv220problem_post_restartv"></span><span id="problem_post_restart"></span><span class="target" id="Problem_8H_1ad0a59114074d77c0474cac0c796e2000"></span>void <code class="sig-name descname">problem_post_restart</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420problem_post_restartv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="cpp function">
-<dt id="_CPPv417problem_post_initv">
-<span id="_CPPv317problem_post_initv"></span><span id="_CPPv217problem_post_initv"></span><span id="problem_post_init"></span><span class="target" id="Problem_8H_1ab3c21ea2799b079a1df249ccb47c66b1"></span>void <code class="sig-name descname">problem_post_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417problem_post_initv" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dt>
+<span class="target" id="problem__tagging_8H_1ad4c890d1e505b07d4a3e224e26f3b456"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_tagging (int i, int j, int k, Array4&lt; char &gt; const &amp;tag, Array4&lt; Real const &gt; const &amp;state, const GeometryData &amp;geomdata)</code></dt>
+<dd><p>Define problem-specific tagging criteria</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: x-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: y-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: z-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tag</span></code>: tag array (TagBox) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: simulation state (Fab) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: geometry data </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 </div>
 </div>
@@ -263,10 +266,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Problem__Derive_8H.html" class="btn btn-neutral float-right" title="File Problem_Derive.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../radiation_files.html" class="btn btn-neutral float-right" title="Radiation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Castro__bc__fill__nd_8H.html" class="btn btn-neutral float-left" title="File Castro_bc_fill_nd.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem__setup_8H.html" class="btn btn-neutral float-left" title="File problem_setup.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
