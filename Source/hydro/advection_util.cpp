@@ -39,15 +39,6 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
-
-  Real lsmall_dens = small_dens;
-  Real ldual_energy_eta1 = dual_energy_eta1;
-
-#ifdef ROTATION
-  int lstate_in_rotating_frame = state_in_rotating_frame;
-  int ldo_rotation = do_rotation;
-#endif
-
 #ifdef RADIATION
   int is_comoving = Radiation::comoving;
   int limiter = Radiation::limiter;
@@ -57,6 +48,8 @@ Castro::ctoprim(const Box& bx,
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
+
+  GeometryData geomdata = geom.data();
 #endif
 
   amrex::ParallelFor(bx,
@@ -69,7 +62,7 @@ Castro::ctoprim(const Box& bx,
       std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
       std::cout << ">>> ... negative density " << uin(i,j,k,URHO) << std::endl;
       amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
-    } else if (uin(i,j,k,URHO) < lsmall_dens) {
+    } else if (uin(i,j,k,URHO) < castro::small_dens) {
       std::cout << std::endl;
       std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
       std::cout << ">>> ... small density " << uin(i,j,k,URHO) << std::endl;
@@ -102,7 +95,7 @@ Castro::ctoprim(const Box& bx,
                                                 q_arr(i,j,k,QV)*q_arr(i,j,k,QV) +
                                                 q_arr(i,j,k,QW)*q_arr(i,j,k,QW));
 
-    if ((uin(i,j,k,UEDEN) - kineng) > ldual_energy_eta1*uin(i,j,k,UEDEN)) {
+    if ((uin(i,j,k,UEDEN) - kineng) > castro::dual_energy_eta1*uin(i,j,k,UEDEN)) {
       q_arr(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv;
     } else {
       q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
@@ -112,13 +105,11 @@ Castro::ctoprim(const Box& bx,
     // then subtract off the rotation component here.
 
 #ifdef ROTATION
-    if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
+    if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
       Real vel[3];
       for (int n = 0; n < 3; n++) {
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
-
-      GeometryData geomdata = geom.data();
 
       inertial_to_rotational_velocity_c(i, j, k, geomdata, omega.begin(), time, vel);
 
