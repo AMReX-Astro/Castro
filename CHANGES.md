@@ -1,3 +1,6 @@
+# 20.12
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
 
 # 20.11
 
