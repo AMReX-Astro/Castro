@@ -216,6 +216,8 @@ ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
+    # we only implement this for C++ reactions
+    DEFINES += -DCXX_REACTIONS
   endif
 
   ifeq ($(USE_CXX_REACTIONS), TRUE)
