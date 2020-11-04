@@ -184,9 +184,6 @@ extern "C"
 
 
 
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
-
 
 /* reactions */
 #ifdef REACTIONS
