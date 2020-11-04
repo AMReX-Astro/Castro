@@ -235,6 +235,23 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
+<span class="target" id="Rotation_8H_1ab6c874859547791ef9ab270cd849c677"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, GpuArray&lt; Real, 3 &gt; const &amp;omega, const bool coriolis, Real *Sr)</code></dt>
+<dd><p>Compute the rotational acceleration for a single zone (Coriolis and centrifugal)</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>: distance from origin of rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>: velocity </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omega</span></code>: rotation vector </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coriolis</span></code>: do we include the Coriolis force </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Sr</span></code>: rotational acceleration </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
 <span class="target" id="Rotation_8H_1a42f52402c08709ce6e6451ec40c368be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real rotational_potential (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; const &amp;omega)</code></dt>
 <dd></dd></dl>
 
