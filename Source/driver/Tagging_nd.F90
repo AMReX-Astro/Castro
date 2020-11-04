@@ -38,7 +38,7 @@ module tagging_module
 
   public
 
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
   attributes(managed) ::    denerr,   dengrad, dengrad_rel
   attributes(managed) ::    velerr,   velgrad, velgrad_rel
   attributes(managed) ::   temperr,  tempgrad, tempgrad_rel

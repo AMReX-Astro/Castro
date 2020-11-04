@@ -34,7 +34,7 @@ module prob_params_module
   integer         , save, allocatable :: n_error_buf(:)
   integer         , save, allocatable :: blocking_factor(:)
 
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
   attributes(managed) :: physbc_lo, physbc_hi
   attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
   attributes(managed) :: dim
