@@ -408,6 +408,7 @@ Castro::react_state(Real time, Real dt)
              burn_state.k = k;
 
              burn_state.sdc_iter = sdc_iteration;
+             burn_state.num_sdc_iters = sdc_iters;
 
              if (do_burn) {
                  burner(burn_state, dt);
