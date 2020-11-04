@@ -319,9 +319,6 @@ Castro::react_state(Real time, Real dt)
 
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:burn_failed)
-#endif
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
