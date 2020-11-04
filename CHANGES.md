@@ -2,6 +2,8 @@
 
    * An interface for doing problem tagging in C++ has been added. (#1289)
 
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
 # 20.11
 
    * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
