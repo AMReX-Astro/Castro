@@ -2,7 +2,7 @@
 
    * An interface for doing problem tagging in C++ has been added. (#1289)
 
-   * Simplified SDC now only supports C++ reaction networks (#1294)
+   * Simplified SDC now only supports the C++ integrators (#1294)
 
 # 20.11
 
