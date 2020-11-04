@@ -10,6 +10,7 @@ Radiation
    file/MGRadBndry_8H
    file/NGBndry_8H
    file/RadBndry_8H
+   file/RadHydro_8H
    file/RadSolve_8H
    file/RadTypes_8H
    file/Radiation_8H
