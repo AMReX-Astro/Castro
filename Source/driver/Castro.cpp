@@ -55,6 +55,8 @@
 #include <problem_setup.H>
 #include <problem_tagging.H>
 
+#include <ambient.H>
+
 using namespace amrex;
 
 bool         Castro::signalStopJob = false;
@@ -557,6 +559,15 @@ Castro::Castro (Amr&            papa,
     if (do_init_probparams == 0) {
       init_prob_parameters();
       do_init_probparams = 1;
+
+      // Copy ambient data from Fortran to C++. This should be done prior to
+      // problem_initialize() in case the C++ initialization overwrites it.
+
+      for (int n = 0; n < NUM_STATE; ++n) {
+          ambient::ambient_state[n] = 0.0_rt;
+      }
+
+      get_ambient_data(ambient::ambient_state);
 
       // If we're doing C++ problem initialization, do it here. We have to make
       // sure it's done after the above call to init_prob_parameters() in case
@@ -3973,7 +3984,15 @@ Castro::computeTemp(
           amrex::ParallelFor(bx,
           [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
-              ca_clamp_temp(i, j, k, AMREX_ARR4_TO_FORTRAN_ANYD(u));
+              Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+              if (u(i,j,k,URHO) <= castro::ambient_safety_factor * ambient::ambient_state[URHO]) {
+                  u(i,j,k,UTEMP) = ambient::ambient_state[UTEMP];
+                  u(i,j,k,UEINT) = ambient::ambient_state[UEINT] * (u(i,j,k,URHO) * rhoInv);
+                  u(i,j,k,UEDEN) = u(i,j,k,UEINT) + 0.5_rt * rhoInv * (u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                                       u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                                       u(i,j,k,UMZ) * u(i,j,k,UMZ));
+              }
           });
       }
 

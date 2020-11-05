@@ -80,6 +80,8 @@ extern "C"
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
 
+  void get_ambient_data(Real* ambient_state);
+
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
