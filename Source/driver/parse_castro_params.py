@@ -211,7 +211,9 @@ class Param:
         cstr = ""
         if self.ifdef is not None:
             cstr += "#ifdef {}\n".format(self.ifdef)
+        cstr += "#ifdef AMREX_USE_GPU_PRAGMA\n"
         cstr += "attributes(managed) :: {}\n".format(self.f90_name)
+        cstr += "#endif\n"
         if self.ifdef is not None:
             cstr += "#endif\n"
         return cstr
@@ -331,7 +333,7 @@ def write_meth_module(plist, meth_template, out_directory):
             # Do the CUDA managed declarations
 
             mo.write("\n")
-            mo.write("#ifdef AMREX_USE_CUDA\n")
+            mo.write("#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))\n")
             mo.write(cuda_managed_string)
             mo.write("#endif\n")
 
