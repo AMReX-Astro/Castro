@@ -16,10 +16,10 @@ void problem_initialize ()
 
     // set the ambient state for the upper boundary condition
 
-    ambient::ambient_state[URHO] = model::state(npts_model-1, idens_model);
-    ambient::ambient_state[UTEMP] = model::model_state(npts_model-1, itemp_model);
+    ambient::ambient_state[URHO] = model::state(model::npts-1, model::idens);
+    ambient::ambient_state[UTEMP] = model::state(model::npts-1, model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * model::state(npts_model-1, ispec_model+n);
+        ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * model::state(model::npts-1, model::ispec+n);
     }
 
     ambient::ambient_state[UMX] = 0.0_rt;
