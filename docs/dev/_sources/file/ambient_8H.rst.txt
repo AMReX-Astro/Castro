@@ -1,0 +1,4 @@
+File ambient.H
+==============
+
+.. doxygenfile:: ambient.H
