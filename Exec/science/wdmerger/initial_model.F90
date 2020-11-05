@@ -48,7 +48,7 @@ module initial_model_module
   real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
   real(rt), allocatable :: r_P(:), r_S(:)
 
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
   attributes(managed) :: model_P, model_S
   attributes(managed) :: rho_P, rho_S
   attributes(managed) :: T_P, T_S
