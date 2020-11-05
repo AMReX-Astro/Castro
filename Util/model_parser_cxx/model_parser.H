@@ -213,7 +213,8 @@ read_model_file(std::string& model_file) {
 
     // start reading in the data
 
-    Real vars_stored[nvars_model_file];
+    amrex::Vector<Real> vars_stored;
+    vars_stored.resize(nvars_model_file);
 
     for (int i = 0; i < model::npts; i++) {
         initial_model_file >> model::r(i);
