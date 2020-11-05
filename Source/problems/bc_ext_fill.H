@@ -5,7 +5,7 @@
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 void
-ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
+ext_denfill_c(const Box& bx, Array4<Real> const& adv,
               Geometry const& geom, const BCRec& bcr,
               const Real time) {
 
@@ -39,7 +39,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real x = problo[0] + dx[0]*(static_cast<Real>(i) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(x, model::idens);
+            adv(i,j,k) = interpolate(x, model::idens);
         });
     }
 
@@ -54,7 +54,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real x = problo[0] + dx[0]*(static_cast<Real>(i) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(x, model::idens);
+            adv(i,j,k) = interpolate(x, model::idens);
         });
     }
 
@@ -71,7 +71,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real y = problo[1] + dx[1]*(static_cast<Real>(j) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(y, model::idens);
+            adv(i,j,k) = interpolate(y, model::idens);
         });
     }
 
@@ -86,7 +86,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real y = problo[1] + dx[1]*(static_cast<Real>(j) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(y, model::idens);
+            adv(i,j,k) = interpolate(y, model::idens);
         });
     }
 #endif
@@ -103,7 +103,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real z = problo[2] + dx[2]*(static_cast<Real>(k) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(z, model::idens);
+            adv(i,j,k) = interpolate(z, model::idens);
         });
     }
 
@@ -117,7 +117,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv, const int dcomp,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real z = problo[2] + dx[2]*(static_cast<Real>(k) + 0.5_rt);
-            adv(i,j,k,dcomp) = interpolate(z, model::idens);
+            adv(i,j,k) = interpolate(z, model::idens);
         });
     }
 #endif

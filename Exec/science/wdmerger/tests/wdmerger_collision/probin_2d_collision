@@ -10,10 +10,7 @@
 
   interp_temp = T
 
-  ambient_density = 1.0d-4
-
   stellar_temp = 1.0d7
-  ambient_temp = 1.0d7
 
   orbital_eccentricity = 0.0d0
   orbital_angle = 0.0d0
@@ -38,6 +35,13 @@
   initial_model_npts = 4096
   initial_model_mass_tol = 1.d-6
   initial_model_hse_tol = 1.d-10
+
+/
+
+&ambient
+
+  ambient_density = 1.0d-4
+  ambient_temp = 1.0d7
 
 /
 

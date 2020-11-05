@@ -23,7 +23,7 @@ void problem_initialize ()
 
     if (ParallelDescriptor::IOProcessor()) {
         for (int i = 0; i < model::npts; i++) {
-            std::cout << i << " " << model::r[i] << " " << model::state[MODELINDEX(i,model::idens)] << std::endl;
+            std::cout << i << " " << model::r(i) << " " << model::state(i,model::idens) << std::endl;
         }
     }
 
@@ -110,11 +110,11 @@ void problem_initialize_state_data (int i, int j, int k,
 
             upert[0] += -(ydist/problem::velpert_scale) * problem::velpert_amplitude *
                 std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
-                std::pow(-1.0_rt, vortex);
+                std::pow(-1.0_rt, vortex+1);
 
             upert[1] += (xdist/problem::velpert_scale) * problem::velpert_amplitude *
                 std::exp(-r * r / (2.0_rt * problem::velpert_scale * problem::velpert_scale)) *
-                std::pow(-1.0_rt, vortex);
+                std::pow(-1.0_rt, vortex+1);
         }
 
         state(i,j,k,UMX) = state(i,j,k,URHO) * upert[0];

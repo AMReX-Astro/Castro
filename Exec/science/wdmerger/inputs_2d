@@ -64,6 +64,9 @@ amr.compute_new_dt_on_regrid = 1
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
 
+# Skip retries for small density if the starting density was less than this threshold
+castro.retry_small_density_cutoff = 1.0e0
+
 ############################################################################################ 
 # Resolution, gridding and AMR
 ############################################################################################

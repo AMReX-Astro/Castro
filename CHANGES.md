@@ -1,3 +1,26 @@
+# 20.12
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
+# 20.11
+
+   * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
+     support C++14; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 5.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1284)
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
 # 20.10
 
    * A new refinement scheme using the inputs file rather than the Fortran

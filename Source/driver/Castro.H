@@ -18,6 +18,7 @@ using namespace castro;
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
@@ -66,8 +67,6 @@ constexpr int Shock = USHK;
 
 using std::istream;
 using std::ostream;
-
-#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -1249,6 +1248,8 @@ protected:
 #endif
 
 
+
+#ifdef TRUE_SDC
 ///
 /// A state array for the some reaction stuff with SDC
 ///
@@ -1258,16 +1259,12 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab q;
-#endif
-
 
 ///
 /// we need a second version when doing fourth order
 ///
     amrex::MultiFab q_bar;
-
 
 ///
 /// for diffusion in fourth order we need the cell-center temperature
@@ -1279,10 +1276,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab qaux;
-#endif
     amrex::MultiFab qaux_bar;
+#endif
 
 
 ///

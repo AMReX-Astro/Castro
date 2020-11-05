@@ -30,8 +30,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   ! velocity perturbation stuff
   offset = (probhi(1) - problo(1)) / (num_vortices + 1)
 
-  allocate(xloc_vortices(num_vortices))
-
   do i = 1, num_vortices
      xloc_vortices(i) = dble(i) * offset
   enddo
