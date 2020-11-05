@@ -5,6 +5,7 @@
 #include <Castro_bc_fill_nd_F.H>
 #include <Castro_bc_ext_fill_nd_F.H>
 #include <Castro_generic_fill.H>
+#include <bc_ext_fill.H>
 
 using namespace amrex;
 
@@ -14,6 +15,12 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                   const Vector<BCRec>& bcr, const int bcomp,
                   const int scomp)
 {
+
+    // Here dcomp is the component in the destination array that we
+    // are filling and bcr is a vector of length ncomp which are the
+    // BC values corresponding to components dcomp to dcomp + ncomp -
+    // 1
+
     // Make a copy of the raw BCRec data in the format
     // our BC routines can handle (a contiguous array
     // of integers).
@@ -80,7 +87,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
@@ -109,17 +116,21 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
          (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
         (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
     if (numcomp == 1) {
 
+#ifndef CXX_MODEL_PARSER
 #pragma gpu box(bx)
         ext_denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                     BL_TO_FORTRAN_N_ANYD(data, dcomp),
                     AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
                     AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+#else
+        ext_denfill_c(bx, data.array(dcomp), geom, bcr[0], time);
+#endif
 
     }
     else {
@@ -141,10 +152,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
   }
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #ifdef MHD
   void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
@@ -214,6 +221,3 @@ extern "C"
   }
 #endif  
 
-#ifdef __cplusplus
-}
-#endif
