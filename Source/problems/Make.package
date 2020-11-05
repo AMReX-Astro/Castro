@@ -27,7 +27,9 @@ FEXE_headers += Castro_bc_ext_fill_nd_F.H
 ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
 
-ca_F90EXE_sources += ambient.F90
+CEXE_headers += ambient.H
+CEXE_sources += ambient.cpp
+ca_F90EXE_sources += ambient_nd.F90
 
 ifeq ($(USE_RAD),TRUE)
   ca_F90EXE_sources += emissivity_override.F90

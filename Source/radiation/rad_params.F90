@@ -39,26 +39,4 @@ module rad_params_module
   attributes(managed) :: etafactor
 #endif
 
-contains
-
-  function get_ispec(g) result(ispec)
-
-    use amrex_fort_module, only : rt => amrex_real
-
-    implicit none
-
-    integer, intent(in) :: g
-    integer :: ispec
-
-    if (ng0 .eq. 0) then  ! photon
-       ispec = 0
-    else if (g < ng0) then
-       ispec = 0
-    else if (g < ng0+ng1) then
-       ispec = 1
-    else
-       ispec = 2
-    end if
-  end function get_ispec
-
 end module rad_params_module
