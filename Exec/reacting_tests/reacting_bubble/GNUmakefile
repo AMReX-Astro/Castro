@@ -9,7 +9,7 @@ USE_MPI          = TRUE
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
 
-
+USE_CXX_MODEL_PARSER = TRUE
 USE_MAESTRO_INIT = FALSE
 
 CASTRO_HOME = ../../..
