@@ -1,6 +1,7 @@
 #ifndef BC_EXT_FILL_H
 #define BC_EXT_FILL_H
 
+#ifdef CXX_MODEL_PARSER
 #include <model_parser.H>
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
@@ -122,5 +123,7 @@ ext_denfill_c(const Box& bx, Array4<Real> const& adv,
     }
 #endif
 }
+#endif
+
 #endif
 
