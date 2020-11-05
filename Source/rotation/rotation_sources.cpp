@@ -1,6 +1,7 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
+#include <Rotation.H>
 #ifdef HYBRID_MOMENTUM
 #include <hybrid.H>
 #endif

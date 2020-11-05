@@ -961,6 +961,22 @@ end subroutine ca_get_ambient_params
 
 
 
+subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR
+  use ambient_module, only: ambient_state
+
+  implicit none
+
+  real(rt), intent(out) :: ambient_state_out(NVAR)
+
+  ambient_state_out(:) = ambient_state(:)
+
+end subroutine get_ambient_data
+
+
+
 #ifdef GRAVITY
 
 subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
