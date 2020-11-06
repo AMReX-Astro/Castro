@@ -3,7 +3,7 @@
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_mhd_data (int i, int j, int k,
-                                  Array4<Real> const& Bx, Array4<Real> const& By, Array4<Real> const& Bz,
+                                  Array4<Real> const& B, const int ibdir,
                                   const GeometryData& geomdata)
 {
     int coord_type = geomdata.Coord();
@@ -23,10 +23,75 @@ void problem_initialize_mhd_data (int i, int j, int k,
     z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 #endif
 
-    if (x <= problem::split[0]+1) {
-        Bx(i,j,k) = problem::B_x_l;
-    } else {
-        Bx(i,j,k) = problem::B_x_l;
-}
+    if (problem::idir == 1) {
+        // initialize along the x-direction
 
+        if (ibdir == 0) {
+            if (x <= problem::split[0]+1) {
+                B(i,j,k) = problem::B_x_l;
+            } else {
+                B(i,j,k) = problem::B_x_r;
+            }
+        } else if (ibdir == 1) {
+            if (x <= problem::split[0]) {
+                B(i,j,k) = problem::B_y_l;
+            } else {
+                B(i,j,k) = problem::B_y_r;
+            }
+        } else if (ibdir == 2) {
+            if (x <= problem::split[0]) {
+                B(i,j,k) = problem::B_z_l;
+            } else {
+                B(i,j,k) = problem::B_z_r;
+            }
+        }
+
+    } else if (problem::idir == 2) {
+        // initialize along the y-direction
+
+        if (ibdir == 0) {
+            if (y <= problem::split[1]) {
+                B(i,j,k) = problem::B_x_l;
+            } else {
+                B(i,j,k) = problem::B_x_r;
+            }
+        } else if (ibdir == 1) {
+            if (y <= problem::split[1]+1) {
+                B(i,j,k) = problem::B_y_l;
+            } else {
+                B(i,j,k) = problem::B_y_r;
+            }
+        } else if (ibdir == 2) {
+            if (y <= problem::split[1]) {
+                B(i,j,k) = problem::B_z_l;
+            } else {
+                B(i,j,k) = problem::B_z_r;
+            }
+        }
+
+    } else {
+        // initialize along the z-direction
+
+        if (ibdir == 0) {
+            if (z <= problem::split[2]) {
+                B(i,j,k) = problem::B_x_l;
+            } else {
+                B(i,j,k) = problem::B_x_r;
+            }
+        } else if (ibdir == 1) {
+            if (z <= problem::split[2]) {
+                B(i,j,k) = problem::B_y_l;
+            } else {
+                B(i,j,k) = problem::B_y_r;
+            }
+        } else if (ibdir == 2) {
+            if (z <= problem::split[2]+1) {
+                B(i,j,k) = problem::B_z_l;
+            } else {
+                B(i,j,k) = problem::B_z_r;
+            }
+        }
+
+    }
+}
 #endif
