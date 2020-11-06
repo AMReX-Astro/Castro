@@ -1031,9 +1031,6 @@ Castro::initData ()
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
 
-          const Box& box = mfi.validbox();
-          const int* lo  = box.loVect();
-          const int* hi  = box.hiVect();
 
           auto geomdata = geom.data();
 
@@ -1041,14 +1038,42 @@ Castro::initData ()
           auto By_arr = By_new.array(mfi);
           auto Bz_arr = Bz_new.array(mfi);
 
-          amrex::ParallelFor(box,
+          const Box& box_x = mfi.nodaltilebox(0);
+
+          amrex::ParallelFor(box_x,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
               // C++ MHD problem initialization; has no effect if not
               // implemented by a problem setup (defaults to an empty
               // routine).
-              problem_initialize_mhd_data(i, j, k, Bx_arr, By_arr, Bz_arr, geomdata);
+              problem_initialize_mhd_data(i, j, k, Bx_arr, 0, geomdata);
           });
+
+          const Box& box_y = mfi.nodaltilebox(1);
+
+          amrex::ParallelFor(box_y,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, By_arr, 1, geomdata);
+          });
+
+          const Box& box_z = mfi.nodaltilebox(2);
+
+          amrex::ParallelFor(box_z,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, Bz_arr, 2, geomdata);
+          });
+
+          const Box& box = mfi.validbox();
+          const int* lo  = box.loVect();
+          const int* hi  = box.hiVect();
 
           RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
