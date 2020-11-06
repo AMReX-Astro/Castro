@@ -27,6 +27,8 @@ void problem_initialize_mhd_data (int i, int j, int k,
         // initialize along the x-direction
 
         if (ibdir == 0) {
+            std::cout << "here: " << x << " " << problem::split[0] << std::endl;
+
             if (x <= problem::split[0]+1) {
                 B(i,j,k) = problem::B_x_l;
             } else {
