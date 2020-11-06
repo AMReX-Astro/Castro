@@ -4,6 +4,9 @@
 
    * Simplified SDC now only supports the C++ integrators (#1294)
 
+   * MHD problems can now do the magnetic field initialization in C++
+     (#1298)
+
 # 20.11
 
    * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
