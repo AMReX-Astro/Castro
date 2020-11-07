@@ -289,42 +289,7 @@ subroutine ca_set_method_params(dm) &
 
   integer, intent(in) :: dm
 
-  integer :: iadv, ispec, iaux, ipassive
-
   integer :: ioproc
-
-
-  ! easy indexing for the passively advected quantities.  This lets us
-  ! loop over all groups (advected, species, aux) in a single loop.
-  ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(npassive))
-  allocate(upass_map(npassive))
-
-  ipassive = 1
-
-  if (nadv > 0) then
-     do iadv = 1, nadv
-        upass_map(ipassive) = UFA + iadv - 1
-        qpass_map(ipassive) = QFA + iadv - 1
-        ipassive = ipassive + 1
-     end do
-  end if
-
-  if (nspec > 0) then
-     do ispec = 1, nspec
-        upass_map(ipassive) = UFS + ispec - 1
-        qpass_map(ipassive) = QFS + ispec - 1
-        ipassive = ipassive + 1
-     end do
-  endif
-
-  if (naux > 0) then
-     do iaux = 1, naux
-        upass_map(ipassive) = UFX + iaux - 1
-        qpass_map(ipassive) = QFX + iaux - 1
-        ipassive = ipassive + 1
-     end do
-  endif
 
 
   !---------------------------------------------------------------------
