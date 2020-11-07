@@ -123,6 +123,8 @@ contains
 
              ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
+             r = ( sum((loc-center)**2) )**HALF
+
              if (r .gt. max_tagging_radius * max(maxval(abs(problo-center)), maxval(abs(probhi-center)))) then
 
                 tag(i,j,k) = clear
