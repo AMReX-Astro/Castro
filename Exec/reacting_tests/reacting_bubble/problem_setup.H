@@ -160,6 +160,11 @@ void problem_initialize_state_data (int i, int j, int k,
 
     state(i,j,k,URHO) = eos_state.rho;
 
+    // reset the species densities with the updated density
+    for (int n = 0; n < NumSpec; n++) {
+        state(i,j,k,UFS+n) = eos_state.rho * eos_state.xn[n];
+    }
+
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEDEN) = state(i,j,k,UEINT);
 }
