@@ -193,10 +193,8 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 max_stellar_tagging_level       integer               20                       y
 max_temperature_tagging_level   integer               20                       y
-max_center_tagging_level        integer               20                       y
 stellar_density_threshold       real                  1.0e0_rt                 y
 temperature_tagging_threshold   real                  5.0e8_rt                 y
-center_tagging_radius           real                  0.0e0_rt                 y
 max_tagging_radius              real                  0.75e0_rt                y
 roche_tagging_factor            real                  2.0e0_rt                 y
 
