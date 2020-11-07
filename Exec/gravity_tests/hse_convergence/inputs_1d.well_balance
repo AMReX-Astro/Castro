@@ -1,0 +1,79 @@
+# ------------------  INPUTS TO MAIN PROGRAM  -------------------
+max_step = 10000
+stop_time =  0.1
+
+# PROBLEM SIZE & GEOMETRY
+geometry.is_periodic = 0       0
+geometry.coord_sys   = 0                  # 0 => cart, 1 => RZ  2=>spherical
+geometry.prob_lo     = 0       0
+geometry.prob_hi     = 7.68e6  7.68e6
+amr.n_cell           = 256     256
+
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+# 0 = Interior           3 = Symmetry
+# 1 = Inflow             4 = SlipWall
+# 2 = Outflow            5 = NoSlipWall
+# >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
+castro.lo_bc       =  1   3
+castro.hi_bc       =  1   3
+
+castro.xl_ext_bc_type = "hse"
+castro.xr_ext_bc_type = "hse"
+
+# WHICH PHYSICS
+castro.do_hydro = 1
+castro.do_react = 0
+castro.do_grav = 1
+castro.do_sponge = 1
+
+castro.small_temp = 1.e6
+
+castro.sdc_order=2
+castro.ppm_type=0
+castro.plm_iorder = 2
+castro.plm_well_balanced=1
+castro.time_integration_method=2
+castro.limit_fourth_order=1
+castro.use_reconstructed_gamma1=1
+castro.sdc_solve_for_rhoe=1
+castro.sdc_solver_tol_spec=1.e-10
+castro.sdc_solver_tol_dens=1.e-10
+castro.sdc_solver_tol_ener=1.e-5
+castro.sdc_solver_atol=1.e-10
+castro.sdc_solver=1
+
+castro.grav_source_type = 2
+
+gravity.gravity_type = ConstantGrav
+gravity.const_grav   = -1.e10
+
+# TIME STEP CONTROL
+castro.cfl            = 0.8     # cfl number for hyperbolic system
+castro.init_shrink    = 1.0     # scale back initial timestep
+castro.change_max     = 1.0     # max time step growth
+castro.fixed_dt = 0.375e-4
+
+# DIAGNOSTICS & VERBOSITY
+castro.sum_interval   = 1       # timesteps between computing mass
+castro.v              = 1       # verbosity in Castro.cpp
+amr.v                 = 1       # verbosity in Amr.cpp
+
+# REFINEMENT / REGRIDDING
+amr.max_level       = 0       # maximum level number allowed
+amr.ref_ratio       = 2 2 2 2 # refinement ratio
+amr.regrid_int      = 2 2 2 2 # how often to regrid
+amr.blocking_factor = 4       # block factor in grid generation
+amr.max_grid_size   = 64
+amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+# CHECKPOINT FILES
+amr.check_file      = chk        # root name of checkpoint file
+amr.check_int       = 1000       # number of timesteps between checkpoints
+
+# PLOTFILES
+amr.plot_file        = bubble_256_plt        # root name of plotfile
+amr.plot_per         = 1e-3       # number of timesteps between plotfiles
+amr.derive_plot_vars = ALL
+
+#PROBIN FILENAME
+amr.probin_file = probin.256.nopert

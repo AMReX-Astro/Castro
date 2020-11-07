@@ -1,45 +1,12 @@
 subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amrex_probinit")
 
-  use probdata_module
-  use actual_eos_module, only : gamma_const
-  use amrex_fort_module, only : rt => amrex_real
-  use castro_error_module
+  use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  integer untin, i
-
-  namelist /fortin/ const_c_v, c_v_exp_n
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  const_c_v = 8.0744926545150113e-24_rt
-  c_v_exp_n = -3.0_rt
-
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
 
 end subroutine amrex_probinit
 
@@ -68,7 +35,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                        state, state_lo, state_hi, &
                        delta, xlo, xhi)
 
-  use probdata_module
   use meth_params_module, only : NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
   use network, only : nspec
 
@@ -85,22 +51,23 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
                                    state_lo(3):state_hi(3), nscal)
 
   integer :: i, j, k
-  real(rt) :: c_v, eint
 
   do k = lo(3), hi(3)
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
            state(i,j,k,URHO) = 1.0_rt
-           state(i,j,k,UTEMP) = 0.0_rt
            state(i,j,k,UMX:UMZ) = 0.0_rt
 
            ! set the composition to be all in the first species
            state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
            state(i,j,k,UFS) = state(i,j,k,URHO)
 
-           state(i,j,k,UEINT) = 0.0_rt
-           state(i,j,k,UEDEN) = 0.0_rt
+           ! Set temperature and energy to arbitrary, positive values
+           ! so that the Castro state checkers are OK.
+           state(i,j,k,UTEMP) = 1.0e-50_rt
+           state(i,j,k,UEINT) = 1.0e-50_rt
+           state(i,j,k,UEDEN) = 1.0e-50_rt
 
         end do
      end do
@@ -116,8 +83,6 @@ end subroutine ca_initdata
 subroutine ca_initrad(level, time, lo, hi, nrad, &
                       rad_state, rad_state_lo, rad_state_hi, &
                       delta, xlo, xhi)
-
-  use probdata_module
 
   use amrex_fort_module, only : rt => amrex_real
 

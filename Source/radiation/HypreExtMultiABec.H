@@ -1,7 +1,7 @@
-#ifndef _HypreExtMultiABec_H_
-#define _HypreExtMultiABec_H_
+#ifndef CASTRO_HYPREEXTMULTIABEC_H
+#define CASTRO_HYPREEXTMULTIABEC_H
 
-#include "HypreMultiABec.H"
+#include <HypreMultiABec.H>
 
 
 ///
@@ -124,9 +124,9 @@ class HypreExtMultiABec : public HypreMultiABec {
 /// @param icomp
 ///
   void boundaryDterm(int level,
-		     amrex::MultiFab* Dterm,
-		     amrex::MultiFab& Er,
-		     int icomp);
+                     amrex::MultiFab* Dterm,
+                     amrex::MultiFab& Er,
+                     int icomp);
 
  protected:
 

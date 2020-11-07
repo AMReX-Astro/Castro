@@ -5,8 +5,8 @@
 #include <AMReX_LO_BCTYPES.H>
 //#include <CompSolver.H>
 
-#include "RadSolve.H"
-#include "Radiation.H"  // for access to static physical constants only
+#include <RadSolve.H>
+#include <Radiation.H>  // for access to static physical constants only
 
 #include <iostream>
 
@@ -14,129 +14,97 @@
 #include <omp.h>
 #endif
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
-#include "HABEC_F.H"    // only for nonsymmetric flux; may be changed?
+#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 using namespace amrex;
 
-Vector<Real> RadSolve::absres(0);
-
-RadSolve::RadSolve(Amr* Parent) : parent(Parent),
-  hd(NULL), hm(NULL)
+RadSolve::RadSolve (Amr* Parent, int level, const BoxArray& grids, const DistributionMapping& dmap)
+    : parent(Parent)
 {
-  ParmParse pp("radsolve");
+    read_params();
 
-  if (BL_SPACEDIM == 1) {
-    // pfmg will not work in 1D
-    level_solver_flag            = 0;
-  }
-  else {
-    level_solver_flag            = 1;
-  }
-  pp.query("level_solver_flag",            level_solver_flag);
-
-  use_hypre_nonsymmetric_terms = 0;
-  pp.query("use_hypre_nonsymmetric_terms", use_hypre_nonsymmetric_terms);
-
-  if (Radiation::SolverType == Radiation::SGFLDSolver 
-      && Radiation::Er_Lorentz_term) { 
-
-    use_hypre_nonsymmetric_terms = 1;
-
-    if (level_solver_flag < 100) {
-      amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+    if (radsolve::level_solver_flag < 100) {
+        hd.reset(new HypreABec(grids, dmap, parent->Geom(level), radsolve::level_solver_flag));
     }
-  }
-
-  if (Radiation::SolverType == Radiation::MGFLDSolver && 
-      Radiation::accelerate == 2 && Radiation::nGroups > 1) {
-    use_hypre_nonsymmetric_terms = 1;
-
-    if (level_solver_flag < 100) {
-      amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+    else {
+        if (radsolve::use_hypre_nonsymmetric_terms == 0) {
+            hm.reset(new HypreMultiABec(level, level, radsolve::level_solver_flag));
+            hm->addLevel(level, parent->Geom(level), grids, dmap,
+                         IntVect::TheUnitVector());
+            hm->buildMatrixStructure();
+        }
+        else {
+            hem.reset(new HypreExtMultiABec(level, level, radsolve::level_solver_flag));
+            cMulti  = hem->cMultiplier();
+            d1Multi = hem->d1Multiplier();
+            d2Multi = hem->d2Multiplier();
+            hem->addLevel(level, parent->Geom(level), grids, dmap,
+                          IntVect::TheUnitVector());
+            hem->buildMatrixStructure();
+        }
     }
-  }
+}
 
-  ParmParse ppr("radiation");
+void
+RadSolve::read_params ()
+{
+    ParmParse pp("radsolve");
 
-  reltol     = 1.0e-10;   pp.query("reltol",  reltol);
-  if (Radiation::SolverType == Radiation::SGFLDSolver ||
-      Radiation::SolverType == Radiation::MGFLDSolver) {
-    abstol = 0.0;
-  }
-  else {
-    abstol     = 1.0e-10;   
-  }
-  pp.query("abstol",  abstol);
-  maxiter    = 40;        pp.query("maxiter", maxiter);
+    // Override some defaults manually.
 
-  // For the radiation problem these are always +1:
-  alpha = 1.0; pp.query("alpha",alpha);
-  beta  = 1.0; pp.query("beta",beta);
+    if (BL_SPACEDIM == 1) {
+        // pfmg will not work in 1D
+        radsolve::level_solver_flag = 0;
+    }
 
-  verbose = 0; pp.query("v", verbose); pp.query("verbose", verbose);
+    if (Radiation::SolverType == Radiation::SGFLDSolver
+        && Radiation::Er_Lorentz_term) { 
+        radsolve::use_hypre_nonsymmetric_terms = 1;
+    }
 
-  {
-    // Putting this here is a kludge, but I make the factors static and
-    // enter them here for both kinds of solvers so that any solver
-    // objects created by, for example, the CompSolver, will get the
-    // right values.  They are set each time this constructor is called
-    // to allow for the fact that we might conceivably have two different
-    // radiation-like sets of equations being solved with different
-    // conventions about flux_factor (photons and neutrinos, for example).
-    // The assumption then is that the RadSolve object will only persist
-    // for the duration of one type of physics update.
-    ParmParse pp1("radiation");
-    Real c = Radiation::clight;
-    pp1.query("c", c);
-    HypreABec::fluxFactor() = c;
-    HypreMultiABec::fluxFactor() = c;
-  }
+    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
+        radsolve::use_hypre_nonsymmetric_terms = 1;
+    }
 
-  static int first = 1;
-  if (verbose >= 1 && first && ParallelDescriptor::IOProcessor()) {
-    first = 0;
-    std::cout << "radsolve.level_solver_flag      = " << level_solver_flag << std::endl;
-    std::cout << "radsolve.maxiter                = " << maxiter << std::endl;
-    std::cout << "radsolve.reltol                 = " << reltol << std::endl;
-    std::cout << "radsolve.abstol                 = " << abstol << std::endl;
-    std::cout << "radsolve.use_hypre_nonsymmetric_terms = "
-         << use_hypre_nonsymmetric_terms << std::endl;
-    std::cout << "radsolve.verbose                = " << verbose << std::endl;
-  }
+    if (Radiation::SolverType == Radiation::SGFLDSolver ||
+        Radiation::SolverType == Radiation::MGFLDSolver) {
+        radsolve::abstol = 0.0;
+    }
 
-  // Static initialization:
-  if (absres.size() == 0) {
-    absres.resize(parent->maxLevel() + 1, 0.0);
-  }
+#include <radsolve_queries.H>
+
+    // Check for unsupported options.
+
+    if (BL_SPACEDIM == 1) {
+        if (radsolve::level_solver_flag == 1) {
+            amrex::Error("radsolve.level_solver_flag = 1 is not supported in 1D");
+        }
+    }
+
+    if (Radiation::SolverType == Radiation::SGFLDSolver
+        && Radiation::Er_Lorentz_term) { 
+
+        if (radsolve::level_solver_flag < 100) {
+            amrex::Error("To do Lorentz term implicitly level_solver_flag must be >= 100.");
+        }
+    }
+
+    if (Radiation::SolverType == Radiation::MGFLDSolver && 
+        Radiation::accelerate == 2 && Radiation::nGroups > 1) {
+
+        if (radsolve::level_solver_flag < 100) {
+            amrex::Error("When accelerate is 2, level_solver_flag must be >= 100.");
+        }
+    }
+
 }
 
 void RadSolve::levelInit(int level)
 {
   BL_PROFILE("RadSolve::levelInit");
-  const BoxArray& grids = parent->boxArray(level);
-  const DistributionMapping& dmap = parent->DistributionMap(level);
-//  const Real *dx = parent->Geom(level).CellSize();
-
-  if (level_solver_flag < 100) {
-      hd = new HypreABec(grids, dmap, parent->Geom(level), level_solver_flag);
-  }
-  else {
-      if (use_hypre_nonsymmetric_terms == 0) {
-	  hm = new HypreMultiABec(level, level, level_solver_flag);
-      }
-      else {
-	  hm = new HypreExtMultiABec(level, level, level_solver_flag);
-	  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-	  cMulti  = hem->cMultiplier();
-	  d1Multi = hem->d1Multiplier();
-	  d2Multi = hem->d2Multiplier();
-      }
-      hm->addLevel(level, parent->Geom(level), grids, dmap,
-                   IntVect::TheUnitVector());
-      hm->buildMatrixStructure();
-  }
 }
 
 void RadSolve::levelBndry(RadBndry& bd)
@@ -148,6 +116,9 @@ void RadSolve::levelBndry(RadBndry& bd)
   }
   else if (hm) {
     hm->setBndry(hm->crseLevel(), bd);
+  }
+  else if (hem) {
+    hem->setBndry(hem->crseLevel(), bd);
   }
 }
 
@@ -162,72 +133,64 @@ void RadSolve::levelBndry(MGRadBndry& mgbd, const int comp)
   else if (hm) {
     hm->setBndry(hm->crseLevel(), mgbd, comp);
   }
-}
-
-void RadSolve::levelClear()
-{
-  if (hd) {
-    delete hd;
-    hd = NULL;
-  }
-  else if (hm) {
-    delete hm;
-    hm = NULL;
+  else if (hem) {
+    hem->setBndry(hem->crseLevel(), mgbd, comp);
   }
 }
 
 void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
 {
-  BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
-  BL_ASSERT(cc.nGrow() == 0);
+    BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
+    BL_ASSERT(cc.nGrow() == 0);
+
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+    for (MFIter mfi(cc, TilingIfNotGPU()); mfi.isValid(); ++mfi) 
+    {
+        const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(cc,true); mfi.isValid(); ++mfi) 
-      {
-	  const Box &reg = mfi.tilebox();
-
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  multrs(BL_TO_FORTRAN(cc[mfi]), 
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		 r.dataPtr(), s.dataPtr());
-      }
-  }
+#pragma gpu box(bx)
+        multrs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
+               BL_TO_FORTRAN_ANYD(cc[mfi]),
+               dx);
+    }
 }
 
 void RadSolve::setLevelACoeffs(int level, const MultiFab& acoefs)
 {
     if (hd) {
-	hd->aCoefficients(acoefs);
+        hd->aCoefficients(acoefs);
     }
     else if (hm) {
-	hm->aCoefficients(level, acoefs);
+        hm->aCoefficients(level, acoefs);
+    }
+    else if (hem) {
+        hem->aCoefficients(level, acoefs);
     }
 }
 
 void RadSolve::setLevelBCoeffs(int level, const MultiFab& bcoefs, int dir)
 {
     if (hd) {
-	hd->bCoefficients(bcoefs, dir);
+        hd->bCoefficients(bcoefs, dir);
     }
     else if (hm) {
-	hm->bCoefficients(level, bcoefs, dir);
+        hm->bCoefficients(level, bcoefs, dir);
+    }
+    else if (hem) {
+        hem->bCoefficients(level, bcoefs, dir);
     }
 }
 
 void RadSolve::setLevelCCoeffs(int level, const MultiFab& ccoefs, int dir)
 {
-  if (hm) {
-    HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
     if (hem) {
       hem->cCoefficients(level, ccoefs, dir);
     }
-  }
 }
 
 void RadSolve::levelACoeffs(int level,
@@ -237,6 +200,8 @@ void RadSolve::levelACoeffs(int level,
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
+  const Geometry& geom = parent->Geom(level);
+  const Real* dx       = geom.CellSize();
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
@@ -248,19 +213,17 @@ void RadSolve::levelACoeffs(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(fkp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box &bx = mfi.tilebox();
 
-      for (MFIter mfi(fkp,true); mfi.isValid(); ++mfi) {
-	  const Box &reg  = mfi.tilebox();
-
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-
-	  lacoef(BL_TO_FORTRAN(acoefs[mfi]),
-		 ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 fkp[mfi].dataPtr(), eta[mfi].dataPtr(), etainv[mfi].dataPtr(),
-		 r.dataPtr(), s.dataPtr(), c, delta_t, theta);
-      }
+#pragma gpu box(bx)
+      lacoef(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+             BL_TO_FORTRAN_ANYD(acoefs[mfi]),
+             BL_TO_FORTRAN_ANYD(fkp[mfi]),
+             BL_TO_FORTRAN_ANYD(eta[mfi]),
+             BL_TO_FORTRAN_ANYD(etainv[mfi]),
+             AMREX_REAL_ANYD(dx),
+             c, delta_t, theta);
   }
 
   if (hd) {
@@ -269,10 +232,13 @@ void RadSolve::levelACoeffs(int level,
   else if (hm) {
     hm->aCoefficients(level, acoefs);
   }
+  else if (hem) {
+    hem->aCoefficients(level, acoefs);
+  }
 }
 
 void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int igroup, 
-			 int lo_bc[3], int hi_bc[3])
+                         int lo_bc[3], int hi_bc[3])
 {
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
@@ -286,34 +252,37 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
   for (MFIter mfi(spa,true); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
     
-      spa[mfi].setVal(1.e210,reg,0);
+      spa[mfi].setVal<RunOn::Host>(1.e210,reg,0);
     
       bool nexttoboundary=false;
       for (int idim=0; idim<BL_SPACEDIM; idim++) {
-	  if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
-	      reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
-	      nexttoboundary=true;
-	      break;
-	  }
-	  if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
-	      reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
-	      nexttoboundary=true;
-	      break;
-	  }
+          if (lo_bc[idim] == LO_SANCHEZ_POMRANING &&
+              reg.smallEnd(idim) == domainBox.smallEnd(idim)) {
+              nexttoboundary=true;
+              break;
+          }
+          if (hi_bc[idim] == LO_SANCHEZ_POMRANING &&
+              reg.bigEnd(idim) == domainBox.bigEnd(idim)) {
+              nexttoboundary=true;
+              break;
+          }
       }
     
       if (nexttoboundary) {
-	  ca_spalpha(reg.loVect(), reg.hiVect(),
-		     BL_TO_FORTRAN(spa[mfi]),
-		     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-			    BL_TO_FORTRAN(lambda[1][mfi]),
-			    BL_TO_FORTRAN(lambda[2][mfi])),
-		     &igroup);
+          ca_spalpha(reg.loVect(), reg.hiVect(),
+                     BL_TO_FORTRAN(spa[mfi]),
+                     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
+                            BL_TO_FORTRAN(lambda[1][mfi]),
+                            BL_TO_FORTRAN(lambda[2][mfi])),
+                     &igroup);
       }
   }
 
   if (hm) {
     hm->SPalpha(level, spa);
+  }
+  else if (hem) {
+    hem->SPalpha(level, spa);
   }
   else if (hd) {
     hd->SPalpha(spa);
@@ -334,71 +303,69 @@ void RadSolve::levelBCoeffs(int level,
   const Geometry& geom = parent->Geom(level);
   const Real* dx       = geom.CellSize();
 
-  for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
     MultiFab bcoefs(lambda[idim].boxArray(), lambda[idim].DistributionMap(), 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
-	Vector<Real> r, s;
+    for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
-	for (MFIter mfi(lambda[idim],true); mfi.isValid(); ++mfi) {
-	    const Box &ndbox  = mfi.tilebox();
-	    getEdgeMetric(idim, geom, ndbox, r, s);
-
-	    const Box& reg = amrex::enclosedCells(ndbox);
-	    bclim(bcoefs[mfi].dataPtr(), 
-		  BL_TO_FORTRAN_N(lambda[idim][mfi], lamcomp),
-		  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		  idim, 
-		  BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
-		  r.dataPtr(), s.dataPtr(), c, dx);
-	}
+#pragma gpu box(bx)
+        bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+              BL_TO_FORTRAN_ANYD(bcoefs[mfi]), 
+              BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
+              idim, 
+              BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
+              c, AMREX_REAL_ANYD(dx));
     }
 
     if (hd) {
-	hd->bCoefficients(bcoefs, idim);
+        hd->bCoefficients(bcoefs, idim);
     }
     else if (hm) {
-	hm->bCoefficients(level, bcoefs, idim);
+      hm->bCoefficients(level, bcoefs, idim);
+    }
+    else if (hem) {
+      hem->bCoefficients(level, bcoefs, idim);
     }
   } // -->> over dimension
 }
 
 void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
-			    MultiFab& vel, MultiFab& dcf)
+                            MultiFab& vel, MultiFab& dcf)
 {
     BL_PROFILE("RadSolve::levelDCoeffs");
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
     const DistributionMapping& dm = castro->DistributionMap();
+    const Geometry& geom = parent->Geom(level);
+    const Real* dx       = geom.CellSize();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
-	MultiFab dcoefs(castro->getEdgeBoxArray(idim), dm, 1, 0);
+        MultiFab dcoefs(castro->getEdgeBoxArray(idim), dm, 1, 0);
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	{
-	    Vector<Real> r, s;
-	    
-	    for (MFIter mfi(dcoefs,true); mfi.isValid(); ++mfi) {
-		const Box& ndbx = mfi.tilebox();
+        for (MFIter mfi(dcoefs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-		getEdgeMetric(idim, parent->Geom(level), ndbx, r, s);
+            const Box& bx = mfi.tilebox();
 
-		ca_compute_dcoefs(ndbx.loVect(), ndbx.hiVect(),
-				  BL_TO_FORTRAN(dcoefs[mfi]), BL_TO_FORTRAN(lambda[idim][mfi]),
-				  BL_TO_FORTRAN(vel[mfi]), BL_TO_FORTRAN(dcf[mfi]), 
-				  r.dataPtr(), &idim);
-	    }
-	}
+#pragma gpu box(bx)
+            ca_compute_dcoefs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                              BL_TO_FORTRAN_ANYD(dcoefs[mfi]),
+                              BL_TO_FORTRAN_ANYD(lambda[idim][mfi]),
+                              BL_TO_FORTRAN_ANYD(vel[mfi]),
+                              BL_TO_FORTRAN_ANYD(dcf[mfi]), 
+                              AMREX_REAL_ANYD(dx), idim);
 
-	HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-	hem->d2Coefficients(level, dcoefs, idim);
-	hem->d2Multiplier() = 1.0;
+        }
+
+        hem->d2Coefficients(level, dcoefs, idim);
+        hem->d2Multiplier() = 1.0;
     }
 }
 
@@ -413,6 +380,9 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
 {
   BL_PROFILE("RadSolve::levelRhs");
   BL_ASSERT(rhs.nGrow() == 0);
+
+  const Geometry& geom = parent->Geom(level);
+  const Real* dx       = geom.CellSize();
 
   rhs.setVal(0.0);
   if (fine_corr) {
@@ -433,24 +403,22 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
-      
-      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
-	  const Box &reg  = ri.tilebox();
-	  
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  lrhs(BL_TO_FORTRAN(rhs[ri]), 
-	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       temp[ri].dataPtr(),
-	       fkp[ri].dataPtr(), eta[ri].dataPtr(), etainv[ri].dataPtr(),
-	       rhoem[ri].dataPtr(), rhoes[ri].dataPtr(),
-	       dflux_old[ri].dataPtr(),
-	       BL_TO_FORTRAN_N(Er_old[ri], 0), 
-	       Edot[ri].dataPtr(),
-	       r.dataPtr(), s.dataPtr(), delta_t, sigma, c, theta);
-      }
+  for (MFIter mfi(rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
+
+#pragma gpu box(bx)
+      lrhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(rhs[mfi]), 
+           BL_TO_FORTRAN_ANYD(temp[mfi]),
+           BL_TO_FORTRAN_ANYD(fkp[mfi]),
+           BL_TO_FORTRAN_ANYD(eta[mfi]),
+           BL_TO_FORTRAN_ANYD(etainv[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoem[mfi]),
+           BL_TO_FORTRAN_ANYD(rhoes[mfi]),
+           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
+           BL_TO_FORTRAN_N_ANYD(Er_old[mfi], 0), 
+           BL_TO_FORTRAN_ANYD(Edot[mfi]),
+           delta_t, AMREX_REAL_ANYD(dx), sigma, c, theta);
   }
 }
 
@@ -463,14 +431,17 @@ void RadSolve::levelSolve(int level,
 
   // Set coeffs, build solver, solve
   if (hd) {
-    hd->setScalars(alpha, beta);
+    hd->setScalars(radsolve::alpha, radsolve::beta);
   }
   else if (hm) {
-    hm->setScalars(alpha, beta);
+    hm->setScalars(radsolve::alpha, radsolve::beta);
+  }
+  else if (hem) {
+    hem->setScalars(radsolve::alpha, radsolve::beta);
   }
 
   if (hd) {
-    hd->setupSolver(reltol, abstol, maxiter);
+    hd->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
     hd->solve(Er, igroup, rhs, Inhomogeneous_BC);
     Real res = hd->getAbsoluteResidual();
     if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
@@ -479,7 +450,6 @@ void RadSolve::levelSolve(int level,
       std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
-    absres[level] = (absres[level] > res) ? absres[level] : res;
     hd->clearSolver();
   }
   else if (hm) {
@@ -487,7 +457,7 @@ void RadSolve::levelSolve(int level,
     hm->finalizeMatrix();
     hm->loadLevelVectors(level, Er, igroup, rhs, Inhomogeneous_BC);
     hm->finalizeVectors();
-    hm->setupSolver(reltol, abstol, maxiter);
+    hm->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
     hm->solve();
     hm->getSolution(level, Er, igroup);
     Real res = hm->getAbsoluteResidual();
@@ -497,13 +467,29 @@ void RadSolve::levelSolve(int level,
       std::cout.precision(oldprec);
     }
     res *= sync_absres_factor;
-    absres[level] = (absres[level] > res) ? absres[level] : res;
     hm->clearSolver();
+  }
+  else if (hem) {
+    hem->loadMatrix();
+    hem->finalizeMatrix();
+    hem->loadLevelVectors(level, Er, igroup, rhs, Inhomogeneous_BC);
+    hem->finalizeVectors();
+    hem->setupSolver(radsolve::reltol, radsolve::abstol, radsolve::maxiter);
+    hem->solve();
+    hem->getSolution(level, Er, igroup);
+    Real res = hem->getAbsoluteResidual();
+    if (verbose >= 2 && ParallelDescriptor::IOProcessor()) {
+      int oldprec = std::cout.precision(20);
+      std::cout << "Absolute residual = " << res << std::endl;
+      std::cout.precision(oldprec);
+    }
+    res *= sync_absres_factor;
+    hem->clearSolver();
   }
 }
 
 void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDIM>& Flux,
-				     MultiFab& flx, int iflx)
+                                     MultiFab& flx, int iflx)
 {
     int nflx = flx.nComp();
     
@@ -513,26 +499,26 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDI
 #pragma omp parallel
 #endif
     {
-	Vector<Real> r, s;
+        Vector<Real> r, s;
     
-	for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-	    for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
-	    {
-		const Box &ccbx  = mfi.tilebox();
-		const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
+        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
+            for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
+            {
+                const Box &ccbx  = mfi.tilebox();
+                const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
 
-		getEdgeMetric(idim, geom, ndbx, r, s);
+                getEdgeMetric(idim, geom, ndbx, r, s);
 
-		int rlo = ndbx.smallEnd(0);
-		int rhi = rlo + r.size() - 1;
+                int rlo = ndbx.smallEnd(0);
+                int rhi = rlo + r.size() - 1;
 
-		ca_flux_face2center(ccbx.loVect(), ccbx.hiVect(),
-				    BL_TO_FORTRAN(flx[mfi]),
-				    BL_TO_FORTRAN(Flux[idim][mfi]),
-				    r.dataPtr(), &rlo, &rhi, 
-				    &nflx, &idim, &iflx);
-	    }
-	}
+                ca_flux_face2center(ccbx.loVect(), ccbx.hiVect(),
+                                    BL_TO_FORTRAN(flx[mfi]),
+                                    BL_TO_FORTRAN(Flux[idim][mfi]),
+                                    r.dataPtr(), &rlo, &rhi, 
+                                    &nflx, &idim, &iflx);
+            }
+        }
     }
 }
 
@@ -553,36 +539,37 @@ void RadSolve::levelFlux(int level,
 
   const Real* dx = parent->Geom(level).CellSize();
 
+  for (int n = 0; n < BL_SPACEDIM; n++) {
+
+      const MultiFab *bp;
+
+      if (hd) {
+          bp = &hd->bCoefficients(n);
+      }
+      else if (hm) {
+          bp = &hm->bCoefficients(level, n);
+      }
+      else if (hem) {
+          bp = &hem->bCoefficients(level, n);
+      }
+
+      MultiFab &bcoef = *(MultiFab*)bp;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int n = 0; n < BL_SPACEDIM; n++) {
-    const MultiFab *bp; //, *cp;
-    if (hd) {
-      bp = &hd->bCoefficients(n);
-    }
-    else if (hm) {
-      bp = &hm->bCoefficients(level, n);
-    }
-    // w.z. I commented this out because we may not always have ccoef 
-    //      when use_hypre_nonsymmetric_terms == 1.
-    //      And ccoef is not being used anyway.
-    // if (use_hypre_nonsymmetric_terms == 1) {
-    //   HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-    //   cp = &hem->cCoefficients(level, n);
-    // }
-    MultiFab &bcoef = *(MultiFab*)bp;
-    //    MultiFab &ccoef = *(MultiFab*)cp;
+      for (MFIter mfi(Flux[n], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+          const Box& bx = mfi.tilebox();
 
-    for (MFIter fi(Flux[n],true); fi.isValid(); ++fi) {
-	const Box& reg = fi.tilebox();
-	set_abec_flux(ARLIM(reg.loVect()), ARLIM(reg.hiVect()), &n,
-		      BL_TO_FORTRAN(Erborder[fi]), 
-		      BL_TO_FORTRAN(bcoef[fi]), 
-		      &beta,
-		      dx,
-		      BL_TO_FORTRAN(Flux[n][fi]));
-    }
+#pragma gpu box(bx)
+          set_abec_flux(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                        n,
+                        BL_TO_FORTRAN_ANYD(Erborder[mfi]), 
+                        BL_TO_FORTRAN_ANYD(bcoef[mfi]), 
+                        radsolve::beta, AMREX_REAL_ANYD(dx),
+                        BL_TO_FORTRAN_ANYD(Flux[n][mfi]));
+      }
+
   }
 
   // Correct fluxes at physical and coarse-fine boundaries.
@@ -599,10 +586,6 @@ void RadSolve::levelFlux(int level,
   }
   else if (hm) {
     hm->boundaryFlux(level, &Flux[0], Er, igroup, Inhomogeneous_BC);
-  }
-  if (use_hypre_nonsymmetric_terms == 1) {
-    //HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-    //hem->boundaryFlux(level, &Flux[0], Er);
   }
 }
 
@@ -656,8 +639,6 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
   Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
-  HypreExtMultiABec *hem = (HypreExtMultiABec*)hm;
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -668,12 +649,12 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       MultiFab &dcoef = *(MultiFab*)dp;
       
       for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
-	  const Box& bx = fi.tilebox();
-	  ca_set_dterm_face(bx.loVect(), bx.hiVect(),
-			    BL_TO_FORTRAN(Erborder[fi]),
-			    BL_TO_FORTRAN(dcoef[fi]), 
-			    BL_TO_FORTRAN(Dterm_face[n][fi]), 
-			    dx, &n);
+          const Box& bx = fi.tilebox();
+          ca_set_dterm_face(bx.loVect(), bx.hiVect(),
+                            BL_TO_FORTRAN(Erborder[fi]),
+                            BL_TO_FORTRAN(dcoef[fi]), 
+                            BL_TO_FORTRAN(Dterm_face[n][fi]), 
+                            dx, &n);
       }
   }
 
@@ -687,54 +668,54 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
       Vector<Real> rc, re, s;
       
       if (geom.IsSPHERICAL()) {
-	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-	      int i = fi.index();
-	      const Box &reg = grids[i];
-	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
-	      parent->Geom(level).GetCellLoc(rc, reg, 0);
-	      parent->Geom(level).GetCellLoc(s, reg, 0);
-	      const Box &dbox = Dterm_face[0][fi].box();
-	      sphe(re.dataPtr(), s.dataPtr(), 0,
-		   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx);
-	      
-	      ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-				      BL_TO_FORTRAN(Dterm_face[1][fi]),
-				      BL_TO_FORTRAN(Dterm_face[2][fi])),
-			       re.dataPtr(), rc.dataPtr());
-	  }
+          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
+              int i = fi.index();
+              const Box &reg = grids[i];
+              parent->Geom(level).GetEdgeLoc(re, reg, 0);
+              parent->Geom(level).GetCellLoc(rc, reg, 0);
+              parent->Geom(level).GetCellLoc(s, reg, 0);
+              const Box &dbox = Dterm_face[0][fi].box();
+              sphe(re.dataPtr(), s.dataPtr(), 0,
+                   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx);
+              
+              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
+                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
+                               re.dataPtr(), rc.dataPtr());
+          }
 #ifdef _OPENMP
 #pragma omp barrier
 #endif
       }
       else if (geom.IsRZ()) {
-	  for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
-	      int i = fi.index();
-	      const Box &reg = grids[i];
-	      parent->Geom(level).GetEdgeLoc(re, reg, 0);
-	      parent->Geom(level).GetCellLoc(rc, reg, 0);
-	      
-	      ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-				      BL_TO_FORTRAN(Dterm_face[1][fi]),
-				      BL_TO_FORTRAN(Dterm_face[2][fi])),
-			       re.dataPtr(), rc.dataPtr());
-	  }
+          for (MFIter fi(Dterm_face[0]); fi.isValid(); ++fi) {  // omp over boxes
+              int i = fi.index();
+              const Box &reg = grids[i];
+              parent->Geom(level).GetEdgeLoc(re, reg, 0);
+              parent->Geom(level).GetCellLoc(rc, reg, 0);
+              
+              ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+                                      BL_TO_FORTRAN(Dterm_face[1][fi]),
+                                      BL_TO_FORTRAN(Dterm_face[2][fi])),
+                               re.dataPtr(), rc.dataPtr());
+          }
 #ifdef _OPENMP
 #pragma omp barrier
 #endif
       }
 
       for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
-	  const Box& bx = fi.tilebox();
-	  int scomp = 0;
-	  int dcomp = 0;
-	  int ncomp = 1;
-	  int nf = 1;
-	  int nc = 1;
-	  ca_face2center(bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
-			 D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-				BL_TO_FORTRAN(Dterm_face[1][fi]),
-				BL_TO_FORTRAN(Dterm_face[2][fi])),
-			 BL_TO_FORTRAN(Dterm[fi]));
+          const Box& bx = fi.tilebox();
+          int scomp = 0;
+          int dcomp = 0;
+          int ncomp = 1;
+          int nf = 1;
+          int nc = 1;
+          ca_face2center(bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
+                         D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
+                                BL_TO_FORTRAN(Dterm_face[1][fi]),
+                                BL_TO_FORTRAN(Dterm_face[2][fi])),
+                         BL_TO_FORTRAN(Dterm[fi]));
       }
   }
 }
@@ -753,33 +734,26 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(lambda, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+      const Box& bx = mfi.tilebox();
 
-      for (MFIter mfi(lambda,true); mfi.isValid(); ++mfi) {
-	  const Box &kbox = kappa_r[mfi].box();
-
-	  const Box &ndbx  = mfi.tilebox();
-	  const Box &reg   = amrex::enclosedCells(ndbx);
-
-	  getEdgeMetric(idim, geom, ndbx, r, s);
-    
-	  bclim(bcoefs[mfi].dataPtr(), 
-		BL_TO_FORTRAN_N(lambda[mfi], lamcomp),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		idim, 
-		BL_TO_FORTRAN_N(kappa_r[mfi], kcomp), 
-		r.dataPtr(), s.dataPtr(), c, dx);
-      }
+#pragma gpu box(bx)
+      bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            BL_TO_FORTRAN_ANYD(bcoefs[mfi]),
+            BL_TO_FORTRAN_N_ANYD(lambda[mfi], lamcomp),
+            idim, 
+            BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
+            c, AMREX_REAL_ANYD(dx));
   }
 }
 
 void RadSolve::levelACoeffs(int level, MultiFab& kpp, 
-			    Real delta_t, Real c, int igroup, Real ptc_tau)
+                            Real delta_t, Real c, int igroup, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
+  const Real* dx = parent->Geom(level).CellSize();
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
@@ -790,20 +764,17 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {
-      Vector<Real> r, s;
+  for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-      for (MFIter mfi(kpp,true); mfi.isValid(); ++mfi) {
-	  const Box &reg = mfi.tilebox();
-	  
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-	  
-	  Real dt_ptc = delta_t/(1.0+ptc_tau);
-	  lacoefmgfld(BL_TO_FORTRAN(acoefs[mfi]), 
-		      ARLIM(reg.loVect()), ARLIM(reg.hiVect()), 
-		      BL_TO_FORTRAN_N(kpp[mfi], igroup), 
-		      r.dataPtr(), s.dataPtr(), dt_ptc, c);
-      }
+      const Box& bx = mfi.tilebox();
+          
+      Real dt_ptc = delta_t / (1.0 + ptc_tau);
+
+#pragma gpu box(bx)
+      lacoefmgfld(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                  BL_TO_FORTRAN_ANYD(acoefs[mfi]), 
+                  BL_TO_FORTRAN_N_ANYD(kpp[mfi], igroup), 
+                  AMREX_REAL_ANYD(dx), dt_ptc, c);
   }
 
   // set a coefficients
@@ -813,87 +784,50 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   else if (hm) {
     hm->aCoefficients(level,acoefs);
   }
+  else if (hem) {
+    hem->aCoefficients(level,acoefs);
+  }
 }
 
 
 void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg, 
-			const MultiFab& mugT, const MultiFab& mugY, 
-			const MultiFab& coupT, const MultiFab& coupY, 
-			const MultiFab& etaT, const MultiFab& etaY, 
-			const MultiFab& thetaT, const MultiFab& thetaY, 
-			const MultiFab& Er_step, const MultiFab& rhoe_step, const MultiFab& rhoYe_step, 
-			const MultiFab& Er_star, const MultiFab& rhoe_star, const MultiFab& rhoYe_star,
-			Real delta_t, int igroup, int it, Real ptc_tau)
+                        const MultiFab& mugT,
+                        const MultiFab& coupT,
+                        const MultiFab& etaT,
+                        const MultiFab& Er_step, const MultiFab& rhoe_step,
+                        const MultiFab& Er_star, const MultiFab& rhoe_star,
+                        Real delta_t, int igroup, int it, Real ptc_tau)
 {
   BL_PROFILE("RadSolve::levelRhs (MGFLD version)");
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   Real time = castro->get_state_data(Rad_Type).curTime();
+  const Real* dx = parent->Geom(level).CellSize();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  {  
-      Vector<Real> r, s;
+  for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) {
 
-      for (MFIter ri(rhs,true); ri.isValid(); ++ri) {
+      const Box& bx = ri.tilebox();
 
-	  const Box &reg = ri.tilebox();
+#pragma gpu box(bx)
+      ca_compute_rhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                     BL_TO_FORTRAN_ANYD(rhs[ri]),
+                     BL_TO_FORTRAN_ANYD(jg[ri]),
+                     BL_TO_FORTRAN_ANYD(mugT[ri]),
+                     BL_TO_FORTRAN_ANYD(coupT[ri]),
+                     BL_TO_FORTRAN_ANYD(etaT[ri]),
+                     BL_TO_FORTRAN_ANYD(Er_step[ri]),
+                     BL_TO_FORTRAN_ANYD(rhoe_step[ri]),
+                     BL_TO_FORTRAN_ANYD(Er_star[ri]),
+                     BL_TO_FORTRAN_ANYD(rhoe_star[ri]),
+                     AMREX_REAL_ANYD(dx), delta_t, igroup, ptc_tau);
 
-#ifdef MG_SU_OLSON
+#pragma gpu box(bx)
+      ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+                    BL_TO_FORTRAN_ANYD(rhs[ri]),
+                    AMREX_REAL_ANYD(dx), delta_t, time, igroup);
 
-	  parent->Geom(level).GetCellLoc(r, reg, 0);
-
-	  ca_compute_rhs_so(reg.loVect(), reg.hiVect(),
-			    BL_TO_FORTRAN(rhs[ri]),
-			    BL_TO_FORTRAN(jg[ri]),
-			    BL_TO_FORTRAN(mugT[ri]),
-			    BL_TO_FORTRAN(coupT[ri]),
-			    BL_TO_FORTRAN(etaT[ri]),
-			    BL_TO_FORTRAN(Er_step[ri]),
-			    BL_TO_FORTRAN(rhoe_step[ri]),
-			    BL_TO_FORTRAN(rhoe_star[ri]),
-			    r.dataPtr(), 
-			    &time, &delta_t, &igroup);
-
-#else
-	  getCellCenterMetric(parent->Geom(level), reg, r, s);
-
-#ifdef NEUTRINO
-	  ca_compute_rhs_neut(reg.loVect(), reg.hiVect(),
-			      BL_TO_FORTRAN(rhs[ri]),
-			      BL_TO_FORTRAN(jg[ri]),
-			      BL_TO_FORTRAN(mugT[ri]),
-			      BL_TO_FORTRAN(mugY[ri]),
-			      BL_TO_FORTRAN(coupT[ri]),
-			      BL_TO_FORTRAN(coupY[ri]),
-			      BL_TO_FORTRAN(etaT[ri]),
-			      BL_TO_FORTRAN(etaY[ri]),
-			      BL_TO_FORTRAN(thetaT[ri]),
-			      BL_TO_FORTRAN(thetaY[ri]),
-			      BL_TO_FORTRAN(Er_step[ri]),
-			      BL_TO_FORTRAN(rhoe_step[ri]),
-			      BL_TO_FORTRAN(rhoYe_step[ri]),
-			      BL_TO_FORTRAN(Er_star[ri]),
-			      BL_TO_FORTRAN(rhoe_star[ri]),
-			      BL_TO_FORTRAN(rhoYe_star[ri]),
-			      r.dataPtr(), 
-			      &delta_t, &igroup, &ptc_tau);
-#else
-	  ca_compute_rhs(reg.loVect(), reg.hiVect(),
-			 BL_TO_FORTRAN(rhs[ri]),
-			 BL_TO_FORTRAN(jg[ri]),
-			 BL_TO_FORTRAN(mugT[ri]),
-			 BL_TO_FORTRAN(coupT[ri]),
-			 BL_TO_FORTRAN(etaT[ri]),
-			 BL_TO_FORTRAN(Er_step[ri]),
-			 BL_TO_FORTRAN(rhoe_step[ri]),
-			 BL_TO_FORTRAN(Er_star[ri]),
-			 BL_TO_FORTRAN(rhoe_star[ri]),
-			 r.dataPtr(), 
-			 &delta_t, &igroup, &ptc_tau);
-#endif
-#endif
-      }
   }
 }
 
@@ -901,7 +835,6 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
 void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
   if (hem) {
     hem-> cMultiplier() =  cMul;
     hem->d1Multiplier() = d1Mul;
@@ -911,7 +844,6 @@ void RadSolve::setHypreMulti(Real cMul, Real d1Mul, Real d2Mul)
 
 void RadSolve::restoreHypreMulti()
 {
-  HypreExtMultiABec *hem = dynamic_cast<HypreExtMultiABec*>(hm);
   if (hem) {
     hem-> cMultiplier() =  cMulti;
     hem->d1Multiplier() = d1Multi;
@@ -923,39 +855,39 @@ void RadSolve::getCellCenterMetric(const Geometry& geom, const Box& reg, Vector<
 {
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (geom.IsCartesian()) {
-	r.resize(reg.length(0), 1);
-	s.resize(reg.length(I), 1);
+        r.resize(reg.length(0), 1);
+        s.resize(reg.length(I), 1);
     }
     else if (geom.IsRZ()) {
-	geom.GetCellLoc(r, reg, 0);
-	s.resize(reg.length(I), 1);
+        geom.GetCellLoc(r, reg, 0);
+        s.resize(reg.length(I), 1);
     }
     else {
-	geom.GetCellLoc(r, reg, 0);
-	geom.GetCellLoc(s, reg, I);
-	const Real *dx = geom.CellSize();
-	sphc(r.dataPtr(), s.dataPtr(),
-	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), dx);
+        geom.GetCellLoc(r, reg, 0);
+        geom.GetCellLoc(s, reg, I);
+        const Real *dx = geom.CellSize();
+        sphc(r.dataPtr(), s.dataPtr(),
+             ARLIM(reg.loVect()), ARLIM(reg.hiVect()), dx);
     }
 }
-	
+        
 void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox, 
-			     Vector<Real>& r, Vector<Real>& s)
+                             Vector<Real>& r, Vector<Real>& s)
 {
     const Box& reg = amrex::enclosedCells(edgebox);
     const int I = (BL_SPACEDIM >= 2) ? 1 : 0;
     if (geom.IsCartesian()) {
-	r.resize(reg.length(0)+1, 1);
-	s.resize(reg.length(I)+1, 1);
+        r.resize(reg.length(0)+1, 1);
+        s.resize(reg.length(I)+1, 1);
     }
     else if (geom.IsRZ()) {
-	if (idim == 0) {
-	    geom.GetEdgeLoc(r, reg, 0);
-	}
-	else {
-	    geom.GetCellLoc(r, reg, 0);
-	}
-	s.resize(reg.length(I)+1, 1);
+        if (idim == 0) {
+            geom.GetEdgeLoc(r, reg, 0);
+        }
+        else {
+            geom.GetCellLoc(r, reg, 0);
+        }
+        s.resize(reg.length(I)+1, 1);
     }
     else {
       if (idim == 0) {
@@ -968,7 +900,7 @@ void RadSolve::getEdgeMetric(int idim, const Geometry& geom, const Box& edgebox,
       }
       const Real *dx = geom.CellSize();
       sphe(r.dataPtr(), s.dataPtr(), idim,
-	   ARLIM(edgebox.loVect()), ARLIM(edgebox.hiVect()), dx);
+           ARLIM(edgebox.loVect()), ARLIM(edgebox.hiVect()), dx);
     }
 }
 

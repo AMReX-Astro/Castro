@@ -1,0 +1,9 @@
+
+rho0         real          1.4_rt          y
+
+T0           real          1.0_rt          y
+
+dT_fact      real          1.5_rt          y
+
+L_pert       real          0.5_rt          y
+

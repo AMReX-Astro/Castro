@@ -1,8 +1,11 @@
-Sphinx<2.0
+Sphinx>=2.4.3
 sphinx_rtd_theme
-breathe<4.13
+breathe>=4.14
 sphinxcontrib_bibtex
 numpydoc
 more_itertools
 numpy
-git+git://github.com/VACUMM/sphinx-fortran.git
+IPython>=3
+nbconvert
+pandoc
+jupyter

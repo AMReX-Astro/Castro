@@ -10,6 +10,7 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 
+
 USE_REACT = TRUE
 
 # define the location of the CASTRO top directory

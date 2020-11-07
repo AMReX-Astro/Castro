@@ -49,7 +49,7 @@ const int* fabhi = (fab).hiVect();           \
 const REAL* fabdat = (fab).dataPtr();
 
 RadInterpBndryData::RadInterpBndryData(const BoxArray& _grids, const DistributionMapping& _dmap,
-				       int _ncomp, const Geometry& geom)
+                                       int _ncomp, const Geometry& geom)
     : RadBndryData(_grids,_dmap,_ncomp,geom)
 {
 }
@@ -58,15 +58,15 @@ void
 RadInterpBndryData::setBndryValues(Real bv)
 {
   for (OrientationIter fi; fi; ++fi) {
-    bndry[fi()].setVal(bv);
+      bndry[fi()].setVal(bv);
   }
 }
 
 // At the coarsest level the bndry values are taken from adjacent grids.
 void
 RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
-				int bnd_start, int num_comp,
-				const BCRec& bc )
+                                int bnd_start, int num_comp,
+                                const BCRec& bc )
 {
       // check that boxarrays are identical
     BL_ASSERT( grids.size() );
@@ -80,22 +80,22 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
     for(MFIter mfi(mf); mfi.isValid(); ++mfi) {
         BL_ASSERT(grids[mfi.index()] == mfi.validbox());
         int grd = mfi.index();
-	const Box& bx = grids[grd];
-	for (OrientationIter fi; fi; ++fi) {
-	    Orientation face(fi());
-	    if (bx[face] == geom.Domain()[face]) {
-		  // physical bndry, copy from grid
+        const Box& bx = grids[grd];
+        for (OrientationIter fi; fi; ++fi) {
+            Orientation face(fi());
+            if (bx[face] == geom.Domain()[face]) {
+                  // physical bndry, copy from grid
                 FArrayBox& bnd_fab = bndry[face][mfi];
-		bnd_fab.copy(mf[mfi],mf_start,bnd_start,num_comp);
-	    }
-	}
+                bnd_fab.copy<RunOn::Host>(mf[mfi],mf_start,bnd_start,num_comp);
+            }
+        }
     }
 
     // now copy boundary values stored in ghost cells of fine
     // into bndry.  This only does something for physical boundaries,
     // we don't need to make it periodic aware
     for (OrientationIter fi; fi; ++fi) {
-	bndry[fi()].copyFrom(mf,0,mf_start,bnd_start,num_comp);
+        bndry[fi()].copyFrom(mf,0,mf_start,bnd_start,num_comp);
     }
 }
 
@@ -107,9 +107,9 @@ RadInterpBndryData::setBndryValues(const MultiFab& mf, int mf_start,
 //     (C) Copy from valid region of MultiFab at fine/fine interface
 void
 RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
-				const MultiFab& fine, int f_start,
-				int bnd_start, int num_comp, IntVect& ratio,
-				const BCRec& bc)
+                                const MultiFab& fine, int f_start,
+                                int bnd_start, int num_comp, IntVect& ratio,
+                                const BCRec& bc)
 {
     if (! bdfunc_set) bdfunc_init();
 
@@ -129,7 +129,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
     for(MFIter mfi(fine); mfi.isValid(); ++mfi) {
         BL_ASSERT(grids[mfi.index()] == mfi.validbox());
         int grd = mfi.index();
-	const Box& fine_bx = grids[grd];
+        const Box& fine_bx = grids[grd];
         Box crse_bx = amrex::coarsen(fine_bx,ratio);
         const int* cblo = crse_bx.loVect();
         const int* cbhi = crse_bx.hiVect();
@@ -146,16 +146,16 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
             derives = new Real[tmplen*NUMDERIV];
 #endif
         }
-	const int* lo = fine_bx.loVect();
-	const int* hi = fine_bx.hiVect();
-	const FArrayBox& fine_grd = fine[mfi];
+        const int* lo = fine_bx.loVect();
+        const int* hi = fine_bx.hiVect();
+        const FArrayBox& fine_grd = fine[mfi];
 
-	for (OrientationIter fi; fi; ++fi) {
-	    Orientation face(fi());
+        for (OrientationIter fi; fi; ++fi) {
+            Orientation face(fi());
             int dir = face.coordDir();
-	    if (fine_bx[face] != fine_domain[face] ||
+            if (fine_bx[face] != fine_domain[face] ||
                 geom.isPeriodic(dir)) {
-		  // internal or periodic edge, interpolate from crse data
+                  // internal or periodic edge, interpolate from crse data
                 const Mask& mask = *masks[face][grd];
                 const int* mlo = mask.loVect();
                 const int* mhi = mask.hiVect();
@@ -171,19 +171,19 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
                 const int* bhi = bnd_fab.hiVect();
                 Real* bdat = bnd_fab.dataPtr(bnd_start);
 
-		int is_not_covered = RadBndryData::not_covered;
+                int is_not_covered = RadBndryData::not_covered;
                 bdfunc[face](bdat,ARLIM(blo),ARLIM(bhi),
-			     lo,hi,ARLIM(cblo),ARLIM(cbhi),
+                             lo,hi,ARLIM(cblo),ARLIM(cbhi),
                              &num_comp,ratio.getVect(),&is_not_covered,
-			     mdat,ARLIM(mlo),ARLIM(mhi),
+                             mdat,ARLIM(mlo),ARLIM(mhi),
                              cdat,ARLIM(clo),ARLIM(chi),derives);
             } else {
-		  // physical bndry, copy from ghost region of
-		  // corresponding grid
+                  // physical bndry, copy from ghost region of
+                  // corresponding grid
                 FArrayBox& bnd_fab = bndry[face][mfi];
-		bnd_fab.copy(fine_grd,f_start,bnd_start,num_comp);
-	    }
-	}
+                bnd_fab.copy<RunOn::Host>(fine_grd,f_start,bnd_start,num_comp);
+            }
+        }
     }
     delete[] derives;
 
@@ -191,7 +191,7 @@ RadInterpBndryData::setBndryValues(BndryRegister& crse, int c_start,
     // into bndry.  This only does something for physical boundaries,
     // we don't need to make it periodic aware
     for (OrientationIter face; face; ++face) {
-	bndry[face()].copyFrom(fine,0,f_start,bnd_start,num_comp);
+        bndry[face()].copyFrom(fine,0,f_start,bnd_start,num_comp);
     }
 }
 

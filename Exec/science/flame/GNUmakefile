@@ -13,21 +13,16 @@ USE_REACT = TRUE
 
 USE_DIFFUSION = TRUE
 
+
+USE_CONSERVATIVE_MAPPING = TRUE
+
 CASTRO_HOME = ../../..
 
-ifdef MICROPHYSICS_HOME
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+EOS_DIR     := helmholtz
 
-  # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_DIR     := helmholtz
-
-  # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  NETWORK_DIR := aprox13
-
-else
-
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
+NETWORK_DIR := aprox13
 
 #Conductivity_dir := constant_opacity
 CONDUCTIVITY_DIR := stellar

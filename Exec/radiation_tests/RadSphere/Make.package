@@ -1,1 +1,2 @@
-ca_F90EXE_sources += probdata.F90
+CEXE_headers += problem_util.H
+

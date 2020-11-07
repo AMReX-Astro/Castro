@@ -1,9 +1,9 @@
 
-#include "HypreExtMultiABec.H"
-#include "HABEC_F.H"
-#include "AMReX_LO_BCTYPES.H"
+#include <HypreExtMultiABec.H>
+#include <HABEC_F.H>
+#include <AMReX_LO_BCTYPES.H>
 
-#include "_hypre_sstruct_mv.h"
+#include <_hypre_sstruct_mv.h>
 
 #include <iostream>
 
@@ -19,6 +19,8 @@ HypreExtMultiABec::~HypreExtMultiABec()
 
 void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::a2Coefficients");
+
   BL_ASSERT( a2.ok() );
 
   int ncomp=1;
@@ -42,6 +44,8 @@ void HypreExtMultiABec::a2Coefficients(int level, const MultiFab &a2, int dir)
  
 void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::cCoefficients");
+
   BL_ASSERT( c.ok() );
 
   int ncomp=2; // coeffs are 2-sided for upwinding
@@ -65,6 +69,8 @@ void HypreExtMultiABec::cCoefficients(int level, const MultiFab &c, int dir)
 
 void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d1Coefficients");
+
   BL_ASSERT( d1.ok() );
 
   int ncomp=1;
@@ -86,6 +92,8 @@ void HypreExtMultiABec::d1Coefficients(int level, const MultiFab &d1, int dir)
  
 void HypreExtMultiABec::d2Coefficients(int level, const MultiFab &d2, int dir)
 {
+  BL_PROFILE("HypreExtMultiABec::d2Coefficients");
+
   BL_ASSERT( d2.ok() );
 
   int ncomp=1;
@@ -139,6 +147,8 @@ FaceValue(AuxVarBox& evalue, AuxVarBox& cintrp,
 
 void HypreExtMultiABec::loadMatrix()
 {
+  BL_PROFILE("HypreExtMultiABec::loadMatrix");
+
   HypreMultiABec::loadMatrix();
 
   if (0 && verbose >= 1 && ParallelDescriptor::IOProcessor()) {
@@ -154,27 +164,27 @@ void HypreExtMultiABec::loadMatrix()
   // if we were really 1D:
 /*
   int offsets[3][1] = {{ 0}
-		       {-1},
-		       { 1}};
+                       {-1},
+                       { 1}};
 */
   // fake 1D as a 2D problem:
   int offsets[3][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0}};
+                       {-1,  0},
+                       { 1,  0}};
 #elif (BL_SPACEDIM == 2)
   int offsets[5][2] = {{ 0,  0},
-		       {-1,  0},
-		       { 1,  0},
-		       { 0, -1},
-		       { 0,  1}};
+                       {-1,  0},
+                       { 1,  0},
+                       { 0, -1},
+                       { 0,  1}};
 #elif (BL_SPACEDIM == 3)
   int offsets[7][3] = {{ 0,  0,  0},
-		       {-1,  0,  0},
-		       { 1,  0,  0},
-		       { 0, -1,  0},
-		       { 0,  1,  0},
-		       { 0,  0, -1},
-		       { 0,  0,  1}};
+                       {-1,  0,  0},
+                       { 1,  0,  0},
+                       { 0, -1,  0},
+                       { 0,  1,  0},
+                       { 0,  0, -1},
+                       { 0,  0,  1}};
 #endif
 
   const int size = 2 * BL_SPACEDIM + 1;
@@ -195,46 +205,54 @@ void HypreExtMultiABec::loadMatrix()
       const Box &reg = grids[level][i];
 
       matfab.resize(reg,size);
-      matfab.setVal(0.0);
       Real* mat = matfab.dataPtr();
+      Elixir mat_elix = matfab.elixir();
+
+      matfab.setVal<RunOn::Device>(0.0);
 
       // build matrix interior
 
       if (a2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hma2c(mat, 
-		BL_TO_FORTRAN((*a2coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha2,
-		idim);
+#pragma gpu box(reg)
+            hma2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  BL_TO_FORTRAN_ANYD(matfab), 
+                  BL_TO_FORTRAN_ANYD((*a2coefs[level])[idim][mfi]),
+                  alpha2, idim);
         }
       }
 
       if (ccoefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmcc(mat, 
-	       BL_TO_FORTRAN((*ccoefs[level])[idim][mfi]), 
-	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()), gamma,
-	       geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmcc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               BL_TO_FORTRAN_ANYD(matfab), 
+               BL_TO_FORTRAN_ANYD((*ccoefs[level])[idim][mfi]), 
+               gamma, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
 
       if (d1coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmd1c(mat, 
-		BL_TO_FORTRAN((*d1coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta1,
-		geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmd1c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
+                BL_TO_FORTRAN_ANYD((*d1coefs[level])[idim][mfi]),
+                delta1, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
 
       if (d2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-          hmd2c(mat,
-		BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()), delta2,
-		geom[level].CellSize(), idim);
+#pragma gpu box(reg)
+          hmd2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                BL_TO_FORTRAN_ANYD(matfab),
+                BL_TO_FORTRAN_ANYD((*d2coefs[level])[idim][mfi]),
+                delta2, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
         }
       }
+
+      Gpu::streamSynchronize();
 
       // Boundary conditions will be corrected below.
 
@@ -243,13 +261,15 @@ void HypreExtMultiABec::loadMatrix()
       Real* mat_tmp = mat_tmpfab.dataPtr();
       int volume = reg.numPts();
       for (int s = 0; s < size; s++) {
-	for (int k = 0; k < volume; k++) {
-	  mat_tmp[k] = mat[k * size + s];
-	}
-	HYPRE_SStructMatrixAddToBoxValues(A, part, loV(reg), hiV(reg), 0,
+        for (int k = 0; k < volume; k++) {
+          mat_tmp[k] = mat[k * size + s];
+        }
+        HYPRE_SStructMatrixAddToBoxValues(A, part, loV(reg), hiV(reg), 0,
                                           1, &stencil_indices[s], mat_tmp);
       }
     }
+
+    Gpu::streamSynchronize();
 
     // At this point we begin adding matrix entries for points around
     // the edges of the current level.  This now includes boundary
@@ -288,7 +308,7 @@ void HypreExtMultiABec::loadMatrix()
       for (int i = entry.firstLocal(); entry.isValid(i);
            i = entry.nextLocal(i)) {
         Box reg = amrex::adjCell(grids[level][i], ori);
-	if (grids[level][i][ori] == domain[ori] || level == crse_level) {
+        if (grids[level][i][ori] == domain[ori] || level == crse_level) {
           RadBoundCond     bct = bd[level]->bndryConds(ori)[i];
           // bct may be changed below if this is a mixed boundary
           const Real      &bcl = bd[level]->bndryLocs(ori)[i];
@@ -532,8 +552,8 @@ void HypreExtMultiABec::loadMatrix()
     }
 
     if (level == crse_level) {
-	ederiv[level].reset();
-	continue;
+        ederiv[level].reset();
+        continue;
     }
 
     // Now add the matrix values seen by the coarse cells adjacent
@@ -625,52 +645,52 @@ void HypreExtMultiABec::loadMatrix()
             Box face(vf, vf + ve);
             if (msk(vf) == RadBndryData::not_covered) {
               // Zero out connection to covered coarse cell:
-		(*c_entry[level])(ori,i,j)(vc).push(-1, vc-vin, 0.0);
+                (*c_entry[level])(ori,i,j)(vc).push(-1, vc-vin, 0.0);
               if (a2coefs[level]) {
-		  (*c_entry[level])(ori,i,j)(vc)
+                  (*c_entry[level])(ori,i,j)(vc)
                   .push(level-1, vc,
                         -0.25 * alpha2 * (*a2coefs[level-1])[idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
                 for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
-		    (*c_entry[level])(ori,i,j)(vc)
-			.push(&((c_evalue(ori,i,j))(v)),
-			      0.5 * alpha2 * rfac * fcoefs(v+ves, pc[0]));
+                    (*c_entry[level])(ori,i,j)(vc)
+                        .push(&((c_evalue(ori,i,j))(v)),
+                              0.5 * alpha2 * rfac * fcoefs(v+ves, pc[0]));
                 }
               }
               if (ccoefs[level]) {
                 // not done yet
-		  (*c_entry[level])(ori,i,j)(vc)
-		      .push(level-1, vc,
-			    0.5 * gamma * ofhc * (*ccoefs[level-1])[idir][i](vc+ves));
+                  (*c_entry[level])(ori,i,j)(vc)
+                      .push(level-1, vc,
+                            0.5 * gamma * ofhc * (*ccoefs[level-1])[idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
                 for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
-		    (*c_entry[level])(ori,i,j)(vc)
-			.push(&((c_evalue(ori,i,j))(v)),
-			      -gamma * ofhc * rfac * fcoefs(v+ves, pc[1]));
+                    (*c_entry[level])(ori,i,j)(vc)
+                        .push(&((c_evalue(ori,i,j))(v)),
+                              -gamma * ofhc * rfac * fcoefs(v+ves, pc[1]));
                 }
               }
               if (d1coefs[level]) {
-		Real d1coef = (*d1coefs[level-1])[idir][i](vc);
+                Real d1coef = (*d1coefs[level-1])[idir][i](vc);
                 (*c_entry[level])(ori,i,j)(vc)
                   .push(level-1, vc,
                         -0.5 * delta1 * ofhc * d1coef);
                 // Add fine fluxes over face of coarse cell:
                 for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
                   // note that there are no fd1coefs:
-	          (*c_entry[level])(ori,i,j)(vc)
-		      .push(&(*c_ederiv[level])(ori,i,j)(v),
-			      0.5 * delta1 * ofac * rfac * d1coef);
+                  (*c_entry[level])(ori,i,j)(vc)
+                      .push(&(*c_ederiv[level])(ori,i,j)(v),
+                              0.5 * delta1 * ofac * rfac * d1coef);
                 }
               }
               if (d2coefs[level]) {
-		(*c_entry[level])(ori,i,j)(vc)
+                (*c_entry[level])(ori,i,j)(vc)
                   .push(level-1, vc,
                         -0.5 * delta2 * ofhc * (*d2coefs[level-1])[idir][i](vc+ves));
                 // Add fine fluxes over face of coarse cell:
                 for (IntVect v = vf; v <= face.bigEnd(); face.next(v)) {
-		  (*c_entry[level])(ori,i,j)(vc)
-		      .push(&(*c_ederiv[level])(ori,i,j)(v),
-		      0.5 * delta2 * ofac * rfac * fcoefs(v+ves, pc[2]));
+                  (*c_entry[level])(ori,i,j)(vc)
+                      .push(&(*c_ederiv[level])(ori,i,j)(v),
+                      0.5 * delta2 * ofac * rfac * fcoefs(v+ves, pc[2]));
                 }
               }
             }
@@ -753,6 +773,8 @@ void HypreExtMultiABec::loadLevelVectors(int level,
                                          MultiFab& rhs, // will not be altered
                                          BC_Mode inhom)
 {
+  BL_PROFILE("HypreExtMultiABec::loadLevelVectors");
+
   loadLevelVectorX(level, dest, icomp);
   loadLevelVectorB(level, rhs, inhom);
 }
@@ -796,7 +818,7 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(rhs[mfi]);
+      f->copy<RunOn::Host>(rhs[mfi]);
     }
     Real* vec = f->dataPtr();
 
@@ -927,10 +949,12 @@ void HypreExtMultiABec::loadLevelVectorB(int level,
 
 
 void HypreExtMultiABec::boundaryDterm(int level,
-				      MultiFab* Dterm,
-				      MultiFab& Soln,
-				      int icomp)
+                                      MultiFab* Dterm,
+                                      MultiFab& Soln,
+                                      int icomp)
 {
+  BL_PROFILE("HypreExtMultiABec::boundaryDterm");
+
   const Box& domain = bd[level]->getDomain();
 #ifdef _OPENMP
 #pragma omp parallel
@@ -950,28 +974,28 @@ void HypreExtMultiABec::boundaryDterm(int level,
         const int *tfp = NULL;
         int bctype = bct;
         if (bd[level]->mixedBndry(oitr())) {
-	  const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
+          const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
           tfp = tf.dataPtr();
           bctype = -1;
         }
         hdterm3(BL_TO_FORTRAN(Dterm[idim][mfi]),
-		BL_TO_FORTRAN_N(Soln[mfi], icomp),
-		ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		cdir, bctype, tfp, bcl,
-		BL_TO_FORTRAN_N(bcv, bdcomp),
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-		geom[level].CellSize());
+                BL_TO_FORTRAN_N(Soln[mfi], icomp),
+                ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+                cdir, bctype, tfp, bcl,
+                BL_TO_FORTRAN_N(bcv, bdcomp),
+                BL_TO_FORTRAN(msk),
+                BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
+                geom[level].CellSize());
       }
       else {
         hdterm(BL_TO_FORTRAN(Dterm[idim][mfi]),
-	       BL_TO_FORTRAN_N(Soln[mfi], icomp), 
-	       ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       cdir, bct, bcl,
-	       BL_TO_FORTRAN_N(bcv, bdcomp),
-	       BL_TO_FORTRAN(msk),
-	       BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
-	       geom[level].CellSize());
+               BL_TO_FORTRAN_N(Soln[mfi], icomp), 
+               ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+               cdir, bct, bcl,
+               BL_TO_FORTRAN_N(bcv, bdcomp),
+               BL_TO_FORTRAN(msk),
+               BL_TO_FORTRAN((*d2coefs[level])[idim][mfi]),
+               geom[level].CellSize());
       }
     }
   }

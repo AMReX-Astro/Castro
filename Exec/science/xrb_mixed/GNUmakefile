@@ -11,21 +11,14 @@ USE_OMP          = FALSE
 USE_GRAV         = TRUE
 USE_REACT        = TRUE
 
-CASTRO_HOME = ../../..
 
-ifdef MICROPHYSICS_HOME
+CASTRO_HOME = ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := rprox
-
-else
-
-$(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
 
 Bpack   := ./Make.package
 Blocs   := .

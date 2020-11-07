@@ -2,11 +2,12 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   use probdata_module
   use network, only : network_init
-  use eos_module, only: eos_on_host
+  use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_re
   use network, only : nspec
   use amrex_fort_module, only : rt => amrex_real
   use castro_error_module, only : castro_error
+  use prob_params_module, only : center
 
   implicit none
 
@@ -14,37 +15,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer :: untin,i
-
   real(rt) :: X_in(nspec), e_0
   type(eos_t) :: eos_state
-
-  namelist /fortin/ rho_0, rhoe_0, E_rad
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  ! read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
-
-  !-----------------------------------------------------------------------
-  ! Set local variable defaults
-  !-----------------------------------------------------------------------
 
   ! get T_0 corresponding to rhoe_0 and rho_0 through the EOS
   e_0 = rhoe_0/rho_0
@@ -55,7 +27,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % e = e_0
   eos_state % xn = X_in
 
-  call eos_on_host(eos_input_re, eos_state)
+  call eos(eos_input_re, eos_state)
 
   T_0 = eos_state % T
 
@@ -63,9 +35,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   ! domain -- this is where we put the interface
   center(1) = 0.5e0_rt*(problo(1)+probhi(1))
 
-  ! domain extrema
-  xmin = problo(1)
-  xmax = probhi(1)
 
 end subroutine amrex_probinit
 

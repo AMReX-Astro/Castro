@@ -1,9 +1,10 @@
 # these are the files that should be needed for any Castro build
 
-ca_F90EXE_sources += amrinfo.F90
-ca_F90EXE_sources += Castro_error.F90
+ca_F90EXE_sources += amrinfo_nd.F90
+ca_F90EXE_sources += Castro_error_nd.F90
 
 CEXE_sources += Castro.cpp
+CEXE_sources += runparams_defaults.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)
@@ -17,40 +18,31 @@ CEXE_sources += CastroBld.cpp
 CEXE_sources += main.cpp
 
 CEXE_headers += Castro.H
+CEXE_headers += castro_limits.H
 CEXE_headers += Castro_io.H
-CEXE_headers += set_conserved.H
-CEXE_headers += set_primitive.H
-
+CEXE_headers += state_indices.H
+CEXE_headers += runtime_parameters.H
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 
 FEXE_headers += Castro_F.H
 FEXE_headers += Castro_error_F.H
 
-FEXE_headers += Derive_F.H
 CEXE_headers += Derive.H
 CEXE_sources += Derive.cpp
 
 CEXE_headers += Castro_generic_fill.H
 CEXE_sources += Castro_generic_fill.cpp
-FEXE_headers += Castro_generic_fill_F.H
-ca_F90EXE_sources += generic_fill.F90
-
-CEXE_headers += Castro_source_fill.H
-CEXE_sources += Castro_source_fill.cpp
-FEXE_headers += Castro_source_fill_F.H
-ca_F90EXE_sources += source_fill.F90
 
 ca_F90EXE_sources += Castro_nd.F90
-ca_F90EXE_sources += Castro_util.F90
-ca_F90EXE_sources += Derive_nd.F90
-ca_F90EXE_sources += interpolate.F90
-ca_f90EXE_sources += io.f90
-ca_F90EXE_sources += math.F90
-ca_F90EXE_sources += reduction.F90
-ca_F90EXE_sources += meth_params.F90
-ca_F90EXE_sources += set_indices.F90
-ca_f90EXE_sources += state_sizes.f90
+CEXE_headers      += Castro_util.H
+ca_F90EXE_sources += Castro_util_nd.F90
+ca_F90EXE_sources += io_nd.F90
+ca_F90EXE_sources += math_nd.F90
+CEXE_headers      += math.H
+ca_F90EXE_sources += reduction_nd.F90
+ca_F90EXE_sources += meth_params_nd.F90
+ca_F90EXE_sources += state_indices_nd.F90
 
 NEED_MGUTIL =
 
@@ -63,10 +55,12 @@ ifeq ($(USE_DIFFUSION), TRUE)
 endif
 
 ifdef NEED_MGUTIL
-  ca_F90EXE_sources += MGutils_nd.F90
+  CEXE_sources += MGutils.cpp
+  CEXE_headers += MGutils.H
 endif
 
-ca_F90EXE_sources += prob_params.F90
-ca_F90EXE_sources += sums_nd.F90
+ca_F90EXE_sources += prob_params_nd.F90
 ca_F90EXE_sources += Tagging_nd.F90
-ca_F90EXE_sources += timestep.F90
+ca_f90EXE_sources += filfc.f90
+ca_F90EXE_sources += timestep_nd.F90
+CEXE_sources += timestep.cpp

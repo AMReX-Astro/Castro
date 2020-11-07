@@ -13,34 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
-
-  namelist /fortin/ &
-       model_name, R_pert, pert_temp_factor, pert_rad_factor
-
-  !
-  !     Build "probin" filename -- the name of file containing fortin namelist.
-  !
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-  character model*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-  R_pert = 4.4e8
-  pert_temp_factor = 10.0
-  pert_rad_factor = 2.0
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
   ! read initial model
   call read_model_file(model_name)
 
@@ -90,13 +62,18 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use probdata_module
   use eos_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UTEMP,&
-                                 UEDEN, UEINT, UFS
-  use network, only : nspec
+                                 UEDEN, UEINT, UFS, UFX
+  use network, only : nspec, naux
   use model_parser_module
   use prob_params_module, only : center, problo, probhi
   use eos_type_module
   use amrex_constants_module, only : ZERO, HALF, ONE, TWO
   use amrex_fort_module, only : rt => amrex_real
+  use burn_type_module
+#ifdef NSE_THERMO
+  use nse_check_module
+  use nse_module, only: nse_interp
+#endif
 
   implicit none
 
@@ -110,6 +87,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   integer :: i, j, k, n
 
   type(eos_t) :: eos_state
+  real(rt) :: sumX
+  real(rt) :: abar, dq, dyedt
+  real(rt) :: xn(nspec)
+  type(burn_t) :: burn_state
+  integer :: nse_check
 
   do k = lo(3), hi(3)
      z = problo(3) + delta(3)*(dble(k) + HALF) - center(3)
@@ -129,6 +111,40 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               call interpolate_sub(state(i,j,k,UFS-1+n), dist, ispec_model-1+n)
            end do
 
+           sumX = 0.0_rt
+           do n = 1, nspec
+              sumX = sumX + state(i,j,k,UFS-1+n)
+           end do
+           state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) / sumX
+
+#ifdef NSE_THERMO
+           ! set the aux quantities -- we need to do this if we are using the NSE network
+           state(i,j,k,UFX-1+iye) = sum(state(i,j,k,UFS:UFS-1+nspec) * zion(:) * aion_inv(:))
+           state(i,j,k,UFX-1+iabar) = 1.0_rt / sum(state(i,j,k,UFS:UFS-1+nspec) * aion_inv(:))
+           state(i,j,k,UFX-1+ibea) = sum(state(i,j,k,UFS:UFS-1+nspec) * bion(:) * aion_inv(:))
+
+           burn_state % rho = state(i,j,k,URHO)
+           burn_state % T = state(i,j,k,UTEMP)
+           burn_state % xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+
+           call in_nse(burn_state, nse_check)
+           if (nse_check == 1) then
+              call nse_interp(state(i,j,k,UTEMP), state(i,j,k,URHO), &
+                              state(i,j,k,UFS-1+iye), abar, dq, dyedt, xn)
+
+              state(i,j,k,UFX-1+iabar) = abar
+              state(i,j,k,UFX-1+ibea) = dq
+              state(i,j,k,UFS:UFS-1+nspec) = xn(:)
+
+              sumX = 0.0_rt
+              do n = 1, nspec
+                 sumX = sumX + state(i,j,k,UFS-1+n)
+              end do
+              state(i,j,k,UFS:UFS-1+nspec) = state(i,j,k,UFS:UFS-1+nspec) / sumX
+
+           end if
+#endif
+
         end do
      end do
   end do
@@ -139,14 +155,19 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state%rho = state(i,j,k,URHO)
            eos_state%T = state(i,j,k,UTEMP)
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+           eos_state%aux(:) = state(i,j,k,UFX:UFX-1+naux)
 
            call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state % e
 
-           do n = 1,nspec
+           do n = 1, nspec
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
+           end do
+
+           do n = 1, naux
+              state(i,j,k,UFX+n-1) = state(i,j,k,URHO) * state(i,j,k,UFX+n-1)
            end do
 
            ! initial velocities = 0

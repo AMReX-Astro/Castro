@@ -1,7 +1,7 @@
-#include "Castro.H"
-#include "Castro_F.H"
-
-#include "Gravity.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <fundamental_constants.H>
+#include <Gravity.H>
 
 using namespace amrex;
 
@@ -89,17 +89,17 @@ Castro::do_hscf_solve()
 
     for (int lev = 0; lev <= finest_level; ++lev) {
 
-        MultiFab& state = getLevel(lev).get_new_data(State_Type);
+        MultiFab& state_new = getLevel(lev).get_new_data(State_Type);
 
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:target_h_max)
 #endif
-        for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(state_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
             const Box& bx = mfi.tilebox();
 
             scf_calculate_target_h_max(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD(state[mfi]),
+                                       BL_TO_FORTRAN_ANYD(state_new[mfi]),
                                        scf_maximum_density,
                                        &target_h_max);
 
@@ -111,14 +111,12 @@ Castro::do_hscf_solve()
 
     Vector< std::unique_ptr<MultiFab> > psi(n_levs);
     Vector< std::unique_ptr<MultiFab> > enthalpy(n_levs);
-    Vector< std::unique_ptr<MultiFab> > state(n_levs);
+    Vector< std::unique_ptr<MultiFab> > state_vec(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi(n_levs);
     Vector< std::unique_ptr<MultiFab> > phi_rot(n_levs);
 
     // Iterate until the system is relaxed by filling the level data
     // and then doing a multilevel gravity solve.
-
-    int is_relaxed = 0;
 
     int j = 1;
 
@@ -144,9 +142,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx), time);
+                fill_rotational_psi(bx, (*psi[lev]).array(mfi), time);
 
             }
 
@@ -164,7 +160,7 @@ Castro::do_hscf_solve()
         // copy of the data to work with.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            state[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
+            state_vec[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, NUM_STATE, 0));
             phi[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
             phi_rot[lev].reset(new MultiFab(getLevel(lev).grids, getLevel(lev).dmap, 1, 0));
         }
@@ -173,7 +169,7 @@ Castro::do_hscf_solve()
 
         for (int lev = 0; lev <= finest_level; ++lev) {
 
-            MultiFab::Copy((*state[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy((*state_vec[lev]), getLevel(lev).get_new_data(State_Type), 0, 0, NUM_STATE, 0);
             MultiFab::Copy((*phi[lev]), getLevel(lev).get_new_data(PhiGrav_Type), 0, 0, 1, 0);
             MultiFab::Copy((*phi_rot[lev]), getLevel(lev).get_new_data(PhiRot_Type), 0, 0, 1, 0);
 
@@ -181,7 +177,7 @@ Castro::do_hscf_solve()
                 const MultiFab& mask = getLevel(lev+1).build_fine_mask();
 
                 for (int n = 0; n < NUM_STATE; ++n) {
-                    MultiFab::Multiply((*state[lev]), mask, 0, n, 1, 0);
+                    MultiFab::Multiply((*state_vec[lev]), mask, 0, n, 1, 0);
                 }
 
                 MultiFab::Multiply((*phi[lev]), mask, 0, 0, 1, 0);
@@ -268,9 +264,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                             AMREX_ZFILL(dx), time);
+                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
 
             }
 
@@ -338,7 +332,7 @@ Castro::do_hscf_solve()
         for (int lev = 0; lev <= finest_level; ++lev) {
 
             actual_h_max = std::max(actual_h_max, enthalpy[lev]->max(0));
-            actual_rho_max = std::max(actual_rho_max, state[lev]->max(Density));
+            actual_rho_max = std::max(actual_rho_max, state_vec[lev]->max(URHO));
 
         }
 
@@ -353,12 +347,12 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(max:Linf_norm)
 #endif
-            for (MFIter mfi((*state[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 scf_update_density(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                   BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
+                                   BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
                                    BL_TO_FORTRAN_ANYD((*enthalpy[lev])[mfi]),
                                    AMREX_ZFILL(dx), actual_rho_max,
                                    actual_h_max, target_h_max,
@@ -373,7 +367,7 @@ Castro::do_hscf_solve()
         // Copy state data back to its source, and synchronize it on coarser levels.
 
         for (int lev = 0; lev <= finest_level; ++lev) {
-            MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state[lev]), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy(getLevel(lev).get_new_data(State_Type), (*state_vec[lev]), 0, 0, NUM_STATE, 0);
             MultiFab::Copy(getLevel(lev).get_new_data(PhiGrav_Type), (*phi[lev]), 0, 0, 1, 0);
             MultiFab::Copy(getLevel(lev).get_new_data(PhiRot_Type), (*phi_rot[lev]), 0, 0, 1, 0);
         }
@@ -405,12 +399,12 @@ Castro::do_hscf_solve()
 #ifdef _OPENMP
 #pragma omp parallel reduction(+:kin_eng,pot_eng,int_eng,mass)
 #endif
-            for (MFIter mfi((*state[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+            for (MFIter mfi((*state_vec[lev]), TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
                 scf_diagnostics(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                BL_TO_FORTRAN_ANYD((*state[lev])[mfi]),
+                                BL_TO_FORTRAN_ANYD((*state_vec[lev])[mfi]),
                                 BL_TO_FORTRAN_ANYD((*phi[lev])[mfi]),
                                 BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
                                 AMREX_ZFILL(dx),
@@ -439,9 +433,6 @@ Castro::do_hscf_solve()
 
             // Grab the value for the solar mass.
 
-            Real M_solar;
-            scf_get_solar_mass(&M_solar);
-
             std::cout << std::endl << std::endl;
             std::cout << "   Relaxation iterations completed: " << j << std::endl;
             std::cout << "   L-infinity norm of residual (relative to old state): " << Linf_norm << std::endl;
@@ -450,7 +441,7 @@ Castro::do_hscf_solve()
             std::cout << "   Potential energy: " << pot_eng << std::endl;
             std::cout << "   Internal energy: " << int_eng << std::endl;
             std::cout << "   Virial error: " << virial_error << std::endl;
-            std::cout << "   Mass: " << mass / M_solar << " solar masses" << std::endl;
+            std::cout << "   Mass: " << mass / C::M_solar << " solar masses" << std::endl;
 
             if (is_relaxed == 1) {
                 std::cout << "  Relaxation completed!" << std::endl;

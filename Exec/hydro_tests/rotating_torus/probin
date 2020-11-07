@@ -9,7 +9,15 @@
 
 &extern
 
+  ! The polytrope constant is selected so that the maximum density is one,
+  ! given our choices for the torus, the point mass, and gamma. If you change
+  ! them in the setup or the inputs file, you must redo this calculation. We
+  ! compute it statically here so that the C++ and Fortran EOS agree.
+  !
+  !  K_const = Gconst * point_mass / (TWO * (ONE + polytrope_index) * density_maximum_radius) * &
+  !            (ONE - density_maximum_radius**2 / (inner_radius * outer_radius))
+
   polytrope_gamma = 1.333333333d0
-  polytrope_K     = 1.0d25
+  polytrope_K     = 0.5112312382075920d0
 
 /

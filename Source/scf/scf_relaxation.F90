@@ -13,7 +13,7 @@ contains
 
   subroutine scf_setup_relaxation(d_A, axis_A, d_B, axis_B) bind(C, name='scf_setup_relaxation')
 
-    use prob_params_Module, only: center
+    use probdata_module, only: center
 
     implicit none
 
@@ -400,19 +400,5 @@ contains
     enddo
 
   end subroutine scf_diagnostics
-
-
-
-  subroutine scf_get_solar_mass(M_solar_out) bind(C, name="scf_get_solar_mass")
-
-    use fundamental_constants_module, only: M_solar
-
-    implicit none
-
-    real(rt), intent(inout) :: M_solar_out
-
-    M_solar_out = M_solar
-
-  end subroutine scf_get_solar_mass
 
 end module scf_relaxation_module

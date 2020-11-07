@@ -3,27 +3,26 @@ max_step = 500000
 stop_time = 0.06
 
 # PROBLEM SIZE & GEOMETRY
-geometry.is_periodic =  1 1
+geometry.is_periodic =  1 1 1
 geometry.coord_sys   =  0       # 0 => cart
-geometry.prob_lo     =  0    0
-geometry.prob_hi     =  1.e8    1.e8
-amr.n_cell           = 512  512
+geometry.prob_lo     =  0    0    0
+geometry.prob_hi     =  1.e8    1.e8    1.e8
+amr.n_cell           = 512  512  512
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  0   0
-castro.hi_bc       =  0   0
+castro.lo_bc       =  0   0   0
+castro.hi_bc       =  0   0   0
 
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
-castro.allow_negative_energy = 0
 
 # TIME STEP CONTROL
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01    # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps

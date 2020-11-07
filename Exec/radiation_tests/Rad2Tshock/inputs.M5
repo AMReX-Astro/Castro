@@ -65,7 +65,7 @@ castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1 
 #castro.initial_dt     = 0.01
-castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+
 #castro.fixed_dt       = 1.e-15
 
 # DIAGNOSTICS & VERBOSITY
@@ -123,25 +123,6 @@ radiation.hi_bcflag = 0 0 0
 
 radiation.lo_bcval = 7.5657313567241239e-7   0.0 0.0
 radiation.hi_bcval = 0.0040567429273323397   0.0 0.0
-
-radiation.do_real_eos = 1
-
-# Power-law opacities are represented as:
-#
-#    const_kappa * (rho**m) * (temp**(-n)) * (nu**(p))
-#
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-
-# Planck mean opacity 
-radiation.const_kappa_p =  3.92663697758e-05 
-radiation.kappa_p_exp_m =  0.0
-radiation.kappa_p_exp_n =  0.0
-
-# Rosseland mean opacity 
-radiation.const_kappa_r =  0.848902853095
-radiation.kappa_r_exp_m =  0.0
-radiation.kappa_r_exp_n =  0.0
 
 # ------------------  INPUTS TO RADIATION SOLVER CLASS  -------------------
 

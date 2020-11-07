@@ -1,10 +1,10 @@
-#ifndef _HypreMultiABec_H_
-#define _HypreMultiABec_H_
+#ifndef CASTRO_HYPREMULTIABEC_H
+#define CASTRO_HYPREMULTIABEC_H
 
-#include "HypreABec.H"
+#include <HypreABec.H>
 
 #include <list>
-#include "HYPRE_sstruct_ls.h"
+#include <HYPRE_sstruct_ls.h>
 
 ///
 /// An AuxVar is an intermediate variable used in building up a
@@ -216,7 +216,7 @@ class BndryAuxVarBase {
 /// @param i
 ///
   bool isValid(int i) {
-    return (i < distributionMap.ProcessorMap().size());
+    return (i >= 0 && i < distributionMap.ProcessorMap().size());
   }
 
  protected:
@@ -243,8 +243,8 @@ class BndryAuxVar : public BndryAuxVarBase {
 /// @param loc
 ///
   BndryAuxVar(const amrex::BoxArray& _grids,
-	      const amrex::DistributionMapping& _dmap,
-	      Location loc);
+              const amrex::DistributionMapping& _dmap,
+              Location loc);
 
   //~BndryAuxVar(); destructor not needed
 
@@ -284,7 +284,7 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 /// @param loc
 ///
   CrseBndryAuxVar(const amrex::BoxArray& _cgrids,
-		  const amrex::DistributionMapping& _cdmap,
+                  const amrex::DistributionMapping& _cdmap,
                   const amrex::BoxArray& _fgrids, Location loc);
 
 
@@ -417,10 +417,10 @@ class HypreMultiABec {
 /// @param _crse_ratio
 ///
   void addLevel(int level,
-		const amrex::Geometry& _geom,
-		const amrex::BoxArray& _grids,
-		const amrex::DistributionMapping& _dmap,
-		amrex::IntVect         _crse_ratio);
+                const amrex::Geometry& _geom,
+                const amrex::BoxArray& _grids,
+                const amrex::DistributionMapping& _dmap,
+                amrex::IntVect         _crse_ratio);
 
   int crseLevel() {
     return crse_level;
@@ -625,26 +625,11 @@ class HypreMultiABec {
 /// @param inhom
 ///
   void boundaryFlux(int level,
-		    amrex::MultiFab* Flux,
-		    amrex::MultiFab& Er,
+                    amrex::MultiFab* Flux,
+                    amrex::MultiFab& Er,
                     int icomp,
-		    BC_Mode inhom);
+                    BC_Mode inhom);
 
-///
-/// Matrix apply (matrix-vector multiply) only implemented for single level
-///
-/// @param level
-/// @param product
-/// @param vector
-/// @param icomp
-/// @param inhom
-///
-  void initializeApplyLevel(int level,
-			    amrex::MultiFab& product,
-			    amrex::MultiFab& vector,
-                            int icomp,
-			    BC_Mode inhom);
-  void apply();
 
 ///
 /// @param level

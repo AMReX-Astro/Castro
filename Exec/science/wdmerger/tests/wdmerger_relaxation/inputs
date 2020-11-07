@@ -1,0 +1,27 @@
+FILE = ../../inputs_3d
+
+amr.probin_file = probin
+
+stop_time = 12.0
+
+castro.init_shrink = 0.1
+
+amr.n_cell = 64 64 64
+
+amr.max_level = 0
+
+amr.max_grid_size = 128
+
+amr.blocking_factor = 16
+
+castro.do_rotation = 1
+castro.state_in_rotating_frame = 1
+
+amr.check_int = -1
+amr.check_per = -1.0
+
+amr.plot_int = -1
+amr.plot_per = 5.0
+
+amr.small_plot_per = 1.0
+amr.small_plot_vars = density

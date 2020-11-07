@@ -2,8 +2,8 @@
 #include <AMReX_ParmParse.H>
 #include <AMReX_LO_BCTYPES.H>
 
-#include "HypreABec.H"
-#include "HABEC_F.H"
+#include <HypreABec.H>
+#include <HABEC_F.H>
 
 #include <iostream>
 
@@ -11,7 +11,7 @@
 #include <omp.h>
 #endif
 
-#include "_hypre_struct_mv.h"
+#include <_hypre_struct_mv.h>
 
 using namespace amrex;
 
@@ -46,9 +46,9 @@ static int* hiV(const Box& b) {
 }
 
 HypreABec::HypreABec(const BoxArray& grids,
-		     const DistributionMapping& dmap,
-		     const Geometry& _geom,
-		     int _solver_flag)
+                     const DistributionMapping& dmap,
+                     const Geometry& _geom,
+                     int _solver_flag)
   : geom(_geom), solver_flag(_solver_flag)
 {
   ParmParse pp("habec");
@@ -68,25 +68,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   }
   bho = 0; // higher order boundaries don't work with symmetric matrices
 
-  int i;
-#if defined(BL_USE_MPI) || !(defined(BL_BGL) || defined(chaos_3_x86_64_ib) || defined(chaos_3_x86_64))
-  MPI_Initialized(&i);
-#else
-  i=1;
-#endif
-  if (!i) {
-    int   argc   = 1;
-    const char *argv[] = { "mf" };
-    // arguments must be set, though not used for anything important
-    MPI_Init(&argc, (char***)&argv);
-  }
-
-  int num_procs, myid;
-
-  MPI_Comm_size(MPI_COMM_WORLD, &num_procs );
-  MPI_Comm_rank(MPI_COMM_WORLD, &myid );
-
-  for (i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < BL_SPACEDIM; i++) {
     dx[i] = geom.CellSize(i);
   }
 
@@ -117,31 +99,28 @@ HypreABec::HypreABec(const BoxArray& grids,
 
   if (geom.isAnyPeriodic()) {
     int is_periodic[BL_SPACEDIM];
-    for (i = 0; i < BL_SPACEDIM; i++) {
+    for (int i = 0; i < BL_SPACEDIM; i++) {
       is_periodic[i] = 0;
       if (geom.isPeriodic(i)) {
-	is_periodic[i] = geom.period(i);
-	BL_ASSERT(ispow2(is_periodic[i]));
-	BL_ASSERT(geom.Domain().smallEnd(i) == 0);
+        is_periodic[i] = geom.period(i);
+        BL_ASSERT(ispow2(is_periodic[i]));
+        BL_ASSERT(geom.Domain().smallEnd(i) == 0);
       }
     }
     HYPRE_StructGridSetPeriodic(hgrid, is_periodic);
   }
 #endif
 
-  if (num_procs != 1) {
+  if (ParallelDescriptor::NProcs() != 1) {
     // parallel section:
-    BL_ASSERT(ParallelDescriptor::NProcs() == num_procs);
-    BL_ASSERT(ParallelDescriptor::MyProc() == myid);
-
-    for (i = 0; i < grids.size(); i++) {
-      if (dmap[i] == myid) {
-	HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
+    for (int i = 0; i < grids.size(); i++) {
+      if (dmap[i] == ParallelDescriptor::MyProc()) {
+        HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
       }
     }
   }
   else {
-    for (i = 0; i < grids.size(); i++) {
+    for (int i = 0; i < grids.size(); i++) {
       HYPRE_StructGridSetExtents(hgrid, loV(grids[i]), hiV(grids[i]));
     }
   }
@@ -152,20 +131,20 @@ HypreABec::HypreABec(const BoxArray& grids,
   // if we were really 1D:
 /*
   int offsets[2][1] = {{-1},
-		       { 0}};
+                       { 0}};
 */
   // fake 1D as a 2D problem:
   int offsets[2][2] = {{-1,  0},
-		       { 0,  0}};
+                       { 0,  0}};
 #elif (BL_SPACEDIM == 2)
   int offsets[3][2] = {{-1,  0},
-		       { 0, -1},
-		       { 0,  0}};
+                       { 0, -1},
+                       { 0,  0}};
 #elif (BL_SPACEDIM == 3)
   int offsets[4][3] = {{-1,  0,  0},
-		       { 0, -1,  0},
-		       { 0,  0, -1},
-		       { 0,  0,  0}};
+                       { 0, -1,  0},
+                       { 0,  0, -1},
+                       { 0,  0,  0}};
 #endif
 
 #if   (BL_SPACEDIM == 1)
@@ -185,7 +164,7 @@ HypreABec::HypreABec(const BoxArray& grids,
   HYPRE_StructStencilCreate(BL_SPACEDIM, BL_SPACEDIM + 1, &stencil);
 #endif
 
-  for (i = 0; i < BL_SPACEDIM + 1; i++) {
+  for (int i = 0; i < BL_SPACEDIM + 1; i++) {
     HYPRE_StructStencilSetElement(stencil, i, offsets[i]);
   }
 
@@ -209,12 +188,14 @@ HypreABec::HypreABec(const BoxArray& grids,
   HYPRE_StructVectorInitialize(b);
   HYPRE_StructVectorInitialize(x);
 
+  Gpu::synchronize();
+
   int ncomp=1;
   int ngrow=0;
   acoefs.reset(new MultiFab(grids, dmap, ncomp, ngrow));
   acoefs->setVal(0.0);
  
-  for (i = 0; i < BL_SPACEDIM; i++) {
+  for (int i = 0; i < BL_SPACEDIM; i++) {
     BoxArray edge_boxes(grids);
     edge_boxes.surroundingNodes(i);
     bcoefs[i].reset(new MultiFab(edge_boxes, dmap, ncomp, ngrow));
@@ -263,175 +244,6 @@ void HypreABec::SPalpha(const MultiFab& a)
   MultiFab::Copy(*SPa, a, 0, 0, 1, 0);
 }
 
-void HypreABec::apply(MultiFab& product, MultiFab& vector, int icomp,
-                      BC_Mode inhom)
-{
-  BL_PROFILE("HypreABec::apply");
-
-  const BoxArray& grids = product.boxArray();
-
-  BL_ASSERT(product.nGrow() == 0); // need a temporary if this is false
-
-  const int size = BL_SPACEDIM + 1;
-  int i, idim;
-
-  int stencil_indices[size];
-
-  for (i = 0; i < size; i++) {
-    stencil_indices[i] = i;
-  }
-
-  Vector<Real> r;
-  Real foo=1.e200;
-
-  Real *vec;
-  FArrayBox fnew;
-  FArrayBox matfab;
-  for (MFIter vi(vector); vi.isValid(); ++vi) {
-    i = vi.index();
-    const Box &reg = grids[i];
-
-    // initialize x with the vector that A will be applied to:
-
-    FArrayBox *f;
-    int fcomp;
-    if (vector.nGrow() == 0) {
-      f = &vector[vi];
-      fcomp = icomp;
-    }
-    else {
-      f = &fnew;
-      f->resize(reg);
-      f->copy(vector[vi], icomp, 0, 1);
-      fcomp = 0;
-    }
-
-    HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg),
-				   f->dataPtr(fcomp));
-
-    // initialize product (to temporarily hold the boundary contribution):
-
-    product[vi].setVal(0.0);
-    vec = product[vi].dataPtr();
-
-    int volume = reg.numPts();
-    matfab.resize(reg,size);
-    Real* mat = matfab.dataPtr();
-
-    // build matrix interior
-
-    hacoef(mat, 
-	   BL_TO_FORTRAN((*acoefs)[vi]),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
-
-    for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      hbcoef(mat,
-	     BL_TO_FORTRAN((*bcoefs[idim])[vi]),
-	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta, dx, idim);
-    }
-
-    // add b.c.'s to matrix diagonal and product (otherwise zero), and
-    // zero out offdiag values at low domain boundaries (high done by symmetry)
-
-    const NGBndry& bd = getBndry();
-    const Box& domain = bd.getDomain();
-    for (OrientationIter oitr; oitr; oitr++) {
-      int cdir(oitr());
-      idim = oitr().coordDir();
-      const RadBoundCond &bct = bd.bndryConds(oitr())[i];
-      const Real      &bcl = bd.bndryLocs(oitr())[i];
-      const Mask      &msk = bd.bndryMasks(oitr(),i);
-
-      if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
-        int bctype = bct;
-        if (bd.mixedBndry(oitr())) {
-          const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
-          tfp = tf.dataPtr();
-          bctype = -1;
-        }
-	const FArrayBox &fs  = bd.bndryValues(oitr())[vi];
-	Real* pSPa;
-	Box SPabox; 
-	if (SPa != 0) {
-	  pSPa = (*SPa)[vi].dataPtr();
-	  SPabox = (*SPa)[vi].box();
-	}
-	else {
-	  pSPa = &foo;
-	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	}
-        getFaceMetric(r, reg, oitr(), geom);
-	hbmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       cdir, bctype, tfp, bcl,
-	       ARLIM(fs.loVect()), ARLIM(fs.hiVect()),
-	       BL_TO_FORTRAN(msk),
-	       BL_TO_FORTRAN((*bcoefs[idim])[vi]),
-	       beta, dx, flux_factor, r.dataPtr(),
-	       pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
-	if (inhom) {
-	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 cdir, bctype, tfp, bho, bcl,
-		 BL_TO_FORTRAN_N(fs, bdcomp),
-		 BL_TO_FORTRAN(msk),
-		 BL_TO_FORTRAN((*bcoefs[idim])[vi]),
-		 beta, dx, r.dataPtr());
-	}
-      }
-      else {
-	hbmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      cdir, bct, bcl,
-	      BL_TO_FORTRAN(msk),
-	      BL_TO_FORTRAN((*bcoefs[idim])[vi]),
-	      beta, dx);
-	if (inhom) {
-	  const FArrayBox &fs  = bd.bndryValues(oitr())[vi];
-	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		cdir, bct, bho, bcl,
-		BL_TO_FORTRAN_N(fs, bdcomp),
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*bcoefs[idim])[vi]),
-		beta, dx);
-	}
-      }
-    }
-
-    // initialize product
-
-    HYPRE_StructVectorSetBoxValues(b, loV(reg), hiV(reg),
-				   vec);
-
-    // initialize matrix
-
-    HYPRE_StructMatrixSetBoxValues(A0, loV(reg), hiV(reg),
-				   size, stencil_indices, mat);
-  }
-
-  HYPRE_StructMatrixAssemble(A0);
-
-  HYPRE_StructVectorAssemble(b);
-  HYPRE_StructVectorAssemble(x);
-
-  // Matvec call here
-  // Arguments are alpha, A, x, beta, b --- sets b := alpha A x + beta b
-  // By using beta = -1, we subtract off the boundary contribution
-
-  hypre_StructMatvec(1.0,
-		     (hypre_StructMatrix *) A0,
-		     (hypre_StructVector *) x,
-		     -1.0,
-		     (hypre_StructVector *) b);
-
-  for (MFIter vi(vector); vi.isValid(); ++vi) {
-    i = vi.index();
-    const Box &reg = grids[i];
-
-    vec = product[vi].dataPtr();
-    HYPRE_StructVectorGetBoxValues(b, loV(reg), hiV(reg),
-				   vec);
-  }
-}
-
 void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
                              BC_Mode inhom)
 {
@@ -446,65 +258,65 @@ void HypreABec::boundaryFlux(MultiFab* Flux, MultiFab& Soln, int icomp,
 #pragma omp parallel
 #endif
     {
-	Vector<Real> r;
-	Real foo=1.e200;
-	
-	for (MFIter si(Soln); si.isValid(); ++si) {
-	    int i = si.index();
-	    const Box &reg = grids[i];
-	    for (OrientationIter oitr; oitr; oitr++) {
-		int cdir(oitr());
-		int idim = oitr().coordDir();
-		const RadBoundCond &bct = bd.bndryConds(oitr())[i];
-		const Real      &bcl = bd.bndryLocs(oitr())[i];
-		const FArrayBox       &fs  = bd.bndryValues(oitr())[si];
-		const Mask      &msk = bd.bndryMasks(oitr(),i);
+        Vector<Real> r;
+        Real foo=1.e200;
+        
+        for (MFIter si(Soln); si.isValid(); ++si) {
+            int i = si.index();
+            const Box &reg = grids[i];
+            for (OrientationIter oitr; oitr; oitr++) {
+                int cdir(oitr());
+                int idim = oitr().coordDir();
+                const RadBoundCond &bct = bd.bndryConds(oitr())[i];
+                const Real      &bcl = bd.bndryLocs(oitr())[i];
+                const FArrayBox       &fs  = bd.bndryValues(oitr())[si];
+                const Mask      &msk = bd.bndryMasks(oitr(),i);
 
-		if (reg[oitr()] == domain[oitr()]) {
-		    const int *tfp = NULL;
-		    int bctype = bct;
-		    if (bd.mixedBndry(oitr())) {
-			const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
-			tfp = tf.dataPtr();
-			bctype = -1;
-		    }
-		    // In normal code operation only the fluxes at internal
-		    // Dirichlet boundaries are used.  Some diagnostics use the
-		    // fluxes computed at domain boundaries but these do not
-		    // influence the evolution of the interior solution.
-		    Real* pSPa;
-		    Box SPabox; 
-		    if (SPa != 0) {
-			pSPa = (*SPa)[si].dataPtr();
-			SPabox = (*SPa)[si].box();
-		    }
-		    else {
-			pSPa = &foo;
-			SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-		    }
-		    getFaceMetric(r, reg, oitr(), geom);
-		    hbflx3(BL_TO_FORTRAN(Flux[idim][si]),
-			   BL_TO_FORTRAN_N(Soln[si], icomp),
-			   ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			   cdir, bctype, tfp, bho, bcl,
-			   BL_TO_FORTRAN_N(fs, bdcomp),
-			   BL_TO_FORTRAN(msk),
-			   BL_TO_FORTRAN((*bcoefs[idim])[si]),
-			   beta, dx, flux_factor, r.dataPtr(), inhom,
-			   pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
-		}
-		else {
-		    hbflx(BL_TO_FORTRAN(Flux[idim][si]),
-			  BL_TO_FORTRAN_N(Soln[si], icomp),
-			  ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-			  cdir, bct, bho, bcl,
-			  BL_TO_FORTRAN_N(fs, bdcomp),
-			  BL_TO_FORTRAN(msk),
-			  BL_TO_FORTRAN((*bcoefs[idim])[si]),
-			  beta, dx, inhom);
-		}
-	    }
-	}
+                if (reg[oitr()] == domain[oitr()]) {
+                    const int *tfp = NULL;
+                    int bctype = bct;
+                    if (bd.mixedBndry(oitr())) {
+                        const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
+                        tfp = tf.dataPtr();
+                        bctype = -1;
+                    }
+                    // In normal code operation only the fluxes at internal
+                    // Dirichlet boundaries are used.  Some diagnostics use the
+                    // fluxes computed at domain boundaries but these do not
+                    // influence the evolution of the interior solution.
+                    Real* pSPa;
+                    Box SPabox; 
+                    if (SPa != 0) {
+                        pSPa = (*SPa)[si].dataPtr();
+                        SPabox = (*SPa)[si].box();
+                    }
+                    else {
+                        pSPa = &foo;
+                        SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+                    }
+                    getFaceMetric(r, reg, oitr(), geom);
+                    hbflx3(BL_TO_FORTRAN(Flux[idim][si]),
+                           BL_TO_FORTRAN_N(Soln[si], icomp),
+                           ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+                           cdir, bctype, tfp, bho, bcl,
+                           BL_TO_FORTRAN_N(fs, bdcomp),
+                           BL_TO_FORTRAN(msk),
+                           BL_TO_FORTRAN((*bcoefs[idim])[si]),
+                           beta, dx, flux_factor, r.dataPtr(), inhom,
+                           pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+                }
+                else {
+                    hbflx(BL_TO_FORTRAN(Flux[idim][si]),
+                          BL_TO_FORTRAN_N(Soln[si], icomp),
+                          ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
+                          cdir, bct, bho, bcl,
+                          BL_TO_FORTRAN_N(fs, bdcomp),
+                          BL_TO_FORTRAN(msk),
+                          BL_TO_FORTRAN((*bcoefs[idim])[si]),
+                          beta, dx, inhom);
+                }
+            }
+        }
     }
 }
 
@@ -557,7 +369,6 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     stencil_indices[i] = i;
   }
 
-  Vector<Real> r;
   Real foo=1.e200;
 
   FArrayBox matfab;
@@ -566,18 +377,25 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     const Box &reg = grids[i];
 
     matfab.resize(reg,size);
+    Elixir matfab_elix = matfab.elixir();
     Real* mat = matfab.dataPtr();
 
     // build matrix interior
 
-    hacoef(mat, 
-	   BL_TO_FORTRAN((*acoefs)[ai]),
-	   ARLIM(reg.loVect()), ARLIM(reg.hiVect()), alpha);
+    // Note that we are using AoS indexing of matfab inside these functions.
 
-    for (idim = 0; idim < BL_SPACEDIM; idim++) {
-      hbcoef(mat,
-	     BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	     ARLIM(reg.loVect()), ARLIM(reg.hiVect()), beta, dx, idim);
+#pragma gpu box(reg) sync
+    hacoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+           BL_TO_FORTRAN_ANYD(matfab), 
+           BL_TO_FORTRAN_ANYD((*acoefs)[ai]),
+           alpha);
+
+    for (idim = 0; idim < BL_SPACEDIM; ++idim) {
+#pragma gpu box(reg) sync
+        hbcoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               BL_TO_FORTRAN_ANYD(matfab),
+               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+               beta, AMREX_REAL_ANYD(dx), idim);
     }
 
     // add b.c.'s to matrix diagonal, and
@@ -602,50 +420,49 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
           bctype = -1;
         }
         const Box &fsb = bd.bndryValues(oitr())[ai].box();
-	Real* pSPa;
-	Box SPabox; 
-	if (SPa != 0) {
-	  pSPa = (*SPa)[ai].dataPtr();
-	  SPabox = (*SPa)[ai].box();
-	}
-	else {
-	  pSPa = &foo;
-	  SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
-	}
-        getFaceMetric(r, reg, oitr(), geom);
-	hbmat3(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	       cdir, bctype, tfp, bcl,
-	       ARLIM(fsb.loVect()), ARLIM(fsb.hiVect()),
-	       BL_TO_FORTRAN(msk), 
-	       BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	       beta, dx, flux_factor, r.dataPtr(),
-	       pSPa, ARLIM(SPabox.loVect()), ARLIM(SPabox.hiVect()));
+        Real* pSPa;
+        Box SPabox; 
+        if (SPa != 0) {
+          pSPa = (*SPa)[ai].dataPtr();
+          SPabox = (*SPa)[ai].box();
+        }
+        else {
+          pSPa = &foo;
+          SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+        }
+
+#pragma gpu box(reg) sync
+        hbmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+               reg.loVect()[0], reg.hiVect()[0],
+               oitr().isLow(), idim+1,
+               BL_TO_FORTRAN_ANYD(matfab),
+               cdir, bctype,
+               tfp, AMREX_INT_ANYD(fsb.loVect()), AMREX_INT_ANYD(fsb.hiVect()),
+               bcl,
+               msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+               beta, AMREX_REAL_ANYD(dx), flux_factor,
+               pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
       }
       else {
-	hbmat(mat, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-	      cdir, bct, bcl,
-	      BL_TO_FORTRAN(msk),
-	      BL_TO_FORTRAN((*bcoefs[idim])[ai]),
-	      beta, dx);
+#pragma gpu box(reg) sync
+        hbmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+              BL_TO_FORTRAN_ANYD(matfab),
+              cdir, bct, bcl,
+              msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+              BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
+              beta, AMREX_REAL_ANYD(dx));
       }
     }
 
     // initialize matrix
 
     HYPRE_StructMatrixSetBoxValues(A, loV(reg), hiV(reg),
-				   size, stencil_indices, mat);
+                                   size, stencil_indices, mat);
+    Gpu::synchronize();
   }
 
   HYPRE_StructMatrixAssemble(A);
-
-
-#if 0
-  HYPRE_StructMatrixPrint("mat", A, 1);
-  HYPRE_StructVectorPrint("b", b, 1);
-  std::cout << "after matrix print - hit <cr> to continue" << std::endl;
-  std::cin.get();
-#endif
-
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
   HYPRE_StructVectorAssemble(x); // currently a no-op
@@ -729,18 +546,6 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
                                 precond);
     }
 
-#if 0
-//  jacobi as pre-conditioner for cg
-    HYPRE_StructJacobiCreate(MPI_COMM_WORLD, &precond);
-    HYPRE_StructJacobiSetMaxIter(precond, 2);
-    HYPRE_StructJacobiSetTol(precond, 0.0);
-    HYPRE_StructJacobiSetZeroGuess(precond);
-    HYPRE_StructPCGSetPrecond(solver,
-                        HYPRE_StructJacobiSolve,
-                        HYPRE_StructJacobiSetup,
-                        precond);
-#endif
-
     HYPRE_StructPCGSetLogging(solver, 1);
     HYPRE_StructPCGSetup(solver, A, b, x);
   }  
@@ -790,9 +595,9 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     HYPRE_StructHybridSetup(solver, A, b, x);
   }
   else {
-    std::cout << "HypreABec: no such solver" << std::endl;
-    exit(1);
+      amrex::Error("HypreABec: no such solver");
   }
+  Gpu::synchronize();
 }
 
 void HypreABec::clearSolver()
@@ -838,10 +643,6 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
   int i, idim;
 
-  //dest.setVal(0.0);
-
-  Vector<Real> r;
-
   Real *vec;
   FArrayBox fnew;
   for (MFIter di(dest); di.isValid(); ++di) {
@@ -852,6 +653,10 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
     FArrayBox *f;
     int fcomp;
+
+    Array4<Real> const d_arr = dest.array(di);
+    Array4<Real> const r_arr = rhs.array(di);
+
     if (dest.nGrow() == 0) { // need a temporary if dest is the wrong size
       f = &dest[di];
       fcomp = icomp;
@@ -859,14 +664,24 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     else {
       f = &fnew;
       f->resize(reg);
-      f->copy(dest[di], icomp, 0, 1);
+
+      Array4<Real> const f_arr = f->array();
+
       fcomp = 0;
+
+      AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = d_arr(i,j,k,icomp); });
     }
+    Elixir f_elix = fnew.elixir();
+
     vec = f->dataPtr(fcomp); // sharing space, dest will be overwritten below
 
     HYPRE_StructVectorSetBoxValues(x, loV(reg), hiV(reg), vec);
 
-    f->copy(rhs[di], 0, fcomp, 1);
+    Gpu::streamSynchronize();
+
+    Array4<Real> const f_arr = f->array();
+
+    AMREX_PARALLEL_FOR_3D(reg, i, j, k, { f_arr(i,j,k,fcomp) = r_arr(i,j,k,0); });
 
     // add b.c.'s to rhs
 
@@ -874,13 +689,13 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       const NGBndry& bd = getBndry();
       const Box& domain = bd.getDomain();
       for (OrientationIter oitr; oitr; oitr++) {
-	int cdir(oitr());
-	idim = oitr().coordDir();
-	const RadBoundCond &bct = bd.bndryConds(oitr())[i];
-	const Real      &bcl = bd.bndryLocs(oitr())[i];
-	const FArrayBox       &fs  = bd.bndryValues(oitr())[di];
-	const Mask      &msk = bd.bndryMasks(oitr(),i);
-	const Box &bbox = (*bcoefs[idim])[di].box();
+        int cdir(oitr());
+        idim = oitr().coordDir();
+        const RadBoundCond &bct = bd.bndryConds(oitr())[i];
+        const Real      &bcl = bd.bndryLocs(oitr())[i];
+        const FArrayBox       &fs  = bd.bndryValues(oitr())[di];
+        const Mask      &msk = bd.bndryMasks(oitr(),i);
+        const Box &bbox = (*bcoefs[idim])[di].box();
 
         if (reg[oitr()] == domain[oitr()]) {
           const int *tfp = NULL;
@@ -890,24 +705,33 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
             tfp = tf.dataPtr();
             bctype = -1;
           }
-          getFaceMetric(r, reg, oitr(), geom);
-	  hbvec3(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		 cdir, bctype, tfp, bho, bcl,
-		 BL_TO_FORTRAN_N(fs, bdcomp),
-		 BL_TO_FORTRAN(msk),
-		 BL_TO_FORTRAN((*bcoefs[idim])[di]),
-		 beta, dx, r.dataPtr());
-	}
-	else {
-	  hbvec(vec, ARLIM(reg.loVect()), ARLIM(reg.hiVect()),
-		cdir, bct, bho, bcl,
-		BL_TO_FORTRAN_N(fs, bdcomp),
-		BL_TO_FORTRAN(msk),
-		BL_TO_FORTRAN((*bcoefs[idim])[di]),
-		beta, dx);
-	}
+#pragma gpu box(reg)
+          hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 reg.loVect()[0], reg.hiVect()[0],
+                 oitr().isLow(), idim + 1,
+                 vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                 cdir, bctype,
+                 tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
+                 bho, bcl,
+                 BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                 msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                 BL_TO_FORTRAN_ANYD((*bcoefs[idim])[di]),
+                 beta, AMREX_REAL_ANYD(dx));
+        }
+        else {
+#pragma gpu box(reg)
+            hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
+                  cdir, bct, bho, bcl,
+                  BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
+                  msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
+                  BL_TO_FORTRAN_ANYD((*bcoefs[idim])[di]),
+                  beta, AMREX_REAL_ANYD(dx));
+        }
       }
     }
+
+    Gpu::streamSynchronize();
 
     // initialize rhs
 
@@ -916,11 +740,12 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
 
   HYPRE_StructVectorAssemble(b); // currently a no-op
   HYPRE_StructVectorAssemble(x); // currently a no-op
+  Gpu::synchronize();
 
   if (abstol > 0.0) {
     Real bnorm;
     bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
-				  (hypre_StructVector *) b);
+                                  (hypre_StructVector *) b);
     bnorm = sqrt(bnorm);
 
     const BoxArray& grids = acoefs->boxArray();
@@ -930,21 +755,21 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     }
 
     Real reltol_new = (bnorm > 0.0
-		       ? abstol / bnorm * sqrt(volume)
-		       : reltol);
+                       ? abstol / bnorm * sqrt(volume)
+                       : reltol);
 
     if (reltol_new > reltol) {
       if (solver_flag == 0) {
-	HYPRE_StructSMGSetTol(solver, reltol_new);
+        HYPRE_StructSMGSetTol(solver, reltol_new);
       }
       else if(solver_flag == 1) {
-	HYPRE_StructPFMGSetTol(solver, reltol_new);
+        HYPRE_StructPFMGSetTol(solver, reltol_new);
       }
       else if(solver_flag == 2) {
-	// nothing for this option
+        // nothing for this option
       }
       else if(solver_flag == 3 || solver_flag == 4) {
-	HYPRE_StructPCGSetTol(solver, reltol_new);
+        HYPRE_StructPCGSetTol(solver, reltol_new);
       }
     }
   }
@@ -968,6 +793,8 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
     HYPRE_StructHybridSolve(solver, A, b, x);
   }
 
+  Gpu::synchronize();
+
   for (MFIter di(dest); di.isValid(); ++di) {
     i = di.index();
     const Box &reg = grids[i];
@@ -983,13 +810,17 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       f->resize(reg);
       fcomp = 0;
     }
+    Elixir f_elix = fnew.elixir();
 
     vec = f->dataPtr(fcomp);
     HYPRE_StructVectorGetBoxValues(x, loV(reg), hiV(reg),
-				   vec);
+                                   vec);
+    Gpu::synchronize();
 
     if (dest.nGrow() != 0) {
-      dest[di].copy(*f, 0, icomp, 1);
+        Array4<Real> const f_arr = f->array();
+        Array4<Real> const d_arr = dest.array(di);
+        AMREX_PARALLEL_FOR_3D(reg, i, j, k, { d_arr(i,j,k,icomp) = f_arr(i,j,k); });
     }
   }
 
@@ -1024,6 +855,7 @@ void HypreABec::solve(MultiFab& dest, int icomp, MultiFab& rhs, BC_Mode inhom)
       std::cout.precision(oldprec);
     }
   }
+  Gpu::synchronize();
 }
 
 Real HypreABec::getAbsoluteResidual()
@@ -1032,7 +864,7 @@ Real HypreABec::getAbsoluteResidual()
 
   Real bnorm;
   bnorm = hypre_StructInnerProd((hypre_StructVector *) b,
-				(hypre_StructVector *) b);
+                                (hypre_StructVector *) b);
   bnorm = sqrt(bnorm);
 
   Real res;
@@ -1051,6 +883,8 @@ Real HypreABec::getAbsoluteResidual()
   else if(solver_flag == 5 || solver_flag == 6) {
     HYPRE_StructHybridGetFinalRelativeResidualNorm(solver, &res);
   }
+
+  Gpu::synchronize();
 
   const BoxArray& grids = acoefs->boxArray();
   Real volume = 0.0;

@@ -1,0 +1,45 @@
+name: cpp-linter
+
+on: [pull_request]
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules 
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex 
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl clang-tidy cmake jq clang cppcheck clang-format bear g++>=9.3.0 gfortran>=9.3.0
+
+      - name: Get cpp linter repo 
+        run: |
+          cd external 
+          git clone https://github.com/AMReX-Astro/cpp-linter-action.git
+          cd .. 
+
+      - name: Check header includes
+        run: |
+          echo ::set-env name=HEADER_INCLUDES::$(grep -rIE --include="*.cpp" --include="*.H" --exclude-dir=external "#\s?include\s+\"\w+\.\w+\"")
+          echo $HEADER_INCLUDES
+          if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
+
+      - name: Run cpp linter
+        run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" 
+      
+      - name: Archive clang tidy report
+        uses: actions/upload-artifact@v1
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt

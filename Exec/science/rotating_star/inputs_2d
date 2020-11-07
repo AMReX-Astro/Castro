@@ -40,7 +40,7 @@ castro.riemann_solver = 1
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
 
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.05     # scale back initial timestep by this factor
 castro.change_max     = 1.025    # factor by which dt is allowed to change each timestep
@@ -76,5 +76,4 @@ castro.small_temp   = 1.e6
 
 castro.time_integration_method = 3
 castro.use_retry = 1
-castro.hard_cfl_limit = 0
 castro.max_subcycles = 16

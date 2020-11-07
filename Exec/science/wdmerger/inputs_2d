@@ -20,9 +20,6 @@ geometry.prob_lo =   0.0e0 -5.12e9
 # Upper boundary limits in physical space
 geometry.prob_hi =  5.12e9  5.12e9
 
-# System center of mass
-castro.center    =   0.0e0   0.0e0
-
 ############################################################################################
 # Boundary conditions
 # 0 = Interior           3 = Symmetry
@@ -49,9 +46,6 @@ stop_time = 100.0
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
 
-# Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -70,8 +64,8 @@ amr.compute_new_dt_on_regrid = 1
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
 
-# Disable retries based on negative density resets
-castro.retry_neg_dens_factor = -1.0
+# Skip retries for small density if the starting density was less than this threshold
+castro.retry_small_density_cutoff = 1.0e0
 
 ############################################################################################ 
 # Resolution, gridding and AMR
@@ -90,7 +84,7 @@ amr.ref_ratio = 4 4 4 4 4 4 4 4 4
 amr.regrid_int = 2
 
 # Allow special regrids based on stability criteria
-castro.use_post_step_regrid = 1
+castro.use_post_step_regrid = 0
 
 # Number of buffer cells in error estimation
 amr.n_error_buf = 2 2 2 2 2 2 2 2 2 2
@@ -153,9 +147,6 @@ castro.riemann_solver = 0
 # the iterations don't converge, but instead to do additional bisection iteration.
 castro.cg_blend = 2
 
-# Limit the maximum speed in the Riemann solver
-castro.riemann_speed_limit = 2.99792458e9
-
 # Use a lagged predictor estimate of the source terms in the hydro
 castro.source_term_predictor = 1
 
@@ -165,14 +156,12 @@ castro.transverse_reset_rhoe = 1
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
 
-# Choose the method used on a negative density reset
-castro.density_reset_method = 2
-
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 1
 
 # Explicitly limit fluxes to avoid large velocities
-castro.limit_fluxes_on_large_vel = 1
+castro.limit_fluxes_on_large_vel = 0
+castro.speed_limit = 1.498962290e9 # 0.05c
 
 ############################################################################################
 # Thermodynamics
@@ -183,9 +172,6 @@ castro.small_temp = 1.e5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
-
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
 
 # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta1 = 1.0e-3
@@ -241,9 +227,6 @@ gravity.do_composite_phi_correction = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 ############################################################################################
 # Load balancing
 ############################################################################################
@@ -261,14 +244,14 @@ DistributionMapping.efficiency = 0.9
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
 
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
-
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
 
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
+
+# Name the job
+castro.job_name = wdmerger
 
 # Whether or not to output plotfiles
 amr.plot_files_output = 1
@@ -338,4 +321,4 @@ amr.derive_plot_vars = NONE
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out

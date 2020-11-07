@@ -5,7 +5,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   use amrex_fort_module, only: rt => amrex_real
   use network, only : nspec
   use eos_type_module, only : eos_t, eos_input_re
-  use eos_module, only : eos_on_host
+  use eos_module, only : eos
   use meth_params_module, only : T_guess
 
   implicit none
@@ -17,8 +17,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   real(rt) :: xn(nspec)
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! compute T_in from the input data
   xn(:) = 0.0_rt
   xn(1) = 1.0_rt
@@ -28,7 +26,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   eos_state % T = T_guess
   eos_state % xn(:) = xn(:)
 
-  call eos_on_host(eos_input_re, eos_state)
+  call eos(eos_input_re, eos_state)
 
   T_in = eos_state % T
 

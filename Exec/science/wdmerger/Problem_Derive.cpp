@@ -1,312 +1,654 @@
-#include "AMReX_REAL.H"
+#include <AMReX_REAL.H>
 
-#include "Derive.H"
-#include "Problem_Derive_F.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Derive.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <fundamental_constants.H>
+#include <prob_parameters.H>
+#include <wdmerger_util.H>
+#include <wdmerger_data.H>
+#ifdef ROTATION
+#include <Castro_rotation_F.H>
+#endif
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                             const FArrayBox& datfab, const Geometry& geomdata,
+                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
+    // Derive momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
 #endif
 
-    // Note that in the following routines, we are NOT passing
-    // several variables to Fortran that would be unused.
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
 
-    // These routines are called in an MFIter loop, so we do not
-    // need to explicitly synchronize after GPU kernels.
-
-    void ca_derinertialmomentumx(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec, 
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialmomentumx(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                             data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                             AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                             AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialmomentumy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec, 
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialmomentumy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                             data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                             AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                             AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialmomentumz(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec, 
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialmomentumz(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                             data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                             AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                             AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                             AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialangmomx(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialangmomx(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialangmomy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialangmomy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialangmomz(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialangmomz(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialradmomx(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialradmomx(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialradmomy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialradmomy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derinertialradmomz(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                               const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                               const int* lo, const int* hi,
-                               const int* domain_lo, const int* domain_hi,
-                               const Real* dx, const Real* xlo,
-                               const Real* time, const Real* dt, const int* bcrec, 
-                               const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derinertialradmomz(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                           data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                           AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                           AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                           AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derphieff(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* dx, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derphieff(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derphieffpm_p(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                          const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                          const int* lo, const int* hi,
-                          const int* domain_lo, const int* domain_hi,
-                          const Real* dx, const Real* xlo,
-                          const Real* time, const Real* dt, const int* bcrec, 
-                          const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derphieffpm_p(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derphieffpm_s(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                          const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                          const int* lo, const int* hi,
-                          const int* domain_lo, const int* domain_hi,
-                          const Real* dx, const Real* xlo,
-                          const Real* time, const Real* dt, const int* bcrec, 
-                          const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derphieffpm_s(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-
-    void ca_derrhophiGrav(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                          const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                          const int* lo, const int* hi,
-                          const int* domain_lo, const int* domain_hi,
-                          const Real* dx, const Real* xlo,
-                          const Real* time, const Real* dt, const int* bcrec, 
-                          const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derrhophiGrav(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derrhophiRot(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                         const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                         const int* lo, const int* hi,
-                         const int* domain_lo, const int* domain_hi,
-                         const Real* dx, const Real* xlo,
-                         const Real* time, const Real* dt, const int* bcrec, 
-                         const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derrhophiRot(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                     data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                     AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                     AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                     AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_derprimarymask(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                           const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                           const int* lo, const int* hi,
-                           const int* domain_lo, const int* domain_hi,
-                           const Real* dx, const Real* xlo,
-                           const Real* time, const Real* dt, const int* bcrec, 
-                           const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derprimarymask(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                       data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                       AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                       AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                       AMREX_REAL_ANYD(dx), *time);
-
-    }
-
-    void ca_dersecondarymask(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                             const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                             const int* lo, const int* hi,
-                             const int* domain_lo, const int* domain_hi,
-                             const Real* dx, const Real* xlo,
-                             const Real* time, const Real* dt, const int* bcrec, 
-                             const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        dersecondarymask(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                         data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                         AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                         AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                         AMREX_REAL_ANYD(dx), *time);
-
-    }
-    
-#ifdef __cplusplus
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        der(i,j,k,0) = rho * inertial_vel[0];
+    });
 }
+
+void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                             const FArrayBox& datfab, const Geometry& geomdata,
+                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
 #endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        der(i,j,k,0) = rho * inertial_vel[1];
+    });
+}
+
+void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                             const FArrayBox& datfab, const Geometry& geomdata,
+                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        der(i,j,k,0) = rho * inertial_vel[2];
+    });
+}
+
+void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive angular momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+
+        GpuArray<Real, 3> angular_vel;
+        cross_product(loc, inertial_vel, angular_vel);
+
+        der(i,j,k,0) = rho * angular_vel[0];
+    });
+}
+
+void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive angular momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+
+        GpuArray<Real, 3> angular_vel;
+        cross_product(loc, inertial_vel, angular_vel);
+
+        der(i,j,k,0) = rho * angular_vel[1];
+    });
+}
+
+void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive angular momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real rho = dat(i,j,k,0);
+        GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+
+        GpuArray<Real, 3> angular_vel;
+        cross_product(loc, inertial_vel, angular_vel);
+
+        der(i,j,k,0) = rho * angular_vel[2];
+    });
+}
+
+void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive radial momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+
+        Real radInv = 1.0_rt / std::sqrt(loc[1] * loc[1] + loc[2] * loc[2]);
+
+        der(i,j,k,0) = loc[1] * radInv * inertial_mom[1] + loc[2] * radInv * inertial_mom[2];
+    });
+}
+
+void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive radial momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+
+        Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[2] * loc[2]);
+
+        der(i,j,k,0) = loc[0] * radInv * inertial_mom[0] + loc[2] * radInv * inertial_mom[2];
+    });
+}
+
+void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                           const FArrayBox& datfab, const Geometry& geomdata,
+                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive radial momentum, given the grid momenta.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    GpuArray<Real, 3> omega;
+    get_omega(omega.begin());
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+
+        Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]);
+
+        der(i,j,k,0) = loc[0] * radInv * inertial_mom[0] + loc[1] * radInv * inertial_mom[1];
+    });
+}
+
+void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& geomdata,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive the effective potential phiEff = phiGrav + phiRot
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        der(i,j,k,0) = dat(i,j,k,0) + dat(i,j,k,1);
+    });
+}
+
+void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& geomdata,
+                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Derive an approximation to the effective potential of the primary only,
+    // by treating it as a point-mass at its center of mass.
+    // The u array contains the rotational potential, so we only need to calculate
+    // the gravitational potential from the point-mass.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        der(i,j,k,0) = 0.0_rt;
+
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
+
+        if (problem::mass_P <= 0.0_rt) return;
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real r = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
+                           (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
+                           (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_P / r + dat(i,j,k,0);
+    });
+}
+
+void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& geomdata,
+                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Same as above, but for the secondary.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        der(i,j,k,0) = 0.0_rt;
+
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
+
+        if (problem::mass_S <= 0.0_rt) return;
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        Real r = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
+                           (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
+                           (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
+
+        der(i,j,k,0) = -C::Gconst * problem::mass_S / r + dat(i,j,k,0);
+    });
+}
+
+void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& geomdata,
+                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
+    });
+}
+
+void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& geomdata,
+                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
+    });
+}
+
+void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& geomdata,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Create a mask for all zones considered to be within the primary star.
+    // It uses the same prescription as above for the effective potential of the
+    // star, and uses the stellar density threshold input parameter to determine
+    // what parts of the domain should be considered stellar material.
+    // The convention will be that the mask is positive (1) for zones inside the
+    // star and negative (-1) for zones outside the star.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        // By default, assume we're not inside the star.
+
+        der(i,j,k,0) = -1.0_rt;
+
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
+
+        if (problem::mass_P <= 0.0_rt) return;
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        // Ignore zones whose density is too low.
+
+        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
+
+        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
+                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
+                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
+
+        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
+                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
+                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
+
+        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
+
+        if (phi_p < 0.0_rt && phi_p < phi_s) {
+            der(i,j,k,0) = 1.0_rt;
+        }
+    });
+}
+
+void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                         const FArrayBox& datfab, const Geometry& geomdata,
+                         Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+    // Same as above, but for the secondary.
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    const auto dx = geomdata.CellSizeArray();
+    const auto problo = geomdata.ProbLoArray();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        // By default, assume we're not inside the star.
+
+        der(i,j,k,0) = -1.0_rt;
+
+        // Don't do anything here if the star no longer exists,
+        // or if it never existed.
+
+        if (problem::mass_S <= 0.0_rt) return;
+
+        GpuArray<Real, 3> loc;
+        loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+
+#if AMREX_SPACEDIM >= 2
+        loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#else
+        loc[1] = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+        loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#else
+        loc[2] = 0.0_rt;
+#endif
+
+        // Ignore zones whose density is too low.
+
+        if (dat(i,j,k,0) < problem::stellar_density_threshold) return;
+
+        Real r_P = std::sqrt((loc[0] - problem::com_P[0]) * (loc[0] - problem::com_P[0]) +
+                             (loc[1] - problem::com_P[1]) * (loc[1] - problem::com_P[1]) +
+                             (loc[2] - problem::com_P[2]) * (loc[2] - problem::com_P[2]));
+
+        Real r_S = std::sqrt((loc[0] - problem::com_S[0]) * (loc[0] - problem::com_S[0]) +
+                             (loc[1] - problem::com_S[1]) * (loc[1] - problem::com_S[1]) +
+                             (loc[2] - problem::com_S[2]) * (loc[2] - problem::com_S[2]));
+
+        Real phi_p = -C::Gconst * problem::mass_P / r_P + dat(i,j,k,1);
+        Real phi_s = -C::Gconst * problem::mass_S / r_S + dat(i,j,k,1);
+
+        if (phi_s < 0.0_rt && phi_s < phi_p) {
+            der(i,j,k,0) = 1.0_rt;
+        }
+    });
+}

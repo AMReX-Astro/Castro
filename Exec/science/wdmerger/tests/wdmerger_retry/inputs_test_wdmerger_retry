@@ -46,9 +46,6 @@ max_step = 1
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
 
-# Level 0 timestep below which we halt
-castro.dt_cutoff = 1.0e-12
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -61,17 +58,11 @@ castro.init_shrink = 1.0
 # Factor by which dt is allowed to change each timestep
 castro.change_max = 1.05
 
-# Whether to abort a simulation if the CFL criterion is locally violated
-castro.hard_cfl_limit = 0
-
 # If we regrid on Level 0, compute a new timestep afterward
 amr.compute_new_dt_on_regrid = 1
 
 # Use a retry if an advance violated our stability criteria
 castro.use_retry = 1
-
-# Disable retries based on negative density resets
-castro.retry_neg_dens_factor = -1.0
 
 ############################################################################################ 
 # Resolution, gridding and AMR
@@ -162,9 +153,6 @@ castro.transverse_reset_rhoe = 1
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
 
-# Choose the method used on a negative density reset
-castro.density_reset_method = 2
-
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 0
 
@@ -173,7 +161,7 @@ castro.limit_fluxes_on_small_dens = 0
 ############################################################################################
 
 # Minimum allowable temperature (K)
-castro.small_temp = 1.0e7
+castro.small_temp = 1.0e5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
@@ -232,9 +220,6 @@ gravity.no_sync = 0
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
 
-# Time rate of change of the rotational period
-castro.rotational_dPdt = -0.0
-
 # Whether to evolve state variables in the inertial or rotating frame
 castro.state_in_rotating_frame = 1
 
@@ -254,9 +239,6 @@ DistributionMapping.efficiency = 0.9
 
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
-
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -328,7 +310,7 @@ amr.derive_plot_vars = pressure x_velocity y_velocity z_velocity soundspeed
 amr.small_plot_vars = density Temp
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
 
 # Used a forced fixed dt that is known to be larger
 # than the safe hydrodynamic timestep given the above

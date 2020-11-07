@@ -15,11 +15,16 @@
 #include <Gravity.H>
 #include <Gravity_F.H>
 
+#include <wdmerger_data.H>
+
 using amrex::Real;
 
 void
 Castro::sum_integrated_quantities ()
 {
+    using namespace wdmerger;
+    using namespace problem;
+
     if (level > 0) return;
 
     bool local_flag = true;
@@ -57,21 +62,16 @@ Castro::sum_integrated_quantities ()
 
     Real omega[3] = { 0.0 };
 
-    get_omega_vec(omega, time);
+    get_omega_vec(omega);
 
     // Mass transfer rate
 
-    Real mdot = 0.5 * (std::abs(mdot_p) + std::abs(mdot_s));
+    Real mdot = 0.5 * (std::abs(mdot_P) + std::abs(mdot_S));
 
     // Center of mass of the system.
 
     Real com[3]       = { 0.0 };
     Real com_vel[3]   = { 0.0 };
-
-    // Stellar masses.
-
-    Real mass_p       = 0.0;
-    Real mass_s       = 0.0;
 
     // Distance between the WDs.
 
@@ -83,28 +83,17 @@ Castro::sum_integrated_quantities ()
 
     // Stellar centers of mass and velocities.
 
-    Real com_p_mag = 0.0;
-    Real com_s_mag = 0.0;
+    Real com_P_mag = 0.0;
+    Real com_S_mag = 0.0;
 
-    Real com_p[3] = { 0.0 };
-    Real com_s[3] = { 0.0 };
+    Real vel_P_mag = 0.0;
+    Real vel_S_mag = 0.0;
 
-    Real vel_p_mag = 0.0;
-    Real vel_s_mag = 0.0;
+    Real vel_P_rad = 0.0;
+    Real vel_S_rad = 0.0;
 
-    Real vel_p[3] = { 0.0 };
-    Real vel_s[3] = { 0.0 };
-
-    Real vel_p_rad = 0.0;
-    Real vel_s_rad = 0.0;
-
-    Real vel_p_phi = 0.0;
-    Real vel_s_phi = 0.0;
-
-    // Gravitational free-fall timescale of the stars.
-    
-    Real t_ff_p = 0.0;
-    Real t_ff_s = 0.0;
+    Real vel_P_phi = 0.0;
+    Real vel_S_phi = 0.0;
 
     // Gravitational wave amplitudes.
     
@@ -145,7 +134,7 @@ Castro::sum_integrated_quantities ()
     // Determine the names of the species in the simulation.
 
     for (int i = 0; i < NumSpec; i++) {
-      species_names[i] = desc_lst[State_Type].name(FirstSpec+i);
+      species_names[i] = desc_lst[State_Type].name(UFS+i);
       species_names[i] = species_names[i].substr(4,std::string::npos);
       species_mass[i]  = 0.0;
     }
@@ -293,41 +282,39 @@ Castro::sum_integrated_quantities ()
 
     }
 
-    get_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
-
-    com_p_mag += std::pow( std::pow(com_p[0],2) + std::pow(com_p[1],2) + std::pow(com_p[2],2), 0.5 );
-    com_s_mag += std::pow( std::pow(com_s[0],2) + std::pow(com_s[1],2) + std::pow(com_s[2],2), 0.5 );
-    vel_p_mag += std::pow( std::pow(vel_p[0],2) + std::pow(vel_p[1],2) + std::pow(vel_p[2],2), 0.5 );
-    vel_s_mag += std::pow( std::pow(vel_s[0],2) + std::pow(vel_s[1],2) + std::pow(vel_s[2],2), 0.5 );
+    com_P_mag += std::pow( std::pow(com_P[0],2) + std::pow(com_P[1],2) + std::pow(com_P[2],2), 0.5 );
+    com_S_mag += std::pow( std::pow(com_S[0],2) + std::pow(com_S[1],2) + std::pow(com_S[2],2), 0.5 );
+    vel_P_mag += std::pow( std::pow(vel_P[0],2) + std::pow(vel_P[1],2) + std::pow(vel_P[2],2), 0.5 );
+    vel_S_mag += std::pow( std::pow(vel_S[0],2) + std::pow(vel_S[1],2) + std::pow(vel_S[2],2), 0.5 );
 
 #if (BL_SPACEDIM == 3)
-    if (mass_p > 0.0) {
-      vel_p_rad = (com_p[axis_1 - 1] / com_p_mag) * vel_p[axis_1 - 1] + (com_p[axis_2 - 1] / com_p_mag) * vel_p[axis_2 - 1];
-      vel_p_phi = (com_p[axis_1 - 1] / com_p_mag) * vel_p[axis_2 - 1] - (com_p[axis_2 - 1] / com_p_mag) * vel_p[axis_1 - 1];
+    if (mass_P > 0.0) {
+      vel_P_rad = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_1 - 1] + (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_2 - 1];
+      vel_P_phi = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_2 - 1] - (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_1 - 1];
     }
 
-    if (mass_s > 0.0) {
-      vel_s_rad = (com_s[axis_1 - 1] / com_s_mag) * vel_s[axis_1 - 1] + (com_s[axis_2 - 1] / com_s_mag) * vel_s[axis_2 - 1];
-      vel_s_phi = (com_s[axis_1 - 1] / com_s_mag) * vel_s[axis_2 - 1] - (com_s[axis_2 - 1] / com_s_mag) * vel_s[axis_1 - 1];
+    if (mass_S > 0.0) {
+      vel_S_rad = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_1 - 1] + (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_2 - 1];
+      vel_S_phi = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_2 - 1] - (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_1 - 1];
     }
 #else
-    if (mass_p > 0.0) {
-      vel_p_rad = vel_p[axis_1 - 1];
-      vel_p_phi = vel_p[axis_3 - 1];
+    if (mass_P > 0.0) {
+      vel_P_rad = vel_P[axis_1 - 1];
+      vel_P_phi = vel_P[axis_3 - 1];
     }
 
-    if (mass_s > 0.0) {
-      vel_s_rad = vel_s[axis_1 - 1];
-      vel_s_phi = vel_s[axis_3 - 1];
+    if (mass_S > 0.0) {
+      vel_S_rad = vel_S[axis_1 - 1];
+      vel_S_phi = vel_S[axis_3 - 1];
     }
 #endif
 
-    if (mass_p > 0.0 && mass_s > 0.0) {
+    if (mass_P > 0.0 && mass_S > 0.0) {
 
       // Calculate the distance between the primary and secondary.
 
       for ( int i = 0; i < 3; i++ )
-	wd_dist[i] = com_s[i] - com_p[i];
+	wd_dist[i] = com_S[i] - com_P[i];
 
       separation = norm(wd_dist);
 
@@ -350,6 +337,16 @@ Castro::sum_integrated_quantities ()
 
     if (time > 0.0)
         wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
+
+    // Calculate GPU memory consumption.
+
+#ifdef AMREX_USE_GPU
+    Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
+    ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
+
+    Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
+    ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
+#endif
 
     // Write data out to the log.
 
@@ -633,6 +630,10 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(fixwidth) << "                       DT"; ++n;
 	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
              header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
+#ifdef AMREX_USE_GPU
+             header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
+             header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
+#endif
 
 	     header << std::endl;
 
@@ -660,65 +661,10 @@ Castro::sum_integrated_quantities ()
 	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
 	   log << std::setw(intwidth)                                     << parent->finestLevel();
            log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
-
-	   log << std::endl;
-
-	 }
-
-      }
-
-      // Material lost through domain boundaries
-
-      if (parent->NumDataLogs() > 4) {
-
-	 std::ostream& log = parent->DataLog(4);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(datwidth) << "                MASS LOST"; ++n;
-	     header << std::setw(datwidth) << "                XMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                YMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                ZMOM LOST"; ++n;
-	     header << std::setw(datwidth) << "                EDEN LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. X LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. Y LOST"; ++n;
-	     header << std::setw(datwidth) << "         ANG. MOM. Z LOST"; ++n;
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-
-	   log << std::scientific;
-
-	   for (int i = 0; i < n_lost; i++)
-	     log << std::setw(datwidth) << std::setprecision(dataprecision) << material_lost_through_boundary_cumulative[i];
+#ifdef AMREX_USE_GPU
+           log << std::setw(datwidth)                                     << gpu_size_used_MB;
+           log << std::setw(datwidth)                                     << gpu_size_free_MB;
+#endif
 
 	   log << std::endl;
 
@@ -728,9 +674,9 @@ Castro::sum_integrated_quantities ()
 
       // Primary star
 
-      if (parent->NumDataLogs() > 5) {
+      if (parent->NumDataLogs() > 4) {
 
-	std::ostream& log = parent->DataLog(5);
+	std::ostream& log = parent->DataLog(4);
 
 	 if ( log.good() ) {
 
@@ -794,25 +740,25 @@ Castro::sum_integrated_quantities ()
 
 	   log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_p;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_p;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_P;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_P;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_p[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_rad;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P_phi;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_p[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_P[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_p;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_P;
 	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_p[i];
+	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_P[i];
 
 	   log << std::endl;
 
@@ -822,9 +768,9 @@ Castro::sum_integrated_quantities ()
 
       // Secondary star
 
-      if (parent->NumDataLogs() > 6) {
+      if (parent->NumDataLogs() > 5) {
 
-	std::ostream& log = parent->DataLog(6);
+	std::ostream& log = parent->DataLog(5);
 
 	 if ( log.good() ) {
 
@@ -888,25 +834,25 @@ Castro::sum_integrated_quantities ()
 
 	   log << std::scientific;
 
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_s;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_s;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mass_S;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot_S;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_s[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_mag;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_rad;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s_phi;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[0];
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[1];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_mag;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_rad;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S_phi;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[0];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[1];
 #if (BL_SPACEDIM == 3)
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_s[2];
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << vel_S[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_s;
+	   log << std::setw(datwidth) << std::setprecision(dataprecision) << t_ff_S;
 	   for (int i = 0; i <= 6; ++i)
-	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_s[i];
+	       log << std::setw(datwidth) << std::setprecision(dataprecision) << rad_S[i];
 
 	   log << std::endl;
 
@@ -916,9 +862,9 @@ Castro::sum_integrated_quantities ()
 
       // Extrema over time of various quantities
 
-      if (parent->NumDataLogs() > 7) {
+      if (parent->NumDataLogs() > 6) {
 
-	 std::ostream& log = parent->DataLog(7);
+	 std::ostream& log = parent->DataLog(6);
 
 	 if ( log.good() ) {
 
@@ -977,9 +923,9 @@ Castro::sum_integrated_quantities ()
 
       // Rotation period over time
 
-      if (parent->NumDataLogs() > 8) {
+      if (parent->NumDataLogs() > 7) {
 
-	 std::ostream& log = parent->DataLog(8);
+	 std::ostream& log = parent->DataLog(7);
 
 	 if ( log.good() ) {
 

@@ -2,68 +2,65 @@
 # accessing various state arrays.  We will keep them in the order that
 # they are specified here.
 
-#  descriptive-name     C++-name   Fortran-name  also-adds-to    count   if-def
+#  descriptive-name      name  also-adds-to                             count              if-def
 
 # the conserved variable state
-@set: conserved NVAR
-   density                Density      URHO      NSRC                                  1                 None
-   x-momentum             Xmom         UMX       NSRC                                  1                 None
-   y-momentum             Ymom         UMY       NSRC                                  1                 None
-   z-momentum             Zmom         UMZ       NSRC                                  1                 None
-   radial-momentum        Rmom         UMR       NSRC                                  1                 HYBRID_MOMENTUM
-   angular-momentum       Lmom         UML       NSRC                                  1                 HYBRID_MOMENTUM
-   perpendicular-momentum Pmom         UMP       NSRC                                  1                 HYBRID_MOMENTUM
-   energy-density         Eden         UEDEN     NSRC                                  1                 None
-   internal-energy        Eint         UEINT     NSRC                                  1                 None
-   temperature            Temp         UTEMP     NSRC                                  1                 None
-   advected               FirstAdv     UFA       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)     None
-   species                FirstSpec    UFS       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)   None
-   auxiliary              FirstAux     UFX       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)     None
-   shock                  Shock        USHK      None                                  1                 SHOCK_VAR
+@set: conserved NVAR NUM_STATE
+   density                URHO      NSRC                                  1                 None
+   x-momentum             UMX       NSRC                                  1                 None
+   y-momentum             UMY       NSRC                                  1                 None
+   z-momentum             UMZ       NSRC                                  1                 None
+   radial-momentum        UMR       NSRC                                  1                 HYBRID_MOMENTUM
+   angular-momentum       UML       NSRC                                  1                 HYBRID_MOMENTUM
+   perpendicular-momentum UMP       NSRC                                  1                 HYBRID_MOMENTUM
+   energy-density         UEDEN     NSRC                                  1                 None
+   internal-energy        UEINT     NSRC                                  1                 None
+   temperature            UTEMP     NSRC                                  1                 None
+   advected               UFA       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)     None
+   species                UFS       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)   None
+   auxiliary              UFX       (NSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)     None
+   shock                  USHK      None                                  1                 SHOCK_VAR
 
 
 # the primitive variable state
-@set: primitive NQ
-   density                QRHO         QRHO      NQSRC                                   1                 None
-   x-velocity             QU           QU        NQSRC                                   1                 None
-   y-velocity             QV           QV        NQSRC                                   1                 None
-   z-velocity             QW           QW        NQSRC                                   1                 None
-   gamma_e                QGAME        QGAME     NQSRC                                   1                 None
-   gamma_c                QGC          QGC       NQSRC                                   1                 None
-   pressure               QPRES        QPRES     NQSRC                                   1                 None
-   rho-e                  QREINT       QREINT    NQSRC                                   1                 None
-   B-x                    QMAGX        QMAGX     NQSRC                                   1                 MHD
-   B-y                    QMAGY        QMAGY     NQSRC                                   1                 MHD
-   B-z                    QMAGZ        QMAGZ     NQSRC                                   1                 MHD
-   temperature            QTEMP        QTEMP     NQSRC                                   1                 None
-   advected               QFA          QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
-   species                QFS          QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
-   auxiliary              QFX          QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
-   total-pressure         QPTOT        QPTOT     None                                    1                 RADIATION
-   total-reint            QREITOT      QREITOT   None                                    1                 RADIATION
-   radiation              QRAD         QRAD      None                                  (ngroups, NGROUPS)  RADIATION
+@set: primitive NQ NQ
+   density                QRHO      NQSRC                                   1                 None
+   x-velocity             QU        NQSRC                                   1                 None
+   y-velocity             QV        NQSRC                                   1                 None
+   z-velocity             QW        NQSRC                                   1                 None
+   gamma_c                QGC       NQSRC                                   1                 TRUE_SDC
+   pressure               QPRES     NQSRC                                   1                 None
+   rho-e                  QREINT    NQSRC                                   1                 None
+   B-x                    QMAGX     NQSRC                                   1                 MHD
+   B-y                    QMAGY     NQSRC                                   1                 MHD
+   B-z                    QMAGZ     NQSRC                                   1                 MHD
+   temperature            QTEMP     NQSRC                                   1                 None
+   advected               QFA       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nadv, NumAdv)      None
+   species                QFS       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (nspec, NumSpec)    None
+   auxiliary              QFX       (NQSRC, PRIM_SPECIES_HAVE_SOURCES)    (naux, NumAux)      None
+   total-pressure         QPTOT     None                                    1                 RADIATION
+   total-pressure         QPTOT     None                                    1                 MHD
+   total-reint            QREITOT   None                                    1                 RADIATION
+   radiation              QRAD      None                                  (ngroups, NGROUPS)  RADIATION
 
 
 # the auxiliary quantities
-@set: auxiliary NQAUX
-   gamma_c               None          QGAMC     None            1        None
-   sound-speed           None          QC        None            1        None
-   dpdr                  None          QDPDR     None            1        None
-   dpde                  None          QDPDE     None            1        None
-   gamma_c-gas           None          QGAMCG    None            1        RADIATION
-   sound-speed-gas       None          QCG       None            1        RADIATION
-   flux-limiter          None          QLAMS     None          ngroups    RADIATION
+@set: auxiliary NQAUX NQAUX
+   gamma_c                QGAMC     None            1                   None
+   sound-speed            QC        None            1                   None
+   gamma_c-gas            QGAMCG    None            1                   RADIATION
+   sound-speed-gas        QCG       None            1                   RADIATION
+   flux-limiter           QLAMS     None          (ngroups, NGROUPS)    RADIATION
 
 
 # godunov interface states
-@set: godunov NGDNV
-   density               GDRHO         GDRHO     None            1                   None
-   x-velocity            GDU           GDU       None            1                   None
-   y-velocity            GDV           GDV       None            1                   None
-   z-velocity            GDW           GDW       None            1                   None
-   pressure              GDPRES        GDPRES    None            1                   None
-   gamma_e               GDGAME        GDGAME    None            1                   None
-   flux-limiter          GDLAMS        GDLAMS    None          (ngroups, NGROUPS)    RADIATION
-   radiation             GDERADS       GDERADS   None          (ngroups, NGROUPS)    RADIATION
+@set: godunov NGDNV NGDNV
+   density                GDRHO     None            1                   None
+   x-velocity             GDU       None            1                   None
+   y-velocity             GDV       None            1                   None
+   z-velocity             GDW       None            1                   None
+   pressure               GDPRES    None            1                   None
+   flux-limiter           GDLAMS    None          (ngroups, NGROUPS)    RADIATION
+   radiation              GDERADS   None          (ngroups, NGROUPS)    RADIATION
 
 

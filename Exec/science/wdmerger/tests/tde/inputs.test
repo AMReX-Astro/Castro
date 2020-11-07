@@ -43,7 +43,7 @@ stop_time = 30.0
 castro.use_stopping_criterion = 1
 
 # Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
+
 
 # CFL number for hyperbolic system
 castro.cfl = 0.15
@@ -124,9 +124,6 @@ castro.small_temp = 1.e5
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
 
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
-
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -153,9 +150,6 @@ castro.point_mass_fix_solution = 1
 ############################################################################################
 # Diagnostics and I/O
 ############################################################################################
-
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -201,4 +195,4 @@ amr.plot_vars = ALL
 amr.derive_plot_vars = ALL
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out

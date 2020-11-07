@@ -50,9 +50,8 @@ castro.diffuse_cond_scale_fac = 10.0
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.use_retry      = 1
-castro.hard_cfl_limit = 0
 
 
 # DIAGNOSTICS & VERBOSITY

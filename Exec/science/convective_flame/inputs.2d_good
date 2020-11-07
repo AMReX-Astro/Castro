@@ -40,8 +40,6 @@ castro.use_flattening = 1
 
 castro.riemann_solver = 0
 
-castro.print_fortran_warnings = 1
-
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -4.2e7
 
@@ -53,9 +51,8 @@ castro.rotation_include_centrifugal = 0
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 1.e-15  # level 0 timestep below which we halt
+
 castro.use_retry      = 1       # retry subcycled times if we detect a CFL violation
-castro.hard_cfl_limit = 0
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass

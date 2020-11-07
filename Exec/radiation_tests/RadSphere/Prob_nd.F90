@@ -1,8 +1,6 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_probinit")
 
   use probdata_module
-  use eos_module
-  use eos_type_module, only : eos_t, eos_input_rt
   use network, only : nspec
   use castro_error_module
 
@@ -12,47 +10,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(C, name="amrex_pr
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  type(eos_t) :: eos_state
-
-  integer :: untin, i
-
-  namelist /fortin/ rho_0, T_0
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  rho_0 = 1.0             ! not used -- no hydro
-  T_0 = 5.797e5           ! 50 eV
-
-  !     Read namelists
-  open(newunit=untin,file=probin(1:namlen),form='formatted',status='old')
-  read(untin,fortin)
-  close(unit=untin)
-
-  eos_state % rho = rho_0
-  eos_state % T   = T_0
-  eos_state % xn  = 0.e0_rt
-  eos_state % xn(1) = 1.e0_rt
-
-  call eos_on_host(eos_input_rt, eos_state)
-
-  rhoe_0 = rho_0 * eos_state % e
-
-  !     domain extrema
-  xmin = problo(1)
-  xmax = probhi(1)
 
 end subroutine amrex_probinit
 
@@ -138,7 +95,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
   use rad_params_module, only : dnugroup, nugroup
   use fundamental_constants_module, only : hplanck, c_light, k_B
   use amrex_constants_module, only : ZERO, ONE, HALF, M_PI
-
+  use prob_params_module, only : problo
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
@@ -163,7 +120,7 @@ subroutine ca_initrad(level, time, lo, hi, nrad, &
      do j = lo(2), hi(2)
         do i = lo(1), hi(1)
 
-           xcen = xmin + delta(1)*(float(i) + HALF)
+           xcen = problo(1) + delta(1)*(float(i) + HALF)
 
            do igroup=0,nrad-1
               nu = nugroup(igroup)

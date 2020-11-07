@@ -85,7 +85,7 @@ contains
        ! initial guess
        temp(j) = T_guess
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -116,7 +116,7 @@ contains
        ! initial guess
        temp(j) = T_guess
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -414,7 +414,7 @@ contains
 
     do j = 0, npts_1d+4
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -427,7 +427,7 @@ contains
 
     do j=-1,-5,-1
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -550,78 +550,5 @@ contains
 #endif
 
   end subroutine ext_denfill
-
-#ifdef GRAVITY
-  subroutine ext_gravxfill(lo, hi, grav, grav_lo, grav_hi, &
-                           domlo, domhi, delta, xlo, time, bc) &
-                           bind(C, name="ext_gravxfill")
-
-    use prob_params_module, only: problo
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-    real(rt), intent(in   ), value :: time
-
-
-    !$gpu
-
-    ! this is currently a stub
-
-  end subroutine ext_gravxfill
-
-
-  subroutine ext_gravyfill(lo, hi, grav, grav_lo, grav_hi, &
-                           domlo, domhi, delta, xlo, time, bc) &
-                           bind(C, name="ext_gravyfill")
-
-    use prob_params_module, only: problo
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-    real(rt), intent(in   ), value :: time
-
-
-    !$gpu
-
-    ! this is currently a stub
-
-  end subroutine ext_gravyfill
-
-
-  subroutine ext_gravzfill(lo, hi, grav, grav_lo, grav_hi, &
-                           domlo, domhi, delta, xlo, time, bc) &
-                           bind(C, name="ext_gravzfill")
-
-    use prob_params_module, only: problo
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: grav_lo(3), grav_hi(3)
-    integer,  intent(in   ) :: bc(dim,2)
-    integer,  intent(in   ) :: domlo(3), domhi(3)
-    real(rt), intent(in   ) :: delta(3), xlo(3)
-    real(rt), intent(inout) :: grav(grav_lo(1):grav_hi(1),grav_lo(2):grav_hi(2),grav_lo(3):grav_hi(3))
-    real(rt), intent(in   ), value :: time
-
-
-    !$gpu
-
-    ! this is currently a stub
-
-  end subroutine ext_gravzfill
-#endif
 
 end module bc_ext_fill_module

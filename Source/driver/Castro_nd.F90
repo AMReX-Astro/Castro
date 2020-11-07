@@ -1,55 +1,3 @@
-
-
-subroutine ca_network_init() bind(C, name="ca_network_init")
-    !
-    ! Binds to C function `ca_network_init`
-    !
-
-  use network, only: network_init
-#ifdef REACTIONS
-  use actual_rhs_module, only: actual_rhs_init
-#endif
-
-  call network_init()
-
-#ifdef REACTIONS
-  call actual_rhs_init()
-#endif
-
-end subroutine ca_network_init
-
-
-subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
-    !
-    ! Binds to C function `ca_network_finalize`
-    !
-
-  use network, only: network_finalize
-
-  call network_finalize()
-
-end subroutine ca_network_finalize
-
-
-
-subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
-    !
-    ! Binds to C function `ca_eos_finalize`
-    !
-
-  use eos_module, only: eos_finalize
-
-  call eos_finalize()
-
-end subroutine ca_eos_finalize
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
 subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
     ! initialize the external runtime parameters in
     ! extern_probin_module
@@ -71,221 +19,38 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
 
-subroutine ca_get_num_spec(nspec_out) bind(C, name="ca_get_num_spec")
-    !
-    ! Binds to C function `ca_get_num_spec`
+  use microphysics_module
+  use meth_params_module, only: small_dens, small_temp
+  implicit none
 
-  use network, only: nspec
-  use amrex_fort_module, only: rt => amrex_real
+  call microphysics_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
+
+end subroutine ca_microphysics_init
+
+
+
+#ifdef REACTIONS
+subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abort_on_failure")
+
+  use extern_probin_module, only : abort_on_failure
 
   implicit none
 
-  integer, intent(out) :: nspec_out
+  integer, intent(inout) :: abort_on_failure_in
 
-  nspec_out = nspec
+  if (abort_on_failure_in >= 1) then
+     abort_on_failure = .true.
+  else
+     abort_on_failure = .false.
+  endif
 
-end subroutine ca_get_num_spec
+end subroutine ca_set_abort_on_failure
+#endif
 
-
-
-subroutine ca_get_num_aux(naux_out) bind(C, name="ca_get_num_aux")
-    !
-    ! Binds to C function `ca_get_num_aux`
-
-  use network, only: naux
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: naux_out
-
-  naux_out = naux
-
-end subroutine ca_get_num_aux
-
-
-
-subroutine ca_get_num_adv(nadv_out) bind(C, name="ca_get_num_adv")
-    !
-    ! Binds to C function `ca_get_num_adv`
-
-  use meth_params_module, only: nadv
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: nadv_out
-
-  nadv_out = nadv
-
-end subroutine ca_get_num_adv
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine ca_get_spec_names(spec_names,ispec,len) &
-     bind(C, name="ca_get_spec_names")
-     ! Binds to C function `ca_get_spec_names`
-
-  use network, only: nspec, short_spec_names
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in   ) :: ispec
-  integer, intent(inout) :: len
-  integer, intent(inout) :: spec_names(len)
-
-  ! Local variables
-  integer   :: i
-
-  len = len_trim(short_spec_names(ispec+1))
-
-  do i = 1,len
-     spec_names(i) = ichar(short_spec_names(ispec+1)(i:i))
-  end do
-
-end subroutine ca_get_spec_names
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_spec_az(ispec,A,Z) bind(C, name="ca_get_spec_az")
-    !
-    ! Binds to C function `ca_get_spec_az`
-
-  use network, only: nspec, aion, zion
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in   ) :: ispec
-  real(rt), intent(inout) :: A, Z
-
-  ! C++ is 0-based indexing, so increment
-  A = aion(ispec+1)
-  Z = zion(ispec+1)
-
-end subroutine ca_get_spec_az
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_aux_names(aux_names,iaux,len) &
-     bind(C, name="ca_get_aux_names")
-     !
-     ! Binds to C function `ca_get_aux_names`
-
-  use network, only: naux, short_aux_names
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in   ) :: iaux
-  integer, intent(inout) :: len
-  integer, intent(inout) :: aux_names(len)
-
-  ! Local variables
-  integer   :: i
-
-  len = len_trim(short_aux_names(iaux+1))
-
-  do i = 1,len
-     aux_names(i) = ichar(short_aux_names(iaux+1)(i:i))
-  end do
-
-end subroutine ca_get_aux_names
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_nqsrc(nqsrc_in) bind(C, name="ca_get_nqsrc")
-    !
-    ! Binds to C function `ca_get_nqsrc`
-
-  use meth_params_module, only: NQSRC
-
-  implicit none
-
-  integer, intent(inout) :: nqsrc_in
-
-  nqsrc_in = NQSRC
-
-end subroutine ca_get_nqsrc
-
-
-subroutine ca_get_nsrc(nsrc_in) bind(C, name="ca_get_nsrc")
-    !
-    ! Binds to C function `ca_get_nsrc`
-
-  use meth_params_module, only: NSRC
-
-  implicit none
-
-  integer, intent(inout) :: nsrc_in
-
-  nsrc_in = NSRC
-
-end subroutine ca_get_nsrc
-
-
-
-subroutine ca_get_nq(nq_in) bind(C, name="ca_get_nq")
-    !
-    ! Binds to C function `ca_get_nq`
-
-  use meth_params_module, only: NQ
-
-  implicit none
-
-  integer, intent(inout) :: nq_in
-
-  nq_in = NQ
-
-end subroutine ca_get_nq
-
-
-
-subroutine ca_get_nqaux(nqaux_in) bind(C, name="ca_get_nqaux")
-    !
-    ! Binds to C function `ca_get_nqaux`
-
-  use meth_params_module, only: NQAUX
-
-  implicit none
-
-  integer, intent(inout) :: nqaux_in
-
-  nqaux_in = NQAUX
-
-end subroutine ca_get_nqaux
-
-
-subroutine ca_get_ngdnv(ngdnv_in) bind(C, name="ca_get_ngdnv")
-    !
-    ! Binds to C function `ca_get_ngdnv`
-
-  use meth_params_module, only: NGDNV
-
-  implicit none
-
-  integer, intent(inout) :: ngdnv_in
-
-  ngdnv_in = NGDNV
-
-end subroutine ca_get_ngdnv
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -377,27 +142,6 @@ subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
 
 end subroutine ca_set_amr_info
 
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_get_method_params(nGrowHyp) bind(C, name="ca_get_method_params")
-    ! Passing data from f90 back to C++
-    !
-    ! Binds to C function `ca_get_method_params`
-
-  use meth_params_module, only: NHYP
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(out) :: ngrowHyp
-
-  nGrowHyp = NHYP
-
-end subroutine ca_get_method_params
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -533,147 +277,20 @@ end subroutine swap_outflow_data
 ! ::: ----------------------------------------------------------------
 ! :::
 
-subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
-#ifdef HYBRID_MOMENTUM
-     Rmom_in, &
-#endif
-     Eden_in, Eint_in, Temp_in, &
-     FirstAdv_in, FirstSpec_in, FirstAux_in, &
-#ifdef SHOCK_VAR
-     Shock_in, &
-#endif
-#ifdef MHD
-     QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-     QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-     QRHO_in, &
-     QU_in, QV_in, QW_in, &
-     QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-     QTEMP_in, &
-     QFA_in, QFS_in, QFX_in, &
-#ifdef RADIATION
-     GDLAMS_in, GDERADS_in, &
-#endif
-     GDRHO_in, GDU_in, GDV_in, GDW_in, &
-     GDPRES_in, GDGAME_in) &
-     bind(C, name="ca_set_method_params")
+subroutine ca_set_method_params(dm) &
+                                bind(C, name="ca_set_method_params")
 
   use meth_params_module
   use network, only : nspec, naux
-  use eos_module, only: eos_init
-  use eos_type_module, only: eos_get_small_dens, eos_get_small_temp
   use amrex_constants_module, only : ZERO, ONE
   use amrex_fort_module, only: rt => amrex_real
-#ifdef RADIATION
-  use state_sizes_module, only : ngroups
-#endif
+
   implicit none
 
   integer, intent(in) :: dm
-  integer, intent(in) :: Density_in, Xmom_in, Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in
-#ifdef SHOCK_VAR
-  integer, intent(in) :: Shock_in
-#endif
-#ifdef MHD
-  integer, intent(in) :: QMAGX_in, QMAGY_in, QMAGZ_in
-#endif
-#ifdef RADIATION
-  integer, intent(in) :: QPTOT_in, QREITOT_in, QRAD_in
-#endif
-  integer, intent(in) :: QRHO_in
-  integer, intent(in) :: QU_in, QV_in, QW_in
-  integer, intent(in) :: QGAME_in, QGC_in, QPRES_in, QREINT_in
-  integer, intent(in) :: QTEMP_in
-  integer, intent(in) :: QFA_in, QFS_in, QFX_in
-#ifdef HYBRID_MOMENTUM
-  integer, intent(in) :: Rmom_in
-#endif
-  integer, intent(in) :: GDRHO_in, GDU_in, GDV_in, GDW_in
-  integer, intent(in) :: GDPRES_in, GDGAME_in
-#ifdef RADIATION
-  integer, intent(in) :: GDLAMS_in, GDERADS_in
-#endif
-
-  integer :: iadv, ispec
 
   integer :: ioproc
 
-
-  !---------------------------------------------------------------------
-  ! set integer keys to index states
-  !---------------------------------------------------------------------
-  call ca_set_godunov_indices( &
-#ifdef RADIATION
-       GDLAMS_in, GDERADS_in, &
-#endif
-       GDRHO_in, GDU_in, GDV_in, GDW_in, &
-       GDPRES_in, GDGAME_in)
-
-  call ca_set_conserved_indices( &
-#ifdef HYBRID_MOMENTUM
-       Rmom_in, Rmom_in+1, Rmom_in+2, &
-#endif
-#ifdef SHOCK_VAR
-       Shock_in, &
-#endif
-       Density_in ,Xmom_in, Xmom_in+1, Xmom_in+2, &
-       Eden_in, Eint_in, Temp_in, &
-       FirstAdv_in, FirstSpec_in, FirstAux_in &
-       )
-
-  call ca_set_auxiliary_indices()
-
-  call ca_set_primitive_indices( &
-#ifdef MHD
-       QMAGX_in, QMAGY_in, QMAGZ_in, &
-#endif
-#ifdef RADIATION
-       QPTOT_in, QREITOT_in, QRAD_in, &
-#endif
-       QRHO_in, &
-       QU_in, QV_in, QW_in, &
-       QGAME_in, QGC_in, QPRES_in, QREINT_in, &
-       QTEMP_in, &
-       QFA_in, QFS_in, QFX_in)
-
-  ! sanity check
-#ifndef AMREX_USE_CUDA
-  if ((QU /= GDU) .or. (QV /= GDV) .or. (QW /= GDW)) then
-     call castro_error("ERROR: velocity components for godunov and primitive state are not aligned")
-  endif
-#endif
-
-  ! easy indexing for the passively advected quantities.  This lets us
-  ! loop over all groups (advected, species, aux) in a single loop.
-  ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(nadv + nspec + naux))
-  allocate(upass_map(nadv + nspec + naux))
-
-  ! Transverse velocities
-
-  npassive = 0
-
-  do iadv = 1, nadv
-     upass_map(npassive + iadv) = UFA + iadv - 1
-     qpass_map(npassive + iadv) = QFA + iadv - 1
-  enddo
-  npassive = npassive + nadv
-
-  if (QFS > -1) then
-     do ispec = 1, nspec+naux
-        upass_map(npassive + ispec) = UFS + ispec - 1
-        qpass_map(npassive + ispec) = QFS + ispec - 1
-     enddo
-     npassive = npassive + nspec + naux
-  endif
-
-
-#ifdef RADIATION
-  QRADHI = QRAD + ngroups - 1
-#endif
 
   !---------------------------------------------------------------------
   ! other initializations
@@ -715,24 +332,7 @@ subroutine ca_set_method_params(dm, Density_in, Xmom_in, &
      small_ener = 1.e-200_rt
   endif
 
-  ! Note that the EOS may modify our choices because of its
-  ! internal limitations, so the small_dens and small_temp
-  ! may be modified coming back out of this routine.
-
-  call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-  ! Update device variables
-
-  !$acc update &
-  !$acc device(URHO, UMX, UMY, UMZ, UMR, UML, UMP, UEDEN, UEINT, UTEMP, UFA, UFS, UFX) &
-  !$acc device(USHK) &
-  !$acc device(QRHO, QU, QV, QW, QPRES, QREINT, QTEMP, QGAME, QGC) &
-  !$acc device(QFA, QFS, QFX) &
-  !$acc device(NQAUX, NQSRC, QGAMC, QC, QDPDR, QDPDE) &
-#ifdef RADIATION
-  !$acc device(QGAMCG, QCG, QLAMS) &
-#endif
-  !$acc device(small_dens, small_temp)
+  !$acc update device(small_dens, small_temp, small_pres, small_ener)
 
 end subroutine ca_set_method_params
 
@@ -747,7 +347,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      Interior_in, Inflow_in, Outflow_in, &
      Symmetry_in, SlipWall_in, NoSlipWall_in, &
      coord_type_in, &
-     problo_in, probhi_in, center_in) &
+     problo_in, probhi_in) &
      bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
@@ -768,7 +368,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer,  intent(in) :: coord_type_in
-  real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+  real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
   allocate(dim)
 
@@ -791,7 +391,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(NoSlipWall)
 
   allocate(coord_type)
-  allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
 
@@ -806,11 +405,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   problo = ZERO
   probhi = ZERO
-  center = ZERO
 
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
-  center(1:dm) = center_in(1:dm)
 
   allocate(dg(3))
 
@@ -830,32 +427,15 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
-  allocate(mom_flux_has_p(3))
 
-  ! sanity check on our allocations
-#ifndef AMREX_USE_CUDA
-  if (UMZ > MAX_MOM_INDEX) then
-     call castro_error("ERROR: not enough space in comp in mom_flux_has_p")
-  endif
-#endif
-
-  ! keep track of which components of the momentum flux have pressure
-  if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
-     mom_flux_has_p(1)%comp(UMX) = .false.
-  else
-     mom_flux_has_p(1)%comp(UMX) = .true.
-  endif
-  mom_flux_has_p(1)%comp(UMY) = .false.
-  mom_flux_has_p(1)%comp(UMZ) = .false.
-
-  mom_flux_has_p(2)%comp(UMX) = .false.
-  mom_flux_has_p(2)%comp(UMY) = .true.
-  mom_flux_has_p(2)%comp(UMZ) = .false.
-
-  mom_flux_has_p(3)%comp(UMX) = .false.
-  mom_flux_has_p(3)%comp(UMY) = .false.
-  mom_flux_has_p(3)%comp(UMZ) = .true.
-
+  !$acc update device(physbc_lo, physbc_hi)
+  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
+  !$acc update device(dim)
+  !$acc update device(dg)
+  !$acc update device(coord_type)
+  !$acc update device(problo, probhi)
+  !$acc update device(domlo_level, domhi_level, dx_level)
+  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
 
 end subroutine ca_set_problem_params
 
@@ -1095,7 +675,7 @@ end subroutine ca_get_tagging_params
 
 
 
-subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params")
+subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_params")
     ! Initialize the sponge parameters
     !
     ! Binds to C function `ca_get_sponge_params`
@@ -1160,8 +740,7 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   end do
 
   ! read in the namelist
-  un = 9
-  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+  open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
   read (unit=un, nml=sponge, iostat=status)
 
   if (status < 0) then
@@ -1193,8 +772,48 @@ subroutine ca_get_sponge_params(name, namlen) bind(C, name="ca_get_sponge_params
   endif
 #endif
 
-end subroutine ca_get_sponge_params
+end subroutine ca_read_sponge_params
 
+
+subroutine ca_get_sponge_params(sponge_lower_factor_in, sponge_upper_factor_in, &
+                                sponge_lower_radius_in, sponge_upper_radius_in, &
+                                sponge_lower_density_in, sponge_upper_density_in, &
+                                sponge_lower_pressure_in, sponge_upper_pressure_in, &
+                                sponge_target_velocity_in, &
+                                sponge_timescale_in) bind(C, name="ca_get_sponge_params")
+
+  use sponge_module
+
+  implicit none
+
+  real(rt), intent(inout) :: sponge_lower_factor_in
+  real(rt), intent(inout) :: sponge_upper_factor_in
+  real(rt), intent(inout) :: sponge_lower_radius_in
+  real(rt), intent(inout) :: sponge_upper_radius_in
+  real(rt), intent(inout) :: sponge_lower_density_in
+  real(rt), intent(inout) :: sponge_upper_density_in
+  real(rt), intent(inout) :: sponge_lower_pressure_in
+  real(rt), intent(inout) :: sponge_upper_pressure_in
+  real(rt), intent(inout) :: sponge_target_velocity_in(3)
+  real(rt), intent(inout) :: sponge_timescale_in
+
+  sponge_lower_factor_in = sponge_lower_factor
+  sponge_upper_factor_in = sponge_upper_factor
+
+  sponge_lower_radius_in = sponge_lower_radius
+  sponge_upper_radius_in = sponge_upper_radius
+
+  sponge_lower_density_in = sponge_lower_density
+  sponge_upper_density_in = sponge_upper_density
+
+  sponge_lower_pressure_in = sponge_lower_pressure
+  sponge_upper_pressure_in = sponge_upper_pressure
+
+  sponge_target_velocity_in(:) = sponge_target_velocity(:)
+
+  sponge_timescale_in = sponge_timescale
+
+end subroutine ca_get_sponge_params
 
 
 subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
@@ -1232,6 +851,96 @@ subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_para
 
 end subroutine ca_deallocate_sponge_params
 #endif
+
+subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_params")
+    ! Initialize the ambient parameters
+
+  use ambient_module, only: ambient_state
+  use amrex_error_module, only: amrex_error
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR, URHO, UMX, UMZ, UTEMP, UEINT, UEDEN, UFS, &
+                                small_dens, small_temp, small_ener
+  use amrex_constants_module, only: ZERO
+  use actual_network, only: nspec
+
+  implicit none
+
+  integer, intent(in) :: namlen
+  integer, intent(in) :: name(namlen)
+
+  integer :: un, i, status
+
+  integer, parameter :: maxlen = 256
+  character (len=maxlen) :: probin
+
+  real(rt) :: ambient_density, ambient_temp, ambient_energy
+
+  namelist /ambient/ ambient_density, ambient_temp, ambient_energy
+
+  ! Set namelist defaults
+
+  ambient_density = small_dens
+  ambient_temp    = small_temp
+  ambient_energy  = small_ener
+
+  ! create the filename
+  if (namlen > maxlen) then
+     call amrex_error('probin file name too long')
+  endif
+
+  do i = 1, namlen
+     probin(i:i) = char(name(i))
+  end do
+
+  ! read in the namelist
+  un = 9
+  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
+  read (unit=un, nml=ambient, iostat=status)
+
+  if (status < 0) then
+     ! the namelist does not exist, so we just go with the defaults
+     continue
+
+  else if (status > 0) then
+     ! some problem in the namelist
+     call amrex_error('ERROR: problem in the ambient namelist')
+  endif
+
+  close (unit=un)
+
+  allocate(ambient_state(NVAR))
+
+  ! Set some initial data in the state for safety, though the
+  ! intent is that any problems using this may override these.
+
+  ambient_state(:) = ZERO
+
+  ambient_state(URHO)    = ambient_density
+  ambient_state(UMX:UMZ) = ZERO
+  ambient_state(UTEMP)   = ambient_temp
+  ambient_state(UEINT)   = ambient_density * ambient_energy
+  ambient_state(UEDEN)   = ambient_density * ambient_energy
+  ambient_state(UFS:UFS+nspec-1) = ambient_density * (1.0e0_rt / nspec)
+
+end subroutine ca_get_ambient_params
+
+
+
+subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR
+  use ambient_module, only: ambient_state
+
+  implicit none
+
+  real(rt), intent(out) :: ambient_state_out(NVAR)
+
+  ambient_state_out(:) = ambient_state(:)
+
+end subroutine get_ambient_data
+
+
 
 #ifdef GRAVITY
 

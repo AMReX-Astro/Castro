@@ -21,7 +21,6 @@ castro.hi_bc       =  2   2   2
 castro.do_hydro = 1
 castro.do_grav  = 1
 castro.ppm_type = 0
-castro.allow_small_energy = 0
 
 castro.small_dens = 1.0e-2
 castro.small_temp = 1.0e0
@@ -31,7 +30,6 @@ gravity.gravity_type = PoissonGrav # Full self-gravity with the Poisson equation
 gravity.max_multipole_order = 2    # Multipole expansion includes terms up to r**(-max_multipole_order)
 
 # TIME STEP CONTROL
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps

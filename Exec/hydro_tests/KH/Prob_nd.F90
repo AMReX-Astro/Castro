@@ -13,9 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
    integer, intent(in) :: name(namlen)
    real(rt), intent(in) :: problo(3), probhi(3)
 
-
-   call probdata_init(name, namlen)
-
    ! Force a different pressure choice for problem 5
 
    if (problem .eq. 5) then

@@ -1,8 +1,8 @@
 /* Implementations of functions in Problem.H go here */
 
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Problem_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Problem_F.H>
 
 using namespace amrex;
 
@@ -44,7 +44,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
     const Real* dx = geom.CellSize();
 
-    auto mf = derive("omegadot_fuel",time,0);
+    auto mf = derive("rho_omegadot_fuel",time,0);
 
     BL_ASSERT(mf);
 

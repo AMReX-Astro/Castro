@@ -4,46 +4,46 @@
     // Momemtum
     //
     derive_lst.add("inertial_momentum_x",IndexType::TheCellType(),1,ca_derinertialmomentumx,the_same_box);
-    derive_lst.addComponent("inertial_momentum_x",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_momentum_x",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_momentum_x",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_momentum_x",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_momentum_y",IndexType::TheCellType(),1,ca_derinertialmomentumy,the_same_box);
-    derive_lst.addComponent("inertial_momentum_y",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_momentum_y",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_momentum_y",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_momentum_y",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_momentum_z",IndexType::TheCellType(),1,ca_derinertialmomentumz,the_same_box);
-    derive_lst.addComponent("inertial_momentum_z",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_momentum_z",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_momentum_z",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_momentum_z",desc_lst,State_Type,UMX,3);
 
     //
     // Angular momentum
     //
     derive_lst.add("inertial_angular_momentum_x",IndexType::TheCellType(),1,ca_derinertialangmomx,the_same_box);
-    derive_lst.addComponent("inertial_angular_momentum_x",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_angular_momentum_x",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_angular_momentum_x",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_angular_momentum_x",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_angular_momentum_y",IndexType::TheCellType(),1,ca_derinertialangmomy,the_same_box);
-    derive_lst.addComponent("inertial_angular_momentum_y",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_angular_momentum_y",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_angular_momentum_y",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_angular_momentum_y",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_angular_momentum_z",IndexType::TheCellType(),1,ca_derinertialangmomz,the_same_box);
-    derive_lst.addComponent("inertial_angular_momentum_z",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_angular_momentum_z",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_angular_momentum_z",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_angular_momentum_z",desc_lst,State_Type,UMX,3);
 
     //
     // Radial momentum
     //
     derive_lst.add("inertial_radial_momentum_x",IndexType::TheCellType(),1,ca_derinertialradmomx,the_same_box);
-    derive_lst.addComponent("inertial_radial_momentum_x",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_radial_momentum_x",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_radial_momentum_x",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_radial_momentum_x",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_radial_momentum_y",IndexType::TheCellType(),1,ca_derinertialradmomy,the_same_box);
-    derive_lst.addComponent("inertial_radial_momentum_y",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_radial_momentum_y",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_radial_momentum_y",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_radial_momentum_y",desc_lst,State_Type,UMX,3);
 
     derive_lst.add("inertial_radial_momentum_z",IndexType::TheCellType(),1,ca_derinertialradmomz,the_same_box);
-    derive_lst.addComponent("inertial_radial_momentum_z",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("inertial_radial_momentum_z",desc_lst,State_Type,Xmom,3);
+    derive_lst.addComponent("inertial_radial_momentum_z",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("inertial_radial_momentum_z",desc_lst,State_Type,UMX,3);
 #endif
 
 #ifdef GRAVITY
@@ -74,7 +74,7 @@
     // rho * phi
     //
     derive_lst.add("rho_phiGrav",IndexType::TheCellType(),1,ca_derrhophiGrav,the_same_box);
-    derive_lst.addComponent("rho_phiGrav",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("rho_phiGrav",desc_lst,State_Type,URHO,1);
     derive_lst.addComponent("rho_phiGrav",desc_lst,PhiGrav_Type,0,1);
 #endif
 
@@ -83,8 +83,8 @@
     // rho * phi
     //
     derive_lst.add("rho_phiRot",IndexType::TheCellType(),1,ca_derrhophiRot,the_same_box);
-    derive_lst.addComponent("rho_phiRot",desc_lst,State_Type,Density,1);
-    derive_lst.addComponent("rho_phiRot",desc_lst,Rotation_Type,0,1);
+    derive_lst.addComponent("rho_phiRot",desc_lst,State_Type,URHO,1);
+    derive_lst.addComponent("rho_phiRot",desc_lst,PhiRot_Type,0,1);
 #endif
 
 #ifdef GRAVITY
@@ -93,7 +93,7 @@
     // Mask determining which zones are inside the primary
     //
     derive_lst.add("primarymask",IndexType::TheCellType(),1,ca_derprimarymask,the_same_box);
-    derive_lst.addComponent("primarymask",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("primarymask",desc_lst,State_Type,URHO,1);
     derive_lst.addComponent("primarymask",desc_lst,PhiRot_Type,0,1);
 
 
@@ -101,7 +101,7 @@
     // Mask determining which zones are inside the secondary
     //
     derive_lst.add("secondarymask",IndexType::TheCellType(),1,ca_dersecondarymask,the_same_box);
-    derive_lst.addComponent("secondarymask",desc_lst,State_Type,Density,1);
+    derive_lst.addComponent("secondarymask",desc_lst,State_Type,URHO,1);
     derive_lst.addComponent("secondarymask",desc_lst,PhiRot_Type,0,1);
 #endif
 #endif

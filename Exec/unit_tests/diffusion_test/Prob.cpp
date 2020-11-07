@@ -1,8 +1,8 @@
 /* Implementations of functions in Problem.H go here */
 
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Problem_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Problem_F.H>
 
 using namespace amrex;
 
@@ -46,7 +46,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 #endif
 
     // compute the norm of the error
-    MultiFab::Subtract(*analytic, S, Temp, 0, 1, 0);
+    MultiFab::Subtract(*analytic, S, UTEMP, 0, 1, 0);
 
     err = std::max(err, analytic->norm0());
     

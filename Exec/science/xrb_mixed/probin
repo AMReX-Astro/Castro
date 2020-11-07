@@ -8,8 +8,6 @@
  velpert_amplitude = 1.d5
  num_vortices = 16
 
- interp_BC = F
-
 /
 
 &sponge
@@ -21,8 +19,6 @@
 /
 
 &extern
-
-  burning_mode = 1
 
   jacobian = 1
   do_constant_volume_burn = F

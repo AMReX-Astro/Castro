@@ -5,12 +5,12 @@ CEXE_sources += HypreExtMultiABec.cpp
 CEXE_sources += HypreMultiABec.cpp
 CEXE_sources += HypreABec.cpp
 CEXE_sources += Radiation.cpp
+CEXE_sources += radiation_params.cpp
 CEXE_sources += RadSolve.cpp
 CEXE_sources += RadBndry.cpp
 CEXE_sources += RadMultiGroup.cpp
 CEXE_sources += MGRadBndry.cpp
 CEXE_sources += SGRadSolver.cpp
-CEXE_sources += SGFLD.cpp
 CEXE_sources += RadPlotvar.cpp
 CEXE_sources += MGFLD.cpp
 CEXE_sources += MGFLDRadSolver.cpp
@@ -25,38 +25,33 @@ CEXE_headers += RadSolve.H
 CEXE_headers += RadBndry.H
 CEXE_headers += RadTypes.H
 CEXE_headers += MGRadBndry.H
-CEXE_headers += RadTests.H
 
 FEXE_headers += RAD_F.H
 FEXE_headers += HABEC_F.H
 
-ifeq ($(DIM), 1)
-  CEXE_sources += DumpModel1d.cpp
-  CEXE_headers += DumpModel1d.H
-endif
-
 ca_F90EXE_sources += RAD_$(DIM)D.F90 
 ca_F90EXE_sources += HABEC_$(DIM)D.F90
+ca_F90EXE_sources += HABEC_nd.F90
 
-ca_F90EXE_sources += trace_ppm_rad_nd.F90
+CEXE_sources += trace_ppm_rad.cpp
 ca_f90EXE_sources += MGFLD_$(DIM)d.f90
-ca_f90EXE_sources += RadEOS_$(DIM)d.f90
 ca_f90EXE_sources += filt_prim_$(DIM)d.f90
 ca_f90EXE_sources += CastroRad_$(DIM)d.f90
 ca_f90EXE_sources += RadBndry_$(DIM)d.f90
 ca_f90EXE_sources += RadPlotvar_$(DIM)d.f90
 
-ifeq ($(USE_NEUTRINO), TRUE)
-  ca_f90EXE_sources += MGFLDneut_$(DIM)d.f90
-endif
-
 ca_F90EXE_sources += rad_params.F90
 ca_F90EXE_sources += blackbody.F90
 ca_F90EXE_sources += Rad_nd.F90
+CEXE_headers += fluxlimiter.H
+CEXE_headers += RadHydro.H
 ca_F90EXE_sources += fluxlimiter.F90
 ca_F90EXE_sources += RadHydro_nd.F90
 ca_F90EXE_sources += filter.F90
 ca_F90EXE_sources += RadDerive_nd.F90
-ca_F90EXE_sources += rad_util.F90
+ca_F90EXE_sources += rad_util_nd.F90
+CEXE_headers += rad_util.H
+
+ca_F90EXE_sources += rad_source.F90
 
 ca_F90EXE_sources += kavg.F90

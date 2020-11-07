@@ -13,6 +13,14 @@
 
   eos_gamma = 1.6666666667
 
+  const_kappa_p = 3.92663697758d-5
+  kappa_p_exp_m = 0.0d0
+  kappa_p_exp_n = 0.0d0
+
+  const_kappa_r = 0.848902853095d0
+  kappa_r_exp_m = 0.0d0
+  kappa_r_exp_n = 0.0d0
+
 /
 
 &tagging

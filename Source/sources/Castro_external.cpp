@@ -1,10 +1,11 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_ext_src.H>
 
 using namespace amrex;
 
 void
-Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, Real dt)
+Castro::construct_old_ext_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
     const Real strt_time = ParallelDescriptor::second();
 
@@ -14,7 +15,7 @@ Castro::construct_old_ext_source(MultiFab& source, MultiFab& state, Real time, R
 
     ext_src.setVal(0.0);
 
-    fill_ext_source(time, dt, state, state, ext_src);
+    fill_ext_source(time, dt, state_in, state_in, ext_src);
 
     Real mult_factor = 1.0;
 
@@ -111,25 +112,35 @@ Castro::construct_new_ext_source(MultiFab& source, MultiFab& state_old, MultiFab
 
 
 void
-Castro::fill_ext_source (Real time, Real dt, MultiFab& state_old, MultiFab& state_new, MultiFab& ext_src)
+Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_old, const MultiFab& state_new, MultiFab& ext_src)
 {
     const Real* dx = geom.CellSize();
     const Real* prob_lo = geom.ProbLo();
+    GeometryData geomdata = geom.data();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(ext_src, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-
         const Box& bx = mfi.tilebox();
+
+        Array4<Real const> const sold = state_old.array(mfi);
+        Array4<Real const> const snew = state_new.array(mfi);
+        Array4<Real> const src = ext_src.array(mfi);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            do_ext_src(i, j, k, geomdata, snew, src, dt, time);
+        });
 
 #pragma gpu box(bx)
         ca_ext_src
-	  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-	   BL_TO_FORTRAN_ANYD(state_old[mfi]),
-	   BL_TO_FORTRAN_ANYD(state_new[mfi]),
-	   BL_TO_FORTRAN_ANYD(ext_src[mfi]),
-	   AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
+          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+           BL_TO_FORTRAN_ANYD(state_old[mfi]),
+           BL_TO_FORTRAN_ANYD(state_new[mfi]),
+           BL_TO_FORTRAN_ANYD(ext_src[mfi]),
+           AMREX_REAL_ANYD(prob_lo), AMREX_REAL_ANYD(dx), time, dt);
     }
 }

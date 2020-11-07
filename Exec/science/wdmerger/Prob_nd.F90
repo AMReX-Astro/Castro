@@ -22,21 +22,26 @@
                           dx, problo) bind(C, name='ca_initdata')
 
      use amrex_fort_module, only: rt => amrex_real
-     use probdata_module
      use wdmerger_util_module
      use prob_params_module, only: center, dim
      use eos_type_module, only: eos_t
      use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UTEMP, &
-                                   UEDEN, UEINT, UFS, do_rotation, state_in_rotating_frame
+                                   UEDEN, UEINT, UFS, do_rotation, state_in_rotating_frame, &
+                                   ambient_safety_factor
      use network, only: nspec
      use amrex_constants_module
      use model_parser_module, only: idens_model, itemp_model, ipres_model, ispec_model
-     use initial_model_module, only: interpolate_3d_from_1d
+     use initial_model_module, only: model_P, model_S, rho_P, T_P, xn_P, r_P, rho_S, T_S, xn_S, r_S, &
+                                     interpolate_3d_from_1d
+     use ambient_module, only: ambient_state
      use math_module, only: cross_product ! function
      use castro_util_module, only: position ! function
-     use rotation_frequency_module, only: get_omega ! function
+     use rotation_frequency_module, only: get_omega
      use wdmerger_util_module, only: inertial_velocity ! function
-     use wdmerger_util_module, only: get_ambient ! function
+     use probdata_module, only: center_P_initial, center_S_initial, mass_P, mass_S, vel_P, vel_S, &
+                                bulk_velx, bulk_vely, bulk_velz, smallu, &
+                                problem, axis_1, axis_2, nsub, &
+                                initial_radial_velocity_factor
 
      implicit none
 
@@ -50,7 +55,7 @@
      real(rt) :: dist_P, dist_S
      real(rt) :: cosTheta, sinTheta, R_prp, mag_vel
 
-     type (eos_t) :: zone_state, ambient_state
+     type (eos_t) :: zone_state
 
      integer :: i, j, k
 
@@ -62,9 +67,7 @@
      ! inside the primary or secondary (in which case interpolate from the respective model)
      ! or if we are in an ambient zone.
 
-     call get_ambient(ambient_state)
-
-     omega = get_omega(time)
+     call get_omega(omega)
 
      !$OMP PARALLEL DO PRIVATE(i, j, k, loc, vel, pos, mom) &
      !$OMP PRIVATE(dist_P, dist_S, zone_state) &
@@ -96,7 +99,10 @@
                  pos = loc - center_S_initial
                  call interpolate_3d_from_1d(rho_S, T_S, xn_S, r_S, model_S % npts, pos, model_S % radius, dx, zone_state, nsub)
               else
-                 zone_state = ambient_state
+                 zone_state % rho = ambient_state(URHO)
+                 zone_state % T   = ambient_state(UTEMP)
+                 zone_state % e   = ambient_state(UEINT) / ambient_state(URHO)
+                 zone_state % xn  = ambient_state(UFS:UFS+nspec-1) / ambient_state(URHO)
               endif
 
               state(i,j,k,URHO)  = zone_state % rho
@@ -149,7 +155,7 @@
                  ! reasonable velocity. We'll arbitrarily apply the cap at some multiple of the larger
                  ! of the two stellar radii.
 
-                 if (state(i,j,k,URHO) < 1.1e0_rt * ambient_state % rho) then
+                 if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
 
                     cap_radius = 1.25e0_rt * max(model_P % radius + abs(center_P_initial(axis_1)), model_S % radius + abs(center_S_initial(axis_1)))
                     rot_loc(:) = min(cap_radius, abs(rot_loc(:))) * sign(ONE, rot_loc(:))

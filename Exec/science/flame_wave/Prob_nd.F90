@@ -4,7 +4,8 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use amrex_constants_module, only: ZERO, ONE, HALF
   use castro_error_module, only: castro_error
   use model_parser_module, only: model_parser_init
-  use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
+  use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh, &
+                                  idens_model, itemp_model, ispec_model
   use probdata_module, only: dx_model, dtemp, &
                              dens_base, T_star, &
                              T_hi, T_lo, H_star, atm_delta, &
@@ -16,7 +17,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use network, only: nspec, network_species_index
   use prob_params_module, only : center
-  use meth_params_module, only : small_dens
+  use meth_params_module, only : small_dens, URHO, UTEMP, UFS, UEINT, UEDEN, UMX, UMZ
+  use ambient_module, only: ambient_state
+  use eos_module, only: eos
+  use eos_type_module, only: eos_input_rt, eos_t
 
   implicit none
 
@@ -33,9 +37,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: nx_model
   integer :: ng
 
-  ! get the problm parameters
-  call probdata_init(name, namlen)
-
+  type(eos_t) :: eos_state
 
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
@@ -148,8 +150,28 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
 #if AMREX_SPACEDIM == 2
   ! for axisymmetry, put the x-center on the x-axis
+  ! and the y-center at 0, so the height computation is okay
   center(1) = ZERO
+  center(2) = ZERO
 #endif
+
+  ! set the ambient state for the upper boundary condition
+  ambient_state(URHO) = gen_model_state(nx_model, idens_model, 1)
+  ambient_state(UTEMP) = gen_model_state(nx_model, itemp_model, 1)
+  ambient_state(UFS:UFS-1+nspec) = &
+       ambient_state(URHO) * gen_model_state(nx_model, ispec_model:ispec_model-1+nspec, 1)
+
+  ambient_state(UMX:UMZ) = 0.0_rt
+
+  ! make the ambient state thermodynamically consistent
+  eos_state % rho = ambient_state(URHO)
+  eos_state % T = ambient_state(UTEMP)
+  eos_state % xn(:) = ambient_state(UFS:UFS-1+nspec) / eos_state % rho
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_state(UEINT) = eos_state % rho * eos_state % e
+  ambient_state(UEDEN) = eos_state % rho * eos_state % e
 
 end subroutine amrex_probinit
 
@@ -172,6 +194,7 @@ subroutine ca_initdata(lo, hi, &
   use initial_model_module, only: gen_npts_model, gen_model_r, gen_model_state, &
                                   idens_model, itemp_model, ipres_model, ispec_model
   use interpolate_module, only: interpolate ! function
+  use prob_params_module, only : center
 
   implicit none
 
@@ -194,10 +217,10 @@ subroutine ca_initdata(lo, hi, &
      z = problo(3) + (dble(k) + HALF) * dx(3)
 
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j) + HALF) * dx(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
 
         do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1)
+           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            ! lateral distance
            if (AMREX_SPACEDIM == 1) then

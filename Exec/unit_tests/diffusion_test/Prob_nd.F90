@@ -6,7 +6,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   use prob_params_module, only: center, coord_type
   use probdata_module
   use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only : eos_on_host
+  use eos_module, only : eos
   use network, only : nspec
 #ifdef DIFFUSION
   use conductivity_module
@@ -17,36 +17,14 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin, i
+  integer i
 
-  namelist /fortin/ diff_coeff, T1, T2, t_0
 
   ! Build "probin" filename -- the name of file containing fortin namelist.
 
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
   real(rt) :: X(nspec)
 
   type (eos_t) :: eos_state
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(thermal_conductivity)
-  allocate(diff_coeff)
-  allocate(T1)
-  allocate(T2)
-  allocate(rho0)
-  allocate(t_0)
-
-  ! Set namelist defaults
-  T1 = 1.0_rt
-  T2 = 2.0_rt
-  t_0 = 0.001_rt
-  diff_coeff = 1.0_rt
 
   ! set center, domain extrema
   if (coord_type == 0) then
@@ -62,10 +40,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   center(3) = HALF*(problo(3)+probhi(3))
 #endif
 
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
 
   ! the conductivity is the physical quantity that appears in the
   ! diffusion term of the energy equation.  It is set in the probin
@@ -80,7 +54,7 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   eos_state%rho = 1.0
   eos_state%xn(:) = X(:)
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
 #ifdef DIFFUSION
   ! get the conductivity

@@ -1,16 +1,18 @@
-#ifndef _RadSolve_H_
-#define _RadSolve_H_
+#ifndef CASTRO_RADSOLVE_H
+#define CASTRO_RADSOLVE_H
 
 #include <AMReX_Amr.H>
 
 #include <AMReX_FluxRegister.H>
 
-#include "RadBndry.H"
-#include "MGRadBndry.H"
+#include <RadBndry.H>
+#include <MGRadBndry.H>
 
-#include "HypreABec.H"
-#include "HypreMultiABec.H"
-#include "HypreExtMultiABec.H"
+#include <HypreABec.H>
+#include <HypreMultiABec.H>
+#include <HypreExtMultiABec.H>
+
+#include <radsolve_params.H>
 
 ///
 /// @class RadSolve
@@ -24,9 +26,15 @@ class RadSolve {
 ///
 /// @param Parent
 ///
-  RadSolve(amrex::Amr* Parent);
-  virtual ~RadSolve() { }
+  RadSolve (amrex::Amr* Parent, int level,
+            const amrex::BoxArray& grids,
+            const amrex::DistributionMapping& dmap);
+  ~RadSolve () {}
 
+///
+/// query runtime parameters
+///
+  static void read_params ();
 
 ///
 /// @param level
@@ -69,7 +77,7 @@ class RadSolve {
 /// @param s
 ///
   static void getEdgeMetric(int idim, const amrex::Geometry& geom, const amrex::Box& edgebox,
-			    amrex::Vector<amrex::Real>& r, amrex::Vector<amrex::Real>& s);
+                            amrex::Vector<amrex::Real>& r, amrex::Vector<amrex::Real>& s);
 
 
 ///
@@ -103,8 +111,8 @@ class RadSolve {
 /// @param theta
 ///
   void levelACoeffs(int level,
-		    amrex::MultiFab& fkp, amrex::MultiFab& eta, amrex::MultiFab& etainv,
-		    amrex::Real c, amrex::Real delta_t, amrex::Real theta);
+                    amrex::MultiFab& fkp, amrex::MultiFab& eta, amrex::MultiFab& etainv,
+                    amrex::Real c, amrex::Real delta_t, amrex::Real theta);
 
 
 ///
@@ -118,7 +126,7 @@ class RadSolve {
 ///
   void levelBCoeffs(int level,
                     amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
-		    amrex::MultiFab& kappa_r, int kcomp, amrex::Real c, int lamcomp=0);
+                    amrex::MultiFab& kappa_r, int kcomp, amrex::Real c, int lamcomp=0);
 
 
 ///
@@ -144,12 +152,12 @@ class RadSolve {
 /// @param dnu
 ///
   void levelRhs(int level, amrex::MultiFab& rhs,
-		amrex::MultiFab& temp,
-		amrex::MultiFab& fkp, amrex::MultiFab& eta, amrex::MultiFab& etainv,
-		amrex::MultiFab& rhoem, amrex::MultiFab& rhoes,
-		amrex::MultiFab& dflux_old, amrex::MultiFab& Er_old, amrex::MultiFab& Edot,
-		amrex::Real delta_t, amrex::Real sigma, amrex::Real c, amrex::Real theta,
-		amrex::FluxRegister* fine_corr, amrex::Real scale = 1.0,
+                amrex::MultiFab& temp,
+                amrex::MultiFab& fkp, amrex::MultiFab& eta, amrex::MultiFab& etainv,
+                amrex::MultiFab& rhoem, amrex::MultiFab& rhoes,
+                amrex::MultiFab& dflux_old, amrex::MultiFab& Er_old, amrex::MultiFab& Edot,
+                amrex::Real delta_t, amrex::Real sigma, amrex::Real c, amrex::Real theta,
+                amrex::FluxRegister* fine_corr, amrex::Real scale = 1.0,
                 int igroup = -1, amrex::Real nu = -1.0, amrex::Real dnu = -1.0);
 
 
@@ -161,7 +169,7 @@ class RadSolve {
 /// @param sync_absres_factor
 ///
   void levelSolve(int level, amrex::MultiFab& Er, int igroup, amrex::MultiFab& rhs,
-		  amrex::Real sync_absres_factor);
+                  amrex::Real sync_absres_factor);
 
 
 ///
@@ -196,7 +204,7 @@ class RadSolve {
 /// @param iflx
 ///
   void levelFluxFaceToCenter(int level, const amrex::Array<amrex::MultiFab, BL_SPACEDIM>& Flux,
-			     amrex::MultiFab& flx, int iflx);
+                             amrex::MultiFab& flx, int iflx);
 
 ///
 /// @param level
@@ -234,7 +242,7 @@ class RadSolve {
 /// @param ptc_tau
 ///
   void levelACoeffs(int level, amrex::MultiFab& kappa_p,
-		    amrex::Real delta_t, amrex::Real c, int igroup, amrex::Real ptc_tau);
+                    amrex::Real delta_t, amrex::Real c, int igroup, amrex::Real ptc_tau);
 
 ///
 /// @param level
@@ -243,32 +251,26 @@ class RadSolve {
 /// @param muTg
 /// @param muYg
 /// @param coupT
-/// @param coupY
 /// @param etaT
-/// @param etaY
-/// @param thetaT
-/// @param thetaY
 /// @param Er_step
 /// @param rhoe_step
-/// @param rhoYe_step
 /// @param Er_star
 /// @param rhoe_star
-/// @param rhoYe_star
 /// @param delta_t
 /// @param igroup
 /// @param it
 /// @param ptc_tau
 ///
   void levelRhs(int level, amrex::MultiFab& rhs, const amrex::MultiFab& jg,
-		const amrex::MultiFab& muTg, const amrex::MultiFab& muYg,
-		const amrex::MultiFab& coupT, const amrex::MultiFab& coupY,
-		const amrex::MultiFab& etaT, const amrex::MultiFab& etaY,
-		const amrex::MultiFab& thetaT, const amrex::MultiFab& thetaY,
-		const amrex::MultiFab& Er_step, const amrex::MultiFab& rhoe_step, const amrex::MultiFab& rhoYe_step,
-		const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star, const amrex::MultiFab& rhoYe_star,
-		amrex::Real delta_t, int igroup, int it, amrex::Real ptc_tau);
+                const amrex::MultiFab& muTg,
+                const amrex::MultiFab& coupT,
+                const amrex::MultiFab& etaT,
+                const amrex::MultiFab& Er_step, const amrex::MultiFab& rhoe_step,
+                const amrex::MultiFab& Er_star, const amrex::MultiFab& rhoe_star,
+                amrex::Real delta_t, int igroup, int it, amrex::Real ptc_tau);
+
   void levelSPas(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda, int igroup,
-		 int lo_bc[], int hi_bc[]);
+                 int lo_bc[], int hi_bc[]);
 
 ///
 /// </ MGFLD routines>
@@ -280,7 +282,7 @@ class RadSolve {
 /// @param dcf
 ///
   void levelDCoeffs(int level, amrex::Array<amrex::MultiFab, BL_SPACEDIM>& lambda,
-		    amrex::MultiFab& vel, amrex::MultiFab& dcf);
+                    amrex::MultiFab& vel, amrex::MultiFab& dcf);
 
 ///
 /// temporarily change multipliers for C and D coefficients
@@ -297,25 +299,13 @@ class RadSolve {
 
 protected:
 
-  int use_hypre_nonsymmetric_terms;
-  int level_solver_flag;
+    amrex::Amr* parent;
 
-  amrex::Real reltol, abstol;
-  int maxiter;
-
-  amrex::Real alpha, beta;
-  amrex::Amr* parent;
-
-  int verbose;
-
-  HypreABec      *hd;
-  HypreMultiABec *hm;
+    std::unique_ptr<HypreABec> hd;
+    std::unique_ptr<HypreMultiABec> hm;
+    std::unique_ptr<HypreExtMultiABec> hem;
 
 
-///
-/// static storage for sync tolerance information
-///
-  static amrex::Vector<amrex::Real> absres;
 };
 
 #endif

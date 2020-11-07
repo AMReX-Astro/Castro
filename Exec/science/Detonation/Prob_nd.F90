@@ -1,13 +1,13 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use probdata_module, only: T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, &
-                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, fill_ambient_bc, &
+                             xn, ihe4, ic12, io16, smallx, vel, grav_acceleration, &
                              ambient_dens, ambient_temp, ambient_comp, ambient_e_l, ambient_e_r
   use network, only: network_species_index, nspec
   use castro_error_module, only: castro_error
   use amrex_fort_module, only: rt => amrex_real
   use eos_type_module, only: eos_t, eos_input_rt
-  use eos_module, only: eos_on_host
+  use eos_module, only: eos
 
   implicit none
 
@@ -16,51 +16,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt), intent(in) :: problo(3), probhi(3)
 
   type(eos_t) :: eos_state
-
-  integer :: untin,i
-
-  namelist /fortin/ T_l, T_r, dens, cfrac, ofrac, idir, w_T, center_T, smallx, vel, grav_acceleration, fill_ambient_bc
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 256
-  character :: probin*(maxlen)
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  allocate(T_l, T_r, dens, cfrac, ofrac, idir)
-  allocate(w_T, center_T, xn(nspec), ihe4, ic12, io16)
-  allocate(smallx, vel, grav_acceleration, fill_ambient_bc)
-  allocate(ambient_dens, ambient_temp, ambient_comp(nspec))
-  allocate(ambient_e_l, ambient_e_r)
-
-  ! Set namelist defaults
-
-  T_l = 1.e9_rt
-  T_r = 5.e7_rt
-  dens = 1.e8_rt
-  smallx = 1.e-12_rt
-
-  idir = 1                ! direction across which to jump
-  cfrac = 0.5e0_rt
-  ofrac = 0.0e0_rt
-
-  w_T = 5.e-4_rt           ! ratio of the width of temperature transition zone to the full domain
-  center_T = 3.e-1_rt      ! central position parameter of teperature profile transition zone
-
-  vel = 0.e0_rt           ! infall velocity towards the transition point
-  grav_acceleration = 0.e0_rt ! gravitational acceleration towards the transition point
-
-  fill_ambient_bc = .false.
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
 
   ! get the species indices
   ihe4 = network_species_index("helium-4")
@@ -103,13 +58,13 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   eos_state % T   = T_l
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   ambient_e_l = eos_state % e
 
   eos_state % T   = T_r
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   ambient_e_r = eos_state % e
 
@@ -121,10 +76,13 @@ subroutine ca_initdata(lo, hi, &
                        dx, problo) bind(c, name='ca_initdata')
 
   use network, only: nspec
+#ifdef NSE_THERMO
+  use network, only: naux, aion_inv, zion, bion, iabar, iye, ibea
+#endif
   use eos_module, only: eos
   use eos_type_module, only: eos_t, eos_input_rt
   use probdata_module, only: T_l, T_r, center_T, w_T, dens, vel, xn
-  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UTEMP
+  use meth_params_module, only: NVAR, URHO, UMX, UMY, UMZ, UEDEN, UEINT, UFS, UFX, UTEMP
   use amrex_fort_module, only: rt => amrex_real
   use prob_params_module, only: probhi
 
@@ -140,6 +98,10 @@ subroutine ca_initdata(lo, hi, &
   integer  :: i, j, k, n
 
   type (eos_t) :: eos_state
+
+#ifdef NSE_THERMO
+  real(rt) :: aux(naux)
+#endif
 
   !$gpu
 
@@ -161,10 +123,21 @@ subroutine ca_initdata(lo, hi, &
               state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * xn(n)
            end do
 
-           eos_state%rho = state(i,j,k,URHO)
-           eos_state%T = state(i,j,k,UTEMP)
-           eos_state%xn(:) = xn
+#ifdef NSE_THERMO
+           ! set the aux quantities -- we need to do this if we are using the NSE network
+           aux(iye) = sum(xn(:) * zion(:) * aion_inv(:))
+           aux(iabar) = 1.0_rt / sum(xn(:) * aion_inv(:))
+           aux(ibea) = sum(xn(:) * bion(:) * aion_inv(:))
 
+           state(i,j,k,UFX:UFX-1+naux) = state(i,j,k,URHO) * aux(:)
+#endif
+
+           eos_state % rho = state(i,j,k,URHO)
+           eos_state % T = state(i,j,k,UTEMP)
+           eos_state % xn(:) = xn(:)
+#ifdef NSE_THERMO
+           eos_state % aux(:) = aux(:)
+#endif
            call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UMX  ) = state(i,j,k,URHO) * (vel - 2 * vel * (1.0e0_rt - sigma))

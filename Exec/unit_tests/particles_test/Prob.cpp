@@ -1,8 +1,8 @@
 /* Implementations of functions in Problem.H go here */
 
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Problem_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Problem_F.H>
 #include <AMReX_TracerParticles.H>
 #include <AMReX_AmrParticles.H>
 
@@ -65,8 +65,8 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 			ifs >> p.m_rdata.arr[AMREX_SPACEDIM+n];
 		}
 
-		p.m_idata.id  = ParticleType::NextID();
-		p.m_idata.cpu = MyProc;
+		p.id()  = ParticleType::NextID();
+		p.cpu() = MyProc;
 
 		nparticles.push_back(p);
 	}
@@ -92,7 +92,7 @@ void Castro::problem_post_simulation(Vector<std::unique_ptr<AmrLevel> >& amr_lev
 
 			// find the original particle and calculate change in position
 			for (; !match && it != nparticles.end(); ++it) {
-				if (it->m_idata.id == p.m_idata.id)
+                            if (it->id() == p.id())
 					match = true;
 			}
 

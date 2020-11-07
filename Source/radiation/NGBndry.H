@@ -1,5 +1,5 @@
-#ifndef _NGBndry_H_
-#define _NGBndry_H_
+#ifndef CASTRO_NGBNDRY_H
+#define CASTRO_NGBNDRY_H
 
 #include <RadInterpBndryData.H>
 #include <AMReX_BC_TYPES.H>
@@ -21,7 +21,7 @@ class NGBndry : public RadInterpBndryData
 ///
 public:
     NGBndry(const amrex::BoxArray& _grids, const amrex::DistributionMapping& _dmap,
-	  int _ncomp, const amrex::Geometry& _geom) :
+          int _ncomp, const amrex::Geometry& _geom) :
 
 ///
 /// @param _grids
@@ -29,7 +29,7 @@ public:
 /// @param _ncomp
 /// @param _geom
 ///
-	RadInterpBndryData(_grids,_dmap,_ncomp,_geom) { }
+        RadInterpBndryData(_grids,_dmap,_ncomp,_geom) { }
 
 
 ///
@@ -37,7 +37,7 @@ public:
 /// @param phys_bc_mode
 ///
   virtual void setBndryFluxConds(const amrex::BCRec& bc,
-		       const BC_Mode phys_bc_mode = Inhomogeneous_BC) = 0;
+                       const BC_Mode phys_bc_mode = Inhomogeneous_BC) = 0;
 
 
 ///
@@ -79,9 +79,9 @@ class NGBndryBld
 {
 public:
   virtual NGBndry* operator()(const amrex::BoxArray& _grids,
-			      const amrex::DistributionMapping& _dmap,
-			      int _ncomp,
-			      const amrex::Geometry& _geom) const = 0;
+                              const amrex::DistributionMapping& _dmap,
+                              int _ncomp,
+                              const amrex::Geometry& _geom) const = 0;
 };
 
 #endif

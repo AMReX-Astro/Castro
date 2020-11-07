@@ -1,7 +1,8 @@
-subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
+subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   use amrex_paralleldescriptor_module, only: parallel_IOProcessor => amrex_pd_ioprocessor
   use probdata_module
+  use prob_params_module, only : center
   use model_parser_module
   use castro_error_module
   use amrex_constants_module
@@ -16,48 +17,10 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   real(rt), intent(in) :: problo(3), probhi(3)
 
   real(rt) :: offset
-  integer :: untin, i
-
-  namelist /fortin/ model_name, apply_vel_field,shear_vel_field, &
-       velpert_scale, velpert_amplitude, velpert_height_loc, num_vortices, &
-       shear_height_loc, shear_amplitude, shear_height, shear_width_x,&
-       shear_width_y,cutoff_density, interp_BC, zero_vels
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
 
   real(rt) :: max_hse_err, dpdr, rhog, hse_err, dr_model
 
-  ! Build "probin" filename from C++ land --
-  ! the name of file containing fortin namelist.
-
-
-  if (namlen .gt. maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-
-  ! Namelist defaults
-  apply_vel_field = .false.
-  shear_vel_field = .false.
-  velpert_scale = 1.0e2_rt
-  velpert_amplitude = 1.0e2_rt
-  velpert_height_loc = 6.5e3_rt
-  num_vortices = 1
-  cutoff_density = 50.e0_rt
-  interp_BC = .false.
-  zero_vels = .false.
-  shear_height_loc = 0.0_rt
-  shear_height     = 0.0_rt
-  shear_width_x    = 0.0_rt
-  shear_width_y    = 0.0_rt
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
+  integer :: i
 
   ! Read initial model
   call read_model_file(model_name)
@@ -179,7 +142,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
 
            eos_state % rho = state(i,j,k,URHO)
            eos_state % T = state(i,j,k,UTEMP)
-           eos_state % xn(:) = state(i,j,k,UFS:)
+           eos_state % xn(:) = state(i,j,k,UFS:UFS+nspec-1)
 
            call eos(eos_input_rt, eos_state)
 

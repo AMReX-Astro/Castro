@@ -1,0 +1,23 @@
+&fortin
+
+  dens_base = 1.e7
+  temp_base = 1.0e8
+
+  nx_model = 256
+/
+
+
+&tagging
+
+  temperr = 6.e8
+  tempgrad = 1.e9
+  max_temperr_lev = 5
+  max_tempgrad_lev = 5
+
+/
+
+&extern
+
+  small_x = 1.d-10
+
+/

@@ -1,36 +1,84 @@
-AMREX_HOME ?= /path/to/amrex
 CASTRO_HOME ?= /path/to/Castro
 
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
-HYPRE_OMP_DIR ?= /path/to/Hypre--with-openmp
 
 # system blas
 BLAS_LIBRARY ?= -lopenblas
 
 TOP := $(CASTRO_HOME)
 
-# default microphysics locations
-EOS_HOME ?= $(TOP)/Microphysics/EOS
-NETWORK_HOME ?= $(TOP)/Microphysics/networks
-COND_HOME ?= $(TOP)/Microphysics/conductivity
-VISC_HOME ?= $(TOP)/Microphysics/viscosity
+# Allow a problem setup to define a root location.
+# Otherwise, assume we're building in the current directory.
+
+PROBLEM_DIR ?= ./
+
+# Microphysics is a git submodule of Castro. By default
+# we assume it is in the external/ directory.
+# The user may override this with their own installation
+# of Microphysics as long as they set the environment variable
+# MICROPHYSICS_HOME.
+
+MICROPHYSICS_HOME ?= $(TOP)/external/Microphysics
+
+# Check to make sure that Microphysics actually exists,
+# using an arbitrary file that must exist to check.
+# Throw an error if we don't have Microphysics.
+ifeq ("$(wildcard $(MICROPHYSICS_HOME)/Make.Microphysics)","")
+  $(error Microphysics has not been downloaded. Please run "git submodule update --init" from the top level of the code)
+endif
+
+# Locations within Microphysics
+EOS_HOME ?= $(MICROPHYSICS_HOME)/EOS
+NETWORK_HOME ?= $(MICROPHYSICS_HOME)/networks
+CONDUCTIVITY_HOME ?= $(MICROPHYSICS_HOME)/conductivity
+
+# AMReX is a git submodule of Castro. By default
+# we assume it is in the external/ directory.
+# The user may override this with their own installation
+# of AMReX as long as they set the environment variable
+# AMREX_HOME.
+
+AMREX_HOME ?= $(TOP)/external/amrex
+
+# Check to make sure that AMReX actually exists,
+# using an arbitrary file that must exist to check.
+# Throw an error if we don't have AMReX.
+ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
+  $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
+endif
+
+# Require C++14
+CXXSTD := c++14
+
+# Implement any machine-specific workarounds.
+
+include $(AMREX_HOME)/Tools/GNUMake/Make.machines
+
+# On Summit if we have the PGI module loaded then we cannot simultaneously
+# have the gcc module loaded, which means we are stuck with the system
+# default (gcc 4.8.5). Since CUDA builds use gcc as the host compiler,
+# we would be prevented from using C++14. To work around this, if we're
+# using CUDA, then we reset the C++ host compiler to a known good
+# version of gcc on the system.
+
+ifeq ($(which_computer),summit)
+  ifeq ($(USE_CUDA),TRUE)
+    SUMMIT_GCC_OVERRIDE_DIR := /sw/summit/gcc/7.4.0
+    NVCC_CCBIN := $(SUMMIT_GCC_OVERRIDE_DIR)/bin/g++
+    LIBRARY_LOCATIONS += $(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+    LIBRARIES += -Wl,-rpath,$(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+  endif
+endif
 
 # default integrator
-INTEGRATOR_DIR ?= VODE90
+INTEGRATOR_DIR ?= VODE
 
 # number of passively advected quantities that are not species or auxillary
 NUMADV ?= 0
 
 # number of radiation groups
 NGROUPS ?= 1
-
-# neutrino radiation info -- for each species (up to 3) we specify the
-# number of groups
-N_NEUTRINO_SPECIES ?= 3
-N_NEUTRINO_GROUPS_1 ?= 1
-N_NEUTRINO_GROUPS_2 ?= 1
-N_NEUTRINO_GROUPS_3 ?= 1
 
 # this can be turned off for unit tests, etc., and not
 # the entire Castro build
@@ -66,20 +114,20 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  ifeq ($(USE_NEUTRINO), TRUE)
-    USERSuffix = .Neutrino
-  endif
-endif
-
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  USE_GPU_PRAGMA = TRUE
+  USE_GPU_PRAGMA ?= TRUE
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
+
+  # We don't currently support host-side OpenMP being enabled
+  # when using CUDA. Throw an error to prevent this case.
+  ifeq ($(USE_OMP),TRUE)
+    $(error OpenMP is not supported by Castro when building with CUDA)
+  endif
 endif
 
 # Allow a problem to specify that we want to initialize
@@ -93,6 +141,9 @@ ifeq ($(GPU_COMPATIBLE_PROBLEM),TRUE)
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
+
+CASTRO_AUTO_SOURCE_DIR := $(TmpBuildDir)/castro_sources/$(optionsSuffix).EXE
+
 
 all: build_status $(executable)
 	@echo SUCCESS
@@ -115,31 +166,46 @@ endif
 
 USE_MLMG = FALSE
 
+
 #------------------------------------------------------------------------------
 # Castro directories
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_ALL_CASTRO), TRUE)
-  Bdirs := Source/driver Source/driver/param_includes \
-           Source/hydro Source/problems Source/sources \
-           Source/scf constants Util/model_parser Util/conservative_interpolate
+  Bdirs := Source/driver Source/hydro \
+           Source/problems Source/sources
+endif
+
+MAX_NPTS_MODEL ?= 10000
+
+ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser_cxx
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
 else
-  Bdirs := constants
+  Bdirs += Util/model_parser
+endif
+
+ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
+  Bdirs += Util/conservative_interpolate
+endif
+
+ifeq ($(USE_INTERPOLATE),TRUE)
+  Bdirs += Util/interpolate
 endif
 
 # add / define any special physics we need
+
+ifeq ($(USE_MHD), TRUE)
+  Bdirs += Source/mhd
+  DEFINES += -DMHD
+else
+  Bdirs += Source/hydro
+endif
+
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity
+  Bdirs += Source/gravity Source/scf 
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
-
-  ifndef USE_SELF_GRAV
-    USE_SELF_GRAV = TRUE
-  endif
-
-  ifeq ($(USE_SELF_GRAV), TRUE)
-    DEFINES += -DSELF_GRAVITY
-  endif
 endif
 
 ifeq ($(USE_GR), TRUE)
@@ -153,6 +219,17 @@ ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_TRUE_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
+  endif
+
+  ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
+    # we need the compositional derivatives for SDC
+    DEFINES += -DEXTRA_THERMO
+    # we only implement this for C++ reactions
+    USE_CXX_REACTIONS = TRUE
+  endif
+
+  ifeq ($(USE_CXX_REACTIONS), TRUE)
+    DEFINES += -DCXX_REACTIONS
   endif
 endif
 
@@ -180,6 +257,7 @@ ifeq ($(USE_DIFFUSION), TRUE)
   Bdirs += Source/diffusion
   DEFINES += -DDIFFUSION
   USE_MLMG = TRUE
+  USE_CONDUCTIVITY = TRUE
 endif
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
@@ -207,22 +285,11 @@ ifeq ($(USE_RAD), TRUE)
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
   USE_HYPRE := TRUE
+  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
   EXTERN_CORE += $(TOP)/Util/LAPACK
-
-  ifeq ($(USE_NEUTRINO), TRUE)
-    DEFINES += -DNEUTRINO
-    DEFINES += -DN_NEUTRINO_SPECIES=$(N_NEUTRINO_SPECIES)
-    DEFINES += -DN_NEUTRINO_GROUPS_1=$(N_NEUTRINO_GROUPS_1)
-    DEFINES += -DN_NEUTRINO_GROUPS_2=$(N_NEUTRINO_GROUPS_2)
-    DEFINES += -DN_NEUTRINO_GROUPS_3=$(N_NEUTRINO_GROUPS_3)
-
-    ifeq ($(USE_DUMPMODEL), TRUE)
-      DEFINES += -DHAS_DUMPMODEL
-    endif
-  endif
 endif
 
 ifeq ($(USE_MAESTRO_INIT), TRUE)
@@ -265,14 +332,6 @@ ifeq ($(USE_PARTICLES), TRUE)
  Pdirs += Particle
 endif
 
-ifeq ($(USE_RAD), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-else
-ifeq ($(USE_MLMG), TRUE)
-  Pdirs += LinearSolvers/C_CellMG
-endif
-endif
-
 ifeq ($(USE_MLMG), TRUE)
    DEFINES += -DCASTRO_MLMG
    Pdirs += LinearSolvers/MLMG
@@ -282,110 +341,31 @@ Bpack	+= $(foreach dir, $(Pdirs), $(AMREX_HOME)/Src/$(dir)/Make.package)
 
 
 #------------------------------------------------------------------------------
-# microphysics 
+# microphysics
 #------------------------------------------------------------------------------
 
-ifdef MICROPHYSICS_HOME
-   EOS_PATH := $(MICROPHYSICS_HOME)/EOS/$(strip $(EOS_DIR))
-   NETWORK_PATH := $(MICROPHYSICS_HOME)/networks/$(strip $(NETWORK_DIR))
-ifeq ($(USE_DIFFUSION), TRUE)
-   COND_PATH := $(MICROPHYSICS_HOME)/conductivity/$(strip $(CONDUCTIVITY_DIR))
-endif
-endif
+# Specify that we want to write any automatically generated network
+# file (including the general_null network) to our temporary build
+# directory
+NETWORK_OUTPUT_PATH = $(CASTRO_AUTO_SOURCE_DIR)
 
-# if the EOS / network / conductivity name exists in
-# Castro/Microphysics, then use that version
+USE_CXX_EOS := TRUE
 
-ifneq "$(wildcard $(EOS_HOME)/$(strip $(EOS_DIR)) )" ""
-   EOS_PATH := $(EOS_HOME)/$(strip $(EOS_DIR))
-endif
-
-ifneq "$(wildcard $(NETWORK_HOME)/$(strip $(NETWORK_DIR)) )" ""
-   NETWORK_PATH := $(NETWORK_HOME)/$(strip $(NETWORK_DIR))
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
-ifneq "$(wildcard $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR)) )" ""
-   COND_PATH := $(COND_HOME)/$(strip $(CONDUCTIVITY_DIR))
-endif
-   VISC_PATH := $(VISC_HOME)/constant
-endif
-
-# Problems can specify the input file for general_null by setting
-# GENERAL_NET_INPUTS directly (full path) or just specifying the name
-# of the inputs file as NETWORK_INPUTS and let us sort it out
-ifndef GENERAL_NET_INPUTS
-   ifneq "$(wildcard $(NETWORK_INPUTS))" ""
-      GENERAL_NET_INPUTS := $(NETWORK_INPUTS)
-   else
-      GENERAL_NET_INPUTS := $(CASTRO_HOME)/Microphysics/networks/general_null/$(NETWORK_INPUTS)
-   endif
-endif
-
-EXTERN_CORE += $(EOS_PATH)
-EXTERN_CORE += $(EOS_HOME)
-
-# the helmholtz EOS has an include file -- also add a target to link
-# the table into the problem directory.
-ifeq ($(findstring helmholtz, $(EOS_DIR)), helmholtz)
-   all: table
-endif
-
-table:
-	@if [ ! -f helm_table.dat ]; then echo Linking helm_table.dat; ln -s $(EOS_PATH)/helm_table.dat .;  fi
-
-EXTERN_CORE += $(NETWORK_HOME)
-EXTERN_CORE += $(NETWORK_PATH)
-
-# Note that this should be located after the include of the EOS and
-# Network includes since it has actions that depend on variables set
-# there.
-
-ifdef MICROPHYSICS_HOME
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/EOS
-  EXTERN_CORE += $(MICROPHYSICS_HOME)/networks
-endif
-
-ifeq ($(USE_DIFFUSION), TRUE)
-   EXTERN_CORE += $(TOP)/Microphysics/conductivity
-   EXTERN_CORE += $(COND_HOME)
-   EXTERN_CORE += $(COND_PATH)
-   EXTERN_CORE += $(VISC_PATH)
-endif
-
-ifeq ($(USE_RAD), TRUE)
-   OPAC_PATH := $(TOP)/Microphysics/opacity/$(Opacity_dir)
-   EXTERN_CORE += $(OPAC_PATH)
-endif
+include $(MICROPHYSICS_HOME)/Make.Microphysics_extern
 
 Bpack += $(foreach dir, $(EXTERN_CORE), $(dir)/Make.package)
 Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 
-ifeq ($(USE_EXTRA_THERMO), TRUE)
-   DEFINES += -DEXTRA_THERMO
-endif
 
-
-ifeq ($(USE_REACT), TRUE)
-  ifeq ($(USE_CUDA), TRUE)
-    ifneq ($(INTEGRATOR_DIR), VODE90)
-      $(error Only the VODE90 integrator supports GPUs currently, please change INTEGRATOR_DIR)
-    endif
-  endif
-endif
 
 #------------------------------------------------------------------------------
 # external libraries
 #------------------------------------------------------------------------------
 
 ifeq ($(USE_HYPRE), TRUE)
-  ifeq ($(USE_OMP), TRUE)
-    INCLUDE_LOCATIONS += $(HYPRE_OMP_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_OMP_DIR)/lib
-  else
-    INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-    LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-  endif
+  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
+  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
+
   LIBRARIES += -lHYPRE
 endif
 
@@ -418,115 +398,11 @@ INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
 
-#include $(AMREX_HOME)/Src/F_BaseLib/FParallelMG.mak
-
 #------------------------------------------------------------------------------
-# runtime parameters
+# autogenerated source files
 #------------------------------------------------------------------------------
 
-# runtime parameter support for extern/ routines
-F90EXE_sources += extern.F90
-
-EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
-
-# these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
-ifdef MICROPHYSICS_HOME
-   EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
-endif
-
-EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
-
-
-extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
-	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
-           -t $(EXTERN_TEMPLATE) -o extern.F90 -n extern \
-           --pa "$(EXTERN_PARAMETERS)" --managed
-
-
-#------------------------------------------------------------------------------
-# problem specific parameters
-#------------------------------------------------------------------------------
-
-# runtime parameter support for extern/ routines
-ifeq ($(USE_PROB_PARAMS), TRUE)
-   F90EXE_sources += prob_params_auto.F90
-   DEFINES += -DPROB_PARAMS
-endif
-
-PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
-PROB_PARAMETERS := ./_prob_params
-
-prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
-	$(TOP)/Util/scripts/write_probdata.py \
-           -t $(PROB_PARAMS_TEMPLATE) -o prob_params_auto.F90 -p $(PROB_PARAMETERS)
-
-#------------------------------------------------------------------------------
-# state variable info
-#-------------------------------------------------------------------------------
-set_conserved.H: set_indices.F90
-	echo "set_conserved.H will be generated at the same time as set_indices.F90"
-
-state_sizes.f90: set_indices.F90
-	echo "state_sizes.f90 will be generated at the same time as set_indices.F90"
-
-set_indices.F90:
-	$(CASTRO_HOME)/Source/driver/set_variables.py \
-           --defines "$(DEFINES)" \
-           --nadv $(NUMADV) \
-           --ngroups $(NGROUPS) \
-           --n_neutrino_species $(N_NEUTRINO_SPECIES) \
-           --n_neutrino_groups "$(N_NEUTRINO_GROUPS_1) $(N_NEUTRINO_GROUPS_2) $(N_NEUTRINO_GROUPS_3)" \
-           $(CASTRO_HOME)/Source/driver/_variables
-
-#------------------------------------------------------------------------------
-# build info
-#------------------------------------------------------------------------------
-
-# job_info support
-CEXE_headers += $(AMREX_HOME)/Tools/C_scripts/AMReX_buildInfo.H
-INCLUDE_LOCATIONS +=  $(AMREX_HOME)/Tools/C_scripts
-
-
-MNAMES := EOS=$(EOS_PATH) NETWORK=$(NETWORK_PATH)
-ifeq ($(USE_DIFFUSION), TRUE)
-   MNAMES += CONDUCTIVITY=$(COND_PATH)
-   MNAMES += VISCOSITY=$(VISC_PATH)
-endif
-
-ifeq ($(USE_RAD), TRUE)
-   MNAMES += OPACITY=$(OPAC_PATH)
-endif
-
-# we make AMReX_buildInfo.cpp as we make the .o file, so we can delete
-# it immediately.  this way if the build is interrupted, we are
-# guaranteed to remake it
-
-objForExecs += $(objEXETempDir)/AMReX_buildInfo.o
-
-.FORCE:
-.PHONE: .FORCE
-
-# set BUILD_GIT_NAME and BUILD_GIT_DIR if you are building in a
-# git-controlled dir not under Castro/
-EXTRA_BUILD_INFO :=
-ifdef BUILD_GIT_NAME
-   EXTRA_BUILD_INFO := --build_git_name "$(BUILD_GIT_NAME)" \
-                       --build_git_dir "$(BUILD_GIT_DIR)"
-endif
-
-$(objEXETempDir)/AMReX_buildInfo.o: .FORCE
-	$(AMREX_HOME)/Tools/C_scripts/makebuildinfo_C.py \
-          --amrex_home "$(AMREX_HOME)" \
-          --COMP "$(COMP)" --COMP_VERSION "$(COMP_VERSION)" \
-          --CXX_comp_name "$(CXX)" --CXX_flags "$(CXXFLAGS) $(CPPFLAGS) $(includes)" \
-          --F_comp_name "$(F90)" --F_flags "$(F90FLAGS)" \
-          --link_flags "$(LDFLAGS)" --libraries "$(libraries)" \
-          --MODULES "$(MNAMES)" $(EXTRA_BUILD_INFO) \
-          --GIT "$(TOP) $(AMREX_HOME) $(MICROPHYSICS_HOME)"
-	$(SILENT) $(CCACHE) $(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(CXXEXEFLAGS) AMReX_buildInfo.cpp -o $(objEXETempDir)/AMReX_buildInfo.o
-	$(SILENT) $(RM) AMReX_buildInfo.cpp
-
+include $(TOP)/Exec/Make.auto_source
 
 #------------------------------------------------------------------------------
 # finish up
@@ -534,29 +410,16 @@ $(objEXETempDir)/AMReX_buildInfo.o: .FORCE
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
-ifeq ($(USE_CUDA),TRUE)
-ifeq ($(USE_GPU_PRAGMA), TRUE)
-
-include $(TOP)/Exec/Make.cuda_rules
-
-endif
-endif
-
 clean::
-	$(SILENT) $(RM) extern.F90 prob_params_auto.F90
+	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp
 	$(SILENT) $(RM) AMReX_buildInfo.cpp
-	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
-
-# Older versions of CASTRO generated a "network.f90" file when using
-# the general_null network, which conflicts with our generalized
-# network.f90 file.  So we should delete the local copy if we are
-# trying to rebuild from an old directory.
-# The same is true for "extern.f90".
-
-clean::
-	$(RM) network.f90
-	$(RM) extern.f90
+	$(SILENT) $(RM) $(CASTRO_AUTO_SOURCE_DIR)/*.H $(CASTRO_AUTO_SOURCE_DIR)/*.[fF]90
 	@if [ -L helm_table.dat ]; then rm -f helm_table.dat; fi
+
+# these files are now created directly in the CASTRO_AUTO_SOURCE_DIR so eventually we
+# can get rid of explicitly removing them (this is for backwards compatability)
+clean::
+	$(RM) set_conserved.H set_primitive.H set_godunov.H set_indices.F90 state_sizes.f90
 
 
 # for debugging.  To see the value of a Makefile variable,

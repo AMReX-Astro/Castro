@@ -1,5 +1,8 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_util.H>
+#include <Castro_F.H>
+
+#include <hybrid.H>
 
 using namespace amrex;
 
@@ -78,19 +81,37 @@ Castro::fill_hybrid_hydro_source(MultiFab& sources, MultiFab& state, Real mult_f
 {
     BL_PROFILE("Castro::fill_hybrid_hydro_source()");
 
+    GeometryData geomdata = geom.data();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
-
+    for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_hybrid_hydro_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(state[mfi]),
-                               BL_TO_FORTRAN_ANYD(sources[mfi]),
-                               mult_factor);
+        auto u = state.array(mfi);
+        auto src = sources.array(mfi);
 
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            GpuArray<Real, 3> loc;
+
+            position(i, j, k, geomdata, loc);
+
+            loc[0] -= problem::center[0];
+            loc[1] -= problem::center[1];
+
+            Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
+
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+            Real RInv = 1.0_rt / R;
+
+            src(i,j,k,UMR) = src(i,j,k,UMR) + mult_factor * (rhoInv * RInv * RInv * RInv) *
+                                              u(i,j,k,UML) * u(i,j,k,UML);
+
+        });
     }
 }
 
@@ -101,6 +122,8 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
 {
     BL_PROFILE("Castro::linear_to_hybrid_momentum()");
 
+    GeometryData geomdata = geom.data();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -108,8 +131,33 @@ Castro::linear_to_hybrid_momentum(MultiFab& state, int ng)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_linear_to_hybrid_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+        auto u = state.array(mfi);
+
+        // Convert linear momentum to hybrid momentum.
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            GpuArray<Real, 3> loc;
+
+            position(i, j, k, geomdata, loc);
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+                loc[dir] -= problem::center[dir];
+
+            GpuArray<Real, 3> linear_mom;
+
+            for (int dir = 0; dir < 3; ++dir)
+                linear_mom[dir] = u(i,j,k,UMX+dir);
+
+            GpuArray<Real, 3> hybrid_mom;
+
+            linear_to_hybrid(loc, linear_mom, hybrid_mom);
+
+            for (int dir = 0; dir < 3; ++dir)
+                u(i,j,k,UMR+dir) = hybrid_mom[dir];
+
+        });
     }
 }
 
@@ -120,6 +168,8 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
 {
     BL_PROFILE("Castro::hybrid_to_linear_momentum()");
 
+    GeometryData geomdata = geom.data();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -127,7 +177,32 @@ Castro::hybrid_to_linear_momentum(MultiFab& state, int ng)
     {
         const Box& bx = mfi.growntilebox(ng);
 
-#pragma gpu box(bx)
-        ca_hybrid_to_linear_momentum(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), BL_TO_FORTRAN_ANYD(state[mfi]));
+        auto u = state.array(mfi);
+
+        // Convert hybrid momentum to linear momentum.
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            GpuArray<Real, 3> loc;
+
+            position(i, j, k, geomdata, loc);
+
+            for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
+                loc[dir] -= problem::center[dir];
+
+            GpuArray<Real, 3> hybrid_mom;
+
+            for (int dir = 0; dir < 3; ++dir)
+                hybrid_mom[dir] = u(i,j,k,UMR+dir);
+
+            GpuArray<Real, 3> linear_mom;
+
+            hybrid_to_linear(loc, hybrid_mom, linear_mom);
+
+            for (int dir = 0; dir < 3; ++dir)
+                u(i,j,k,UMX+dir) = linear_mom[dir];
+
+        });
     }
 }

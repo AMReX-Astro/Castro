@@ -36,7 +36,6 @@ contains
 
     use amrex_constants_module, only: ZERO, HALF, ONE, M_PI
     use model_parser_module
-    use interpolate_module
     use prob_params_module, only: dim, center, problo
     use probdata_module, only : g0
     use amrex_fort_module, only : rt => amrex_real

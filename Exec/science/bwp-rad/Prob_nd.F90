@@ -13,29 +13,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
   integer :: name(namlen)
   real(rt) :: problo(3), probhi(3)
 
-  integer :: untin, i, j, k, dir
-
-  namelist /fortin/ model_name
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 127
-  character probin*(maxlen)
-  character model*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
   ! read initial model
   call read_model_file(model_name)
 
@@ -137,7 +114,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
            eos_state%T = state(i,j,k,UTEMP)
            eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
 
-           call eos_on_host(eos_input_rt, eos_state)
+           call eos(eos_input_rt, eos_state)
 
            state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state%e
            state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state%e

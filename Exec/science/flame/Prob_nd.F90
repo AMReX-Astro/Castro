@@ -12,81 +12,15 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   use amrex_fort_module, only : rt => amrex_real
   implicit none
 
-  integer :: init, namlen
-  integer :: name(namlen)
-  real(rt) :: problo(3), probhi(3)
-  real(rt) :: xn(nspec)
-
-  integer untin, i
+  integer, intent(in) :: init, namlen
+  integer, intent(in) :: name(namlen)
+  real(rt), intent(in) :: problo(3), probhi(3)
 
   type (eos_t) :: eos_state
 
   real(rt) :: lambda_f, v_f
 
   integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
-
-  namelist /fortin/ pert_frac, pert_delta, rho_fuel, T_fuel, T_ash, v_inflow, &
-                    fuel1_name, fuel2_name, fuel3_name, fuel4_name, &
-                    ash1_name, ash2_name, ash3_name, ash4_name, &
-                    X_fuel1, X_fuel2, X_fuel3, X_fuel4, X_ash1, X_ash2, X_ash3, X_ash4, &
-                    interp_model, model_file, smallx_init
-
-  ! Build "probin" filename -- the name of file containing
-  ! fortin namelist.
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set namelist defaults
-  pert_frac = 0.2e0_rt
-  pert_delta = 0.02e0_rt
-  rho_fuel = ONE
-  T_fuel = ONE
-  T_ash = ONE
-  v_inflow = ZERO
-
-  interp_model = 0
-  model_file = ""
-
-  ! defaults
-  fuel1_name = "helium-4"
-  X_fuel1 = 1.0
-
-  ash1_name = "oxygen-16"
-  X_ash1 = 1.0
-
-  fuel2_name = ""
-  X_fuel2 = 0.0
-
-  ash2_name = ""
-  X_ash2 = 0.0
-
-  fuel3_name = ""
-  X_fuel3 = 0.0
-
-  ash3_name = ""
-  X_ash3 = 0.0
-
-  fuel4_name = ""
-  X_fuel4 = 0.0
-
-  ash4_name = ""
-  X_ash4 = 0.0
-
-  smallx_init = 0.0
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(untin)
-
 
   ifuel1 = network_species_index(fuel1_name)
   iash1 = network_species_index(ash1_name)
@@ -148,7 +82,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % T = T_fuel
   eos_state % xn(:) = xn_fuel(:)
 
-  call eos_on_host(eos_input_rt, eos_state)
+  call eos(eos_input_rt, eos_state)
 
   e_fuel = eos_state % e
   p_fuel = eos_state % p
@@ -159,7 +93,7 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   eos_state % T = T_ash
   eos_state % xn(:) = xn_ash(:)
 
-  call eos_on_host(eos_input_tp, eos_state)
+  call eos(eos_input_tp, eos_state)
 
   rho_ash = eos_state % rho
   e_ash = eos_state % e
@@ -211,6 +145,7 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
   use conservative_map_module, only : interpolate_conservative, interpolate_avg_to_center
+  use network, only : nspec
 
   implicit none
 

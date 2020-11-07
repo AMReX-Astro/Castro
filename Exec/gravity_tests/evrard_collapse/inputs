@@ -31,7 +31,6 @@ gravity.max_multipole_order = 2    # Multipole expansion includes terms up to r*
 gravity.rel_tol = 1.e-10           # Relative tolerance for multigrid solver
 
 # TIME STEP CONTROL
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # maximum increase in dt over successive steps
@@ -51,11 +50,11 @@ amr.max_grid_size     = 32
 
 # CHECKPOINT FILES
 amr.check_file        = chk      # root name of checkpoint file
-amr.check_per         = 0.1      # amount of simulation time between checkpoints
+amr.check_per         = 5.0      # amount of simulation time between checkpoints
 
 # PLOTFILES
 amr.plot_file         = plt      # root name of plotfile
-amr.plot_per          = 0.1      # amount of simulation time between plotfiles
+amr.plot_per          = 1.0      # amount of simulation time between plotfiles
 amr.derive_plot_vars  = ALL
 
 # PROBIN FILENAME

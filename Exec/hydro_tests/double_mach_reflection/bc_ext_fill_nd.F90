@@ -14,7 +14,7 @@ module bc_ext_fill_module
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, &
                                  UEDEN, UEINT, UFS, UTEMP, const_grav, &
                                  hse_zero_vels, hse_interp_temp, hse_reflect_vels, &
-                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext,zr_ext, EXT_HSE, EXT_INTERP
+                                 xl_ext, xr_ext, yl_ext, yr_ext, zl_ext, zr_ext
   use prob_params_module, only: dim
 
   implicit none
@@ -34,7 +34,6 @@ contains
     use eos_type_module, only: eos_t, eos_input_rt
     use network, only: nspec
     use model_parser_module, only: model_r, model_state, npts_model, idens_model, itemp_model, ispec_model
-    use amrex_filcc_module, only: amrex_filccn
 
     integer,  intent(in   ) :: lo(3), hi(3)
     integer,  intent(in   ) :: adv_lo(3), adv_hi(3)
@@ -241,7 +240,6 @@ contains
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
 #endif
-    use amrex_filcc_module, only: amrex_filccn
 
     implicit none
 

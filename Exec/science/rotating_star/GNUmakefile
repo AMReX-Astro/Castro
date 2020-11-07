@@ -14,20 +14,14 @@ USE_MPI    = TRUE
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
 
-ifdef MICROPHYSICS_HOME
 
-  # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
-  EOS_DIR     := helmholtz
+# This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
+EOS_DIR     := helmholtz
 
-  # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-  NETWORK_DIR := aprox21
+# This sets the network directory in $(MICROPHYSICS_HOME)/networks
+NETWORK_DIR := aprox21
 
-  INTEGRATOR_DIR := VODE90
-else
-
-  $(error Error: This problem requires the Microphysics repository. Please ensure that you have downloaded it and set $$MICROPHYSICS_HOME appropriately)
-
-endif
+INTEGRATOR_DIR := VODE
 
 Bpack   := ./Make.package
 Blocs   := .

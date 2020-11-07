@@ -2,11 +2,11 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 
-#include "particles_defaults.H"
+#include <particles_defaults.H>
 
 using namespace amrex;
 
@@ -31,8 +31,6 @@ Castro::read_particle_params ()
 
   ParmParse pp("particles");
 
-#include "particles_queries.H"
-
     if (ParallelDescriptor::IOProcessor())
         if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
             amrex::CreateDirectoryFailed(timestamp_dir);
@@ -52,16 +50,16 @@ Castro::init_particles ()
 
     if (do_tracer_particles)
     {
-	BL_ASSERT(TracerPC == 0);
+        BL_ASSERT(TracerPC == 0);
 
-	TracerPC = new AmrTracerParticleContainer(parent);
+        TracerPC = new AmrTracerParticleContainer(parent);
 
-	TracerPC->SetVerbose(particle_verbose);
+        TracerPC->SetVerbose(particle_verbose);
 
-	if (! particle_init_file.empty())
-	{
-	    TracerPC->InitFromAsciiFile(particle_init_file,0);
-	}
+        if (! particle_init_file.empty())
+        {
+            TracerPC->InitFromAsciiFile(particle_init_file,0);
+        }
     }
 }
 
@@ -99,24 +97,24 @@ Castro::ParticlePostRestart (const std::string& restart_file)
             TracerPC = new AmrTracerParticleContainer(parent);
 
             TracerPC->SetVerbose(particle_verbose);
-	    //
-	    // We want to be able to add new particles on a restart.
-	    // As well as the ability to write the particles out to an ascii file.
-	    //
-	    if (!restart_from_nonparticle_chkfile)
-	    {
-		TracerPC->Restart(parent->theRestartFile(), chk_tracer_particle_file);
-	    }
+            //
+            // We want to be able to add new particles on a restart.
+            // As well as the ability to write the particles out to an ascii file.
+            //
+            if (!restart_from_nonparticle_chkfile)
+            {
+                TracerPC->Restart(parent->theRestartFile(), chk_tracer_particle_file);
+            }
 
-	    if (!particle_restart_file.empty())
-	    {
-		TracerPC->InitFromAsciiFile(particle_restart_file,0);
-	    }
+            if (!particle_restart_file.empty())
+            {
+                TracerPC->InitFromAsciiFile(particle_restart_file,0);
+            }
 
-	    if (!particle_output_file.empty())
-	    {
-		TracerPC->WriteAsciiFile(particle_output_file);
-	    }
+            if (!particle_output_file.empty())
+            {
+                TracerPC->WriteAsciiFile(particle_output_file);
+            }
         }
     }
 }
@@ -149,7 +147,7 @@ Castro::ParticleDerive(const std::string& name,
       for (int lev = level+1; lev <= parent->finestLevel(); lev++)
       {
           BoxArray ba = parent->boxArray(lev);
-	  const DistributionMapping& dm = parent->DistributionMap(lev);
+          const DistributionMapping& dm = parent->DistributionMap(lev);
 
           MultiFab temp_dat(ba,dm,1,0);
 
@@ -204,51 +202,51 @@ Castro::TimestampParticles (int ngrow)
     static int imax = -1;
     if (first)
     {
-	first = false;
+        first = false;
 
-	// have to do it here, not in read_particle_params, because Density, ..., are set after
-	// read_particle_params is called.
-	if (timestamp_density) {
-	    timestamp_indices.push_back(Density);
-	    std::cout << "Density = " << Density << std::endl;
-	}
-	if (timestamp_temperature) {
-	    timestamp_indices.push_back(Temp);
-	    std::cout << "Temp = " << Temp << std::endl;
-	}
+        // have to do it here, not in read_particle_params, because Density, ..., are set after
+        // read_particle_params is called.
+        if (timestamp_density) {
+            timestamp_indices.push_back(URHO);
+            std::cout << "Density = " << URHO << std::endl;
+        }
+        if (timestamp_temperature) {
+            timestamp_indices.push_back(UTEMP);
+            std::cout << "Temp = " << UTEMP << std::endl;
+        }
 
-	if (!timestamp_indices.empty()) {
-	    imax = *(std::max_element(timestamp_indices.begin(), timestamp_indices.end()));
-	}
+        if (!timestamp_indices.empty()) {
+            imax = *(std::max_element(timestamp_indices.begin(), timestamp_indices.end()));
+        }
     }
 
     if ( TracerPC && !timestamp_dir.empty())
     {
-	std::string basename = timestamp_dir;
+        std::string basename = timestamp_dir;
 
-	if (basename[basename.length()-1] != '/') basename += '/';
+        if (basename[basename.length()-1] != '/') basename += '/';
 
-	basename += "Timestamp";
+        basename += "Timestamp";
 
-	int finest_level = parent->finestLevel();
-	Real time        = state[State_Type].curTime();
+        int finest_level = parent->finestLevel();
+        Real time        = state[State_Type].curTime();
 
-	for (int lev = level; lev <= finest_level; lev++)
-	{
-	    if (TracerPC->NumberOfParticlesAtLevel(lev) <= 0) continue;
+        for (int lev = level; lev <= finest_level; lev++)
+        {
+            if (TracerPC->NumberOfParticlesAtLevel(lev) <= 0) continue;
 
-	    MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
+            MultiFab& S_new = parent->getLevel(lev).get_new_data(State_Type);
 
-	    if (imax >= 0) {  // FillPatchIterator will fail otherwise
-		int ng = (lev == level) ? ngrow : 1;
-		FillPatchIterator fpi(parent->getLevel(lev), S_new,
-				      ng, time, State_Type, 0, imax+1);
-		const MultiFab& S = fpi.get_mf();
-		TracerPC->Timestamp(basename, S    , lev, time, timestamp_indices);
-	    } else {
-		TracerPC->Timestamp(basename, S_new, lev, time, timestamp_indices);
-	    }
-	}
+            if (imax >= 0) {  // FillPatchIterator will fail otherwise
+                int ng = (lev == level) ? ngrow : 1;
+                FillPatchIterator fpi(parent->getLevel(lev), S_new,
+                                      ng, time, State_Type, 0, imax+1);
+                const MultiFab& S = fpi.get_mf();
+                TracerPC->Timestamp(basename, S    , lev, time, timestamp_indices);
+            } else {
+                TracerPC->Timestamp(basename, S_new, lev, time, timestamp_indices);
+            }
+        }
     }
 }
 
@@ -259,29 +257,29 @@ Castro::advance_particles(int iteration, Real time, Real dt)
 {
     if (TracerPC)
     {
-	int ng = iteration;
-	Real t = time + 0.5*dt;
+        int ng = iteration;
+        Real t = time + 0.5*dt;
 
-	MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
+        MultiFab Ucc(grids,dmap,BL_SPACEDIM,ng); // cell centered velocity
 
-	{
-	    FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
-	    MultiFab& S = fpi.get_mf();
+        {
+            FillPatchIterator fpi(*this, Ucc, ng, t, State_Type, 0, BL_SPACEDIM+1);
+            MultiFab& S = fpi.get_mf();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-	    for (MFIter mfi(Ucc,true); mfi.isValid(); ++mfi)
-	    {
-		const Box& bx = mfi.growntilebox();
-		S[mfi].invert(1.0, bx, 0, 1);
-		for (int dir=0; dir < BL_SPACEDIM; ++dir) {
-		    Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
-		    Ucc[mfi].mult(S[mfi], bx, 0, dir);
-		}
-	    }
-	}
+            for (MFIter mfi(Ucc,true); mfi.isValid(); ++mfi)
+            {
+                const Box& bx = mfi.growntilebox();
+                S[mfi].invert(1.0, bx, 0, 1);
+                for (int dir=0; dir < BL_SPACEDIM; ++dir) {
+                    Ucc[mfi].copy(S[mfi], bx, dir+1, bx, dir, 1);
+                    Ucc[mfi].mult(S[mfi], bx, 0, dir);
+                }
+            }
+        }
 
-	TracerPC->AdvectWithUcc(Ucc, level, dt);
+        TracerPC->AdvectWithUcc(Ucc, level, dt);
     }
 }

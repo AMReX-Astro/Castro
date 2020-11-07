@@ -10,7 +10,6 @@ contains
 
   subroutine hypfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="hypfill")
 
-    use amrex_filcc_module, only: amrex_filccn
     use amrex_constants_module, only: ONE, TWO
     use meth_params_module, only: NVAR, URHO, UTEMP, UMX, UMZ, UEDEN, UEINT, UFS
     use castro_util_module, only: position
@@ -37,8 +36,6 @@ contains
 
     real(rt) :: pres_init = 1.0e-6_rt
     real(rt) :: rho_init = 1.0e0_rt
-
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, NVAR, domlo, domhi, delta, xlo, bc)
 
     ! Overwrite the outer boundary conditions
 
@@ -81,8 +78,6 @@ contains
 
   subroutine denfill(lo, hi, adv, adv_lo, adv_hi, domlo, domhi, delta, xlo, time, bc) bind(C, name="denfill")
 
-    use amrex_filcc_module, only: amrex_filccn
-
     implicit none
 
     include 'AMReX_bc_types.fi'
@@ -94,8 +89,6 @@ contains
     real(rt), intent(in   ) :: delta(3), xlo(3)
     real(rt), intent(inout) :: adv(adv_lo(1):adv_hi(1),adv_lo(2):adv_hi(2),adv_lo(3):adv_hi(3))
     real(rt), intent(in   ), value :: time
-
-    call amrex_filccn(lo, hi, adv, adv_lo, adv_hi, 1, domlo, domhi, delta, xlo, bc)
 
   end subroutine denfill
 

@@ -11,42 +11,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer untin,i
-
-  !  namelist /fortin/
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen=127
-  character probin*(maxlen)
-
-  if (namlen .gt. maxlen) then
-     call castro_error("probin file name too long")
-  end if
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! set defaults
-  x0 = 0.5e0_rt
-  tau0 = 10.0e0_rt
-  Q = 1.e0_rt
-  Temp0 = 1.e6_rt
-  kapbar = 1.e0_rt
-  epsilon = 1.e0_rt
-  p0 = 0.5e0_rt
-  p1 = 0.5e0_rt
-
-  xmin = problo(1)
-  xmax = probhi(1)
-
-  ! ! Read namelists
-  ! untin = 9
-  ! open(untin,file=probin(1:namlen),form='formatted',status='old')
-  ! read(untin,fortin)
-  ! close(unit=untin)
-
   t0 = tau0 / (epsilon*c_light*kapbar)
   x0 = x0 / kapbar
   qn(0) = a_rad * Temp0**4 * c_light * kapbar * Q * p0
@@ -103,7 +67,6 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
         do i = lo(1), hi(1)
 
            state(i,j,k,URHO) = 1.0_rt
-           state(i,j,k,UTEMP) = 0.0_rt
            state(i,j,k,UMX:UMZ) = 0.0_rt
 
            ! set the composition to be all in the first species
@@ -113,8 +76,11 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
               state(i,j,k,UFX) = state(i,j,k,URHO)
            end if
 
-           state(i,j,k,UEINT) = 0.0_rt
-           state(i,j,k,UEDEN) = 0.0_rt
+           ! Set temperature and energy to arbitrary, positive values
+           ! so that the Castro state checkers are OK.
+           state(i,j,k,UTEMP) = 1.0e-50_rt
+           state(i,j,k,UEINT) = 1.0e-50_rt
+           state(i,j,k,UEDEN) = 1.0e-50_rt
 
         end do
      end do

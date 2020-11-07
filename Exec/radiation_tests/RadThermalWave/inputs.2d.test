@@ -40,7 +40,7 @@ amr.probin_file     = probin.2d
 castro.lo_bc       =  3    2  
 castro.hi_bc       =  2    2
 
-castro.dt_cutoff      = 1.e-20  # level 0 timestep below which we halt
+
 castro.cfl            = 0.8     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.initial_dt     = 1.e-15
@@ -60,12 +60,6 @@ castro.small_dens     = 1.e-20
 castro.small_temp = 0.0
 
 # ------------------  INPUTS TO RADIATION CLASS  -------------------
-
-# The following are specific for this thermal wave problem only.
-radiation.do_thermal_wave_cgs = 1   
-radiation.use_analytic_solution = 2 # compare with analytic solution?
-radiation.thermal_wave_rhocv = 0.05
-radiation.thermal_wave_Eexp = 3.e7
 
 ##### SolverType #####
 # 0: single group diffusion w/o coupling to hydro
@@ -115,18 +109,6 @@ radiation.hi_bcflag = 0 0 0
 
 radiation.lo_bcval = 0.0 0.0 0.0
 radiation.hi_bcval = 0.0 0.0 0.0
-
-# Power-law opacities are represented as const_kappa * (rho**m) * (temp**(-n)).
-# Since the formula is both nonphysical and singular, prop_temp_floor
-# provides a floor for the temperature used in the power-law computation.
-
-radiation.const_kappa_p =  1.e6
-radiation.kappa_p_exp_m =  0.0
-radiation.kappa_p_exp_n =  0.0
-
-radiation.const_kappa_r =  1.e-3
-radiation.kappa_r_exp_m =  0.0
-radiation.kappa_r_exp_n =  -0.5
 
 # delta_temp is used in computing numerical derivatives.
 # So it should be small, but not too small compared with temperature

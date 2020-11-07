@@ -1,18 +1,18 @@
-#ifndef _RAD_BOUNDCOND_H_
-#define _RAD_BOUNDCOND_H_
+#ifndef CASTRO_RAD_BOUNDCOND_H
+#define CASTRO_RAD_BOUNDCOND_H
 
 #include <AMReX_BLassert.H>
 
 //@Man:
 /*@Memo:
         Maintain an identifier for boundary condition types.
-*/	
+*/      
 /*@Doc:
         This is a placeholder for more extensive boundary condition
-	implementations, which might include stencils, etc.  Presently,
-	boundary conditions are specified via an integer identifier.
-	This class maintains that integer.
-*/	
+        implementations, which might include stencils, etc.  Presently,
+        boundary conditions are specified via an integer identifier.
+        This class maintains that integer.
+*/      
 class RadBoundCond
 {
 public:
@@ -26,14 +26,14 @@ public:
 //@ManDoc: return index of boundary condition type
     operator int () const
     {
-	BL_ASSERT(bctype != -1);
-	return bctype;
+        BL_ASSERT(bctype != -1);
+        return bctype;
     }
 //@ManDoc: set index of boundary condition type
     RadBoundCond& operator = (const int _bctype)
     {
-	bctype = _bctype;
-	return *this;
+        bctype = _bctype;
+        return *this;
     }
 private:
 //@ManDoc: index of boundary condition type
