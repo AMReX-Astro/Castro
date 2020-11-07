@@ -577,6 +577,10 @@ Castro::Castro (Amr&            papa,
       // any changes are made to the problem parameters.
 
       problem_initialize();
+
+      // Sync Fortran back up with any changes we made to the problem parameters.
+      // If problem_initialize() didn't change them, this has no effect.
+      cxx_to_f90_prob_parameters();
     }
 
     initMFs();
