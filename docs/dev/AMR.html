@@ -403,6 +403,12 @@ which to refine), <code class="docutils literal notranslate"><span class="pre">g
 adjacent cells above which we refine), and <code class="docutils literal notranslate"><span class="pre">field_name</span></code> (name of the string
 defining the field in the code). If a refinement indicator is added, either
 <code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Zones adjacent to a physical boundary cannot be tagged for refinement when
+using the Poisson gravity solver. If your tagging criteria are met in these
+zones, they will be ignored.</p>
+</div>
 </div>
 <div class="section" id="synchronization-algorithm">
 <span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>
