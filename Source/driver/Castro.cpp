@@ -53,6 +53,9 @@
 #include <microphysics_F.H>
 
 #include <problem_setup.H>
+#ifdef MHD
+#include <problem_mhd_setup.H>
+#endif
 #include <problem_tagging.H>
 
 #include <ambient.H>
@@ -1027,12 +1030,52 @@ Castro::initData ()
        Bz_new.setVal(0.0);
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-          RealBox    gridloc(grids[mfi.index()],
-                              geom.CellSize(), geom.ProbLo());
+
+
+          auto geomdata = geom.data();
+
+          auto Bx_arr = Bx_new.array(mfi);
+          auto By_arr = By_new.array(mfi);
+          auto Bz_arr = Bz_new.array(mfi);
+
+          const Box& box_x = mfi.nodaltilebox(0);
+
+          amrex::ParallelFor(box_x,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, Bx_arr, 0, geomdata);
+          });
+
+          const Box& box_y = mfi.nodaltilebox(1);
+
+          amrex::ParallelFor(box_y,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, By_arr, 1, geomdata);
+          });
+
+          const Box& box_z = mfi.nodaltilebox(2);
+
+          amrex::ParallelFor(box_z,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, Bz_arr, 2, geomdata);
+          });
+
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
+          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
              (level, cur_time, lo, hi,
