@@ -1,0 +1,4 @@
+File problem_mhd_setup.H
+========================
+
+.. doxygenfile:: problem_mhd_setup.H
