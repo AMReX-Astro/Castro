@@ -3309,6 +3309,11 @@ Castro::errorEst (TagBoxArray& tags,
     // Now we'll tag any user-specified zones using the full state array.
 
     apply_problem_tags(tags, ltime);
+
+    // Finally we'll apply any tagging restrictions which must be obeyed by any setup.
+
+    apply_tagging_restrictions(tags, ltime);
+
 }
 
 
@@ -3365,6 +3370,89 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
         }
     }
 
+}
+
+
+
+void
+Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
+{
+    BL_PROFILE("Castro::apply_tagging_restrictions()");
+
+    // If we are using Poisson gravity, we must ensure that the outermost zones are untagged
+    // due to the Poisson equation boundary conditions (we currently do not know how to fill
+    // the boundary conditions for fine levels that touch the physical boundary.)
+    // To do this properly we need to be aware of AMReX's strategy for tagging, which is not
+    // cell-based, but rather chunk-based. The size of the chunk on the coarse grid is given
+    // by blocking_factor / ref_ratio -- the idea here being that blocking_factor is the
+    // smallest possible group of cells on a given level, so the smallest chunk of cells
+    // possible on the coarse grid is given by that number divided by the refinement ratio.
+    // So we cannot tag anything within that distance from the boundary. Additionally we
+    // need to stay a further amount n_error_buf away, since n_error_buf zones are always
+    // added as padding around tagged zones.
+
+#ifdef GRAVITY
+    if (gravity::gravity_type == "PoissonGrav") {
+
+        int lev = level;
+
+        int n_error_buf[3] = {0};
+        int ref_ratio[3] = {0};
+        int domlo[3] = {0};
+        int domhi[3] = {0};
+        int physbc_lo[3] = {-1};
+        int physbc_hi[3] = {-1};
+        int blocking_factor[3] = {0};
+        for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+            n_error_buf[dim] = parent->nErrorBuf(lev, dim);
+            ref_ratio[dim] = parent->refRatio(lev)[dim];
+            domlo[dim] = geom.Domain().loVect()[dim];
+            domhi[dim] = geom.Domain().hiVect()[dim];
+            physbc_lo[dim] = phys_bc.lo()[dim];
+            physbc_hi[dim] = phys_bc.hi()[dim];
+            blocking_factor[dim] = parent->blockingFactor(lev)[dim];
+        }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto tag = tags[mfi].array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                bool outer_boundary_test[3] = {false};
+
+                int idx[3] = {i, j, k};
+
+                for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+
+                    int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
+
+                    if ((physbc_lo[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] <= domlo[dim] + boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+
+                    if ((physbc_hi[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] >= domhi[dim] - boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+                }
+
+                if (outer_boundary_test[0] || outer_boundary_test[1] || outer_boundary_test[2]) {
+
+                    tag(i,j,k) = TagBox::CLEAR;
+
+                }
+            });
+        }
+
+    }
+#endif
 }
 
 

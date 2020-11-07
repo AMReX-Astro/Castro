@@ -752,6 +752,15 @@ public:
 
 
 ///
+/// Apply any tagging restrictions that must be satisfied by all problems.
+///
+/// @param tags         TagBoxArray of tags
+/// @param time         current time
+///
+    void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
+
+
+///
 /// Apply a given tagging function.
 ///
 /// @param tags         TagBoxArray of tags

@@ -1,5 +1,9 @@
 # 20.12
 
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
+
    * An interface for doing problem tagging in C++ has been added. (#1289)
 
    * Simplified SDC now only supports the C++ integrators (#1294)
