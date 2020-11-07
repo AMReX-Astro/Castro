@@ -69,8 +69,6 @@ castro.ppm_reference = 1                           # Whether we subtract off a r
 castro.ppm_reference_eigenvectors = 1              # Whether to evaluate eigenvectors using the reference state
 castro.ppm_reference_edge_limit = 1                # Use the wave moving fastest toward the interface instead of the cell centered value as the reference state
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
-castro.grav_source_type = 4                        # How to include the gravity source term in the hydro equations
-castro.rot_source_type = 4                         # How to include the rotation source term in the hydro equations
 
 ############################################################################################
 # Thermodynamics

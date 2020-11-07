@@ -1,5 +1,7 @@
 # 20.12
 
+   * grav_source_type and rot_source_type have been removed. (#580)
+
    * An interface for doing problem tagging in C++ has been added. (#1289)
 
    * Simplified SDC now only supports the C++ integrators (#1294)
@@ -413,8 +415,6 @@
      estimator (#733)
 
 # 20.01
-
-   * grav_source_type and rot_source_type have been removed. (#580)
 
    * A new option castro.limit_fluxes_on_large_vel has been added. It
      is similar to the existing option limit_fluxes_on_small_dens --

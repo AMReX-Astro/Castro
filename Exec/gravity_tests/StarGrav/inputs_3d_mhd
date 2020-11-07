@@ -36,7 +36,6 @@ castro.use_flattening = 0
 
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
-castro.grav_source_type = 4
 
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep by this factor
