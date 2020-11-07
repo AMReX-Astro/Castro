@@ -21,9 +21,6 @@ module meth_params_module
   logical,  allocatable, save :: comoving
 #endif
 
-  integer, save, allocatable :: qpass_map(:), upass_map(:)
-
-
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
