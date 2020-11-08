@@ -173,8 +173,16 @@ USE_MLMG = FALSE
 
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/hydro \
-           Source/problems Source/sources \
-           Util/model_parser
+           Source/problems Source/sources
+endif
+
+MAX_NPTS_MODEL ?= 10000
+
+ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser_cxx
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
+else
+  Bdirs += Util/model_parser
 endif
 
 ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
@@ -216,6 +224,8 @@ ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
+    # we only implement this for C++ reactions
+    USE_CXX_REACTIONS = TRUE
   endif
 
   ifeq ($(USE_CXX_REACTIONS), TRUE)

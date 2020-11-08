@@ -11,8 +11,6 @@
   max_stellar_tagging_level = 0
   stellar_density_threshold = 1.0d0
 
-  max_center_tagging_level = 0
-
   max_temperature_tagging_level = 0
   temperature_tagging_threshold = 1.0d9
 

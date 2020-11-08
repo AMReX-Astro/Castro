@@ -21,9 +21,6 @@ module meth_params_module
   logical,  allocatable, save :: comoving
 #endif
 
-  integer, save, allocatable :: qpass_map(:), upass_map(:)
-
-
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
@@ -50,7 +47,7 @@ module meth_params_module
 
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
 #ifdef RADIATION
   attributes(managed) :: fspace_type
   attributes(managed) :: do_inelastic_scattering

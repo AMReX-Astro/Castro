@@ -296,7 +296,9 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
             elif keyword == "cudaattributes":
                 for p in params:
                     if p.dtype != "character":
+                        fout.write("#ifdef AMREX_USE_GPU_PRAGMA\n")
                         fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
+                        fout.write("#endif\n")
 
             elif keyword == "namelist_vars":
                 for p in params:
@@ -491,6 +493,8 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
         fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
 
+        fout.write("  void cxx_to_f90_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
+
         fout.write("  namespace problem {\n\n")
 
         for p in params:
@@ -551,6 +555,24 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                     fout.write("    get_f90_{}(&problem::{});\n\n".format(p.var, p.var))
 
         fout.write("  }\n")
+
+        fout.write("\n")
+        fout.write("  void cxx_to_f90_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
+        fout.write("    int slen = 0;\n\n")
+
+        for p in params:
+            if p.is_array() and p.has_module():
+                continue
+            if p.dtype == "logical" or p.dtype == "character":
+                continue
+
+            if p.is_array():
+                fout.write("    set_f90_{}(problem::{});\n\n".format(p.var, p.var))
+            else:
+                fout.write("    set_f90_{}(&problem::{});\n\n".format(p.var, p.var))
+
+        fout.write("  }\n")
+
 
 def main():
 

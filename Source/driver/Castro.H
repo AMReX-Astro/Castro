@@ -18,6 +18,7 @@ using namespace castro;
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
@@ -66,8 +67,6 @@ constexpr int Shock = USHK;
 
 using std::istream;
 using std::ostream;
-
-#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -757,6 +756,15 @@ public:
 /// @param time         current time
 ///
     void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
+
+
+///
+/// Apply any tagging restrictions that must be satisfied by all problems.
+///
+/// @param tags         TagBoxArray of tags
+/// @param time         current time
+///
+    void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///

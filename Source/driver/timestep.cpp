@@ -24,6 +24,8 @@ Castro::estdt_cfl(const Real time)
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
+
+  GeometryData geomdata = geom.data();
 #endif
 
   const auto dx = geom.CellSizeArray();
@@ -33,12 +35,6 @@ Castro::estdt_cfl(const Real time)
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
   const MultiFab& stateMF = get_new_data(State_Type);
-
-  const int ltime_integration_method = time_integration_method;
-#ifdef ROTATION
-  const int ldo_rotation = do_rotation;
-  const int lstate_in_rotating_frame = state_in_rotating_frame;
-#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -76,13 +72,11 @@ Castro::estdt_cfl(const Real time)
       Real uz = u(i,j,k,UMZ) * rhoInv;
 
 #ifdef ROTATION
-      if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
+      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
         Real vel[3];
         vel[0] = ux;
         vel[1] = uy;
         vel[2] = uz;
-
-        GeometryData geomdata = geom.data();
 
         inertial_to_rotational_velocity_c(i, j, k, geomdata,
                                           omega.begin(), time, vel);
@@ -114,7 +108,7 @@ Castro::estdt_cfl(const Real time)
       // The CTU method has a less restrictive timestep than MOL-based
       // schemes (including the true SDC).  Since the simplified SDC
       // solver is based on CTU, we can use its timestep.
-      if (ltime_integration_method == 0 || ltime_integration_method == 3) {
+      if (castro::time_integration_method == 0 || castro::time_integration_method == 3) {
         return {amrex::min(dt1, dt2, dt3)};
 
       } else {

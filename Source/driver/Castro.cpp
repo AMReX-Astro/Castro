@@ -53,6 +53,12 @@
 #include <microphysics_F.H>
 
 #include <problem_setup.H>
+#ifdef MHD
+#include <problem_mhd_setup.H>
+#endif
+#include <problem_tagging.H>
+
+#include <ambient.H>
 
 using namespace amrex;
 
@@ -557,11 +563,24 @@ Castro::Castro (Amr&            papa,
       init_prob_parameters();
       do_init_probparams = 1;
 
+      // Copy ambient data from Fortran to C++. This should be done prior to
+      // problem_initialize() in case the C++ initialization overwrites it.
+
+      for (int n = 0; n < NUM_STATE; ++n) {
+          ambient::ambient_state[n] = 0.0_rt;
+      }
+
+      get_ambient_data(ambient::ambient_state);
+
       // If we're doing C++ problem initialization, do it here. We have to make
       // sure it's done after the above call to init_prob_parameters() in case
       // any changes are made to the problem parameters.
 
       problem_initialize();
+
+      // Sync Fortran back up with any changes we made to the problem parameters.
+      // If problem_initialize() didn't change them, this has no effect.
+      cxx_to_f90_prob_parameters();
     }
 
     initMFs();
@@ -1015,12 +1034,52 @@ Castro::initData ()
        Bz_new.setVal(0.0);
 
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-          RealBox    gridloc(grids[mfi.index()],
-                              geom.CellSize(), geom.ProbLo());
+
+
+          auto geomdata = geom.data();
+
+          auto Bx_arr = Bx_new.array(mfi);
+          auto By_arr = By_new.array(mfi);
+          auto Bz_arr = Bz_new.array(mfi);
+
+          const Box& box_x = mfi.nodaltilebox(0);
+
+          amrex::ParallelFor(box_x,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, Bx_arr, 0, geomdata);
+          });
+
+          const Box& box_y = mfi.nodaltilebox(1);
+
+          amrex::ParallelFor(box_y,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, By_arr, 1, geomdata);
+          });
+
+          const Box& box_z = mfi.nodaltilebox(2);
+
+          amrex::ParallelFor(box_z,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ MHD problem initialization; has no effect if not
+              // implemented by a problem setup (defaults to an empty
+              // routine).
+              problem_initialize_mhd_data(i, j, k, Bz_arr, 2, geomdata);
+          });
+
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
+          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
 
           BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
              (level, cur_time, lo, hi,
@@ -3226,6 +3285,11 @@ Castro::errorEst (TagBoxArray& tags,
     // Now we'll tag any user-specified zones using the full state array.
 
     apply_problem_tags(tags, ltime);
+
+    // Finally we'll apply any tagging restrictions which must be obeyed by any setup.
+
+    apply_tagging_restrictions(tags, ltime);
+
 }
 
 
@@ -3241,6 +3305,8 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    int lev = level;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3254,6 +3320,16 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
             const int8_t tagval   = (int8_t) TagBox::SET;
             const int8_t clearval = (int8_t) TagBox::CLEAR;
+
+            auto tag_arr = tagfab.array();
+            const auto state_arr = S_new[mfi].array();
+            const GeometryData& geomdata = geom.data();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                problem_tagging(i, j, k, tag_arr, state_arr, lev, geomdata);
+            });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 #pragma gpu box(bx)
@@ -3272,6 +3348,89 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
         }
     }
 
+}
+
+
+
+void
+Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
+{
+    BL_PROFILE("Castro::apply_tagging_restrictions()");
+
+    // If we are using Poisson gravity, we must ensure that the outermost zones are untagged
+    // due to the Poisson equation boundary conditions (we currently do not know how to fill
+    // the boundary conditions for fine levels that touch the physical boundary.)
+    // To do this properly we need to be aware of AMReX's strategy for tagging, which is not
+    // cell-based, but rather chunk-based. The size of the chunk on the coarse grid is given
+    // by blocking_factor / ref_ratio -- the idea here being that blocking_factor is the
+    // smallest possible group of cells on a given level, so the smallest chunk of cells
+    // possible on the coarse grid is given by that number divided by the refinement ratio.
+    // So we cannot tag anything within that distance from the boundary. Additionally we
+    // need to stay a further amount n_error_buf away, since n_error_buf zones are always
+    // added as padding around tagged zones.
+
+#ifdef GRAVITY
+    if (gravity::gravity_type == "PoissonGrav") {
+
+        int lev = level;
+
+        int n_error_buf[3] = {0};
+        int ref_ratio[3] = {0};
+        int domlo[3] = {0};
+        int domhi[3] = {0};
+        int physbc_lo[3] = {-1};
+        int physbc_hi[3] = {-1};
+        int blocking_factor[3] = {0};
+        for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+            n_error_buf[dim] = parent->nErrorBuf(lev, dim);
+            ref_ratio[dim] = parent->refRatio(lev)[dim];
+            domlo[dim] = geom.Domain().loVect()[dim];
+            domhi[dim] = geom.Domain().hiVect()[dim];
+            physbc_lo[dim] = phys_bc.lo()[dim];
+            physbc_hi[dim] = phys_bc.hi()[dim];
+            blocking_factor[dim] = parent->blockingFactor(lev)[dim];
+        }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto tag = tags[mfi].array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                bool outer_boundary_test[3] = {false};
+
+                int idx[3] = {i, j, k};
+
+                for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+
+                    int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
+
+                    if ((physbc_lo[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] <= domlo[dim] + boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+
+                    if ((physbc_hi[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] >= domhi[dim] - boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+                }
+
+                if (outer_boundary_test[0] || outer_boundary_test[1] || outer_boundary_test[2]) {
+
+                    tag(i,j,k) = TagBox::CLEAR;
+
+                }
+            });
+        }
+
+    }
+#endif
 }
 
 
@@ -3296,10 +3455,10 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
     {
         const Box& bx = mfi.tilebox();
 
-        auto datfab = (*mf).array(mfi);
-        auto tagfab = tags.array(mfi);
+        const auto dat = (*mf).array(mfi);
+        auto tag = tags.array(mfi);
 
-        const int ncomp = datfab.nComp();
+        const int ncomp = dat.nComp();
 
         const int8_t tagval   = (int8_t) TagBox::SET;
         const int8_t clearval = (int8_t) TagBox::CLEAR;
@@ -3307,83 +3466,205 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
         int lev = level;
 
         if (err_list_names[jcomp] == "density") {
+            Real denerr, dengrad, dengrad_rel;
+            int max_denerr_lev, max_dengrad_lev, max_dengrad_rel_lev;
+
+            get_denerr_params(&denerr, &max_denerr_lev,
+                              &dengrad, &max_dengrad_lev,
+                              &dengrad_rel, &max_dengrad_rel_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_denerror(i, j, k,
-                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, lev);
+                // Tag on regions of high density
+                if (lev < max_denerr_lev) {
+                    if (dat(i,j,k,0) >= denerr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
+
+                // Tag on regions of high density gradient
+                if (lev < max_dengrad_lev || lev < max_dengrad_rel_lev) {
+                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
+                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
+                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
+                    ax = amrex::max(ax, std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
+                    ay = amrex::max(ay, std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
+                    az = amrex::max(az, std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
+
+                    if (amrex::max(ax, ay, az) >= dengrad || amrex::max(ax, ay, az) >= std::abs(dengrad_rel * dat(i,j,k,0))) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
         else if (err_list_names[jcomp] == "Temp") {
+            Real temperr, tempgrad, tempgrad_rel;
+            int max_temperr_lev, max_tempgrad_lev, max_tempgrad_rel_lev;
+
+            get_temperr_params(&temperr, &max_temperr_lev,
+                               &tempgrad, &max_tempgrad_lev,
+                               &tempgrad_rel, &max_tempgrad_rel_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_temperror(i, j, k,
-                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                             tagval, clearval, time, lev);
+                // Tag on regions of high temperature
+                if (lev < max_temperr_lev) {
+                    if (dat(i,j,k,0) >= temperr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
+
+                // Tag on regions of high temperature gradient
+                if (lev < max_tempgrad_lev || lev < max_tempgrad_rel_lev) {
+                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
+                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
+                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
+                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
+                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
+                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
+                    if (amrex::max(ax, ay, az) >= tempgrad || amrex::max(ax, ay, az) >= std::abs(tempgrad_rel * dat(i,j,k,0))) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
         else if (err_list_names[jcomp] == "pressure") {
+            Real presserr, pressgrad, pressgrad_rel;
+            int max_presserr_lev, max_pressgrad_lev, max_pressgrad_rel_lev;
+
+            get_presserr_params(&presserr, &max_presserr_lev,
+                                &pressgrad, &max_pressgrad_lev,
+                                &pressgrad_rel, &max_pressgrad_rel_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
-            {                
-                ca_presserror(i, j, k,
-                              (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                              AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                              AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                              tagval, clearval, time, lev);
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                // Tag on regions of high pressure
+                if (lev < max_presserr_lev) {
+                    if (dat(i,j,k,0) >= presserr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
+
+                // Tag on regions of high pressure gradient
+                if (lev < max_pressgrad_lev || lev < max_pressgrad_rel_lev) {
+                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
+                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
+                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
+                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
+                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
+                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
+                    if (amrex::max(ax,ay,az) >= pressgrad || amrex::max(ax,ay,az) >= std::abs(pressgrad_rel * dat(i,j,k,0))) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
         else if (err_list_names[jcomp] == "x_velocity" || err_list_names[jcomp] == "y_velocity" || err_list_names[jcomp] == "z_velocity") {
+            Real velerr, velgrad, velgrad_rel;
+            int max_velerr_lev, max_velgrad_lev, max_velgrad_rel_lev;
+
+            get_velerr_params(&velerr, &max_velerr_lev,
+                              &velgrad, &max_velgrad_lev,
+                              &velgrad_rel, &max_velgrad_rel_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_velerror(i, j, k,
-                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, lev);
+                // Tag on regions of high velocity
+                if (lev < max_velerr_lev) {
+                    if (std::abs(dat(i,j,k,0)) >= velerr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
+
+                // Tag on regions of high velocity gradient
+                if (lev < max_velgrad_lev || lev < max_velgrad_rel_lev) {
+                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
+                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
+                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
+                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
+                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
+                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
+                    if (amrex::max(ax,ay,az) >= velgrad || amrex::max(ax,ay,az) >= std::abs(velgrad_rel * dat(i,j,k,0))) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
 #ifdef REACTIONS
         else if (err_list_names[jcomp] == "t_sound_t_enuc") {
+            Real dxnuc_min, dxnuc_max;
+            int max_dxnuc_lev;
+
+            get_dxnuc_params(&dxnuc_min, &dxnuc_max, &max_dxnuc_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_nucerror(i, j, k,
-                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, lev);
+                // Disable if we're not utilizing this tagging
+
+                if (dxnuc_min > 1.e199_rt) return;
+
+                if (lev < max_dxnuc_lev) {
+                    if (dat(i,j,k,0) > dxnuc_min && dat(i,j,k,0) < dxnuc_max) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
         else if (err_list_names[jcomp] == "enuc") {
+            Real enucerr;
+            int max_enucerr_lev;
+
+            get_enuc_params(&enucerr, &max_enucerr_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_enucerror(i, j, k,
-                             (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                             AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                             AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                             tagval, clearval, time, lev);
+                // Tag on regions of high nuclear energy generation rate
+
+                if (lev < max_enucerr_lev) {
+                    if (dat(i,j,k,0) >= enucerr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
 #endif
 #ifdef RADIATION
         else if (err_list_names[jcomp] == "rad") {
+            Real raderr, radgrad, radgrad_rel;
+            int max_raderr_lev, max_radgrad_lev, max_radgrad_rel_lev;
+
+            get_raderr_params(&raderr, &max_raderr_lev,
+                              &radgrad, &max_radgrad_lev,
+                              &radgrad_rel, &max_radgrad_rel_lev);
+
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                ca_raderror(i, j, k,
-                            (int8_t*) AMREX_ARR4_TO_FORTRAN_ANYD(tagfab),
-                            AMREX_ARR4_TO_FORTRAN_ANYD(datfab), ncomp,
-                            AMREX_ZFILL(dx.data()), AMREX_ZFILL(problo.data()),
-                            tagval, clearval, time, lev);
+                // Tag on regions of high radiation
+                if (lev < max_raderr_lev) {
+                    if (dat(i,j,k,0) >= raderr) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
+
+                // Tag on regions of high radiation gradient
+                if (lev < max_radgrad_lev || lev < max_radgrad_rel_lev) {
+                    Real ax = std::abs(dat(i+1*dg0,j,k,0) - dat(i,j,k,0));
+                    Real ay = std::abs(dat(i,j+1*dg1,k,0) - dat(i,j,k,0));
+                    Real az = std::abs(dat(i,j,k+1*dg2,0) - dat(i,j,k,0));
+                    ax = amrex::max(ax,std::abs(dat(i,j,k,0) - dat(i-1*dg0,j,k,0)));
+                    ay = amrex::max(ay,std::abs(dat(i,j,k,0) - dat(i,j-1*dg1,k,0)));
+                    az = amrex::max(az,std::abs(dat(i,j,k,0) - dat(i,j,k-1*dg2,0)));
+                    if (amrex::max(ax,ay,az) >= radgrad || amrex::max(ax,ay,az) >= std::abs(radgrad_rel * dat(i,j,k,0))) {
+                        tag(i,j,k) = TagBox::SET;
+                    }
+                }
             });
         }
 #endif
@@ -3816,7 +4097,15 @@ Castro::computeTemp(
           amrex::ParallelFor(bx,
           [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
           {
-              ca_clamp_temp(i, j, k, AMREX_ARR4_TO_FORTRAN_ANYD(u));
+              Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+              if (u(i,j,k,URHO) <= castro::ambient_safety_factor * ambient::ambient_state[URHO]) {
+                  u(i,j,k,UTEMP) = ambient::ambient_state[UTEMP];
+                  u(i,j,k,UEINT) = ambient::ambient_state[UEINT] * (u(i,j,k,URHO) * rhoInv);
+                  u(i,j,k,UEDEN) = u(i,j,k,UEINT) + 0.5_rt * rhoInv * (u(i,j,k,UMX) * u(i,j,k,UMX) +
+                                                                       u(i,j,k,UMY) * u(i,j,k,UMY) +
+                                                                       u(i,j,k,UMZ) * u(i,j,k,UMZ));
+              }
           });
       }
 

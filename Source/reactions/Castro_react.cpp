@@ -308,26 +308,23 @@ Castro::react_state(Real time, Real dt)
 
     // Start off assuming a successful burn.
 
-    int burn_success = 1;
 #ifndef CXX_REACTIONS
-    Real burn_failed = 0.0;
+        amrex::abort("Error: simplified SDC requires USE_CXX_REACTIONS=TRUE");
 #endif
+
+    int burn_success = 1;
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
-#ifdef CXX_REACTIONS
-    using ReduceTuple = typename decltype(reduce_data)::Type;
-#endif
 
-#ifdef _OPENMP
-#pragma omp parallel reduction(+:burn_failed)
-#endif
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
     for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
 
         const Box& bx = mfi.growntilebox(ng);
 
-#ifdef CXX_REACTIONS
+
         auto U_old = S_old.array(mfi);
         auto U_new = S_new.array(mfi);
         auto asrc = A_src.array(mfi);
@@ -376,10 +373,13 @@ Castro::react_state(Real time, Real dt)
             }
 #endif
 
+            // we need an initial T guess for the EOS
+            burn_state.T = U_old(i,j,k,UTEMP);
+
             // Don't burn if we're outside of the relevant (rho, T) range.
 
-            if (burn_state.T < castro::react_T_min || burn_state.T > castro::react_T_max ||
-                burn_state.rho < castro::react_rho_min || burn_state.rho > castro::react_rho_max) {
+            if (U_old(i,j,k,UTEMP) < castro::react_T_min || U_old(i,j,k,UTEMP) > castro::react_T_max ||
+                U_old(i,j,k,URHO) < castro::react_rho_min || U_old(i,j,k,URHO) > castro::react_rho_max) {
                 do_burn = false;
             }
 
@@ -408,6 +408,7 @@ Castro::react_state(Real time, Real dt)
              burn_state.k = k;
 
              burn_state.sdc_iter = sdc_iteration;
+             burn_state.num_sdc_iters = sdc_iters;
 
              if (do_burn) {
                  burner(burn_state, dt);
@@ -453,34 +454,11 @@ Castro::react_state(Real time, Real dt)
 
              return {burn_failed};
         });
-#else
-
-        FArrayBox& uold    = S_old[mfi];
-        FArrayBox& unew    = S_new[mfi];
-        FArrayBox& a       = A_src[mfi];
-        FArrayBox& r       = reactions[mfi];
-        const IArrayBox& m = interior_mask[mfi];
-
-
-
-#pragma gpu box(bx)
-        ca_react_state_simplified_sdc(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                      BL_TO_FORTRAN_ANYD(uold),
-                                      BL_TO_FORTRAN_ANYD(unew),
-                                      BL_TO_FORTRAN_ANYD(a),
-                                      BL_TO_FORTRAN_ANYD(r),
-                                      BL_TO_FORTRAN_ANYD(m),
-                                      time, dt, sdc_iteration,
-                                      AMREX_MFITER_REDUCE_SUM(&burn_failed));
-
-#endif
 
     }
 
-#ifdef CXX_REACTIONS
     ReduceTuple hv = reduce_data.value();
     Real burn_failed = amrex::get<0>(hv);
-#endif
 
     if (burn_failed != 0.0) burn_success = 0;
 

@@ -11,7 +11,7 @@ module amrinfo_module
   real(rt), allocatable         :: amr_time
   real(rt), allocatable         :: amr_dt
 
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
   attributes(managed) :: amr_level, amr_iteration, amr_ncycle
   attributes(managed) :: amr_time, amr_dt
 #endif
