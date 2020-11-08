@@ -7,7 +7,7 @@
 #include <wdmerger_F.H>
 
 AMREX_INLINE
-void problem_restart(std::string checkpoint_dir)
+void problem_restart (std::string checkpoint_dir)
 {
     std::ifstream com;
     com.open(checkpoint_dir + "/COM", std::ios::in);
