@@ -2,8 +2,6 @@
 
 #include <AMReX_ParmParse.H>
 
-#include <Problem_F.H>
-
 #include <fstream>
 
 using namespace amrex;
