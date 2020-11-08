@@ -10,7 +10,9 @@ Problems
    file/Problem__Derives_8H
    file/ambient_8H
    file/bc__ext__fill_8H
+   file/problem__checkpoint_8H
    file/problem__mhd__setup_8H
+   file/problem__restart_8H
    file/problem__setup_8H
    file/problem__tagging_8H
    

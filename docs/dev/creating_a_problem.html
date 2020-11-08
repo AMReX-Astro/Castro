@@ -427,16 +427,15 @@ an example of this.</p>
 <p>The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Problem.f90</span></code> :</p>
-<p>This provides two routines, <code class="docutils literal notranslate"><span class="pre">problem_checkpoint</span></code> and
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_checkpoint.H</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_restart.H</span></code> :</p>
+<p>These provides two routines, respectively <code class="docutils literal notranslate"><span class="pre">problem_checkpoint</span></code> and
 <code class="docutils literal notranslate"><span class="pre">problem_restart</span></code> that can be used to add information to the
 checkpoint files and read it in upon restart. This is useful for
 some global problem-specific quantities. For instance, the
 <code class="docutils literal notranslate"><span class="pre">wdmerger</span></code> problem uses this to store center of mass position and
 velocity information in the checkpoint files that are used for
 runtime diagnostics.</p>
-<p>The name of the checkpoint directory is passed in as an argument.
-<code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code> provides the C++ interfaces for these routines.</p>
+<p>The name of the checkpoint directory is passed in as an argument.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">problem_tagging_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code></p>
 <p>This implements problem-specific tagging for refinement, through a
@@ -462,7 +461,7 @@ the <code class="docutils literal notranslate"><span class="pre">reacting_bubble
 quantities (perturbations against a background one-dimensional
 model, in this case).</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Prob.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_F.H</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob.cpp</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem.H</span></code></p>
 <p>These files provide problem-specific routines for computing global
 diagnostic information through the sum_integrated_quantities
 functionality that is part of the <code class="docutils literal notranslate"><span class="pre">Castro</span></code> class.</p>
