@@ -1102,64 +1102,6 @@ contains
 
 
 
-  ! Updates the global extrema.
-
-  subroutine set_extrema(T_max, rho_max, ts_te_max) bind(C,name='set_extrema')
-
-    use probdata_module, only: T_global_max, rho_global_max, ts_te_global_max
-
-    implicit none
-
-    real(rt), intent(in) :: T_max, rho_max, ts_te_max
-
-    T_global_max     = T_max
-    rho_global_max   = rho_max
-    ts_te_global_max = ts_te_max
-
-  end subroutine set_extrema
-
-
-
-  ! Returns whether the simulation is done.
-
-  subroutine get_job_status(jobDoneStatus) bind(C,name='get_job_status')
-
-    use probdata_module, only: jobIsDone
-
-    implicit none
-
-    integer, intent(inout) :: jobDoneStatus
-
-    if (jobIsDone) then
-       jobDoneStatus = 1
-    else
-       jobDoneStatus = 0
-    endif
-
-  end subroutine get_job_status
-
-
-
-  ! Sets whether the simulation is done.
-
-  subroutine set_job_status(jobDoneStatus) bind(C,name='set_job_status')
-
-    use probdata_module, only: jobIsDone
-
-    implicit none
-
-    integer, intent(in) :: jobDoneStatus
-
-    if (jobDoneStatus == 1) then
-       jobIsDone = .true.
-    else
-       jobIsDone = .false.
-    endif
-
-  end subroutine set_job_status
-
-
-
   ! Get the relaxation_cutoff_density parameter.
 
   subroutine get_relaxation_density_cutoff(relaxation_density_cutoff_in) bind(C, name='get_relaxation_density_cutoff')
@@ -1225,37 +1167,5 @@ contains
     relaxation_is_done = relaxation_status
 
   end subroutine set_relaxation_status
-
-
-
-  ! Retrieve the total energy array.
-
-  subroutine get_total_ener_array(ener_array_in) bind(C,name='get_total_ener_array')
-
-    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
-
-    implicit none
-
-    real(rt), intent(inout) :: ener_array_in(num_previous_ener_timesteps)
-
-    ener_array_in(:) = total_ener_array(:)
-
-  end subroutine get_total_ener_array
-
-
-
-  ! Set the total energy array.
-
-  subroutine set_total_ener_array(ener_array_in) bind(C,name='set_total_ener_array')
-
-    use probdata_module, only: num_previous_ener_timesteps, total_ener_array
-
-    implicit none
-
-    real(rt), intent(in) :: ener_array_in(num_previous_ener_timesteps)
-
-    total_ener_array(:) = ener_array_in(:)
-
-  end subroutine set_total_ener_array
 
 end module wdmerger_util_module

@@ -254,8 +254,7 @@ ts_te_global_max                real                  0.0e0_rt                 n
 
 # Stores whether we assert that the simulation has completed.
 
-jobIsDone                       logical               .false.                  n
-signalJobIsNotDone              logical               .false.                  n
+jobIsDone                       integer               0                        n
 
 
 

@@ -2,7 +2,6 @@
 
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Problem_F.H>
 #include <AMReX_TracerParticles.H>
 #include <AMReX_AmrParticles.H>
 
