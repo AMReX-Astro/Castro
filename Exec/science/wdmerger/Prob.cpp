@@ -10,6 +10,7 @@
 
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
+#include <wdmerger_F.H>
 #include <binary.H>
 
 #include <fstream>
@@ -1022,12 +1023,6 @@ void Castro::check_to_stop(Real time, bool dump) {
     using namespace wdmerger;
     using namespace problem;
 
-    int jobDoneStatus;
-
-    // Get the current job done status.
-
-    get_job_status(&jobDoneStatus);
-
     if (use_stopping_criterion) {
 
         // Note that we don't want to use the following in 1D
@@ -1078,10 +1073,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             total_ener_array[0] = E_tot;
 
-            // Send the data to Fortran.
-
-            set_total_ener_array(total_ener_array);
-
             bool stop_flag = false;
 
             int i = 0;
@@ -1104,9 +1095,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             if (stop_flag) {
 
-                jobDoneStatus = 1;
-
-                set_job_status(&jobDoneStatus);
+                problem::jobIsDone = 1;
 
                 amrex::Print() << std::endl 
                                << "Ending simulation because total energy is positive and decreasing." 
@@ -1119,9 +1108,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the threshold for unstable burning."
@@ -1131,9 +1118,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (T_curr_max >= T_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the temperature threshold."
@@ -1146,9 +1131,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
     // Is the job done? If so, signal this to AMReX.
 
-    get_job_status(&jobDoneStatus);
-
-    if (jobDoneStatus == 1) {
+    if (problem::jobIsDone) {
 
       signalStopJob = true;
 
@@ -1233,10 +1216,6 @@ void Castro::update_extrema(Real time) {
     T_global_max     = std::max(T_global_max, T_curr_max);
     rho_global_max   = std::max(rho_global_max, rho_curr_max);
     ts_te_global_max = std::max(ts_te_global_max, ts_te_curr_max);
-
-    // Send extrema data to Fortran
-
-    set_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
 
 }
 
