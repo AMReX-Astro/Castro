@@ -242,7 +242,7 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="problem__tagging_8H_1ad4c890d1e505b07d4a3e224e26f3b456"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_tagging (int i, int j, int k, Array4&lt; char &gt; const &amp;tag, Array4&lt; Real const &gt; const &amp;state, const GeometryData &amp;geomdata)</code></dt>
+<span class="target" id="problem__tagging_8H_1a0db54260935ab528b9b3e6154f37dfd3"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_tagging (int i, int j, int k, Array4&lt; char &gt; const &amp;tag, Array4&lt; Real const &gt; const &amp;state, int level, const GeometryData &amp;geomdata)</code></dt>
 <dd><p>Define problem-specific tagging criteria</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -251,6 +251,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: z-index </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tag</span></code>: tag array (TagBox) </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: simulation state (Fab) </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: AMR level </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: geometry data </p></li>
 </ul>
 </dd>
