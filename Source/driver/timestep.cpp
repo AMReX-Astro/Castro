@@ -439,7 +439,9 @@ Castro::estdt_burning()
             eos(eos_input_rt, eos_state);
             eos_to_burn(eos_state, state);
 
+#ifndef SIMPLIFIED_SDC
             state.self_heat = true;
+#endif
             Array1D<Real, 1, neqs> ydot;
             actual_rhs(state, ydot);
 
