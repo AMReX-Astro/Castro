@@ -11,28 +11,49 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
 {
     BL_PROFILE("Castro::flame_width_properties()");
 
-    const Real* dx = geom.CellSize();
+    const auto dx = geom.CellSizeArray();
 
     auto mf = derive("Temp",time,1);
 
     BL_ASSERT(mf != nullptr);
 
+    ReduceOps<ReduceOpMax, ReduceOpMin, ReduceOpMax> reduce_op;
+    ReduceData<Real, Real, Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:T_max,grad_T_max) reduction(min:T_min)
+#pragma omp parallel
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-        FArrayBox& fab = (*mf)[mfi];
-
         const Box& box  = mfi.tilebox();
-        const int* lo   = box.loVect();
-        const int* hi   = box.hiVect();
 
-	flame_width_temp(BL_TO_FORTRAN_ANYD(fab),
-			 ARLIM_3D(lo),ARLIM_3D(hi),
-			 ZFILL(dx),&time,
-			 &T_max, &T_min, &grad_T_max);
+        const auto temp = (*mf)[mfi].array();
+
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+            // Assumes 1D simulation, right now. Also assumes that
+            // we have at least one ghost cell in the x dimension.
+
+            Real T = temp(i,j,k);
+            Real grad_T = std::abs(temp(i+1,j,k) - temp(i-1,j,k)) / (2.0_rt * dx[0]);
+
+            // Ignore problem zones where we have a negative temperature
+
+            if (T < 0.0_rt) {
+                T = 0.0_rt;
+                grad_T = 0.0_rt;
+            }
+
+            return {T, T, grad_T};
+        });
     }
+
+    ReduceTuple hv = reduce_data.value();
+    T_max = amrex::get<0>(hv);
+    T_min = amrex::get<1>(hv);
+    grad_T_max = amrex::get<2>(hv);
 }
 
 
@@ -42,7 +63,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 {
     BL_PROFILE("Castro::flame_speed_properties()");
 
-    const Real* dx = geom.CellSize();
+    const auto dx = geom.CellSizeArray();
   std::vector<std::string> spec_names;
   for (int i = 0; i < NumSpec; i++) {
     spec_names.push_back(short_spec_names_cxx[i]);
@@ -65,24 +86,27 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
 
   auto mf = derive(name, time, 0);
   BL_ASSERT(mf != nullptr);
-  Real rho_fuel_dot_temp = 0.0;
+
+  ReduceOps<ReduceOpSum> reduce_op;
+  ReduceData<Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(+:rho_fuel_dot_temp)
+#pragma omp parallel
 #endif    
-    for (MFIter mfi(*mf,true); mfi.isValid(); ++mfi)
+    for (MFIter mfi(*mf, TilingIfNotGPU()); mfi.isValid(); ++mfi)
     {
-	FArrayBox& fab = (*mf)[mfi];
-
         const Box& box  = mfi.tilebox();
-        const int* lo   = box.loVect();
-        const int* hi   = box.hiVect();
 
-	flame_speed_data(BL_TO_FORTRAN_ANYD(fab),
-			 ARLIM_3D(lo),ARLIM_3D(hi),
-			 ZFILL(dx),
-			 &rho_fuel_dot_temp);
+        const auto omegadot = (*mf)[mfi].array();
+
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+            return {omegadot(i,j,k) * dx[0]};
+        });
     }
 
-    rho_fuel_dot += rho_fuel_dot_temp;
+    ReduceTuple hv = reduce_data.value();
+    rho_fuel_dot += amrex::get<0>(hv);
 }
