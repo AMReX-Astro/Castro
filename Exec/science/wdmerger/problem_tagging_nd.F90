@@ -23,11 +23,9 @@ contains
     use probdata_module, only: max_tagging_radius, &
                                max_stellar_tagging_level, &
                                max_temperature_tagging_level, &
-                               max_center_tagging_level, &
                                roche_tagging_factor, &
                                stellar_density_threshold, &
                                temperature_tagging_threshold, &
-                               center_tagging_radius, &
                                com_P, com_S, roche_rad_P, roche_rad_S, &
                                problem
 
@@ -120,21 +118,9 @@ contains
 
              endif
 
-             ! Tag all zones within a specified distance from the center.
+             ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
              r = ( sum((loc-center)**2) )**HALF
-
-             if (level < max_center_tagging_level) then
-
-                if (r + n_error_buf(level) * minval(dx(1:dim)) <= center_tagging_radius) then
-
-                   tag(i,j,k) = set
-
-                endif
-
-             endif
-
-             ! Clear all tagging that occurs outside the radius set by max_tagging_radius.
 
              if (r .gt. max_tagging_radius * max(maxval(abs(problo-center)), maxval(abs(probhi-center)))) then
 
