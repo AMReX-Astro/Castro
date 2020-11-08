@@ -2,7 +2,6 @@
 
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Problem_F.H>
 
 using namespace amrex;
 
@@ -51,9 +50,9 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
     }
 
     ReduceTuple hv = reduce_data.value();
-    T_max = amrex::get<0>(hv);
-    T_min = amrex::get<1>(hv);
-    grad_T_max = amrex::get<2>(hv);
+    T_max = amrex::max(T_max, amrex::get<0>(hv));
+    T_min = amrex::min(T_min, amrex::get<1>(hv));
+    grad_T_max = amrex::max(grad_T_max, amrex::get<2>(hv));
 }
 
 
