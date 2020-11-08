@@ -277,8 +277,4 @@ BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
 
-
-/* problem-specific includes */
-#include <Problem_F.H>
-
 #endif
