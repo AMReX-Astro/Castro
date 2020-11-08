@@ -3329,6 +3329,8 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
+    int lev = level;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -3350,7 +3352,7 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                problem_tagging(i, j, k, tag_arr, state_arr, geomdata);
+                problem_tagging(i, j, k, tag_arr, state_arr, lev, geomdata);
             });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
