@@ -8,10 +8,6 @@
 
 using namespace amrex;
 
-int Castro::use_stopping_criterion = 0;
-Real Castro::ts_te_stopping_criterion = 1.e200;
-Real Castro::T_stopping_criterion = 1.e200;
-
 #ifdef DO_PROBLEM_POST_TIMESTEP
 void
 Castro::problem_post_timestep()
@@ -30,7 +26,7 @@ Castro::problem_post_timestep()
     // sense for the non-collision inputs.
 
 #ifdef REACTIONS
-    if (use_stopping_criterion) {
+    if (problem::use_early_stopping) {
 
         int to_stop = 0;
 
@@ -47,17 +43,41 @@ Castro::problem_post_timestep()
                 MultiFab::Multiply(*ts_te, mask, 0, 0, 1, 0);
             }
 
-            for (MFIter mfi(*v, true); mfi.isValid(); ++mfi) {
+            ReduceOps<ReduceOpMax> reduce_op;
+            ReduceData<int> reduce_data(reduce_op);
+            using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+            for (MFIter mfi(*v, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
                 const Box& bx = mfi.tilebox();
 
-                check_stopping_criteria(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                        BL_TO_FORTRAN_ANYD((*v)[mfi]),
-                                        BL_TO_FORTRAN_ANYD((*T)[mfi]),
-                                        BL_TO_FORTRAN_ANYD((*ts_te)[mfi]),
-                                        T_stopping_criterion, ts_te_stopping_criterion, &to_stop);
+                auto xvel = (*v)[mfi].array();
+                auto temp = (*T)[mfi].array();
+                auto tste = (*ts_te)[mfi].array();
+
+                // Note that this stopping criterion only makes sense for the collision problem.
+
+                reduce_op.eval(bx, reduce_data,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+                {
+                    int stop = 0;
+
+                    if (problem::vel > 0.0 && xvel(i,j,k) > 0.0) {
+                        if (temp(i,j,k) >= problem::T_stop_cutoff || tste(i,j,k) >= problem::ts_te_stop_cutoff) {
+                            stop = 1;
+                        }
+                    }
+
+                    return {stop};
+                });
 
             }
+
+            ReduceTuple hv = reduce_data.value();
+            to_stop = amrex::max(to_stop, amrex::get<0>(hv));
 
             v.reset();
             T.reset();
@@ -101,40 +121,4 @@ Castro::problem_post_timestep()
     }
 #endif
 }
-#endif
-
-
-
-#ifdef DO_PROBLEM_POST_INIT
-
-void Castro::problem_post_init() {
-
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
-
-}
-
-#endif
-
-
-
-#ifdef DO_PROBLEM_POST_RESTART
-
-void Castro::problem_post_restart() {
-
-  // Read in inputs.
-
-  ParmParse pp("castro");
-
-  pp.query("use_stopping_criterion", use_stopping_criterion);
-  pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
-  pp.query("T_stopping_criterion", T_stopping_criterion);
-
-}
-
 #endif
