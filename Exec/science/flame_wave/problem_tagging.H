@@ -1,5 +1,8 @@
 #ifndef problem_tagging_H
 #define problem_tagging_H
+#include <AMReX_TagBox.H>
+#include <prob_parameters.H>
+#include <Castro_util.H>
 
 ///
 /// Define problem-specific tagging criteria
@@ -32,13 +35,13 @@ void problem_tagging(int i, int j, int k,
                               (log[1] - problem::center[1]) * (loc[1] - problem::center[1]));
 #endif
         if (level < problem::max_hse_tagging_level && dist < problem::x_refine_distance) {
-            tag(i,j,k) = TagBox::Set;
+            tag(i,j,k) = TagBox::SET;
         }
     }
 
     if (state(i,j,k,URHO) > problem::cutoff_density) {
         if (level < problem::max_base_tagging_level) {
-            tag(i,j,k) = TagBox::Set;
+            tag(i,j,k) = TagBox::SET;
         }
     }
 }
