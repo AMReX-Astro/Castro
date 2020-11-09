@@ -347,13 +347,9 @@ Castro::estdt_burning()
 
     if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt && castro::dtnuc_T > 1.e199_rt) return 1.e200_rt;
 
-#ifdef CXX_REACTIONS
     ReduceOps<ReduceOpMin> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
     using ReduceTuple = typename decltype(reduce_data)::Type;
-#else
-    Real estdt = 1.e200_rt;
-#endif
 
     MultiFab& S_new = get_new_data(State_Type);
     MultiFab& R_new = get_new_data(Reactions_Type);
@@ -367,8 +363,6 @@ Castro::estdt_burning()
 
         const auto S = S_new[mfi].array();
         const auto R = R_new[mfi].array();
-
-#ifdef CXX_REACTIONS
 
         const auto dx = geom.CellSizeArray();
 
@@ -477,24 +471,10 @@ Castro::estdt_burning()
             return {dt_tmp};
         });
 
-#else
-
-        const auto dx = geom.CellSize();
-
-#pragma gpu box(box)
-        ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                         BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                         BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                         AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&estdt));
-
-#endif
-
     }
 
-#ifdef CXX_REACTIONS
     ReduceTuple hv = reduce_data.value();
     Real estdt = amrex::get<0>(hv);
-#endif
 
     return estdt;
 }

@@ -1,5 +1,12 @@
 # 20.12
 
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
    * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
      Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
      are now deleted from the code; if you were using these to implement problem-specific

@@ -23,9 +23,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
     // Start off by assuming a successful burn.
 
     int burn_success = 1;
-#ifndef CXX_REACTIONS
-    Real burn_failed = 0.0;
-#endif
 
     if (do_react != 1) {
 
@@ -61,9 +58,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     ReduceOps<ReduceOpSum> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
-#ifdef CXX_REACTIONS
     using ReduceTuple = typename decltype(reduce_data)::Type;
-#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -77,8 +72,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
         auto reactions = r.array(mfi);
 
         if (level <= castro::reactions_max_solve_level) {
-
-#ifdef CXX_REACTIONS
 
             reduce_op.eval(bx, reduce_data,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
@@ -174,17 +167,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
             });
 
-#else
-
-#pragma gpu box(bx)
-            ca_react_state(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                           BL_TO_FORTRAN_ANYD(s[mfi]),
-                           BL_TO_FORTRAN_ANYD(r[mfi]),
-                           time, dt,
-                           AMREX_MFITER_REDUCE_SUM(&burn_failed));
-
-#endif
-
         }
 
         // Now update the state with the reactions data.
@@ -208,10 +190,8 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     }
 
-#ifdef CXX_REACTIONS
     ReduceTuple hv = reduce_data.value();
     Real burn_failed = amrex::get<0>(hv);
-#endif
 
     if (burn_failed != 0.0) {
       burn_success = 0;
@@ -307,10 +287,6 @@ Castro::react_state(Real time, Real dt)
     reactions.setVal(0.0, reactions.nGrow());
 
     // Start off assuming a successful burn.
-
-#ifndef CXX_REACTIONS
-        amrex::abort("Error: simplified SDC requires USE_CXX_REACTIONS=TRUE");
-#endif
 
     int burn_success = 1;
 
