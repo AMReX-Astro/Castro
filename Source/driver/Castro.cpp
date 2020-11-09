@@ -149,10 +149,6 @@ int          Castro::num_state_type = 0;
 int          Castro::do_init_probparams = 0;
 
 
-namespace amrex {
-    extern int compute_new_dt_on_regrid;
-}
-
 // Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
 void
@@ -479,7 +475,7 @@ Castro::read_params ()
     // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
     // override our overriding, they can do so.
 
-    compute_new_dt_on_regrid = 1;
+    Amr::setComputeNewDtOnRegrid(1);
 
     // Read in custom refinement scheme.
 
