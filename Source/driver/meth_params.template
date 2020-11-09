@@ -53,7 +53,6 @@ module meth_params_module
   attributes(managed) :: do_inelastic_scattering
   attributes(managed) :: comoving
 #endif
-  attributes(managed) :: qpass_map, upass_map
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
@@ -64,7 +63,6 @@ module meth_params_module
 #ifdef RADIATION
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
-  !$acc create(qpass_map, upass_map) &
 #ifdef GRAVITY
   !$acc create(gravity_type_int) &
 #endif
