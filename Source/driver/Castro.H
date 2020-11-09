@@ -588,6 +588,13 @@ public:
 ///
     amrex::Real estdt_temp_diffusion();
 
+#ifdef REACTIONS
+///
+/// Reactions-limited timestep
+///
+    amrex::Real estdt_burning();
+#endif
+
 ///
 /// Compute initial time step.
 ///

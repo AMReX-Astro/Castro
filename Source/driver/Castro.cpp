@@ -1689,38 +1689,14 @@ Castro::estTimeStep ()
 #endif  // diffusion
 
 #ifdef REACTIONS
-    MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-
     // Dummy value to start with
     Real estdt_burn = max_dt;
 
     if (do_react) {
 
-        const Real* dx = geom.CellSize();
-
         // Compute burning-limited timestep.
 
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_burn)
-#endif
-        {
-            Real dt = max_dt;
-
-            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.validbox();
-
-#pragma gpu box(box)
-                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-            }
-
-            estdt_burn = std::min(estdt_burn,dt);
-        }
+        estdt_burn = estdt_burning();
 
         ParallelDescriptor::ReduceRealMin(estdt_burn);
 

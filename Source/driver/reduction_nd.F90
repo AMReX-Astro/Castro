@@ -49,6 +49,9 @@ contains
     real(rt), intent(in   ) :: y
     real(rt), intent(inout) :: x
 
+#ifdef _OPENMP
+    !$omp atomic update
+#endif
     x = min(x, y)
 
   end subroutine reduce_min
