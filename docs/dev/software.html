@@ -283,11 +283,11 @@ within a node, to loop over subregions of a box with different
 threads.</p>
 <p>The code structure in the Castro/ directory reflects the
 division between C++ and Fortran.</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">constants/</span></code>: contains a file of useful constants in CGS units</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">docs/</span></code>: you’re reading this now!</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Exec/</span></code>: various problem implementations, sorted by category:</p>
 <ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Diagnostics/</span></code>: various analysis routines for specific problems</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Docs/</span></code>: you’re reading this now!</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Exec/</span></code>: various problem implementations, sorted by category:</p>
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity_tests/</span></code>: test problems that primarily exercise the gravity solver</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydro_tests/</span></code>: test problems of the hydrodynamics (with or without reactions)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">radiation_tests/</span></code>: test problems that primarily exercise the radiation hydrodynamics solver</p></li>
@@ -297,37 +297,30 @@ division between C++ and Fortran.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">unit_tests/</span></code>: test problems that exercise primarily a single module</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">external/Microphysics/</span></code>: contains directories for different default
-microphysics (these are all implemented in Fortran)</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">conductivity/</span></code>: the thermal conductivity</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">EOS/</span></code>: the equation of state</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">networks/</span></code>: the nuclear reaction networks</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">opacity/</span></code>: the radiative opacity (used with radiation)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">viscosity/</span></code>: the viscous transport coefficient</p></li>
-</ul>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">external/</span></code>: if you are using git submodules, the Microphysics and AMReX git
+submodules will be in this directory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">paper/</span></code>: the JOSS paper source</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Source/</span></code>: source code. In this main directory is all of the
 code. Sources are mixed C++ and Fortran and are organized by topic
 as:</p>
-<blockquote>
-<div><ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">diffusion/</span></code> : thermal diffusion code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">driver/</span></code> : the main driver, I/O, runtime parameter support</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">gravity/</span></code> : self-gravity code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydro/</span></code> : the compressible hydrodynamics code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mhd/</span></code> : the MHD solver code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">particles/</span></code> : support for particles</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">problems/</span></code> : template code for implementing a problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">radiation/</span></code> : the implicit radiation solve code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reactions/</span></code> : nuclear reaction code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rotation/</span></code> : rotating code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">scf/</span></code> : the self-consistent field initialization support</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sdc/</span></code>: code specified for the true SDC method</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sources/</span></code> : hydrodynamics source terms support</p></li>
 </ul>
-</div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Util/</span></code>: a catch-all for additional things you may need</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">ConvertCheckpoint/</span></code>: a tool to convert a checkpoint file to
 a larger domain</p></li>
 <li><p>…</p></li>
