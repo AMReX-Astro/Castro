@@ -242,7 +242,7 @@ Castro::variableSetUp ()
   ca_microphysics_init();
 
   // now initialize the C++ Microphysics
-#ifdef CXX_REACTIONS
+#ifdef REACTIONS
   network_init();
 #endif
 
