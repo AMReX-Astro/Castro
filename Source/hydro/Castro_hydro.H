@@ -166,6 +166,31 @@
                       amrex::Array4<amrex::Real const> const& div,
                       amrex::Array4<amrex::Real const> const& Erin,
                       amrex::Array4<amrex::Real> const& radflux);
+
+
+    void
+    ctu_rad_consup(const amrex::Box& bx,
+                   amrex::Array4<amrex::Real> const& update,
+                   amrex::Array4<amrex::Real const> const& Erin,
+                   amrex::Array4<amrex::Real> const& uout,
+                   amrex::Array4<amrex::Real> const& Erout,
+                   amrex::Array4<amrex::Real const> const& radflux1,
+                   amrex::Array4<amrex::Real const> const& qx,
+                   amrex::Array4<amrex::Real const> const& area1,
+#if AMREX_SPACEDIM >= 2
+                   amrex::Array4<amrex::Real const> const& radflux2,
+                   amrex::Array4<amrex::Real const> const& qy,
+                   amrex::Array4<amrex::Real const> const& area2,
+#endif
+#if AMREX_SPACEDIM == 3
+                   amrex::Array4<amrex::Real const> const& radflux3,
+                   amrex::Array4<amrex::Real const> const& qz,
+                   amrex::Array4<amrex::Real const> const& area3,
+#endif
+                   int& nstep_fsp,
+                   amrex::Array4<amrex::Real const> const& vol,
+                   const amrex::Real dt);
+
 #endif
 
 ///
@@ -357,7 +382,9 @@
 /// @param vol     cell volume
 ///
     void mol_consup(const amrex::Box& bx,
+#ifdef SHOCK_VAR
                     amrex::Array4<amrex::Real const> const& shk,
+#endif
                     amrex::Array4<amrex::Real const> const& srcU,
                     amrex::Array4<amrex::Real> const& update,
                     const amrex::Real dt,
@@ -375,7 +402,9 @@
 #if AMREX_SPACEDIM == 3
                     amrex::Array4<amrex::Real const> const& area2,
 #endif
+#if AMREX_SPACEDIM <= 2
                     amrex::Array4<amrex::Real const> const& q0,
+#endif
                     amrex::Array4<amrex::Real const> const& vol);
 
 ///
@@ -490,7 +519,6 @@
 /// @param q_t1      Godunov state in the idir_t1 direction
 /// @param q_t2      Godunov state in the idir_t2 direction
 /// @param hdt       1/2 * timestep
-/// @param cdtdx_n   weight * timestep in idir_n direction
 /// @param cdtdx_t1  weight * timestep in idir_t1 direction
 /// @param cdtdx_t2  weight * timestep in idir_t2 direction
 ///
@@ -511,7 +539,6 @@
 #endif
                       amrex::Array4<amrex::Real const> const& q_t1,
                       amrex::Array4<amrex::Real const> const& q_t2,
-                      amrex::Real cdtdx_n,
                       amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
@@ -552,7 +579,6 @@
 #endif
                              amrex::Array4<amrex::Real const> const& q_t1,
                              amrex::Array4<amrex::Real const> const& q_t2,
-                             amrex::Real cdtdx_n,
                              amrex::Real cdtdx_t1, amrex::Real cdtdx_t2);
 
 ///
@@ -668,7 +694,9 @@
 /// @param dt      timestep
 ///
     void consup_hydro(const amrex::Box& bx,
+#ifdef SHOCK_VAR
                       amrex::Array4<amrex::Real const> const& shk,
+#endif
                       amrex::Array4<amrex::Real> const& update,
                       amrex::Array4<amrex::Real> const& flux0,
                       amrex::Array4<amrex::Real const> const& qx,

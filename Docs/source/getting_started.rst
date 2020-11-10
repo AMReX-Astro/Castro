@@ -14,7 +14,7 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++ 11 (or later) compiler
+ * A C++14 (or later) compiler (e.g. gcc >= 5.0)
 
  * A Fortran 20xx compiler
 
@@ -180,7 +180,7 @@ Visualization of the Results
 ============================
 
 There are several options for visualizing the data. The popular
-packages yt, VisIt, and Paraview all support the AMReX file format
+packages yt and VisIt both support the AMReX file format
 natively [1]_. The standard tool used within the AMReX-community is
 Amrvis, which we demonstrate here. Amrvis is available on github.
 

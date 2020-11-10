@@ -23,10 +23,6 @@ contains
 
     ioproc = is_ioprocessor .ne. 0
 
-    ! Read in probdata.
-
-    call probdata_init(name, namlen)
-
   end subroutine initialize_io
   
 end module problem_io_module

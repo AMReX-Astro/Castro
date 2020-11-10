@@ -1,8 +1,9 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
+#include <Rotation.H>
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 void
@@ -10,9 +11,6 @@ Castro::rsrc(const Box& bx,
              Array4<Real const> const& uold,
              Array4<Real> const& source, 
              const Real dt) {
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   GeometryData geomdata = geom.data();
 
@@ -34,7 +32,7 @@ Castro::rsrc(const Box& bx,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= center[dir];
+      loc[dir] -= problem::center[dir];
     }
 
     Real rho = uold(i,j,k,URHO);
@@ -180,9 +178,6 @@ Castro::corrrsrc(const Box& bx,
   // Note that the time passed to this function
   // is the new time at time-level n+1.
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
 
@@ -267,7 +262,7 @@ Castro::corrrsrc(const Box& bx,
     position(i, j, k, geomdata, loc);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-      loc[dir] -= center[dir];
+      loc[dir] -= problem::center[dir];
     }
 
     Real rhoo = uold(i,j,k,URHO);

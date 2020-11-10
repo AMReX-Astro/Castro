@@ -1,13 +1,12 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef DIFFUSION
-#include "diffusion_util.H"
+#include <diffusion_util.H>
 #endif
 
-#include "fourth_center_average.H"
+#include <fourth_center_average.H>
 
 using namespace amrex;
 
@@ -45,9 +44,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -606,7 +602,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         // do the conservative update -- and store the shock variable
         mol_consup(bx,
+#ifdef SHOCK_VAR
                    shk_arr,
+#endif
                    source_in_arr,
                    source_out_arr,
                    dt,
@@ -624,7 +622,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 3
                    area[2].array(mfi),
 #endif
+#if AMREX_SPACEDIM <= 2
                    qe[0].array(),
+#endif
                    volume.array(mfi));
 
 
@@ -640,7 +640,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-            loc[dir] -= center[dir];
+            loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;

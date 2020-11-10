@@ -1,17 +1,18 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
+#ifdef SHOCK_VAR
                      Array4<Real const> const& shk,
+#endif
                      Array4<Real> const& update,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
@@ -38,9 +39,6 @@ Castro::consup_hydro(const Box& bx,
   // get the update
 
   int coord = geom.Coord();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept

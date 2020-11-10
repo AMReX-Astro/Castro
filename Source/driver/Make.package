@@ -21,7 +21,7 @@ CEXE_headers += Castro.H
 CEXE_headers += castro_limits.H
 CEXE_headers += Castro_io.H
 CEXE_headers += state_indices.H
-
+CEXE_headers += runtime_parameters.H
 CEXE_sources += sum_utils.cpp
 CEXE_sources += sum_integrated_quantities.cpp
 
@@ -37,7 +37,6 @@ CEXE_sources += Castro_generic_fill.cpp
 ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
 ca_F90EXE_sources += Castro_util_nd.F90
-ca_F90EXE_sources += interpolate_nd.F90
 ca_F90EXE_sources += io_nd.F90
 ca_F90EXE_sources += math_nd.F90
 CEXE_headers      += math.H
@@ -63,5 +62,4 @@ endif
 ca_F90EXE_sources += prob_params_nd.F90
 ca_F90EXE_sources += Tagging_nd.F90
 ca_f90EXE_sources += filfc.f90
-ca_F90EXE_sources += timestep_nd.F90
 CEXE_sources += timestep.cpp

@@ -13,8 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
 end subroutine amrex_probinit
 
 subroutine ca_initdata(level, time, lo, hi, nscal, &

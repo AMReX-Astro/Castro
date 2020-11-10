@@ -12,12 +12,14 @@ the different code paths.  These fall into two categories:
 
 .. index:: castro.time_integration_method, USE_SIMPLIFIED_SDC, USE_TRUE_SDC
 
--  Strang-splitting: the Strang evolution does the burning on the
+-  Strang+CTU: the Strang evolution does the burning on the
    state for :math:`\Delta t/2`, then updates the hydrodynamics using the
    burned state, and then does the final :math:`\Delta t/2` burning. No
    explicit coupling of the burning and hydro is done.  This code
    path uses the corner-transport upwind (CTU) method (the unsplit,
-   characteristic tracing method of :cite:`colella:1990`).
+   characteristic tracing method of :cite:`colella:1990`).  This is the default method.
+
+   The MHD solver uses this same driver.
 
 -  SDC: a class of iterative methods that couples the advection and reactions
    such that each process explicitly sees the effect of the other.  We have
@@ -30,12 +32,12 @@ the different code paths.  These fall into two categories:
      explicit advective source included in a
      piecewise-constant-in-time fastion.
 
-   - The main SDC method.  This fully couples the hydro and reactions
+   - The "true SDC" method.  This fully couples the hydro and reactions
      to either 2nd or 4th order.  This approximates the integral in
      time using a simple quadrature rule, and integrates the hydro
      explicitly and reactions implicitly to the next time node.
      Iterations allow each process to see one another and achieve
-     high-order in time convergence.  This is described in :cite:`castro_sdc`.
+     high-order in time convergence.  This is described in :cite:`castro-sdc`.
 
 
 The time-integration method used is controlled by
@@ -58,10 +60,27 @@ The time-integration method used is controlled by
     additional EOS derivatives).
 
   * ``time_integration_method = 3``: this is the simplifed SDC method
-    described above.that uses the CTU hydro advection and an ODE
+    described above that uses the CTU hydro advection and an ODE
     reaction solve.  Note: because this requires a different set of
     state variables, you must compile with ``USE_SIMPLIFIED_SDC = TRUE`` for this
     method to work (in particular, this defines ``PRIM_SPECIES_HAVE_SOURCES``).
+
+.. index:: USE_SIMPLIFIED_SDC, USE_TRUE_SDC
+
+.. note::
+
+   By default, the code is compiled for Strang-split CTU evolution
+   (``time_integration_method = 0``).  Because the size of the
+   different state arrays differs with the other integration schemes,
+   support for them needs to be compiled in, using
+   ``USE_SIMPLIFIED_SDC=TRUE`` for the simplified-SDC method
+   (``time_integration_method=3``) and ``USE_TRUE_SDC=TRUE`` for the
+   true SDC method (``time_integration_method = 2``).
+
+.. note::
+
+   MHD and radiation are currently only supported by the Strang+CTU
+   evolution time integration method.
 
 Several helper functions are used throughout:
 
@@ -74,7 +93,11 @@ Several helper functions are used throughout:
 
    #. enforces that the density is above ``castro.small_dens``
 
+   #. enforces that the speeds in the state don't exceed ``castro.speed_limit``
+
    #. normalizes the species so that the mass fractions sum to 1
+
+   #. syncs up the linear and hybrid momenta (for ``USE_HYBRID_MOMENTUM=TRUE``)
 
    #. resets the internal energy if necessary (too small or negative)
       and computes the temperature for all zones to be thermodynamically
@@ -82,8 +105,8 @@ Several helper functions are used throughout:
 
 .. _flow:sec:nosdc:
 
-Strang-Split Evolution
-======================
+Main Driver—All Time Integration Methods
+========================================
 
 This driver supports the Strang CTU integration.
 (``castro.time_integration_method`` = 0)
@@ -101,9 +124,11 @@ of each step.
    actions are performend (note, we omit the actions taken for a retry,
    which we will describe later):
 
-   -  Sync up the level information to the Fortran-side of Castro
+   -  Sync up the level information to the Fortran-side of Castro.
 
-   -  Do any radiation initialization
+   -  Do any radiation initialization.
+
+   -  Set the maximum density used for Poisson gravity tolerances.
 
    -  Initialize all of the intermediate storage arrays (like those
       that hold source terms, etc.).
@@ -111,12 +136,14 @@ of each step.
    -  Swap the StateData from the new to old (e.g., ensures that
       the next evolution starts with the result from the previous step).
 
-   -  Do a ``clean_state``
+   -  Call ``clean_state``.
 
    -  Create the MultiFabs that hold the primitive variable information
       for the hydro solve.
 
-   -  Zero out all of the fluxes
+   -  Zero out all of the fluxes.
+
+   -  For true SDC, initialize the data at all time nodes (see :ref:`sec:flow_true_sdc`).
 
 #. *Advancement*
 
@@ -128,6 +155,8 @@ of each step.
    Source terms, including gravity, rotation, and diffusion are
    included in this step, and are time-centered to achieve second-order
    accuracy.
+
+   .. index:: retry
 
    If ``castro.use_retry`` is set, then we subcycle the current
    step if we violated any stability criteria to reach the desired
@@ -142,6 +171,11 @@ of each step.
    data, with a series of subcycled timesteps that should be small
    enough to satisfy the criteria. Note that this will effectively
    double the memory footprint on each level if you choose to use it.
+   See :ref:`ch:retry` for more details on the retry mechanism.
+
+   .. note::
+
+      Only Strang+CTU and simplified-SDC support retries.
 
 #. [AUX_UPDATE] *Auxiliary quantitiy evolution*
 
@@ -195,17 +229,20 @@ of each step.
 
 .. _sec:strangctu:
 
-CTU w/ Strang-split Reactions Flowchart
----------------------------------------
+Strang+CTU Evolution
+====================
 
+``do_advance_ctu()`` in ``Castro_advance_ctu.cpp`` 
 
-This described the flow using the CTU + Strang-split reactions,
-including gravity, rotation, and diffusion.  This integration is
-selected via ``castro.time_integration_method = 0``.
+This described the flow using Strang splitting and the CTU
+hydrodynamics (or MHD) method, including gravity, rotation, and
+diffusion.  This integration is selected via
+``castro.time_integration_method = 0``.
 
-The system advancement (reactions, hydrodynamics, diffusion, rotation,
-and gravity) is done by ``do_advance()``. Consider our system of
-equations as:
+The system advancement: reactions, hydrodynamics, diffusion, rotation,
+and gravity are all considered here.
+
+Consider our system of equations as:
 
 .. math:: \frac{\partial\Ub}{\partial t} = {\bf A}(\Ub) + \Rb(\Ub) + \Sb,
 
@@ -238,9 +275,15 @@ predict the standard primitive variables, as well as :math:`\rho e`, at
 time-centered edges and use an approximate Riemann solver construct
 fluxes.
 
-At the beginning of the time step, we assume that :math:`\Ub` and :math:`\phi` are
-defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy equation
-:eq:`eq:Self Gravity`. Note that in
+At the beginning of the time step, we assume that :math:`\Ub` and the gravitational potential, :math:`\phi`, are
+defined consistently, i.e., :math:`\rho^n` and :math:`\phi^n` satisfy the Poisson equation:
+
+.. math::
+
+   \Delta \phi^n = 4\pi G\rho^n
+
+(see :ref:`ch:gravity` for more details about how the Poisson equation is solved.)  
+Note that in
 :eq:`eq:source_correct`, we can actually do some
 sources implicitly by updating density first, and then momentum,
 and then energy. This is done for rotating and gravity, and can
@@ -248,7 +291,7 @@ make the update more akin to:
 
 .. math:: \Ub^{n+1,(c)} = \Ub^{n+1,(b)} + \frac{\dt}{2} [\Sb(\Ub^{n+1,(c)}) - \Sb(\Ub^n)]
 
-Castro also supports radiation. This part of the update algorithm
+If we are including radiation, then this part of the update algorithm
 only deals with the advective / hyperbolic terms in the radiation update.
 
 Here is the single-level algorithm. The goal here is to update the
@@ -266,6 +309,14 @@ here, consistent with the names used in the code:
 -  ``S_new`` is a MultiFab reference to the new-time-level
    ``State_Type`` data.
 
+- ``old_source`` is a MultiFab reference to the old-time-level ``Source_Type`` data.
+
+- ``new_source`` is a MultiFab reference to the new-time-level ``Source_Type`` data.
+
+
+Single Step Flowchat
+--------------------
+
 In the code, the objective is to evolve the state from the old time,
 ``S_old``, to the new time, ``S_new``.
 
@@ -273,7 +324,16 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. Check for NaNs in the initial state, ``S_old``.
+   B. If ``source_term_predictor == 1``, then aply
+      ``source_corrector`` to ``sources_for_hydro``.  For Strang+CTU,
+      this was the effect of initializing the source terms as:
+
+      .. math::
+
+         \Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}
+
+   C. Check for NaNs in the initial state, ``S_old``.
+
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
 
@@ -291,9 +351,9 @@ In the code, the objective is to evolve the state from the old time,
    .. math::
 
       \begin{aligned}
-          (\rho e)^\star &= (\rho e)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho E)^\star &= (\rho E)^\star - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
-          (\rho X_k)^\star &= (\rho X_k)^\star + \frac{\dt}{2}(\rho\omegadot_k)^n.
+          (\rho e)^\star &= (\rho e)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho E)^\star &= (\rho E)^n - \frac{\dt}{2} \rho H_\mathrm{nuc} \\
+          (\rho X_k)^\star &= (\rho X_k)^n + \frac{\dt}{2}(\rho\omegadot_k).
         \end{aligned}
 
    Here, :math:`H_\mathrm{nuc}` is the energy release (erg/g/s) over the
@@ -305,18 +365,8 @@ In the code, the objective is to evolve the state from the old time,
    Note that the density, :math:`\rho`, does not change via reactions in the
    Strang-split formulation.
 
-   The reaction data needs to be valid in the ghost cells. The logic
-   in this routine (accomplished throuh the use of a mask) will burn
-   only in the valid interior cells or in any ghost cells that are on a
-   coarse-fine interface or physical boundary. This allows us to just
-   use a level ``FillBoundary()`` call to fill all of the ghost cells
-   on the same level with valid data.
-
-   An experimental option (enabled via
-   ``use_custom_knapsack_weights``) will create a custom
-   distribution map based on the work needed in burning a zone and
-   redistribute the boxes across processors before burning, to better
-   load balance.
+   The reaction data needs to be valid in the ghost cells, so the reactions
+   are applied to the entire patch, including ghost cells.
 
    After reactions, ``clean_state`` is called.
 
@@ -327,10 +377,7 @@ In the code, the objective is to evolve the state from the old time,
    [``construct_old_gravity()``, ``do_old_sources()`` ]
 
    The time level :math:`n` sources are computed, and added to the
-   StateData ``Source_Type``. The sources are then applied
-   to the state after the burn, :math:`\Ub^\star` with a full :math:`\Delta t`
-   weighting (this will be corrected later). This produces the
-   intermediate state, :math:`\Ub^{n+1,(a)}`.
+   StateData ``Source_Type``. 
 
    The sources that we deal with here are:
 
@@ -349,7 +396,12 @@ In the code, the objective is to evolve the state from the old time,
       ``toy_convect`` problem setup) for an example. But most
       problems will not use this.
 
-   C. [``DIFFUSION``] diffusion : thermal diffusion can be
+   C. [``MHD``] thermal source: for the MHD system, we are including
+      the "pdV" work for the internal energy equation as a source term
+      rather than computing it from the Riemann problem.  This source is
+      computed here for the internal energy equation.
+
+   D. [``DIFFUSION``] diffusion : thermal diffusion can be
       added in an explicit formulation. Second-order accuracy is
       achieved by averaging the time-level :math:`n` and :math:`n+1` terms, using
       the same predictor-corrector strategy described here.
@@ -360,10 +412,10 @@ In the code, the objective is to evolve the state from the old time,
       timestep constraint, since the treatment is explicit. See
       Chapter :ref:`ch:diffusion` for more details.
 
-   D. [``HYBRID_MOMENTUM``] angular momentum
+   E. [``HYBRID_MOMENTUM``] angular momentum
 
 
-   E. [``GRAVITY``] gravity:
+   F. [``GRAVITY``] gravity:
 
       For full Poisson gravity, we solve for for gravity using:
 
@@ -378,7 +430,7 @@ In the code, the objective is to evolve the state from the old time,
       solver are given in Chapter :ref:`ch:gravity`.
 
 
-   F. [``ROTATION``] rotation
+   G. [``ROTATION``] rotation
 
       We compute the rotational potential (for use in the energy update)
       and the rotational acceleration (for use in the momentum
@@ -394,10 +446,14 @@ In the code, the objective is to evolve the state from the old time,
    with Strang-splitting, since the hydro and sources takes place
    completely inside of the surrounding burn operations.
 
-   Note that the source terms are already applied to ``S_new``
-   in this step, with a full :math:`\Delta t`—this will be corrected later.
+   The old-time source terms are stored in ``old_source``.
 
-#. *Construct the hydro update* [``construct_hydro_source()``]
+   The sources are then applied to the state after the burn,
+   :math:`\Ub^\star` with a full :math:`\Delta t` weighting (this will
+   be corrected later). This produces the intermediate state,
+   :math:`\Ub^{n+1,(a)}` (stored in ``S_new``).
+
+#. *Construct the hydro / MHD update* [``construct_ctu_hydro_source()``, ``construct_ctu_mhd_source()``]
 
    The goal is to advance our system considering only the advective
    terms (which in Cartesian coordinates can be written as the
@@ -413,35 +469,44 @@ In the code, the objective is to evolve the state from the old time,
    the state after burning, :math:`\Ub^\star` (``Sborder``).  For the
    CTU method, we predict to the half-time (:math:`n+1/2`) to get a
    second-order accurate method. Note: ``Sborder`` does not know of
-   any sources except for reactions. The advection step is
-   complicated, and more detail is given in Section
-   :ref:`Sec:Advection Step`. Here is the summarized version:
+   any sources except for reactions. 
 
-   A. Compute primitive variables.
+   The method done here differs depending on whether we are doing hydro or MHD.
 
-   B. Convert the source terms to those acting on primitive variables
+   A. hydrodynamics
 
-   C. Predict primitive variables to time-centered edges.
+      The advection step is complicated, and more detail is given in
+      Section :ref:`Sec:Advection Step`. Here is the summarized version:
 
-   D. Solve the Riemann problem.
+      i. Compute primitive variables.
 
-   E. Compute fluxes and update.
+      ii. Convert the source terms to those acting on primitive variables
 
-      To start the hydrodynamics, we need to know the hydrodynamics source
-      terms at time-level :math:`n`, since this enters into the prediction to
-      the interface states. This is essentially the same vector that was
-      computed in the previous step, with a few modifications. The most
-      important is that if we set
-      ``castro.source_term_predictor``, then we extrapolate the
-      source terms from :math:`n` to :math:`n+1/2`, using the change from the previous
-      step.
+      iii. Predict primitive variables to time-centered edges.
 
-      Note: we neglect the reaction source terms, since those are already
-      accounted for in the state directly, due to the Strang-splitting
-      nature of this method.
+      iv. Solve the Riemann problem.
 
-      The update computed here is then immediately applied to
-      ``S_new``.
+      v. Compute fluxes and advective term.
+
+   B. MHD
+
+      The MHD update is described in :ref:`ch:mhd`.
+
+   To start the hydrodynamics/MHD source construction, we need to know
+   the hydrodynamics source terms at time-level :math:`n`, since this
+   enters into the prediction to the interface states. This is
+   essentially the same vector that was computed in the previous step,
+   with a few modifications. The most important is that if we set
+   ``castro.source_term_predictor``, then we extrapolate the source
+   terms from :math:`n` to :math:`n+1/2`, using the change from the
+   previous step.
+
+   Note: we neglect the reaction source terms, since those are already
+   accounted for in the state directly, due to the Strang-splitting
+   nature of this method.
+
+   The update computed here is then immediately applied to
+   ``S_new``.
 
 #. *Clean State* [``clean_state()``]
 
@@ -456,15 +521,21 @@ In the code, the objective is to evolve the state from the old time,
 #. *Correct the source terms with the n+1
    contribution* [``construct_new_gravity()``, ``do_new_sources`` ]
 
+   If we are doing self-gravity, then we first compute the updated gravitational
+   potential using the updated density from ``S_new``.
+
+   Now we correct the source terms applied to ``S_new`` so they are time-centered.
    Previously we added :math:`\Delta t\, \Sb(\Ub^\star)` to the state, when
-   we really want a time-centered approach, 
-   :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` . We fix that here.
+   we really want 
+   :math:`(\Delta t/2)[\Sb(\Ub^\star + \Sb(\Ub^{n+1,(b)})]` .
 
    We start by computing the source term vector :math:`\Sb(\Ub^{n+1,(b)})`
    using the updated state, :math:`\Ub^{n+1,(b)}`. We then compute the
    correction, :math:`(\Delta t/2)[\Sb(\Ub^{n+1,(b)}) - \Sb(\Ub^\star)]` to
    add to :math:`\Ub^{n+1,(b)}` to give us the properly time-centered source,
-   and the fully updated state, :math:`\Ub^{n+1,(c)}`. This correction is stored
+   and the fully updated state, :math:`\Ub^{n+1,(c)}`. 
+
+   This correction is stored
    in the ``new_sources`` MultiFab [1]_.
 
    In the process of updating the sources, we update the temperature to
@@ -492,26 +563,31 @@ In the code, the objective is to evolve the state from the old time,
 A summary of which state is the input and which is updated for each of
 these processes is presented below:
 
-+--------------------+-----------+---------------------+---------------------+
-| *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
-+====================+===========+=====================+=====================+
-| 1. init            | input     | updated             |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 2. react           |           | input / updated     |                     |
-+--------------------+-----------+---------------------+---------------------+
-| 3. old sources     |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 4. hydro           |           | input               | updated             |
-+--------------------+-----------+---------------------+---------------------+
-| 5. clean           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 6. radial / center |           |                     | input               |
-+--------------------+-----------+---------------------+---------------------+
-| 7. correct sources |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
-| 8. react           |           |                     | input / updated     |
-+--------------------+-----------+---------------------+---------------------+
+.. table:: update sequence of state arrays for Strang-CTU
+   :align: center
 
+   +--------------------+-----------+---------------------+---------------------+
+   | *step*             | ``S_old`` | ``Sborder``         | ``S_new``           |
+   +====================+===========+=====================+=====================+
+   | 1. init            | input     | updated             |                     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 2. react           |           | input / updated     |                     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 3. old sources     |           | input               | updated             |
+   +--------------------+-----------+---------------------+---------------------+
+   | 4. hydro           |           | input               | updated             |
+   +--------------------+-----------+---------------------+---------------------+
+   | 5. clean           |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 6. radial / center |           |                     | input               |
+   +--------------------+-----------+---------------------+---------------------+
+   | 7. correct sources |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
+   | 8. react           |           |                     | input / updated     |
+   +--------------------+-----------+---------------------+---------------------+
+
+
+.. _sec:flow_true_sdc:
 
 SDC Evolution
 =============
@@ -572,18 +648,22 @@ order methods and Simpson's rule for 4th order methods.  Choosing
 ``castro.sdc_quadrature = 1`` uses Radau IIA integration, which includes
 the ending time but not the starting time in the quadrature.
 
-+---------------------+----------------------+---------------+-------------------+------------------+
-|``castro.sdc_order`` |``castro.quadrature`` |  # of         |  temporal         |  description     |
-|                     |                      |  time nodes   |  accuracy         |                  |
-+=====================+======================+===============+===================+==================+
-|       2             |         0            |          2    |                2  | trapezoid rule   |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       2             |         1            |          3    |                2  | Simpson's rule   |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       4             |         0            |          3    |                4  | Radau 2nd order  |
-+---------------------+----------------------+---------------+-------------------+------------------+
-|       4             |         1            |          4    |                4  | Radau 4th order  |
-+---------------------+----------------------+---------------+-------------------+------------------+
+
+.. table:: SDC quadrature summary
+   :align: center
+
+   +--------------+---------------+---------------+-------------------+------------------+
+   |``sdc_order`` |``quadrature`` |  # of         |  temporal         |  description     |
+   |              |               |  time nodes   |  accuracy         |                  |
+   +==============+===============+===============+===================+==================+
+   |       2      |         0     |          2    |                2  | trapezoid rule   |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       2      |         1     |          3    |                2  | Simpson's rule   |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       4      |         0     |          3    |                4  | Radau 2nd order  |
+   +--------------+---------------+---------------+-------------------+------------------+
+   |       4      |         1     |          4    |                4  | Radau 4th order  |
+   +--------------+---------------+---------------+-------------------+------------------+
 
 The overall evolution appears as:
 
@@ -718,6 +798,9 @@ The simplified SDC method uses the CTU advection solver together with
 an ODE solution to update the compute advective-reacting system.  This
 is selected by ``castro.time_integration_method = 3``.
 
+We use one additional StateData type here, ``Simplified_SDC_React_Type``,
+which will hold the reactive source needed by hydrodynamics.
+
 .. note::
 
    The code must be compiled with ``USE_SIMPLIFIED_SDC = TRUE`` to use this
@@ -737,45 +820,11 @@ The simplified-SDC version of the main advance loop looks similar to the Strang 
 version, but includes an iteration loop over the hydro, gravity, and
 reaction update. So the only difference happens in step 2 of the
 flowchart outlined in § \ `2 <#flow:sec:nosdc>`__. In particular this
-step now proceeds as:
+step now proceeds as a loop over ``do_advance_ctu``.  The differences
+with the Strang CTU version are highlighted below.
 
-2. *Advancement*
 
-   Loop :math:`k` from 0 to ``sdc_iters``, doing:
-
-   A. *Hydrodynamics advance*: This is done through
-      ``do_advance``—in Simplified SDC mode, this only updates the hydrodynamics,
-      including the non-reacting sources. However, in predicting the
-      interface states, we use an iteratively-lagged approximation to the
-      reaction source on the primitive variables, :math:`\mathcal{I}_q^{k-1}`.
-
-      The result of this is an approximation to :math:`\mathcal{A}(\Ub)`,
-      stored in ``hydro_sources`` (the flux divergence)
-      and ``old_sources`` and ``new_sources``.
-
-   B. *React*: Reactions are integrated with the advective
-      update as a source—this way the reactions see the
-      time-evolution due to advection as we integrate:
-
-      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
-
-      The advective source includes both the divergence of the fluxes
-      as well as the time-centered source terms. This is computed by
-      ``sum_of_sources()`` by summing over all source components
-      ``hydro_source``, ``old_sources``, and
-      ``new_sources``.
-
-   C. *Clean state*: This ensures that the thermodynamic state is
-      valid and consistent.
-
-   D. *Construct reaction source terms*: Construct the change
-      in the primitive variables due only to reactions over the
-      timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
-      iteration.
-
-Note that is it likely that some of the other updates (like any
-non-advective auxiliary quantity updates) should be inside the Simplified-SDC
-loop, but presently they are only done at the end. Also note that the
+Note that the
 radiation implicit update is not done as part of the Simplified-SDC iterations.
 
 Simplified_SDC Hydro Advance
@@ -792,33 +841,78 @@ summarize those differences.
 #. *Construct time-level n sources and apply*
    [``construct_old_gravity()``, ``do_old_sources()``]
 
-   This corresponds to step old source part in the Strang CTU
-   algorithm. There are not differences compared to the Strang
-   algorithm, although we note, this only needs to be done for the first
-   SDC iteration in the advancement, since the old state does not change.
+   Unlike the Strang case, there is no need to extrapolate source
+   terms to the half-time for the prediction (the
+   ``castro.source_term_predictor`` parameter), since the
+   Simplified-SDC provides a natural way to approximate the
+   time-centered source—we simply use the iteratively-lagged new-time
+   source.  We add the corrector from the previous iteration to the
+   source Multifabs before adding the current source.  The corrector
+   (stored in ``source_corrector``) has the form:
+
+   .. math::
+
+      \Sb^\mathrm{corr} = \frac{1}{2} \left ( \Sb^{n+1,(k-1)} - S^n \right )
+
+   where :math:`\Sb^n` does not have an iteration subscript, since we always have the
+   same old time state.  
+
+   Applying this corrector to the the source at time :math:`n`, will give
+   us a source that is time-centered,
+
+   .. math::
+
+      {\bf S}(\Ub)^{n+1/2} = \frac{1}{2} \left ( {\bf S}(\Ub)^n + {\bf S}(\Ub)^{n+1,(k-1)} \right )
+
+   For constructing the time-level :math:`n` source, there are no
+   differences compared to the Strang algorithm.
 
 #. *Construct the hydro update* [``construct_hydro_source()``]
 
-   There are a few major differences with the Strang case:
+   In predicting the interface states, we use an iteratively-lagged
+   approximation to the reaction source on the primitive variables,
+   :math:`\mathcal{I}_q^{k-1}`.  This addition is done in
+   ``construct_ctu_hydro_source()`` after the source terms are
+   converted to primitive variables.
 
-   A. There is no need to extrapolate source terms to the half-time
-      for the prediction (the ``castro.source_term_predictor``
-      parameter), since the Simplified-SDC provides a natural way to approximate the
-      time-centered source—we simply use the iteratively-lagged new-time
-      source.
-
-   B. The primitive variable source terms that are used for the
-      prediction include the contribution due to reactions (from the last
-      iteration). This addition is done in
-      ``construct_hydro_source()`` after the source terms are
-      converted to primitive variables.
-
-#. *Update radial data and center of mass for monopole gravity*
+   The result of this is an approximation to :math:`- [\nabla \cdot {\bf F}]^{n+1/2}` (not yet the full :math:`\mathcal{A}(\Ub)`)
+   stored in ``hydro_sources``.
 
 #. *Clean State* [``clean_state()``]
 
+#. *Update radial data and center of mass for monopole gravity*
+
 #. *Correct the source terms with the n+1 contribution*
-   [``construct_new_gravity()``, ``do_new_sources`` ]
+   [``construct_new_gravity()``, ``do_new_sources()`` ]
+
+#. *React* :math:`\Delta t` [``react_state()``]
+
+   We first compute :math:`\mathcal{A}(\Ub)` using ``hydro_sources``,
+   ``old_source``, and ``new_source`` via the ``sum_of_source()``
+   function.  This produces an advective source of the form:
+   
+   .. math::
+
+      \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} = - [\nabla \cdot {\bf F}]^{n+1/2} + \frac{1}{2} (S^n + S^{n+1})
+
+   We burn for the full :math:`\Delta t` including the advective
+   update as a source, integrating
+
+      .. math:: \frac{d\Ub}{dt} = \left [ \mathcal{A}(\Ub) \right ]^{n+1/2} + \Rb(\Ub)
+
+   The result of evolving this equation is stored in ``S_new``.
+
+   Note, if we do not actually burn in a zone (because we don't meet
+   the thermodynamic threshold) then this step does nothing, and the
+   state updated just via hydrodynamics in ``S_new`` is kept.
+
+#. *Clean state*: This ensures that the thermodynamic state is
+   valid and consistent.
+
+#. *Construct reaction source terms*: Construct the change
+   in the primitive variables due only to reactions over the
+   timestep, :math:`\mathcal{I}_q^{k}`. This will be used in the next
+   iteration.
 
 #. *Finalize* [``finalize_do_advance()``]
 

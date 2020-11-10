@@ -1,12 +1,12 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 100000
-stop_time =  12.e-5
+stop_time =  6.e-5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
 geometry.coord_sys   = 0  # 0 => cart, 1 => RZ  2=>spherical
 geometry.prob_lo     = 0        0    0
-geometry.prob_hi     = 6.5536e5
+geometry.prob_hi     = 1.6384e5
 amr.n_cell           = @@NZONES@@
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
@@ -40,6 +40,10 @@ castro.cfl            = @@CFL@@     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
+castro.dtnuc_e = @@DTNUC_E@@
+castro.use_retry = 1
+castro.max_subcycles = 32
+
 castro.plot_per_is_exact = 1
 
 # DIAGNOSTICS & VERBOSITY
@@ -66,4 +70,4 @@ amr.plot_per = 5.e-6
 amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
-amr.probin_file = probin.nse_test.sdc
+amr.probin_file = probin-det-x.nse_disabled

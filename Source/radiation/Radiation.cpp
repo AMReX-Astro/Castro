@@ -1,13 +1,13 @@
 
 #include <AMReX_LO_BCTYPES.H>
 #include <AMReX_ParmParse.H>
-#include "Radiation.H"
-#include "RadSolve.H"
+#include <Radiation.H>
+#include <RadSolve.H>
 
-#include "Castro_F.H"
+#include <Castro_F.H>
 
-#include "RAD_F.H"
-#include "AMReX_PROB_AMR_F.H"
+#include <RAD_F.H>
+#include <AMReX_PROB_AMR_F.H>
 
 #include <iostream>
 
@@ -77,8 +77,6 @@ int Radiation::pure_hydro = 0;
 void Radiation::read_static_params()
 {
   ParmParse pp("radiation");
-
-#include <radiation_queries.H>
 
   {
     int solver_type = Radiation::SolverType;
@@ -841,12 +839,18 @@ void Radiation::compute_exchange(MultiFab& exch,
     for (MFIter mfi(exch, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        cexch(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-              BL_TO_FORTRAN_ANYD(exch[mfi]),
-              BL_TO_FORTRAN_ANYD(Er[mfi]),
-              BL_TO_FORTRAN_ANYD(fkp[mfi]),
-              sigma, c);
+        auto exch_arr = exch[mfi].array();
+        auto Er_arr = Er[mfi].array();
+        auto fkp_arr = fkp[mfi].array();
+
+        Real lsigma = sigma;
+        Real lc = c;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            exch_arr(i,j,k) = fkp_arr(i,j,k) * (4.e0_rt * lsigma * std::pow(exch_arr(i,j,k), 4) - lc * Er_arr(i,j,k));
+        });
     }
 }
 

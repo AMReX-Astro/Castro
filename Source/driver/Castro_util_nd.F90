@@ -82,130 +82,6 @@ contains
   end function position
 
 
-  AMREX_CUDA_FORT_DEVICE subroutine ca_clamp_temp(i, j, k, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
-
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
-    use ambient_module, only: ambient_state
-    use amrex_constants_module, only: HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer , intent(in   ), value :: i, j, k
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    real(rt) :: rhoInv
-
-    rhoInv = ONE / state(i,j,k,URHO)
-
-    if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-       state(i,j,k,UTEMP) = ambient_state(UTEMP)
-       state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-       state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-    end if
-
-  end subroutine ca_clamp_temp
-
-
-  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
-
-    use network, only: nspec
-    use meth_params_module, only: NVAR, URHO, UFS
-    use amrex_constants_module, only: ONE
-    use extern_probin_module, only: small_x
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: u_lo(3), u_hi(3)
-    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
-
-    ! Local variables
-    integer  :: i, j, k
-    real(rt) :: xn(nspec)
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             xn = u(i,j,k,UFS:UFS+nspec-1)
-
-             xn = max(small_x * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
-
-             xn = u(i,j,k,URHO) * (xn / sum(xn))
-
-             u(i,j,k,UFS:UFS+nspec-1) = xn
-
-          enddo
-       enddo
-    enddo
-
-  end subroutine ca_normalize_species
-
-
-
-  function position_to_index(loc) result(index)
-    ! Given 3D spatial coordinates, return the cell-centered zone indices closest to it.
-    ! Optionally we can also be edge-centered in any of the directions.
-
-    use amrinfo_module, only: amr_level
-    use prob_params_module, only: dx_level, dim
-    use amrex_fort_module, only: rt => amrex_real
-
-    real(rt), intent(in) :: loc(3)
-
-    integer :: index(3)
-
-    index(1:dim)   = NINT(loc(1:dim) / dx_level(1:dim,amr_level))
-    index(dim+1:3) = 0
-
-  end function position_to_index
-
-
-
-  subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
-    ! Get the current center of the problem.  This may not be the
-    ! center of the domain, due to any problem symmetries.
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(inout) :: center_out(3)
-
-    center_out = center
-
-  end subroutine ca_get_center
-
-
-
-
-
-  subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
-    !
-    ! .. note::
-    !    Binds to C function ``ca_set_center``
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: center_in(3)
-
-    center = center_in
-
-  end subroutine ca_set_center
-
-
-
-
-
   subroutine ca_find_center(data,new_center,icen,dx,problo) &
        bind(C, name="ca_find_center")
     !
@@ -278,9 +154,6 @@ contains
   end subroutine ca_find_center
 
 
-
-
-
   subroutine ca_compute_avgstate(lo,hi,dx,dr,nc,&
        state,s_lo,s_hi,radial_state, &
        vol,v_lo,v_hi,radial_vol, &
@@ -291,7 +164,8 @@ contains
     !    Binds to C function ``ca_compute_avgstate``
 
     use meth_params_module, only: URHO, UMX, UMY, UMZ
-    use prob_params_module, only: center, dim
+    use prob_params_module, only: dim
+    use probdata_module, only: center
     use amrex_constants_module, only: HALF
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error
@@ -363,26 +237,5 @@ contains
     enddo
 
   end subroutine ca_compute_avgstate
-
-
-
-
-  function linear_to_angular_momentum(loc, mom) result(ang_mom)
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: loc(3), mom(3)
-
-    real(rt) :: ang_mom(3)
-
-    !$gpu
-
-    ang_mom(1) = loc(2) * mom(3) - loc(3) * mom(2)
-    ang_mom(2) = loc(3) * mom(1) - loc(1) * mom(3)
-    ang_mom(3) = loc(1) * mom(2) - loc(2) * mom(1)
-
-  end function linear_to_angular_momentum
 
 end module castro_util_module

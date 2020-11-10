@@ -9,21 +9,11 @@ extern "C"
 {
 #endif
 
-  void ca_network_init();
-
-  void ca_network_finalize();
-
-  void ca_eos_init();
-
-  void ca_eos_finalize();
-
-  void burner_init();
+  void ca_microphysics_init();
 
   void ca_extern_init(const int* name, const int* namlen);
 
 #ifdef REACTIONS
-  void ca_get_abort_on_failure(int * abort_on_failure);
-
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 
@@ -34,9 +24,7 @@ extern "C"
                        const amrex::Real& time, const amrex::Real& dt);
 
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#endif
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -63,8 +51,7 @@ extern "C"
      const int& Outflow_value, const int& Symmetry_value,
      const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi,
-     const amrex::Real* center);
+     const amrex::Real* problo, const amrex::Real* probhi);
 
   void ca_set_grid_info
     (const int& max_level, const amrex::Real* dx_level,
@@ -92,6 +79,8 @@ extern "C"
   void ca_deallocate_sponge_params();
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
+
+  void get_ambient_data(Real* ambient_state);
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -142,11 +131,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-  void ca_normalize_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
-
-  void ca_get_center(amrex::Real* center);
-  void ca_set_center(const amrex::Real* center);
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 
@@ -202,9 +186,6 @@ extern "C"
 
 
 
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
-
 
 /* reactions */
 #ifdef REACTIONS
@@ -235,7 +216,9 @@ extern "C"
 
 
 /* SCF */
+#ifdef GRAVITY
 #include <scf_relax_F.H>
+#endif
 
 #ifdef __cplusplus
 }
@@ -293,9 +276,5 @@ BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
    const int& nz, BL_FORT_FAB_ARG_3D(magz),
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
-
-
-/* problem-specific includes */
-#include <Problem_F.H>
 
 #endif

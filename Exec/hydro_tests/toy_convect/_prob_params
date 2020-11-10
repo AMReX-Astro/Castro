@@ -4,7 +4,7 @@ cutoff_density      real                50.0_rt       y
 
 model_name          character           ""            y
 
-apply_vel_field     logical             .false.       y
+apply_vel_field     integer             0             y
 
 velpert_scale       real                1.0e2_rt      y
 
@@ -14,12 +14,6 @@ velpert_height_loc  real                6.5e3_rt      y
 
 num_vortices        integer             1             y
 
-xloc_vortices       real                0.0_rt        n       num_vortices
+max_num_vortices    integer             10            n
 
-ih1                 integer             -1
-
-ic12                integer             -1
-
-in14                integer             -1
-
-io16                integer             -1
+xloc_vortices       real                0.0_rt        n       10

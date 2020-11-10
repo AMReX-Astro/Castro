@@ -10,7 +10,6 @@
 
   max_stellar_tagging_level = 20
   max_temperature_tagging_level = 0
-  max_center_tagging_level = 0
   stellar_density_threshold = 1.0d0
 
 /
@@ -54,8 +53,6 @@
 
   use_eos_coulomb = T
   eos_input_is_constant = T
-
-  burning_mode = 1
 
   do_constant_volume_burn = T
   call_eos_in_rhs = T

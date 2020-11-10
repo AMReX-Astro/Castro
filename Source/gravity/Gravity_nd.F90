@@ -187,7 +187,7 @@ contains
     use amrex_fort_module, only: rt => amrex_real
     use amrex_constants_module, only: HALF, ONE, FOUR3RD, M_PI
     use meth_params_module, only: NVAR, URHO, UEINT, UTEMP, UFS, UFX
-    use prob_params_module, only: center
+    use probdata_module, only: center
     use eos_type_module, only: eos_input_re, eos_t
     use eos_module, only: eos
     use network, only: nspec, naux

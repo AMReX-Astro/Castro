@@ -24,10 +24,8 @@ This script takes a template file and replaces keywords in it
 initialize the parameters, setup a namelist, set the defaults, etc.
 
 Note: there are two types of parameters here, the ones that are in the
-namelist are true runtime parameters.  For those we also provide the
-C++ headers and get routines to make these runtime parametrs available
-in C++.  The non-namelist parameters should be avoided if at all
-possible.
+namelist are true runtime parameters.  The non-namelist parameters
+should be avoided if at all possible.
 
 """
 
@@ -58,6 +56,8 @@ CXX_F_HEADER = """
 extern "C"
 {
 #endif
+
+void probdata_init(const int* name, const int* namlen);
 """
 
 CXX_F_FOOTER = """
@@ -118,6 +118,9 @@ class Parameter:
             else:
                 return True
 
+    def has_module(self):
+        return self.module != None
+
     def __str__(self):
         return "{} : {}, {} elements".format(self.var, self.dtype, self.size)
 
@@ -135,71 +138,80 @@ def get_next_line(fin):
     return line[:pos]
 
 
-def parse_param_file(param_file):
-    """read all the parameters in the parameter file and add valid
-    parameters to the params list.  This returns the parameter list.
+def parse_param_file(default_param_file, prob_param_file):
+    """read all the parameters in both the default parameter file and
+    the problem-specific parameter file and add valid parameters to the
+    params list.  This returns the parameter list.
     """
 
     err = 0
     params_list = []
 
-    try:
-        f = open(param_file, "r")
-    except IOError:
-        sys.exit("write_probdata.py: ERROR: file {} does not exist".format(param_file))
+    for param_file in [default_param_file, prob_param_file]:
 
-    line = get_next_line(f)
-
-    while line and not err:
-
-        # this splits the line into separate fields.  A field is a
-        # single word or a pair in parentheses like "(a, b)"
-        fields = re.findall(r'[\w\"\+\./\-]+|\([\w+\./\-]+\s*,\s*[\w\+\.\-]+\)', line)
-
-        if len(fields) < 3:
-            print("write_probdata.py: ERROR: missing one or more fields in parameter definition.")
-            err = 1
-            continue
-
-        current_param = Parameter()
-
-        current_param.var = fields[0]
-        current_param.dtype = fields[1]
-        current_param.value = fields[2]
-
-        # optional field: in namelist
-        try:
-            in_namelist = fields[3]
-            if in_namelist in ["y", "Y"]:
-                current_param.in_namelist = True
+        # The default parameter file has to exist, but the
+        # problem-specific parameter file is optional, so
+        # skip it if it's not present.
+        if os.path.isfile(param_file):
+            f = open(param_file, "r")
+        else:
+            if param_file == default_param_file:
+                sys.exit("write_probdata.py: ERROR: file {} does not exist".format(param_file))
             else:
-                current_param.in_namelist = False
-
-        except:
-            current_param.in_namelist = False
-
-
-        # optional field: size -- this can have the form (var, module)
-        # or just be a size
-        try:
-            size_info = fields[4]
-            if size_info[0] == "(":
-                size, module = re.findall(r"\w+", size_info)
-            else:
-                size = size_info
-                module = None
-
-        except:
-            size = 1
-            module = None
-
-        current_param.size = size
-        current_param.module = module
-
-        if not err == 1:
-            params_list.append(current_param)
+                continue
 
         line = get_next_line(f)
+
+        while line and not err:
+
+            # this splits the line into separate fields.  A field is a
+            # single word or a pair in parentheses like "(a, b)"
+            fields = re.findall(r'[\w\"\+\./\-]+|\([\w+\./\-]+\s*,\s*[\w\+\.\-]+\)', line)
+
+            if len(fields) < 3:
+                print("write_probdata.py: ERROR: missing one or more fields in parameter definition.")
+                err = 1
+                continue
+
+            current_param = Parameter()
+
+            current_param.var = fields[0]
+            current_param.dtype = fields[1]
+            current_param.value = fields[2]
+
+            # optional field: in namelist
+            try:
+                in_namelist = fields[3]
+                if in_namelist in ["y", "Y"]:
+                    current_param.in_namelist = True
+                else:
+                    current_param.in_namelist = False
+
+            except:
+                current_param.in_namelist = False
+
+
+            # optional field: size -- this can have the form (var, module)
+            # or just be a size
+            try:
+                size_info = fields[4]
+                if size_info[0] == "(":
+                    size, module = re.findall(r"\w+", size_info)
+                else:
+                    size = size_info
+                    module = None
+
+            except:
+                size = 1
+                module = None
+
+            current_param.size = size
+            current_param.module = module
+
+            if not err == 1:
+                params_list.append(current_param)
+
+            line = get_next_line(f)
 
     return err, params_list
 
@@ -214,14 +226,14 @@ def abort(outfile):
     sys.exit(1)
 
 
-def write_probin(probin_template, param_file, out_file, cxx_prefix):
+def write_probin(probin_template, default_prob_param_file, prob_param_file, out_file, cxx_prefix):
 
     """ write_probin will read through the list of parameter files and
     output the new out_file """
 
     # read the parameters defined in the parameter files
 
-    err, params = parse_param_file(param_file)
+    err, params = parse_param_file(default_prob_param_file, prob_param_file)
     if err:
         abort(out_file)
 
@@ -284,12 +296,36 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
             elif keyword == "cudaattributes":
                 for p in params:
                     if p.dtype != "character":
+                        fout.write("#ifdef AMREX_USE_GPU_PRAGMA\n")
                         fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
+                        fout.write("#endif\n")
 
-            elif keyword == "namelist":
+            elif keyword == "namelist_vars":
                 for p in params:
                     if p.in_namelist:
                         fout.write("{}namelist /fortin/ {}\n".format(indent, p.var))
+
+            elif keyword == "namelist_gets":
+                # Write the bit that reads the namelist, but only if any parameter
+                # is actually in the namelist (otherwise this code wouldn't compile).
+                namelist_used = False
+                for p in params:
+                    if p.in_namelist:
+                        namelist_used = True
+                        break
+
+                if namelist_used:
+                    fout.write("  ! read in the namelist\n")
+                    fout.write("  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')\n")
+                    fout.write("  read (unit=un, nml=fortin, iostat=status)\n\n")
+                    fout.write("  if (status < 0) then\n")
+                    fout.write("    ! the namelist does not exist, so we just go with the defaults\n")
+                    fout.write("    continue\n\n")
+                    fout.write("  else if (status > 0) then\n")
+                    fout.write("    ! some problem in the namelist\n")
+                    fout.write("    call castro_error(\"ERROR: problem in the fortin namelist\")\n")
+                    fout.write("  endif\n\n")
+                    fout.write("  close (unit=un)\n\n")
 
             elif keyword == "allocations":
                 for p in params:
@@ -353,11 +389,12 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
 
             elif keyword == "cxx_gets":
                 # this writes out the Fortran functions that can be called from C++
-                # to get the value of the parameters.  Note: we only do this for namelist
-                # parameters
+                # to get the value of the parameters.
 
                 for p in params:
-                    if not p.in_namelist:
+                    # We don't currently support the case where a module
+                    # is required since we have no C++ equivalent for the module.
+                    if p.is_array() and p.has_module():
                         continue
                     if p.dtype == "logical":
                         continue
@@ -383,8 +420,12 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
                     else:
                         fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
                             indent, p.var, p.var, p.var))
-                        fout.write("{}   {}, intent(inout) :: {}_in\n".format(
-                            indent, p.get_f90_decl(), p.var))
+                        if p.is_array():
+                            fout.write("{}   {}, intent(inout) :: {}_in({})\n".format(
+                                indent, p.get_f90_decl(), p.var, p.size))
+                        else:
+                            fout.write("{}   {}, intent(inout) :: {}_in\n".format(
+                                indent, p.get_f90_decl(), p.var))
                         fout.write("{}   {}_in = {}\n".format(
                             indent, p.var, p.var))
                         fout.write("{}end subroutine get_f90_{}\n\n".format(
@@ -392,19 +433,22 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
 
             elif keyword == "cxx_sets":
                 # this writes out the Fortran functions that can be called from C++
-                # to set the value of the parameters.  Note: we only do this for namelist
-                # parameters
+                # to set the value of the parameters.
 
                 for p in params:
-                    if not p.in_namelist:
+                    if p.is_array() and p.has_module():
                         continue
                     if p.dtype == "logical" or p.dtype == "character":
                         continue
 
                     fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
                         indent, p.var, p.var, p.var))
-                    fout.write("{}   {}, intent(in) :: {}_in\n".format(
-                        indent, p.get_f90_decl(), p.var))
+                    if p.is_array():
+                        fout.write("{}   {}, intent(in) :: {}_in({})\n".format(
+                            indent, p.get_f90_decl(), p.var, p.size))
+                    else:
+                        fout.write("{}   {}, intent(in) :: {}_in\n".format(
+                            indent, p.get_f90_decl(), p.var))
                     fout.write("{}   {} = {}_in\n".format(
                         indent, p.var, p.var))
                     fout.write("{}end subroutine set_f90_{}\n\n".format(
@@ -425,7 +469,7 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
         fout.write(CXX_F_HEADER)
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
 
             if p.dtype == "character":
@@ -449,14 +493,23 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
 
         fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
 
+        fout.write("  void cxx_to_f90_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
+
+        fout.write("  namespace problem {\n\n")
+
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
 
             if p.dtype == "character":
                 fout.write("  extern std::string {};\n\n".format(p.var))
             else:
-                fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+                if p.is_array():
+                    fout.write("  extern AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                else:
+                    fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+
+        fout.write("  }\n\n")
 
         fout.write(CXX_FOOTER)
 
@@ -467,22 +520,25 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
         fout.write("#include <{}_parameters_F.H>\n\n".format(os.path.basename(cxx_prefix)))
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
             if p.dtype == "logical":
                 continue
 
             if p.dtype == "character":
-                fout.write("  std::string {};\n\n".format(p.var))
+                fout.write("  std::string problem::{};\n\n".format(p.var))
             else:
-                fout.write("  AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
+                if p.is_array():
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                else:
+                    fout.write("  AMREX_GPU_MANAGED {} problem::{};\n\n".format(p.get_cxx_decl(), p.var))
 
         fout.write("\n")
         fout.write("  void init_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
         fout.write("    int slen = 0;\n\n")
 
         for p in params:
-            if not p.in_namelist:
+            if p.is_array() and p.has_module():
                 continue
             if p.dtype == "logical":
                 continue
@@ -491,18 +547,40 @@ def write_probin(probin_template, param_file, out_file, cxx_prefix):
                 fout.write("    get_f90_{}_len(slen);\n".format(p.var))
                 fout.write("    char _{}[slen+1];\n".format(p.var))
                 fout.write("    get_f90_{}(_{});\n".format(p.var, p.var))
-                fout.write("    {} = std::string(_{});\n\n".format(p.var, p.var))
+                fout.write("    problem::{} = std::string(_{});\n\n".format(p.var, p.var))
             else:
-                fout.write("    get_f90_{}(&{});\n\n".format(p.var, p.var))
+                if p.is_array():
+                    fout.write("    get_f90_{}(problem::{});\n\n".format(p.var, p.var))
+                else:
+                    fout.write("    get_f90_{}(&problem::{});\n\n".format(p.var, p.var))
 
         fout.write("  }\n")
+
+        fout.write("\n")
+        fout.write("  void cxx_to_f90_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
+        fout.write("    int slen = 0;\n\n")
+
+        for p in params:
+            if p.is_array() and p.has_module():
+                continue
+            if p.dtype == "logical" or p.dtype == "character":
+                continue
+
+            if p.is_array():
+                fout.write("    set_f90_{}(problem::{});\n\n".format(p.var, p.var))
+            else:
+                fout.write("    set_f90_{}(&problem::{});\n\n".format(p.var, p.var))
+
+        fout.write("  }\n")
+
 
 def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', type=str, help='probin_template')
     parser.add_argument('-o', type=str, help='out_file')
-    parser.add_argument('-p', type=str, help='parameter file name')
+    parser.add_argument('-d', type=str, help='default parameter file name')
+    parser.add_argument('-p', type=str, help='problem parameter file name')
     parser.add_argument('--cxx_prefix', type=str, default="prob",
                         help="a name to use in the C++ file names")
 
@@ -510,12 +588,13 @@ def main():
 
     probin_template = args.t
     out_file = args.o
-    params = args.p
+    default_prob_params = args.d
+    prob_params = args.p
 
     if probin_template == "" or out_file == "":
         sys.exit("write_probdata.py: ERROR: invalid calling sequence")
 
-    write_probin(probin_template, params, out_file, args.cxx_prefix)
+    write_probin(probin_template, default_prob_params, prob_params, out_file, args.cxx_prefix)
 
 if __name__ == "__main__":
     main()

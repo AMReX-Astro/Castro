@@ -48,6 +48,29 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
   $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
 endif
 
+# Require C++14
+CXXSTD := c++14
+
+# Implement any machine-specific workarounds.
+
+include $(AMREX_HOME)/Tools/GNUMake/Make.machines
+
+# On Summit if we have the PGI module loaded then we cannot simultaneously
+# have the gcc module loaded, which means we are stuck with the system
+# default (gcc 4.8.5). Since CUDA builds use gcc as the host compiler,
+# we would be prevented from using C++14. To work around this, if we're
+# using CUDA, then we reset the C++ host compiler to a known good
+# version of gcc on the system.
+
+ifeq ($(which_computer),summit)
+  ifeq ($(USE_CUDA),TRUE)
+    SUMMIT_GCC_OVERRIDE_DIR := /sw/summit/gcc/7.4.0
+    NVCC_CCBIN := $(SUMMIT_GCC_OVERRIDE_DIR)/bin/g++
+    LIBRARY_LOCATIONS += $(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+    LIBRARIES += -Wl,-rpath,$(SUMMIT_GCC_OVERRIDE_DIR)/lib64
+  endif
+endif
+
 # default integrator
 INTEGRATOR_DIR ?= VODE
 
@@ -96,7 +119,7 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  USE_GPU_PRAGMA = TRUE
+  USE_GPU_PRAGMA ?= TRUE
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
 
@@ -150,10 +173,25 @@ USE_MLMG = FALSE
 
 ifeq ($(USE_ALL_CASTRO), TRUE)
   Bdirs := Source/driver Source/hydro \
-           Source/problems Source/sources \
-           Source/scf Util/model_parser Util/conservative_interpolate
+           Source/problems Source/sources
 endif
 
+MAX_NPTS_MODEL ?= 10000
+
+ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
+  Bdirs += Util/model_parser_cxx
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
+else
+  Bdirs += Util/model_parser
+endif
+
+ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
+  Bdirs += Util/conservative_interpolate
+endif
+
+ifeq ($(USE_INTERPOLATE),TRUE)
+  Bdirs += Util/interpolate
+endif
 
 # add / define any special physics we need
 
@@ -165,7 +203,7 @@ else
 endif
 
 ifeq ($(USE_GRAV), TRUE)
-  Bdirs += Source/gravity
+  Bdirs += Source/gravity Source/scf 
   DEFINES += -DGRAVITY
   USE_MLMG = TRUE
 endif
@@ -186,11 +224,11 @@ ifeq ($(USE_REACT), TRUE)
   ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
+    # we only implement this for C++ reactions
   endif
 
-  ifeq ($(USE_CXX_REACTIONS), TRUE)
-    DEFINES += -DCXX_REACTIONS
-  endif
+  USE_CXX_REACTIONS = TRUE
+  DEFINES += -DCXX_REACTIONS
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
@@ -369,14 +407,6 @@ include $(TOP)/Exec/Make.auto_source
 #------------------------------------------------------------------------------
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.rules
-
-ifeq ($(USE_CUDA),TRUE)
-ifeq ($(USE_GPU_PRAGMA), TRUE)
-
-include $(TOP)/Exec/Make.cuda_rules
-
-endif
-endif
 
 clean::
 	$(SILENT) $(RM) extern.F90 prob_params_auto.F90 extern_parameters.H extern_parameters_F.H extern_parameters.cpp

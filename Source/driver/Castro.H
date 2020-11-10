@@ -9,12 +9,16 @@
 
 // runtime parameters
 #include <castro_params.H>
+#include <prob_parameters.H>
+#include <prob_parameters_F.H>
+
 using namespace castro;
 
 #ifdef AMREX_PARTICLES
 #include <particles_params.H>
 #endif
 
+#include <fundamental_constants.H>
 
 constexpr int HISTORY_SIZE=40;
 constexpr int PSTAR_BISECT_FACTOR = 5;
@@ -42,7 +46,7 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
-#ifdef CXX_REACTIONS
+#ifdef REACTIONS
 #include <burner.H>
 #endif
 
@@ -51,11 +55,11 @@ constexpr int Shock = USHK;
 #endif
 
 #ifdef AMREX_PARTICLES
-#include "AMReX_AmrParticles.H"
+#include <AMReX_AmrParticles.H>
 #endif
 
 #ifdef RADIATION
-#include "RadSolve.H"
+#include <RadSolve.H>
 #endif
 
 #include <memory>
@@ -63,8 +67,6 @@ constexpr int Shock = USHK;
 
 using std::istream;
 using std::ostream;
-
-#define AMREX_ARR4_TO_FORTRAN_ANYD(a) a.p,&((a).begin.x),amrex::GpuArray<int,3>{(a).end.x-1,(a).end.y-1,(a).end.z-1}.data()
 
 enum StateType { State_Type = 0,
 #ifdef RADIATION
@@ -479,17 +481,11 @@ public:
 /// don't do a retry unless the criteria are violated. This is
 /// used only for the CTU advance.
 ///
-/// @param time     the current simulation time
 /// @param dt       the timestep to advance (e.g., go from time to
 ///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 /// @param advance_status  was the advance successful?
 ///
-    bool retry_advance_ctu(amrex::Real& time, amrex::Real dt, int amr_iteration, int amr_ncycle, advance_status status);
+    bool retry_advance_ctu(amrex::Real dt, advance_status status);
 
 ///
 /// Subcyles until we've reached the target time, ``time`` + ``dt``.
@@ -530,46 +526,21 @@ public:
 /// losses, does refluxing, and clears arrays/data containers
 /// initialized at start of the level's advance.
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_advance();
 
 ///
 /// Performed at the start of ::do_advance, resets flags and
 /// ensures required ghost zones are filled.
 ///
 /// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
 ///
-    void initialize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void initialize_do_advance(amrex::Real time);
 
 ///
 /// Performed at the end of ::do_advance, cleans up temporary data
 /// created by ::initialize_do_advance
 ///
-/// @param time     the current simulation time
-/// @param dt       the timestep to advance (e.g., go from time to
-///                    time + dt)
-/// @param amr_iteration    where we are in the current AMR subcycle.  Each
-///                    level will take a number of steps to reach the
-///                    final time of the coarser level below it.  This
-///                    counter starts at 1
-/// @param amr_ncycle   the number of subcycles at this level
-///
-    void finalize_do_advance(amrex::Real time, amrex::Real dt, int amr_iteration, int amr_ncycle);
+    void finalize_do_advance();
 
 ///
 /// Check for NaNs in the given MultiFab
@@ -596,9 +567,7 @@ public:
 ///
 /// Estimate time step.
 ///
-/// @param dt_old   previous timestep
-///
-    amrex::Real estTimeStep (amrex::Real dt_old);
+    amrex::Real estTimeStep ();
 
 
 ///
@@ -619,6 +588,13 @@ public:
 ///
     amrex::Real estdt_temp_diffusion();
 
+#ifdef REACTIONS
+///
+/// Reactions-limited timestep
+///
+    amrex::Real estdt_burning();
+#endif
+
 ///
 /// Compute initial time step.
 ///
@@ -628,16 +604,16 @@ public:
 /// Compute initial ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_level         Real Vector, will contain initial timestep at each level.
 /// @param stop_time        End time of simulation
 ///
     void computeInitialDt (int                   finest_level,
-                           int                   sub_cycle,
+                           int                   /*subcycle*/,
                            amrex::Vector<int>&           n_cycle,
-                           const amrex::Vector<amrex::IntVect>& ref_ratio,
+                           const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                            amrex::Vector<amrex::Real>&          dt_level,
                            amrex::Real                  stop_time) override;
 
@@ -645,18 +621,18 @@ public:
 /// Compute new ``dt``.
 ///
 /// @param finest_level     Index of finest level
-/// @param sub_cycle
+/// @param subcycle         unused
 /// @param n_cycle          the number of subcycles at this level
-/// @param ref_ratio        Vector of refinement ratios between levels
+/// @param ref_ratio        unused
 /// @param dt_min
 /// @param dt_level
 /// @param stop_time        End time of simulation
 /// @param post_regrid_flag Have we done regridding yet?
 ///
     void computeNewDt (int                   finest_level,
-                       int                   sub_cycle,
+                       int                   /*subcycle*/,
                        amrex::Vector<int>&           n_cycle,
-                       const amrex::Vector<amrex::IntVect>& ref_ratio,
+                       const amrex::Vector<amrex::IntVect>& /*ref_ratio*/,
                        amrex::Vector<amrex::Real>&          dt_min,
                        amrex::Vector<amrex::Real>&          dt_level,
                        amrex::Real                  stop_time,
@@ -780,6 +756,15 @@ public:
 /// @param time         current time
 ///
     void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
+
+
+///
+/// Apply any tagging restrictions that must be satisfied by all problems.
+///
+/// @param tags         TagBoxArray of tags
+/// @param time         current time
+///
+    void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
@@ -1211,6 +1196,11 @@ public:
     static amrex::Vector<int> qpass_map;
 
 ///
+/// Vector storing list of custom error tags.
+///
+    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+
+///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
 ///     to mask out the finer level.  We only build this when it is needed.
 ///     This coarse MultiFab has to live on the fine level because it must be updated
@@ -1274,6 +1264,8 @@ protected:
 #endif
 
 
+
+#ifdef TRUE_SDC
 ///
 /// A state array for the some reaction stuff with SDC
 ///
@@ -1283,16 +1275,12 @@ protected:
 ///
 /// The primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab q;
-#endif
-
 
 ///
 /// we need a second version when doing fourth order
 ///
     amrex::MultiFab q_bar;
-
 
 ///
 /// for diffusion in fourth order we need the cell-center temperature
@@ -1304,10 +1292,9 @@ protected:
 ///
 /// The auxiliary primitive variable state array.
 ///
-#ifdef TRUE_SDC
     amrex::MultiFab qaux;
-#endif
     amrex::MultiFab qaux_bar;
+#endif
 
 
 ///

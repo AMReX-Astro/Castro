@@ -25,8 +25,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
      call castro_error("Error: helium-4 not present")
   end if
 
-  call probdata_init(name, namlen)
-
   model_params % T_base = temp_base
   model_params % dens_base = dens_base
   model_params % xn(:) = 100*small_x

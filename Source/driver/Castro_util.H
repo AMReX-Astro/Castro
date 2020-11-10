@@ -1,9 +1,10 @@
 #ifndef CASTRO_UTIL_H
 #define CASTRO_UTIL_H
 
-#include "AMReX_Geometry.H"
+#include <AMReX_Geometry.H>
 
 using namespace amrex;
+
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)

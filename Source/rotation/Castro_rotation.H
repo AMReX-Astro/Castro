@@ -32,14 +32,6 @@
 ///
     void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& state, amrex::Real time);
 
-
-    AMREX_GPU_HOST_DEVICE
-    void inertial_to_rotational_velocity_c(const int i, const int j, const int k,
-                                           const amrex::GeometryData& geomdata,
-                                           const Real* center,
-                                           const Real* omega,
-                                           const amrex::Real time, amrex::Real* v);
-
 ///
 /// Add the rotation source for input state uold to the full hydrodynamic source
 /// term source
@@ -81,22 +73,6 @@
              Array4<Real const> const& flux2,
              const Real dt,
              Array4<Real const> const& vol);
-
-///
-/// Compute the rotational acceleration for a single zone
-/// (Coriolis and centrifugal)
-///
-/// @param r         distance from origin of rotation vector
-/// @param v         velocity
-/// @param omega     rotation vector
-/// @param coriolis  do we include the Coriolis force
-/// @param Sr        rotational acceleration
-///
-    AMREX_GPU_HOST_DEVICE
-    void
-    rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                            GpuArray<Real, 3> const& omega,
-                            const bool coriolis, Real* Sr);
 
     void
     fill_rotational_potential(const Box& bx,

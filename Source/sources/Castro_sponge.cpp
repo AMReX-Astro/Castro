@@ -1,9 +1,9 @@
 #ifdef SPONGE
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 using namespace amrex;
@@ -122,7 +122,7 @@ Castro::sponge_finalize()
 
 void
 Castro::apply_sponge(const Box& bx,
-                     Array4<Real const> const state,
+                     Array4<Real const> const state_in,
                      Array4<Real> const source,
                      Real dt, Real mult_factor) {
 
@@ -138,9 +138,6 @@ Castro::apply_sponge(const Box& bx,
 
   auto dx = geom.CellSizeArray();
   auto problo = geom.ProbLoArray();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   const Real lsponge_upper_radius = sponge_upper_radius;
   const Real lsponge_lower_radius = sponge_lower_radius;
@@ -173,21 +170,21 @@ Castro::apply_sponge(const Box& bx,
 
     GpuArray<Real, 3> r;
 
-    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+    r[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 
 #if AMREX_SPACEDIM >= 2
-    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+    r[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
     r[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+    r[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
     r[2] = 0.0_rt;
 #endif
 
-    Real rho = state(i,j,k,URHO);
+    Real rho = state_in(i,j,k,URHO);
     Real rhoInv = 1.0_rt / rho;
 
     // compute the update factor
@@ -250,14 +247,14 @@ Castro::apply_sponge(const Box& bx,
 
       eos_t eos_state;
 
-      eos_state.rho = state(i,j,k,URHO);
-      eos_state.T = state(i,j,k,UTEMP);
+      eos_state.rho = state_in(i,j,k,URHO);
+      eos_state.T = state_in(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
+        eos_state.xn[n] = state_in(i,j,k,UFS+n) * rhoInv;
       }
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
+        eos_state.aux[n] = state_in(i,j,k,UFX+n) * rhoInv;
       }
 #endif
 
@@ -303,7 +300,7 @@ Castro::apply_sponge(const Box& bx,
     // now compute the source
     GpuArray<Real, 3> Sr;
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
+      Sr[n] = (state_in(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
       src[UMX+n] = Sr[n];
     }
 
@@ -314,7 +311,7 @@ Castro::apply_sponge(const Box& bx,
 
     Real SrE = 0.0;
     for (int n = 0; n < 3; n++) {
-      SrE += state(i,j,k,UMX+n) * rhoInv * Sr[n];
+      SrE += state_in(i,j,k,UMX+n) * rhoInv * Sr[n];
     }
 
     src[UEDEN] = SrE;

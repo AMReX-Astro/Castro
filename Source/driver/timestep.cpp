@@ -1,12 +1,16 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef DIFFUSION
-#include "conductivity.H"
+#include <conductivity.H>
 #endif
 
 #ifdef MHD
-#include "mhd_util.H"
+#include <mhd_util.H>
+#endif
+
+#ifdef ROTATION
+#include <Rotation.H>
 #endif
 
 using namespace amrex;
@@ -17,12 +21,11 @@ Castro::estdt_cfl(const Real time)
 
   // Courant-condition limited timestep
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef ROTATION
   GpuArray<Real, 3> omega;
   get_omega(omega.begin());
+
+  GeometryData geomdata = geom.data();
 #endif
 
   const auto dx = geom.CellSizeArray();
@@ -32,12 +35,6 @@ Castro::estdt_cfl(const Real time)
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
   const MultiFab& stateMF = get_new_data(State_Type);
-
-  const int ltime_integration_method = time_integration_method;
-#ifdef ROTATION
-  const int ldo_rotation = do_rotation;
-  const int lstate_in_rotating_frame = state_in_rotating_frame;
-#endif
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -75,16 +72,14 @@ Castro::estdt_cfl(const Real time)
       Real uz = u(i,j,k,UMZ) * rhoInv;
 
 #ifdef ROTATION
-      if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
+      if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
         Real vel[3];
         vel[0] = ux;
         vel[1] = uy;
         vel[2] = uz;
 
-        GeometryData geomdata = geom.data();
-
         inertial_to_rotational_velocity_c(i, j, k, geomdata,
-                                          center.begin(), omega.begin(), time, vel);
+                                          omega.begin(), time, vel);
 
         ux = vel[0];
         uy = vel[1];
@@ -113,7 +108,7 @@ Castro::estdt_cfl(const Real time)
       // The CTU method has a less restrictive timestep than MOL-based
       // schemes (including the true SDC).  Since the simplified SDC
       // solver is based on CTU, we can use its timestep.
-      if (ltime_integration_method == 0 || ltime_integration_method == 3) {
+      if (castro::time_integration_method == 0 || castro::time_integration_method == 3) {
         return {amrex::min(dt1, dt2, dt3)};
 
       } else {
@@ -342,5 +337,145 @@ Castro::estdt_temp_diffusion(void)
   Real estdt_diff = amrex::get<0>(hv);
 
   return estdt_diff;
+}
+#endif
+
+#ifdef REACTIONS
+Real
+Castro::estdt_burning()
+{
+
+    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt && castro::dtnuc_T > 1.e199_rt) return 1.e200_rt;
+
+    ReduceOps<ReduceOpMin> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+    MultiFab& S_new = get_new_data(State_Type);
+    MultiFab& R_new = get_new_data(Reactions_Type);
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
+    {
+        const Box& box = mfi.validbox();
+
+        const auto S = S_new[mfi].array();
+        const auto R = R_new[mfi].array();
+
+        const auto dx = geom.CellSizeArray();
+
+        // Set a floor on the minimum size of a derivative. This floor
+        // is small enough such that it will result in no timestep limiting.
+
+        const Real derivative_floor = 1.e-50_rt;
+
+        // We want to limit the timestep so that it is not larger than
+        // dtnuc_e * (e / (de/dt)).  If the timestep factor dtnuc is
+        // equal to 1, this says that we don't want the
+        // internal energy to change by any more than its current
+        // magnitude in the next timestep.
+        //
+        // If dtnuc is less than one, it controls the fraction we will
+        // allow the internal energy to change in this timestep due to
+        //  nuclear burning, provided that our instantaneous estimate
+        // of the energy release is representative of the full timestep.
+        //
+        // We do the same thing for the temperature, using a timestep
+        // limiter dtnuc_T * (T / (dT/dt)).
+        //
+        // We also do the same thing for the species, using a timestep
+        // limiter dtnuc_X * (X_k / (dX_k/dt)). To prevent changes
+        // due to trace isotopes that we probably are not interested in,
+        // only apply the limiter to species with an abundance greater
+        // than a user-specified threshold.
+        //
+        // To estimate de/dt, dT/dt, and dX/dt, we are going to call the RHS of the
+        // burner given the current state data. We need to do an EOS
+        // call before we do the RHS call so that we have accurate
+        // values for the thermodynamic data like abar, zbar, etc.
+        // But we will call in (rho, T) mode, which is inexpensive.
+
+        reduce_op.eval(box, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        {
+            Real rhoInv = 1.0_rt / S(i,j,k,URHO);
+
+            burn_t state;
+
+            state.rho = S(i,j,k,URHO);
+            state.T   = S(i,j,k,UTEMP);
+            state.e   = S(i,j,k,UEINT) * rhoInv;
+            for (int n = 0; n < NumSpec; ++n) {
+                state.xn[n] = S(i,j,k,UFS+n) * rhoInv;
+            }
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; ++n) {
+                state.aux[n] = S(i,j,k,UFX+n) * rhoInv;
+            }
+#endif
+
+            if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
+                state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
+                return {1.e200};
+            }
+
+            Real e    = state.e;
+            Real T    = amrex::max(state.T, castro::small_temp);
+            Real X[NumSpec];
+            for (int n = 0; n < NumSpec; ++n) {
+                X[n] = amrex::max(state.xn[n], small_x);
+            }
+
+            eos_t eos_state;
+            burn_to_eos(state, eos_state);
+            eos(eos_input_rt, eos_state);
+            eos_to_burn(eos_state, state);
+
+#ifndef SIMPLIFIED_SDC
+            state.self_heat = true;
+#endif
+            Array1D<Real, 1, neqs> ydot;
+            actual_rhs(state, ydot);
+
+            Real dedt = ydot(net_ienuc);
+            Real dTdt = ydot(net_itemp);
+            Real dXdt[NumSpec];
+            for (int n = 0; n < NumSpec; ++n) {
+                dXdt[n] = ydot(n+1) * aion[n];
+            }
+
+            // Apply a floor to the derivatives. This ensures that we don't
+            // divide by zero; it also gives us a quick method to disable
+            // the timestep limiting, because the floor is small enough
+            // that the implied timestep will be very large, and thus
+            // ignored compared to other limiters.
+
+            dedt = amrex::max(std::abs(dedt), derivative_floor);
+            dTdt = amrex::max(std::abs(dTdt), derivative_floor);
+
+            for (int n = 0; n < NumSpec; ++n) {
+                if (X[n] >= castro::dtnuc_X_threshold) {
+                    dXdt[n] = amrex::max(std::abs(dXdt[n]), derivative_floor);
+                } else {
+                    dXdt[n] = derivative_floor;
+                }
+            }
+
+            Real dt_tmp = amrex::min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt);
+            for (int n = 0; n < NumSpec; ++n) {
+                dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
+            }
+
+            return {dt_tmp};
+        });
+
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    Real estdt = amrex::get<0>(hv);
+
+    return estdt;
 }
 #endif
