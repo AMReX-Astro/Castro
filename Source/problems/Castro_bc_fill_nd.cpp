@@ -6,6 +6,7 @@
 #include <Castro_bc_ext_fill_nd_F.H>
 #include <Castro_generic_fill.H>
 #include <bc_ext_fill.H>
+#include <problem_bc_fill.H>
 
 using namespace amrex;
 
@@ -142,6 +143,29 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                  BL_TO_FORTRAN_ANYD(data),
                  AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
                  AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+
+    }
+
+    // Override with problem-specific boundary conditions.
+
+    if (numcomp == NUM_STATE) {
+
+        const auto state = data.array();
+
+        // Copy BCs to an Array1D so they can be passed by value to the ParallelFor.
+
+        Array1D<BCRec, 0, NUM_STATE - 1> bcs;
+        for (int n = 0; n < numcomp; ++n) {
+            bcs(n) = bcr[n];
+        }
+
+        const auto geomdata = geom.data();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            problem_bc_fill(i, j, k, state, time, bcs, geomdata);
+        });
 
     }
 
