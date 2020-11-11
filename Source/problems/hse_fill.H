@@ -31,7 +31,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     //
 
     // XLO
-    if (bc[URHO].lo(0) == EXT_DIR && lo[0] < domlo[0]) {
+
+    if (bcr[URHO].lo(0) == EXT_DIR && lo[0] < domlo[0]) {
 
         if (xl_ext == EXT_HSE) {
 
@@ -229,10 +230,12 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     }
 
 
-    ! XHI
-    if (bc(1,2,1) == EXT_DIR .and. hi(1) > domhi(1)) then
+    // XHI
 
-       if (xr_ext == EXT_HSE) then
+    if (bcr[URHO].hi(0) == EXT_DIR && hi[0] > domhi[0]) {
+
+       if (xr_ext == EXT_HSE) {
+$$$$$
 
           do k = lo(3), hi(3)
              do j = lo(2), hi(2)
