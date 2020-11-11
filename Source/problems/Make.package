@@ -9,6 +9,7 @@ CEXE_headers += problem_setup.H
 CEXE_headers += problem_tagging.H
 CEXE_headers += problem_checkpoint.H
 CEXE_headers += problem_restart.H
+CEXE_headers += problem_bc_fill.H
 
 ca_F90EXE_sources += bc_fill_nd.F90
 ca_F90EXE_sources += bc_ext_fill_nd.F90
