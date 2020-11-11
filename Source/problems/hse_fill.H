@@ -47,16 +47,16 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
 
-                Real dens_above = adv(domlo(1),j,k,URHO);
-                Real temp_above = adv(domlo(1),j,k,UTEMP);
+                Real dens_above = adv(domlo[0],j,k,URHO);
+                Real temp_above = adv(domlo[0],j,k,UTEMP);
                 Real X_zone[NumSpec];
                 for (int n = 0; n < NumSpec; n++) {
-                    X_zone[n] = adv(domlo(1),j,k,UFS+n) / dens_above;
+                    X_zone[n] = adv(domlo[0],j,k,UFS+n) / dens_above;
                 }
 #if NAUX_NET > 0
                 Real aux_zone[NumAux];
                 for (int n = 0; n < NumAux; n++) {
-                    aux_zone[n] = adv(domlo(1),j,k,UFX+n) / dens_above;
+                    aux_zone[n] = adv(domlo[0],j,k,UFX+n) / dens_above;
                 }
 #endif
 
@@ -235,164 +235,191 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     if (bcr[URHO].hi(0) == EXT_DIR && hi[0] > domhi[0]) {
 
        if (xr_ext == EXT_HSE) {
-$$$$$
 
-          do k = lo(3), hi(3)
-             do j = lo(2), hi(2)
-                ! we are integrating along a column at constant i.
-                ! Make sure that our starting state is well-defined
-                dens_below = adv(domhi(1),j,k,URHO)
-                temp_below = adv(domhi(1),j,k,UTEMP)
-                X_zone(:) = adv(domhi(1),j,k,UFS:UFS-1+nspec)/dens_below
-                aux_zone(:) = adv(domhi(1),j,k,UFX:UFX-1+naux)/dens_below
+            Box gbx(IntVect(D_DECL(domhi[0]+1, lo[1], lo[2])),
+                    IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));
 
-                ! keep track of the density at the base of the domain
-                dens_base = dens_below
+            amrex::ParallelFor(gbx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
 
-                ! get pressure in this zone (the initial below zone)
-                eos_state%rho = dens_below
-                eos_state%T = temp_below
-                eos_state%xn(:) = X_zone(:)
-                eos_state%aux(:) = aux_zone(:)
 
-                call eos(eos_input_rt, eos_state)
-
-                eint = eos_state%e
-                pres_below = eos_state%p
-
-                ! integrate upward
-                imin = domhi(1)+1
-                imax = adv_hi(1)
-#ifdef AMREX_USE_CUDA
-                ! For CUDA, this should only be one thread doing the work:
-                ! we'll arbitrary choose the zone with index domlo(1) - 1.
-                if (hi(1) /= imax) then
-                   imax = imin - 1
-                end if
+                Real dens_below = adv(domhi[0],j,k,URHO);
+                Real temp_below = adv(domhi[0],j,k,UTEMP);
+                Real X_zone[NumSpec];
+                for (int n = 0; n < NumSpec; n++) {
+                    X_zone[n] = adv(domhi[0],j,k,UFS+n) / dens_below;
+                }
+#if NAUX_NET > 0
+                Real aux_zone[NumAux];
+                for (int n = 0; n < NumAux; n++) {
+                    aux_zone[n] = adv(domhi[0],j,k,UFX+n) / dens_below;
+                }
 #endif
-                do i = imin, imax
-                   x = problo(1) + delta(1)*(dble(i) + HALF)
 
-                   ! HSE integration to get density, pressure
+                // keep track of the density at the top of the domain
 
-                   ! initial guesses
-                   dens_zone = dens_below
+                Real dens_base = dens_below;
 
-                   ! temperature and species held constant in BCs
-                   if (hse_interp_temp == 1) then
-                      temp_zone = 2*adv(i-1,j,k,UTEMP) - adv(i-2,j,k,UTEMP)
-                   else
-                      temp_zone = temp_below
-                   endif
+                // get pressure in this zone (the initial below zone)
 
-                   converged_hse = .FALSE.
+                eos_t eos_state;
+                eos_state.rho = dens_below;
+                eos_state.T = temp_below;
+                for (int n = 0; n < NumSpec; n++) {
+                    eos_state.xn[n] = X_zone[n];
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; n++) {
+                    eos_state.aux[n] = aux_zone[n];
+                }
+#endif
 
-                   do iter = 1, MAX_ITER
+                eos(eos_input_rt, eos_state);
 
-                      ! pressure needed from HSE
-                      p_want = pres_below + &
-                           delta(1)*HALF*(dens_zone + dens_below)*const_grav
+                Real eint = eos_state.e;
+                Real pres_below = eos_state.p;
 
-                      ! pressure from EOS
-                      eos_state%rho = dens_zone
-                      eos_state%T = temp_zone
-                      eos_state%xn(:) = X_zone(:)
-                      eos_state%aux(:) = aux_zone(:)
+                for (int i = domhi[0]+1; i <= adv_hi[0]; i++) {
 
-                      call eos(eos_input_rt, eos_state)
+                    Real x = problo[0] + dx[0]*(static_cast<Real>(i) + 0.5_rt);
 
-                      pres_zone = eos_state%p
-                      dpdr = eos_state%dpdr
-                      eint = eos_state%e
+                    // HSE integration to get density, pressure
 
-                      ! Newton-Raphson - we want to zero A = p_want - p(rho)
-                      A = p_want - pres_zone
-                      drho = A/(dpdr - HALF*delta(1)*const_grav)
+                    // initial guesses
+                    Real dens_zone = dens_below;
 
-                      dens_zone = max(0.9_rt*dens_zone, &
-                           min(dens_zone + drho, 1.1_rt*dens_zone))
+                    // temperature and species held constant in BCs
 
-                      ! convergence?
-                      if (abs(drho) < TOL*dens_zone) then
-                         converged_hse = .TRUE.
-                         exit
-                      endif
+                    Real temp_zone;
+                    if (hse_interp_temp == 1) {
+                        temp_zone = 2*adv(i-1,j,k,UTEMP) - adv(i-2,j,k,UTEMP);
+                    } else {
+                        temp_zone = temp_below;
+                    }
 
-                   enddo
+                    bool converged_hse = false;
+
+                    for (int iter = 0; iter < MAX_ITER; iter++) {
+
+                        // pressure needed from HSE
+                        Real p_want = pres_below +
+                            dx[0] * 0.5_rt * (dens_zone + dens_below) * const_grav;
+
+                        // pressure from EOS
+
+                        eos_state.rho = dens_zone;
+                        eos_state.T = temp_zone;
+                        // xn is already set above
+
+                        eos(eos_input_rt, eos_state);
+
+                        Real pres_zone = eos_state.p;
+                        Real dpdr = eos_state.dpdr;
+                        Real eint = eos_state.e;
+
+                        // Newton-Raphson - we want to zero A = p_want - p(rho)
+                        Real A = p_want - pres_zone;
+                        Real drho = A / (dpdr - 0.5_rt * dx[0] * const_grav);
+
+                        dens_zone = amrex::max(0.9_rt*dens_zone,
+                                               amrex::min(dens_zone + drho, 1.1_rt*dens_zone));
+
+                        // convergence?
+
+                        if (std::abs(drho) < TOL * dens_zone) {
+                            converged_hse = true;
+                            break;
+                        }
+
+                    }
 
 #ifndef AMREX_USE_CUDA
-                   if (.not. converged_hse) then
-                      print *, "i, j, k, domhi(1): ", i, j, k, domhi(1)
-                      print *, "p_want:    ", p_want
-                      print *, "dens_zone: ", dens_zone
-                      print *, "temp_zone: ", temp_zone
-                      print *, "drho:      ", drho
-                      print *, " "
-                      print *, "column info: "
-                      print *, "   dens: ", adv(i:domhi(1),j,k,URHO)
-                      print *, "   temp: ", adv(i:domhi(1),j,k,UTEMP)
-                      call castro_error("ERROR in bc_ext_fill_nd: failure to converge in +X BC")
-                   endif
+                   if (! converged_hse) {
+                       std::cout << "i, j, k, domhi[0]: " << i << " " << j << " " << k << " " << domhi[0] << std::endl;
+                       std::cout << "p_want:    " << p_want << std::endl;
+                       std::cout << "dens_zone: " << dens_zone << std::endl;
+                       std::cout << "temp_zone: " << temp_zone << std::endl;
+                       std::cout << "drho:      " << drho << std::endl;
+                       std::cout << std::endl;
+                       std::cout << "column info: " << std::endl;
+                       std::cout << "   dens: " << adv(i:domhi[0],j,k,URHO) << std::endl;
+                       std::cout << "   temp: " << adv(i:domhi[0],j,k,UTEMP) << std::endl;
+                       amrex::Error("ERROR in bc_ext_fill_nd: failure to converge in +X BC");
+                   }
 #endif
 
-                   ! velocity
-                   if (hse_zero_vels == 1) then
+                   // velocity
 
-                      ! zero normal momentum causes pi waves to pass through
-                      adv(i,j,k,UMX) = ZERO
-                      adv(i,j,k,UMY) = ZERO
-                      adv(i,j,k,UMZ) = ZERO
+                   if (hse_zero_vels == 1) {
 
-                   else
+                       // zero normal momentum causes pi waves to pass through
 
-                      if (hse_reflect_vels == 1) then
-                         ! reflect normal, zero gradient for transverse
-                         ! note: we need to match the corresponding
-                         ! zone on the other side of the interface
-                         ioff = i-domhi(1)-1
-                         adv(i,j,k,UMX) = -dens_zone*(adv(domhi(1)-ioff,j,k,UMX)/adv(domhi(1)-ioff,j,k,URHO))
+                       adv(i,j,k,UMX) = 0.0_rt;
+                       adv(i,j,k,UMY) = 0.0_rt;
+                       adv(i,j,k,UMZ) = 0.0_rt;
 
-                         adv(i,j,k,UMY) = -dens_zone*(adv(domhi(1),j,k,UMY)/dens_base)
-                         adv(i,j,k,UMZ) = -dens_zone*(adv(domhi(1),j,k,UMZ)/dens_base)
-                      else
-                         ! zero gradient
-                         adv(i,j,k,UMX) = dens_zone*(adv(domhi(1),j,k,UMX)/dens_base)
-                         adv(i,j,k,UMY) = dens_zone*(adv(domhi(1),j,k,UMY)/dens_base)
-                         adv(i,j,k,UMZ) = dens_zone*(adv(domhi(1),j,k,UMZ)/dens_base)
-                      endif
-                   endif
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone(:)
-                   eos_state%aux(:) = aux_zone(:)
+                   } else {
 
-                   call eos(eos_input_rt, eos_state)
+                       if (hse_reflect_vels == 1) {
+                           // reflect normal, zero gradient for transverse
+                           // note: we need to match the corresponding
+                           // zone on the other side of the interface
+                           int ioff = i-domhi[0]-1;
+                           adv(i,j,k,UMX) = -dens_zone * (adv(domhi[0]-ioff,j,k,UMX) / adv(domhi[0]-ioff,j,k,URHO));
 
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
+                           adv(i,j,k,UMY) = -dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
+                           adv(i,j,k,UMZ) = -dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
+                       } else {
+                           // zero gradient
+                           adv(i,j,k,UMX) = dens_zone * (adv(domhi[0],j,k,UMX) / dens_base);
+                           adv(i,j,k,UMY) = dens_zone * (adv(domhi[0],j,k,UMY) / dens_base);
+                           adv(i,j,k,UMZ) = dens_zone * (adv(domhi[0],j,k,UMZ) / dens_base);
+                       }
+                   }
 
-                   ! store the final state
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                   eos_state.rho = dens_zone;
+                   eos_state.T = temp_zone;
 
-                   ! for the next zone
-                   dens_below = dens_zone
-                   pres_below = pres_zone
+                   eos(eos_input_rt, eos_state);
 
-                end do
-             end do
-          end do
+                   Real pres_zone = eos_state.p;
+                   Real eint = eos_state.e;
+
+                   //  store the final state
+
+                   adv(i,j,k,URHO) = dens_zone;
+                   adv(i,j,k,UEINT) = dens_zone * eint;
+                   adv(i,j,k,UEDEN) = dens_zone * eint +
+                       0.5rt * (adv(i,j,k,UMX) * adv(i,j,k,UMX) +
+                                adv(i,j,k,UMY) * adv(i,j,k,UMY) +
+                                adv(i,j,k,UMZ) * adv(i,j,k,UMZ)) / dens_zone;
+                   adv(i,j,k,UTEMP) = temp_zone;
+                   for (int n = 0; n < NumSpec; n++) {
+                       adv(i,j,k,UFS+n) = dens_zone * X_zone[n];
+                   }
+#if NAUX_NET > 0
+                   for (int n = 0; n < NumAux; n++) {
+                       adv(i,j,k,UFX+n) = dens_zone * aux_zone[n];
+                   }
+#endif
+
+                   // for the next zone
+
+                   dens_below = dens_zone;
+                   pres_below = pres_zone;
+
+                }
+            });
+
+       } else {
+
 #ifndef AMREX_USE_CUDA
-       else
-          call castro_error("invalid BC option")
+           amrex::Error("invalid BC option");
 #endif
-       end if  ! xr_ext check
+       }
 
-    endif
+    }
 
 
 #if AMREX_SPACEDIM >= 2
