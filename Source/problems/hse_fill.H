@@ -44,7 +44,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     if (bcr[URHO].lo(0) == EXT_DIR && lo[0] < domlo[0]) {
 
-        if (xl_ext == EXT_HSE) {
+        if (xl_ext_bc_type == EXT_HSE) {
 
             // we need to integrate in the i direction from adv_lo[0]
             // to domlo[0]-1, but we want that to be handled by a
@@ -243,7 +243,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
     if (bcr[URHO].hi(0) == EXT_DIR && hi[0] > domhi[0]) {
 
-       if (xr_ext == EXT_HSE) {
+       if (xr_ext_bc_type == EXT_HSE) {
 
             Box gbx(IntVect(D_DECL(domhi[0]+1, lo[1], lo[2])),
                     IntVect(D_DECL(domhi[0]+1, hi[1], hi[2])));

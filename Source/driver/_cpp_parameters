@@ -198,22 +198,28 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zr_ext_bc_type               int          -1                  y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
