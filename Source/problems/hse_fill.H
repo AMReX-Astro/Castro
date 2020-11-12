@@ -1,10 +1,18 @@
 #ifndef HSE_FILL_H
 #define HSE_FILL_H
 
+#include <runtime_parameters.H>
 #include <ext_bc_types.H>
 
 // a hydrostatic boundary conditions -- this relies on the assumption
 // that the gravitation acceleration is constant
+
+namespace hse
+{
+    constexpr int MAX_ITER = 250;
+    constexpr Real TOL = 1.e-8_rt;
+}
+
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 void
@@ -82,15 +90,12 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 eos(eos_input_rt, eos_state);
 
-                Real eint = eos_state.e;
                 Real pres_above = eos_state.p;
 
                 for (int i = domlo[0]-1; i >= adv_lo[0]; i--) {
 
                     // we are integrating along a column at constant i.
                     // Make sure that our starting state is well-defined
-
-                    Real x = problo[0] + dx[0]*(static_cast<Real>(i) + 0.5_rt);
 
                     // HSE integration to get density, pressure
 
@@ -109,12 +114,15 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     bool converged_hse = false;
 
-                    for (int iter = 0; iter < MAX_ITER; iter++) {
+                    Real p_want;
+                    Real drho;
+
+                    for (int iter = 0; iter < hse::MAX_ITER; iter++) {
 
                         // pressure needed from HSE
 
-                        Real p_want = pres_above -
-                            dx[0] * 0.5_rt * (dens_zone + dens_above) * const_grav;
+                        p_want = pres_above -
+                            dx[0] * 0.5_rt * (dens_zone + dens_above) * gravity::const_grav;
 
                         // pressure from EOS
 
@@ -126,18 +134,17 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                         Real pres_zone = eos_state.p;
                         Real dpdr = eos_state.dpdr;
-                        Real eint = eos_state.e;
 
                         // Newton-Raphson - we want to zero A = p_want - p(rho)
                         Real A = p_want - pres_zone;
-                        Real drho = A / (dpdr + 0.5_rt * dx[0] * const_grav);
+                        drho = A / (dpdr + 0.5_rt * dx[0] * gravity::const_grav);
 
                         dens_zone = amrex::max(0.9_rt*dens_zone,
                                                amrex::min(dens_zone + drho, 1.1_rt*dens_zone));
 
                         // convergence?
 
-                        if (std::abs(drho) < TOL * dens_zone) {
+                        if (std::abs(drho) < hse::TOL * dens_zone) {
                             converged_hse = true;
                             break;
                         }
@@ -145,17 +152,17 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                     }
 
 #ifndef AMREX_USE_CUDA
-                   if (! converged_hse) {
-                       std::cout << "i, j, k, domlo[0]: " << i << " " << j << " " << k << " " << domlo[0] << std::endl;
-                       std::cout << "p_want:    " << p_want << std::endl;
-                       std::cout << "dens_zone: " << dens_zone << std::endl;
-                       std::cout << "temp_zone: " << temp_zone << std::endl;
-                       std::cout << "drho:      " << drho << std::endl;
-                       std::cout << std::endl;
-                       std::cout << "column info: " << std::endl;
-                       std::cout << "   dens: " << adv(i:domlo[0],j,k,URHO) << std::endl;
-                       std::cout << "   temp: " << adv(i:domlo[0],j,k,UTEMP) << std::endl;
-                       amrex::Error("ERROR in bc_ext_fill_nd: failure to converge in -X BC");
+                    if (! converged_hse) {
+                        std::cout << "i, j, k, domlo[0]: " << i << " " << j << " " << k << " " << domlo[0] << std::endl;
+                        std::cout << "p_want:    " << p_want << std::endl;
+                        std::cout << "dens_zone: " << dens_zone << std::endl;
+                        std::cout << "temp_zone: " << temp_zone << std::endl;
+                        std::cout << "drho:      " << drho << std::endl;
+                        std::cout << std::endl;
+                        std::cout << "column info: " << std::endl;
+                        std::cout << "   dens: " << adv(i,j,k,URHO) << std::endl;
+                        std::cout << "   temp: " << adv(i,j,k,UTEMP) << std::endl;
+                        amrex::Error("ERROR in bc_ext_fill_nd: failure to converge in -X BC");
                    }
 #endif
 
@@ -201,9 +208,9 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                    adv(i,j,k,URHO) = dens_zone;
                    adv(i,j,k,UEINT) = dens_zone * eint;
                    adv(i,j,k,UEDEN) = dens_zone * eint +
-                       0.5rt * (adv(i,j,k,UMX) * adv(i,j,k,UMX) +
-                                adv(i,j,k,UMY) * adv(i,j,k,UMY) +
-                                adv(i,j,k,UMZ) * adv(i,j,k,UMZ)) / dens_zone;
+                       0.5_rt * (adv(i,j,k,UMX) * adv(i,j,k,UMX) +
+                                 adv(i,j,k,UMY) * adv(i,j,k,UMY) +
+                                 adv(i,j,k,UMZ) * adv(i,j,k,UMZ)) / dens_zone;
                    adv(i,j,k,UTEMP) = temp_zone;
                    for (int n = 0; n < NumSpec; n++) {
                        adv(i,j,k,UFS+n) = dens_zone * X_zone[n];
@@ -279,12 +286,9 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 eos(eos_input_rt, eos_state);
 
-                Real eint = eos_state.e;
                 Real pres_below = eos_state.p;
 
                 for (int i = domhi[0]+1; i <= adv_hi[0]; i++) {
-
-                    Real x = problo[0] + dx[0]*(static_cast<Real>(i) + 0.5_rt);
 
                     // HSE integration to get density, pressure
 
@@ -302,11 +306,14 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     bool converged_hse = false;
 
-                    for (int iter = 0; iter < MAX_ITER; iter++) {
+                    Real p_want;
+                    Real drho;
+
+                    for (int iter = 0; iter < hse::MAX_ITER; iter++) {
 
                         // pressure needed from HSE
-                        Real p_want = pres_below +
-                            dx[0] * 0.5_rt * (dens_zone + dens_below) * const_grav;
+                        p_want = pres_below +
+                            dx[0] * 0.5_rt * (dens_zone + dens_below) * gravity::const_grav;
 
                         // pressure from EOS
 
@@ -318,18 +325,17 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                         Real pres_zone = eos_state.p;
                         Real dpdr = eos_state.dpdr;
-                        Real eint = eos_state.e;
 
                         // Newton-Raphson - we want to zero A = p_want - p(rho)
                         Real A = p_want - pres_zone;
-                        Real drho = A / (dpdr - 0.5_rt * dx[0] * const_grav);
+                        drho = A / (dpdr - 0.5_rt * dx[0] * gravity::const_grav);
 
                         dens_zone = amrex::max(0.9_rt*dens_zone,
                                                amrex::min(dens_zone + drho, 1.1_rt*dens_zone));
 
                         // convergence?
 
-                        if (std::abs(drho) < TOL * dens_zone) {
+                        if (std::abs(drho) < hse::TOL * dens_zone) {
                             converged_hse = true;
                             break;
                         }
@@ -345,8 +351,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                        std::cout << "drho:      " << drho << std::endl;
                        std::cout << std::endl;
                        std::cout << "column info: " << std::endl;
-                       std::cout << "   dens: " << adv(i:domhi[0],j,k,URHO) << std::endl;
-                       std::cout << "   temp: " << adv(i:domhi[0],j,k,UTEMP) << std::endl;
+                       std::cout << "   dens: " << adv(i,j,k,URHO) << std::endl;
+                       std::cout << "   temp: " << adv(i,j,k,UTEMP) << std::endl;
                        amrex::Error("ERROR in bc_ext_fill_nd: failure to converge in +X BC");
                    }
 #endif
@@ -393,9 +399,9 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                    adv(i,j,k,URHO) = dens_zone;
                    adv(i,j,k,UEINT) = dens_zone * eint;
                    adv(i,j,k,UEDEN) = dens_zone * eint +
-                       0.5rt * (adv(i,j,k,UMX) * adv(i,j,k,UMX) +
-                                adv(i,j,k,UMY) * adv(i,j,k,UMY) +
-                                adv(i,j,k,UMZ) * adv(i,j,k,UMZ)) / dens_zone;
+                       0.5_rt * (adv(i,j,k,UMX) * adv(i,j,k,UMX) +
+                                 adv(i,j,k,UMY) * adv(i,j,k,UMY) +
+                                 adv(i,j,k,UMZ) * adv(i,j,k,UMZ)) / dens_zone;
                    adv(i,j,k,UTEMP) = temp_zone;
                    for (int n = 0; n < NumSpec; n++) {
                        adv(i,j,k,UFS+n) = dens_zone * X_zone[n];
