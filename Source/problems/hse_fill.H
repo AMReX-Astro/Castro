@@ -524,94 +524,108 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
                         Real dpdr = eos_state.dpdr;
 
                         // Newton-Raphson - we want to zero A = p_want - p(rho)
-                      A = p_want - pres_zone
-                      drho = A/(dpdr + HALF*delta(2)*const_grav)
+                        Real A = p_want - pres_zone;
+                        drho = A / (dpdr + 0.5_rt * dx[1] * gravity::const_grav);
 
-                      dens_zone = max(0.9_rt*dens_zone, &
-                           min(dens_zone + drho, 1.1_rt*dens_zone))
+                        dens_zone = amrex::max(0.9_rt*dens_zone,
+                                               amrex::min(dens_zone + drho, 1.1_rt*dens_zone));
 
-                      ! convergence?
-                      if (abs(drho) < TOL*dens_zone) then
-                         converged_hse = .TRUE.
-                         exit
-                      endif
+                        // convergence?
 
-                   enddo
+                        if (std::abs(drho) < hse::TOL * dens_zone) {
+                            converged_hse = true;
+                            break;
+                        }
+
+                    }
 
 #ifndef AMREX_USE_CUDA
-                   if (.not. converged_hse) then
-                      print *, "i, j, k,domlo[1]: ", i, j, k, domlo[1]
-                      print *, "p_want:    ", p_want
-                      print *, "dens_zone: ", dens_zone
-                      print *, "temp_zone: ", temp_zone
-                      print *, "drho:      ", drho
-                      print *, " "
-                      print *, "column info: "
-                      print *, "   dens: ", adv(i,j:domlo[1],k,URHO)
-                      print *, "   temp: ", adv(i,j:domlo[1],k,UTEMP)
-                      call castro_error("ERROR in bc_ext_fill_nd: failure to converge in -Y BC")
-                   endif
+                   if (! converged_hse) {
+                       std::cout << "i, jj, k,domlo[1]: " << i << " " << jj << " " << k << " " << domlo[1] << std::endl;
+                        std::cout << "p_want:    " << p_want << std::endl;
+                        std::cout << "dens_zone: " << dens_zone << std::endl;
+                        std::cout << "temp_zone: " << temp_zone << std::endl;
+                        std::cout << "drho:      " << drho << std::endl;
+                        std::cout << std::endl;
+                        std::cout << "column info: " << std::endl;
+                        std::cout << "   dens: " << adv(i,jj,k,URHO) << std::endl;
+                        std::cout << "   temp: " << adv(i,jj,k,UTEMP) << std::endl;
+                        amrex::Error("ERROR in bc_ext_fill_nd: failure to converge in -Y BC");
+                   }
 #endif
 
-                   ! velocity
-                   if (hse_zero_vels == 1) then
+                   // velocity
 
-                      ! zero normal momentum causes pi waves to pass through
-                      adv(i,j,k,UMX) = ZERO
-                      adv(i,j,k,UMY) = ZERO
-                      adv(i,j,k,UMZ) = ZERO
+                   if (hse_zero_vels == 1) {
 
-                   else
+                       // zero normal momentum causes pi waves to pass through
 
-                      if (hse_reflect_vels == 1) then
-                         ! reflect normal, zero gradient for transverse
-                         ! note: we need to match the corresponding
-                         ! zone on the other side of the interface
-                         joff = domlo[1]-j-1
-                         adv(i,j,k,UMY) = -dens_zone*(adv(i,domlo[1]+joff,k,UMY)/adv(i,domlo[1]+joff,k,URHO))
+                       adv(i,jj,k,UMX) = 0.0_rt;
+                       adv(i,jj,k,UMY) = 0.0_rt;
+                       adv(i,jj,k,UMZ) = 0.0_rt;
 
-                         adv(i,j,k,UMX) = -dens_zone*(adv(i,domlo[1],k,UMX)/dens_base)
-                         adv(i,j,k,UMZ) = -dens_zone*(adv(i,domlo[1],k,UMZ)/dens_base)
-                      else
-                         ! zero gradient
-                         adv(i,j,k,UMX) = dens_zone*(adv(i,domlo[1],k,UMX)/dens_base)
-                         adv(i,j,k,UMY) = dens_zone*(adv(i,domlo[1],k,UMY)/dens_base)
-                         adv(i,j,k,UMZ) = dens_zone*(adv(i,domlo[1],k,UMZ)/dens_base)
-                      endif
-                   endif
-                   eos_state%rho = dens_zone
-                   eos_state%T = temp_zone
-                   eos_state%xn(:) = X_zone(:)
-                   eos_state%aux(:) = aux_zone(:)
+                   } else {
 
-                   call eos(eos_input_rt, eos_state)
+                       if (hse_reflect_vels == 1) {
+                           // reflect normal, zero gradient for transverse
+                           // note: we need to match the corresponding
+                           // zone on the other side of the interface
+                           int joff = domlo[1]-jj-1;
+                           adv(i,jj,k,UMY) = -dens_zone*(adv(i,domlo[1]+joff,k,UMY) / adv(i,domlo[1]+joff,k,URHO));
 
-                   pres_zone = eos_state%p
-                   eint = eos_state%e
+                           adv(i,jj,k,UMX) = -dens_zone*(adv(i,domlo[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMZ) = -dens_zone*(adv(i,domlo[1],k,UMZ) / dens_base);
+                       } else {
+                           // zero gradient
+                           adv(i,jj,k,UMX) = dens_zone * (adv(i,domlo[1],k,UMX) / dens_base);
+                           adv(i,jj,k,UMY) = dens_zone * (adv(i,domlo[1],k,UMY) / dens_base);
+                           adv(i,jj,k,UMZ) = dens_zone * (adv(i,domlo[1],k,UMZ) / dens_base);
+                       }
+                   }
 
-                   ! store the final state
-                   adv(i,j,k,URHO) = dens_zone
-                   adv(i,j,k,UEINT) = dens_zone*eint
-                   adv(i,j,k,UEDEN) = dens_zone*eint + &
-                        HALF*sum(adv(i,j,k,UMX:UMZ)**2)/dens_zone
-                   adv(i,j,k,UTEMP) = temp_zone
-                   adv(i,j,k,UFS:UFS-1+nspec) = dens_zone*X_zone(:)
+                   eos_state.rho = dens_zone;
+                   eos_state.T = temp_zone;
 
-                   ! for the next zone
-                   dens_above = dens_zone
-                   pres_above = pres_zone
+                   eos(eos_input_rt, eos_state);
 
-                end do
-             end do
-          end do
+                   Real pres_zone = eos_state.p;
+                   Real eint = eos_state.e;
+
+                   // store the final state
+
+                   adv(i,jj,k,URHO) = dens_zone;
+                   adv(i,jj,k,UEINT) = dens_zone * eint;
+                   adv(i,jj,k,UEDEN) = dens_zone * eint +
+                       0.5_rt * (adv(i,jj,k,UMX) * adv(i,jj,k,UMX) +
+                                 adv(i,jj,k,UMY) * adv(i,jj,k,UMY) +
+                                 adv(i,jj,k,UMZ) * adv(i,jj,k,UMZ)) / dens_zone;
+                   adv(i,jj,k,UTEMP) = temp_zone;
+                   for (int n = 0; n < NumSpec; n++) {
+                       adv(i,jj,k,UFS+n) = dens_zone * X_zone[n];
+                   }
+#if NAUX_NET > 0
+                   for (int n = 0; n < NumAux; n++) {
+                       adv(i,jj,k,UFX+n) = dens_zone * aux_zone[n];
+                   }
+#endif
+
+                   // for the next zone
+
+                   dens_above = dens_zone;
+                   pres_above = pres_zone;
+
+                }
+            });
+
+       } else {
+
 #ifndef AMREX_USE_CUDA
-       else
-          call castro_error("invalid BC option")
+           amrex::Error("invalid BC option");
 #endif
-       endif  ! yl_ext check
+       }
 
 
-    endif
+    }
 
 
     ! YHI
