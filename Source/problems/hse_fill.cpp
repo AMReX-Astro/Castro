@@ -629,7 +629,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 #if NAUX_NET > 0
                 Real aux_zone[NumAux];
                 for (int n = 0; n < NumAux; n++) {
-                    aux_zone[n] = adv(i,domhi[1],k,UXS+n) / dens_below;
+                    aux_zone[n] = adv(i,domhi[1],k,UFX+n) / dens_below;
                 }
 #endif
 
