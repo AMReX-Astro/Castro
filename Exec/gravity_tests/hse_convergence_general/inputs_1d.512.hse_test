@@ -21,7 +21,7 @@ castro.xl_ext_bc_type = "hse"
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
-castro.xr_ext_bc_type = "interp"
+castro.xr_ext_bc_type = "hse"
 
 # WHICH PHYSICS
 castro.do_hydro = 1
