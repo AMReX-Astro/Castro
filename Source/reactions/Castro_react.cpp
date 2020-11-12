@@ -18,6 +18,12 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
         amrex::Error("Strang reactions are only supported for the CTU advance.");
     }
 
+    // Sanity check: cannot use CUDA without a network with a C++ implementation.
+
+#if defined(AMREX_USE_GPU) && !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
+    static_assert(false, "Cannot compile for GPUs if using a network without a C++ implementation.");
+#endif
+
     const Real strt_time = ParallelDescriptor::second();
 
     // Start off by assuming a successful burn.
