@@ -6,6 +6,7 @@
 #include <Castro_bc_ext_fill_nd_F.H>
 #include <Castro_generic_fill.H>
 #include <bc_ext_fill.H>
+#include <hse_fill.H>
 
 using namespace amrex;
 
@@ -137,11 +138,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
 
         AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
 
-#pragma gpu box(bx)
-        ext_fill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(data),
-                 AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                 AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
+        hse_fill(bx, data.array(), geom, bcr, time);
 
     }
 

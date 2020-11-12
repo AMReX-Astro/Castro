@@ -1,13 +1,15 @@
 #ifndef HSE_FILL_H
 #define HSE_FILL_H
 
+#include <ext_bc_types.H>
+
 // a hydrostatic boundary conditions -- this relies on the assumption
 // that the gravitation acceleration is constant
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 void
 hse_fill(const Box& bx, Array4<Real> const& adv,
-              Geometry const& geom, const BCRec& bcr,
+              Geometry const& geom, const Vector<BCRec>& bcr,
               const Real time)
 {
 
@@ -939,8 +941,9 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     end if
 #endif
 
-  end subroutine ext_fill
+}
 
+#if 0
 
 #ifndef CXX_MODEL_PARSER
   subroutine ext_denfill(lo, hi, adv, adv_lo, adv_hi, &
@@ -1097,9 +1100,9 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     end if
 #endif
 
-  end subroutine ext_denfill
+
 #endif
 
-end module bc_ext_fill_module
+#endif
 
 #endif
