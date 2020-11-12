@@ -1,20 +1,15 @@
-#ifndef HSE_FILL_H
-#define HSE_FILL_H
-
+#include <AMReX_BLFort.H>
+#include <Castro.H>
 #include <runtime_parameters.H>
 #include <ext_bc_types.H>
+
+using namespace amrex;
+
 
 // a hydrostatic boundary conditions -- this relies on the assumption
 // that the gravitation acceleration is constant
 
-namespace hse
-{
-    constexpr int MAX_ITER = 250;
-    constexpr Real TOL = 1.e-8_rt;
-}
 
-
-AMREX_INLINE AMREX_GPU_HOST_DEVICE
 void
 hse_fill(const Box& bx, Array4<Real> const& adv,
               Geometry const& geom, const Vector<BCRec>& bcr,
@@ -978,4 +973,4 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 }
 
 
-#endif
+

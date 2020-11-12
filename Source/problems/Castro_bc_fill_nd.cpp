@@ -6,7 +6,6 @@
 #include <Castro_bc_ext_fill_nd_F.H>
 #include <Castro_generic_fill.H>
 #include <bc_ext_fill.H>
-#include <hse_fill.H>
 #include <problem_bc_fill.H>
 
 using namespace amrex;
