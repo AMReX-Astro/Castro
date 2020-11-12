@@ -16,6 +16,7 @@ ifeq ($(USE_CXX_MODEL_PARSER),TRUE)
   CEXE_headers += bc_ext_fill.H
 endif
 ca_F90EXE_sources += Prob_nd.F90
+CEXE_headers += hse_fill.H
 ifeq ($(USE_MHD),TRUE)
   ca_F90EXE_sources += Prob_mhd_nd.F90
   CEXE_headers += problem_mhd_setup.H
