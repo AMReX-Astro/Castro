@@ -1,3 +1,29 @@
+# 20.12
+
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
+   * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
+     Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
+     are now deleted from the code; if you were using these to implement problem-specific
+     functionality, you can still manually add these files to the `Make.package` for your
+     problem setup. (#1311)
+
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
+   * MHD problems can now do the magnetic field initialization in C++
+     (#1298)
+
 # 20.11
 
    * The minimum C++ standard supported by Castro is now C++14. Most modern compilers

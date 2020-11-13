@@ -10,7 +10,7 @@
 #include <AMReX_ParallelDescriptor.H>
 
 #include <Problem.H>
-#include <Problem_F.H>
+#include <wdmerger_F.H>
 
 #include <Gravity.H>
 #include <Gravity_F.H>

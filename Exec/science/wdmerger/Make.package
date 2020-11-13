@@ -7,3 +7,4 @@ CEXE_headers += wdmerger_util.H
 CEXE_headers += wdmerger_data.H
 CEXE_sources += wdmerger_data.cpp
 CEXE_headers += binary.H
+FEXE_headers += wdmerger_F.H

@@ -31,6 +31,8 @@
 #endif
 
 #include <problem_setup.H>
+#include <problem_checkpoint.H>
+#include <problem_restart.H>
 
 #include <AMReX_buildInfo.H>
 
@@ -192,21 +194,7 @@ Castro::restart (Amr&     papa,
         // eliminating the need for a broadcast
         std::string dir = parent->theRestartFile();
 
-        char * dir_for_pass = new char[dir.size() + 1];
-        std::copy(dir.begin(), dir.end(), dir_for_pass);
-        dir_for_pass[dir.size()] = '\0';
-
-        int len = dir.size();
-
-        Vector<int> int_dir_name(len);
-        for (int j = 0; j < len; j++) {
-          int_dir_name[j] = (int) dir_for_pass[j];
-        }
-
-        problem_restart(int_dir_name.dataPtr(), &len);
-
-        delete [] dir_for_pass;
-
+        problem_restart(dir);
     }
 
     const Real* dx  = geom.CellSize();
@@ -501,20 +489,7 @@ Castro::checkPoint(const std::string& dir,
 
         {
             // store any problem-specific stuff
-            char * dir_for_pass = new char[dir.size() + 1];
-            std::copy(dir.begin(), dir.end(), dir_for_pass);
-            dir_for_pass[dir.size()] = '\0';
-
-            int len = dir.size();
-
-            Vector<int> int_dir_name(len);
-            for (int j = 0; j < len; j++) {
-              int_dir_name[j] = (int) dir_for_pass[j];
-            }
-
-            problem_checkpoint(int_dir_name.dataPtr(), &len);
-
-            delete [] dir_for_pass;
+            problem_checkpoint(dir);
         }
     }
 

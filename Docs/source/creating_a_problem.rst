@@ -248,9 +248,9 @@ Optional Files
 The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.
 
--  ``Problem.f90`` :
+-  ``problem_checkpoint.H``, ``problem_restart.H`` :
 
-   This provides two routines, ``problem_checkpoint`` and
+   These provides two routines, respectively ``problem_checkpoint`` and
    ``problem_restart`` that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
@@ -259,15 +259,14 @@ each of these in the main source tree.
    runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   ``Problem_F.H`` provides the C++ interfaces for these routines.
 
--  ``problem_tagging_?d.F90``, ``problem_tagging_nd.F90``
+-  ``problem_tagging_nd.F90`` OR ``problem_tagging.H``
 
    This implements problem-specific tagging for refinement, through a
-   subroutine ``set_problem_tags``. The full hydrodynamic state
-   (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the tag variable for a zone to
-   set. An example is provided by the ``toy_convect``
+   subroutine ``set_problem_tags`` (Fortran) or function ``problem_tagging``
+   (C++). The full hydrodynamic state (State_Type) is passed in, and the
+   problem can mark zones for refinement by setting the tag variable for
+   a zone to set. An example is provided by the ``toy_convect``
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
@@ -288,7 +287,7 @@ each of these in the main source tree.
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
--  ``Prob.cpp``, ``Problem.H``, ``Problem_F.H``
+-  ``Prob.cpp``, ``Problem.H``
 
    These files provide problem-specific routines for computing global
    diagnostic information through the sum_integrated_quantities

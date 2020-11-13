@@ -80,6 +80,8 @@ extern "C"
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
 
+  void get_ambient_data(Real* ambient_state);
+
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
   void ca_compute_avgstate
@@ -184,9 +186,6 @@ extern "C"
 
 
 
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
-
 
 /* reactions */
 #ifdef REACTIONS
@@ -277,9 +276,5 @@ BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
    const int& nz, BL_FORT_FAB_ARG_3D(magz),
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
-
-
-/* problem-specific includes */
-#include <Problem_F.H>
 
 #endif

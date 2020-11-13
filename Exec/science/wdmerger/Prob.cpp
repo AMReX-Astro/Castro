@@ -10,6 +10,7 @@
 
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
+#include <wdmerger_F.H>
 #include <binary.H>
 
 #include <fstream>
@@ -761,11 +762,120 @@ Castro::gwstrain (Real time,
     // Now that we have the second time derivative of the quadrupole
     // tensor, we can calculate the transverse-trace gauge strain tensor.
 
-    gw_strain_tensor(&h_plus_1, &h_cross_1,
-		     &h_plus_2, &h_cross_2,
-		     &h_plus_3, &h_cross_3,
-		     Qtt.dataPtr(), &time);
+    // Standard Kronecker delta.
 
+    Real delta[3][3] = {0.0};
+
+    for (int i = 0; i < 3; ++i) {
+        delta[i][i] = 1.0;
+    }
+
+    // Unit vector for the wave is simply the distance
+    // vector to the observer normalized by the total distance.
+    // We are going to repeat this process by looking along
+    // all three coordinate axes.
+
+    for (int dir = 0; dir < 3; ++dir) {
+
+        Real dist[3] = {0.0};
+        dist[dir] = problem::gw_dist;
+
+        Real r = std::sqrt(dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2]);
+
+        Real n[3] = {dist[0] / r, dist[1] / r, dist[2] / r};
+
+        // Projection operator onto the unit vector n.
+
+        Real proj[3][3][3][3] = {0.0};
+
+        for (int l = 0; l < 3; ++l) {
+            for (int k = 0; k < 3; ++k) {
+                for (int j = 0; j < 3; ++j) {
+                    for (int i = 0; i < 3; ++i) {
+                        proj[l][k][j][i] = (delta[k][i] - n[i] * n[k]) * (delta[l][j] - n[j] * n[l]) -
+                                            0.5_rt * (delta[j][i] - n[i] * n[j]) * (delta[l][k] - n[k] * n[l]);
+                    }
+                }
+            }
+        }
+
+        // Now we can calculate the strain tensor.
+
+        Real h[3][3] = {0.0};
+
+        for (int l = 0; l < 3; ++l) {
+            for (int k = 0; k < 3; ++k) {
+                for (int j = 0; j < 3; ++j) {
+                    for (int i = 0; i < 3; ++i) {
+                        h[j][i] += proj[l][k][j][i] * Qtt.array()(k, l, 0);
+                    }
+                }
+            }
+        }
+        // Finally multiply by the coefficients.
+
+        r *= C::parsec * 1.e3_rt; // Convert from kpc to cm
+
+        for (int j = 0; j < 3; ++j) {
+            for (int i = 0; i < 3; ++i) {
+                h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
+            }
+        }
+
+        if (AMREX_SPACEDIM == 3) {
+
+            // If rot_axis == 3, then h_+ = h_{11} = -h_{22} and h_x = h_{12} = h_{21}.
+            // Analogous statements hold along the other axes.
+
+            // We are adding here so that this calculation makes sense on multiple levels.
+
+            if (dir == axis_1 - 1) {
+
+                h_plus_1  += h[axis_2 - 1][axis_2 - 1];
+                h_cross_1 += h[axis_3 - 1][axis_2 - 1];
+
+            }
+            else if (dir == axis_2 - 1) {
+
+                h_plus_2  += h[axis_3 - 1][axis_3 - 1];
+                h_cross_2 += h[axis_1 - 1][axis_3 - 1];
+
+            }
+            else if (dir == axis_3 - 1) {
+
+                h_plus_3  += h[axis_1 - 1][axis_1 - 1];
+                h_cross_3 += h[axis_2 - 1][axis_1 - 1];
+
+            }
+
+        }
+        else {
+
+            // In 2D axisymmetric coordinates, enforce that axis_1 is the x-axis,
+            // axis_2 is the y-axis, and axis_3 is the z-axis.
+
+            if (dir == 0) {
+
+                h_plus_1  += h[1][1];
+                h_cross_1 += h[2][1];
+
+            }
+            else if (dir == 1) {
+
+                h_plus_2  += h[2][2];
+                h_cross_2 += h[0][2];
+
+            }
+            else if (dir == 2) {
+
+                h_plus_3  += h[0][0];
+                h_cross_3 += h[1][0];
+
+            }
+
+        }
+
+    }
 }
 
 
@@ -913,12 +1023,6 @@ void Castro::check_to_stop(Real time, bool dump) {
     using namespace wdmerger;
     using namespace problem;
 
-    int jobDoneStatus;
-
-    // Get the current job done status.
-
-    get_job_status(&jobDoneStatus);
-
     if (use_stopping_criterion) {
 
         // Note that we don't want to use the following in 1D
@@ -969,10 +1073,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             total_ener_array[0] = E_tot;
 
-            // Send the data to Fortran.
-
-            set_total_ener_array(total_ener_array);
-
             bool stop_flag = false;
 
             int i = 0;
@@ -995,9 +1095,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             if (stop_flag) {
 
-                jobDoneStatus = 1;
-
-                set_job_status(&jobDoneStatus);
+                problem::jobIsDone = 1;
 
                 amrex::Print() << std::endl 
                                << "Ending simulation because total energy is positive and decreasing." 
@@ -1010,9 +1108,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the threshold for unstable burning."
@@ -1022,9 +1118,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (T_curr_max >= T_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the temperature threshold."
@@ -1037,9 +1131,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
     // Is the job done? If so, signal this to AMReX.
 
-    get_job_status(&jobDoneStatus);
-
-    if (jobDoneStatus == 1) {
+    if (problem::jobIsDone) {
 
       signalStopJob = true;
 
@@ -1124,10 +1216,6 @@ void Castro::update_extrema(Real time) {
     T_global_max     = std::max(T_global_max, T_curr_max);
     rho_global_max   = std::max(rho_global_max, rho_curr_max);
     ts_te_global_max = std::max(ts_te_global_max, ts_te_curr_max);
-
-    // Send extrema data to Fortran
-
-    set_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
 
 }
 
