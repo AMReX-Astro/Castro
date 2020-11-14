@@ -19,29 +19,51 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 {
   BL_PROFILE("Radiation::check_convergence_er (MGFLD)");
 
-  relative = 0.0;
-  absolute = 0.0;
-  err_er = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:relative, absolute, err_er)
+#pragma omp parallel
 #endif
   for (MFIter mfi(Er_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_check_conv_er
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(etaTz[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           AMREX_MFITER_REDUCE_MAX(&relative),
-           AMREX_MFITER_REDUCE_MAX(&absolute),
-           AMREX_MFITER_REDUCE_MAX(&err_er),
-           delta_t);
+      const auto Ern = Er_new[mfi].array();
+      const auto Erl = Er_pi[mfi].array();
+      const auto kap = kappa_p[mfi].array();
+      const auto etTz = etaTz[mfi].array();
+      const auto temp = temp_new[mfi].array();
+
+      reduce_op.eval(bx, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          Real chg = 0.e0_rt;
+          Real tot = 0.e0_rt;
+          Real kde = 0.e0_rt;
+
+          for (int g = 0; g < NGROUPS; ++g) {
+              Real der = Ern(i,j,k,g) - Erl(i,j,k,g);
+              chg = chg + std::abs(der);
+              tot = tot + std::abs(Ern(i,j,k,g));
+              kde = kde + kap(i,j,k,g) * der;
+          }
+
+          Real abso = chg;
+          Real rela = chg / (tot + 1.e-50_rt);
+
+          Real err_T = etTz(i,j,k) * kde;
+          Real errr = std::abs(err_T / (temp(i,j,k) + 1.e-50_rt));
+
+          return {rela, abso, errr};
+      });
   }
+
+  ReduceTuple hv = reduce_data.value();
+
+  relative = amrex::get<0>(hv);
+  absolute = amrex::get<1>(hv);
+  err_er   = amrex::get<2>(hv);
 
   Real data[3] = {relative, absolute, err_er};
 

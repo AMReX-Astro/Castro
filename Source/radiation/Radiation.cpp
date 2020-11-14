@@ -925,29 +925,55 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
 {
   BL_PROFILE("Radiation::internal_energy_update");
 
-  relative = 0.0;
-  absolute = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
   Real theta = 1.0;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:relative, absolute)
+#pragma omp parallel
 #endif
   for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ceup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           AMREX_MFITER_REDUCE_MAX(&relative),
-           AMREX_MFITER_REDUCE_MAX(&absolute),
-           BL_TO_FORTRAN_ANYD(frhoes[mfi]),
-           BL_TO_FORTRAN_ANYD(frhoem[mfi]),
-           BL_TO_FORTRAN_ANYD(eta[mfi]),
-           BL_TO_FORTRAN_ANYD(etainv[mfi]),
-           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
-           BL_TO_FORTRAN_ANYD(dflux_new[mfi]),
-           BL_TO_FORTRAN_ANYD(exch[mfi]),
-           delta_t, theta);
+      const auto eta_arr = eta[mfi].array();
+      const auto etainv_arr = etainv[mfi].array();
+      const auto frhoem_arr = frhoem[mfi].array();
+      const auto exch_arr = exch[mfi].array();
+      const auto dfo = dflux_old[mfi].array();
+      const auto dfn = dflux_new[mfi].array();
+      auto frhoes_arr = frhoes[mfi].array();
+
+      reduce_op.eval(bx, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          Real chg = 0.e0_rt;
+          Real tot = 0.e0_rt;
+
+          Real tmp = eta_arr(i,j,k) * frhoes_arr(i,j,k) +
+                     etainv_arr(i,j,k) *
+                     (frhoem_arr(i,j,k) -
+                      delta_t * ((1.e0_rt - theta) *
+                                 (dfo(i,j,k) - dfn(i,j,k)) +
+                                 exch_arr(i,j,k)));
+
+          chg = std::abs(tmp - frhoes_arr(i,j,k));
+          tot = std::abs(frhoes_arr(i,j,k));
+
+          frhoes_arr(i,j,k) = tmp;
+
+          Real absres = chg;
+          Real relres = chg / (tot + 1.e-50_rt);
+
+          return {relres, absres};
+      });
   }
+
+  ReduceTuple hv = reduce_data.value();
+
+  relative = amrex::get<0>(hv);
+  absolute = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(relative);
   ParallelDescriptor::ReduceRealMax(absolute);
