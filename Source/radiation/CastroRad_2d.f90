@@ -462,65 +462,6 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_h1, Er_h2, &
   return
 end subroutine ca_compute_lamborder
 
-
-subroutine ca_get_v_dcf(lo, hi, &
-                        er ,  er_l1,  er_l2,  er_h1,  er_h2, &
-                        s  ,   s_l1,   s_l2,   s_h1,   s_h2, &
-                        T  ,   T_l1,   T_l2,   T_h1,   T_h2, &
-                        c_v, c_v_l1, c_v_l2, c_v_h1, c_v_h2, &
-                        kr ,  kr_l1,  kr_l2,  kr_h1,  kr_h2, &
-                        kp ,  kp_l1,  kp_l2,  kp_h1,  kp_h2, &
-                        kp2, kp2_l1, kp2_l2, kp2_h1, kp2_h2, &
-                        dtemp, dtime, sigma, c, &
-                        v  ,   v_l1,   v_l2,   v_h1,   v_h2, &
-                        dcf, dcf_l1, dcf_l2, dcf_h1, dcf_h2) bind(C, name="ca_get_v_dcf")
-
-  use meth_params_module, only : NVAR, URHO, UMX, UMY
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(2), hi(2)
-  integer, intent(in) :: er_l1,er_l2,er_h1,er_h2,s_l1,s_l2,s_h1,s_h2
-  integer, intent(in) :: T_l1,T_l2,T_h1,T_h2,c_v_l1,c_v_l2,c_v_h1,c_v_h2
-  integer, intent(in) :: kr_l1,kr_l2,kr_h1,kr_h2
-  integer, intent(in) :: kp_l1,kp_l2,kp_h1,kp_h2,kp2_l1,kp2_l2,kp2_h1,kp2_h2
-  integer, intent(in) :: v_l1,v_l2,v_h1,v_h2,dcf_l1,dcf_l2,dcf_h1,dcf_h2
-  real(rt)        , intent(in)  ::  er( er_l1: er_h1,  er_l2: er_h2)
-  real(rt)        , intent(in)  ::   s(  s_l1:  s_h1,   s_l2:  s_h2, NVAR)
-  real(rt)        , intent(in)  ::   T(  T_l1:  T_h1,   T_l2:  T_h2)
-  real(rt)        , intent(in)  :: c_v(c_v_l1:c_v_h1, c_v_l2:c_v_h2)
-  real(rt)        , intent(in ) ::  kr( kr_l1: kr_h1,  kr_l2: kr_h2)
-  real(rt)        , intent(in ) ::  kp( kp_l1: kp_h1,  kp_l2: kp_h2)
-  real(rt)        , intent(in ) :: kp2(kp2_l1:kp2_h1, kp2_l2:kp2_h2)
-  real(rt)        , intent(in) :: dtemp, dtime, sigma, c
-  real(rt)                      ::   v(  v_l1:  v_h1,   v_l2:  v_h2, 2)
-  real(rt)                      :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2)
-
-  integer :: i, j
-  real(rt)         :: etainv, fac0, fac2, alpha, frc
-
-  fac0 = 4.e0_rt * sigma * dtime / dtemp
-  fac2 = c * dtime / dtemp
-
-  do j=lo(2),hi(2)
-     do i=lo(1),hi(1)
-        v(i,j,1) = s(i,j,UMX)/s(i,j,URHO)
-        v(i,j,2) = s(i,j,UMY)/s(i,j,URHO)
-
-        alpha = fac0 * (kp2(i,j) * (T(i,j) + dtemp) ** 4    &
-             -          kp (i,j) * (T(i,j)        ) ** 4)   &
-             -  fac2 * (kp2(i,j) - kp(i,j)) * er(i,j)
-
-        frc = s(i,j,URHO) * c_v(i,j) + 1.0e-50_rt
-        etainv = frc / (alpha + frc)
-
-        dcf(i,j) = 2.e0_rt * etainv * (kp(i,j) / kr(i,j))
-     end do
-  end do
-
-end subroutine ca_get_v_dcf
-
 subroutine ca_set_dterm_face(lo, hi, &
                              Er, Er_l1, Er_l2, Er_h1, Er_h2, &
                              dc, dc_l1, dc_l2, dc_h1, dc_h2, &
