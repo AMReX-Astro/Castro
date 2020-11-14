@@ -1,10 +1,9 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #include <cmath>
@@ -16,10 +15,10 @@ using namespace amrex;
 
 void
 Castro::riemanncg(const Box& bx,
-                  Array4<Real> const ql,
-                  Array4<Real> const qr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real> const qint,
+                  Array4<Real> const& ql,
+                  Array4<Real> const& qr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real> const& qint,
                   const int idir) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
@@ -29,9 +28,6 @@ Castro::riemanncg(const Box& bx,
   constexpr Real weakwv = 1.e-3_rt;
 
 #ifndef AMREX_USE_CUDA
-  GpuArray<Real, HISTORY_SIZE> pstar_hist;
-  GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
-
   if (cg_maxiter > HISTORY_SIZE) {
     amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
   }
@@ -89,23 +85,15 @@ Castro::riemanncg(const Box& bx,
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lsmall_temp = small_temp;
-  const Real lsmall = small;
+  const Real lsmall = riemann_constants::small;
 
-  const int lcg_blend = cg_blend;
-  const int lcg_maxiter = cg_maxiter;
-  const Real lcg_tol = cg_tol;
-
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
+
+#ifndef AMREX_USE_CUDA
+    GpuArray<Real, HISTORY_SIZE> pstar_hist;
+#endif
 
 
     // deal with hard walls
@@ -137,7 +125,7 @@ Castro::riemanncg(const Box& bx,
     Real rel = ql(i,j,k,QREINT);
     Real gcl = qaux_arr(i-sx,j-sy,k-sz,QGAMC);
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gcl = ql(i,j,k,QGC);
     }
 #endif
@@ -162,9 +150,11 @@ Castro::riemanncg(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = ql(i,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = ql(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 
@@ -180,7 +170,7 @@ Castro::riemanncg(const Box& bx,
     Real rer = qr(i,j,k,QREINT);
     Real gcr = qaux_arr(i,j,k,QGAMC);
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gcr = qr(i,j,k,QGC);
     }
 #endif
@@ -201,9 +191,11 @@ Castro::riemanncg(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = qr(i,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 
@@ -285,7 +277,7 @@ Castro::riemanncg(const Box& bx,
     bool converged = false;
 
     int iter = 0;
-    while ((iter < lcg_maxiter && !converged) || iter < 2) {
+    while ((iter < cg_maxiter && !converged) || iter < 2) {
 
       wsqge(pl, taul, gamel, gdot, gamstar,
             gmin, gmax, clsql, pstar, wlsq);
@@ -327,7 +319,7 @@ Castro::riemanncg(const Box& bx,
       pstar = amrex::max(pstar, lsmall_pres);
 
       Real err = std::abs(pstar - pstar_old);
-      if (err < lcg_tol*pstar) {
+      if (err < cg_tol*pstar) {
         converged = true;
       }
 
@@ -346,11 +338,11 @@ Castro::riemanncg(const Box& bx,
 
     if (!converged) {
 
-      if (lcg_blend == 0) {
+      if (cg_blend == 0) {
 
 #ifndef AMREX_USE_CUDA
         std::cout <<  "pstar history: " << std::endl;
-        for (int iter_l=0; iter_l < lcg_maxiter; iter_l++) {
+        for (int iter_l=0; iter_l < cg_maxiter; iter_l++) {
           std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
         }
 
@@ -362,11 +354,11 @@ Castro::riemanncg(const Box& bx,
         amrex::Error("ERROR: non-convergence in the Riemann solver");
 #endif
 
-      } else if (lcg_blend == 1) {
+      } else if (cg_blend == 1) {
 
         pstar = pl + ( (pr - pl) - wr*(ur - ul) )*wl/(wl+wr);
 
-      } else if (lcg_blend == 2) {
+      } else if (cg_blend == 2) {
 
         // we don't store the history if we are in CUDA, so
         // we can't do this
@@ -374,7 +366,7 @@ Castro::riemanncg(const Box& bx,
         // first try to find a reasonable bounds
         Real pstarl = 1.e200;
         Real pstaru = -1.e200;
-        for (int n = lcg_maxiter-6; n < lcg_maxiter; n++) {
+        for (int n = cg_maxiter-6; n < cg_maxiter; n++) {
           pstarl = amrex::min(pstarl, pstar_hist[n]);
           pstaru = amrex::max(pstaru, pstar_hist[n]);
         }
@@ -382,21 +374,23 @@ Castro::riemanncg(const Box& bx,
         pstarl = amrex::max(pstarl, lsmall_pres);
         pstaru = amrex::max(pstaru, lsmall_pres);
 
+        GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
+
         pstar_bisection(pstarl, pstaru,
                         ul, pl, taul, gamel, clsql,
                         ur, pr, taur, gamer, clsqr,
                         gdot, gmin, gmax,
-                        lcg_maxiter, lcg_tol, 
+                        cg_maxiter, cg_tol, 
                         pstar, gamstar, converged, pstar_hist_extra);
 
         if (!converged) {
 
           std::cout << "pstar history: " << std::endl;
-          for (int iter_l = 0; iter_l < lcg_maxiter; iter_l++) {
+          for (int iter_l = 0; iter_l < cg_maxiter; iter_l++) {
             std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
           }
           std::cout << "pstar extra history: " << std::endl;
-          for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*lcg_maxiter; iter_l++) {
+          for (int iter_l = 0; iter_l < PSTAR_BISECT_FACTOR*cg_maxiter; iter_l++) {
             std::cout << iter_l << " " << pstar_hist_extra[iter_l] << std::endl;
           }
 
@@ -427,7 +421,7 @@ Castro::riemanncg(const Box& bx,
 
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
       ustar = 0.0_rt;
     }
 
@@ -555,7 +549,7 @@ Castro::riemanncg(const Box& bx,
 
     // advected quantities -- only the contact matters
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
 
       if (ustar > 0.0_rt) {
         qint(i,j,k,nqp) = ql(i,j,k,nqp);
@@ -572,12 +566,12 @@ Castro::riemanncg(const Box& bx,
 
 void
 Castro::riemannus(const Box& bx,
-                  Array4<Real> const ql,
-                  Array4<Real> const qr,
-                  Array4<Real const> const qaux_arr,
-                  Array4<Real> const qint,
+                  Array4<Real> const& ql,
+                  Array4<Real> const& qr,
+                  Array4<Real const> const& qaux_arr,
+                  Array4<Real> const& qint,
 #ifdef RADIATION
-                  Array4<Real> const lambda_int,
+                  Array4<Real> const& lambda_int,
 #endif
                   const int idir, const int compute_gammas) {
 
@@ -623,22 +617,15 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
   const int luse_eos_in_riemann = use_eos_in_riemann;
 
-  const Real lsmall = small;
+  const Real lsmall = riemann_constants::small;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -777,9 +764,11 @@ Castro::riemannus(const Box& bx,
         eos_state.xn[n] = ql(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess; // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = ql(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -791,16 +780,18 @@ Castro::riemannus(const Box& bx,
         eos_state.xn[n] = qr(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess; // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
       gamcr = eos_state.gam1;
 
 #ifdef TRUE_SDC
-    } else if (luse_reconstructed_gamma1 == 1) {
+    } else if (use_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
 #endif
@@ -822,7 +813,7 @@ Castro::riemannus(const Box& bx,
 
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
       ustar = 0.0_rt;
     }
 
@@ -1029,9 +1020,11 @@ Castro::riemannus(const Box& bx,
 
       eos_state.T = lT_guess;
 
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = fp*ql(i,j,k,QFX+n) + fm*qr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -1043,7 +1036,7 @@ Castro::riemannus(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpass_map_p[ipassive];
+      int nqp = qpassmap(ipassive);
       qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
     }
 
@@ -1053,11 +1046,11 @@ Castro::riemannus(const Box& bx,
 
 void
 Castro::HLLC(const Box& bx,
-             Array4<Real const> const ql,
-             Array4<Real const> const qr,
-             Array4<Real const> const qaux_arr,
-             Array4<Real> const uflx,
-             Array4<Real> const qint,
+             Array4<Real const> const& ql,
+             Array4<Real const> const& qr,
+             Array4<Real const> const& qaux_arr,
+             Array4<Real> const& uflx,
+             Array4<Real> const& qint,
              const int idir) {
 
   // this is an implementation of the HLLC solver described in Toro's
@@ -1106,19 +1099,12 @@ Castro::HLLC(const Box& bx,
 
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
-  const Real lsmall = small;
-  const int luse_reconstructed_gamma1 = use_reconstructed_gamma1;
-
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
+  const Real lsmall = riemann_constants::small;
 
   int coord = geom.Coord();
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // deal with hard walls
@@ -1149,7 +1135,6 @@ Castro::HLLC(const Box& bx,
     Real ul  = ql(i,j,k,iu);
 
     Real pl = amrex::max(ql(i,j,k,QPRES), lsmall_pres);
-    Real rel = ql(i,j,k,QREINT);
 
     Real rr = amrex::max(qr(i,j,k,QRHO), lsmall_dens);
 
@@ -1157,7 +1142,6 @@ Castro::HLLC(const Box& bx,
     Real ur  = qr(i,j,k,iu);
 
     Real pr = amrex::max(qr(i,j,k,QPRES), lsmall_pres);
-    Real rer = qr(i,j,k,QREINT);
 
     // now we essentially do the CGF solver to get p and u on the
     // interface, but we won't use these in any flux construction.
@@ -1168,7 +1152,7 @@ Castro::HLLC(const Box& bx,
     Real gamcr = qaux_arr(i,j,k,QGAMC);
 
 #ifdef TRUE_SDC
-    if (luse_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
       gamcl = ql(i,j,k,QGC);
       gamcr = qr(i,j,k,QGC);
     }
@@ -1185,35 +1169,31 @@ Castro::HLLC(const Box& bx,
     pstar = amrex::max(pstar, lsmall_pres);
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
       ustar = 0.0_rt;
     }
 
     Real ro;
     Real uo;
     Real po;
-    Real reo;
     Real gamco;
 
     if (ustar > 0.0_rt) {
       ro = rl;
       uo = ul;
       po = pl;
-      reo = rel;
       gamco = gamcl;
 
     } else if (ustar < 0.0_rt) {
       ro = rr;
       uo = ur;
       po = pr;
-      reo = rer;
       gamco = gamcr;
 
     } else {
       ro = 0.5_rt*(rl + rr);
       uo = 0.5_rt*(ul + ur);
       po = 0.5_rt*(pl + pr);
-      reo = 0.5_rt*(rel + rer);
       gamco = 0.5_rt*(gamcl + gamcr);
     }
 
@@ -1272,19 +1252,19 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = qr(i,j,k,n);
       }
-      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
+      cons_state(q_zone, U_state);
       compute_flux(idir, bnd_fac, coord,
-                   U_state, pr, upass_map_p, F_state);
+                   U_state, pr, F_state);
 
     } else if (S_r > 0.0_rt && S_c <= 0.0_rt) {
       // R* region
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = qr(i,j,k,n);
       }
-      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
+      cons_state(q_zone, U_state);
       compute_flux(idir, bnd_fac, coord,
-                   U_state, pr, upass_map_p, F_state);
-      HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
+                   U_state, pr, F_state);
+      HLLC_state(idir, S_r, S_c, q_zone, U_hllc_state);
 
       // correct the flux
       for (int n = 0; n < NUM_STATE; n++) {
@@ -1296,10 +1276,10 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = ql(i,j,k,n);
       }
-      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
+      cons_state(q_zone, U_state);
       compute_flux(idir, bnd_fac, coord,
-                   U_state, pl, upass_map_p, F_state);
-      HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state, qpass_map_p, upass_map_p);
+                   U_state, pl, F_state);
+      HLLC_state(idir, S_l, S_c, q_zone, U_hllc_state);
 
       // correct the flux
       for (int n = 0; n < NUM_STATE; n++) {
@@ -1311,9 +1291,9 @@ Castro::HLLC(const Box& bx,
       for (int n = 0; n < NQ; n++) {
         q_zone[n] = ql(i,j,k,n);
       }
-      cons_state(q_zone, U_state, qpass_map_p, upass_map_p);
+      cons_state(q_zone, U_state);
       compute_flux(idir, bnd_fac, coord,
-                   U_state, pl, upass_map_p, F_state);
+                   U_state, pl, F_state);
     }
 
     for (int n = 0; n < NUM_STATE; n++) {
@@ -1322,150 +1302,3 @@ Castro::HLLC(const Box& bx,
   });
 }
 
-AMREX_GPU_HOST_DEVICE
-void
-Castro::HLL(const Real* ql, const Real* qr,
-            const Real cl, const Real cr,
-            const int idir, const int coord,
-            const GpuArray<int, npassive>& upass_map_p,
-            const GpuArray<int, npassive>& qpass_map_p,
-            Real* flux_hll) {
-
-  // This is the HLLE solver.  We should apply it to zone averages
-  // (not reconstructed states) at an interface in the presence of
-  // shocks to avoid the odd-even decoupling / carbuncle phenomenon.
-  //
-  // See: Einfeldt, B.  et al. 1991, JCP, 92, 273
-  //      Einfeldt, B. 1988, SIAM J NA, 25, 294
-
-
-  constexpr Real small_hll = 1.e-10_rt;
-
-  int ivel, ivelt, iveltt;
-  int imom, imomt, imomtt;
-
-  if (idir == 0) {
-    ivel = QU;
-    ivelt = QV;
-    iveltt = QW;
-
-    imom = UMX;
-    imomt = UMY;
-    imomtt = UMZ;
-
-  } else if (idir == 1) {
-    ivel = QV;
-    ivelt = QU;
-    iveltt = QW;
-
-    imom = UMY;
-    imomt = UMX;
-    imomtt = UMZ;
-
-  } else {
-    ivel = QW;
-    ivelt = QU;
-    iveltt = QV;
-
-    imom = UMZ;
-    imomt = UMX;
-    imomtt = UMY;
-  }
-
-  Real rhol_sqrt = std::sqrt(ql[QRHO]);
-  Real rhor_sqrt = std::sqrt(qr[QRHO]);
-
-  Real rhod = 1.0_rt/(rhol_sqrt + rhor_sqrt);
-
-
-  // compute the average sound speed. This uses an approximation from
-  // E88, eq. 5.6, 5.7 that assumes gamma falls between 1
-  // and 5/3
-  Real cavg = std::sqrt( (rhol_sqrt*cl*cl + rhor_sqrt*cr*cr)*rhod +
-                         0.5_rt*rhol_sqrt*rhor_sqrt*rhod*rhod*std::pow(qr[ivel] - ql[ivel], 2));
-
-
-  // Roe eigenvalues (E91, eq. 5.3b)
-  Real uavg = (rhol_sqrt*ql[ivel] + rhor_sqrt*qr[ivel])*rhod;
-
-  Real a1 = uavg - cavg;
-  Real a4 = uavg + cavg;
-
-
-  // signal speeds (E91, eq. 4.5)
-  Real bl = amrex::min(a1, ql[ivel] - cl);
-  Real br = amrex::max(a4, qr[ivel] + cr);
-
-  Real bm = amrex::min(0.0_rt, bl);
-  Real bp = amrex::max(0.0_rt, br);
-
-  Real bd = bp - bm;
-
-  if (std::abs(bd) < small_hll*amrex::max(std::abs(bm), std::abs(bp))) return;
-
-  // we'll overwrite the passed in flux with the HLL flux
-
-  bd = 1.0_rt/bd;
-
-  // compute the fluxes according to E91, eq. 4.4b -- note that the
-  // min/max above picks the correct flux if we are not in the star
-  // region
-
-  // density flux
-  Real fl_tmp = ql[QRHO]*ql[ivel];
-  Real fr_tmp = qr[QRHO]*qr[ivel];
-
-  flux_hll[URHO] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO] - ql[QRHO]);
-
-  // normal momentum flux.  Note for 1-d and 2-d non cartesian
-  // r-coordinate, we leave off the pressure term and handle that
-  // separately in the update, to accommodate different geometries
-  fl_tmp = ql[QRHO]*ql[ivel]*ql[ivel];
-  fr_tmp = qr[QRHO]*qr[ivel]*qr[ivel];
-  if (mom_flux_has_p(idir, idir, coord)) {
-    fl_tmp = fl_tmp + ql[QPRES];
-    fr_tmp = fr_tmp + qr[QPRES];
-  }
-
-  flux_hll[imom] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivel] - ql[QRHO]*ql[ivel]);
-
-  // transverse momentum flux
-  fl_tmp = ql[QRHO]*ql[ivel]*ql[ivelt];
-  fr_tmp = qr[QRHO]*qr[ivel]*qr[ivelt];
-
-  flux_hll[imomt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[ivelt] - ql[QRHO]*ql[ivelt]);
-
-
-  fl_tmp = ql[QRHO]*ql[ivel]*ql[iveltt];
-  fr_tmp = qr[QRHO]*qr[ivel]*qr[iveltt];
-
-  flux_hll[imomtt] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[iveltt] - ql[QRHO]*ql[iveltt]);
-
-  // total energy flux
-  Real rhoEl = ql[QREINT] + 0.5_rt*ql[QRHO]*(ql[ivel]*ql[ivel] + ql[ivelt]*ql[ivelt] + ql[iveltt]*ql[iveltt]);
-  fl_tmp = ql[ivel]*(rhoEl + ql[QPRES]);
-
-  Real rhoEr = qr[QREINT] + 0.5_rt*qr[QRHO]*(qr[ivel]*qr[ivel] + qr[ivelt]*qr[ivelt] + qr[iveltt]*qr[iveltt]);
-  fr_tmp = qr[ivel]*(rhoEr + qr[QPRES]);
-
-  flux_hll[UEDEN] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(rhoEr - rhoEl);
-
-
-  // eint flux
-  fl_tmp = ql[QREINT]*ql[ivel];
-  fr_tmp = qr[QREINT]*qr[ivel];
-
-  flux_hll[UEINT] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QREINT] - ql[QREINT]);
-
-
-  // passively-advected scalar fluxes
-  for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
-
-    fl_tmp = ql[QRHO]*ql[nqs]*ql[ivel];
-    fr_tmp = qr[QRHO]*qr[nqs]*qr[ivel];
-
-    flux_hll[n] = (bp*fl_tmp - bm*fr_tmp)*bd + bp*bm*bd*(qr[QRHO]*qr[nqs] - ql[QRHO]*ql[nqs]);
-  }
-}

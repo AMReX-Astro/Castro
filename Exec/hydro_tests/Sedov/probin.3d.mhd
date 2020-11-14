@@ -1,0 +1,14 @@
+&fortin
+
+  r_init = 0.01
+  p_ambient = 1.d-5
+  exp_energy = 1.0
+  dens_ambient = 1.0
+  nsub = 10
+/
+
+&extern
+  eos_gamma = 1.4d0
+  eos_assume_neutral = T
+
+/

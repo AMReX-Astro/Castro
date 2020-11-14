@@ -1,7 +1,7 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "fundamental_constants.H"
-#include "Gravity.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <fundamental_constants.H>
+#include <Gravity.H>
 
 using namespace amrex;
 
@@ -142,9 +142,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_psi(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                       BL_TO_FORTRAN_ANYD((*psi[lev])[mfi]),
-                                       AMREX_ZFILL(dx), time);
+                fill_rotational_psi(bx, (*psi[lev]).array(mfi), time);
 
             }
 
@@ -266,9 +264,7 @@ Castro::do_hscf_solve()
 
                 const Box& bx = mfi.tilebox();
 
-                ca_fill_rotational_potential(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                             BL_TO_FORTRAN_ANYD((*phi_rot[lev])[mfi]),
-                                             AMREX_ZFILL(dx), time);
+                fill_rotational_potential(bx, (*phi_rot[lev]).array(mfi), time);
 
             }
 
@@ -445,7 +441,7 @@ Castro::do_hscf_solve()
             std::cout << "   Potential energy: " << pot_eng << std::endl;
             std::cout << "   Internal energy: " << int_eng << std::endl;
             std::cout << "   Virial error: " << virial_error << std::endl;
-            std::cout << "   Mass: " << mass / M_solar << " solar masses" << std::endl;
+            std::cout << "   Mass: " << mass / C::M_solar << " solar masses" << std::endl;
 
             if (is_relaxed == 1) {
                 std::cout << "  Relaxation completed!" << std::endl;

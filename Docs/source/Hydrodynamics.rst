@@ -107,7 +107,7 @@ several main data structures that hold the state.
    are “gas” only and those with the “tot” subscript are “gas + radiation”.
 
    .. _table:primlist:
-   .. table:: The integer variable keys for accessing the primitive state vector.
+   .. table:: Primitive State Vector Integer Keys
 
       +-----------------------+------------------------+-----------------------+
       | **variable**          | **quantity**           | **note**              |
@@ -258,7 +258,7 @@ associated production rate, :math:`\dot\omega_k`, and energy release,
 user-specified source terms. :math:`A_k` is an advected quantity,
 i.e., a tracer. We also carry around auxiliary variables, :math:`Y_k`,
 which have a user-defined evolution equation, but by default are
-treated as advected quantities.
+treated as advected quantities.  These are meant to be defined in the network.
 
 In the code we also carry around :math:`T` and :math:`\rho e` in the conservative
 state vector even though they are derived from the other conserved
@@ -286,7 +286,9 @@ Some notes:
 -  There are ``NAUX`` auxiliary variables, from ``UFX:UFX+naux-1``. The
    auxiliary variables are passed into the equation of state routines
    along with the species. An example of an auxiliary variable is the
-   electron fraction, :math:`Y_e`, in core collapse simulations.
+   electron fraction, :math:`Y_e`, in core collapse simulations.  The
+   number and names of the auxiliary variables are defined in the
+   network.
 
 
 Source Terms

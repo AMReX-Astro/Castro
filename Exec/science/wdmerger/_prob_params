@@ -193,10 +193,8 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 max_stellar_tagging_level       integer               20                       y
 max_temperature_tagging_level   integer               20                       y
-max_center_tagging_level        integer               20                       y
 stellar_density_threshold       real                  1.0e0_rt                 y
 temperature_tagging_threshold   real                  5.0e8_rt                 y
-center_tagging_radius           real                  0.0e0_rt                 y
 max_tagging_radius              real                  0.75e0_rt                y
 roche_tagging_factor            real                  2.0e0_rt                 y
 
@@ -256,8 +254,7 @@ ts_te_global_max                real                  0.0e0_rt                 n
 
 # Stores whether we assert that the simulation has completed.
 
-jobIsDone                       logical               .false.                  n
-signalJobIsNotDone              logical               .false.                  n
+jobIsDone                       integer               0                        n
 
 
 
@@ -268,8 +265,9 @@ total_ener_array                real                  0.0e0_rt                 n
 
 
 
-# Lagrange points
+#for the magnetic fields
 
-L1                              real                  0.0e0_rt                 n                      3
-L2                              real                  0.0e0_rt                 n                      3
-L3                              real                  0.0e0_rt                 n                      3
+B_x                             real                  0.0e0_rt                 y
+B_y                             real                  0.0e0_rt                 y
+B_z                             real                  0.0e0_rt                 y
+m_0                             real                  0.0e0_rt                 y

@@ -1,5 +1,6 @@
-#ifndef _Castro_F_H_
-#define _Castro_F_H_
+#ifndef CASTRO_F_H
+#define CASTRO_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -8,21 +9,11 @@ extern "C"
 {
 #endif
 
-  void ca_network_init();
-
-  void ca_network_finalize();
-
-  void ca_eos_init();
-
-  void ca_eos_finalize();
-
-  void burner_init();
+  void ca_microphysics_init();
 
   void ca_extern_init(const int* name, const int* namlen);
 
 #ifdef REACTIONS
-  void ca_get_abort_on_failure(int * abort_on_failure);
-
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 
@@ -32,12 +23,8 @@ extern "C"
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
 
-  void ca_get_method_params(int* HYP_GROW);
-
   void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#ifdef PROB_PARAMS
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-#endif
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -64,8 +51,7 @@ extern "C"
      const int& Outflow_value, const int& Symmetry_value,
      const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
-     const amrex::Real* problo, const amrex::Real* probhi,
-     const amrex::Real* center);
+     const amrex::Real* problo, const amrex::Real* probhi);
 
   void ca_set_grid_info
     (const int& max_level, const amrex::Real* dx_level,
@@ -75,11 +61,26 @@ extern "C"
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
-  void ca_get_sponge_params(const int* name, const int* namlen);
+  void ca_read_sponge_params(const int* name, const int* namlen);
+
+  void ca_get_sponge_params(amrex::Real& sponge_lower_factor,
+                            amrex::Real& sponge_upper_factor,
+                            amrex::Real& sponge_lower_radius,
+                            amrex::Real& sponge_upper_radius,
+                            amrex::Real& sponge_lower_density,
+                            amrex::Real& sponge_upper_density,
+                            amrex::Real& sponge_lower_pressure,
+                            amrex::Real& sponge_upper_pressure,
+                            amrex::Real* sponge_target_velocity,
+                            amrex::Real& sponge_timescale);
+
   void ca_allocate_sponge_params();
+
   void ca_deallocate_sponge_params();
 #endif
   void ca_get_ambient_params(const int* name, const int* namlen);
+
+  void get_ambient_data(Real* ambient_state);
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
@@ -130,47 +131,22 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-
-  void ca_check_initial_species
-    (const int* lo, const int* hi, const BL_FORT_FAB_ARG_3D(state));
-
-  void ca_enforce_minimum_density
-    (const int* lo, const int* hi,
-     const amrex::Real* state, const int* s_lo, const int* s_hi,
-     const int verbose);
-
-  void ca_normalize_species
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
-
-  void ca_get_center(amrex::Real* center);
-  void ca_set_center(const amrex::Real* center);
   void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
                       const amrex::Real* dx, const amrex::Real* problo);
 
+  AMREX_GPU_DEVICE
   void ca_clamp_temp
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_enforce_consistent_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_recompute_energetics
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(state));
+    (int i, int j, int k, BL_FORT_FAB_ARG_3D(state));
 
   void ca_reset_internal_e
-    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new),
-     const int verbose);
-
-  void ca_estdt
     (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
-
-#ifdef DIFFUSION
-  void ca_estdt_temp_diffusion
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, amrex::Real* dt);
+#ifdef MHD
+     BL_FORT_FAB_ARG_3D(bx),
+     BL_FORT_FAB_ARG_3D(by),
+     BL_FORT_FAB_ARG_3D(bz),
 #endif
+     BL_FORT_FAB_ARG_3D(S_new),
+     const int verbose);
 
 #ifdef RADIATION
   void ca_estdt_rad
@@ -188,40 +164,6 @@ extern "C"
      const amrex::Real* dx, amrex::Real* dt);
 #endif
 
-  void ca_check_timestep
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state),
-#ifdef REACTIONS
-     const BL_FORT_FAB_ARG_3D(reactions),
-#endif
-     const amrex::Real* dx, const amrex::Real dt, amrex::Real* failed);
-
-  void ca_make_fourth_average(const int lo[], const int hi[],
-                              BL_FORT_FAB_ARG_3D(q), const int* nc,
-                              const BL_FORT_FAB_ARG_3D(q_bar), const int* nc_bar,
-                              const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place(const int lo[], const int hi[],
-                               BL_FORT_FAB_ARG_3D(q), const int* nc,
-                               const int* domlo, const int* domhi);
-
-  void ca_make_fourth_in_place_n(const int lo[], const int hi[],
-                                 BL_FORT_FAB_ARG_3D(q), const int* nc, const int ncomp,
-                                 const int* domlo, const int* domhi);
-
-  void ca_compute_lap_term(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_ANYD(lap), const int ncomp,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center(const int lo[], const int hi[],
-                           const BL_FORT_FAB_ARG_3D(U), const int* nc,
-                           BL_FORT_FAB_ARG_3D(U_cc), const int* nc_cc,
-                           const int* domlo, const int* domhi);
-
-  void ca_make_cell_center_in_place(const int lo[], const int hi[],
-                                    BL_FORT_FAB_ARG_3D(q), const int* nc,
-                                    const int* domlo, const int* domhi);
 
 #ifdef RADIATION
   void ca_inelastic_sct
@@ -244,9 +186,6 @@ extern "C"
 
 
 
-/* hydrodynamics */
-#include <Castro_hydro_F.H>
-
 
 /* reactions */
 #ifdef REACTIONS
@@ -263,6 +202,7 @@ extern "C"
 #include <Castro_gravity_F.H>
 #endif
 
+
 /* rotation */
 #ifdef ROTATION
 #include <Castro_rotation_F.H>
@@ -275,14 +215,10 @@ extern "C"
 #endif
 
 
-/* diffusion */
-#ifdef DIFFUSION
-#include <Castro_diffusion_F.H>
-#endif
-
-
 /* SCF */
+#ifdef GRAVITY
 #include <scf_relax_F.H>
+#endif
 
 #ifdef __cplusplus
 }
@@ -331,8 +267,14 @@ BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
 #endif
 #endif
 
-
-/* problem-specific includes */
-#include <Problem_F.H>
+#ifdef MHD
+BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
+  (const int& level, const amrex::Real& time,
+   const int* lo, const int* hi,
+   const int& nx, BL_FORT_FAB_ARG_3D(magx),
+   const int& ny, BL_FORT_FAB_ARG_3D(magy),
+   const int& nz, BL_FORT_FAB_ARG_3D(magz),
+   const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
+#endif
 
 #endif

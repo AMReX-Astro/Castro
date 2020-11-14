@@ -17,7 +17,7 @@ amr.n_cell           = 256    512
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
@@ -42,7 +42,7 @@ gravity.const_grav   = -8.636e8
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass

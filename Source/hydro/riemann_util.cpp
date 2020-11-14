@@ -1,15 +1,14 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
 #endif
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 #include <eos.H>
@@ -22,11 +21,11 @@ using namespace amrex;
 
 void
 Castro::compute_flux_q(const Box& bx,
-                       Array4<Real const> const qint,
-                       Array4<Real> const F,
+                       Array4<Real const> const& qint,
+                       Array4<Real> const& F,
 #ifdef RADIATION
-                       Array4<Real const> const lambda,
-                       Array4<Real> const rF,
+                       Array4<Real const> const& lambda,
+                       Array4<Real> const& rF,
 #endif
                        const int idir, const int enforce_eos) {
 
@@ -73,17 +72,9 @@ Castro::compute_flux_q(const Box& bx,
 
   const Real lT_guess = T_guess;
 
-  GpuArray<int, npassive> upass_map_p;
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; ++n) {
-    upass_map_p[n] = upass_map[n];
-    qpass_map_p[n] = qpass_map[n];
-  }
-
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
+#endif
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -102,9 +93,11 @@ Castro::compute_flux_q(const Box& bx,
         eos_state.xn[n] = qint(i,j,k,QFS+n);
       }
       eos_state.T = lT_guess;  // initial guess
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = qint(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_rp, eos_state);
 
@@ -151,8 +144,8 @@ Castro::compute_flux_q(const Box& bx,
 
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upass_map_p[ipassive];
-      int nqp = qpass_map_p[ipassive];
+      int n  = upassmap(ipassive);
+      int nqp = qpassmap(ipassive);
 
       F(i,j,k,n) = F(i,j,k,URHO)*qint(i,j,k,nqp);
     }
@@ -175,7 +168,7 @@ Castro::compute_flux_q(const Box& bx,
     for (int n = 0; n < NUM_STATE; n++) {
         F_zone[n] = F(i,j,k,n);
     }
-    compute_hybrid_flux(qgdnv_zone, geomdata, center, idir, i, j, k, F_zone);
+    compute_hybrid_flux(qgdnv_zone, geomdata, idir, i, j, k, F_zone);
     for (int n = 0; n < NUM_STATE; n++) {
         F(i,j,k,n) = F_zone[n];
     }
@@ -186,17 +179,18 @@ Castro::compute_flux_q(const Box& bx,
 
 void
 Castro::store_godunov_state(const Box& bx,
-                            Array4<Real const> const qint,
+                            Array4<Real const> const& qint,
 #ifdef RADIATION
-                            Array4<Real const> const lambda,
+                            Array4<Real const> const& lambda,
 #endif
-                            Array4<Real> const qgdnv) {
+                            Array4<Real> const& qgdnv) {
 
   // this copies the full interface state (NQ -- one for each primitive
   // variable) over to a smaller subset of size NGDNV for use later in the
   // hydro advancement.
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
     // the hybrid routine uses the Godunov indices, not the full NQ state

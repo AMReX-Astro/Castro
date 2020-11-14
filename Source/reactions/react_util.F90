@@ -37,34 +37,9 @@ contains
   end function okay_to_burn
 
 
-  pure function okay_to_burn_type(state) result(burn_flag)
-
-    use meth_params_module, only : react_T_min, react_T_max, react_rho_min, react_rho_max
-    use burn_type_module, only: burn_t
-
-    implicit none
-
-    type (burn_t), intent(in) :: state
-
-    logical :: burn_flag
-
-    !$gpu
-
-    burn_flag = .true.
-
-    if (state % T < react_T_min .or. state % T > react_T_max .or. &
-        state % rho < react_rho_min .or. state % rho > react_rho_max) then
-       burn_flag = .false.
-    end if
-
-    return
-
-  end function okay_to_burn_type
-
-
   subroutine single_zone_react_source(state, R, i, j, k, burn_state)
 
-    use burn_type_module, only : burn_t, net_ienuc, neqs
+    use burn_type_module, only : burn_t, net_ienuc, neqs, burn_to_eos, eos_to_burn
     use network, only : nspec, nspec_evolve, aion
     use eos_module, only : eos
     use eos_type_module, only: eos_t, eos_input_re, eos_get_small_temp
@@ -101,7 +76,7 @@ contains
 
     burn_state % xn(1:nspec_evolve) = max(min(burn_state % xn(1:nspec_evolve), ONE), SMALL_X_SAFE) 
 
-#if naux > 0
+#if NAUX_NET > 0
     do n = 1, naux
        burn_state % aux(n) = state(UFX+n-1) * rhoInv
     enddo

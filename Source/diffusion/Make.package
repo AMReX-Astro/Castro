@@ -2,9 +2,11 @@
 # included when USE_DIFFUSION=TRUE
 
 CEXE_headers += Castro_diffusion.H
-FEXE_headers += Castro_diffusion_F.H
-ca_F90EXE_sources += Diffusion_nd.F90
+
+CEXE_headers += diffusion_util.H
+CEXE_sources += diffusion_util.cpp
 
 CEXE_sources += Castro_diffusion.cpp
 CEXE_sources += Diffusion.cpp
+CEXE_sources += diffusion_params.cpp
 CEXE_headers += Diffusion.H 

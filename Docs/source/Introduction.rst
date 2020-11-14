@@ -2,7 +2,7 @@
 Introduction to Castro
 **********************
 
-Castro is a adaptive mesh, radiation hydrodynamics code that is
+Castro is a adaptive mesh, radiation/MHD hydrodynamics code that is
 designed to model astrophysical reacting flows on massively parallel
 computers.
 
@@ -12,11 +12,14 @@ Castro's major capabilities:
     hydrodynamics; 4th order hydro for uniform grids.
     (see :ref:`ch:hydro`)
 
-  * generalized retry mechanism for recovering from physical
-    violations over a timestep (see :ref:`ch:retry`)
+  * 3-dimension constrained transport ideal MHD (single level only currently)
+    (see :ref:`ch:mhd`)
 
   * multigroup flux-limited diffusion radiation hydrodynamics
     (see :ref:`ch:radiation`)
+
+  * generalized retry mechanism for recovering from physical
+    violations over a timestep (see :ref:`ch:retry`)
 
   * adaptive mesh refinement with subcycling; jumps of 2x and 4x
     between levels (see :ref:`ch:amr`)
@@ -44,12 +47,12 @@ Development Model
 =================
 
 Castro is developed on github (https://github.com/amrex-astro/Castro
-). The ``master`` branch is stable and can be used for day-to-day
+). The ``main`` branch is stable and can be used for day-to-day
 science.  New changes are made via pull requests to the
 ``development`` branch.  This is where the ongoing regression testing
 is done (both on CPU and GPU).
 
-At the start of each month, we merge ``development`` → ``master`` and
+At the start of each month, we merge ``development`` → ``main`` and
 apply a tag of the form ``YY.MM`` (e.g. ``20.02`` for Feb. 2020).  We
 also create a github release and mint a Zenodo DOI using the
 information in the ``.zenodo.json`` file at the root level.

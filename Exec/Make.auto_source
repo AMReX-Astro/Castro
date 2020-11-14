@@ -7,7 +7,7 @@ INCLUDE_LOCATIONS += $(CASTRO_AUTO_SOURCE_DIR)
 
 
 #------------------------------------------------------------------------------
-# runtime parameters
+# Microphysics runtime parameters
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
@@ -22,16 +22,16 @@ EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
 EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
-EXTERN_PARAMETERS := $(shell $(AMREX_HOME)/Tools/F_scripts/findparams.py $(EXTERN_SEARCH))
+EXTERN_PARAMETERS := $(shell $(MICROPHYSICS_HOME)/util/build_scripts/findparams.py $(EXTERN_SEARCH))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern.F90
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(AMREX_HOME)/Tools/F_scripts/write_probin.py \
+	$(MICROPHYSICS_HOME)/util/build_scripts/write_probin.py \
            -t $(EXTERN_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/extern.F90 -n extern \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/extern \
-           --pa "$(EXTERN_PARAMETERS)" --managed
+           --pa "$(EXTERN_PARAMETERS)"
 
 
 #------------------------------------------------------------------------------
@@ -39,18 +39,27 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
-ifeq ($(USE_PROB_PARAMS), TRUE)
-   F90EXE_sources += prob_params_auto.F90
-   DEFINES += -DPROB_PARAMS
-endif
+F90EXE_sources += prob_params_auto.F90
+CEXE_sources += prob_parameters.cpp
+FEXE_headers += prob_parameters_F.H
+CEXE_headers += prob_parameters.H
+
+$(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
 PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
+DEFAULT_PROB_PARAMETERS := $(TOP)/Source/problems/_default_prob_params
 
-$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+# Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
+# on that; if it doesn't exist, it's ignored as a make target. The default
+# parameters file will always exist.
+$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(DEFAULT_PROB_PARAMETERS) $(wildcard $(PROB_PARAMETERS)) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Util/scripts/write_probdata.py \
-           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 -p $(PROB_PARAMETERS)
+           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 \
+           -d $(DEFAULT_PROB_PARAMETERS) \
+           -p $(PROB_PARAMETERS) \
+           --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
 
 #------------------------------------------------------------------------------
 # Castro C++ parameters
@@ -64,6 +73,9 @@ METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
 $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+
+# for debugging
+test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90
 
 #------------------------------------------------------------------------------
 # state variable info

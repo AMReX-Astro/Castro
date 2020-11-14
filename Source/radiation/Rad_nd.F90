@@ -641,271 +641,6 @@ contains
 
 
 
-  subroutine ca_compute_etat(lo, hi, &
-                             etaT, etaT_lo, etaT_hi, &
-                             etTz, etTz_lo, etTz_hi, &
-                             eta1, eta1_lo, eta1_hi, &
-                             djdT, djdT_lo, djdT_hi, &
-                             dkdT, dkdT_lo, dkdT_hi, &
-                             dedT, dedT_lo, dedT_hi, &
-                             Ers, Ers_lo, Ers_hi, &
-                             rho, rho_lo, rho_hi, &
-                             dt, tau) &
-                             bind(C, name='ca_compute_etat')
-
-    use rad_params_module, only: ngroups, clight
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
-    integer,  intent(in   ) :: etTz_lo(3), etTz_hi(3)
-    integer,  intent(in   ) :: eta1_lo(3), eta1_hi(3)
-    integer,  intent(in   ) :: djdT_lo(3), djdT_hi(3)
-    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
-    integer,  intent(in   ) :: dedT_lo(3), dedT_hi(3)
-    integer,  intent(in   ) :: Ers_lo(3), Ers_hi(3)
-    integer,  intent(in   ) :: rho_lo(3), rho_hi(3)
-    real(rt), intent(inout) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
-    real(rt), intent(inout) :: etTz(etTz_lo(1):etTz_hi(1),etTz_lo(2):etTz_hi(2),etTz_lo(3):etTz_hi(3))
-    real(rt), intent(inout) :: eta1(eta1_lo(1):eta1_hi(1),eta1_lo(2):eta1_hi(2),eta1_lo(3):eta1_hi(3))
-    real(rt), intent(inout) :: djdT(djdT_lo(1):djdT_hi(1),djdT_lo(2):djdT_hi(2),djdT_lo(3):djdT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: dedT(dedT_lo(1):dedT_hi(1),dedT_lo(2):dedT_hi(2),dedT_lo(3):dedT_hi(3))
-    real(rt), intent(in   ) :: Ers(Ers_lo(1):Ers_hi(1),Ers_lo(2):Ers_hi(2),Ers_lo(3):Ers_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: rho(rho_lo(1):rho_hi(1),rho_lo(2):rho_hi(2),rho_lo(3):rho_hi(3))
-    real(rt), intent(in   ), value :: dt, tau
-
-    integer  :: i, j, k
-    real(rt) :: cdt, sigma
-    real(rt) :: dZdT(0:ngroups-1), sumdZdT, foo, bar
-
-    !$gpu
-
-    sigma = 1.e0_rt + tau
-    cdt = clight * dt
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             dZdT = djdT(i,j,k,:) - dkdT(i,j,k,:) * Ers(i,j,k,:)
-             sumdZdT = sum(dZdT)
-             if (sumdZdT .eq. 0.e0_rt) then
-                sumdZdT = 1.e-50_rt
-             end if
-
-             foo = cdt * sumdZdT
-             bar = sigma * rho(i,j,k) * dedT(i,j,k)
-             etaT(i,j,k) = foo / (foo + bar)
-             etTz(i,j,k) = etaT(i,j,k) / sumdZdT
-             eta1(i,j,k) = bar / (foo + bar)
-             djdT(i,j,k,:) = dZdT / sumdZdT
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_etat
-
-
-
-  subroutine ca_compute_coupt(lo, hi, &
-                              cpt, cpt_lo, cpt_hi, &
-                              kpp, kpp_lo, kpp_hi, &
-                              eg, eg_lo, eg_hi, &
-                              jg, jg_lo, jg_hi) &
-                              bind(C, name='ca_compute_coupt')
-
-    use rad_params_module, only: ngroups
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: cpt_lo(3), cpt_hi(3) 
-    integer,  intent(in   ) :: kpp_lo(3), kpp_hi(3) 
-    integer,  intent(in   ) :: eg_lo(3), eg_hi(3)
-    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
-    real(rt), intent(inout) :: cpt(cpt_lo(1):cpt_hi(1),cpt_lo(2):cpt_hi(2),cpt_lo(3):cpt_hi(3))
-    real(rt), intent(in   ) :: kpp(kpp_lo(1):kpp_hi(1),kpp_lo(2):kpp_hi(2),kpp_lo(3):kpp_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: eg( eg_lo(1): eg_hi(1), eg_lo(2): eg_hi(2), eg_lo(3): eg_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: jg( jg_lo(1): jg_hi(1), jg_lo(2): jg_hi(2), jg_lo(3): jg_hi(3),0:ngroups-1)
-
-    integer :: i, j, k, g
-
-    !$gpu
-
-    cpt(lo(1):hi(1),lo(2):hi(2),lo(3):hi(3)) = 0.e0_rt
-
-    do g = 0, ngroups-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                cpt(i,j,k) = cpt(i,j,k) + (kpp(i,j,k,g) * eg(i,j,k,g) - jg(i,j,k,g))
-             end do
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_coupt
-
-
-
-  subroutine ca_check_conv(lo, hi, &
-                           ren, ren_lo, ren_hi, &
-                           res, res_lo, res_hi, &
-                           re2, re2_lo, re2_hi, &
-                           ern, ern_lo, ern_hi, &
-                           Tmn, Tmn_lo, Tmn_hi, &
-                           Tms, Tms_lo, Tms_hi, &
-                           rho, rho_lo, rho_hi, &
-                           kap, kap_lo, kap_hi, &
-                           jg, jg_lo, jg_hi, &
-                           deT, deT_lo, deT_hi, &
-                           rel_re, abs_re, &
-                           rel_FT, abs_FT, &
-                           rel_T, abs_T, &
-                           dt) &
-                           bind(C, name='ca_check_conv')
-
-    use rad_params_module, only: ngroups, clight
-    use reduction_module, only: reduce_max
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: ren_lo(3), ren_hi(3)
-    integer,  intent(in   ) :: res_lo(3), res_hi(3)
-    integer,  intent(in   ) :: re2_lo(3), re2_hi(3)
-    integer,  intent(in   ) :: ern_lo(3), ern_hi(3)
-    integer,  intent(in   ) :: Tmn_lo(3), Tmn_hi(3)
-    integer,  intent(in   ) :: Tms_lo(3), Tms_hi(3)
-    integer,  intent(in   ) :: rho_lo(3), rho_hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
-    integer,  intent(in   ) :: deT_lo(3), deT_hi(3)
-    real(rt), intent(in   ) :: ren(ren_lo(1):ren_hi(1),ren_lo(2):ren_hi(2),ren_lo(3):ren_hi(3))
-    real(rt), intent(in   ) :: res(res_lo(1):res_hi(1),res_lo(2):res_hi(2),res_lo(3):res_hi(3))
-    real(rt), intent(in   ) :: re2(re2_lo(1):re2_hi(1),re2_lo(2):re2_hi(2),re2_lo(3):re2_hi(3))
-    real(rt), intent(in   ) :: ern(ern_lo(1):ern_hi(1),ern_lo(2):ern_hi(2),ern_lo(3):ern_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: Tmn(Tmn_lo(1):Tmn_hi(1),Tmn_lo(2):Tmn_hi(2),Tmn_lo(3):Tmn_hi(3))
-    real(rt), intent(in   ) :: Tms(Tms_lo(1):Tms_hi(1),Tms_lo(2):Tms_hi(2),Tms_lo(3):Tms_hi(3))
-    real(rt), intent(in   ) :: rho(rho_lo(1):rho_hi(1),rho_lo(2):rho_hi(2),rho_lo(3):rho_hi(3))
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: jg(jg_lo(1):jg_hi(1),jg_lo(2):jg_hi(2),jg_lo(3):jg_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: deT(deT_lo(1):deT_hi(1),deT_lo(2):deT_hi(2),deT_lo(3):deT_hi(3))
-    real(rt), intent(inout) :: rel_re, abs_re 
-    real(rt), intent(inout) :: rel_FT, abs_FT
-    real(rt), intent(inout) :: rel_T, abs_T
-    real(rt), intent(in   ), value :: dt
-
-    integer  :: i, j, k
-    real(rt) :: chg, relchg, FT, cdt, FTdenom, dTe
-
-    !$gpu
-
-    cdt = clight * dt
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             chg = abs(ren(i,j,k) - res(i,j,k))
-             relchg = abs(chg / (ren(i,j,k) + 1.e-50_rt))
-
-             call reduce_max(rel_re, relchg)
-             call reduce_max(abs_re, chg)
-
-             chg = abs(Tmn(i,j,k) - Tms(i,j,k))
-             relchg = abs(chg / (Tmn(i,j,k) + 1.e-50_rt))
-
-             call reduce_max(rel_T, relchg)
-             call reduce_max(abs_T, chg)
-
-             FT = abs((ren(i,j,k) - re2(i,j,k)) - cdt * sum(kap(i,j,k,:) * Ern(i,j,k,:) - jg(i,j,k,:)))
-
-             dTe = Tmn(i,j,k)
-             FTdenom = rho(i,j,k) * abs(deT(i,j,k) * dTe)
-             ! FTdenom = max(abs(ren(i,j,k) - re2(i,j,k)), abs(ren(i,j,k) * 1.e-15_rt))
-
-             call reduce_max(rel_FT, FT / (FTdenom + 1.e-50_rt))
-             call reduce_max(abs_FT, FT)
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_check_conv
-
-
-
-
-  subroutine ca_check_conv_er(lo, hi, &
-                              Ern, Ern_lo, Ern_hi, &
-                              Erl, Erl_lo, Erl_hi, &
-                              kap, kap_lo, kap_hi, &
-                              etTz, etTz_lo, etTz_hi, &
-                              temp, temp_lo, temp_hi, &
-                              rela, abso, errr, dt) &
-                              bind(C, name='ca_check_conv_er')
-
-    use rad_params_module, only: ngroups, clight
-    use reduction_module, only: reduce_max
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
-    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: temp_lo(3), temp_hi(3)
-    integer,  intent(in   ) :: etTz_lo(3), etTz_hi(3)
-    real(rt), intent(in   ) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: etTz(etTz_lo(1):etTz_hi(1),etTz_lo(2):etTz_hi(2),etTz_lo(3):etTz_hi(3))
-    real(rt), intent(in   ) :: temp(temp_lo(1):temp_hi(1),temp_lo(2):temp_hi(2),temp_lo(3):temp_hi(3))
-    real(rt), intent(inout) :: rela, abso, errr
-    real(rt), intent(in   ), value :: dt
-
-    integer  :: i, j, k, g
-    real(rt) :: chg, tot, cdt, der, kde, err_T, err
-
-    !$gpu
-
-    cdt = clight * dt
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             chg = 0.e0_rt
-             tot = 0.e0_rt
-             kde = 0.e0_rt
-
-             do g = 0, ngroups-1
-                der = Ern(i,j,k,g) - Erl(i,j,k,g)
-                chg = chg + abs(der)
-                tot = tot + abs(Ern(i,j,k,g))
-                kde = kde + kap(i,j,k,g) * der
-             end do
-
-             call reduce_max(abso, chg)
-             call reduce_max(rela, chg / (tot + 1.e-50_rt))
-
-             err_T =  etTz(i,j,k) * kde
-             err = abs(err_T / (temp(i,j,k) + 1.e-50_rt))
-
-             call reduce_max(errr, err)
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_check_conv_er
-
-
-
   subroutine ca_update_matter(lo, hi,  &
                               re_n, re_n_lo, re_n_hi, &
                               Er_n, Er_n_lo, Er_n_hi, &
@@ -1542,75 +1277,6 @@ contains
 
 
 
-  subroutine ceup(lo, hi, &
-                  relres, absres, &
-                  frhoes, fs_lo, fs_hi, &
-                  frhoem, fm_lo, fm_hi, &
-                  eta, et_lo, et_hi, &
-                  etainv, ei_lo, ei_hi, &
-                  dfo, do_lo, do_hi, &
-                  dfn, dn_lo, dn_hi, &
-                  exch, ex_lo, ex_hi, &
-                  dt, theta) &
-                  bind(C, name="ceup")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use reduction_module, only: reduce_max
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: fs_lo(3), fs_hi(3)
-    integer,  intent(in   ) :: fm_lo(3), fm_hi(3)
-    integer,  intent(in   ) :: et_lo(3), et_hi(3)
-    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
-    integer,  intent(in   ) :: do_lo(3), do_hi(3)
-    integer,  intent(in   ) :: dn_lo(3), dn_hi(3)
-    integer,  intent(in   ) :: ex_lo(3), ex_hi(3)
-    real(rt), intent(inout) :: frhoes(fs_lo(1):fs_hi(1),fs_lo(2):fs_hi(2),fs_lo(3):fs_hi(3))
-    real(rt), intent(in   ) :: frhoem(fm_lo(1):fm_hi(1),fm_lo(2):fm_hi(2),fm_lo(3):fm_hi(3))
-    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
-    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
-    real(rt), intent(in   ) :: dfo(do_lo(1):do_hi(1),do_lo(2):do_hi(2),do_lo(3):do_hi(3))
-    real(rt), intent(in   ) :: dfn(dn_lo(1):dn_hi(1),dn_lo(2):dn_hi(2),dn_lo(3):dn_hi(3))
-    real(rt), intent(in   ) :: exch(ex_lo(1):ex_hi(1),ex_lo(2):ex_hi(2),ex_lo(3):ex_hi(3))
-    real(rt), intent(inout) :: relres, absres
-    real(rt), intent(in   ), value :: dt, theta
-
-    integer  :: i, j, k
-    real(rt) :: tmp, chg, tot
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             chg = 0.e0_rt
-             tot = 0.e0_rt
-
-             tmp = eta(i,j,k) * frhoes(i,j,k) + &
-                   etainv(i,j,k) * &
-                   (frhoem(i,j,k) - &
-                    dt * ((1.e0_rt - theta) * &
-                    (dfo(i,j,k) - dfn(i,j,k)) + &
-                    exch(i,j,k)))
-
-             chg = abs(tmp - frhoes(i,j,k))
-             tot = abs(frhoes(i,j,k))
-
-             frhoes(i,j,k) = tmp
-
-             call reduce_max(absres, chg)
-             call reduce_max(relres, chg / (tot + tiny))
-
-          end do
-       end do
-    end do
-
-  end subroutine ceup
-
-
-
- 
   subroutine cetot(lo, hi, &
                    state, s_lo, s_hi, &
                    frhoe, f_lo, f_hi) &
@@ -1641,42 +1307,6 @@ contains
     end do
 
   end subroutine cetot
-
-
-
-  ! exch contains temp on input:
-  
-  subroutine cexch(lo, hi, &
-                   exch, x_lo, x_hi, &
-                   er, e_lo, e_hi, &
-                   fkp, f_lo, f_hi, &
-                   sigma, c) &
-                   bind(C, name="cexch")
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: x_lo(3), x_hi(3)
-    integer,  intent(in   ) :: e_lo(3), e_hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    real(rt), intent(inout) :: exch(x_lo(1):x_hi(1),x_lo(2):x_hi(2),x_lo(3):x_hi(3))
-    real(rt), intent(in   ) :: er(e_lo(1):e_hi(1),e_lo(2):e_hi(2),e_lo(3):e_hi(3))
-    real(rt), intent(in   ) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ), value :: sigma, c
-
-    integer :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             exch(i,j,k) = fkp(i,j,k) * (4.e0_rt * sigma * exch(i,j,k)**4 - c * er(i,j,k))
-          end do
-       end do
-    end do
-
-  end subroutine cexch
 
 
 
@@ -2469,7 +2099,7 @@ end subroutine ca_initsinglegroup
 subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
 
   use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup, &
-                               current_group, nnuspec
+                               current_group
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -2480,7 +2110,7 @@ subroutine ca_initgroups(nugr, dnugr, ngr, ngr0, ngr1)
   ! Local variables
   integer :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   ng0     = ngr0
   ng1     = ngr1
@@ -2498,7 +2128,7 @@ end subroutine ca_initgroups
 subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
 
   use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, dlognu, lognugroup, &
-                               current_group, ng0, ng1, nnuspec
+                               current_group, ng0, ng1
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -2509,7 +2139,7 @@ subroutine ca_initgroups2(nugr, dnugr, xnugr, ngr)
   ! Local variables
   integer   :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
@@ -2529,41 +2159,27 @@ end subroutine ca_initgroups2
 subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
   ! used by MGFLDSolver
 
-  use rad_params_module, only: ngroups, ng0, ng1, nnuspec, nradspec, nugroup, dnugroup, &
+  use rad_params_module, only: ngroups, ng0, ng1, nugroup, dnugroup, &
                                xnu, dlognu, lognugroup, erg2rhoYe, avogadro, hplanck, &
                                current_group
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
-  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr+2)
+  real(rt), intent(in) :: nugr(0:ngr-1), dnugr(0:ngr-1), dlognugr(0:ngr-1), xnugr(0:ngr)
   integer :: ngr, ngr0, ngr1
 
   ! Local variables
   integer :: i
 
-  allocate(current_group, ng0, ng1, nnuspec)
+  allocate(current_group, ng0, ng1)
 
   ng0     = ngr0
   ng1     = ngr1
 
-  if (ng0 > 0) then
-     if (ng1 .eq. 0) then
-        nnuspec = 1  ! one neutrino species
-     else if (ngroups .eq. ng0+ng1) then
-        nnuspec = 2  ! two neutrino species
-     else
-        nnuspec = 3  ! three neutrino species
-     end if
-  else
-     nnuspec = 0
-  end if
-
-  nradspec = max(nnuspec, 1)
-
   allocate(nugroup( 0:ngroups-1))
   allocate(dnugroup(0:ngroups-1))
-  allocate(xnu(0:ngroups+2))
+  allocate(xnu(0:ngroups))
   allocate(dlognu(0:ngroups-1))
   allocate(erg2rhoYe(0:ngroups-1))
   allocate(lognugroup( 0:ngroups-1))
@@ -2584,20 +2200,41 @@ subroutine ca_initgroups3(nugr, dnugr, dlognugr, xnugr, ngr, ngr0, ngr1)
 
 end subroutine ca_initgroups3
 
-!! -----------------------------------------------------------
+subroutine ca_get_dlognu(dlognu_out) bind(C, name="ca_get_dlognu")
 
-subroutine ca_setgroup(igroup)
-
-  use rad_params_module, only: current_group
   use amrex_fort_module, only: rt => amrex_real
-
+  use rad_params_module, only: ngroups, dlognu
   implicit none
 
-  integer :: igroup
+  real(rt), intent(out) :: dlognu_out(0:ngroups-1)
 
-  current_group = igroup
+  dlognu_out(:) = dlognu(:)
 
-end subroutine ca_setgroup
+end subroutine ca_get_dlognu
+
+subroutine ca_get_nugroup(nugroup_out) bind(C, name="ca_get_nugroup")
+
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, nugroup
+  implicit none
+
+  real(rt), intent(out) :: nugroup_out(0:ngroups-1)
+
+  nugroup_out(:) = nugroup(:)
+
+end subroutine ca_get_nugroup
+
+subroutine ca_get_dnugroup(dnugroup_out) bind(C, name="ca_get_dnugroup")
+
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, dnugroup
+  implicit none
+
+  real(rt), intent(out) :: dnugroup_out(0:ngroups-1)
+
+  dnugroup_out(:) = dnugroup(:)
+
+end subroutine ca_get_dnugroup
 
 !! -----------------------------------------------------------
 

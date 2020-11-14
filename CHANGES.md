@@ -1,4 +1,245 @@
+# 20.12
+
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
+   * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
+     Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
+     are now deleted from the code; if you were using these to implement problem-specific
+     functionality, you can still manually add these files to the `Make.package` for your
+     problem setup. (#1311)
+
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
+   * MHD problems can now do the magnetic field initialization in C++
+     (#1298)
+
+# 20.11
+
+   * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
+     support C++14; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 5.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1284)
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
+# 20.10
+
+   * A new refinement scheme using the inputs file rather than the Fortran
+     tagging namelist has been added. (#1243, #1246) As an example, consider:
+
+     ```
+     amr.refinement_indicators = dens temp
+
+     amr.refine.dens.max_level = 1
+     amr.refine.dens.value_greater = 2.0
+     amr.refine.dens.field_name = density
+
+     amr.refine.temp.max_level = 2
+     amr.refine.temp.value_less = 1.0
+     amr.refine.temp.field_name = Temp
+     ```
+
+     `amr.refinement_indicators` is a list of user-defined names for refinement
+     schemes. For each defined name, amr.refine.<name> accepts predefined fields
+     describing when to tag. In the current implementation, these are `max_level`
+     (maximum level to refine to), `start_time` (when to start tagging), `end_time`
+     (when to stop tagging), `value_greater` (value above which we refine),
+     `value_less` (value below which to refine), `gradient` (absolute value of the
+     difference between adjacent cells above which we refine), and `field_name`
+     (name of the string defining the field in the code). If a refinement indicator
+     is added, either `value_greater`, `value_less`, or `gradient` must be provided.
+
+   * Automatic problem parameter configuration is now available to every
+     problem by placing a _prob_params file in your problem directory.
+     Examples can be found in most of the problems in Castro/Exec, and you
+     can look at the "Setting Up Your Own Problem" section of the documentation
+     for more information. This functionality is optional, however note that
+     a file containing a Fortran module named "probdata_module" is now
+     automatically generated, so if you have a legacy probdata.F90 file
+     containing a module with that name it should be renamed. (#1210)
+
+   * The variable "center" (in the `problem` namespace) is now part of this
+     automatically generated probdata module; at the present time, the only
+     valid way to change the problem center to a value other than zero is in
+     amrex_probinit(). (#1222)
+
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
+
+   * Problems may now be initialized in C++ instead of Fortran. Instead of implementing
+     amrex_probinit() and ca_initdata(), the problem should implement the analogous
+     functions initialize_problem() and initialize_problem_state_data(). If you switch to
+     the new C++ initialization, be sure to delete your Prob_nd.F90 file. By default both
+     implementations do nothing, so you can pick either one but do not pick both. (#1227)
+
+   * The external heat source term routines have been ported to C++
+     (#1191).  Any problem using an external heat source should look
+     convert the code over to C++.
+
+   * The interpolate_nd.F90 file has been moved to Util/interpolate and
+     is only compiled into Castro if you set USE_INTERPOLATE=TRUE
+
+# 20.09
+
+   * Reactions now work with MHD (#1179)
+
+   * MHD now uses the main slope routine (#1058) The order of the
+     slope is now controlled by plm_iorder, just as with hydro.  There
+     is an additional option, mhd_limit_characteristic, that
+     determines if the limiting is done on the primitive or
+     characteristic variables (the default).
+
+# 20.08
+
+   * Rotation_Type has been removed from StateData. (#1128)
+
+   * castro.use_post_step_regrid now unconditionally regrids after
+     every timestep on every level. (#898)
+
+   * An issue with gravity.max_solve_level resulting in accesses to invalid data
+     (#469, #1118) has been resolved. (#1123)
+
+   * If castro.speed_limit is set to a number greater than zero, this
+     will now be strictly enforced on the magnitude of the velocity. (#1115)
+
+   * When using AMR and gravity or rotation, the source terms applied after
+     a reflux would have been incorrect if the previous timestep had a retry
+     (#1020). This has now been fixed. (#1112)
+
+   * We now have the ability to access the problem-specific runtime
+     parameters in C++ (#1093)
+
+# 20.07
+
+   * The master branch has been renamed the main branch. If you have an
+     existing clone of Castro, then do the following to update for this
+     change. First, do `git checkout master` if you're not already on the
+     old master branch. Then do `git pull`. This will gather the updates
+     to the repo, but will fail with the message `Your configuration specifies
+     to merge with the ref 'refs/heads/master' from the remote, but no such ref
+     was fetched.` Then you can simply do `git checkout main` and your local
+     repo should automatically switch to that branch and track updates from
+     the upstream repo on GitHub. If you like, you can then delete the old
+     master branch with `git branch -D master`.
+
+   * The CUDA build no longer has a requirement that amr.blocking_factor
+     be a multiple of 8. Though this is recommended for performance reasons,
+     it was previously required due to correctness reasons because of the
+     use of an AMReX Fortran function, amrex_filccn. As noted in #1048, this
+     function is no longer required due to recent changes in Castro (problems
+     overriding bc_fill_nd.F90 or bc_ext_fill_nd.F90 do not need to provide an
+     initial fill of the ghost zone data before implementing their specific
+     boundary conditions; this is now done for you). Calling this function
+     may now result in race conditions and correctness issues in the CUDA
+     build, so it should be removed from any problem setups. (#1049)
+
+   * The functionality that permitted the rotation rate to change as a
+     function of time, castro.rotation_include_domegadt and
+     castro.rotational_dPdt, has been removed. (#1045)
+
+   * A CUDA illegal memory access error in Poisson gravity and diffusion
+     has been fixed (#1039).
+
+   * The parameter castro.track_grid_losses has been removed. (#1035)
+
+   * The parameter castro.print_fortran_warnings, which no longer had any
+     effect, has been removed. (#1036)
+
+   * PPM reconstruction has been added to the MHD solver (#1002)
+
+   * The Reactions_Type StateData has been reworked so that its first
+     NumSpec components are rho * omegadot rather than omegadot; then,
+     the NumAux auxiliary components are stored, if the network has any
+     auxiliary variables; then, rho * enuc is stored (enuc itself is
+     removed), and finally the burn weights are stored. The checkpoint
+     version has been incremented, so this version of the code cannot
+     restart from checkpoints generated with earlier versions of the
+     code. (#927)
+
+   * A bug where refluxing between AMR levels resulted in incorrect results
+     when a retry occurred in the previous timestep has been fixed. (#1018)
+
+# 20.06
+
+   * The parameter castro.density_reset_method has been removed. A density
+     reset now unconditionally sets the density to small_dens, the temperature
+     to small_temp, and zeros out the velocities. (#989)
+
+   * A constrained-transport corner transport upwind MHD solver has been
+     added.  This can be used by compiling with USE_MPI = TRUE.  Presently
+     it only works for a single level (no AMR).  (#307)
+
+   * A burning timestep limiter dtnuc_T has been added which restricts the
+     burning from updating the temperature by more than the factor
+     dtnuc_T * T / dT/dt. (#972)
+
+   * The reaction weights metric implemented in version 20.05 (#863) has been
+     added to the simplified SDC reactions driver. (#930)
+
+   * When using the simplified SDC integration scheme, we now save new-time
+     Reactions_Type data to plotfiles. (#929)
+
 # 20.05
+
+   * The parameter use_custom_knapsack_weights and its associated
+     functionality have been removed. (#877)
+
+   * We've changed how the runtime parameters are stored.  Previously
+     they were static members of their respective class, but this
+     prevented their use in lambda-capture functions on GPUs.  Now the
+     runtime parameters are grouped into namespaces as extern managed
+     data. (#873)
+
+   * We currently have a scheme for storing reactions weightings, which
+     are a measure of the number of RHS evaluations during the burn and
+     therefore a proxy for the difficulty of the burn. These weights were
+     added as separate StateData depending on the runtime option
+     use_custom_knapsack_weights. Now, instead we place the weights
+     directly in the Reactions_Type StateData as a new component.
+
+     The number of ghost zones in Reactions_Type is increased to 4.
+
+     The checkpoint version has now been incremented; this version of the
+     code will not be able to restart from a checkpoint generated by earlier
+     versions of the code. (#863)
+
+   * The meaning of dt_cutoff has changed: it is now the fraction of the
+     current simulation time which dt may be no smaller than, instead of
+     being an absolute measure. We now have set a non-zero default
+     (1.e-12) as well. (#865)
+
+   * Backwards compatibility in restarting from a checkpoint is no longer
+     supported. Checkpoints from older versions of the code (as determined
+     by the checkpoint version in the CastroHeader file in the checkpoint
+     directory) cannot be restarted from. (#860)
+
+   * Added an option to do CTU reactions in C++.  A compile flag
+     USE_CXX_REACTIONS is added which switches to the C++ integrator
+     in Microphysics. Since we will be doing a phased implementation
+     of the networks in Microphysics, this is opt-in for now.  (#836)
+
+   * More of the core routines have been ported to C++, including the
+     hydro and diffusion timestep estimators (#853) and the sponge
+     (#857)
 
    * AMReX provides CpuBndryFuncFab and GpuBndryFuncFab which are very
      similar to what generic_fill and hypfill did. The AMReX

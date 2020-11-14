@@ -32,10 +32,29 @@ T_l                real            1.0_rt        y
 T_r                real            1.0_rt        y
 
 # do we use temperature or pressure to set initial conditions?
-use_Tinit          logical         .false.       y
+use_Tinit          integer         0             y
 
 # coordinate direction normal to the interface
 idir               integer         1             y
 
 # internal storage
 split              real            0.0_rt        n       3
+
+# Bx left of the interface
+B_x_l              real            0.0_rt        y
+
+# By left of the interface
+B_y_l              real            0.0_rt        y
+
+# Bz left of the interface
+B_z_l              real            0.0_rt        y
+
+# Bx right of the interface
+B_x_r              real            0.0_rt        y
+
+# By right of the interface
+B_y_r              real            0.0_rt        y
+
+# Bz right of the interface
+B_z_r              real            0.0_rt        y
+

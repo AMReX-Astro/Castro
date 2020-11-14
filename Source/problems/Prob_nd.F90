@@ -9,8 +9,7 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
 end subroutine amrex_probinit
 
-
-! ::: -----------------------------------------------------------
+#ifndef GPU_COMPATIBLE_PROBLEM
 
 subroutine ca_initdata(level,time,lo,hi,nvar, &
                        state,state_lo,state_hi, &
@@ -48,9 +47,32 @@ subroutine ca_initdata(level,time,lo,hi,nvar, &
                             state_lo(2):state_hi(2), &
                             state_lo(3):state_hi(3),nvar)
 
-  ! Remove this call if you're defining your own problem; it is here to
-  ! ensure that you cannot run CASTRO if you haven't got your own copy of this function.
-
-  call castro_error("Prob_nd.f90 has not been defined for this problem!")
+  ! This call does nothing by default; it should be copied to a problem directory
+  ! and overwritten for the problem setup of interest.
 
 end subroutine ca_initdata
+
+#else
+
+subroutine ca_initdata(lo, hi, &
+                       state, state_lo, state_hi, &
+                       dx, problo) bind(C, name='ca_initdata')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR
+
+  implicit none
+
+  integer,  intent(in   ) :: lo(3), hi(3)
+  integer,  intent(in   ) :: state_lo(3), state_hi(3)
+  real(rt), intent(in   ) :: dx(3), problo(3)
+  real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
+
+  !$gpu
+
+  ! This call does nothing by default; it should be copied to a problem directory
+  ! and overwritten for the problem setup of interest.
+
+end subroutine ca_initdata
+
+#endif

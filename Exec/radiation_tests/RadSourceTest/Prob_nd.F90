@@ -18,9 +18,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   real(rt) :: X_in(nspec), e_0
   type(eos_t) :: eos_state
 
-
-  call probdata_init(name, namlen)
-
   ! get T_0 corresponding to rhoe_0 and rho_0 through the EOS
   e_0 = rhoe_0/rho_0
   X_in(:) = 0.0

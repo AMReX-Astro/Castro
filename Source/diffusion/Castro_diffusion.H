@@ -46,8 +46,3 @@ void add_temp_diffusion_to_source (amrex::MultiFab& ext_src, amrex::MultiFab& st
                                    amrex::Real mult_factor = 1.0);
 
 
-void
-fill_temp_cond(const amrex::Box& bx,
-               amrex::Array4<amrex::Real const> const U_arr,
-               amrex::Array4<amrex::Real> const coeff_arr);
-

@@ -30,12 +30,57 @@
 /// @param state    Current state
 /// @param time     current time
 ///
-    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& rot, amrex::MultiFab& state, amrex::Real time);
+    void fill_rotation_field(amrex::MultiFab& phi, amrex::MultiFab& state, amrex::Real time);
+
+///
+/// Add the rotation source for input state uold to the full hydrodynamic source
+/// term source
+///
+/// @param bx        the box to operate over
+/// @param source    the full hydrodynamical source term
+/// @param dt        current timestep
+///
+    void
+    rsrc(const Box& bx,
+         Array4<Real const> const& uold,
+         Array4<Real> const& source, 
+         const Real dt);
+
+///
+/// Compute the correction source term for rotation
+///
+/// @param bx       the box to operate over
+/// @param phi_old  rotational potential at old time
+/// @param phi_new  rotational potential at new time
+/// @param uold     old time state
+/// @param unew     new time state
+/// @param source   full hydrodynamic state
+/// @param flux0    mass flux in x coord dir
+/// @param flux1    mass flux in y coord dir
+/// @param flux2    mass flux in z coord dir
+/// @param dt       current timestep
+/// @param vol      cell volume
+///
+    void
+    corrrsrc(const Box& bx,
+             Array4<Real const> const& phi_old,
+             Array4<Real const> const& phi_new,
+             Array4<Real const> const& uold,
+             Array4<Real const> const& unew,
+             Array4<Real> const& source,
+             Array4<Real const> const& flux0,
+             Array4<Real const> const& flux1,
+             Array4<Real const> const& flux2,
+             const Real dt,
+             Array4<Real const> const& vol);
+
+    void
+    fill_rotational_potential(const Box& bx,
+                              Array4<Real> const& phi,
+                              const Real time);
 
 
-    AMREX_GPU_HOST_DEVICE
-    void inertial_to_rotational_velocity_c(const int i, const int j, const int k,
-                                           const amrex::GeometryData& geomdata,
-                                           const Real* center,
-                                           const Real* omega,
-                                           const amrex::Real time, amrex::Real* v);
+    void
+    fill_rotational_psi(const Box& bx,
+                        Array4<Real> const& psi,
+                        const Real time);

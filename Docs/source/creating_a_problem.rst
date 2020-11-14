@@ -14,7 +14,9 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` : this holds the problem initialization routines
+  * ``Prob_nd.F90`` OR ``problem_setup.H`` : this holds the problem
+    initialization routines, which may be implemented either in Fortran
+    or in C++.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
@@ -69,51 +71,50 @@ Here:
   ``(nspec, network)`` and the appropriate use statement will be
   added.
 
-.. note::
-
-   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
-   tell the build system to parse ``_prob_params`` and write the 
-   ``probdata_module``.
-
 The variables will all be initialized for the GPU as well.
 
 
-``Prob_nd.F90``
+``Problem Initialization``
 ---------------
 
-Here we describe the main problem initialization routines.
+Here we describe the main problem initialization routines. There are
+two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).
 
 .. index:: probdata
 
-* ``probinit()``:
+* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
 
-  This routine is primarily responsible for reading in the ``probin``
-  file (by defining the ``&fortin`` namelist) and doing any one-time
+  This routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
   initial model through the ``model_parser_module``—see the
   ``toy_convect`` problem setup for an example).
 
-  By convention, this is where we read and initialize the problem parameters
-  by calling ``probdata_init()``.  The parameters will then be defined in
-  ``probdata_module`` defined in ``probdata.F90``.
+  This routine can also postprocess any of the parameters defined
+  in the ``_prob_params`` file, which are defined in ``probdata_module``.
 
   .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here.  This is used to note the
+     from ``prob_params_module`` here (in C++, the ``center[]`` variable
+     from the ``problem`` namespace).  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  The arguments include the name and length of the probin file
+  In Fortran the arguments include the name and length of the probin file
   as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``).
+  (``problo``) and upper-right corner (``probhi``). The C++ version
+  accepts no arguments, but for example ``problo`` and ``probhi`` can
+  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
-* ``ca_initdata()``:
+* ``ca_initdata()`` (Fortran) or ``initialize_problem_state_data()`` (C++):
 
   This routine will initialize the state data for a single grid.
-  The inputs to this routine are:
+  In Fortran the inputs to this routine are:
 
   -  ``level``: the level of refinement of the grid we are filling
 
@@ -168,10 +169,23 @@ Filling data is typically done in a loop like::
 Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
 from the zone indices, ``i``, ``j``, and ``k``.
 
+  In C++, the arguments passed are:
 
+  - ``i``, ``j``, ``k``: the index of the zone to fill the data in
+
+  - ``state``: an array containing the simulation state data
+
+  - ``GeomData``: a ``GeometryData`` object that can be used for obtaining
+    ``dx``, ``problo``, ``probhi``, etc.
+
+  Filling data is done by simply writing to ``state(i,j,k,URHO)``, etc.
+
+.. _create:bcs:
 
 Boundary conditions
 -------------------
+
+.. index:: boundary conditions
 
 Standard boundary conditions, including outflow (zero-gradient), periodic,
 and symmetry (reflect) are handled by AMReX directly.  Castro has a special
@@ -189,13 +203,36 @@ hydrostatic boundary condition here, we set::
    castro.hse_interp_temp = 1
    castro.hse_reflect_vels = 1
 
-The first parameter tells Castro to use the HSE boundary condition.  The next two
-control how the temperature and velocity are treated.
+The first parameter tells Castro to use the HSE boundary condition.
+In filling the ghost cells, hydrostatic equilibrum will be integrated
+from the last interior zone into the boundary.  We need one more
+equation for this integration, so we either interpolate the density or
+temperature into the ghost cells, depending on the value of
+``castro.hse_interp_temp``.  Finally, ``castro.hse_reflect_vels``
+determines how we treat the velocity.  The default is to give is a
+zero gradient, but in tests we've found that reflecting the velocity
+while integrating the HSE profile can be better.  For modeling a
+plane-parallel hydrostatic atmosphere, using the hydrostatic boundary
+conditions instead of a simple symmetry boundary is essential when
+using the standard CTU PPM solver.
 
-A different special boundary condition, ``"interp"`` is available at
+A different special boundary condition, based on outflow, is available at
 the upper boundary.  This works together with the ``model_parser``
 module to fill the ghost cells at the upper boundary with the initial
-model data.
+model data.  You set this as::
+
+   castro.hi_bc = 2 2
+
+   castro.fill_ambient_bc = 1
+   castro.ambient_fill_dir = 1
+   castro.ambient_outflow_vel = 1
+
+where ``ambient_fill_dir`` is the 0-based direction to fill using an
+ambient state defined by the problem setup.  In this example, we will
+override the outflow (2) boundary condition in the y-direction.  That
+problem setup needs to fill the ``ambient_state(:)`` array defined in
+``ambient_module``.  An example of using this boundary is in the
+``flame_wave`` problem.
 
 The implementations of these boundary conditions is found in
 ``Castro/Source/problems/bc_ext_fill_nd.F90``.
@@ -211,9 +248,9 @@ Optional Files
 The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.
 
--  ``Problem.f90`` :
+-  ``problem_checkpoint.H``, ``problem_restart.H`` :
 
-   This provides two routines, ``problem_checkpoint`` and
+   These provides two routines, respectively ``problem_checkpoint`` and
    ``problem_restart`` that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
@@ -222,15 +259,14 @@ each of these in the main source tree.
    runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   ``Problem_F.H`` provides the C++ interfaces for these routines.
 
--  ``problem_tagging_?d.F90``, ``problem_tagging_nd.F90``
+-  ``problem_tagging_nd.F90`` OR ``problem_tagging.H``
 
    This implements problem-specific tagging for refinement, through a
-   subroutine ``set_problem_tags``. The full hydrodynamic state
-   (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the tag variable for a zone to
-   set. An example is provided by the ``toy_convect``
+   subroutine ``set_problem_tags`` (Fortran) or function ``problem_tagging``
+   (C++). The full hydrodynamic state (State_Type) is passed in, and the
+   problem can mark zones for refinement by setting the tag variable for
+   a zone to set. An example is provided by the ``toy_convect``
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
@@ -251,7 +287,7 @@ each of these in the main source tree.
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
--  ``Prob.cpp``, ``Problem.H``, ``Problem_F.H``
+-  ``Prob.cpp``, ``Problem.H``
 
    These files provide problem-specific routines for computing global
    diagnostic information through the sum_integrated_quantities

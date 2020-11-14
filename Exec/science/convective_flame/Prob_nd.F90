@@ -22,8 +22,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   real(rt) :: dx_model
   integer :: ng
 
-  call probdata_init(name, namlen)
-
   refine_cutoff_height = problo(2) + refine_cutoff_frac * (probhi(2) - problo(2))
 
   ! get the species indices

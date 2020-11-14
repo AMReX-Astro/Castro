@@ -20,10 +20,8 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   real(rt) :: omega(3)
 
-  call probdata_init(name, namlen)
-
 #ifdef ROTATION
-  call get_omega(ZERO, omega)
+  call get_omega(omega)
 #else
   ! Provide a dummy value so that we can compile without rotation.
   omega = [ZERO, ZERO, TWO * M_PI]
@@ -87,7 +85,7 @@ contains
     !$gpu
 
 #ifdef ROTATION
-    call get_omega(ZERO, omega)
+    call get_omega(omega)
 #else
     omega = [ZERO, ZERO, TWO * M_PI]
 #endif

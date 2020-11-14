@@ -1,9 +1,9 @@
-#include "Castro.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
 #endif
 
 using namespace amrex;
@@ -14,19 +14,19 @@ using namespace amrex;
 void
 Castro::trans_single(const Box& bx,
                      int idir_t, int idir_n,
-                     Array4<Real const> const qm,
-                     Array4<Real> const qmo,
-                     Array4<Real const> const qp,
-                     Array4<Real> const qpo,
-                     Array4<Real const> const qaux_arr,
-                     Array4<Real const> const flux_t,
+                     Array4<Real const> const& qm,
+                     Array4<Real> const& qmo,
+                     Array4<Real const> const& qp,
+                     Array4<Real> const& qpo,
+                     Array4<Real const> const& qaux_arr,
+                     Array4<Real const> const& flux_t,
 #ifdef RADIATION
-                     Array4<Real const> const rflux_t,
+                     Array4<Real const> const& rflux_t,
 #endif
-                     Array4<Real const> const q_t,
+                     Array4<Real const> const& q_t,
 #if AMREX_SPACEDIM == 2
-                     Array4<Real const> const area_t,
-                     Array4<Real const> const vol,
+                     Array4<Real const> const& area_t,
+                     Array4<Real const> const& vol,
 #endif
                      Real hdt, Real cdtdx)
 {
@@ -66,17 +66,17 @@ Castro::trans_single(const Box& bx,
 void
 Castro::actual_trans_single(const Box& bx,
                             int idir_t, int idir_n, int d,
-                            Array4<Real const> const q_arr,
-                            Array4<Real> const qo_arr,
-                            Array4<Real const> const qaux_arr,
-                            Array4<Real const> const flux_t,
+                            Array4<Real const> const& q_arr,
+                            Array4<Real> const& qo_arr,
+                            Array4<Real const> const& qaux_arr,
+                            Array4<Real const> const& flux_t,
 #ifdef RADIATION
-                            Array4<Real const> const rflux_t,
+                            Array4<Real const> const& rflux_t,
 #endif
-                            Array4<Real const> const q_t,
+                            Array4<Real const> const& q_t,
 #if AMREX_SPACEDIM == 2
-                            Array4<Real const> const area_t,
-                            Array4<Real const> const vol,
+                            Array4<Real const> const& area_t,
+                            Array4<Real const> const& vol,
 #endif
                             Real hdt, Real cdtdx)
 {
@@ -110,7 +110,8 @@ Castro::actual_trans_single(const Box& bx,
     int closure = Radiation::closure;
 #endif
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // We are handling the states at the interface of
@@ -431,22 +432,22 @@ Castro::actual_trans_single(const Box& bx,
 void
 Castro::trans_final(const Box& bx,
                     int idir_n, int idir_t1, int idir_t2,
-                    Array4<Real const> const qm,
-                    Array4<Real> const qmo,
-                    Array4<Real const> const qp,
-                    Array4<Real> const qpo,
-                    Array4<Real const> const qaux_arr,
-                    Array4<Real const> const flux_t1,
+                    Array4<Real const> const& qm,
+                    Array4<Real> const& qmo,
+                    Array4<Real const> const& qp,
+                    Array4<Real> const& qpo,
+                    Array4<Real const> const& qaux_arr,
+                    Array4<Real const> const& flux_t1,
 #ifdef RADIATION
-                    Array4<Real const> const rflux_t1,
+                    Array4<Real const> const& rflux_t1,
 #endif
-                    Array4<Real const> const flux_t2,
+                    Array4<Real const> const& flux_t2,
 #ifdef RADIATION
-                    Array4<Real const> const rflux_t2,
+                    Array4<Real const> const& rflux_t2,
 #endif
-                    Array4<Real const> const q_t1,
-                    Array4<Real const> const q_t2,
-                    Real hdt, Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                    Array4<Real const> const& q_t1,
+                    Array4<Real const> const& q_t2,
+                    Real cdtdx_t1, Real cdtdx_t2)
 {
     // Evaluate the transverse terms for both
     // the minus and plus states.
@@ -464,7 +465,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       hdt, cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
     actual_trans_final(bx, idir_n, idir_t1, idir_t2, 0,
                        qp, qpo,
@@ -479,7 +480,7 @@ Castro::trans_final(const Box& bx,
 #endif
                        q_t1,
                        q_t2,
-                       hdt, cdtdx_n, cdtdx_t1, cdtdx_t2);
+                       cdtdx_t1, cdtdx_t2);
 
 }
 
@@ -488,20 +489,20 @@ Castro::trans_final(const Box& bx,
 void
 Castro::actual_trans_final(const Box& bx,
                            int idir_n, int idir_t1, int idir_t2, int d,
-                           Array4<Real const> const q_arr,
-                           Array4<Real> const qo_arr,
-                           Array4<Real const> const qaux_arr,
-                           Array4<Real const> const flux_t1,
+                           Array4<Real const> const& q_arr,
+                           Array4<Real> const& qo_arr,
+                           Array4<Real const> const& qaux_arr,
+                           Array4<Real const> const& flux_t1,
 #ifdef RADIATION
-                           Array4<Real const> const rflux_t1,
+                           Array4<Real const> const& rflux_t1,
 #endif
-                           Array4<Real const> const flux_t2,
+                           Array4<Real const> const& flux_t2,
 #ifdef RADIATION
-                           Array4<Real const> const rflux_t2,
+                           Array4<Real const> const& rflux_t2,
 #endif
-                           Array4<Real const> const q_t1,
-                           Array4<Real const> const q_t2,
-                           Real hdt, Real cdtdx_n, Real cdtdx_t1, Real cdtdx_t2)
+                           Array4<Real const> const& q_t1,
+                           Array4<Real const> const& q_t2,
+                           Real cdtdx_t1, Real cdtdx_t2)
 {
 
     bool reset_density = transverse_reset_density;
@@ -515,7 +516,8 @@ Castro::actual_trans_final(const Box& bx,
     int closure = Radiation::closure;
 #endif
 
-    AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
         // the normal state

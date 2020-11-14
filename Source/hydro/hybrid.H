@@ -1,13 +1,21 @@
-#ifndef _Castro_hybrid_H_
-#define _Castro_hybrid_H_
+#ifndef CASTRO_HYBRID_H
+#define CASTRO_HYBRID_H
 
-#include "Castro_util.H"
+#include <Castro_util.H>
 
 using namespace amrex;
 
 // Avoid the singularity in cylindrical coordinates
 static AMREX_GPU_MANAGED Real R_min = std::numeric_limits<Real>::min();
 
+///
+/// For hybrid momentum advection, convert the linear momentum into the
+/// hybrid / angular momentum components
+///
+/// @param loc         spatial location
+/// @param linear_mom  linear momentum
+/// @param hybrid_mom  hybrid / angular momentum
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void linear_to_hybrid(const GpuArray<Real, 3>& loc,
                       const GpuArray<Real, 3>& linear_mom,
@@ -35,6 +43,13 @@ void linear_to_hybrid(const GpuArray<Real, 3>& loc,
 }
 
 
+///
+/// Convert the hybrid / angular momentum back to linear momentum
+///
+/// @param loc          spatial location
+/// @param hybrid_mom   hybrid / angular momentum
+/// @param linear_mom   linear momentum
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void hybrid_to_linear(const GpuArray<Real, 3>& loc,
                       const GpuArray<Real, 3>& hybrid_mom,
@@ -53,6 +68,14 @@ void hybrid_to_linear(const GpuArray<Real, 3>& loc,
 }
 
 
+///
+/// Create the hydrodynamic source term for the hybrid momenta based on the
+/// input linear momentum source term
+///
+/// @param loc             spatial location
+/// @param linear_source   linear momentum source term
+/// @param hybrid_source   hybrid / angular momentum source term
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
                                 const GpuArray<Real, 3>& linear_source,
@@ -69,9 +92,21 @@ void set_hybrid_momentum_source(const GpuArray<Real, 3>& loc,
 }
 
 
+///
+/// Compute and store the flux of the hybrid momentum components
+///
+/// @param state          the Godunov state
+/// @param geomdata       the Castro geometry data object
+/// @param idir           coordinate direction for flux computation (0 = x, 1 = y, 2 = z)
+/// @param i              x zone index
+/// @param j              y zone index
+/// @param k              z zone indxe
+/// @param flux           hydrodynamic flux in direction idir
+/// @param cell_centered  is this a cell-centered flux or an interface flux?
+///
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData& geomdata,
-                         const GpuArray<Real, 3>& center, int idir, int i, int j, int k,
+                         int idir, int i, int j, int k,
                          GpuArray<Real, NUM_STATE>& flux, bool cell_centered = false)
 {
     bool ccx = true;
@@ -93,7 +128,7 @@ void compute_hybrid_flux(const GpuArray<Real, NGDNV>& state, const GeometryData&
     position(i, j, k, geomdata, loc, ccx, ccy, ccz);
 
     for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
 
     GpuArray<Real, 3> linear_mom;
 

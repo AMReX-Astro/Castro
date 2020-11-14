@@ -1,11 +1,36 @@
-#ifndef _Gravity_H_
-#define _Gravity_H_
+#ifndef GRAVITY_H
+#define GRAVITY_H
 
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
+#include <gravity_params.H>
+
 // This vector can be accessed on the GPU.
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;
+
+///
+/// Multipole gravity data
+///
+namespace multipole {
+    const int lnum_max = 30;
+
+    extern AMREX_GPU_MANAGED amrex::Real volumeFactor;
+    extern AMREX_GPU_MANAGED amrex::Real parityFactor;
+
+    extern AMREX_GPU_MANAGED amrex::Real rmax;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doSymmetricAddHi;
+    extern AMREX_GPU_MANAGED bool doSymmetricAdd;
+
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionLo;
+    extern AMREX_GPU_MANAGED amrex::Array1D<bool, 0, 2> doReflectionHi;
+
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> factArray;
+    extern AMREX_GPU_MANAGED amrex::Array1D<amrex::Real, 0, lnum_max> parity_q0;
+    extern AMREX_GPU_MANAGED amrex::Array2D<amrex::Real, 0, lnum_max, 0, lnum_max> parity_qC_qS;
+}
 
 ///
 /// @class Gravity
@@ -195,10 +220,8 @@ public:
 ///
 /// @param level                        Base level index
 /// @param finest_level                 Fine level index
-/// @param use_previous_phi_as_guess    integer, should we use the previous phi as a guess?
 ///
-  void multilevel_solve_for_new_phi (int level, int finest_level,
-                                     int use_previous_phi_as_guess = 0);
+  void multilevel_solve_for_new_phi (int level, int finest_level);
 
 ///
 /// Actually do the multilevel solve for new phi from base level to finest level
@@ -207,12 +230,10 @@ public:
 /// @param finest_level     Fine level index
 /// @param grad_phi         gradient of phi
 /// @param is_new           Should we use the new state (1) or previous state (0)?
-/// @param use_previous_phi_as_guess    integer, should we use the previous phi as a guess?
 ///
   void actual_multilevel_solve      (int level, int finest_level,
                                      const amrex::Vector<amrex::Vector<amrex::MultiFab*> >& grad_phi,
-                                     int is_new,
-                                     int use_previous_phi_as_guess = 0);
+                                     int is_new);
 
 
 ///
@@ -261,6 +282,29 @@ public:
 ///
   void get_new_grav_vector(int level, amrex::MultiFab& grav_vector, amrex::Real time);
 
+///
+/// Test whether using the edge-based gradients
+/// to compute Div(Grad(Phi)) satisfies Lap(phi) = RHS
+///
+/// @param bx          box
+/// @param rhs         right-hand-side
+/// @param ecx         gradients wrt x
+/// @param ecy         gradients wrt y
+/// @param ecz         gradients wrt z
+/// @param coord_type  coordinate system
+
+  void test_residual (const amrex::Box& bx,
+                      amrex::Array4<amrex::Real> const& rhs,
+                      amrex::Array4<amrex::Real> const& ecx,
+#if AMREX_SPACEDIM >= 2
+                      amrex::Array4<amrex::Real> const& ecy,
+#endif
+#if AMREX_SPACEDIM == 3
+                      amrex::Array4<amrex::Real> const& ecz,
+#endif
+                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> dx,
+                      amrex::GpuArray<amrex::Real, AMREX_SPACEDIM> problo,
+                      int coord_type);
 
 ///
 /// @param level
@@ -313,16 +357,21 @@ public:
   void make_prescribed_grav(int level, amrex::Real time, amrex::MultiFab& grav, amrex::MultiFab& phi);
 
 ///
-/// Integrate radially outward to find radial gravitational potential
+/// Integrate radially outward to find radial mass distribution
 ///
-/// @param level        Current level
-/// @param Rhs          density (rhs of Poisson's equation)
-/// @param phi          Non-radial gravitational potential
-/// @param fill_interior    integer
+/// @param bx           Box
+/// @param u            Density (RHS of Poisson's equation)
+/// @param radial_mass  Radially integrated mass
+/// @param radial_vol   Radially integrated volume
+/// @param n1d          Number of radial points in the domain
+/// @param level        Level index
 ///
-  void make_radial_phi(int level, const amrex::MultiFab& Rhs, amrex::MultiFab& phi, int fill_interior);
+  void compute_radial_mass(const amrex::Box& bx,
+                           amrex::Array4<amrex::Real const> const u,
+                           RealVector& radial_mass,
+                           RealVector& radial_vol,
+                           int n1d, int level);
 
-#if (BL_SPACEDIM > 1)
 ///
 /// Implement multipole boundary conditions
 ///
@@ -337,7 +386,7 @@ public:
 /// Initialize multipole gravity
 ///
   void init_multipole_grav();
-#endif
+
 #if (BL_SPACEDIM == 3)
 
 ///
@@ -355,8 +404,6 @@ public:
 /// Make multigrid boundary conditions
 ///
   void make_mg_bc();
-
-protected:
 
 ///
 /// Pointers to amr,amrlevel.
@@ -427,9 +474,6 @@ protected:
 
   static amrex::Real max_radius_all_in_domain;
 
-#include "gravity_params.H"
-
-
 #if (BL_SPACEDIM < 3)
 
 ///
@@ -465,8 +509,6 @@ protected:
 /// @param point_mass   Mass of pointmass
 ///
     void add_pointmass_to_gravity (int level, amrex::MultiFab& phi, amrex::MultiFab& grav_vector, amrex::Real point_mass);
-
-private:
 
 ///
 /// Get the rhs
@@ -534,7 +576,7 @@ public:
 
   inline amrex::Real
   get_const_grav() {
-    return const_grav;
+    return gravity::const_grav;
   }
 
 

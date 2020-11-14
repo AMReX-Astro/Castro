@@ -23,5 +23,7 @@
 
 &extern
 
+  small_x = 1.e-10
+  atol_spec = 1.e-12
 
 /

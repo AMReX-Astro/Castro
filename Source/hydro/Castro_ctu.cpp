@@ -1,32 +1,33 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 using namespace amrex;
 
 void
 Castro::consup_hydro(const Box& bx,
-                     Array4<Real const> const shk,
-                     Array4<Real> const update,
-                     Array4<Real> const flux0,
-                     Array4<Real const> const qx,
-                     Array4<Real const> const area0,
+#ifdef SHOCK_VAR
+                     Array4<Real const> const& shk,
+#endif
+                     Array4<Real> const& update,
+                     Array4<Real> const& flux0,
+                     Array4<Real const> const& qx,
+                     Array4<Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
-                     Array4<Real> const flux1,
-                     Array4<Real const> const qy,
-                     Array4<Real const> const area1,
+                     Array4<Real> const& flux1,
+                     Array4<Real const> const& qy,
+                     Array4<Real const> const& area1,
 #endif
 #if AMREX_SPACEDIM == 3
-                     Array4<Real> const flux2,
-                     Array4<Real const> const qz,
-                     Array4<Real const> const area2,
+                     Array4<Real> const& flux2,
+                     Array4<Real const> const& qz,
+                     Array4<Real const> const& area2,
 #endif
-                     Array4<Real const> const vol,
+                     Array4<Real const> const& vol,
                      const Real dt)
 {
 
@@ -39,10 +40,8 @@ Castro::consup_hydro(const Box& bx,
 
   int coord = geom.Coord();
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
-  AMREX_PARALLEL_FOR_4D(bx, NUM_STATE, i, j, k, n,
+  amrex::ParallelFor(bx, NUM_STATE,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
   {
 
     Real volinv = 1.0 / vol(i,j,k);
@@ -98,22 +97,22 @@ Castro::consup_hydro(const Box& bx,
 
 void
 Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
-                       Array4<Real const> const q_arr,
-                       Array4<Real const> const flatn,
-                       Array4<Real const> const qaux_arr,
-                       Array4<Real const> const srcQ,
-                       Array4<Real> const qxm,
-                       Array4<Real> const qxp,
+                       Array4<Real const> const& q_arr,
+                       Array4<Real const> const& flatn,
+                       Array4<Real const> const& qaux_arr,
+                       Array4<Real const> const& srcQ,
+                       Array4<Real> const& qxm,
+                       Array4<Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                       Array4<Real> const qym,
-                       Array4<Real> const qyp,
+                       Array4<Real> const& qym,
+                       Array4<Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                       Array4<Real> const qzm,
-                       Array4<Real> const qzp,
+                       Array4<Real> const& qzm,
+                       Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const dloga,
+                       Array4<Real const> const& dloga,
 #endif
                        const Real dt) {
 
@@ -163,22 +162,22 @@ Castro::ctu_ppm_states(const Box& bx, const Box& vbx,
 #ifdef RADIATION
 void
 Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
-                           Array4<Real const> const q_arr,
-                           Array4<Real const> const flatn,
-                           Array4<Real const> const qaux_arr,
-                           Array4<Real const> const srcQ,
-                           Array4<Real> const qxm,
-                           Array4<Real> const qxp,
+                           Array4<Real const> const& q_arr,
+                           Array4<Real const> const& flatn,
+                           Array4<Real const> const& qaux_arr,
+                           Array4<Real const> const& srcQ,
+                           Array4<Real> const& qxm,
+                           Array4<Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                           Array4<Real> const qym,
-                           Array4<Real> const qyp,
+                           Array4<Real> const& qym,
+                           Array4<Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                           Array4<Real> const qzm,
-                           Array4<Real> const qzp,
+                           Array4<Real> const& qzm,
+                           Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                           Array4<Real const> const dloga,
+                           Array4<Real const> const& dloga,
 #endif
                            const Real dt) {
 
@@ -225,23 +224,22 @@ Castro::ctu_ppm_rad_states(const Box& bx, const Box& vbx,
 
 void
 Castro::ctu_plm_states(const Box& bx, const Box& vbx,
-                       Array4<Real const> const q_arr,
-                       Array4<Real const> const flatn_arr,
-                       Array4<Real const> const qaux_arr,
-                       Array4<Real const> const srcQ,
-                       Array4<Real> const dq,
-                       Array4<Real> const qxm,
-                       Array4<Real> const qxp,
+                       Array4<Real const> const& q_arr,
+                       Array4<Real const> const& flatn_arr,
+                       Array4<Real const> const& qaux_arr,
+                       Array4<Real const> const& srcQ,
+                       Array4<Real> const& qxm,
+                       Array4<Real> const& qxp,
 #if AMREX_SPACEDIM >= 2
-                       Array4<Real> const qym,
-                       Array4<Real> const qyp,
+                       Array4<Real> const& qym,
+                       Array4<Real> const& qyp,
 #endif
 #if AMREX_SPACEDIM == 3
-                       Array4<Real> const qzm,
-                       Array4<Real> const qzp,
+                       Array4<Real> const& qzm,
+                       Array4<Real> const& qzp,
 #endif
 #if AMREX_SPACEDIM < 3
-                       Array4<Real const> const dloga,
+                       Array4<Real const> const& dloga,
 #endif
                        const Real dt) {
 
@@ -264,26 +262,11 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
   // Compute all slopes
   for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
 
-    for (int n = 0; n < NQ; n++) {
-      if (n == QTEMP)
-        continue;
-
-      uslope(bx, idir,
-             q_arr, n,
-             flatn_arr, dq);
-    }
-
-    if (use_pslope == 1) {
-      pslope(bx, idir,
-             q_arr,
-             flatn_arr, dq, srcQ);
-    }
-
     // compute the interface states
 
     if (idir == 0) {
       trace_plm(bx, 0,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qxm, qxp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -293,7 +276,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM >= 2
     } else if (idir == 1) {
       trace_plm(bx, 1,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qym, qyp,
 #if AMREX_SPACEDIM < 3
                 dloga,
@@ -304,7 +287,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 #if AMREX_SPACEDIM == 3
     } else {
       trace_plm(bx, 2,
-                q_arr, qaux_arr, dq,
+                q_arr, qaux_arr, flatn_arr,
                 qzm, qzp,
                 srcQ, vbx, dt);
 #endif
@@ -326,7 +309,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
     if (idir == 0) {
       if (lo_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -346,7 +330,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
       if (hi_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -368,7 +353,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
       if (lo_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -388,7 +374,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
       if (hi_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -411,7 +398,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
       if (lo_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -431,7 +419,8 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
       if (hi_bc_test) {
 
-        AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -456,13 +445,13 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
 void
 Castro::src_to_prim(const Box& bx,
-                    Array4<Real const> const q_arr,
-                    Array4<Real const> const qaux_arr,
-                    Array4<Real const> const src,
-                    Array4<Real> const srcQ)
+                    Array4<Real const> const& q_arr,
+                    Array4<Real const> const& src,
+                    Array4<Real> const& srcQ)
 {
 
-  AMREX_PARALLEL_FOR_3D(bx, i, j, k,
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
 
 
@@ -480,9 +469,11 @@ Castro::src_to_prim(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = q_arr(i,j,k,QFX+n);
       }
+#endif
 
       eos(eos_input_re, eos_state);
 

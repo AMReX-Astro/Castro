@@ -1,15 +1,17 @@
-#ifndef _Radiation_H_
-#define _Radiation_H_
+#ifndef CASTRO_RADIATION_H
+#define CASTRO_RADIATION_H
 
 #include <AMReX_AmrLevel.H>
 
-#include "Castro.H"
-#include "RadTypes.H"
-#include "RadBndry.H"
-#include "MGRadBndry.H"
-#include "RadSolve.H"
+#include <Castro.H>
+#include <RadTypes.H>
+#include <RadBndry.H>
+#include <MGRadBndry.H>
+#include <RadSolve.H>
 #include <AMReX_FluxRegister.H>
 #include <AMReX_Array.H>
+
+#include <radiation_params.H>
 
 ///
 /// @class Radiation
@@ -110,8 +112,6 @@ public:
   static std::string current_group_name;
 
   static int pure_hydro;
-
-#include <radiation_params.H>
 
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > plotvar;
 

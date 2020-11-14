@@ -4,7 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro static
+@namespace: castro Castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -33,9 +33,6 @@ update_sources_after_reflux  int           1
 
 # should we apply the sources one by one or all at once?
 apply_sources_consecutively  int           0
-
-# should we have state data for custom load-balancing weighting?
-use_custom_knapsack_weights  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
@@ -92,9 +89,12 @@ hybrid_hydro                 int           0                  y
 # 2: extrema-preserving ppm
 ppm_type                     int           1                  y
 
+# For MHD + PLM, do we limit on characteristic or primitive variables
+mhd_limit_characteristic     int           1
+
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y
+ppm_temp_fix                 int           0                  y 
 
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
@@ -176,13 +176,9 @@ limit_fluxes_on_small_dens   int           0                  y
 # Should we limit the momentum fluxes so that we do not create large velocities?
 limit_fluxes_on_large_vel    int           0                  y
 
-# If we're limiting the fluxes to avoid large velocities, this is the speed limit.
-speed_limit                  Real          2.99792458e10      y
-
-# Which method to use when resetting a negative/small density
-# 1 = Reset to characteristics of adjacent zone with largest density
-# 2 = Use average of all adjacent zones for all state variables
-density_reset_method         int           1                  y
+# Enforce the magnitude of the velocity to be no larger than this number (and
+# optionally limit the fluxes as well). Only applies if it is greater than 0.
+speed_limit                  Real          0.0                y
 
 # permits sponge to be turned on and off
 do_sponge                    int           0                  y
@@ -202,22 +198,28 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zr_ext_bc_type               int          -1                  y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -296,8 +298,9 @@ fixed_dt                     Real         -1.0
 # constraints)
 initial_dt                   Real         -1.0
 
-# the smallest valid timestep---if we go below this, we abort
-dt_cutoff                    Real          0.0
+# the smallest valid timestep, as a fraction of the current simulation time.
+# if we go below this, we abort.
+dt_cutoff                    Real          1.e-12
 
 # the largest valid timestep---limit all timesteps to be no larger than this
 max_dt                       Real          1.e200
@@ -331,8 +334,11 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
-# Check for a possible post-timestep regrid if certain stability
-# criteria were violated.
+# Skip retries for small (or negative) density if the zone's density prior
+# to the update was below this threshold.
+retry_small_density_cutoff   Real         -1.e200
+
+# Regrid after every timestep.
 use_post_step_regrid         int           0
 
 # Do not permit more subcycled timesteps than this parameter.
@@ -350,6 +356,11 @@ sdc_iters                    int           2
 # energy of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
+
+# Limit the timestep based on how much the burning can change the temperature
+# of a zone. The timestep is equal to
+# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
+dtnuc_T                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
@@ -382,6 +393,9 @@ disable_shock_burning        int           0                  y
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
+
+# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
+reactions_max_solve_level    int           100
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -422,18 +436,11 @@ do_rotation                  int          -1                  y
 # the rotation period for the corotating frame
 rotational_period            Real         -1.e200             y        ROTATION        rot_period
 
-# the rotation periods time evolution---this allows the rotation rate to
-# change durning the simulation time
-rotational_dPdt              Real          0.0                y        ROTATION        rot_period_dot
-
 # permits the centrifugal terms in the rotation to be turned on and off
 rotation_include_centrifugal int           1                  y        ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
 rotation_include_coriolis    int           1                  y        ROTATION
-
-# permits the d(omega)/dt terms in the rotation to be turned on and off
-rotation_include_domegadt    int           1                  y        ROTATION
 
 # Which reference frame to measure the state variables with respect to.
 # The standard in the literature when using a rotating reference frame
@@ -528,14 +535,13 @@ spherical_star               int           0
 # do we dump the old state into the checkpoint files too?
 dump_old                     bool          false
 
-# display warnings in Fortran90 routines
-print_fortran_warnings       int           (0, 1)
+# do we assume the domain is plane parallel when computing some of the derived
+# quantities (e.g. radial velocity).  Note: this will always assume that the
+# last spatial dimension is vertical
+domain_is_plane_parallel     bool          false
 
 # display information about updates to the state (how much mass, momentum, energy added)
 print_update_diagnostics     int           (0, 1)
-
-# calculate losses of material through physical grid boundaries
-track_grid_losses            int            0                    y
 
 # how often (number of coarse timesteps) to compute integral sums (for runtime diagnostics)
 sum_interval                 int           -1
@@ -577,7 +583,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro static
+@namespace: particles Castro
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -605,7 +611,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity static
+@namespace: gravity Gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -661,7 +667,7 @@ mlmg_consolidation           int           1                  n
 # Do N-Solve?
 mlmg_nsolve                  int           0                  n
 
-@namespace: diffusion Diffusion static
+@namespace: diffusion Diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
@@ -670,7 +676,7 @@ mlmg_nsolve                  int           0                  n
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
 
-@namespace: radsolve RadSolve static
+@namespace: radsolve RadSolve
 
 # the linear solver option to use
 level_solver_flag            int           1                  n
@@ -689,7 +695,7 @@ beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
 
-@namespace: radiation Radiation static
+@namespace: radiation Radiation
 
 prop_temp_floor              Real          0.0                y
 

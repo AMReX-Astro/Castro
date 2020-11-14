@@ -2,8 +2,8 @@
 #include <AMReX_ParmParse.H>
 #include <AMReX_LO_BCTYPES.H>
 
-#include "HypreABec.H"
-#include "HABEC_F.H"
+#include <HypreABec.H>
+#include <HABEC_F.H>
 
 #include <iostream>
 
@@ -11,7 +11,7 @@
 #include <omp.h>
 #endif
 
-#include "_hypre_struct_mv.h"
+#include <_hypre_struct_mv.h>
 
 using namespace amrex;
 

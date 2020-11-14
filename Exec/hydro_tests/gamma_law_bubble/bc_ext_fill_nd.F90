@@ -85,7 +85,7 @@ contains
        ! initial guess
        temp(j) = T_guess
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -116,7 +116,7 @@ contains
        ! initial guess
        temp(j) = T_guess
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -414,7 +414,7 @@ contains
 
     do j = 0, npts_1d+4
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))
@@ -427,7 +427,7 @@ contains
 
     do j=-1,-5,-1
 
-       if (do_isentropic) then
+       if (do_isentropic == 1) then
           z = dble(j) * delta(AMREX_SPACEDIM)
           density(j) = dens_base*(const_grav*dens_base*(gamma_const - ONE)*z/ &
                (gamma_const*pres_base) + ONE)**(ONE/(gamma_const - ONE))

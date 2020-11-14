@@ -3,20 +3,13 @@
 ///
 /// @param state        Current state
 /// @param reactions    MultiFab to save reaction sources to
-/// @param mask
-/// @param weights
 /// @param time         current time
-/// @param dt_react     reaction timestep
-/// @param strang_half  Is this a Strang-split half timestep?
-/// @param ngrow        Number of ghost cells
+/// @param dt           reaction timestep
 ///
     bool react_state(amrex::MultiFab& state,
                      amrex::MultiFab& reactions,
-                     const amrex::iMultiFab& mask,
-                     amrex::MultiFab& weights,
                      amrex::Real time,
-                     amrex::Real dt_react,
-                     int strang_half, int  ngrow = 0);
+                     amrex::Real dt);
 
 ///
 /// Simplified SDC version of react_state. Reacts the current state through a single timestep.
@@ -25,23 +18,6 @@
 /// @param dt       timestep
 ///
     bool react_state(amrex::Real time, amrex::Real dt);
-
-///
-/// React through first half timestep
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    bool strang_react_first_half(amrex::Real time, amrex::Real dt);
-
-
-///
-/// React through second half stimestep
-///
-/// @param time     current time
-/// @param dt       timestep
-///
-    bool strang_react_second_half(amrex::Real time, amrex::Real dt);
 
 ///
 /// Are there any zones in ``State`` that can burn?

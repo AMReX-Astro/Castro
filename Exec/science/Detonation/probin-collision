@@ -16,6 +16,10 @@
   vel = 2.0d8
 
   grav_acceleration = 1.1d8
+
+  use_early_stopping = 1
+  T_stop_cutoff = 4.d9
+  ts_te_stop_cutoff = 1.d200
 /
 
 &tagging
@@ -26,13 +30,13 @@
   max_denerr_lev = 0
 
   tempgrad_rel = 0.5
-  max_tempgrad_rel_lev = 20
+  max_tempgrad_rel_lev = 0
 
   dengrad_rel = 0.5
   max_dengrad_rel_lev = 0
 
-  dxnuc_min = 0.1
-
+  dxnuc_min = 1.d-16
+  max_dxnuc_lev = 20
 /
 
 &extern
@@ -40,8 +44,6 @@
 
   use_eos_coulomb = T
   eos_input_is_constant = T
-
-  burning_mode = 1
 
   do_constant_volume_burn = T
   call_eos_in_rhs = T

@@ -21,8 +21,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   call castro_error("ERROR: this problem only works for 2-d")
 #endif
 
-  call probdata_init(name, namlen)
-
   ! set local variable defaults -- the 'center' variables are the
   ! location of the
 

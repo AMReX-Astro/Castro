@@ -1,27 +1,41 @@
 
 CEXE_sources += Prob.cpp
-FEXE_headers += Problem_F.H
 CEXE_headers += Problem.H
 CEXE_headers += Problem_Derives.H
 CEXE_headers += Problem_Derive.H
 CEXE_sources += Problem_Derive.cpp
 FEXE_headers += Problem_Derive_F.H
+CEXE_headers += problem_setup.H
+CEXE_headers += problem_tagging.H
+CEXE_headers += problem_checkpoint.H
+CEXE_headers += problem_restart.H
+CEXE_headers += problem_bc_fill.H
 
 ca_F90EXE_sources += bc_fill_nd.F90
 ca_F90EXE_sources += bc_ext_fill_nd.F90
+ifeq ($(USE_CXX_MODEL_PARSER),TRUE)
+  CEXE_headers += bc_ext_fill.H
+endif
 ca_F90EXE_sources += Prob_nd.F90
+ifeq ($(USE_GRAV),TRUE)
+  CEXE_sources += hse_fill.cpp
+endif
+ifeq ($(USE_MHD),TRUE)
+  ca_F90EXE_sources += Prob_mhd_nd.F90
+  CEXE_headers += problem_mhd_setup.H
+endif
 ca_F90EXE_sources += problem_tagging_nd.F90
 FEXE_headers += Castro_bc_fill_nd_F.H
 CEXE_headers += Castro_bc_fill_nd.H
 CEXE_sources += Castro_bc_fill_nd.cpp
 FEXE_headers += Castro_bc_ext_fill_nd_F.H
-CEXE_headers += Castro_bc_ext_fill_nd.H
-CEXE_sources += Castro_bc_ext_fill_nd.cpp
 
 ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
 
-ca_F90EXE_sources += ambient.F90
+CEXE_headers += ambient.H
+CEXE_sources += ambient.cpp
+ca_F90EXE_sources += ambient_nd.F90
 
 ifeq ($(USE_RAD),TRUE)
   ca_F90EXE_sources += emissivity_override.F90

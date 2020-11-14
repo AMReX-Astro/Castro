@@ -38,9 +38,9 @@ threads.
 The code structure in the Castro/ directory reflects the
 division between C++ and Fortran.
 
--  ``constants/``: contains a file of useful constants in CGS units
+-  ``Diagnostics/``: various analysis routines for specific problems
 
--  ``docs/``: you’re reading this now!
+-  ``Docs/``: you’re reading this now!
 
 -  ``Exec/``: various problem implementations, sorted by category:
 
@@ -58,22 +58,14 @@ division between C++ and Fortran.
 
    -  ``unit_tests/``: test problems that exercise primarily a single module
 
--  ``external/Microphysics/``: contains directories for different default
-   microphysics (these are all implemented in Fortran)
+-  ``external/``: if you are using git submodules, the Microphysics and AMReX git
+   submodules will be in this directory.
 
-   -  ``conductivity/``: the thermal conductivity
+-  ``paper/``: the JOSS paper source
 
-   -  ``EOS/``: the equation of state
-
-   -  ``networks/``: the nuclear reaction networks
-
-   -  ``opacity/``: the radiative opacity (used with radiation)
-
-   -  ``viscosity/``: the viscous transport coefficient
-
-- ``Source/``: source code. In this main directory is all of the
-  code. Sources are mixed C++ and Fortran and are organized by topic
-  as:
+-  ``Source/``: source code. In this main directory is all of the
+   code. Sources are mixed C++ and Fortran and are organized by topic
+   as:
 
    -  ``diffusion/`` : thermal diffusion code
 
@@ -82,6 +74,8 @@ division between C++ and Fortran.
    -  ``gravity/`` : self-gravity code
 
    -  ``hydro/`` : the compressible hydrodynamics code
+
+   -  ``mhd/`` : the MHD solver code
 
    -  ``particles/`` : support for particles
 
@@ -94,6 +88,8 @@ division between C++ and Fortran.
    -  ``rotation/`` : rotating code
 
    -  ``scf/`` : the self-consistent field initialization support
+
+   -  ``sdc/``: code specified for the true SDC method
 
    -  ``sources/`` : hydrodynamics source terms support
 
@@ -301,13 +297,6 @@ The current ``StateData`` names Castro carries are:
    When rotation is enabled, this will store the effective potential
    corresponding to the centrifugal force.
 
--  ``Rotation_Type`` : this is the rotational acceleration.
-   There are always 3 components, regardless of the dimensionality
-   (consistent with our choice of always carrying all 3 velocity
-   components). This includes the terms corresponding to the Coriolis
-   force, the centrifugal force, as well as optional terms due to the
-   change in rotation rate, :math:`\Omega`.
-
 -  ``Source_Type`` : this holds the time-rate of change of
    the source terms, :math:`d\Sb/dt`, for each of the ``NUM_STATE``
    ``State_Type`` variables.
@@ -329,7 +318,16 @@ The current ``StateData`` names Castro carries are:
    and for reaction timestep limiting (this in particular needs the
    data stored in checkpoints for continuity of timestepping upon restart).
 
--  ``SDC_React_Type`` : this is used with the SDC
+- ``Mag_Type_x`` : this is defined for MHD and stores the
+   face-centered (on x-faces) x-component of the magnetic field.
+
+- ``Mag_Type_y`` : this is defined for MHD and stores the
+   face-centered (on y-faces) y-component of the magnetic field.
+
+- ``Mag_Type_z`` : this is defined for MHD and stores the
+   face-centered (on z-faces) z-component of the magnetic field.
+
+-  ``Simplified_SDC_React_Type`` : this is used with the SDC
    time-advancement algorithm. This stores the ``NQSRC`` terms
    that describe how the primitive variables change over the timestep
    due only to reactions. These are used when predicting the interface
@@ -985,6 +983,8 @@ AMReX that can get around this, but we do not use them in Castro.
 Physical Boundaries
 -------------------
 
+.. index:: boundary conditions
+
 Physical boundary conditions are specified by an integer index [4]_ in
 the ``inputs`` file, using the ``castro.lo_bc`` and ``castro.hi_bc`` runtime
 parameters. The generally supported boundary conditions are, their
@@ -1018,12 +1018,11 @@ routines are discussed more below.
 If you want to specify a value at a function (like at an inflow
 boundary), then you choose an *inflow* boundary at that face of
 the domain. You then need to write the implementation code for this.
-An example is the problem toy_convect which implements a
-hydrostatic lower boundary (through its custom ``bc_fill_?d.F90``
-routines.
+There is a centralized hydrostatic boundary condition that is implemented
+this way—see :ref:`create:bcs`.
 
 .. _table:castro:bcs:
-.. table:: Physical boundary conditions supported in Castro. why does slipwall and noslipwall do the same thing?
+.. table:: Physical boundary conditions supported in Castro.
 
    +-------------+-------------+-------------+--------------+--------------+
    | **name**    | **integer** | **normal    | **transverse | **scalars**  |

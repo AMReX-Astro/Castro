@@ -17,7 +17,7 @@ geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9         # Lower boundary limits in ph
 geometry.prob_hi =  5.12e9  5.12e9  5.12e9         # Upper boundary limits in physical space
 castro.center =      0.0e0   0.0e0   0.0e0         # System center of mass
 
-castro.dt_cutoff = 1.e-8                           # Level 0 timestep below which we halt
+
 castro.cfl = 0.5                                   # CFL number for hyperbolic system
 castro.init_shrink = 0.1                           # Scale back initial timestep by this factor
 castro.change_max = 1.1                            # Factor by which dt is allowed to change each timestep
@@ -45,6 +45,12 @@ amr.n_cell = 96 96 96                              # Number of cells on the coar
 amr.max_level = 1                                  # Maximum level number allowed
 amr.ref_ratio = 2
 
+amr.refinement_indicators = temperature
+
+amr.refine.temperature.max_level = 4
+amr.refine.temperature.value_greater = 2.e8
+amr.refine.temperature.field_name = Temp
+
 amr.max_grid_size = 32                             # Maximum grid size at each level
 amr.blocking_factor = 16                           # Grid sizes must be a multiple of this
 
@@ -62,7 +68,6 @@ castro.add_ext_src = 1                             # Whether or not to apply ext
 castro.ext_src_implicit = 1
 castro.do_rotation = 0                             # Whether or not to include the rotation source term
 castro.rotational_period = 100.0                   # Rotational period of the rotating reference frame
-castro.rotational_dPdt = -0.0                      # Time rate of change of the rotational period
 castro.implicit_rotation_update = 1                # Implicit rotation coupling
 
 ############################################################################################
@@ -113,6 +118,6 @@ castro.v = 1                                       # Control verbosity in Castro
 gravity.v = 1                                      # Control verbosity in Gravity.cpp
 mg.v = 2                                           # Control verbosity in the multigrid solver
 
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
 
 amr.derive_plot_vars = NONE

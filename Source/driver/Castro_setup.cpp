@@ -1,21 +1,23 @@
 #include <cstdio>
 
-#include "AMReX_LevelBld.H"
+#include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include "eos.H"
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_bc_fill_nd_F.H"
-#include "Castro_bc_fill_nd.H"
-#include "Castro_generic_fill.H"
-#include <Derive_F.H>
-#include "Derive.H"
+#include <eos.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_fill_nd.H>
+#include <Castro_generic_fill.H>
+#include <Derive.H>
 #ifdef RADIATION
-# include "Radiation.H"
-# include "RAD_F.H"
+# include <Radiation.H>
+# include <RAD_F.H>
 #endif
+#include <Problem_Derive_F.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
+#include <microphysics_F.H>
+#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -43,6 +45,13 @@ static int tang_vel_bc[] =
   {
     INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, REFLECT_EVEN, REFLECT_EVEN
   };
+
+#ifdef MHD
+static int mag_field_bc[] = 
+{
+  INT_DIR, EXT_DIR, FOEXTRAP, REFLECT_EVEN, FOEXTRAP, HOEXTRAP
+};
+#endif
 
 static
 void
@@ -111,6 +120,22 @@ set_z_vel_bc(BCRec& bc, const BCRec& phys_bc)
 #endif
 }
 
+
+#ifdef MHD
+static
+void
+set_mag_field_bc(BCRec& bc, const BCRec& phys_bc)
+{
+    const int* lo_bc = phys_bc.lo();
+    const int* hi_bc = phys_bc.hi();
+    for (int i = 0; i < BL_SPACEDIM; i++)
+    {
+        bc.setLo(i, mag_field_bc[lo_bc[i]]);
+        bc.setHi(i, mag_field_bc[hi_bc[i]]);
+    }
+}
+#endif
+
 // In some cases we want to replace inflow boundaries with
 // first-order extrapolation boundaries. This is intended to
 // be used for state data that the user is not going to
@@ -176,6 +201,16 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // read the probdata parameters
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
+
+  for (int i = 0; i < probin_file_length; i++) {
+    probin_file_name[i] = probin_file[i];
+  }
+
+  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
+
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
@@ -203,12 +238,14 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  ca_microphysics_init();
 
-  // Initialize the network
-  ca_network_init();
+  // now initialize the C++ Microphysics
+#ifdef REACTIONS
+  network_init();
+#endif
 
-  // Initialize the EOS
-  ca_eos_init();
   eos_init();
 
   // Ensure that Castro's small variables are consistent
@@ -224,9 +261,6 @@ Castro::variableSetUp ()
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
-  int abort_on_failure;
-  ca_get_abort_on_failure(&abort_on_failure);
-
 #ifdef TRUE_SDC
   // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
   if (use_retry) {
@@ -245,24 +279,18 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
-#endif
-
-#ifdef SPONGE
-  // Initialize the sponge
-  sponge_init();
-#endif
-
   // Initialize the amr info
   amrinfo_init();
 
 
   const int dm = BL_SPACEDIM;
 
-  // Define NUM_GROW from the f90 module.
-  ca_get_method_params(&NUM_GROW);
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+#ifdef MHD
+  NUM_GROW = 6;
+#else
+  NUM_GROW = 4;
+#endif
 
   const Real run_strt = ParallelDescriptor::second() ;
 
@@ -299,38 +327,40 @@ Castro::variableSetUp ()
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
 
-  if (ParallelDescriptor::IOProcessor())
+  if (ParallelDescriptor::IOProcessor()) {
     std::cout << "\nTime in ca_set_method_params: " << run_stop << '\n' ;
+  }
 
   const Geometry& dgeom = DefaultGeometry();
 
   const int coord_type = dgeom.Coord();
 
-  // Get the center variable from the inputs and pass it directly to Fortran.
-  Vector<Real> center(BL_SPACEDIM, 0.0);
-  ParmParse ppc("castro");
-  ppc.queryarr("center",center,0,BL_SPACEDIM);
-
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
                         Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
+                        dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
 
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++)
-    probin_file_name[i] = probin_file[i];
-
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
 #ifdef SPONGE
+  // Initialize the sponge
+
+  sponge_init();
+
   // Read in the parameters for the sponge
   // and store them in the Fortran module.
 
-  ca_get_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+  ca_read_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
+
+  // bring the sponge parameters into C++
+  ca_get_sponge_params(sponge_lower_factor, sponge_upper_factor,
+                       sponge_lower_radius, sponge_upper_radius,
+                       sponge_lower_density, sponge_upper_density,
+                       sponge_lower_pressure, sponge_upper_pressure,
+                       sponge_target_velocity, sponge_timescale);
+
 #endif
 
   // Read in the ambient state parameters.
@@ -343,10 +373,12 @@ Castro::variableSetUp ()
     interp = &pc_interp;
   }
   else {
-    if (lin_limit_state_interp == 1)
+    if (lin_limit_state_interp == 1) {
       interp = &lincc_interp;
-    else
+    }
+    else {
       interp = &cell_cons_interp;
+    }
   }
 
   // Note that the default is state_data_extrap = false,
@@ -356,7 +388,7 @@ Castro::variableSetUp ()
   bool state_data_extrap = false;
   bool store_in_checkpoint;
 
-#ifdef RADIATION
+#if defined(RADIATION) 
   // Radiation should always have at least one ghost zone.
   int ngrow_state = std::max(1, state_nghost);
 #else
@@ -369,6 +401,25 @@ Castro::variableSetUp ()
   desc_lst.addDescriptor(State_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,ngrow_state,NUM_STATE,
                          interp,state_data_extrap,store_in_checkpoint);
+
+#ifdef MHD
+  store_in_checkpoint = true;
+  IndexType xface(IntVect{AMREX_D_DECL(1,0,0)});
+  desc_lst.addDescriptor(Mag_Type_x, xface,
+                         StateDescriptor::Point, 0, 1, 
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+  IndexType yface(IntVect{AMREX_D_DECL(0,1,0)});
+  desc_lst.addDescriptor(Mag_Type_y, yface,
+                         StateDescriptor::Point, 0, 1,
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+  IndexType zface(IntVect{AMREX_D_DECL(0,0,1)});
+  desc_lst.addDescriptor(Mag_Type_z, zface,
+                         StateDescriptor::Point, 0, 1,
+                         interp, state_data_extrap,
+                         store_in_checkpoint);
+#endif
 
 #ifdef GRAVITY
   store_in_checkpoint = true;
@@ -390,7 +441,7 @@ Castro::variableSetUp ()
   // advance, so it behaves the same way as CTU here.
 
   store_in_checkpoint = true;
-  int source_ng;
+  int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
@@ -414,21 +465,17 @@ Castro::variableSetUp ()
                          StateDescriptor::Point, 1, 1,
                          &cell_cons_interp, state_data_extrap,
                          store_in_checkpoint);
-
-  store_in_checkpoint = false;
-  desc_lst.addDescriptor(Rotation_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 
 #ifdef REACTIONS
-  // Components 0:Numspec-1         are      omegadot_i
-  // Component    NumSpec            is      enuc =      (eout-ein)
-  // Component    NumSpec+1          is  rho_enuc= rho * (eout-ein)
+  // Components 0:NumSpec-1                are rho * omegadot_i
+  // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
+  // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
+  // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,0,NumSpec+2,
+                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
                          &cell_cons_interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -506,8 +553,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumSpec << " Species: " << std::endl;
-      for (int i = 0; i < NumSpec; i++)
+      for (int i = 0; i < NumSpec; i++) {
         std::cout << short_spec_names_cxx[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -518,6 +566,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -527,8 +576,9 @@ Castro::variableSetUp ()
   if ( ParallelDescriptor::IOProcessor())
     {
       std::cout << NumAux << " Auxiliary Variables: " << std::endl;
-      for (int i = 0; i < NumAux; i++)
+      for (int i = 0; i < NumAux; i++) {
         std::cout << aux_names[i] << ' ' << ' ';
+      }
       std::cout << std::endl;
     }
 
@@ -538,6 +588,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -556,6 +607,15 @@ Castro::variableSetUp ()
 
   BndryFunc genericBndryFunc(ca_generic_fill);
   genericBndryFunc.setRunOnGPU(true);
+
+#ifdef MHD
+  set_mag_field_bc(bc, phys_bc);
+  desc_lst.setComponent(Mag_Type_x, 0, "b_x", bc, BndryFunc(ca_face_fillx));
+  desc_lst.setComponent(Mag_Type_y, 0, "b_y", bc, BndryFunc(ca_face_filly));
+  desc_lst.setComponent(Mag_Type_z, 0, "b_z", bc, BndryFunc(ca_face_fillz));
+#endif
+
+
 
 #ifdef GRAVITY
   set_scalar_bc(bc,phys_bc);
@@ -576,15 +636,6 @@ Castro::variableSetUp ()
   set_scalar_bc(bc,phys_bc);
   replace_inflow_bc(bc);
   desc_lst.setComponent(PhiRot_Type,0,"phiRot",bc,genericBndryFunc);
-  set_x_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,0,"rot_x",bc,genericBndryFunc);
-  set_y_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,1,"rot_y",bc,genericBndryFunc);
-  set_z_vel_bc(bc,phys_bc);
-  replace_inflow_bc(bc);
-  desc_lst.setComponent(Rotation_Type,2,"rot_z",bc,genericBndryFunc);
 #endif
 
   // Source term array will use source fill
@@ -604,15 +655,24 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   std::string name_react;
-  for (int i=0; i<NumSpec; ++i)
+  for (int i = 0; i < NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
-      name_react = "omegadot_" + short_spec_names_cxx[i];
+      name_react = "rho_omegadot_" + short_spec_names_cxx[i];
       desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
     }
-  desc_lst.setComponent(Reactions_Type, NumSpec  , "enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+1, "rho_enuc", bc, genericBndryFunc);
+#if NAUX_NET > 0
+  std::string name_aux;
+  for (int i = 0; i < NumAux; ++i) {
+      set_scalar_bc(bc,phys_bc);
+      replace_inflow_bc(bc);
+      name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
+      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
+  }
+#endif
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "burn_weights", bc, genericBndryFunc); 
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -662,17 +722,6 @@ Castro::variableSetUp ()
   // some optional State_Type's -- since these depend on the value of
   // runtime parameters, we don't add these to the enum, but instead
   // add them to the count of State_Type's if we will use them
-
-  if (use_custom_knapsack_weights) {
-      Knapsack_Weight_Type = desc_lst.size();
-      desc_lst.addDescriptor(Knapsack_Weight_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point,
-                             0, 1, &pc_interp);
-      // Because we use piecewise constant interpolation, we do not use bc and BndryFunc.
-      desc_lst.setComponent(Knapsack_Weight_Type, 0, "KnapsackWeight",
-                            bc, BndryFunc(ca_nullfill));
-  }
-
 
 #ifdef REACTIONS
   if (time_integration_method == SpectralDeferredCorrections && sdc_order == 4) {
@@ -799,8 +848,9 @@ Castro::variableSetUp ()
   derive_lst.add("magvort",IndexType::TheCellType(),1,ca_dermagvort,grow_box_by_one);
   // Here we exploit the fact that UMX = URHO + 1
   //   in order to use the correct interpolation.
-  if (UMX != URHO+1)
+  if (UMX != URHO+1) {
     amrex::Error("We are assuming UMX = URHO + 1 in Castro_setup.cpp");
+  }
   derive_lst.addComponent("magvort",desc_lst,State_Type,URHO,4);
 
   //
@@ -843,12 +893,15 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
+#ifndef NSE_THERMO
   //
   // Abar
+  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+#endif
 
   //
   // Velocities
@@ -873,7 +926,14 @@ Castro::variableSetUp ()
   //
   derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
   derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec,1);
+  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+
+  //
+  // Nuclear energy generation rate
+  //
+  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
+  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
@@ -883,6 +943,10 @@ Castro::variableSetUp ()
   derive_lst.add("radvel",IndexType::TheCellType(),1,ca_derradialvel,the_same_box);
   derive_lst.addComponent("radvel",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("radvel",desc_lst,State_Type,UMX,3);
+
+  derive_lst.add("circvel",IndexType::TheCellType(),1,ca_dercircvel,the_same_box);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,URHO,1);
+  derive_lst.addComponent("circvel",desc_lst,State_Type,UMX,3);
 
   derive_lst.add("magmom",IndexType::TheCellType(),1,ca_dermagmom,the_same_box);
   derive_lst.addComponent("magmom",desc_lst,State_Type,UMX,3);
@@ -925,12 +989,61 @@ Castro::variableSetUp ()
   }
 #endif
 
+#ifdef MHD
+//Electric Field at the face
+//
+//Magentic Field Cell Centered
+//x component
+  derive_lst.add("B_x", IndexType::TheCellType(), 1, ca_dermagcenx, the_same_box);
+  derive_lst.addComponent("B_x", desc_lst, Mag_Type_x, 0, 1);
+//y component
+  derive_lst.add("B_y", IndexType::TheCellType(), 1, ca_dermagceny, the_same_box);
+  derive_lst.addComponent("B_y", desc_lst, Mag_Type_y, 0, 1);
+//z component
+  derive_lst.add("B_z", IndexType::TheCellType(), 1, ca_dermagcenz, the_same_box);
+  derive_lst.addComponent("B_z", desc_lst, Mag_Type_z, 0, 1);
+
+//Electric Field
+//x component
+  derive_lst.add("E_x", IndexType::TheCellType(), 1, ca_derex, the_same_box);
+  derive_lst.addComponent("E_x", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("E_x", desc_lst, Mag_Type_z, 0, 1);
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Ymom, 1);
+  derive_lst.addComponent("E_x", desc_lst, State_Type, Zmom, 1);
+
+//y component
+  derive_lst.add("E_y", IndexType::TheCellType(), 1, ca_derey, the_same_box);
+  derive_lst.addComponent("E_y", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("E_y", desc_lst, Mag_Type_z, 0, 1);
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Xmom, 1);
+  derive_lst.addComponent("E_y", desc_lst, State_Type, Zmom, 1);
+
+//z component
+  derive_lst.add("E_z", IndexType::TheCellType(), 1, ca_derez, the_same_box);
+  derive_lst.addComponent("E_z", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("E_z", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Density, 1); //For velocities
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Xmom, 1);
+  derive_lst.addComponent("E_z", desc_lst, State_Type, Ymom, 1);
+
+//Divergence of B
+  derive_lst.add("Div_B", IndexType::TheCellType(), 1, ca_derdivb, the_same_box);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_x, 0, 1);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_y, 0, 1);
+  derive_lst.addComponent("Div_B", desc_lst, Mag_Type_z, 0, 1); 
+  
+#endif 
+
+
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
+#endif
 
   //
   // Problem-specific adds
@@ -989,8 +1102,9 @@ Castro::variableSetUp ()
 
   // Fill with an empty string to initialize.
 
-  for (int n = 0; n < num_src; ++n)
+  for (int n = 0; n < num_src; ++n) {
     source_names[n] = "";
+  }
 
   source_names[ext_src] = "user-defined external";
   source_names[thermo_src] = "pdivU source";
@@ -1014,33 +1128,6 @@ Castro::variableSetUp ()
   source_names[rot_src] = "rotation";
 #endif
 
-#ifdef AMREX_USE_CUDA
-  // Set the minimum number of threads needed per
-  // threadblock to do BC fills with CUDA. We will
-  // force this to be 8. The reason is that it is
-  // not otherwise guaranteed for our thread blocks
-  // to be aligned with the grid in such a way that
-  // the synchronization logic in amrex_filccn works
-  // out. We need at least NUM_GROW + 1 threads in a
-  // block for CTU. If we used this minimum of 5, we
-  // would hit cases where this doesn't work since
-  // our blocking_factor is usually a power of 2, and
-  // the thread blocks would not be aligned to guarantee
-  // that the threadblocks containing the ghost zones
-  // contained all of the ghost zones, as well as the
-  // required interior zone. And for reflecting BCs,
-  // we need NUM_GROW * 2 == 8 threads anyway. This logic
-  // then requires that blocking_factor be a multiple
-  // of 8. It is a little wasteful for SDC and for
-  // problems that only have outflow BCs, but the BC
-  // fill is not the expensive part of the algorithm
-  // for our production science problems anyway, so
-  // we ignore this extra cost in favor of safety.
-
-  for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
-      numBCThreadsMin[dim] = 8;
-  }
-#endif
 
 
 #ifdef TRUE_SDC

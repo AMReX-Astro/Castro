@@ -1,5 +1,5 @@
-#ifndef _Castro_generic_fill_H_
-#define _Castro_generic_fill_H_
+#ifndef CASTRO_GENERIC_FILL_H
+#define CASTRO_GENERIC_FILL_H
 
 #include <AMReX_BLFort.H>
 #include <Castro.H>
@@ -10,16 +10,6 @@
 #endif
 
 #ifdef AMREX_USE_CUDA
-static void set_bc_launch_config()
-{
-    amrex::Gpu::Device::setNumThreadsMin(Castro::minBCThreads(0), Castro::minBCThreads(1), Castro::minBCThreads(2));
-}
-
-static void clean_bc_launch_config()
-{
-    amrex::Gpu::Device::setNumThreadsMin(1, 1, 1);
-}
-
 // Return a pointer to bc valid for use in Fortran. For the CPU this is a no-op.
 
 static int* prepare_bc(const int* bc, const int nvar)
@@ -39,11 +29,11 @@ static void clean_bc(int* bc_f)
 struct CastroGenericFill
 {
     AMREX_GPU_DEVICE
-    void operator() (const IntVect& iv, Array4<Real> const& data,
-                     const int dcomp, const int numcomp,
-                     GeometryData const& geom, const Real time,
-                     const BCRec* bcr, const int bcomp,
-                     const int orig_comp) const
+    void operator() (const IntVect& /*iv*/, Array4<Real> const& /*data*/,
+                     const int /*dcomp*/, const int /*numcomp*/,
+                     GeometryData const& /*geom*/, const Real /*time*/,
+                     const BCRec* /*bcr*/, const int /*bcomp*/,
+                     const int /*orig_comp*/) const
         {
             // Dummy routine that does nothing for inflow boundaries.
             // We assume that there are no inflow boundaries for a

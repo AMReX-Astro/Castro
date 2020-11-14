@@ -38,10 +38,13 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: ng
 
   type(eos_t) :: eos_state
+<<<<<<< HEAD
 
   ! get the problm parameters
   call probdata_init(name, namlen)
 
+=======
+>>>>>>> 3903438b28fa872edc9ac105744bac7c2512c2bb
 
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
@@ -154,7 +157,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
 #if AMREX_SPACEDIM == 2
   ! for axisymmetry, put the x-center on the x-axis
+  ! and the y-center at 0, so the height computation is okay
   center(1) = ZERO
+  center(2) = ZERO
 #endif
 
   ! set the ambient state for the upper boundary condition
@@ -196,6 +201,7 @@ subroutine ca_initdata(lo, hi, &
   use initial_model_module, only: gen_npts_model, gen_model_r, gen_model_state, &
                                   idens_model, itemp_model, ipres_model, ispec_model
   use interpolate_module, only: interpolate ! function
+  use prob_params_module, only : center
 
   implicit none
 
@@ -218,10 +224,10 @@ subroutine ca_initdata(lo, hi, &
      z = problo(3) + (dble(k) + HALF) * dx(3)
 
      do j = lo(2), hi(2)
-        y = problo(2) + (dble(j) + HALF) * dx(2)
+        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
 
         do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1)
+           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
 
            ! lateral distance
            if (AMREX_SPACEDIM == 1) then

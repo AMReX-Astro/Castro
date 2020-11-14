@@ -17,6 +17,44 @@ module sdc_util
 
 contains
 
+  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
+
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UFS
+    use amrex_constants_module, only: ONE
+    use extern_probin_module, only: small_x
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
+    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+
+    ! Local variables
+    integer  :: i, j, k
+    real(rt) :: xn(nspec)
+
+    !$gpu
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xn = u(i,j,k,UFS:UFS+nspec-1)
+
+             xn = max(small_x * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
+
+             xn = u(i,j,k,URHO) * (xn / sum(xn))
+
+             u(i,j,k,UFS:UFS+nspec-1) = xn
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_normalize_species
+
 #ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
     ! this is the main interface to solving the discretized nonlinear
@@ -509,7 +547,7 @@ contains
     ! this is used with the Newton solve and returns f and the Jacobian
 
     use vode_rpar_indices
-    use meth_params_module, only : nvar, URHO, UFS, UEINT, UEDEN, UMX, UMZ, UTEMP, &
+    use meth_params_module, only : nvar, URHO, UFS, UFX, UEINT, UEDEN, UMX, UMZ, UTEMP, &
          sdc_solve_for_rhoe
     use network, only : nspec
     use burn_type_module
@@ -576,6 +614,7 @@ contains
     eos_state % rho = U_full(URHO)
     eos_state % T = rpar(irp_temp)   ! initial guess
     eos_state % xn(:) = U_full(UFS:UFS-1+nspec)/U_full(URHO)
+    eos_state % aux(:) = U_full(UFX:UFX-1+naux)/U_full(URHO)
     eos_state % e = U_full(UEINT)/U_full(URHO)  !(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
     call eos(eos_input_re, eos_state)

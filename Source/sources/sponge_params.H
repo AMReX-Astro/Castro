@@ -1,0 +1,10 @@
+static amrex::Real sponge_lower_factor;
+static amrex::Real sponge_upper_factor;
+static amrex::Real sponge_lower_radius;
+static amrex::Real sponge_upper_radius;
+static amrex::Real sponge_lower_density;
+static amrex::Real sponge_upper_density;
+static amrex::Real sponge_lower_pressure;
+static amrex::Real sponge_upper_pressure;
+static amrex::Real sponge_target_velocity[3];
+static amrex::Real sponge_timescale;

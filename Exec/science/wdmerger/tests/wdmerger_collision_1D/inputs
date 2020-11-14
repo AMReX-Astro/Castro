@@ -49,9 +49,6 @@ stop_time = 100.0
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
 
-# Level 0 timestep below which we halt
-castro.dt_cutoff = 1.e-8
-
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
@@ -159,9 +156,6 @@ castro.transverse_reset_rhoe = 1
 # Reset rho if it goes negative in the transverse terms
 castro.transverse_reset_density = 1
 
-# Choose the method used on a negative density reset
-castro.density_reset_method = 2
-
 # Explicitly limit fluxes to avoid hitting a negative density
 castro.limit_fluxes_on_small_dens = 0
 
@@ -174,9 +168,6 @@ castro.small_temp = 1.e7
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
-
-# Disable the possibility of having a negative energy
-castro.allow_small_energy = 0
 
 # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta1 = 1.0e-3
@@ -215,9 +206,6 @@ castro.react_rho_max = 1.0e12
 
 # Calculate and print the center of mass at each time step
 castro.show_center_of_mass = 1
-
-# Diagnostics on mass/momentum/energy lost through physical ground boundaries
-castro.track_grid_losses = 1
 
 # Timesteps between computing and printing volume averaged diagnostic quantities
 castro.sum_interval = 1
@@ -293,4 +281,4 @@ amr.derive_plot_vars = ALL
 amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
-amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out bndy_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out

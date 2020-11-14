@@ -1,14 +1,12 @@
 #include <AMReX_ParmParse.H>
-#include "Diffusion.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Diffusion.H>
+#include <Castro.H>
+#include <Castro_F.H>
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
 
-#define MAX_LEV 15
-
-#include "diffusion_defaults.H"
+#include <castro_limits.H>
 
 using namespace amrex;
 
@@ -21,32 +19,16 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
-    read_params();
     make_mg_bc();
 }
 
 Diffusion::~Diffusion() {}
 
-void
-Diffusion::read_params ()
-{
-    static bool done = false;
-
-    if (!done)
-    {
-        ParmParse pp("diffusion");
-
-#include "diffusion_queries.H"
-
-        done = true;
-    }
-}
-
 
 void 
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
-#include "diffusion_job_info_tests.H"
+#include <diffusion_job_info_tests.H>
 }
 
 
@@ -81,8 +63,9 @@ Diffusion::applyop (int level, MultiFab& Temperature,
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel      
 #endif
@@ -97,8 +80,9 @@ Diffusion::weight_cc(int level, MultiFab& cc)
 void
 Diffusion::unweight_cc(int level, MultiFab& cc)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto dx = parent->Geom(level).CellSizeArray();
     const int coord_type = parent->Geom(level).Coord();
+
 #ifdef _OPENMP
 #pragma omp parallel      
 #endif
@@ -156,10 +140,15 @@ Diffusion::applyop_mlmg (int level, MultiFab& Temperature,
     const Geometry& geom = parent->Geom(level);
     const BoxArray& ba = Temperature.boxArray();
     const DistributionMapping& dm = Temperature.DistributionMap();
-    
-    MLABecLaplacian mlabec({geom}, {ba}, {dm},
-                           LPInfo().setMetricTerm(true).setMaxCoarseningLevel(0));
-    mlabec.setMaxOrder(mlmg_maxorder);
+
+    LPInfo info;
+    info.setMetricTerm(true);
+    info.setMaxCoarseningLevel(0);
+    info.setAgglomeration(0);
+    info.setConsolidation(0);
+
+    MLABecLaplacian mlabec({geom}, {ba}, {dm}, info);
+    mlabec.setMaxOrder(diffusion::mlmg_maxorder);
 
     mlabec.setDomainBC(mlmg_lobc, mlmg_hibc);
 

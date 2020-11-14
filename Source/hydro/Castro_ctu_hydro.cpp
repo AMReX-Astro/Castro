@@ -1,15 +1,14 @@
-#include "Castro.H"
-#include "Castro_util.H"
-#include "Castro_F.H"
-#include "Castro_hydro.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_util.H>
+#include <Castro_F.H>
+#include <Castro_hydro.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 using namespace amrex;
@@ -30,15 +29,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   hydro_source.setVal(0.0);
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
+#endif
 
+#if AMREX_SPACEDIM == 2
   int coord = geom.Coord();
+#endif
 
   const Real *dx = geom.CellSize();
-  auto dx_arr = geom.CellSizeArray();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   MultiFab& S_new = get_new_data(State_Type);
 
@@ -50,25 +49,23 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   }
 
   int nstep_fsp = -1;
-#endif
 
-  Real mass_lost = 0.;
-  Real xmom_lost = 0.;
-  Real ymom_lost = 0.;
-  Real zmom_lost = 0.;
-  Real eden_lost = 0.;
-  Real xang_lost = 0.;
-  Real yang_lost = 0.;
-  Real zang_lost = 0.;
+  AmrLevel::FillPatch(*this, Erborder, NUM_GROW, time, Rad_Type, 0, Radiation::nGroups);
+
+  MultiFab lamborder(grids, dmap, Radiation::nGroups, NUM_GROW);
+  if (radiation->pure_hydro) {
+      lamborder.setVal(0.0, NUM_GROW);
+  }
+  else {
+      radiation->compute_limiter(level, grids, Sborder, Erborder, lamborder);
+  }
+#endif
 
 #ifdef _OPENMP
 #ifdef RADIATION
-#pragma omp parallel reduction(max:nstep_fsp) \
-                     reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#pragma omp parallel reduction(max:nstep_fsp)
 #else
-#pragma omp parallel reduction(+:mass_lost,xmom_lost,ymom_lost,zmom_lost) \
-                     reduction(+:eden_lost,xang_lost,yang_lost,zang_lost)
+#pragma omp parallel
 #endif
 #endif
   {
@@ -86,8 +83,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
     FArrayBox flatg;
 #endif
-    FArrayBox dq;
     FArrayBox shk;
+    FArrayBox q, qaux;
     FArrayBox src_q;
     FArrayBox qxm, qxp;
 #if AMREX_SPACEDIM >= 2
@@ -168,8 +165,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToDevice();
-          qaux[mfi].prefetchToDevice();
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
           hydro_source[mfi].prefetchToDevice();
@@ -187,8 +182,28 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
       }
 
-      Array4<Real const> const q_arr = q.array(mfi);
-      Array4<Real const> const qaux_arr = qaux.array(mfi);
+      // Compute the primitive variables (both q and qaux) from
+      // the conserved variables.
+
+      const Box& qbx = amrex::grow(bx, NUM_GROW);
+
+      q.resize(qbx, NQ);
+      Elixir elix_q = q.elixir();
+      fab_size += q.nBytes();
+      Array4<Real> const q_arr = q.array();
+
+      qaux.resize(qbx, NQ);
+      Elixir elix_qaux = qaux.elixir();
+      fab_size += qaux.nBytes();
+      Array4<Real> const qaux_arr = qaux.array();
+
+      ctoprim(qbx, time, Sborder.array(mfi),
+#ifdef RADIATION
+              Erborder.array(mfi), lamborder.array(mfi),
+#endif
+              q_arr, qaux_arr);
+
+
 
       Array4<Real const> const areax_arr = area[0].array(mfi);
 #if AMREX_SPACEDIM >= 2
@@ -212,7 +227,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (first_order_hydro == 1) {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 0.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+          flatn_arr(i,j,k) = 0.0;
+        });
       } else if (use_flattening == 1) {
 
         uflatten(obx, q_arr, flatn_arr, QPRES);
@@ -220,9 +239,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
         uflatten(obx, q_arr, flatg_arr, QPTOT);
 
-        Real flatten_pp_thresh = Radiation::flatten_pp_threshold;
+        Real flatten_pp_thresh = radiation::flatten_pp_threshold;
 
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k,
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
           flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
@@ -239,7 +259,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       } else {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { flatn_arr(i,j,k) = 1.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+          flatn_arr(i,j,k) = 1.0;
+        });
       }
 
       const Box& xbx = amrex::surroundingNodes(bx, 0);
@@ -272,12 +296,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         shock(obx, q_arr, shk_arr);
       }
       else {
-        AMREX_PARALLEL_FOR_3D(obx, i, j, k, { shk_arr(i,j,k) = 0.0; });
+        amrex::ParallelFor(obx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+          shk_arr(i,j,k) = 0.0;
+        });
       }
 
       // get the primitive variable hydro sources
-
-      const Box& qbx = amrex::grow(bx, NUM_GROW);
 
       src_q.resize(qbx, NQSRC);
       Elixir elix_src_q = src_q.elixir();
@@ -286,7 +312,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-      src_to_prim(qbx, q_arr, qaux_arr, src_arr, src_q_arr);
+      src_to_prim(qbx, q_arr, src_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC
@@ -349,17 +375,11 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (ppm_type == 0) {
 
-        dq.resize(obx, NQ);
-        Elixir elix_dq = dq.elixir();
-        fab_size += dq.nBytes();
-        auto dq_arr = dq.array();
-
         ctu_plm_states(obx, bx,
                        q_arr,
                        flatn_arr,
                        qaux_arr,
                        src_q_arr,
-                       dq_arr,
                        qxm_arr, qxp_arr,
 #if AMREX_SPACEDIM >= 2
                        qym_arr, qyp_arr,
@@ -534,10 +554,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       auto qgdnvtmp1_arr = qgdnvtmp1.array();
       fab_size += qgdnvtmp1.nBytes();
 
+#if AMREX_SPACEDIM == 3
       qgdnvtmp2.resize(obx, NGDNV);
       Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
       auto qgdnvtmp2_arr = qgdnvtmp2.array();
       fab_size += qgdnvtmp2.nBytes();
+#endif
 
       ql.resize(obx, NQ);
       Elixir elix_ql = ql.elixir();
@@ -968,7 +990,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdy, hdtdz);
 
       reset_edge_state_thermo(xbx, ql.array());
 
@@ -1039,7 +1061,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp2_arr,
                   qgdnvtmp1_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdz);
 
       reset_edge_state_thermo(ybx, ql.array());
 
@@ -1112,7 +1134,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
                   qgdnvtmp1_arr,
                   qgdnvtmp2_arr,
-                  hdt, hdtdx, hdtdy, hdtdz);
+                  hdtdx, hdtdy);
 
       reset_edge_state_thermo(zbx, ql.array());
 
@@ -1141,13 +1163,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           const Box& nbx = amrex::surroundingNodes(bx, idir);
 
-          int idir_f = idir + 1;
-
           Array4<Real> const flux_arr = (flux[idir]).array();
           Array4<Real const> const uin_arr = Sborder.array(mfi);
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
-          AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+          amrex::ParallelFor(nbx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1168,7 +1189,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_small_dens
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1179,7 +1200,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
               limit_hydro_fluxes_on_large_vel
                   (nbx, idir,
                    Sborder.array(mfi),
-                   q.array(mfi),
+                   q.array(),
                    volume.array(mfi),
                    flux[idir].array(),
                    area[idir].array(mfi),
@@ -1209,7 +1230,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       consup_hydro(bx,
+#ifdef SHOCK_VAR
                    shk_arr,
+#endif
                    update_arr,
                    flx_arr, qx_arr, areax_arr,
 #if AMREX_SPACEDIM >= 2
@@ -1223,6 +1246,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #ifdef HYBRID_MOMENTUM
+      auto dx_arr = geom.CellSizeArray();
+
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
@@ -1232,46 +1257,42 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-              loc[dir] -= center[dir];
+              loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;
 
-          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - ((loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0] +
-                                                           (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1]);
-
+          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];
+#if AMREX_SPACEDIM >= 2
+          update_arr(i,j,k,UMR) -= (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1];
+#endif
       });
 #endif
 
 #ifdef RADIATION
-#pragma gpu box(bx)
-      ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                     BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                     BL_TO_FORTRAN_ANYD(qe[0]),
-                     BL_TO_FORTRAN_ANYD(area[0][mfi]),
+      ctu_rad_consup(bx,
+                     update_arr,
+                     Erborder.array(mfi),
+                     S_new.array(mfi),
+                     Er_new.array(mfi),
+                     (rad_flux[0]).array(),
+                     (qe[0]).array(),
+                     (area[0]).array(mfi),
 #if AMREX_SPACEDIM >= 2
-                     BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                     BL_TO_FORTRAN_ANYD(qe[1]),
-                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                     (rad_flux[1]).array(),
+                     (qe[1]).array(),
+                     (area[1]).array(mfi),
 #endif
 #if AMREX_SPACEDIM == 3
-                     BL_TO_FORTRAN_ANYD(rad_flux[2]),
-                     BL_TO_FORTRAN_ANYD(qe[2]),
-                     BL_TO_FORTRAN_ANYD(area[2][mfi]),
+                     (rad_flux[2]).array(),
+                     (qe[2]).array(),
+                     (area[2]).array(mfi),
 #endif
-                     &priv_nstep_fsp,
-                     BL_TO_FORTRAN_ANYD(volume[mfi]),
-                     AMREX_REAL_ANYD(dx), dt);
+                     priv_nstep_fsp,
+                     volume.array(mfi),
+                     dt);
 
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
-#endif
-
-#if AMREX_SPACEDIM <= 2
-      Array4<Real> pradial_fab = pradial.array();
 #endif
 
 
@@ -1294,128 +1315,94 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
         if (idir == 0) {
-            // get the scaled radial pressure -- we need to treat this specially
-#if AMREX_SPACEDIM == 1
-            if (!Geom().IsCartesian()) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
-                {
-                    pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
-                });
-            }
+#if AMREX_SPACEDIM <= 2
+            Array4<Real> pradial_fab = pradial.array();
 #endif
 
-#if AMREX_SPACEDIM == 2
+            // get the scaled radial pressure -- we need to treat this specially
+#if AMREX_SPACEDIM <= 2
+
+#if AMREX_SPACEDIM == 1
+            if (!Geom().IsCartesian()) {
+#elif AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
-                AMREX_PARALLEL_FOR_3D(nbx, i, j, k,
+#endif
+                amrex::ParallelFor(nbx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });
             }
+
 #endif
         }
 
-        // Store the fluxes from this advance.
+        // Store the fluxes from this advance. For simplified SDC integration we
+        // only need to do this on the last iteration.
 
-        // For normal integration we want to add the fluxes from this advance
-        // since we may be subcycling the timestep. But for simplified SDC integration
-        // we want to copy the fluxes since we expect that there will not be
-        // subcycling and we only want the last iteration's fluxes.
+        bool add_fluxes = true;
 
-        Array4<Real> const flux_fab = (flux[idir]).array();
-        Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-        const int numcomp = NUM_STATE;
+        if (time_integration_method == SimplifiedSpectralDeferredCorrections &&
+            sdc_iteration != sdc_iters - 1) {
+            add_fluxes = false;
+        }
 
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
+        if (add_fluxes) {
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
-            {
-                fluxes_fab(i,j,k,n) = flux_fab(i,j,k,n);
-            });
-
-        } else {
+            Array4<Real> const flux_fab = (flux[idir]).array();
+            Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
+            const int numcomp = NUM_STATE;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
 
-        }
-
 #ifdef RADIATION
-        Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
-        Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-        const int radcomp = Radiation::nGroups;
-
-        if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
-            {
-                rad_fluxes_fab(i,j,k,n) = rad_flux_fab(i,j,k,n);
-            });
-
-        } else {
+            Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
+            Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
+            const int radcomp = Radiation::nGroups;
 
             AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
 
-        }
 #endif
 
+#if AMREX_SPACEDIM <= 2
+
+#if AMREX_SPACEDIM == 1
+            if (idir == 0 && !Geom().IsCartesian()) {
+#elif AMREX_SPACEDIM == 2
+            if (idir == 0 && !mom_flux_has_p(0, 0, coord)) {
+#endif
+                Array4<Real> pradial_fab = pradial.array();
+                Array4<Real> P_radial_fab = P_radial.array(mfi);
+
+                AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+                {
+                    P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
+                });
+            }
+
+#endif
+
+        } // add_fluxes
+
+        Array4<Real> const flux_fab = (flux[idir]).array();
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
         AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
         {
+            // This is a copy, not an add, since we need mass_fluxes to be
+            // only this subcycle's data when we evaluate the gravitational
+            // forces.
+
             mass_fluxes_fab(i,j,k,0) = flux_fab(i,j,k,URHO);
         });
 
       } // idir loop
-
-#if AMREX_SPACEDIM <= 2
-      if (!Geom().IsCartesian()) {
-
-          Array4<Real> P_radial_fab = P_radial.array(mfi);
-
-          if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) = pradial_fab(i,j,k,0);
-              });
-
-          } else {
-
-              AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
-              {
-                  P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
-              });
-
-          }
-
-      }
-#endif
-
-      if (track_grid_losses == 1) {
-
-#pragma gpu box(bx)
-          ca_track_grid_losses(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_ANYD(flux[0]),
-#if AMREX_SPACEDIM >= 2
-                               BL_TO_FORTRAN_ANYD(flux[1]),
-#endif
-#if AMREX_SPACEDIM == 3
-                               BL_TO_FORTRAN_ANYD(flux[2]),
-#endif
-                               AMREX_MFITER_REDUCE_SUM(&mass_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&ymom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zmom_lost),
-                               AMREX_MFITER_REDUCE_SUM(&eden_lost),
-                               AMREX_MFITER_REDUCE_SUM(&xang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&yang_lost),
-                               AMREX_MFITER_REDUCE_SUM(&zang_lost));
-      }
 
 #ifdef AMREX_USE_GPU
       // Check if we're going to run out of memory in the next MFIter iteration.
@@ -1442,8 +1429,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
       if (oversubscribed) {
-          q[mfi].prefetchToHost();
-          qaux[mfi].prefetchToHost();
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
           hydro_source[mfi].prefetchToHost();
@@ -1486,44 +1471,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
      });
 #endif
   }
-#else
-  // Flush Fortran output
-
-  if (verbose)
-    flush_output();
-
-  if (track_grid_losses)
-    {
-      material_lost_through_boundary_temp[0] += mass_lost;
-      material_lost_through_boundary_temp[1] += xmom_lost;
-      material_lost_through_boundary_temp[2] += ymom_lost;
-      material_lost_through_boundary_temp[3] += zmom_lost;
-      material_lost_through_boundary_temp[4] += eden_lost;
-      material_lost_through_boundary_temp[5] += xang_lost;
-      material_lost_through_boundary_temp[6] += yang_lost;
-      material_lost_through_boundary_temp[7] += zang_lost;
-    }
-
-  if (print_update_diagnostics)
-    {
-
-      bool local = true;
-      Vector<Real> hydro_update = evaluate_source_change(hydro_source, dt, local);
-
-#ifdef BL_LAZY
-      Lazy::QueueReduction( [=] () mutable {
-#endif
-         ParallelDescriptor::ReduceRealSum(hydro_update.dataPtr(), hydro_update.size(), ParallelDescriptor::IOProcessorNumber());
-
-         if (ParallelDescriptor::IOProcessor())
-           std::cout << std::endl << "  Contributions to the state from the hydro source:" << std::endl;
-
-         print_source_change(hydro_update);
-
-#ifdef BL_LAZY
-      });
-#endif
-    }
 #endif
 
   if (verbose && ParallelDescriptor::IOProcessor())

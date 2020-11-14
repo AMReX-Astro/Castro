@@ -17,9 +17,6 @@ amr.n_cell           = 128     128
 castro.lo_bc       =  0   3
 castro.hi_bc       =  0   3
 
-castro.yl_ext_bc_type = "interp"
-castro.yr_ext_bc_type = "interp"
-
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1
@@ -48,7 +45,7 @@ gravity.const_grav   = -1.e10
 castro.cfl            = 0.9     # cfl number for hyperbolic system
 castro.init_shrink    = 1.0     # scale back initial timestep
 castro.change_max     = 1.0     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 castro.fixed_dt = 0.75e-4
 
 # DIAGNOSTICS & VERBOSITY

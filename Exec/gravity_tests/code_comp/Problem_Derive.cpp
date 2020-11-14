@@ -1,91 +1,130 @@
-#include "AMReX_REAL.H"
+#include <AMReX_REAL.H>
 
-#include "Derive.H"
-#include "Problem_Derive_F.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Derive.H>
+#include <Problem_Derive_F.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <prob_parameters.H>
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+void ca_derextheating(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& geomdata,
+                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
-#endif
 
-    // Note that in the following routines, we are NOT passing
-    // several variables to Fortran that would be unused.
+  const auto dx = geomdata.CellSizeArray();
+  const auto problo = geomdata.ProbLoArray();
 
-    // These routines are called in an MFIter loop, so we do not
-    // need to explicitly synchronize after GPU kernels.
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
 
-    void ca_derextheating(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec,
-                                 const int* level, const int* grid_no)
-    {
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+    Real height = problo[AMREX_SPACEDIM-1] + 
+      (static_cast<Real>(AMREX_D_PICK(i,j,k)) + 0.5_rt) * dx[AMREX_SPACEDIM-1] ;
 
-#pragma gpu
-        derextheating(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
+    if (height < 1.125e0_rt * 4.e8_rt) {
+
+      Real fheat = std::sin(8.e0_rt * M_PI * (height/ 4.e8_rt - 1.0_rt));
+      der(i,j,k,0) = problem::heating_factor * fheat;
+
+    } else {
+      der(i,j,k,0) = 0.0_rt;
     }
 
-    void ca_deradinvariant(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec,
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        deradinvariant(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-    }
-
-    void ca_derenthalpyfluxy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec,
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derenthalpyfluxy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-    }
-
-    void ca_derkinengfluxy(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                                 const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                                 const int* lo, const int* hi,
-                                 const int* domain_lo, const int* domain_hi,
-                                 const Real* dx, const Real* xlo,
-                                 const Real* time, const Real* dt, const int* bcrec,
-                                 const int* level, const int* grid_no)
-    {
-
-#pragma gpu
-        derkinengfluxy(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                      data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                      AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                      AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                      AMREX_REAL_ANYD(dx), *time);
-    }
-
-#ifdef __cplusplus
+  });
 }
+
+
+void ca_deradinvariant(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& geomdata,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
+
+    eos_t eos_state;
+
+    eos_state.e = dat(i,j,k,UEINT) * rhoInv;
+    eos_state.T = dat(i,j,k,UTEMP);
+    eos_state.rho = dat(i,j,k,URHO);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n]  = dat(i,j,k,UFS+n) * rhoInv;
+    }
+#if NAUX > 0
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
+    }
 #endif
+
+    eos(eos_input_re, eos_state);
+
+    der(i,j,k,0) = eos_state.p / std::pow(dat(i,j,k,URHO), 5.0e0_rt / 3.0e0_rt);
+
+  });
+}
+
+
+void ca_derenthalpyfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                         const FArrayBox& datfab, const Geometry& geomdata,
+                         Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
+
+    eos_t eos_state;
+
+    eos_state.e = dat(i,j,k,UEINT) * rhoInv;
+    eos_state.T = dat(i,j,k,UTEMP);
+    eos_state.rho = dat(i,j,k,URHO);
+    for (int n = 0; n < NumSpec; n++) {
+      eos_state.xn[n]  = dat(i,j,k,UFS+n) * rhoInv;
+    }
+#if NAUX > 0
+    for (int n = 0; n < NumAux; n++) {
+      eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
+    }
+#endif
+    eos(eos_input_re, eos_state);
+
+    der(i,j,k,0) = eos_state.h * dat(i,j,k,UMY) / dat(i,j,k,URHO);
+  });
+
+}
+
+void ca_derkinengfluxy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& geomdata,
+                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
+{
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    der(i,j,k,0) = 0.5_rt / dat(i,j,k,0) * 
+      (dat(i,j,k,1) * dat(i,j,k,1) +
+       dat(i,j,k,2) * dat(i,j,k,2) +
+       dat(i,j,k,3) * dat(i,j,k,3)) * dat(i,j,k,2);
+
+  });
+
+}

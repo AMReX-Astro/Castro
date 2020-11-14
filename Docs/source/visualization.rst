@@ -39,12 +39,12 @@ VisIt
 
 VisIt is also a great visualization tool, and it directly handles our
 plotfile format (which it calls Boxlib). For more information check
-out visit.llnl.gov.
+out ``visit.llnl.gov``.
 
 [Useful tip:] To use the Boxlib3D plugin, select it from File
 :math:`\rightarrow` Open file :math:`\rightarrow` Open file as type Boxlib, and
-then the key is to read the Header file, plt00000/Header, for example,
-rather than telling to to read plt00000.
+then the key is to read the Header file, ``plt00000/Header``, for example,
+rather than telling it to read ``plt00000``.
 
 yt
 --
@@ -58,6 +58,9 @@ overview intended to get a person started. Full documentation and
 explanations from which this section was adapted can be found at
 http://yt-project.org/doc/index.html.
 
+Example notebook
+^^^^^^^^^^^^^^^^
 
+Using the plotfiles generated in the example in the :doc:`getting_started` section, here we demonstrate how to use ``yt`` to load and visualize data. This section was generated from a Jupyter notebook which can be found in ``Docs/source/yt_example.ipynb`` in the Castro repo. 
 
-
+.. include:: yt_example.rst

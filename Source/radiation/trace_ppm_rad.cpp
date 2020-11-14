@@ -1,9 +1,8 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #include <cmath>
@@ -15,14 +14,14 @@ using namespace amrex;
 void
 Castro::trace_ppm_rad(const Box& bx,
                       const int idir,
-                      Array4<Real const> const q_arr,
-                      Array4<Real const> const qaux_arr,
-                      Array4<Real const> const srcQ,
-                      Array4<Real const> const flatn,
-                      Array4<Real> const qm,
-                      Array4<Real> const qp,
+                      Array4<Real const> const& q_arr,
+                      Array4<Real const> const& qaux_arr,
+                      Array4<Real const> const& srcQ,
+                      Array4<Real const> const& flatn,
+                      Array4<Real> const& qm,
+                      Array4<Real> const& qp,
 #if (AMREX_SPACEDIM < 3)
-                      Array4<Real const> const dloga,
+                      Array4<Real const> const& dloga,
 #endif
                       const Box& vbx,
                       const Real dt) {

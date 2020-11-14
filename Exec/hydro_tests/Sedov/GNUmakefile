@@ -10,8 +10,11 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_OMP    = FALSE
 
+USE_MHD    = FALSE
+
 GPU_COMPATIBLE_PROBLEM = TRUE
-USE_PROB_PARAMS = TRUE
+
+USE_GPU_PRAGMA = FALSE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..

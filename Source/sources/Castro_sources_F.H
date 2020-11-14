@@ -1,5 +1,6 @@
-#ifndef _Castro_sources_F_H_
-#define _Castro_sources_F_H_
+#ifndef CASTRO_SOURCES_F_H
+#define CASTRO_SOURCES_F_H
+
 #include <AMReX_BLFort.H>
 
 #ifdef __cplusplus
@@ -8,26 +9,9 @@ extern "C"
 {
 #endif
 
-
 #ifdef SPONGE
-  void ca_sponge
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(state),
-     BL_FORT_FAB_ARG_3D(source),
-     BL_FORT_FAB_ARG_3D(vol),
-     const amrex::Real* dx, const amrex::Real dt,
-     const amrex::Real time, const amrex::Real mult_factor);
-
   void update_sponge_params(const amrex::Real* time);
 #endif
-
-  void ca_thermo_src
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_old),
-     const BL_FORT_FAB_ARG_3D(state_new),
-     BL_FORT_FAB_ARG_3D(thermo_src),
-     const amrex::Real* prob_lo, const amrex::Real* dx,
-     const amrex::Real time, const amrex::Real dt);
 
   void ca_ext_src
     (const int* lo, const int* hi,

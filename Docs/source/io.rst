@@ -7,6 +7,10 @@ Outputting
 Restart Capability
 ------------------
 
+.. index:: amr.check_file, amr.check_int, amr.check_per, amr.restart
+.. index:: amr.checkpoint_files_output, amr.check_nfiles, amr.checkpoint_on_restart
+.. index:: castro.grown_factor
+
 Castro has a standard sort of checkpointing and restarting capability.
 In the inputs file, the following options control the generation of
 checkpoint files (which are really directories):
@@ -39,7 +43,7 @@ checkpoint files (which are really directories):
   * ``amr.check_nfiles``: how parallel is the writing of
     the checkpoint files? (Integer :math:`\geq 1`; default: 64)
 
-    See the chapter :ref:`ch:io` for more details on parallel I/O and the
+    See the section :ref:`sec:parallel_io` for more details on parallel I/O and the
     ``amr.check_nfiles`` parameter.
 
   * ``amr.checkpoint_on_restart``: should we write a
@@ -89,6 +93,8 @@ To restart from ``chk_run00061``, for example, then set::
 Plotfile Outputting
 -------------------
 
+.. index:: amr.plot_files_output, amr.plotfile_on_restart, amr.write_plotfile_with_checkpoint
+
 Castro has two levels of plotfiles, `regular` plotfiles and `small`
 plotfiles.  The idea behind this distinction is that we can output a
 small number of variables very frequently in the small plotfiles and
@@ -96,7 +102,6 @@ output a large number (or all variables) less frequently.  This helps
 keep the data sizes down while allowing for fine-grained temporal
 analysis of important quantities.
 
-.. index:: amr.plot_files_output, amr.plotfile_on_restart, amr.write_plotfile_with_checkpoint
 
 A few general controls determines whether we want to output plotfiles and when:
 
@@ -235,8 +240,8 @@ Native variables
 These variables come directly from the ``StateData``, either the
 ``State_Type`` (for the hydrodynamic variables), ``Reactions_Type``
 (for the nuclear energy generation quantities). ``PhiGrav_Type`` and
-``Gravity_Type`` (for the gravity quantities), ``PhiRot_Type`` and
-``Rotation_Type`` (for the rotation quantities) and ``Rad_Type`` (for
+``Gravity_Type`` (for the gravity quantities), ``PhiRot_Type`` 
+(for the rotation quantities) and ``Rad_Type`` (for
 radiation quantities).
 
 
@@ -276,8 +281,6 @@ radiation quantities).
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
 | ``phiRot``                        | Effective centrifugal potential                   | :math:`{\rm erg~g^{-1}}`             |
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
-| ``rot_x``. ``rot_y``, ``rot_z``   | Rotational acceleration                           | :math:`{\rm cm~s^{-2}}`              |
-+-----------------------------------+---------------------------------------------------+--------------------------------------+
 | ``rmom``                          | Radial momentum (defined for                      | :math:`{\rm g~cm^{-2}~s^{-1}}`       |
 |                                   | ``HYBRID_MOMENTUM``)                              |                                      |
 +-----------------------------------+---------------------------------------------------+--------------------------------------+
@@ -299,10 +302,12 @@ radiation quantities).
 Derived variables
 ^^^^^^^^^^^^^^^^^
 
+.. index:: castro.domain_is_plane_parallel
+
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | variable name                     | description                                       | derive routine              | units                                   |
 +===================================+===================================================+=============================+=========================================+
-| ``angular_momentum_x``,           | Angular momentum / volume in the x, y, or z dir   | ``derangmomx``,             | :math:`{\rm g~cm^{-1}~s^{-1}`           |
+| ``angular_momentum_x``,           | Angular momentum / volume in the x, y, or z dir   | ``derangmomx``,             | :math:`{\rm g~cm^{-1}~s^{-1}}`          |
 | ``angular_momentum_y``,           | computed as :math:`[(\rho \ub) \times {\bf r}]_n` | ``derangmomy``,             |                                         |
 | ``angular_momentum_z``            | where :math:`{\bf r}` is the distance from        | ``derangmomz``              |                                         |
 |                                   | ``center`` and :math:`n` is either x, y, or z     |                             |                                         |
@@ -361,8 +366,13 @@ Derived variables
 |                                   | and radiation (for non radhydro problems)         |                             |                                         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | ``radvel``                        | Radial velocity (measured with respect to         | ``derradialvel``            | :math:`\cms`                            |
-|                                   | `center`),                                        |                             |                                         |
+|                                   | ``center`` or vertical axis if                    |                             |                                         |
+|                                   | ``domain_is_plane_parallel`` is set)              |                             |                                         |
 |                                   | :math:`(xu + yv + zw)/r`                          |                             |                                         |
++-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
+| ``circvel``                       | Circumferential velocity (perpendicular to        | ``derradialvel``            | :math:`\cms`                            |
+|                                   | ``radvel``.  If ``domain_is_plane_parallel`` is   |                             |                                         |
+|                                   | set, then this is in the x-y plane                |                             |                                         |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
 | ``soundspeed``                    | Sound speed                                       | ``dersoundspeed``           | :math:`\cms`                            |
 +-----------------------------------+---------------------------------------------------+-----------------------------+-----------------------------------------+
@@ -509,6 +519,8 @@ can be plotted very easily to monitor the time step.
 
 Parallel I/O
 ------------
+
+.. _sec:parallel_io:
 
 Both checkpoint files and plotfiles are really directories containing
 subdirectories: one subdirectory for each level of the AMR hierarchy.

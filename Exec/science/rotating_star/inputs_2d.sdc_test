@@ -14,7 +14,7 @@ geometry.prob_hi   =  1.73205e10 1.73205e10
 
 amr.n_cell         = 2048 2048
 
-amr.max_level      = 0      # maximum level number allowed
+amr.max_level      = 1      # maximum level number allowed
 
 castro.lo_bc       =  3 2
 castro.hi_bc       =  2 2
@@ -40,14 +40,13 @@ castro.riemann_solver = 1
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
 
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
 castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.001     # scale back initial timestep by this factor
-castro.change_max     = 1.1    # factor by which dt is allowed to change each timestep
+castro.change_max     = 1.5    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
 
-castro.dtnuc_e = 0.25
-castro.dtnuc_X = 0.25
+#castro.dtnuc_e = 0.25
+#castro.dtnuc_X = 0.25
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 10000   # how often to regrid
@@ -55,13 +54,13 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
 amr.check_file      = chk     # root name of checkpoint file
-amr.check_int       = 100     # number of timesteps between checkpoints
+amr.check_int       = 50     # number of timesteps between checkpoints
 amr.plot_file       = plt     # root name of plot file
 #amr.plot_int        = 100     # number of timesteps between plotfiles
 castro.plot_per_is_exact = 1
-amr.plot_per = 0.01
+amr.plot_per = 0.005
 
-amr.max_grid_size   = 128       # maximum grid size allowed -- used to control parallelism
+amr.max_grid_size   = 256       # maximum grid size allowed -- used to control parallelism
 amr.blocking_factor = 32       # block factor in grid generation
 
 amr.v               = 1       # control verbosity in Amr.cpp
@@ -69,7 +68,7 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-amr.probin_file = probin
+amr.probin_file = probin.sdc_test
 
 castro.small_dens   = 1.e-4
 castro.small_temp   = 1.e6

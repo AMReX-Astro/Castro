@@ -1,6 +1,6 @@
-#include "Radiation.H"
-#include "Castro_F.H"
-#include "RAD_F.H"
+#include <Radiation.H>
+#include <Castro_F.H>
+#include <RAD_F.H>
 
 #include <iostream>
 
@@ -19,29 +19,51 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
 {
   BL_PROFILE("Radiation::check_convergence_er (MGFLD)");
 
-  relative = 0.0;
-  absolute = 0.0;
-  err_er = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:relative, absolute, err_er)
+#pragma omp parallel
 #endif
   for (MFIter mfi(Er_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_check_conv_er
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(etaTz[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           AMREX_MFITER_REDUCE_MAX(&relative),
-           AMREX_MFITER_REDUCE_MAX(&absolute),
-           AMREX_MFITER_REDUCE_MAX(&err_er),
-           delta_t);
+      const auto Ern = Er_new[mfi].array();
+      const auto Erl = Er_pi[mfi].array();
+      const auto kap = kappa_p[mfi].array();
+      const auto etTz = etaTz[mfi].array();
+      const auto temp = temp_new[mfi].array();
+
+      reduce_op.eval(bx, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          Real chg = 0.e0_rt;
+          Real tot = 0.e0_rt;
+          Real kde = 0.e0_rt;
+
+          for (int g = 0; g < NGROUPS; ++g) {
+              Real der = Ern(i,j,k,g) - Erl(i,j,k,g);
+              chg = chg + std::abs(der);
+              tot = tot + std::abs(Ern(i,j,k,g));
+              kde = kde + kap(i,j,k,g) * der;
+          }
+
+          Real abso = chg;
+          Real rela = chg / (tot + 1.e-50_rt);
+
+          Real err_T = etTz(i,j,k) * kde;
+          Real errr = std::abs(err_T / (temp(i,j,k) + 1.e-50_rt));
+
+          return {rela, abso, errr};
+      });
   }
+
+  ReduceTuple hv = reduce_data.value();
+
+  relative = amrex::get<0>(hv);
+  absolute = amrex::get<1>(hv);
+  err_er   = amrex::get<2>(hv);
 
   Real data[3] = {relative, absolute, err_er};
 
@@ -64,40 +86,63 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
                                        Real& rel_T,    Real& abs_T, 
                                        Real delta_t)
 {
-  rel_rhoe = 0.0;
-  rel_FT   = 0.0;
-  rel_T    = 0.0;
-  abs_rhoe = 0.0;
-  abs_FT   = 0.0;
-  abs_T    = 0.0;
+  ReduceOps<ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real, Real, Real, Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
 
 #ifdef _OPENMP
-#pragma omp parallel reduction(max:rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T)
+#pragma omp parallel
 #endif
   for (MFIter mfi(rhoe_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_check_conv
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_star[mfi]),
-           BL_TO_FORTRAN_ANYD(rho[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(jg[mfi]),
-           BL_TO_FORTRAN_ANYD(dedT[mfi]),
-           AMREX_MFITER_REDUCE_MAX(&rel_rhoe),
-           AMREX_MFITER_REDUCE_MAX(&abs_rhoe),
-           AMREX_MFITER_REDUCE_MAX(&rel_FT),
-           AMREX_MFITER_REDUCE_MAX(&abs_FT),
-           AMREX_MFITER_REDUCE_MAX(&rel_T),
-           AMREX_MFITER_REDUCE_MAX(&abs_T),
-           delta_t);
+      auto ren = rhoe_new[mfi].array();
+      auto res = rhoe_star[mfi].array();
+      auto re2 = rhoe_step[mfi].array();
+      auto Ern = Er_new[mfi].array();
+      auto Tmn = temp_new[mfi].array();
+      auto Tms = temp_star[mfi].array();
+      auto rho_arr = rho[mfi].array();
+      auto kap = kappa_p[mfi].array();
+      auto jg_arr = jg[mfi].array();
+      auto deT = dedT[mfi].array();
+
+      int ng = Radiation::nGroups;
+      Real cdt = C::c_light * delta_t;
+
+      reduce_op.eval(bx, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      {
+          Real abschg_re = std::abs(ren(i,j,k) - res(i,j,k));
+          Real relchg_re = std::abs(abschg_re / (ren(i,j,k) + 1.e-50_rt));
+
+          Real abschg_T = std::abs(Tmn(i,j,k) - Tms(i,j,k));
+          Real relchg_T = std::abs(abschg_T / (Tmn(i,j,k) + 1.e-50_rt));
+
+          Real FT = ren(i,j,k) - re2(i,j,k);
+          for (int g = 0; g < ng; ++g) {
+              FT -= cdt * (kap(i,j,k,g) * Ern(i,j,k,g) - jg_arr(i,j,k,g));
+          }
+          FT = std::abs(FT);
+
+          Real dTe = Tmn(i,j,k);
+          Real FTdenom = rho_arr(i,j,k) * std::abs(deT(i,j,k) * dTe);
+          //Real FTdenom = amrex::max(std::abs(ren(i,j,k) - re2(i,j,k)), std::abs(ren(i,j,k) * 1.e-15_rt))
+
+          Real abschg_FT = FT;
+          Real relchg_FT = FT / (FTdenom + 1.e-50_rt);
+
+          return {relchg_re, abschg_re, relchg_FT, abschg_FT, relchg_T, abschg_T};
+      });
   }
+
+  ReduceTuple hv = reduce_data.value();
+  rel_rhoe = amrex::get<0>(hv);
+  abs_rhoe = amrex::get<1>(hv);
+  rel_FT   = amrex::get<2>(hv);
+  abs_FT   = amrex::get<3>(hv);
+  rel_T    = amrex::get<4>(hv);
+  abs_T    = amrex::get<5>(hv);
 
   int ndata = 6;
   Real data[6] = {rel_rhoe, abs_rhoe, rel_FT, abs_FT, rel_T, abs_T};
@@ -123,13 +168,22 @@ void Radiation::compute_coupling(MultiFab& coupT,
     for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_compute_coupt
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(coupT[mfi]),
-             BL_TO_FORTRAN_ANYD(kpp[mfi]),
-             BL_TO_FORTRAN_ANYD(Eg[mfi]),    
-             BL_TO_FORTRAN_ANYD(jg[mfi]));
+        auto coupT_arr = coupT[mfi].array();
+        auto kpp_arr = kpp[mfi].array();
+        auto Eg_arr = Eg[mfi].array();
+        auto jg_arr = jg[mfi].array();
+
+        int ng = Radiation::nGroups;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            coupT_arr(i,j,k) = 0.0_rt;
+
+            for (int g = 0; g < ng; ++g) {
+                coupT_arr(i,j,k) = coupT_arr(i,j,k) + (kpp_arr(i,j,k,g) * Eg_arr(i,j,k,g) - jg_arr(i,j,k,g));
+            }
+        });
     }
 }
 
@@ -146,18 +200,41 @@ void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
     for (MFIter mfi(rho, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_compute_etat
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(etaT[mfi]),
-             BL_TO_FORTRAN_ANYD(etaTz[mfi]),
-             BL_TO_FORTRAN_ANYD(eta1[mfi]),
-             BL_TO_FORTRAN_ANYD(djdT[mfi]),
-             BL_TO_FORTRAN_ANYD(dkdT[mfi]),
-             BL_TO_FORTRAN_ANYD(dedT[mfi]),
-             BL_TO_FORTRAN_ANYD(Er_star[mfi]),
-             BL_TO_FORTRAN_ANYD(rho[mfi]),
-             delta_t, ptc_tau);
+        auto etaT_arr = etaT[mfi].array();
+        auto etaTz_arr = etaTz[mfi].array();
+        auto eta1_arr = eta1[mfi].array();
+        auto djdT_arr = djdT[mfi].array();
+        auto dkdT_arr = dkdT[mfi].array();
+        auto dedT_arr = dedT[mfi].array();
+        auto Er_star_arr = Er_star[mfi].array();
+        auto rho_arr = rho[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real sigma = 1.e0_rt + ptc_tau;
+            Real cdt = C::c_light * delta_t;
+
+            Real dZdT[NGROUPS];
+            Real sumdZdT = 0.0_rt;
+            for (int g = 0; g < NGROUPS; ++g) {
+                dZdT[g] = djdT_arr(i,j,k,g) - dkdT_arr(i,j,k,g) * Er_star_arr(i,j,k,g);
+                sumdZdT += dZdT[g];
+            }
+
+            if (sumdZdT == 0.0_rt) {
+                sumdZdT = 1.e-50_rt;
+            }
+
+            Real foo = cdt * sumdZdT;
+            Real bar = sigma * rho_arr(i,j,k) * dedT_arr(i,j,k);
+            etaT_arr(i,j,k) = foo / (foo + bar);
+            etaTz_arr(i,j,k) = etaT_arr(i,j,k) / sumdZdT;
+            eta1_arr(i,j,k) = bar / (foo + bar);
+            for (int g = 0; g < NGROUPS; ++g) {
+                djdT_arr(i,j,k,g) = dZdT[g] / sumdZdT;
+            }
+        });
     }
 }
 

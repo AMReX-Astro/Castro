@@ -15,10 +15,13 @@ amr.n_cell           = 256     768
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0   1
-castro.hi_bc       =  0   1
+castro.hi_bc       =  0   2
 
+<<<<<<< HEAD
 castro.yl_ext_bc_type = "hse"
-castro.yr_ext_bc_type = "interp"
+=======
+castro.yl_ext_bc_type = 1
+>>>>>>> a1ff468c5c7afebde153f37ac41278680b8f1e45
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -34,7 +37,7 @@ gravity.const_grav   = -2.45e14
 castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.1     # max time step growth
-castro.dt_cutoff      = 5.e-20  # level 0 timestep below which we halt
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass

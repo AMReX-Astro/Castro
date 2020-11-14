@@ -56,14 +56,13 @@ castro.rotational_period = 1.0
 castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.1     # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
-castro.dt_cutoff      = 1.e-10  # level 0 timestep below which we halt
+
 
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 castro.print_energy_diagnostics = 1
-castro.print_fortran_warnings = 1
 
 # REFINEMENT / REGRIDDING
 amr.max_level       = 0       # maximum level number allowed

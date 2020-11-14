@@ -2,7 +2,7 @@
 
 #include <AMReX_ParmParse.H>
 #include <AMReX_LO_BCTYPES.H>
-#include "MGRadBndry.H"
+#include <MGRadBndry.H>
 
 #include <iostream>
 
@@ -10,7 +10,7 @@
 #include <omp.h>
 #endif
 
-#include "RAD_F.H"
+#include <RAD_F.H>
 
 using namespace amrex;
 

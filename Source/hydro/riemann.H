@@ -1,18 +1,20 @@
-#ifndef _riemann_H_
-#define _riemann_H_
+#ifndef CASTRO_RIEMANN_H
+#define CASTRO_RIEMANN_H
 
 using namespace amrex;
 
-const Real smlp1 = 1.e-10_rt;
-const Real small = 1.e-8_rt;
-const Real smallu = 1.e-12_rt;
+namespace riemann_constants {
+    const Real smlp1 = 1.e-10_rt;
+    const Real small = 1.e-8_rt;
+    const Real smallu = 1.e-12_rt;
+}
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::wsqge(const Real p, const Real v,
-              const Real gam, const Real gdot, Real& gstar,
-              const Real gmin, const Real gmax, const Real csq,
-              const Real pstar, Real& wsq) {
+wsqge(const Real p, const Real v,
+      const Real gam, const Real gdot, Real& gstar,
+      const Real gmin, const Real gmax, const Real csq,
+      const Real pstar, Real& wsq) {
 
   // compute the lagrangian wave speeds -- this is the approximate
   // version for the Colella & Glaz algorithm
@@ -30,14 +32,14 @@ Castro::wsqge(const Real p, const Real v,
   // this is CG Eq. 34
   Real alpha = pstar - (gstar - 1.0_rt)*p/(gam - 1.0_rt);
   if (alpha == 0.0_rt) {
-    alpha = smlp1*(pstar + p);
+    alpha = riemann_constants::smlp1*(pstar + p);
   }
 
   Real beta = pstar + 0.5_rt*(gstar - 1.0_rt)*(pstar+p);
 
   wsq = (pstar-p)*beta/(v*alpha);
 
-  if (std::abs(pstar - p) < smlp1*(pstar + p)) {
+  if (std::abs(pstar - p) < riemann_constants::smlp1*(pstar + p)) {
     wsq = csq;
   }
   wsq = amrex::max(wsq, (0.5_rt * (gam - 1.0_rt)/gam)*csq);
@@ -46,15 +48,15 @@ Castro::wsqge(const Real p, const Real v,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
-                        const Real ul, const Real pl, const Real taul,
-                        const Real gamel, const Real clsql,
-                        const Real ur, const Real pr, const Real taur,
-                        const Real gamer, const Real clsqr,
-                        const Real gdot, const Real gmin, const Real gmax,
-                        const int lcg_maxiter, const Real lcg_tol,
-                        Real& pstar, Real& gamstar,
-                        bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
+pstar_bisection(Real& pstar_lo, Real& pstar_hi,
+                const Real ul, const Real pl, const Real taul,
+                const Real gamel, const Real clsql,
+                const Real ur, const Real pr, const Real taur,
+                const Real gamer, const Real clsqr,
+                const Real gdot, const Real gmin, const Real gmax,
+                const int lcg_maxiter, const Real lcg_tol,
+                Real& pstar, Real& gamstar,
+                bool& converged, GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE>& pstar_hist_extra) {
 
   // we want to zero
   // f(p*) = u*_l(p*) - u*_r(p*)
@@ -140,9 +142,7 @@ Castro::pstar_bisection(Real& pstar_lo, Real& pstar_hi,
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::cons_state(const Real* qstate, Real* U,
-                   const GpuArray<int, npassive>& qpass_map_p,
-                   const GpuArray<int, npassive>& upass_map_p) {
+cons_state(const Real* qstate, Real* U) {
 
   U[URHO] = qstate[QRHO];
 
@@ -164,18 +164,16 @@ Castro::cons_state(const Real* qstate, Real* U,
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
+    int n  = upassmap(ipassive);
+    int nqs = qpassmap(ipassive);
     U[n] = qstate[QRHO]*qstate[nqs];
   }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
-                   const Real* qstate, Real* U,
-                   const GpuArray<int, npassive>& qpass_map_p,
-                   const GpuArray<int, npassive>& upass_map_p) {
+HLLC_state(const int idir, const Real S_k, const Real S_c,
+           const Real* qstate, Real* U) {
 
   Real u_k = 0.0;
   if (idir == 0) {
@@ -217,18 +215,17 @@ Castro::HLLC_state(const int idir, const Real S_k, const Real S_c,
 #endif
 
   for (int ipassive = 0; ipassive < npassive; ipassive++) {
-    int n  = upass_map_p[ipassive];
-    int nqs = qpass_map_p[ipassive];
+    int n  = upassmap(ipassive);
+    int nqs = qpassmap(ipassive);
     U[n] = hllc_factor*qstate[nqs];
   }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
-Castro::compute_flux(const int idir, const Real bnd_fac, const int coord,
-                     const Real* U, const Real p,
-                     const GpuArray<int, npassive>& upass_map_p,
-                     Real* F) {
+compute_flux(const int idir, const Real bnd_fac, const int coord,
+             const Real* U, const Real p,
+             Real* F) {
 
   // given a conserved state, compute the flux in direction idir
 
@@ -262,7 +259,7 @@ Castro::compute_flux(const int idir, const Real bnd_fac, const int coord,
 #endif
 
   for (int ipassive=0; ipassive < npassive; ipassive++) {
-    int n = upass_map_p[ipassive];
+    int n = upassmap(ipassive);
     F[n] = U[n]*u_flx;
   }
 }

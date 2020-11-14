@@ -1,5 +1,5 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -415,13 +415,20 @@ void Castro::ca_store_reaction_state(const Box& bx,
 
     AMREX_PARALLEL_FOR_4D(bx, NumSpec, i, j, k, n,
     {
-        R_store(i,j,k,n) = R_old(i,j,k,UFS+n)/state(i,j,k,URHO);
+        R_store(i,j,k,n) = R_old(i,j,k,UFS+n);
     });
+
+#if NAUX_NET > 0
+    AMREX_PARALLEL_FOR_4D(bx, NumAux, i, j, k, n,
+    {
+        R_store(i,j,k,n) = R_old(i,j,k,UFX+n);
+    }
+#endif
 
     AMREX_PARALLEL_FOR_3D(bx, i, j, k,
     {
-        R_store(i,j,k,NumSpec+1-1) = R_old(i,j,k,UEDEN)/state(i,j,k,URHO);
-        R_store(i,j,k,NumSpec+2-1) = R_old(i,j,k,UEDEN);
+        R_store(i,j,k,NumSpec+NumAux  ) = R_old(i,j,k,UEDEN);
+        R_store(i,j,k,NumSpec+NumAux+1) = 0.0; // we're not storing the weights
     });
 }
 

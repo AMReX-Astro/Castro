@@ -38,8 +38,24 @@ Improvements to the gravity solver and rotation were described in:
   * *Double White Dwarf Mergers on Adaptive Meshes I. Methodology and
     Code
     Verification*, M. P. Katz, M. Zingale, A. C. Calder, F. D. Swesty,
-    A. S. Almgren, W. Zhang 2016, ApJ, 819, 94.
+    A. S. Almgren, & W. Zhang, 2016, ApJ, 819, 94.
     http://dx.doi.org/10.3847/0004-637X/819/2/94
+
+The 4th order reactive hydrodynamics spectral deferred corrections solver
+was described in:
+
+  * *Improved Coupling of Hydrodynamics and Nuclear Reactions via Spectral Deferred Corrections*
+    M. Zingale, M. P. Katz, J. B. Bell, M. L. Minion, A. J. Nonaka, & W. Zhang,
+    2019, ApJ, 886, 105.
+    https://ui.adsabs.harvard.edu/link_gateway/2019ApJ...886..105Z/doi:10.3847/1538-4357/ab4e1d
+
+The Castro GPU strategy and performance was described in:
+
+  * *Preparing Nuclear Astrophysics for Exascale*
+    M. P. Katz, A. Almgren, M. Barrios Sazo, K. Eiden, K. Gott, A. Harpole, J. M. Sexton, D. E. Willcox, W. Zhang, & M. Zingale
+    2020, to appear in Proceedings of SC20
+    https://ui.adsabs.harvard.edu/abs/2020arXiv200705218K/abstract
+
 
 The development of AMReX library is led by the
 Center for Computational Sciences and Engineering / Lawrence Berkeley
@@ -48,22 +64,9 @@ including the CCSE and Stony Brook University.
 
 Castro *core developers* are those who have made substantial
 contributions to the code. The process for becoming a core developer
-is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ in the Castro root directory.
-Current Castro core developers are:
+is described in the `README.md <https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ in the Castro root directory.
 
-  * Ann Almgren
-  * Maria G. Barrios Sazo
-  * John Bell
-  * Vince Beckner
-  * Marc Day
-  * Alice Harpole
-  * Max Katz
-  * Mike Lijewski
-  * Chris Malone
-  * Andy Nonaka
-  * Don Willcox
-  * Weiqun Zhang
-  * Michael Zingale
+Current Castro core developers are listed at https://amrex-astro.github.io/Castro/who.html
 
 All Castro development takes place on the project’s github
 page, https://github.com/AMReX-Astro/Castro
@@ -71,10 +74,16 @@ page, https://github.com/AMReX-Astro/Castro
 External contributions are welcomed. Fork the Castro repo, modify your
 local copy, and issue a pull-request to the AMReX-Astro/Castro
 project. Further guidelines are given in the `README.md
-<https://github.com/AMReX-Astro/Castro/blob/master/README.md>`_ file.
+<https://github.com/AMReX-Astro/Castro/blob/main/README.md>`_ file.
+
+Getting Help
+============
 
 To get help, subscribe to the *castro-help* google group mailing list:
 https://groups.google.com/forum/#!forum/castro-help
+
+You can also post issues on the project github page.
+
 
 Acknowledging and Citing Castro
 ===============================
@@ -82,7 +91,7 @@ Acknowledging and Citing Castro
 If you use Castro in your research, we would appreciate it if you
 cited the relevant code papers describing its design, features, and
 testing. A list of these can be found in the `CITATION
-<https://github.com/AMReX-Astro/Castro/blob/master/CITATION>`_ file in
+<https://github.com/AMReX-Astro/Castro/blob/main/CITATION>`_ file in
 the root ``Castro/`` directory.
 
 The development Castro is supported by the science application

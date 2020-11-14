@@ -15,12 +15,13 @@ USE_REACT  = FALSE
 USE_ROTATION  = FALSE
 USE_DIFFUSION = FALSE
 
+USE_INTERPOLATE = TRUE
+
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..
 
 GPU_COMPATIBLE_PROBLEM = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz

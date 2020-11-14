@@ -1,40 +1,44 @@
 # sources used with hydro
 
-CEXE_sources += Castro_hydro.cpp
+ifneq ($(USE_MHD),TRUE)
+  CEXE_sources += Castro_hydro.cpp
+  CEXE_sources += Castro_ctu_hydro.cpp
+endif
+
 CEXE_sources += Castro_ctu.cpp
 CEXE_sources += Castro_mol.cpp
+CEXE_headers += advection_util.H
 CEXE_sources += advection_util.cpp
-CEXE_sources += Castro_ctu_hydro.cpp
 CEXE_sources += flatten.cpp
 
 ifeq ($(USE_TRUE_SDC),TRUE)
   CEXE_sources += Castro_mol_hydro.cpp
 endif
-FEXE_headers += Castro_hydro_F.H
 
 ifeq ($(USE_HYBRID_MOMENTUM), TRUE)
   CEXE_headers += hybrid.H
   CEXE_sources += Castro_hybrid.cpp
-  ca_F90EXE_sources += hybrid_advection_nd.F90
 endif
 
-ca_F90EXE_sources += advection_util_nd.F90
+ifeq ($(USE_RAD), TRUE)
+  CEXE_sources += Castro_ctu_rad.cpp
+endif
 
 CEXE_headers += ppm.H
 CEXE_sources += riemann.cpp
+CEXE_headers += riemann_solvers.H
 CEXE_sources += riemann_solvers.cpp
 CEXE_sources += riemann_util.cpp
 CEXE_headers += riemann.H
-CEXE_sources += slope.cpp
+CEXE_headers += slope.H
+CEXE_headers += reconstruction.H
 CEXE_sources += trace_plm.cpp
 CEXE_sources += trace_ppm.cpp
 
-ca_F90EXE_sources += Castro_ctu_nd.F90
-
 ifeq ($(USE_TRUE_SDC),TRUE)
-  ca_F90EXE_sources += fourth_order_nd.F90
-  ca_F90EXE_sources += Castro_mol_nd.F90
-  ca_F90EXE_sources += Castro_fourth_order_nd.F90
+  CEXE_sources += fourth_order.cpp
+  CEXE_sources += fourth_center_average.cpp
+  CEXE_headers += fourth_center_average.H
 endif
 
 ifneq ($(DIM), 1)
