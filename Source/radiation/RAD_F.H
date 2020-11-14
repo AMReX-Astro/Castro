@@ -73,25 +73,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_get_v_dcf
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(er), 
-    const BL_FORT_FAB_ARG(state), 
-    const BL_FORT_FAB_ARG(temp),
-    const BL_FORT_FAB_ARG(c_v),
-    const BL_FORT_FAB_ARG(kr),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kp2),
-    const amrex::Real* dtemp, const amrex::Real* dtime, const amrex::Real* sigma, const amrex::Real* c,
-    BL_FORT_FAB_ARG(v),
-    BL_FORT_FAB_ARG(dcf));
-
-  void ca_update_dcf
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(dcf),
-    const BL_FORT_FAB_ARG(etainv),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kr));
 
   void ca_compute_dcoefs
    (const int* lo, const int* hi,
@@ -178,28 +159,6 @@ extern "C"
     const BL_FORT_FAB_ARG_3D(mugT),
     BL_FORT_FAB_ARG_3D(spec), 
     amrex::Real dt, amrex::Real ptc_tau);
-
-  void ca_check_conv_er
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(Ern),
-    const BL_FORT_FAB_ARG_3D(Erl),
-    const BL_FORT_FAB_ARG_3D(kap),
-    const BL_FORT_FAB_ARG_3D(etTz),
-    const BL_FORT_FAB_ARG_3D(temp),
-    amrex::Real* rel, amrex::Real* abs, amrex::Real *errr,
-    amrex::Real dt);
-
-  void ca_compute_etat
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(etat), 
-     BL_FORT_FAB_ARG_3D(etaTz), 
-     BL_FORT_FAB_ARG_3D(eta1), 
-     BL_FORT_FAB_ARG_3D(djdT),
-     const BL_FORT_FAB_ARG_3D(dkdT),
-     const BL_FORT_FAB_ARG_3D(dedT),
-     const BL_FORT_FAB_ARG_3D(Er_star),
-     const BL_FORT_FAB_ARG_3D(rho),
-     amrex::Real delta_t, amrex::Real tau);
 
   void ca_compute_rhs
     (const int* lo, const int* hi, 
@@ -486,17 +445,6 @@ extern "C" {
              BL_FORT_FAB_ARG_3D(er), 
              amrex::Real dT, amrex::Real delta_t, amrex::Real sigma,
              amrex::Real c, amrex::Real underr, int lagpla);
-
-  void ceup(const int* lo, const int* hi,
-            amrex::Real* relres, amrex::Real* absres,
-            BL_FORT_FAB_ARG_3D(frhoes), 
-            const BL_FORT_FAB_ARG_3D(frhoem),
-            const BL_FORT_FAB_ARG_3D(eta),
-            const BL_FORT_FAB_ARG_3D(etainv),
-            const BL_FORT_FAB_ARG_3D(dflux_old),
-            const BL_FORT_FAB_ARG_3D(dflux_new),
-            const BL_FORT_FAB_ARG_3D(exch),
-            amrex::Real delta_t, amrex::Real theta);
 
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
