@@ -8,6 +8,7 @@
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 
+#include <prob_parameters.H>
 #include <network.H>
 #include <eos.H>
 
@@ -71,7 +72,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             Real z = xmin + static_cast<Real>(i) * dx;
 
             density = model_params.dens_base *
-                std::pow(gravity::const_grav * model_params.dens_base * 
+                std::pow(gravity::const_grav * model_params.dens_base *
                  (eos_gamma - 1.0) * z /
                  (eos_gamma * model_params.p_base) + 1.0_rt, 1.0_rt/(eos_gamma - 1.0_rt));
 
@@ -110,6 +111,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         for (int n = 0; n < NumSpec; n++) {
             model::state(i, model::ispec+n) = model_params.xn[n];
         }
+
     }
 
 }

@@ -557,6 +557,7 @@ Castro::Castro (Amr&            papa,
     // initialize the C++ values of the runtime parameters
     if (do_init_probparams == 0) {
       init_prob_parameters();
+
       do_init_probparams = 1;
 
       // Copy ambient data from Fortran to C++. This should be done prior to

@@ -25,7 +25,6 @@ void problem_initialize ()
     problem::center[2] = 0.5_rt * (problo[2] + probhi[2]);
 #endif
 
-
     // first make a 1D initial model for the entire domain
     // we'll create it ourselves, but hook it into the model_parser
 
@@ -43,7 +42,6 @@ void problem_initialize ()
 
     generate_initial_model(nx, problo[AMREX_SPACEDIM-1], probhi[AMREX_SPACEDIM-1],
                            model_params);
-
 
 }
 
