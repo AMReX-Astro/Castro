@@ -17,7 +17,11 @@ amr.n_cell           = 256     768
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
+<<<<<<< HEAD
 castro.yl_ext_bc_type = "hse"
+=======
+castro.yl_ext_bc_type = 1
+>>>>>>> a1ff468c5c7afebde153f37ac41278680b8f1e45
 
 # WHICH PHYSICS
 castro.do_hydro = 1

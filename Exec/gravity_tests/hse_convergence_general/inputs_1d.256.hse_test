@@ -17,11 +17,15 @@ amr.n_cell           = 256
 castro.lo_bc       =  1
 castro.hi_bc       =  1
 
-castro.xl_ext_bc_type = "hse"
+castro.xl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
+<<<<<<< HEAD
 castro.xr_ext_bc_type = "hse"
+=======
+castro.xr_ext_bc_type = 1
+>>>>>>> a1ff468c5c7afebde153f37ac41278680b8f1e45
 
 # WHICH PHYSICS
 castro.do_hydro = 1
