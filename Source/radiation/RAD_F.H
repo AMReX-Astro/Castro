@@ -86,13 +86,6 @@ extern "C" {
     BL_FORT_FAB_ARG(v),
     BL_FORT_FAB_ARG(dcf));
 
-  void ca_update_dcf
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(dcf),
-    const BL_FORT_FAB_ARG(etainv),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kr));
-
   void ca_compute_dcoefs
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG_3D(d), 
