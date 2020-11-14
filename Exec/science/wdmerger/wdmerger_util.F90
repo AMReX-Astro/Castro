@@ -414,7 +414,7 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rot_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
+    use meth_params_module, only: rotational_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
     use network, only: nspec, naux
     use initial_model_module
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
@@ -667,21 +667,21 @@ contains
 
              a = roche_radius_factor * (model_S % radius / roche_rad_S)
 
-             rot_period = -ONE
+             rotational_period = -ONE
 
           endif
 
           call kepler_third_law(model_P % radius, model_P % mass, model_S % radius, model_S % mass, &
-                                rot_period, orbital_eccentricity, orbital_angle, &
+                                rotational_period, orbital_eccentricity, orbital_angle, &
                                 a, r_P_initial, r_S_initial, v_P_r, v_S_r, v_P_phi, v_S_phi)
 
           if (ioproc .and. init == 1) then
              write (*,1003) a, a / AU
              write (*,1004) r_P_initial, r_P_initial / AU
              write (*,1005) r_S_initial, r_S_initial / AU
-             write (*,1006) rot_period
-             write (*,1007) TWO * M_PI * r_P_initial / rot_period
-             write (*,1008) TWO * M_PI * r_S_initial / rot_period
+             write (*,1006) rotational_period
+             write (*,1007) TWO * M_PI * r_P_initial / rotational_period
+             write (*,1008) TWO * M_PI * r_S_initial / rotational_period
 1003         format ("Generated binary orbit of distance ", ES8.2, " cm = ", ES8.2, " AU.")
 1004         format ("The primary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
 1005         format ("The secondary orbits the center of mass at distance ", ES9.2, " cm = ", ES9.2, " AU.")
@@ -1058,13 +1058,13 @@ contains
 
   subroutine set_period(period) bind(C,name='set_period')
 
-    use meth_params_module, only: rot_period
+    use meth_params_module, only: rotational_period
 
     implicit none
 
     real(rt) :: period
 
-    rot_period = period
+    rotational_period = period
 
   end subroutine set_period
 
@@ -1074,13 +1074,13 @@ contains
 
   subroutine get_period(period) bind(C,name='get_period')
 
-    use meth_params_module, only: rot_period
+    use meth_params_module, only: rotational_period
 
     implicit none
 
     real(rt) :: period
 
-    period = rot_period
+    period = rotational_period
 
   end subroutine get_period
 
