@@ -1928,6 +1928,10 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
     FillPatchIterator fpi_s(*castro, kappa_r, 1, time, State_Type, 0, nstate);
     MultiFab& S = fpi_s.get_mf();
 
+    Real sigma_loc = sigma;
+    Real c_loc = c;
+    Real dT_loc = dT;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1983,17 +1987,39 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             S[mfi].plus<RunOn::Device>(-dT, UTEMP, 1);
             Gpu::synchronize();
 
-            ca_get_v_dcf(reg.loVect(), reg.hiVect(),
-                         BL_TO_FORTRAN(Er[mfi]),
-                         BL_TO_FORTRAN(S[mfi]),
-                         BL_TO_FORTRAN(temp),
-                         BL_TO_FORTRAN(c_v),
-                         BL_TO_FORTRAN(kappa_r[mfi]),
-                         BL_TO_FORTRAN(kp),
-                         BL_TO_FORTRAN(kp2),
-                         &dT, &delta_t, &sigma, &c,
-                         BL_TO_FORTRAN(v[mfi]),
-                         BL_TO_FORTRAN(dcf[mfi]));
+            auto S_arr = S[mfi].array();
+            auto v_arr = v[mfi].array();
+            auto er_arr = Er[mfi].array();
+            auto T_arr = temp.array();
+            auto kr_arr = kappa_r[mfi].array();
+            auto kp_arr = kp.array();
+            auto kp2_arr = kp2.array();
+            auto c_v_arr = c_v.array();
+            auto dcf_arr = dcf[mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+            {
+                const Real fac0 = 4.e0_rt * sigma_loc * delta_t / dT_loc;
+                const Real fac2 = c_loc * delta_t / dT_loc;
+
+                v_arr(i,j,k,0) = S_arr(i,j,k,UMX) / S_arr(i,j,k,URHO);
+#if AMREX_SPACEDIM >= 2
+                v_arr(i,j,k,1) = S_arr(i,j,k,UMY) / S_arr(i,j,k,URHO);
+#endif
+#if AMREX_SPACEDIM == 3
+                v_arr(i,j,k,2) = S_arr(i,j,k,UMZ) / S_arr(i,j,k,URHO);
+#endif
+
+                Real alpha = fac0 * (kp2_arr(i,j,k) * std::pow(T_arr(i,j,k) + dT_loc, 4) -
+                                     kp_arr(i,j,k) * std::pow(T_arr(i,j,k), 4)) -
+                             fac2 * (kp2_arr(i,j,k) - kp_arr(i,j,k)) * er_arr(i,j,k);
+
+                Real frc = S_arr(i,j,k,URHO) * c_v_arr(i,j,k) + 1.0e-50_rt;
+                Real etainv = frc / (alpha + frc);
+
+                dcf_arr(i,j,k) = 2.e0_rt * etainv * (kp_arr(i,j,k) / kr_arr(i,j,k));
+            });
         }
     }
 }

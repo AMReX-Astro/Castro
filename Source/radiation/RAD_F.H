@@ -73,19 +73,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_get_v_dcf
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(er), 
-    const BL_FORT_FAB_ARG(state), 
-    const BL_FORT_FAB_ARG(temp),
-    const BL_FORT_FAB_ARG(c_v),
-    const BL_FORT_FAB_ARG(kr),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kp2),
-    const amrex::Real* dtemp, const amrex::Real* dtime, const amrex::Real* sigma, const amrex::Real* c,
-    BL_FORT_FAB_ARG(v),
-    BL_FORT_FAB_ARG(dcf));
-
   void ca_update_dcf
    (const int lo[], const int hi[],
     BL_FORT_FAB_ARG(dcf),
