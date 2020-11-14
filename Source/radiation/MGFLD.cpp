@@ -477,15 +477,24 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_accel_rhs
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(etaT[mfi]),
-           BL_TO_FORTRAN_ANYD(rhs[mfi]),
-           delta_t);
+      auto Ern = Er_new[mfi].array();
+      auto Erl = Er_pi[mfi].array();
+      auto kap = kappa_p[mfi].array();
+      auto etaT_arr = etaT[mfi].array();
+      auto rhs_arr = rhs[mfi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real rt_term = 0.0;
+          for (int g = 0; g < NGROUPS; ++g) {
+              rt_term += kap(i,j,k,g) * (Ern(i,j,k,g) - Erl(i,j,k,g));
+          }
+
+          Real H = etaT_arr(i,j,k);
+
+          rhs_arr(i,j,k) = C::c_light * H * rt_term;
+      });
   }
 
   // must apply metrics to rhs here

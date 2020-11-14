@@ -144,15 +144,6 @@ extern "C"
     BL_FORT_FAB_ARG_3D(aco),
     amrex::Real dt, amrex::Real ptc_tau);
 
-  void ca_accel_rhs
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(Ern),
-    const BL_FORT_FAB_ARG_3D(Erl),
-    const BL_FORT_FAB_ARG_3D(kap),
-    const BL_FORT_FAB_ARG_3D(etaT),
-    BL_FORT_FAB_ARG_3D(rhs),
-    amrex::Real dt);
-
   void ca_compute_rhs
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),
