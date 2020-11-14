@@ -382,55 +382,6 @@ contains
 
 
 
-  subroutine ca_accel_spec(lo, hi, &
-                           kap, kap_lo, kap_hi, &
-                           mugT, mugT_lo, mugT_hi, &
-                           spec, spec_lo, spec_hi, &
-                           dt, tau) &
-                           bind(C, name='ca_accel_spec')
-
-    use rad_params_module, only: ngroups, clight
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: mugT_lo(3), mugT_hi(3)
-    integer,  intent(in   ) :: spec_lo(3), spec_hi(3)
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: mugT(mugT_lo(1):mugT_hi(1),mugT_lo(2):mugT_hi(2),mugT_lo(3):mugT_hi(3),0:ngroups-1)
-    real(rt), intent(inout) :: spec(spec_lo(1):spec_hi(1),spec_lo(2):spec_hi(2),spec_lo(3):spec_hi(3),0:ngroups-1)
-    real(rt), intent(in   ), value :: dt, tau
-
-    integer  :: i, j, k
-    real(rt) :: cdt1, sumeps
-    real(rt), dimension(0:ngroups-1) :: epsilon, kapt
-
-    !$gpu
-
-    cdt1 = 1.e0_rt / (clight * dt)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             kapt = kap(i,j,k,:) + (1.e0_rt + tau) * cdt1
-             epsilon = mugT(i,j,k,:) / kapt
-             sumeps = sum(epsilon)
-             if (sumeps .eq. 0.e0_rt) then
-                spec(i,j,k,:) = 0.e0_rt
-             else
-                spec(i,j,k,:) = epsilon / sumeps
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_accel_spec
-
-
-
   subroutine ca_accel_ccoe(lo, hi, &
                            bcgr, b_lo, b_hi, &
                            spec, s_lo, s_hi, &
