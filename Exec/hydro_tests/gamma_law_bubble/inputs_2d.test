@@ -29,6 +29,9 @@ castro.use_flattening = 1
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   1
 
+castro.yl_ext_bc_type = "hse"
+castro.yr_ext_bc_type = "hse"
+
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 0

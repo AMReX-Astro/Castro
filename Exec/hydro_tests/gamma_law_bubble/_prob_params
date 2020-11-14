@@ -1,15 +1,13 @@
-pert_factor       real           8.1e-3_rt   y
+pert_factor       real           8.1e-3_rt
 
-dens_base         real           1.65e-3_rt  y
+dens_base         real           1.65e-3_rt
 
-pres_base         real           1.65e6_rt   y
+pres_base         real           1.65e6_rt
 
-y_pert_center     real           0.7_rt      y
+y_pert_center     real           0.7_rt
 
-pert_width        real           0.025_rt    y
+pert_width        real           0.025_rt
 
-do_isentropic     integer        0           y
+do_isentropic     integer        0
 
-boundary_type     integer        1           y
-
-frac              real           0.5         y
+dx_model          real           0.00390625
