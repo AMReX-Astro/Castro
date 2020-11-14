@@ -218,30 +218,6 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
 
 end subroutine ca_compute_lamborder
 
-subroutine ca_update_dcf(lo, hi, &
-     dcf, dcf_l1, dcf_h1, &
-     etainv, eti_l1, eti_h1, &
-     kp, kp_l1, kp_h1, kr, kr_l1, kr_h1) bind(C, name="ca_update_dcf")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1)
-  integer, intent(in) :: dcf_l1, dcf_h1, eti_l1, eti_h1, &
-       kp_l1, kp_h1, kr_l1, kr_h1
-  real(rt)        , intent(in) :: etainv(eti_l1:eti_h1)
-  real(rt)        , intent(in) :: kp(kp_l1:kp_h1)
-  real(rt)        , intent(in) :: kr(kr_l1:kr_h1)
-  real(rt)                     :: dcf(dcf_l1:dcf_h1)
-
-  integer :: i
-
-  do i=lo(1),hi(1)
-     dcf(i) = 2.e0_rt * etainv(i) * (kp(i)/kr(i))
-  end do
-
-end subroutine ca_update_dcf
-
 subroutine ca_set_dterm_face( lo, hi, &
      Er, Er_l1, Er_h1, dc, dc_l1, dc_h1, &
      dtf, dtf_l1, dtf_h1, dx, idir) bind(C, name="ca_set_dterm_face")

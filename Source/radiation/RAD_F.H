@@ -73,12 +73,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_update_dcf
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(dcf),
-    const BL_FORT_FAB_ARG(etainv),
-    const BL_FORT_FAB_ARG(kp),
-    const BL_FORT_FAB_ARG(kr));
 
   void ca_compute_dcoefs
    (const int* lo, const int* hi,

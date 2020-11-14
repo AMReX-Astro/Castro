@@ -923,39 +923,6 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   return
 end subroutine ca_compute_lamborder
 
-
-subroutine ca_update_dcf(lo, hi, &
-                         dcf, dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3, &
-                         etainv, eti_l1, eti_l2, eti_l3, eti_h1, eti_h2, eti_h3, &
-                         kp, kp_l1, kp_l2, kp_l3, kp_h1, kp_h2, kp_h3, &
-                         kr, kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3) bind(C, name="ca_update_dcf")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3)
-  integer, intent(in) :: dcf_l1, dcf_l2, dcf_l3, dcf_h1, dcf_h2, dcf_h3
-  integer, intent(in) :: eti_l1, eti_l2, eti_l3, eti_h1, eti_h2, eti_h3
-  integer, intent(in) :: kp_l1, kp_l2, kp_l3, kp_h1, kp_h2, kp_h3
-  integer, intent(in) :: kr_l1, kr_l2, kr_l3, kr_h1, kr_h2, kr_h3
-  real(rt)        , intent(in) :: etainv(eti_l1:eti_h1, eti_l2:eti_h2, eti_l3:eti_h3)
-  real(rt)        , intent(in) :: kp(kp_l1:kp_h1, kp_l2:kp_h2, kp_l3:kp_h3)
-  real(rt)        , intent(in) :: kr(kr_l1:kr_h1, kr_l2:kr_h2, kr_l3:kr_h3)
-  real(rt)                     :: dcf(dcf_l1:dcf_h1, dcf_l2:dcf_h2, dcf_l3:dcf_h3)
-
-  integer :: i, j, k
-
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           dcf(i,j,k) = 2.e0_rt * etainv(i,j,k) * (kp(i,j,k)/kr(i,j,k))
-        end do
-     end do
-  end do
-
-end subroutine ca_update_dcf
-
-
 subroutine ca_set_dterm_face(lo, hi, &
                              Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
                              dc, dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
