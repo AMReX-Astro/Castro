@@ -170,18 +170,6 @@ extern "C"
     amrex::Real* rel, amrex::Real* abs, amrex::Real *errr,
     amrex::Real dt);
 
-  void ca_compute_etat
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(etat), 
-     BL_FORT_FAB_ARG_3D(etaTz), 
-     BL_FORT_FAB_ARG_3D(eta1), 
-     BL_FORT_FAB_ARG_3D(djdT),
-     const BL_FORT_FAB_ARG_3D(dkdT),
-     const BL_FORT_FAB_ARG_3D(dedT),
-     const BL_FORT_FAB_ARG_3D(Er_star),
-     const BL_FORT_FAB_ARG_3D(rho),
-     amrex::Real delta_t, amrex::Real tau);
-
   void ca_compute_rhs
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),
