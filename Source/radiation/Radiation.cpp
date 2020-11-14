@@ -2006,11 +2006,17 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
 #endif
     for (MFIter mfi(dcf,true); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.growntilebox();
-        ca_update_dcf(bx.loVect(), bx.hiVect(),
-                      BL_TO_FORTRAN(dcf[mfi]),
-                      BL_TO_FORTRAN(etainv[mfi]),
-                      BL_TO_FORTRAN(kp[mfi]),
-                      BL_TO_FORTRAN(kr[mfi]));
+
+        auto dcf_arr = dcf[mfi].array();
+        auto etainv_arr = etainv[mfi].array();
+        auto kp_arr = kp[mfi].array();
+        auto kr_arr = kr[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            dcf_arr(i,j,k) = 2.e0_rt * etainv_arr(i,j,k) * (kp_arr(i,j,k) / kr_arr(i,j,k));
+        });
     }
 
     dcf.FillBoundary(geom.periodicity());
