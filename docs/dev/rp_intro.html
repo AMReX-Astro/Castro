@@ -247,7 +247,7 @@ probin file in the <code class="docutils literal notranslate"><span class="pre">
 <h3>C++ parameter format<a class="headerlink" href="#c-parameter-format" title="Permalink to this headline">¶</a></h3>
 <p>The C parameters take the form of:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span># comment describing the parameter
-name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+name   type   default   need in Fortran?   ifdef
 </pre></div>
 </div>
 <p>Here,</p>
@@ -276,10 +276,6 @@ made available in Fortran (through <code class="docutils literal notranslate"><s
 <li><p><cite>ifdef</cite> provides the name of a preprocessor name that should
 wrap this parameter definition—it will only be compiled in if that
 name is defined to the preprocessor.</p></li>
-<li><p><cite>fortran name</cite> is the name that the parameter should use in
-Fortran—by default it will be the same as name.</p></li>
-<li><p><cite>fortran type</cite> is the data type of the parameter in Fortran—by
-default it will be the Fortran-equivalent to type.</p></li>
 </ul>
 </div></blockquote>
 <p>Finally, any comment (starting with <code class="docutils literal notranslate"><span class="pre">#</span></code>) immediately before the
