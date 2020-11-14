@@ -153,13 +153,6 @@ extern "C"
     BL_FORT_FAB_ARG_3D(rhs),
     amrex::Real dt);
 
-  void ca_accel_spec
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(kap),
-    const BL_FORT_FAB_ARG_3D(mugT),
-    BL_FORT_FAB_ARG_3D(spec), 
-    amrex::Real dt, amrex::Real ptc_tau);
-
   void ca_compute_rhs
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),
