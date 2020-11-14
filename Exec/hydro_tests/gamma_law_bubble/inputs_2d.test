@@ -31,6 +31,7 @@ castro.hi_bc       =  0   1
 
 castro.yl_ext_bc_type = "hse"
 castro.yr_ext_bc_type = "hse"
+castro.hse_interp_temp = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1
