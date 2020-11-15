@@ -14,19 +14,13 @@ r_pert_center           real          0.7_rt          y
 pert_width              real          0.025_rt        y
 
 # is the atmosphere isentropic?
-do_isentropic           logical       .false.         y
+do_isentropic           integer       0               y
 
 # should we have a single bubble instead of two?
-single                  logical       .false.         y
+single                  integer       0               y
 
 # at the lower boundary, do we extrapolate the vertical momentum or set it to zero
 boundary_type           integer       1               y
-
-xn_model                real          0.0_rt          n        (nspec, network)
-
-rmin                    real          0.0_rt
-
-rmax                    real          0.0_rt
 
 left_bubble_x_center    real          0.0_rt
 

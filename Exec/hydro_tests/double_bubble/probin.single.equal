@@ -8,9 +8,9 @@
   r_pert_center = 0.7d0
   pert_width = 0.04d0
 
-  do_isentropic = T
+  do_isentropic = 1
  
-  single = T
+  single = 1
 /
 
 &tagging
