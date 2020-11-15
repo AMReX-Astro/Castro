@@ -95,7 +95,7 @@ void problem_bc_fill(int i, int j, int k,
 
                 Real x_loc = x + 0.5_rt * dx[0] * (ii / std::sqrt(3.0_rt));
 
-                if (x < shockfront) {
+                if (x_loc < shockfront) {
                     // Post shock ICs
                     state(i,j,k,URHO ) = state(i,j,k,URHO ) + (1.0_rt / 4.0_rt) * problem::rho_l;
                     state(i,j,k,UMX  ) = state(i,j,k,UMX  ) + (1.0_rt / 4.0_rt) * problem::rho_l * problem::u_l;
