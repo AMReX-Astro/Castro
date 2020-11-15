@@ -502,8 +502,6 @@ extern "C" {
   void bextrp(BL_FORT_FAB_ARG(f), 
               ARLIM_P(reglo), ARLIM_P(reghi));
 
-  // neutrino routines below
-
   void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
   void lbcoefna(const int* lo, const int* hi,
@@ -512,11 +510,6 @@ extern "C" {
                 BL_FORT_FAB_ARG_3D(spec),
                 int idim);
 
-  void ljupna(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(jnew), 
-              BL_FORT_FAB_ARG_3D(spec),
-              BL_FORT_FAB_ARG_3D(accel), 
-              int nTotal);
 #ifdef __cplusplus
 }
 #endif

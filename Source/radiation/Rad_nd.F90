@@ -511,40 +511,6 @@ contains
 
 
 
-  subroutine ljupna(lo, hi, &
-                    jnew, j_lo, j_hi, &
-                    spec, s_lo, s_hi, &
-                    accel, a_lo, a_hi, &
-                    nTotal) &
-                    bind(C, name="ljupna")
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: j_lo(3), j_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: a_lo(3), a_hi(3)
-    real(rt), intent(inout) :: jnew(j_lo(1):j_hi(1),j_lo(2):j_hi(2),j_lo(3):j_hi(3),0:nTotal-1)
-    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),0:nTotal-1)
-    real(rt), intent(in   ) :: accel(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
-    integer,  intent(in   ), value :: nTotal
-
-    integer :: i, j, k, n
-
-    !$gpu
-
-    do n = 0, nTotal - 1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                jnew(i,j,k,n) = jnew(i,j,k,n) + spec(i,j,k,n) * accel(i,j,k)
-             end do
-          end do
-       end do
-    end do
-
-  end subroutine ljupna
-
-
-
   subroutine ca_update_matter(lo, hi,  &
                               re_n, re_n_lo, re_n_hi, &
                               Er_n, Er_n_lo, Er_n_hi, &
