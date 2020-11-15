@@ -30,7 +30,7 @@ castro.lo_bc       =  0   1
 castro.hi_bc       =  0   1
 
 castro.yl_ext_bc_type = 1
-castro.yr_ext_bc_type = 
+castro.yr_ext_bc_type = 1
 castro.hse_interp_temp = 1
 
 # WHICH PHYSICS
