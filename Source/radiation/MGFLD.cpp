@@ -512,12 +512,17 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& reg  = mfi.tilebox();
 
-#pragma gpu box(reg)
-      ljupna(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-             BL_TO_FORTRAN_ANYD(Er_new[mfi]), 
-             BL_TO_FORTRAN_ANYD(spec[mfi]),
-             BL_TO_FORTRAN_ANYD(accel[mfi]), 
-             nGroups);
+      auto Er_new_arr = Er_new[mfi].array();
+      auto spec_arr = spec[mfi].array();
+      auto accel_arr = accel[mfi].array();
+
+      amrex::ParallelFor(reg,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          for (int n = 0; n < NGROUPS; ++n) {
+              Er_new_arr(i,j,k,n) = Er_new_arr(i,j,k,n) + spec_arr(i,j,k,n) * accel_arr(i,j,k);
+          }
+      });
   }
 
   mgbd.unsetCorrection();
