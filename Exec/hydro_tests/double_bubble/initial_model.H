@@ -62,6 +62,11 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     model::state(0, model::idens) = model_params.dens_base;
     model::state(0, model::ipres) = model_params.p_base;
+    model::state(0, model::itemp) = eos_state.T;
+
+    for (int n = 0; n < NumSpec; n++) {
+        model::state(0, model::ispec+n) = model_params.xn[n];
+    }
 
     model::r(0) = xmin + 0.5_rt * dx;
 
@@ -101,6 +106,10 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         eos(eos_input_rp, eos_state);
 
         model::state(j, model::itemp) = eos_state.T;
+
+        for (int n = 0; n < NumSpec; n++) {
+            model::state(j, model::ispec+n) = model_params.xn[n];
+        }
     }
 }
 #endif

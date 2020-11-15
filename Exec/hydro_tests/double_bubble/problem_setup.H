@@ -160,6 +160,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
         eos_state.p = pres;
         eos_state.rho = state(i,j,k,URHO);
+        eos_state.T = T_height;
 
         eos(eos_input_rp, eos_state);
 
@@ -223,6 +224,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
         eos_state.p = pres;
         eos_state.rho = state(i,j,k,URHO);
+        eos_state.T = T_height;
 
         eos(eos_input_rp, eos_state);
 
@@ -230,24 +232,23 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UTEMP) = eos_state.T;
 
 
+        // make state conservative
+
+        for (int n = 0; n < NumSpec; n++) {
+            state(i,j,k,UFS+n) = state(i,j,k,URHO) * eos_state.xn[n];
+        }
+
+        state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT);
+
+        // assumes ke=0
+
+        state(i,j,k,UEDEN) = state(i,j,k,UEINT);
+
+        state(i,j,k,UMX) = 0.0;
+        state(i,j,k,UMY) = 0.0;
+        state(i,j,k,UMZ) = 0.0;
+
     }
-
-    // make state conservative
-
-    for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
-    }
-
-    state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT);
-
-    // assumes ke=0
-
-    state(i,j,k,UEDEN) = state(i,j,k,UEINT);
-
-    state(i,j,k,UMX) = 0.0;
-    state(i,j,k,UMY) = 0.0;
-    state(i,j,k,UMZ) = 0.0;
-
 }
 #endif
 
