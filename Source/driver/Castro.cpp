@@ -1547,7 +1547,7 @@ Castro::init ()
 
     for (int s = 0; s < num_state_type; ++s) {
         MultiFab& state_MF = get_new_data(s);
-        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp());
+        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp(), state_MF.nGrow());
     }
 }
 
