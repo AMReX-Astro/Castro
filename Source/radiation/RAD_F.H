@@ -164,15 +164,6 @@ extern "C"
      const amrex::Real* dx, amrex::Real dt,
      amrex::Real time, int igroup);
 
-  void ca_local_accel
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(Ern),
-    const BL_FORT_FAB_ARG_3D(Erl),
-    const BL_FORT_FAB_ARG_3D(kap),
-    const BL_FORT_FAB_ARG_3D(etaT),
-    const BL_FORT_FAB_ARG_3D(mugT),
-    amrex::Real dt, amrex::Real ptc_tau);
-
 }
 
 BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)

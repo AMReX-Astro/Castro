@@ -539,15 +539,34 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
     for (MFIter mfi(Er_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        ca_local_accel
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-             BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-             BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-             BL_TO_FORTRAN_ANYD(etaT[mfi]),
-             BL_TO_FORTRAN_ANYD(mugT[mfi]),
-             delta_t, ptc_tau);
+        auto Ern = Er_new[mfi].array();
+        auto Erl = Er_pi[mfi].array();
+        auto kap = kappa_p[mfi].array();
+        auto etaT_arr = etaT[mfi].array();
+        auto mugT_arr = mugT[mfi].array();
+
+        Real cdt1 = 1.0_rt / (C::c_light * delta_t);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real Hg[NGROUPS], kapt[NGROUPS];
+            Real rt_term = 0.0_rt;
+            Real p = 1.0_rt;
+
+            for (int g = 0; g < NGROUPS; ++g) {
+                Hg[g] = mugT_arr(i,j,k,g) * etaT_arr(i,j,k);
+                kapt[g] = kap(i,j,k,g) + (1.e0_rt + ptc_tau) * cdt1;
+                Real kk = kap(i,j,k,g) / kapt[g];
+
+                p -= Hg[g] * kk;
+                rt_term += kap(i,j,k,g) * (Ern(i,j,k,g) - Erl(i,j,k,g));
+            }
+
+            for (int g = 0; g < NGROUPS; ++g) {
+                Ern(i,j,k,g) = Ern(i,j,k,g) + (Hg[g] * rt_term) / (kapt[g] * p + 1.e-50_rt);
+            }
+        });
     }
 }
 
