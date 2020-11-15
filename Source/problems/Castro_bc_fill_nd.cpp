@@ -142,7 +142,6 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     }
 #endif
 
-    std::cout << "done" << std::endl;
 
 #if AMREX_SPACEDIM == 3
     if ((bcr[URHO].lo(0) == EXT_DIR &&           // xl, yl, zl corner
