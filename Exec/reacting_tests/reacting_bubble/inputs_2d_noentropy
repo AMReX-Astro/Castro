@@ -27,11 +27,8 @@ amr.n_cell           = 384     576
 castro.lo_bc       =  0   1
 castro.hi_bc       =  0   2
 
-<<<<<<< HEAD
-castro.yl_ext_bc_type = "hse"
-=======
 castro.yl_ext_bc_type = 1
->>>>>>> 3903438b28fa872edc9ac105744bac7c2512c2bb
+
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 

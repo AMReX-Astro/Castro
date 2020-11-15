@@ -38,13 +38,6 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   integer :: ng
 
   type(eos_t) :: eos_state
-<<<<<<< HEAD
-
-  ! get the problm parameters
-  call probdata_init(name, namlen)
-
-=======
->>>>>>> 3903438b28fa872edc9ac105744bac7c2512c2bb
 
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere

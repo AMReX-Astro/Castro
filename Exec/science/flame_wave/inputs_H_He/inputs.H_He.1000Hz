@@ -24,10 +24,6 @@ castro.hse_reflect_vels = 1
 castro.fill_ambient_bc = 1
 castro.ambient_fill_dir = 1
 castro.ambient_outflow_vel = 1
-<<<<<<< HEAD
-=======
-
->>>>>>> 3903438b28fa872edc9ac105744bac7c2512c2bb
 
 # WHICH PHYSICS
 castro.do_hydro = 1
