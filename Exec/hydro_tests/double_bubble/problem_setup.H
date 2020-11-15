@@ -37,16 +37,19 @@ void problem_initialize ()
 
     // we'll generate the initial model at the needed resolution
 
+    int nx = (2.0_rt * problem::center[AMREX_SPACEDIM-1] + 1.e-8_rt) /
+        problem::dx_model;
+
     model_t model_params;
     model_params.dens_base = problem::dens_base;
-    model_params.p_base = problem::p_base;
+    model_params.p_base = problem::pres_base;
     for (int n = 0; n < NumSpec; ++n) {
         model_params.xn[n] = 0.0_rt;
     }
-    model_parms.xn[0] = 1.0_rt;
+    model_params.xn[0] = 1.0_rt;
 
-    get_model_size(nx, problo[AMREX_SPACEDIM-1], probhi[AMREX_SPACEDIM-1],
-                   model_params);
+    generate_initial_model(nx, problo[AMREX_SPACEDIM-1], probhi[AMREX_SPACEDIM-1],
+                           model_params);
 
     if (problem::single == 1) {
         problem::left_bubble_x_center = problo[0] + 0.5_rt * (probhi[0] - problo[0]);
@@ -232,7 +235,7 @@ void problem_initialize_state_data (int i, int j, int k,
     // make state conservative
 
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = state(i,j,k,URHO) * eos_state.xn[n];
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
     state(i,j,k,UEINT) = state(i,j,k,URHO) * state(i,j,k,UEINT);

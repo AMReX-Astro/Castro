@@ -60,8 +60,8 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     Real gamma_const = model_params.p_base/(model_params.dens_base * eos_state.e) + 1.0_rt;
 
-    model::state(0, model::idens) = model::dens_base;
-    model::state(0, model::ipres) = model::p_base;
+    model::state(0, model::idens) = model_params.dens_base;
+    model::state(0, model::ipres) = model_params.p_base;
 
     model::r(0) = xmin + 0.5_rt * dx;
 
@@ -71,7 +71,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
         model::r(j) = xmin + (static_cast<Real>(j) + 0.5_rt) * dx;
 
-        if (do_isentropic == 1) {
+        if (problem::do_isentropic == 1) {
             model::state(j, model::idens) = model_params.dens_base *
                 std::pow(gravity::const_grav * model_params.dens_base * (gamma_const - 1.0) *
                          (model::r(j) - model::r(0)) /

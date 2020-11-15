@@ -9,6 +9,8 @@
   pert_width = 0.025d0
 
   do_isentropic = 1
+
+  dx_model = 0.00390625
 /
 
 &tagging 

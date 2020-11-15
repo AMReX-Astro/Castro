@@ -1,10 +1,3 @@
-// create a simple hydrostatic initial model that is 4th order accurate
-// at cell-centers by using RK4 to integrate:
-//
-//   dp/dr = rho(p, s) g
-//   ds/dr = 0
-
-
 #ifndef INITIAL_MODEL_H
 #define INITIAL_MODEL_H
 

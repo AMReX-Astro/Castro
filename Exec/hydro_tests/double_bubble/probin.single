@@ -11,6 +11,8 @@
   do_isentropic = 1
  
   single = 1
+
+  dx_model = 0.005859375
 /
 
 &tagging
