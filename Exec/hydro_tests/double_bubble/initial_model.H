@@ -72,7 +72,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     // integrate up from the base
 
-    for (int j = 0; j < npts_model; j++) {
+    for (int j = 1; j < npts_model; j++) {
 
         model::r(j) = xmin + (static_cast<Real>(j) + 0.5_rt) * dx;
 
