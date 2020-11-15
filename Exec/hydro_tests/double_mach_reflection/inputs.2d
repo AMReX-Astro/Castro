@@ -18,8 +18,8 @@ amr.max_grid_size    = 256
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1   1
-castro.hi_bc       =  2   1
+castro.lo_bc       =  2   2
+castro.hi_bc       =  2   2
 
 # WHICH PHYSICS
 castro.do_hydro = 1
