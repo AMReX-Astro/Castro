@@ -1857,43 +1857,6 @@ contains
 
   end subroutine ca_compute_temp_given_rhoe
 
-
-
-  subroutine cfrhoe(lo, hi, &
-                    frhoe, f_lo, f_hi, &
-                    state, s_lo, s_hi) &
-                    bind(C, name='cfrhoe')
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, UEINT
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    integer :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             ! kin = 0.5e0_rt * (state(i,j,k,XMOM)   ** 2 +
-             !                   state(i,j,k,XMOM+1) ** 2 +
-             !                   state(i,j,k,XMOM+2) ** 2) /
-             !                   state(i,j,k,DEN)
-             ! frhoe(i,j,k) = state(i,j,k,EDEN) - kin
-             frhoe(i,j,k) = state(i,j,k,UEINT)
-          end do
-       end do
-    end do
-
-  end subroutine cfrhoe
-
 end module rad_nd_module
 
 

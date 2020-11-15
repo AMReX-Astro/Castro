@@ -415,10 +415,6 @@ extern "C" {
             amrex::Real delta_t, const amrex::Real* dx,
             amrex::Real sigma, amrex::Real c, amrex::Real theta);
 
-  void cfrhoe(const int* lo, const int* hi, 
-              BL_FORT_FAB_ARG_3D(frhoe), 
-              BL_FORT_FAB_ARG_3D(state));
-
   void ceta2(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(eta),
              BL_FORT_FAB_ARG_3D(etainv),

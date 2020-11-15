@@ -1312,10 +1312,14 @@ void Radiation::get_frhoe(MultiFab& frhoe,
     for (MFIter si(state,TilingIfNotGPU()); si.isValid(); ++si) {
         const Box& reg = si.tilebox();
 
-#pragma gpu box(reg)
-        cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-               BL_TO_FORTRAN_ANYD(frhoe[si]),
-               BL_TO_FORTRAN_ANYD(state[si]));
+        auto frhoe_arr = frhoe[si].array();
+        auto state_arr = state[si].array();
+
+        amrex::ParallelFor(reg,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            frhoe_arr(i,j,k) = state_arr(i,j,k,UEINT);
+        });
     }
 }
 
@@ -1391,10 +1395,14 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
           frhoe.resize(bx, 1);
           Elixir frhoe_elix = frhoe.elixir();
 
-#pragma gpu box(bx)
-          cfrhoe(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(frhoe),
-                 BL_TO_FORTRAN_ANYD(state[mfi]));
+          auto frhoe_arr = frhoe.array();
+          auto state_arr = state[mfi].array();
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              frhoe_arr(i,j,k) = state_arr(i,j,k,UEINT);
+          });
 
 #pragma gpu box(bx)
           ca_compute_temp_given_rhoe
@@ -1968,11 +1976,16 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             const Box& reg = mfi.growntilebox();
 
             temp.resize(reg);
+            Elixir temp_elix = temp.elixir();
 
-#pragma gpu box(reg) sync
-            cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   BL_TO_FORTRAN_ANYD(temp),
-                   BL_TO_FORTRAN_ANYD(S[mfi]));
+            auto temp_arr = temp.array();
+            auto S_arr = S[mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                temp_arr(i,j,k) = S_arr(i,j,k,UEINT);
+            });
 
 #pragma gpu box(reg) sync
             ca_compute_temp_given_rhoe
@@ -2013,10 +2026,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             S[mfi].plus<RunOn::Device>(-dT, UTEMP, 1);
             Gpu::synchronize();
 
-            auto S_arr = S[mfi].array();
             auto v_arr = v[mfi].array();
             auto er_arr = Er[mfi].array();
-            auto T_arr = temp.array();
             auto kr_arr = kappa_r[mfi].array();
             auto kp_arr = kp.array();
             auto kp2_arr = kp2.array();
@@ -2037,8 +2048,8 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                 v_arr(i,j,k,2) = S_arr(i,j,k,UMZ) / S_arr(i,j,k,URHO);
 #endif
 
-                Real alpha = fac0 * (kp2_arr(i,j,k) * std::pow(T_arr(i,j,k) + dT_loc, 4) -
-                                     kp_arr(i,j,k) * std::pow(T_arr(i,j,k), 4)) -
+                Real alpha = fac0 * (kp2_arr(i,j,k) * std::pow(temp_arr(i,j,k) + dT_loc, 4) -
+                                     kp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4)) -
                              fac2 * (kp2_arr(i,j,k) - kp_arr(i,j,k)) * er_arr(i,j,k);
 
                 Real frc = S_arr(i,j,k,URHO) * c_v_arr(i,j,k) + 1.0e-50_rt;
