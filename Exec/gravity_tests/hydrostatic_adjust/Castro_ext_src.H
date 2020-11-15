@@ -26,9 +26,11 @@ void do_ext_src(int i, int j, int k,
 
     if (prob_type == 1) {
 
+#ifndef AMREX_USE_GPU
         if (i == 0 && j == 0 && k == 0) {
             AllPrint() << "TIME vs TSTOP " << time << " " << t_stop << std::endl;
         }
+#endif
 
         // For heating at the center
         auto x = prob_lo[0] + (Real(i) + 0.5_rt)*dx[0] - center[0];
@@ -52,9 +54,11 @@ void do_ext_src(int i, int j, int k,
 
     } else if (prob_type == 3) {
 
+#ifndef AMREX_USE_GPU
         if (i == 0 && j == 0 && k == 0) {
             AllPrint() << "TIME vs TSTOP " << time << " " << t_stop << std::endl;
         }
+#endif
 
         // sub-chandra heating -- modulate by He
 

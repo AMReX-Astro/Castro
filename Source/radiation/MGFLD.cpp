@@ -348,13 +348,33 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
     const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-    ca_accel_spec
-        (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-         BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-         BL_TO_FORTRAN_ANYD(mugT[mfi]),
-         BL_TO_FORTRAN_ANYD(spec[mfi]),
-         delta_t, ptc_tau);
+    auto kappa_p_arr = kappa_p[mfi].array();
+    auto mugT_arr = mugT[mfi].array();
+    auto spec_arr = spec[mfi].array();
+
+    Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        Real epsilon[NGROUPS];
+        Real sumeps = 0.0;
+        for (int g = 0; g < NGROUPS; ++g) {
+            Real kapt = kappa_p_arr(i,j,k,g) + (1.e0_rt + ptc_tau) * cdt1;
+            epsilon[g] = mugT_arr(i,j,k,g) / kapt;
+            sumeps += epsilon[g];
+        }
+
+        if (sumeps == 0.e0_rt) {
+            for (int g = 0; g < NGROUPS; ++g) {
+                spec_arr(i,j,k,g) = 0.e0_rt;
+            }
+        } else {
+            for (int g = 0; g < NGROUPS; ++g) {
+                spec_arr(i,j,k,g) = epsilon[g] / sumeps;
+            }
+        }
+    });
   }
 
   // Extrapolate spectrum out one cell
@@ -457,15 +477,24 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_accel_rhs
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-           BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(etaT[mfi]),
-           BL_TO_FORTRAN_ANYD(rhs[mfi]),
-           delta_t);
+      auto Ern = Er_new[mfi].array();
+      auto Erl = Er_pi[mfi].array();
+      auto kap = kappa_p[mfi].array();
+      auto etaT_arr = etaT[mfi].array();
+      auto rhs_arr = rhs[mfi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real rt_term = 0.0;
+          for (int g = 0; g < NGROUPS; ++g) {
+              rt_term += kap(i,j,k,g) * (Ern(i,j,k,g) - Erl(i,j,k,g));
+          }
+
+          Real H = etaT_arr(i,j,k);
+
+          rhs_arr(i,j,k) = C::c_light * H * rt_term;
+      });
   }
 
   // must apply metrics to rhs here

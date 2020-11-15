@@ -29,7 +29,7 @@ C++ parameter format
 The C parameters take the form of::
 
     # comment describing the parameter
-    name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+    name   type   default   need in Fortran?   ifdef
 
 Here,
 
@@ -58,12 +58,6 @@ provide "need in Fortran?" and "ifdef".
   * `ifdef` provides the name of a preprocessor name that should
     wrap this parameter definition—it will only be compiled in if that
     name is defined to the preprocessor.
-
-  * `fortran name` is the name that the parameter should use in
-    Fortran—by default it will be the same as name.
-
-  * `fortran type` is the data type of the parameter in Fortran—by
-    default it will be the Fortran-equivalent to type.
 
 Finally, any comment (starting with ``#``) immediately before the
 parameter definition will be used to generate the documentation

@@ -1,5 +1,7 @@
 # 20.12
 
+   * The minimum supported Hypre version is now 2.19.0. (#1333)
+
    * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
      As a result we have also switched the Strang and simplified SDC burners in Castro
      to use this C++ implementation. Most networks used in Castro have already been

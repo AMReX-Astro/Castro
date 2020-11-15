@@ -557,6 +557,7 @@ Castro::Castro (Amr&            papa,
     // initialize the C++ values of the runtime parameters
     if (do_init_probparams == 0) {
       init_prob_parameters();
+
       do_init_probparams = 1;
 
       // Copy ambient data from Fortran to C++. This should be done prior to
@@ -1546,7 +1547,7 @@ Castro::init ()
 
     for (int s = 0; s < num_state_type; ++s) {
         MultiFab& state_MF = get_new_data(s);
-        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp());
+        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp(), state_MF.nGrow());
     }
 }
 
