@@ -335,53 +335,6 @@ contains
 
 
 
-  subroutine ca_accel_rhs(lo, hi, &
-                          Ern, Ern_lo, Ern_hi, &
-                          Erl, Erl_lo, Erl_hi, &
-                          kap, kap_lo, kap_hi, &
-                          etaT, etaT_lo, etaT_hi, &
-                          rhs, rhs_lo, rhs_hi, &
-                          dt) &
-                          bind(C, name='ca_accel_rhs')
-
-    use rad_params_module, only: ngroups, clight
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
-    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
-    integer,  intent(in   ) :: rhs_lo(3), rhs_hi(3)
-    real(rt), intent(in   ) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
-    real(rt), intent(inout) :: rhs(rhs_lo(1):rhs_hi(1),rhs_lo(2):rhs_hi(2),rhs_lo(3):rhs_hi(3))
-    real(rt), intent(in   ), value :: dt
-
-    integer  :: i, j, k
-    real(rt) :: rt_term, H
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rt_term = sum(kap(i,j,k,:) * (Ern(i,j,k,:) - Erl(i,j,k,:)))
-             H = etaT(i,j,k)
-             rhs(i,j,k) = clight * H * rt_term
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_accel_rhs
-
-
-
   subroutine ca_accel_ccoe(lo, hi, &
                            bcgr, b_lo, b_hi, &
                            spec, s_lo, s_hi, &
