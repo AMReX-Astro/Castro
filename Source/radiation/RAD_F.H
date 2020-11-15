@@ -415,17 +415,6 @@ extern "C" {
             amrex::Real delta_t, const amrex::Real* dx,
             amrex::Real sigma, amrex::Real c, amrex::Real theta);
 
-  void ceta2(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(eta),
-             BL_FORT_FAB_ARG_3D(etainv),
-             BL_FORT_FAB_ARG_3D(frho), 
-             BL_FORT_FAB_ARG_3D(temp), 
-             BL_FORT_FAB_ARG_3D(c_v), 
-             BL_FORT_FAB_ARG_3D(fkp), 
-             BL_FORT_FAB_ARG_3D(er), 
-             amrex::Real dT, amrex::Real delta_t, amrex::Real sigma,
-             amrex::Real c, amrex::Real underr, int lagpla);
-
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
                  BL_FORT_FAB_ARG(frhoes), 

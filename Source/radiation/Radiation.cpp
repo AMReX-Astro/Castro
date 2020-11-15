@@ -898,17 +898,51 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
 
             get_c_v(c_v, temp[mfi], state[mfi], bx);
 
-#pragma gpu box(bx) sync
-            ceta2(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                  BL_TO_FORTRAN_ANYD(eta[mfi]),
-                  BL_TO_FORTRAN_ANYD(etainv[mfi]),
-                  BL_TO_FORTRAN_N_ANYD(state[mfi], URHO),
-                  BL_TO_FORTRAN_ANYD(temp[mfi]),
-                  BL_TO_FORTRAN_ANYD(c_v),
-                  BL_TO_FORTRAN_ANYD(fkp[mfi]),
-                  BL_TO_FORTRAN_N_ANYD(Er[mfi], igroup),
-                  dT, delta_t, sigma, c,
-                  underrel, lag_planck);
+            auto eta_arr = eta[mfi].array();
+            auto etainv_arr = etainv[mfi].array();
+            auto frho_arr = state[mfi].array(URHO);
+            auto temp_arr = temp[mfi].array();
+            auto c_v_arr = c_v.array();
+            auto fkp_arr = fkp[mfi].array();
+            auto Er_arr = Er[mfi].array(igroup);
+
+            Real dT_loc = dT;
+
+            const Real fac1 = 16.e0_rt * sigma * delta_t;
+            const Real fac0 = 0.25e0_rt * fac1 / dT;
+            const Real fac2 = delta_t * c / dT;
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real d;
+
+                if (lag_planck != 0)
+                {
+                    // assume eta and fkp are the same
+                    d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 3);
+                }
+                else
+                {
+                    d = fac0 * (eta_arr(i,j,k) * std::pow(temp_arr(i,j,k) + dT_loc, 4) -
+                                fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4)) -
+                        fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+                    // alternate form, sometimes worse, sometimes better:
+                    //   d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 3) +
+                    //       fac0 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * std::pow(temp(i,j,k), 4) -
+                    //       fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+                    // another alternate form (much worse):
+                    //   d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k) + dtTloc, 3) +
+                    //       fac0 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * std::pow(temp(i,j,k) + dT_loc, 4) -
+                    //       fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+                }
+
+                Real frc = frho_arr(i,j,k) * c_v_arr(i,j,k) + 1.0e-50_rt;
+                eta_arr(i,j,k) = d / (d + frc);
+                etainv_arr(i,j,k) = underrel * frc / (d + frc);
+                eta_arr(i,j,k) = 1.e0_rt - etainv_arr(i,j,k);
+                // eta_arr(i,j,k) = 1.e0_rt - underrel * (1.e0_rt - eta_arr(i,j,k));
+            });
         }
     }
 }
