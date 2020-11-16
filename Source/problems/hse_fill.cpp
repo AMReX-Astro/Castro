@@ -26,8 +26,8 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     auto hi = bx.hiVect();
 
     auto adv_bx = Box(adv);
-    auto adv_lo = adv_bx.loVect();
-    auto adv_hi = adv_bx.hiVect();
+    auto adv_lo = adv_bx.loVect3d();
+    auto adv_hi = adv_bx.hiVect3d();
 
     auto dx = geom.CellSizeArray();
 
