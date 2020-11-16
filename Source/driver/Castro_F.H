@@ -203,12 +203,6 @@ extern "C"
 #endif
 
 
-/* rotation */
-#ifdef ROTATION
-#include <Castro_rotation_F.H>
-#endif
-
-
 /* SDC */
 #ifdef TRUE_SDC
 #include <Castro_sdc_F.H>

@@ -11,11 +11,8 @@ extern "C"
 		     const amrex::Real* t_ff_p, const amrex::Real* t_ff_s);
 
   void get_period(amrex::Real* period);
-  void set_period(const amrex::Real* period);
 
   void update_center(const amrex::Real* time);
-
-  void get_omega_vec(const amrex::Real* omega);
 
   void get_relaxation_density_cutoff(amrex::Real* relaxation_density_cutoff);
 

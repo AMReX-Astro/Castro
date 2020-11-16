@@ -1086,22 +1086,6 @@ contains
 
 
 
-  ! Returns the CASTRO rotation frequency vector.
-
-  subroutine get_omega_vec(omega_in) bind(C,name='get_omega_vec')
-
-    use rotation_frequency_module, only: get_omega
-
-    implicit none
-
-    real(rt), intent(inout) :: omega_in(3)
-
-    call get_omega(omega_in)
-
-  end subroutine get_omega_vec
-
-
-
   ! Get the relaxation_cutoff_density parameter.
 
   subroutine get_relaxation_density_cutoff(relaxation_density_cutoff_in) bind(C, name='get_relaxation_density_cutoff')

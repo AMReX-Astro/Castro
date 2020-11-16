@@ -10,9 +10,6 @@ Castro::fill_rotational_potential(const Box& bx,
 
   auto coord_type = geom.Coord();
 
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
   auto problo = geom.ProbLoArray();
 
   auto dx = geom.CellSizeArray();
@@ -35,7 +32,7 @@ Castro::fill_rotational_potential(const Box& bx,
     r[2] = 0.0_rt;
 #endif
 
-    phi(i,j,k) = rotational_potential(r, omega);
+    phi(i,j,k) = rotational_potential(r);
 
   });
 
@@ -57,9 +54,7 @@ Castro::fill_rotational_psi(const Box& bx,
 
   auto coord_type = geom.Coord();
 
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
+  auto omega = get_omega();
   Real denom = omega[0] * omega[0] + omega[1] * omega[1] + omega[2] * omega[2];
 
   auto problo = geom.ProbLoArray();
@@ -85,7 +80,7 @@ Castro::fill_rotational_psi(const Box& bx,
 #endif
 
 
-    psi(i,j,k) = rotational_potential(r, omega) / denom;
+    psi(i,j,k) = rotational_potential(r) / denom;
 
   });
 }
@@ -94,7 +89,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity_c(const int i, const int j, const int k,
                                     const GeometryData& geomdata,
-                                    const Real* omega,
                                     const Real time, Real* v) {
 
     // Given a velocity vector in the inertial frame, transform it to a
@@ -110,6 +104,8 @@ inertial_to_rotational_velocity_c(const int i, const int j, const int k,
         loc[dir] -= problem::center[dir];
     }
 
+    auto omega = get_omega();
+
     // do the cross product Omega x loc
     v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
     v[1] += -(omega[2]*loc[0] - omega[0]*loc[2]);
@@ -121,7 +117,6 @@ AMREX_GPU_HOST_DEVICE
 void
 inertial_to_rotational_velocity(const int i, const int j, const int k,
                                 const GeometryData& geomdata,
-                                const GpuArray<Real, 3>& omega,
                                 const Real time, GpuArray<Real, 3>& v) {
 
   // Given a velocity vector in the inertial frame, transform it to a
@@ -136,6 +131,8 @@ inertial_to_rotational_velocity(const int i, const int j, const int k,
   for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
     loc[dir] -= problem::center[dir];
   }
+
+  auto omega = get_omega();
 
   // do the cross product Omega x loc
   v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);

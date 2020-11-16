@@ -18,7 +18,6 @@ void do_ext_src(int i, int j, int k,
                 GeometryData const& geomdata, 
                 Array4<const Real> const& state,
                 Array4<Real> const& src,
-                GpuArray<Real, 3> const& omega,
                 const Real dt, const Real time)
 {
     using namespace problem;
@@ -69,7 +68,7 @@ void do_ext_src(int i, int j, int k,
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 vel[dir] = rhoInv * mom[dir];
             }
-            inertial_to_rotational_velocity(i, j, k, geomdata, omega, time, vel);
+            inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
             for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
                 mom[dir] = state(i,j,k,URHO) * vel[dir];
             }
@@ -128,7 +127,7 @@ void do_ext_src(int i, int j, int k,
         auto cosTheta = loc[axis_1-1] / R_prp;
         auto sinTheta = loc[axis_2-1] / R_prp;
 
-        auto vel_i = inertial_velocity(loc, vel, omega);
+        auto vel_i = inertial_velocity(loc, vel);
 
         auto v_rad = cosTheta * vel_i[axis_1-1] + sinTheta * vel_i[axis_2-1];
 

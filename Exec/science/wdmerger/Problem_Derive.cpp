@@ -7,9 +7,6 @@
 #include <prob_parameters.H>
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
-#ifdef ROTATION
-#include <Castro_rotation_F.H>
-#endif
 
 using namespace amrex;
 
@@ -24,9 +21,6 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
-
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -48,7 +42,7 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
         der(i,j,k,0) = rho * inertial_vel[0];
     });
 }
@@ -65,9 +59,6 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -88,7 +79,7 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
         der(i,j,k,0) = rho * inertial_vel[1];
     });
 }
@@ -105,9 +96,6 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -128,7 +116,7 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
         der(i,j,k,0) = rho * inertial_vel[2];
     });
 }
@@ -145,9 +133,6 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -168,7 +153,7 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -189,9 +174,6 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -212,7 +194,7 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -233,9 +215,6 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -256,7 +235,7 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel);
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -277,9 +256,6 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -299,7 +275,7 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom);
 
         Real radInv = 1.0_rt / std::sqrt(loc[1] * loc[1] + loc[2] * loc[2]);
 
@@ -319,9 +295,6 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -341,7 +314,7 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom);
 
         Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[2] * loc[2]);
 
@@ -361,9 +334,6 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
@@ -383,7 +353,7 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom);
 
         Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]);
 
