@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File problem_bc_fill.H &mdash; Castro  documentation</title>
+  <title>File ext_bc_types.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File problem_checkpoint.H" href="problem__checkpoint_8H.html" />
-    <link rel="prev" title="File ext_bc_types.H" href="ext__bc__types_8H.html" /> 
+    <link rel="next" title="File problem_bc_fill.H" href="problem__bc__fill_8H.html" />
+    <link rel="prev" title="File bc_ext_fill.H" href="bc__ext__fill_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/problem__bc__fill_8H.html">main</a> | <a href="../file/problem__bc__fill_8H.html">development</a>
+        Branch: <a href="../../file/ext__bc__types_8H.html">main</a> | <a href="../file/ext__bc__types_8H.html">development</a>
     </div>
 
         </div>
@@ -149,8 +149,8 @@
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="bc__ext__fill_8H.html">File bc_ext_fill.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_bc_fill.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File ext_bc_types.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__mhd__setup_8H.html">File problem_mhd_setup.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
@@ -221,13 +221,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File problem_bc_fill.H</li>
+      <li>File ext_bc_types.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/problem__bc__fill_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/ext__bc__types_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -240,30 +240,39 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-problem-bc-fill-h">
-<h1>File problem_bc_fill.H<a class="headerlink" href="#file-problem-bc-fill-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-ext-bc-types-h">
+<h1>File ext_bc_types.H<a class="headerlink" href="#file-ext-bc-types-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Functions</p>
-<dl class="cpp function">
-<dt>
-<span class="target" id="problem__bc__fill_8H_1a3d720f84f91971bb9aff4a7264e0f78d"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_bc_fill (int i, int j, int k, Array4&lt; Real &gt; const &amp;state, Real time, Array1D&lt; BCRec, 0, NUM_STATE-1 &gt; bcs, GeometryData geomdata)</code></dt>
-<dd><p>Problem-specific boundary condition fill</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: x-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: y-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: z-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: simulation state (Fab) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bcs</span></code>: boundary conditions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: geometry data </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="cpp var">
+<dt id="_CPPv413EXT_UNDEFINED">
+<span id="_CPPv313EXT_UNDEFINED"></span><span id="_CPPv213EXT_UNDEFINED"></span><span id="EXT_UNDEFINED__i"></span><span class="target" id="ext__bc__types_8H_1a1a26e7738a98bdbae47b4c88afb915ff"></span><em class="property">constexpr</em> int <code class="sig-name descname">EXT_UNDEFINED</code> = -1<a class="headerlink" href="#_CPPv413EXT_UNDEFINED" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv47EXT_HSE">
+<span id="_CPPv37EXT_HSE"></span><span id="_CPPv27EXT_HSE"></span><span id="EXT_HSE__i"></span><span class="target" id="ext__bc__types_8H_1aa88990ee9e26e54c254d85c03c5e4a8e"></span><em class="property">constexpr</em> int <code class="sig-name descname">EXT_HSE</code> = 1<a class="headerlink" href="#_CPPv47EXT_HSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
+<dl class="cpp type">
+<dt id="_CPPv43hse">
+<span id="_CPPv33hse"></span><span id="_CPPv23hse"></span><span id="hse"></span><span class="target" id="namespacehse"></span><em class="property">namespace </em><code class="sig-name descname">hse</code><a class="headerlink" href="#_CPPv43hse" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="cpp var">
+<dt id="_CPPv4N3hse8MAX_ITERE">
+<span id="_CPPv3N3hse8MAX_ITERE"></span><span id="_CPPv2N3hse8MAX_ITERE"></span><span id="hse::MAX_ITER__i"></span><span class="target" id="namespacehse_1ac4fc8d94eb19f54cd3206d01b088b245"></span><em class="property">constexpr</em> int <code class="sig-name descname">MAX_ITER</code> = 250<a class="headerlink" href="#_CPPv4N3hse8MAX_ITERE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N3hse3TOLE">
+<span id="_CPPv3N3hse3TOLE"></span><span id="_CPPv2N3hse3TOLE"></span><span id="hse::TOL__Real"></span><span class="target" id="namespacehse_1ad40e2c849cf50ba3fea71c268afdfa18"></span><em class="property">constexpr</em> Real <code class="sig-name descname">TOL</code> = 1.e-8_rt<a class="headerlink" href="#_CPPv4N3hse3TOLE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
 </div>
 
 
@@ -274,10 +283,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="problem__checkpoint_8H.html" class="btn btn-neutral float-right" title="File problem_checkpoint.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem__bc__fill_8H.html" class="btn btn-neutral float-right" title="File problem_bc_fill.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ext__bc__types_8H.html" class="btn btn-neutral float-left" title="File ext_bc_types.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="bc__ext__fill_8H.html" class="btn btn-neutral float-left" title="File bc_ext_fill.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
