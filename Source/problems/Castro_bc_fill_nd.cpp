@@ -52,24 +52,12 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // This routine either comes in with one component or all NUM_STATE.
 
     if (numcomp == 1) {
-
-#pragma gpu box(bx)
-        denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_N_ANYD(data, dcomp),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
+        ambient_denfill(bx, data.array(), geom, bcr);
     }
     else {
-
         AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
 
-#pragma gpu box(bx)
-        hypfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_ANYD(data),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
+        ambient_fill(bx, data.array(), geom, bcr);
     }
 
     // we just did the standard BC fills (reflect, outflow, ...)  now
