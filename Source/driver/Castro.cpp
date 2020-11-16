@@ -78,9 +78,6 @@ Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
 
-Vector<int> Castro::upass_map;
-Vector<int> Castro::qpass_map;
-
 Vector<AMRErrorTag> Castro::custom_error_tags;
 
 #ifdef TRUE_SDC
