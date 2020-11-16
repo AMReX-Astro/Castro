@@ -393,65 +393,6 @@ contains
 
 
 
-  subroutine ca_local_accel(lo, hi, &
-                            Ern, Ern_lo, Ern_hi, &
-                            Erl, Erl_lo, Erl_hi, &
-                            kap, kap_lo, kap_hi, &
-                            etaT, etaT_lo, etaT_hi, &
-                            mugT, mugT_lo, mugT_hi, &
-                            dt, tau) &
-                            bind(C, name='ca_local_accel')
-
-    use rad_params_module, only: ngroups, clight
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: Ern_lo(3), Ern_hi(3)
-    integer,  intent(in   ) :: Erl_lo(3), Erl_hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: etaT_lo(3), etaT_hi(3)
-    integer,  intent(in   ) :: mugT_lo(3), mugT_hi(3)
-    real(rt), intent(inout) :: Ern(Ern_lo(1):Ern_hi(1),Ern_lo(2):Ern_hi(2),Ern_lo(3):Ern_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: Erl(Erl_lo(1):Erl_hi(1),Erl_lo(2):Erl_hi(2),Erl_lo(3):Erl_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: etaT(etaT_lo(1):etaT_hi(1),etaT_lo(2):etaT_hi(2),etaT_lo(3):etaT_hi(3))
-    real(rt), intent(in   ) :: mugT(mugT_lo(1):mugT_hi(1),mugT_lo(2):mugT_hi(2),mugT_lo(3):mugT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ), value :: dt, tau
-
-    integer  :: i, j, k
-    real(rt) :: cdt1, rt_term, p
-    real(rt), dimension(0:ngroups-1) :: Hg, epsilon, kapt, kk
-
-    !$gpu
-
-    cdt1 = 1.e0_rt / (clight * dt)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rt_term = sum(kap(i,j,k,:) * (Ern(i,j,k,:) - Erl(i,j,k,:)))
-
-             Hg = mugT(i,j,k,:) * etaT(i,j,k)
-
-             kapt = kap(i,j,k,:) + (1.e0_rt + tau) * cdt1
-             kk = kap(i,j,k,:) / kapt
-
-             p = 1.e0_rt - sum(Hg * kk)
-             epsilon = (Hg * rt_term) / (kapt * p + 1.e-50_rt)
-
-             Ern(i,j,k,:) = Ern(i,j,k,:) + epsilon
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_local_accel
-
-
-
-
   subroutine lbcoefna(lo, hi, &
                       bcoef, bco_lo, bco_hi, &
                       bcgrp, bcg_lo, bcg_hi, &
