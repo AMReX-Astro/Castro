@@ -1086,6 +1086,22 @@ contains
 
 
 
+  ! Returns the CASTRO rotational axis.
+
+  subroutine get_rot_axis(rot_axis_out) bind(C,name='get_rot_axis')
+
+    use meth_params_module, only: rot_axis
+
+    implicit none
+
+    integer, intent(inout) :: rot_axis_out
+
+    rot_axis_out = rot_axis
+
+  end subroutine get_rot_axis
+
+
+
   ! Get the relaxation_cutoff_density parameter.
 
   subroutine get_relaxation_density_cutoff(relaxation_density_cutoff_in) bind(C, name='get_relaxation_density_cutoff')

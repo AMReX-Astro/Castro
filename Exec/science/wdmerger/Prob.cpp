@@ -920,9 +920,10 @@ void Castro::problem_post_init() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Update the rotational period; some problems change this from what's in the inputs parameters.
+  // Update the rotational period and axis; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);
+  get_rot_axis(&rot_axis);
 
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
@@ -949,9 +950,10 @@ void Castro::problem_post_restart() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Get the rotational period.
+  // Get the rotational period and axis.
 
   get_period(&rotational_period);
+  get_rot_axis(&rot_axis);
 
   // Reset current values of extrema.
 

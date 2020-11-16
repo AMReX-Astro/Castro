@@ -11,6 +11,7 @@ extern "C"
 		     const amrex::Real* t_ff_p, const amrex::Real* t_ff_s);
 
   void get_period(amrex::Real* period);
+  void get_rot_axis(int* rot_axis);
 
   void update_center(const amrex::Real* time);
 
