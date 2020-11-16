@@ -25,7 +25,7 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
         bool ambient_y_lo = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
                             (bc.lo(1) == FOEXTRAP || bc.lo(1) == HOEXTRAP);
         bool ambient_y_hi = (castro::ambient_fill_dir == 1 || castro::ambient_fill_dir == -1) &&
-                            (bc.hi(1) == FOEXTRAP || bc.hi(2) == HOEXTRAP);
+                            (bc.hi(1) == FOEXTRAP || bc.hi(1) == HOEXTRAP);
 #endif
 
 #if AMREX_SPACEDIM == 3
