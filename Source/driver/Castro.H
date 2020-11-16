@@ -1192,9 +1192,6 @@ public:
 
     static amrex::Vector<std::string> source_names;
 
-    static amrex::Vector<int> upass_map;
-    static amrex::Vector<int> qpass_map;
-
 ///
 /// Vector storing list of custom error tags.
 ///
