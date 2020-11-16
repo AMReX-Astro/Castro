@@ -452,40 +452,6 @@ contains
 
 
 
-  subroutine ljupna(lo, hi, &
-                    jnew, j_lo, j_hi, &
-                    spec, s_lo, s_hi, &
-                    accel, a_lo, a_hi, &
-                    nTotal) &
-                    bind(C, name="ljupna")
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: j_lo(3), j_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: a_lo(3), a_hi(3)
-    real(rt), intent(inout) :: jnew(j_lo(1):j_hi(1),j_lo(2):j_hi(2),j_lo(3):j_hi(3),0:nTotal-1)
-    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),0:nTotal-1)
-    real(rt), intent(in   ) :: accel(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
-    integer,  intent(in   ), value :: nTotal
-
-    integer :: i, j, k, n
-
-    !$gpu
-
-    do n = 0, nTotal - 1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                jnew(i,j,k,n) = jnew(i,j,k,n) + spec(i,j,k,n) * accel(i,j,k)
-             end do
-          end do
-       end do
-    end do
-
-  end subroutine ljupna
-
-
-
   subroutine ca_update_matter(lo, hi,  &
                               re_n, re_n_lo, re_n_hi, &
                               Er_n, Er_n_lo, Er_n_hi, &
@@ -1797,43 +1763,6 @@ contains
     end do
 
   end subroutine ca_compute_temp_given_rhoe
-
-
-
-  subroutine cfrhoe(lo, hi, &
-                    frhoe, f_lo, f_hi, &
-                    state, s_lo, s_hi) &
-                    bind(C, name='cfrhoe')
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, UEINT
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    integer :: i, j, k
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             ! kin = 0.5e0_rt * (state(i,j,k,XMOM)   ** 2 +
-             !                   state(i,j,k,XMOM+1) ** 2 +
-             !                   state(i,j,k,XMOM+2) ** 2) /
-             !                   state(i,j,k,DEN)
-             ! frhoe(i,j,k) = state(i,j,k,EDEN) - kin
-             frhoe(i,j,k) = state(i,j,k,UEINT)
-          end do
-       end do
-    end do
-
-  end subroutine cfrhoe
 
 end module rad_nd_module
 
