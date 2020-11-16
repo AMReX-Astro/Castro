@@ -235,13 +235,18 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1ab6c874859547791ef9ab270cd849c677"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, GpuArray&lt; Real, 3 &gt; const &amp;omega, const bool coriolis, Real *Sr)</code></dt>
+<span class="target" id="Rotation_8H_1adf1110bec9d2661b049f05ac726741fb"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE GpuArray&lt; Real, 3 &gt; get_omega ()</code></dt>
+<dd><p>Return the omega vector corresponding to the current rotational period </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Rotation_8H_1aafc58d197209c615db086809ce6363c8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, const bool coriolis, Real *Sr)</code></dt>
 <dd><p>Compute the rotational acceleration for a single zone (Coriolis and centrifugal)</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">r</span></code>: distance from origin of rotation vector </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">v</span></code>: velocity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">omega</span></code>: rotation vector </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">coriolis</span></code>: do we include the Coriolis force </p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sr</span></code>: rotational acceleration </p></li>
 </ul>
@@ -252,17 +257,17 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1a42f52402c08709ce6e6451ec40c368be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real rotational_potential (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; const &amp;omega)</code></dt>
+<span class="target" id="Rotation_8H_1a6dca741741ad20acbd85b88c4f8c050d"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real rotational_potential (GpuArray&lt; Real, 3 &gt; &amp;r)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1a07656172e5d733c09da261da6dd01ca1"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity_c (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real *omega, const Real time, Real *v)</code></dt>
+<span class="target" id="Rotation_8H_1a95303527355e4405bfc04479adbd19ad"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity_c (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, Real *v)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1a5ebd1533adeacc1c14fb519e3edf504f"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const GpuArray&lt; Real, 3 &gt; &amp;omega, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
+<span class="target" id="Rotation_8H_1ad24abc71e693433dc0f48f9e9093db94"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
 <dd></dd></dl>
 
 </div>
