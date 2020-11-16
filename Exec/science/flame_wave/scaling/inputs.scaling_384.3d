@@ -18,7 +18,7 @@ amr.n_cell = 384 384 96
 castro.lo_bc       =  3   3   1
 castro.hi_bc       =  2   2   2
 
-castro.zl_ext_bc_type = "hse"
+castro.zl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
