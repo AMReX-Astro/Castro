@@ -52,12 +52,12 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // This routine either comes in with one component or all NUM_STATE.
 
     if (numcomp == 1) {
-        ambient_denfill(bx, data.array(), geom, bcr);
+        ambient_denfill(bx, data.array(dcomp), geom, bcr);
     }
     else {
         AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
 
-        ambient_fill(bx, data.array(), geom, bcr);
+        ambient_fill(bx, data.array(dcomp), geom, bcr);
     }
 
     // we just did the standard BC fills (reflect, outflow, ...)  now

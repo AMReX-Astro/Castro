@@ -49,7 +49,9 @@ ambient_denfill(const Box& bx, Array4<Real> const& state,
                 ambient_z_hi && k > domhi[2]
 #endif
                 )
+            {
                 state(i,j,k) = ambient::ambient_state[URHO];
+            }
         }
     });
 }
