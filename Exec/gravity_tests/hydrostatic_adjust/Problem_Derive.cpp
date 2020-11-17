@@ -3,7 +3,7 @@
 #include <Derive.H>
 #include <Castro.H>
 #include <Castro_F.H>
-#include <prob_util.H>
+#include <model_parser.H>
 
 using namespace amrex;
 
@@ -26,27 +26,27 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
-        Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+        Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 
         Real y = 0.0;
 #if AMREX_SPACEDIM >= 2
-        y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
+        y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #endif
 
         Real z = 0.0;
 #if AMREX_SPACEDIM == 3
-        z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
+        z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
 #if AMREX_SPACEDIM == 1
-        Real height = x;
+        Real dist = x;
 #elif AMREX_SPACEDIM == 2
-        Real height = y;
+        Real dist = std::sqrt(x*x + y*y);
 #else
-        Real height = z;
+        Real dist = std::sqrt(x*x + y*y + z*z);
 #endif
 
-        Real rhoInv = 1.0_rt / u(i,URHO);
+        Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
         Real e = dat(i,j,k,UEINT) * rhoInv;
         Real temp = dat(i,j,k,UTEMP);
 
@@ -82,7 +82,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
             der(i,j,k,0) = eos_state.p;
         }
 
-        der(i,j,k,0) -= interpolate(height, model::ipres);
+        der(i,j,k,0) -= interpolate(dist, model::ipres);
 
     });
 }
@@ -103,27 +103,27 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
 
-        Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+        Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 
         Real y = 0.0;
 #if AMREX_SPACEDIM >= 2
-        y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
+        y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #endif
 
         Real z = 0.0;
 #if AMREX_SPACEDIM == 3
-        z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
+        z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #endif
 
 #if AMREX_SPACEDIM == 1
-        Real height = x;
+        Real dist = x;
 #elif AMREX_SPACEDIM == 2
-        Real height = y;
+        Real dist = std::sqrt(x*x + y*y);
 #else
-        Real height = z;
+        Real dist = std::sqrt(x*x + y*y + z*z);
 #endif
 
-        Real rhoInv = 1.0_rt / u(i,URHO);
+        Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
         Real e = dat(i,j,k,UEINT) * rhoInv;
         Real temp = dat(i,j,k,UTEMP);
 
@@ -159,7 +159,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
             der(i,j,k,0) = eos_state.p;
         }
 
-        Real p0 = interpolate(height, model::ipres);
+        Real p0 = interpolate(dist, model::ipres);
         der(i,j,k,0) = std::abs(der(i,j,k,0) - p0) / p0;
 
     });
