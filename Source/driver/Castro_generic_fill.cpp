@@ -12,12 +12,6 @@ void ca_generic_fill(Box const& bx, FArrayBox& data,
                      const Vector<BCRec>& bcr, const int bcomp,
                      const int scomp)
 {
-    if (Gpu::inLaunchRegion()) {
-        GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(castro_generic_fill_func);
-        gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
-    }
-    else {
-        CpuBndryFuncFab cpu_bndry_func(nullptr);
-        cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
-    }
+    GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(CastroGenericFill{});
+    gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
 }
