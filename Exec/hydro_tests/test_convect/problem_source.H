@@ -1,5 +1,5 @@
-#ifndef CASTRO_EXT_SRC_H
-#define CASTRO_EXT_SRC_H
+#ifndef problem_source_H
+#define problem_source_H
 
 #include <prob_parameters.H>
 
@@ -8,12 +8,12 @@ using namespace amrex;
 constexpr Real y_layer = 1.25e8_rt;
 constexpr Real L_x = 2.5e8_rt;
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void do_ext_src(int i, int j, int k,
-                GeometryData const& geomdata, 
-                Array4<const Real> const& state,
-                Array4<Real> const& src,
-                const Real dt, const Real time)
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void problem_source (int i, int j, int k,
+                     GeometryData const& geomdata,
+                     Array4<const Real> const& state,
+                     Array4<Real> const& src,
+                     const Real dt, const Real time)
 {
     using namespace problem;
 
