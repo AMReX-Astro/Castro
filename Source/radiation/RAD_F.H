@@ -445,10 +445,6 @@ extern "C" {
                BL_FORT_FAB_ARG_3D(state),
                BL_FORT_FAB_ARG_3D(kappar));
   
-  void nfloor(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(dest), 
-              int nvar);
-
   void lacoefmgfld(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(a), 
                    BL_FORT_FAB_ARG_3D(kappa),

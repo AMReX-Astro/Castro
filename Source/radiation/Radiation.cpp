@@ -1380,6 +1380,8 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 
         const Box& bx = mfi.tilebox();
 
+        auto temp_arr = temp[mfi].array();
+
 #pragma gpu box(bx)
         ca_compute_temp_given_rhoe
             (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -1393,11 +1395,19 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
                           BL_TO_FORTRAN_ANYD(state[mfi]),
                           igroup, igroup, 1, 0.0);
 
-#pragma gpu box(bx) sync
-        nfloor(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-               BL_TO_FORTRAN_ANYD(temp[mfi]),
-               temp[mfi].nComp());
+        int ncomp = temp[mfi].nComp();
 
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            const Real temp_floor = 1.e-10_rt;
+
+            for (int n = 0; n < ncomp; ++n) {
+                if (temp_arr(i,j,k,n) < temp_floor) {
+                    temp_arr(i,j,k,n) = temp_floor;
+                }
+            }
+        });
     }
 }
 

@@ -1421,40 +1421,6 @@ contains
 
 
 
-  subroutine nfloor(lo, hi, &
-                    dest, d_lo, d_hi, &
-                    nvar) &
-                    bind(C, name="nfloor")
-
-    use amrex_fort_module, only: rt => amrex_real
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: d_lo(3), d_hi(3)
-    real(rt), intent(inout) :: dest(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3),0:nvar-1)
-    integer,  intent(in   ), value :: nvar
-
-    integer :: i, j, k, n
-
-    real(rt), parameter :: temp_floor = 1.e-10_rt
-
-    !$gpu
-
-    do n = 0, nvar-1
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                if (dest(i,j,k,n) < temp_floor) then
-                   dest(i,j,k,n) = temp_floor
-                end if
-             end do
-          end do
-       end do
-    end do
-
-  end subroutine nfloor
-
-
-
   subroutine ca_compute_c_v(lo, hi, &
                             cv, c_lo, c_hi, &
                             temp, t_lo, t_hi, &
