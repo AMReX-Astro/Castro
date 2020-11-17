@@ -12,10 +12,6 @@ CEXE_headers += problem_restart.H
 CEXE_headers += problem_bc_fill.H
 
 ca_F90EXE_sources += bc_fill_nd.F90
-ca_F90EXE_sources += bc_ext_fill_nd.F90
-ifeq ($(USE_CXX_MODEL_PARSER),TRUE)
-  CEXE_headers += bc_ext_fill.H
-endif
 ca_F90EXE_sources += Prob_nd.F90
 ifeq ($(USE_GRAV),TRUE)
   CEXE_sources += hse_fill.cpp
@@ -28,7 +24,6 @@ ca_F90EXE_sources += problem_tagging_nd.F90
 FEXE_headers += Castro_bc_fill_nd_F.H
 CEXE_headers += Castro_bc_fill_nd.H
 CEXE_sources += Castro_bc_fill_nd.cpp
-FEXE_headers += Castro_bc_ext_fill_nd_F.H
 CEXE_sources += ambient_fill.cpp
 
 ca_F90EXE_sources += problem_derive_nd.F90
