@@ -19,6 +19,30 @@ hse_fill(const amrex::Box& bx, amrex::Array4<amrex::Real> const& adv,
          amrex::Geometry const& geom, const amrex::Vector<amrex::BCRec>& bcr,
          const amrex::Real time);
 
+///
+/// Fill the boundaries with the ambient state
+///
+/// @param bx    box
+/// @param state state
+/// @param geom  geometry
+/// @param bcr   boundary conditions
+///
+void
+ambient_fill(const amrex::Box& bx, amrex::Array4<amrex::Real> const& state,
+             amrex::Geometry const& geom, const amrex::Vector<amrex::BCRec>& bcr);
+
+///
+/// Fill the boundaries with the ambient state (density only)
+///
+/// @param bx    box
+/// @param state state
+/// @param geom  geometry
+/// @param bcr   boundary conditions
+///
+void
+ambient_denfill(const amrex::Box& bx, amrex::Array4<amrex::Real> const& state,
+                amrex::Geometry const& geom, const amrex::Vector<amrex::BCRec>& bcr);
+
 #ifdef __cplusplus
 extern "C"
 {

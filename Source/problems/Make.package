@@ -29,6 +29,7 @@ FEXE_headers += Castro_bc_fill_nd_F.H
 CEXE_headers += Castro_bc_fill_nd.H
 CEXE_sources += Castro_bc_fill_nd.cpp
 FEXE_headers += Castro_bc_ext_fill_nd_F.H
+CEXE_sources += ambient_fill.cpp
 
 ca_F90EXE_sources += problem_derive_nd.F90
 ca_f90EXE_sources += Problem.f90
