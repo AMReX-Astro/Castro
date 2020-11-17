@@ -1,5 +1,5 @@
-#ifndef CASTRO_EXT_SRC_H
-#define CASTRO_EXT_SRC_H
+#ifndef problem_source_H
+#define problem_source_H
 
 #include <prob_parameters.H>
 
@@ -9,12 +9,12 @@ constexpr Real p_orb_vel = 1.e-3_rt;
 constexpr Real p_radius = 1.e10_rt;
 constexpr Real beta = p_orb_vel * 2.0_rt / p_radius;
 
-AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
-void do_ext_src(int i, int j, int k,
-                GeometryData const& geomdata, 
-                Array4<const Real> const& state,
-                Array4<Real> const& src,
-                const Real dt, const Real time)
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void problem_source (int i, int j, int k,
+                     GeometryData const& geomdata,
+                     Array4<const Real> const& state,
+                     Array4<Real> const& src,
+                     const Real dt, const Real time)
 {
     using namespace problem;
 
