@@ -20,11 +20,23 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     // 1
 
     // First, fill all the BC data using the default routines.
-    // We have replaced inflow with outflow in the generic fill
-    // to ensure that valid data is always present.
+    // We replace inflow with outflow in the generic fill to ensure that
+    // valid data is always present.
+
+    Vector<BCRec> bcr_noinflow{bcr};
+    for (int i = 0; i < bcr_noinflow.size(); ++i) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            if (bcr_noinflow[i].lo(dir) == EXT_DIR) {
+                bcr_noinflow[i].setLo(dir, FOEXTRAP);
+            }
+            if (bcr_noinflow[i].hi(dir) == EXT_DIR) {
+                bcr_noinflow[i].setHi(dir, FOEXTRAP);
+            }
+        }
+    }
 
     GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(CastroGenericFill{});
-    gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr_noinflow, bcomp, scomp);
 
     // At this point, if we filling anything other than the full state (numcomp == NUM_STATE),
     // we assume that we are doing a derive or some other routine which is not actually setting
