@@ -381,10 +381,6 @@ extern "C" {
              BL_FORT_FAB_ARG_3D(kappa_r), 
              amrex::Real c, const amrex::Real* dx);
 
-  void flxlim(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(lambda), 
-              int limiter);
-
   void scgrd(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(R), 
              int idim, const amrex::Real* dx,
