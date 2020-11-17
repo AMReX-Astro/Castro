@@ -6,7 +6,7 @@ module rotation_frequency_module
 
 contains
 
-  subroutine get_omega(omega) bind(C, name="get_omega")
+  subroutine get_omega(omega)
 
     use prob_params_module, only: coord_type
     use meth_params_module, only: rotational_period, rot_axis
@@ -41,16 +41,4 @@ contains
 
   end subroutine get_omega
 
-  subroutine set_rot_period(period) bind(C, name='set_rot_period')
-
-    use meth_params_module, only: rotational_period
-
-    implicit none
-
-    real(rt), intent(in) :: period
-
-    rotational_period = period
-
-  end subroutine set_rot_period
-  
 end module rotation_frequency_module

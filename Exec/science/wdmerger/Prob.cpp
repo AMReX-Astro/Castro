@@ -548,9 +548,6 @@ Castro::gwstrain (Real time,
 
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     auto mfrho   = derive("density",time,0);
     auto mfxmom  = derive("xmom",time,0);
     auto mfymom  = derive("ymom",time,0);
@@ -655,7 +652,7 @@ Castro::gwstrain (Real time,
                 // Account for rotation, if there is any. These will leave
                 // r and vel and changed, if not.
 
-                GpuArray<Real, 3> pos = inertial_rotation(r, omega, time);
+                GpuArray<Real, 3> pos = inertial_rotation(r, time);
 
                 // For constructing the velocity in the inertial frame, we need to
                 // account for the fact that we have rotated the system already, so that 
@@ -671,7 +668,7 @@ Castro::gwstrain (Real time,
                 vel[1] = ymom(i,j,k) * rhoInv;
                 vel[2] = zmom(i,j,k) * rhoInv;
 
-                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel, omega);
+                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel);
 
                 GpuArray<Real, 3> g;
                 g[0] = gravx(i,j,k);
@@ -680,7 +677,7 @@ Castro::gwstrain (Real time,
 
                 // We need to rotate the gravitational field to be consistent with the rotated position.
 
-                GpuArray<Real, 3> inertial_g = inertial_rotation(g, omega, time);
+                GpuArray<Real, 3> inertial_g = inertial_rotation(g, time);
 
                 // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
 
@@ -923,9 +920,10 @@ void Castro::problem_post_init() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Update the rotational period; some problems change this from what's in the inputs parameters.
+  // Update the rotational period and axis; some problems change this from what's in the inputs parameters.
 
   get_period(&rotational_period);
+  get_rot_axis(&rot_axis);
 
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
@@ -952,9 +950,10 @@ void Castro::problem_post_restart() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Get the rotational period.
+  // Get the rotational period and axis.
 
   get_period(&rotational_period);
+  get_rot_axis(&rot_axis);
 
   // Reset current values of extrema.
 
@@ -1419,7 +1418,6 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     rotational_period = period;
-    set_period(&period);
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the

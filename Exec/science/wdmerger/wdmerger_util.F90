@@ -1086,19 +1086,19 @@ contains
 
 
 
-  ! Returns the CASTRO rotation frequency vector.
+  ! Returns the CASTRO rotational axis.
 
-  subroutine get_omega_vec(omega_in) bind(C,name='get_omega_vec')
+  subroutine get_rot_axis(rot_axis_out) bind(C,name='get_rot_axis')
 
-    use rotation_frequency_module, only: get_omega
+    use meth_params_module, only: rot_axis
 
     implicit none
 
-    real(rt), intent(inout) :: omega_in(3)
+    integer, intent(inout) :: rot_axis_out
 
-    call get_omega(omega_in)
+    rot_axis_out = rot_axis
 
-  end subroutine get_omega_vec
+  end subroutine get_rot_axis
 
 
 

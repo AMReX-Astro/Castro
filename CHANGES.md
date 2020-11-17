@@ -1,5 +1,10 @@
 # 20.12
 
+   * An issue with incorrect application of HSE boundary conditions on derived quantities
+     is now resolved (#1356). Also, at this point the old Fortran implementations hypfill,
+     denfill, ext_hypfill, and ext_denfill have been removed; problem-specific boundary
+     conditions should be implemented using the new C++ interface in this release from #1289.
+
    * The minimum supported Hypre version is now 2.19.0. (#1333)
 
    * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.

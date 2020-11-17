@@ -22,9 +22,6 @@ Castro::estdt_cfl(const Real time)
   // Courant-condition limited timestep
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
   GeometryData geomdata = geom.data();
 #endif
 
@@ -78,8 +75,7 @@ Castro::estdt_cfl(const Real time)
         vel[1] = uy;
         vel[2] = uz;
 
-        inertial_to_rotational_velocity_c(i, j, k, geomdata,
-                                          omega.begin(), time, vel);
+        inertial_to_rotational_velocity_c(i, j, k, geomdata, time, vel);
 
         ux = vel[0];
         uy = vel[1];

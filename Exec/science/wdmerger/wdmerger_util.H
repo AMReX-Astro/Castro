@@ -3,17 +3,21 @@
 
 #include <math.H>
 
+#include <Rotation.H>
+
 // If we are in a rotating reference frame, then rotate a vector
 // by an amount corresponding to the time that has passed
 // since the beginning of the simulation.
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec, const GpuArray<Real, 3>& omega, Real time)
+GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec, Real time)
 {
     GpuArray<Real, 3> vec_i{};
 
     Array1D<Real, 0, 2> theta{};
     Array2D<Real, 0, 2, 0, 2> rot_matrix{};
+
+    auto omega = get_omega();
 
     if (castro::do_rotation == 1) {
         for (int n = 0; n < 3; ++n) {
@@ -53,9 +57,11 @@ GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec, const GpuArray
 // already in the inertial frame.
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> inertial_velocity(const GpuArray<Real, 3>& loc, const GpuArray<Real, 3>& vel, const GpuArray<Real, 3>& omega)
+GpuArray<Real, 3> inertial_velocity(const GpuArray<Real, 3>& loc, const GpuArray<Real, 3>& vel)
 {
     GpuArray<Real, 3> vel_i{};
+
+    auto omega = get_omega();
 
     if (castro::do_rotation == 1 && castro::state_in_rotating_frame == 1) {
         cross_product(omega, loc, vel_i);
