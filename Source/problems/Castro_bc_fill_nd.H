@@ -14,6 +14,11 @@ void ca_statefill(amrex::Box const& bx, amrex::FArrayBox& data,
                   const amrex::Vector<amrex::BCRec>& bcr, const int bcomp,
                   const int scomp);
 
+void
+hse_fill(const amrex::Box& bx, amrex::Array4<amrex::Real> const& adv,
+         amrex::Geometry const& geom, const amrex::Vector<amrex::BCRec>& bcr,
+         const amrex::Real time);
+
 #ifdef __cplusplus
 extern "C"
 {
