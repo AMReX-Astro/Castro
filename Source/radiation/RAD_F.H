@@ -421,10 +421,6 @@ extern "C" {
              const amrex::Real& sigma, const amrex::Real& c,
              const amrex::Real& delta_t, const amrex::Real& theta);
 
-  void cetot(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(state), 
-             BL_FORT_FAB_ARG_3D(rhoe));
-
   void fkpn(const int* lo, const int* hi,
             BL_FORT_FAB_ARG_3D(fkp),       
             amrex::Real con, amrex::Real em, amrex::Real en,

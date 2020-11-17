@@ -1057,39 +1057,6 @@ contains
 
 
 
-  subroutine cetot(lo, hi, &
-                   state, s_lo, s_hi, &
-                   frhoe, f_lo, f_hi) &
-                   bind(C, name="cetot")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use meth_params_module, only: NVAR, UEINT, UEDEN
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    real(rt), intent(in   ) :: frhoe(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-
-    integer  :: i, j, k
-    real(rt) :: kin
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-             kin = state(i,j,k,UEDEN) - state(i,j,k,UEINT)
-             state(i,j,k,UEINT) = frhoe(i,j,k)
-             state(i,j,k,UEDEN) = frhoe(i,j,k) + kin
-          end do
-       end do
-    end do
-
-  end subroutine cetot
-
-
-
   subroutine ca_compute_rosseland(lo, hi, &
                                   kpr, k_lo, k_hi, &
                                   state, s_lo, s_hi, &

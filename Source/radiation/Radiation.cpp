@@ -1124,10 +1124,16 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
     for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        cetot(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-              BL_TO_FORTRAN_ANYD(state[mfi]),
-              BL_TO_FORTRAN_ANYD(frhoes[mfi]));
+        auto state_arr = state[mfi].array();
+        auto frhoes_arr = frhoes[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real kin = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
+            state_arr(i,j,k,UEINT) = frhoes_arr(i,j,k);
+            state_arr(i,j,k,UEDEN) = frhoes_arr(i,j,k) + kin;
+        });
 
         // frhoes will be overwritten with temperature here
 
