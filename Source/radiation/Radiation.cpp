@@ -3,6 +3,7 @@
 #include <AMReX_ParmParse.H>
 #include <Radiation.H>
 #include <RadSolve.H>
+#include <rad_util.H>
 
 #include <Castro_F.H>
 
@@ -1971,10 +1972,13 @@ void Radiation::fluxLimiter(int level,
         for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            flxlim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
-                   limiter);
+            auto lambda_arr = lambda[idim][mfi].array(lamcomp);
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k), limiter);
+            });
         }
     }
 }
