@@ -2,10 +2,10 @@
 model_name            character      "model.hse"     y
 
 # the radius from the center of the star to put the perturbation
-R_pert                real           4.4e8_rt
+R_pert                real           4.4e8_rt        y
 
 # the amplitude of the temperature perturbation (above background)
-pert_temp_factor      real           10.0_rt
+pert_temp_factor      real           10.0_rt         y
 
 # the physical scale of the perturbation
-pert_rad_factor       real            2,0_rt
+pert_rad_factor       real            2.0_rt         y
