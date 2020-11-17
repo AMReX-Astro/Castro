@@ -15,5 +15,6 @@ Problems
    file/problem__mhd__setup_8H
    file/problem__restart_8H
    file/problem__setup_8H
+   file/problem__source_8H
    file/problem__tagging_8H
    

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Class NGBndryBld &mdash; Castro  documentation</title>
+  <title>File problem_source.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Class RadBndry" href="classRadBndry.html" />
-    <link rel="prev" title="Class NGBndry" href="classNGBndry.html" /> 
+    <link rel="next" title="File problem_tagging.H" href="problem__tagging_8H.html" />
+    <link rel="prev" title="File problem_setup.H" href="problem__setup_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../class/classNGBndryBld.html">main</a> | <a href="../class/classNGBndryBld.html">development</a>
+        Branch: <a href="../../file/problem__source_8H.html">main</a> | <a href="../file/problem__source_8H.html">development</a>
     </div>
 
         </div>
@@ -135,24 +135,38 @@
 </ul>
 <p class="caption"><span class="caption-text">API</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../filelist.html">File list</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../classlist.html">Class list</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="classCastro.html">Class Castro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classDiffusion.html">Class Diffusion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classGradPhiPhysBCFunct.html">Class GradPhiPhysBCFunct</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classGravity.html">Class Gravity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreABec.html">Class HypreABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classHypreExtMultiABec.html">Class HypreExtMultiABec</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classMGRadBndry.html">Class MGRadBndry</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classMGRadBndryBld.html">Class MGRadBndryBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classNGBndry.html">Class NGBndry</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Class NGBndryBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadBndry.html">Class RadBndry</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadBndryBld.html">Class RadBndryBld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadSolve.html">Class RadSolve</a></li>
-<li class="toctree-l2"><a class="reference internal" href="classRadiation.html">Class Radiation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../filelist.html">File list</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__mhd__setup_8H.html">File problem_mhd_setup.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__setup_8H.html">File problem_setup.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_source.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../sources_files.html">Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../classlist.html">Class list</a></li>
 </ul>
 <p class="caption"><span class="caption-text">References</span></p>
 <ul>
@@ -203,15 +217,17 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="../classlist.html">Class list</a> &raquo;</li>
+          <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-      <li>Class NGBndryBld</li>
+          <li><a href="../problems_files.html">Problems</a> &raquo;</li>
+        
+      <li>File problem_source.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/class/classNGBndryBld.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/problem__source_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -224,22 +240,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="class-ngbndrybld">
-<h1>Class NGBndryBld<a class="headerlink" href="#class-ngbndrybld" title="Permalink to this headline">¶</a></h1>
-<dl class="cpp class">
-<dt id="_CPPv410NGBndryBld">
-<span id="_CPPv310NGBndryBld"></span><span id="_CPPv210NGBndryBld"></span><span id="NGBndryBld"></span><span class="target" id="classNGBndryBld"></span><em class="property">class </em><code class="sig-name descname">NGBndryBld</code><a class="headerlink" href="#_CPPv410NGBndryBld" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Subclassed by <a class="reference internal" href="../file/MGRadBndry_8H.html#classMGRadBndryBld"><span class="std std-ref">MGRadBndryBld</span></a>, <a class="reference internal" href="../file/RadBndry_8H.html#classRadBndryBld"><span class="std std-ref">RadBndryBld</span></a></p>
+  <div class="section" id="file-problem-source-h">
+<h1>File problem_source.H<a class="headerlink" href="#file-problem-source-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
-<dt id="_CPPv4NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE">
-<span id="_CPPv3NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="_CPPv2NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE"></span><span id="NGBndryBld::call-operator__amrex::BoxArrayCR.amrex::DistributionMappingCR.i.amrex::GeometryCRC"></span><span class="target" id="classNGBndryBld_1a538ed0033af935ef1b47b10ebd7982a0"></span><a class="reference internal" href="classNGBndry.html#_CPPv47NGBndry" title="NGBndry">NGBndry</a> *<code class="sig-name descname">operator()</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::BoxArray &amp;<em>_grids</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::DistributionMapping &amp;<em>_dmap</em>, int <em>_ncomp</em>, <em class="property">const</em> <a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Geometry &amp;<em>_geom</em><span class="sig-paren">)</span> <em class="property">const</em> = 0<a class="headerlink" href="#_CPPv4NK10NGBndryBldclERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEiRKN5amrex8GeometryE" title="Permalink to this definition">¶</a><br /></dt>
+<dt>
+<span class="target" id="problem__source_8H_1ad94b9ab40224fbbc279fd4f1fe9c9ccd"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_source (int i, int j, int k, GeometryData const &amp;geomdata, Array4&lt; const Real &gt; const &amp;state, Array4&lt; Real &gt; const &amp;src, const Real dt, const Real time)</code></dt>
 <dd></dd></dl>
 
 </div>
-</dd></dl>
-
 </div>
 
 
@@ -250,10 +260,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="classRadBndry.html" class="btn btn-neutral float-right" title="Class RadBndry" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem__tagging_8H.html" class="btn btn-neutral float-right" title="File problem_tagging.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="classNGBndry.html" class="btn btn-neutral float-left" title="Class NGBndry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem__setup_8H.html" class="btn btn-neutral float-left" title="File problem_setup.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
