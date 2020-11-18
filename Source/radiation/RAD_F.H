@@ -468,12 +468,6 @@ extern "C" {
 
   void FORT_INIT_OPACITY_TABLE(const int& iverb);
 
-  void lbcoefna(const int* lo, const int* hi,
-                BL_FORT_FAB_ARG_3D(bcoef),
-                BL_FORT_FAB_ARG_3D(bcgrp),
-                BL_FORT_FAB_ARG_3D(spec),
-                int idim);
-
 #ifdef __cplusplus
 }
 #endif
