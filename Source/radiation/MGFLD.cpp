@@ -661,7 +661,10 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 #pragma omp parallel
 #endif
     for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox(); 
+        const Box& bx = mfi.tilebox();
+
+        auto temp_new_arr = temp_new[mfi].array();
+        auto S_new_arr = S_new[mfi].array();
 
         if (conservative_update) {
 #pragma gpu box(bx) sync
@@ -680,12 +683,38 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
             temp_new[mfi].copy<RunOn::Device>(rhoe_new[mfi],bx);
             Gpu::synchronize();
 
-#pragma gpu box(bx) sync
-            ca_compute_temp_given_rhoe
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                 0);
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                // Get T from rhoe (temp_new comes in with rhoe)
+
+                if (temp_new_arr(i,j,k) <= 0.e0_rt)
+                {
+                    temp_new_arr(i,j,k) = small_temp;
+                }
+                else
+                {
+                    Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+                    eos_t eos_state;
+                    eos_state.rho = S_new_arr(i,j,k,URHO);
+                    eos_state.T   = S_new_arr(i,j,k,UTEMP);
+                    eos_state.e   = temp_new_arr(i,j,k) * rhoInv;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+                    }
+#endif
+
+                    eos(eos_input_re, eos_state);
+
+                    temp_new_arr(i,j,k) = eos_state.T;
+                }
+            });
+            Gpu::synchronize();
         }
         else {
 
