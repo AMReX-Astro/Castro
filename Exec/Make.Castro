@@ -119,7 +119,11 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  USE_GPU_PRAGMA ?= TRUE
+  ifeq ($(USE_RAD),TRUE)
+    USE_GPU_PRAGMA ?= TRUE
+  else
+    USE_GPU_PRAGMA ?= FALSE
+  endif
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
 

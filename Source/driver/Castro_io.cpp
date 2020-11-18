@@ -286,10 +286,9 @@ Castro::restart (Amr&     papa,
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(bx)
-              ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
 
