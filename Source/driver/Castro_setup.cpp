@@ -10,8 +10,9 @@
 #include <Castro_generic_fill.H>
 #include <Derive.H>
 #ifdef RADIATION
-# include <Radiation.H>
-# include <RAD_F.H>
+#include <Radiation.H>
+#include <RAD_F.H>
+#include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
 
@@ -247,6 +248,10 @@ Castro::variableSetUp ()
 #endif
 
   eos_init();
+
+#ifdef RADIATION
+  opacity_init();
+#endif
 
   // Ensure that Castro's small variables are consistent
   // with the minimum permitted by the EOS, and vice versa.
