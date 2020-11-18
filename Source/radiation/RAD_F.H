@@ -320,12 +320,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(temp),
      const BL_FORT_FAB_ARG_3D(state));
 
-  void ca_compute_temp_given_rhoe
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(temp),
-     const BL_FORT_FAB_ARG_3D(state),
-     int update_state);
-
 #ifdef __cplusplus
 }
 #endif

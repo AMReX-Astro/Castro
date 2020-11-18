@@ -1521,69 +1521,6 @@ contains
 
   end subroutine ca_get_rhoe
 
-
-
-  subroutine ca_compute_temp_given_rhoe(lo, hi, &
-                                        temp, t_lo, t_hi, &
-                                        state, s_lo, s_hi, &
-                                        update_state) &
-                                        bind(C, name="ca_compute_temp_given_rhoe")
-
-    use network, only: nspec, naux
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_re
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFS, UFX, small_temp
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3)) ! temp contains rhoe as input
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    integer,  intent(in   ), value :: update_state
-
-    integer      :: i, j, k
-    real(rt)     :: rhoInv
-    type (eos_t) :: eos_state
-    real(rt)     :: ex, alpha, rhoal, teff
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             if (temp(i,j,k) .le. 0.e0_rt) then
-
-                temp(i,j,k) = small_temp
-
-             else
-
-                rhoInv = 1.e0_rt / state(i,j,k,URHO)
-                eos_state % rho = state(i,j,k,URHO)
-                eos_state % T   = state(i,j,k,UTEMP)
-                eos_state % e   =  temp(i,j,k)*rhoInv 
-                eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-                eos_state % aux = state(i,j,k,UFX:UFX+naux -1) * rhoInv
-
-                call eos(eos_input_re, eos_state)
-
-                temp(i,j,k) = eos_state % T
-
-             end if
-
-             if (update_state == 1) then
-                state(i,j,k,UTEMP) = temp(i,j,k)
-             end if
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_temp_given_rhoe
-
 end module rad_nd_module
 
 

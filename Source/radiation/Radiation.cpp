@@ -1133,16 +1133,37 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
             Real kin = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
             state_arr(i,j,k,UEINT) = frhoes_arr(i,j,k);
             state_arr(i,j,k,UEDEN) = frhoes_arr(i,j,k) + kin;
+
+            // frhoes will be overwritten with temperature here
+
+            if (state_arr(i,j,k,UEINT) <= 0.e0_rt)
+            {
+                frhoes_arr(i,j,k) = small_temp;
+            }
+            else
+            {
+                Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
+
+                eos_t eos_state;
+                eos_state.rho = state_arr(i,j,k,URHO);
+                eos_state.T   = state_arr(i,j,k,UTEMP);
+                eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = state_arr(i,j,k,UFS+n) * rhoInv;
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = state_arr(i,j,k,UFX+n) * rhoInv;
+                }
+#endif
+
+                eos(eos_input_re, eos_state);
+
+                frhoes_arr(i,j,k) = eos_state.T;
+
+                state_arr(i,j,k,UTEMP) = frhoes_arr(i,j,k);
+            }
         });
-
-        // frhoes will be overwritten with temperature here
-
-#pragma gpu box(bx)
-        ca_compute_temp_given_rhoe
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(frhoes[mfi]),
-             BL_TO_FORTRAN_ANYD(state[mfi]),
-             1);
     }
 }
 
@@ -1381,13 +1402,39 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         const Box& bx = mfi.tilebox();
 
         auto temp_arr = temp[mfi].array();
+        auto state_arr = state[mfi].array();
 
-#pragma gpu box(bx)
-        ca_compute_temp_given_rhoe
-            (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(temp[mfi]),
-             BL_TO_FORTRAN_ANYD(state[mfi]),
-             0);
+        // Get T from rhoe; overwrite temp with T
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (temp_arr(i,j,k) <= 0.e0_rt)
+            {
+                temp_arr(i,j,k) = small_temp;
+            }
+            else
+            {
+                Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
+
+                eos_t eos_state;
+                eos_state.rho = state_arr(i,j,k,URHO);
+                eos_state.T   = state_arr(i,j,k,UTEMP);
+                eos_state.e   = temp_arr(i,j,k) * rhoInv;
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = state_arr(i,j,k,UFS+n) * rhoInv;
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = state_arr(i,j,k,UFX+n) * rhoInv;
+                }
+#endif
+
+                eos(eos_input_re, eos_state);
+
+                temp_arr(i,j,k) = eos_state.T;
+            }
+        });
 
 #pragma gpu box(bx)
         ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -1452,15 +1499,36 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
           amrex::ParallelFor(bx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
-              frhoe_arr(i,j,k) = state_arr(i,j,k,UEINT);
-          });
+              // frhoe will be overwritten with temperature here
 
-#pragma gpu box(bx)
-          ca_compute_temp_given_rhoe
-              (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-               BL_TO_FORTRAN_ANYD(frhoe),
-               BL_TO_FORTRAN_ANYD(state[mfi]),
-               1);
+              if (state_arr(i,j,k,UEINT) <= 0.e0_rt)
+              {
+                  frhoe_arr(i,j,k) = small_temp;
+              }
+              else
+              {
+                  Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
+
+                  eos_t eos_state;
+                  eos_state.rho = state_arr(i,j,k,URHO);
+                  eos_state.T   = state_arr(i,j,k,UTEMP);
+                  eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
+                  for (int n = 0; n < NumSpec; ++n) {
+                      eos_state.xn[n] = state_arr(i,j,k,UFS+n) * rhoInv;
+                  }
+#if NAUX_NET > 0
+                  for (int n = 0; n < NumAux; ++n) {
+                      eos_state.aux[n] = state_arr(i,j,k,UFX+n) * rhoInv;
+                  }
+#endif
+
+                  eos(eos_input_re, eos_state);
+
+                  frhoe_arr(i,j,k) = eos_state.T;
+
+                  state_arr(i,j,k,UTEMP) = frhoe_arr(i,j,k);
+              }
+          });
 
 #pragma gpu box(bx)
           ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
@@ -2038,15 +2106,35 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             amrex::ParallelFor(reg,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                temp_arr(i,j,k) = S_arr(i,j,k,UEINT);
-            });
+                // Get T from rhoe
 
-#pragma gpu box(reg) sync
-            ca_compute_temp_given_rhoe
-                (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                 BL_TO_FORTRAN_ANYD(temp),
-                 BL_TO_FORTRAN_ANYD(S[mfi]),
-                 0);
+                if (S_arr(i,j,k,UEINT) <= 0.e0_rt)
+                {
+                    temp_arr(i,j,k) = small_temp;
+                }
+                else
+                {
+                    Real rhoInv = 1.e0_rt / S_arr(i,j,k,URHO);
+
+                    eos_t eos_state;
+                    eos_state.rho = S_arr(i,j,k,URHO);
+                    eos_state.T   = S_arr(i,j,k,UTEMP);
+                    eos_state.e   = S_arr(i,j,k,UEINT) * rhoInv;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        eos_state.xn[n] = S_arr(i,j,k,UFS+n) * rhoInv;
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        eos_state.aux[n] = S_arr(i,j,k,UFX+n) * rhoInv;
+                    }
+#endif
+
+                    eos(eos_input_re, eos_state);
+
+                    temp_arr(i,j,k) = eos_state.T;
+                }
+            });
+            Gpu::synchronize();
 
             c_v.resize(reg);
             get_c_v(c_v, temp, S[mfi], reg);
