@@ -677,16 +677,37 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                  0);
         }
         else {
-            BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
-                (bx.loVect(), bx.hiVect(),
-                 BL_TO_FORTRAN(temp_new[mfi]),
-                 BL_TO_FORTRAN(Er_new[mfi]),
-                 BL_TO_FORTRAN(rhoe_star[mfi]),
-                 BL_TO_FORTRAN(rhoe_step[mfi]),
-                 BL_TO_FORTRAN(etaTz[mfi]),
-                 BL_TO_FORTRAN(kappa_p[mfi]),
-                 BL_TO_FORTRAN(jg[mfi]),
-                 &delta_t);
+
+            auto Tp_n = temp_new[mfi].array();
+            auto Er_n = Er_new[mfi].array();
+            auto re_s = rhoe_star[mfi].array();
+            auto re_2 = rhoe_step[mfi].array();
+            auto etTz = etaTz[mfi].array();
+            auto kpp  = kappa_p[mfi].array();
+            auto jg_arr = jg[mfi].array();
+
+            const Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
+            const Real fac = 0.01_rt;
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real cpT = 0.e0_rt;
+
+                for (int g = 0; g < NGROUPS; ++g) {
+                    cpT = cpT + kpp(i,j,k,g) * Er_n(i,j,k,g) - jg_arr(i,j,k,g);
+                }
+
+                Real scrch_re = cpT - (re_s(i,j,k) - re_2(i,j,k)) * cdt1;
+
+                Real dTemp = etTz(i,j,k) * scrch_re;
+
+                if (std::abs(dTemp / (Tp_n(i,j,k) + 1.e-50_rt)) > fac) {
+                    dTemp = std::copysign(fac * Tp_n(i,j,k), dTemp);
+                }
+
+                Tp_n(i,j,k) = Tp_n(i,j,k) + dTemp;
+            });
 
 #pragma gpu box(bx) sync
             ca_get_rhoe

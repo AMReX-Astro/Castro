@@ -189,17 +189,6 @@ extern "C"
     amrex::Real dt, amrex::Real ptc_tau);
 }
 
-BL_FORT_PROC_DECL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(temp_new),
-    const BL_FORT_FAB_ARG(Er_new),
-    const BL_FORT_FAB_ARG(rhoe_star),
-    const BL_FORT_FAB_ARG(rhoe_step),
-    const BL_FORT_FAB_ARG(etaTz),
-    const BL_FORT_FAB_ARG(kappa_p),
-    const BL_FORT_FAB_ARG(jg),
-    const amrex::Real* dt);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
