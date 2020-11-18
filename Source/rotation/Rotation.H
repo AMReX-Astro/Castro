@@ -2,6 +2,7 @@
 #define ROTATION_H
 
 #include <math.H>
+#include <AMReX_Array.H>
 #include <Castro.H>
 #include <Castro_util.H>
 
