@@ -225,16 +225,6 @@ extern "C" {
 
 extern "C"
 {
-  void ca_opacs
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(Snew),
-    const BL_FORT_FAB_ARG_3D(T),
-    const BL_FORT_FAB_ARG_3D(Ts),
-    BL_FORT_FAB_ARG_3D(kpp),
-    BL_FORT_FAB_ARG_3D(kpr),
-    BL_FORT_FAB_ARG_3D(dkdT),
-    int use_dkdT, int validStar, int lag_opac);
-
   void ca_compute_emissivity
    (const int* lo, const int* hi,
     BL_FORT_FAB_ARG_3D(jg),

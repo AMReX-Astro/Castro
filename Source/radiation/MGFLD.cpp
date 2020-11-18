@@ -2,6 +2,8 @@
 #include <Castro_F.H>
 #include <RAD_F.H>
 
+#include <opacity.H>
+
 #include <iostream>
 
 #ifdef _OPENMP
@@ -285,16 +287,78 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(ngrow);
 
-#pragma gpu box(bx)
-      ca_opacs
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(S_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_star[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
-           BL_TO_FORTRAN_ANYD(dkdT[mfi]),
-           use_dkdT, star_is_valid, lag_opac);
+      auto S_new_arr = S_new[mfi].array();
+      auto temp_new_arr = temp_new[mfi].array();
+      auto temp_star_arr = temp_star[mfi].array();
+      auto kappa_p_arr = kappa_p[mfi].array();
+      auto kappa_r_arr = kappa_r[mfi].array();
+      auto dkdT_arr = dkdT[mfi].array();
+
+      bool use_dkdT_loc = use_dkdT;
+
+      GpuArray<Real, NGROUPS> nugroup = {0.0};
+      ca_get_nugroup(nugroup.begin());
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          const Real fac = 0.5e0_rt;
+          const Real minfrac = 1.e-8_rt;
+
+          if (lag_opac) {
+              dkdT_arr(i,j,k) = 0.0_rt;
+              return;
+          }
+
+          Real rho = S_new_arr(i,j,k,URHO);
+          Real temp = temp_new_arr(i,j,k);
+
+          Real Ye;
+          if (NumAux > 0) {
+              Real Ye = S_new_arr(i,j,k,UFX);
+          } else {
+              Ye = 0.e0_rt;
+          }
+
+          Real dT;
+          if (star_is_valid > 0) {
+              dT = fac * std::abs(temp_star_arr(i,j,k) - temp_new_arr(i,j,k));
+              dT = amrex::max(dT, minfrac * temp_new_arr(i,j,k));
+          } else {
+              dT = temp_new_arr(i,j,k) * 1.e-3_rt + 1.e-50_rt;
+          }
+
+          for (int g = 0; g < NGROUPS; ++g) {
+              Real nu = nugroup[g];
+
+              bool comp_kp = true;
+              bool comp_kr = true;
+
+              Real kp, kr;
+
+              opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+              kappa_p_arr(i,j,k,g) = kp;
+              kappa_r_arr(i,j,k,g) = kr;
+
+              if (use_dkdT_loc == 0) {
+
+                  dkdT_arr(i,j,k,g) = 0.e0_rt;
+
+              } else {
+
+                  bool comp_kp = true;
+                  bool comp_kr = false;
+
+                  Real kp1, kr1, kp2, kr2;
+
+                  opacity(kp1, kr1, rho, temp-dT, Ye, nu, comp_kp, comp_kr);
+                  opacity(kp2, kr2, rho, temp+dT, Ye, nu, comp_kp, comp_kr);
+
+                  dkdT_arr(i,j,k,g) = (kp2 - kp1) / (2.e0_rt * dT);
+              }
+          }
+      });
 
       const Box& reg = mfi.tilebox();
 
