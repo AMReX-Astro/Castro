@@ -1,10 +1,11 @@
 ca_F90EXE_sources += binary.F90
 ca_f90EXE_sources += problem_io.f90
 ca_F90EXE_sources += initial_model.F90
-ca_F90EXE_sources += wdmerger_util.F90
+ca_F90EXE_sources += wdmerger_util_nd.F90
 
 CEXE_headers += wdmerger_util.H
 CEXE_headers += wdmerger_data.H
 CEXE_sources += wdmerger_data.cpp
 CEXE_headers += binary.H
+CEXE_sources += wdmerger_util.cpp
 FEXE_headers += wdmerger_F.H

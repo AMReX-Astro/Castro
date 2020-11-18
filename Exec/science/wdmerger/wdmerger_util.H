@@ -1,7 +1,10 @@
 #ifndef wdmerger_util_H
 #define wdmerger_util_H
 
+#include <AMReX.H>
+
 #include <math.H>
+#include <fundamental_constants.H>
 
 #include <Rotation.H>
 
@@ -72,6 +75,16 @@ GpuArray<Real, 3> inertial_velocity(const GpuArray<Real, 3>& loc, const GpuArray
     }
 
     return vel_i;
+}
+
+extern "C" {
+
+void freefall_velocity (Real mass, Real distance, Real& vel);
+
+void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
+                       Real& period, Real eccentricity, Real phi, Real& a,
+                       Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p);
+
 }
 
 #endif

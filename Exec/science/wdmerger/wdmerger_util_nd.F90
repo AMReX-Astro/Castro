@@ -1,8 +1,26 @@
 module wdmerger_util_module
 
+  use iso_c_binding
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
+
+  interface
+     subroutine kepler_third_law (radius_1, mass_1, radius_2, mass_2, period, eccentricity, &
+                                  phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p) bind(C)
+       use amrex_fort_module, only: rt => amrex_real
+       implicit none
+       real(rt), intent(in   ), value :: mass_1, mass_2, eccentricity, phi, radius_1, radius_2
+       real(rt), intent(inout) :: period, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p
+     end subroutine kepler_third_law
+
+     subroutine freefall_velocity(mass, distance, vel) bind(C)
+       use amrex_fort_module, only: rt => amrex_real
+       implicit none
+       real(rt), intent(in   ), value :: mass, distance
+       real(rt), intent(inout) :: vel
+     end subroutine freefall_velocity
+  end interface
 
 contains
 
@@ -414,7 +432,8 @@ contains
 
   subroutine binary_setup
 
-    use meth_params_module, only: rotational_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX
+    use meth_params_module, only: rotational_period, point_mass, URHO, UTEMP, UEINT, UEDEN, UFS, UFX, do_sponge
+    use sponge_module, only: sponge_lower_radius
     use network, only: nspec, naux
     use initial_model_module
     use prob_params_module, only: center, problo, probhi, dim, max_level, dx_level, physbc_lo, Symmetry
@@ -447,6 +466,7 @@ contains
     integer :: lev
 
     real(rt) :: v_P_r, v_S_r, v_P_phi, v_S_phi, v_P, v_S
+    real(rt) :: length
 
     type(eos_t) :: eos_state
 
@@ -675,6 +695,44 @@ contains
                                 rotational_period, orbital_eccentricity, orbital_angle, &
                                 a, r_P_initial, r_S_initial, v_P_r, v_S_r, v_P_phi, v_S_phi)
 
+          ! Make sure the domain is big enough to hold stars in an orbit this size.
+
+          if (physbc_lo(axis_1) .eq. Symmetry) then
+
+             ! In this case we're only modelling the secondary.
+             length = r_P_initial + model_P % radius
+
+          else
+
+             length = (r_S_initial - r_P_initial) + model_P % radius + model_S % radius
+
+          end if
+
+          if (length > (probhi(axis_1) - problo(axis_1))) then
+             call castro_error("ERROR: The domain width is too small to include the binary orbit.")
+          endif
+
+          ! We want to do a similar check to make sure that no part of the stars
+          ! land in the sponge region.
+
+          if (do_sponge .eq. 1 .and. sponge_lower_radius > ZERO) then
+
+             if (abs(r_P_initial) + model_P % radius .ge. sponge_lower_radius) then
+                call castro_error("ERROR: Primary contains material inside the sponge region.")
+             endif
+
+             if (abs(r_S_initial) + model_S % radius .ge. sponge_lower_radius) then
+                call castro_error("ERROR: Secondary contains material inside the sponge region.")
+             endif
+
+          end if
+
+          ! Make sure the stars are not touching.
+
+          if (model_P % radius + model_S % radius > a) then
+             call castro_error("ERROR: Stars are touching!")
+          endif
+
           if (ioproc .and. init == 1) then
              write (*,1003) a, a / AU
              write (*,1004) r_P_initial, r_P_initial / AU
@@ -808,171 +866,6 @@ contains
     end if
 
   end subroutine binary_setup
-
-
-
-  ! Accepts the masses of two stars (in solar masses)
-  ! and the orbital period of a system,
-  ! and returns the semimajor axis of the orbit (in cm),
-  ! as well as the distances a_1 and a_2 from the center of mass.
-
-  subroutine kepler_third_law(radius_1, mass_1, radius_2, mass_2, period, eccentricity, phi, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p)
-
-    use amrex_constants_module, only: ZERO, THIRD, HALF, ONE, TWO, M_PI, FOUR
-    use prob_params_module, only: problo, probhi, physbc_lo, Symmetry
-    use sponge_module, only: sponge_lower_radius
-    use meth_params_module, only: do_sponge
-    use fundamental_constants_module, only: Gconst
-    use castro_error_module, only: castro_error
-    use probdata_module, only: axis_1
-
-    implicit none
-
-    real(rt), intent(in   ) :: mass_1, mass_2, eccentricity, phi, radius_1, radius_2
-    real(rt), intent(inout) :: period, a, r_1, r_2, v_1r, v_2r, v_1p, v_2p
-
-    real(rt) :: length
-
-    real(rt) :: mu, M ! Reduced mass, total mass
-    real(rt) :: r     ! Position
-    real(rt) :: v_r, v_phi ! Radial and azimuthal velocity
-
-    ! Definitions of total and reduced mass
-
-    M  = mass_1 + mass_2
-    mu = mass_1 * mass_2 / M
-
-    ! First, solve for the orbit in the reduced one-body problem, where
-    ! an object of mass mu orbits an object with mass M located at r = 0.
-    ! For this we follow Carroll and Ostlie, Chapter 2, but many texts discuss this.
-    ! Note that we use the convention that phi measures angle from aphelion,
-    ! which is opposite to the convention they use.
-
-    if (period > ZERO .and. a < ZERO) then
-
-       a = (Gconst * M * period**2 / (FOUR * M_PI**2))**THIRD ! C + O, Equation 2.37
-
-    else if (period < ZERO .and. a > ZERO) then
-
-       period = (a**3 * FOUR * M_PI**2 / (Gconst * M))**HALF
-
-    else
-
-       call castro_error("Error: overspecified Kepler's third law calculation.")
-
-    endif
-
-    r = a * (ONE - eccentricity**2) / (ONE - eccentricity * cos(phi)) ! C + O, Equation 2.3
-
-    ! To get the radial and azimuthal velocity, we take the appropriate derivatives of the above.
-    ! v_r = dr / dt = dr / d(phi) * d(phi) / dt, with d(phi) / dt being derived from
-    ! C + O, Equation 2.30 for the angular momentum, and the fact that L = mu * r**2 * d(phi) / dt.
-
-    v_r   = -TWO * M_PI * a * eccentricity * sin(phi) / (period * (ONE - eccentricity**2)**HALF)
-    v_phi =  TWO * M_PI * a * (ONE - eccentricity * cos(phi)) / (period * (ONE - eccentricity**2)**HALF)
-
-    ! Now convert everything back to the binary frame, using C+O, Equation 2.23 and 2.24. This applies
-    ! to the velocities as well as the positions because the factor in front of r_1 and r_2 is constant.
-
-    r_1  = -(mu / mass_1) * r
-    r_2  =  (mu / mass_2) * r
-
-    v_1r = -(mu / mass_1) * v_r
-    v_2r =  (mu / mass_2) * v_r
-
-    v_1p = -(mu / mass_1) * v_phi
-    v_2p =  (mu / mass_2) * v_phi
-
-    ! Make sure the domain is big enough to hold stars in an orbit this size.
-
-    if (physbc_lo(axis_1) .eq. Symmetry) then
-
-       ! In this case we're only modelling the secondary.
-       length = r_2 + radius_2
-
-    else
-
-       length = (r_2 - r_1) + radius_1 + radius_2
-
-    end if
-
-    if (length > (probhi(axis_1)-problo(axis_1))) then
-       call castro_error("ERROR: The domain width is too small to include the binary orbit.")
-    endif
-
-    ! We want to do a similar check to make sure that no part of the stars
-    ! land in the sponge region.
-
-    if (do_sponge .eq. 1 .and. sponge_lower_radius > ZERO) then
-
-       if (abs(r_1) + radius_1 .ge. sponge_lower_radius) then
-          call castro_error("ERROR: Primary contains material inside the sponge region.")
-       endif
-
-       if (abs(r_2) + radius_2 .ge. sponge_lower_radius) then
-          call castro_error("ERROR: Secondary contains material inside the sponge region.")
-       endif
-
-    endif
-
-    ! Make sure the stars are not touching.
-    if (radius_1 + radius_2 > a) then
-       call castro_error("ERROR: Stars are touching!")
-    endif
-
-  end subroutine kepler_third_law
-
-
-
-  ! Given total mass of a binary system and the initial separation of
-  ! two point particles, obtain the velocity at this separation 
-  ! assuming the point masses fell in from infinity. This will
-  ! be the velocity in the frame where the center of mass is stationary.
-
-  subroutine freefall_velocity(mass, distance, vel)
-
-    use amrex_constants_module, only: HALF, TWO
-    use fundamental_constants_module, only: Gconst
-
-    implicit none
-
-    real(rt), intent(in   ) :: mass, distance
-    real(rt), intent(inout) :: vel
-
-    vel = (TWO * Gconst * mass / distance)**HALF
-
-  end subroutine freefall_velocity
-
-
-
-  ! Given a rotating frame velocity, get the inertial frame velocity.
-  ! Note that we simply return the original velocity if we're
-  ! already in the inertial frame.
-
-  function inertial_velocity(loc, vel, time) result(vel_i)
-
-    use meth_params_module, only: do_rotation, state_in_rotating_frame
-    use rotation_frequency_module, only: get_omega
-    use math_module, only: cross_product ! function
-
-    implicit none
-
-    real(rt), intent(in   ) :: loc(3), vel(3), time
-    real(rt) :: omega(3)
-
-    real(rt) :: vel_i(3)
-
-    !$gpu
-
-    call get_omega(omega)
-
-    vel_i = vel
-
-    if (do_rotation .eq. 1 .and. state_in_rotating_frame .eq. 1) then
-       vel_i = vel_i + cross_product(omega, loc)
-    endif
-
-  end function inertial_velocity
 
 
 
