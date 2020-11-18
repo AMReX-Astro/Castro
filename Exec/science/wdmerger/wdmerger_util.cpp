@@ -34,7 +34,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
     if (period > 0.0_rt && a < 0.0_rt)
     {
-        a = std::pow(C::Gconst * M * period * period / (4.0_rt * M_PI * M_PI), 3); // C + O, Equation 2.37
+        a = std::pow(C::Gconst * M * period * period / (4.0_rt * M_PI * M_PI), 1.0_rt / 3.0_rt); // C + O, Equation 2.37
     }
     else if (period < 0.0_rt && a > 0.0_rt)
     {
