@@ -440,12 +440,23 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box&  bx  = mfi.nodaltilebox(idim);
 
-#pragma gpu box(bx)
-          lbcoefna(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(bcoefs[idim][mfi]),
-                   BL_TO_FORTRAN_ANYD(bcgrp[idim][mfi]),
-                   BL_TO_FORTRAN_N_ANYD(spec[mfi], igroup), 
-                   idim);
+          auto bcoefs_arr = bcoefs[idim][mfi].array();
+          auto bcgrp_arr = bcgrp[idim][mfi].array();
+          auto spec_arr = spec[mfi].array(igroup);
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              if (idim == 0) {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i-1,j,k) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+              else if (idim == 1) {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j-1,k) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+              else {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j,k-1) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+          });
           
           if (nGroups > 1) {
 #pragma gpu box(bx)

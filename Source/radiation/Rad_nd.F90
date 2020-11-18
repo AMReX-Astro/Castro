@@ -393,65 +393,6 @@ contains
 
 
 
-  subroutine lbcoefna(lo, hi, &
-                      bcoef, bco_lo, bco_hi, &
-                      bcgrp, bcg_lo, bcg_hi, &
-                      spec, s_lo, s_hi, &
-                      idim) &
-                      bind(C, name="lbcoefna")
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: bco_lo(3), bco_hi(3)
-    integer,  intent(in   ) :: bcg_lo(3), bcg_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: bcoef(bco_lo(1):bco_hi(1),bco_lo(2):bco_hi(2),bco_lo(3):bco_hi(3))
-    real(rt), intent(in   ) :: bcgrp(bcg_lo(1):bcg_hi(1),bcg_lo(2):bcg_hi(2),bcg_lo(3):bcg_hi(3))
-    real(rt), intent(in   ) :: spec(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3))
-    integer,  intent(in   ), value :: idim
-
-    integer :: i, j, k
-
-    !$gpu
-
-    if (idim == 0) then
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                bcoef(i,j,k) = bcoef(i,j,k) &
-                               + 0.5e0_rt * (spec(i-1,j,k) + spec(i,j,k)) * bcgrp(i,j,k)
-             end do
-          end do
-       end do
-
-    else if (idim == 1) then
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                bcoef(i,j,k) = bcoef(i,j,k) &
-                               + 0.5e0_rt * (spec(i,j-1,k) + spec(i,j,k)) * bcgrp(i,j,k)
-             end do
-          end do
-       end do
-
-    else
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-                bcoef(i,j,k) = bcoef(i,j,k) &
-                               + 0.5e0_rt * (spec(i,j,k-1) + spec(i,j,k)) * bcgrp(i,j,k)
-             end do
-          end do
-       end do
-
-    end if
-
-  end subroutine lbcoefna
-
-
-
   subroutine ca_update_matter(lo, hi,  &
                               re_n, re_n_lo, re_n_hi, &
                               Er_n, Er_n_lo, Er_n_hi, &
