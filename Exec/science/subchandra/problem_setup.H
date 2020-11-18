@@ -31,6 +31,11 @@ void problem_initialize ()
 #endif
 
 
+    problem::ihe4 = network_spec_index("helium-4");
+
+    if (problem::ihe4 < 0) {
+        amrex::Error("Error: no He4 in the network");
+    }
 
     // Read initial model
 
@@ -92,9 +97,6 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-
-    int i_he4 = network_spec_index("helium-4");
-
     // add a perturbation
 
     Real t0 = state(i,j,k,UTEMP);
@@ -113,7 +115,7 @@ void problem_initialize_state_data (int i, int j, int k,
 #endif
 
     // convolve the temperature perturbation with the amount of He
-    Real X_he = eos_state.xn[i_he4];
+    Real X_he = eos_state.xn[problem::ihe4];
 
     state(i,j,k,UTEMP) = t0 * (1.0_rt + X_he * problem::pert_temp_factor *
                                (0.150e0_rt * (1.0_rt + std::tanh(2.0_rt - r1))));
@@ -130,6 +132,5 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UEINT) = eos_state.e * state(i,j,k,URHO);
     state(i,j,k,UEDEN) = eos_state.e * state(i,j,k,URHO);
 
-    std::cout << state(i,j,k,URHO) << std::endl;
 }
 #endif

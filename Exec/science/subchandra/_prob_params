@@ -9,3 +9,5 @@ pert_temp_factor      real           10.0_rt         y
 
 # the physical scale of the perturbation
 pert_rad_factor       real            2.0_rt         y
+
+ihe4                  integer         -1
