@@ -21,9 +21,6 @@ module meth_params_module
   logical,  allocatable, save :: comoving
 #endif
 
-  integer, save, allocatable :: qpass_map(:), upass_map(:)
-
-
   ! Numerical values corresponding to the gravity types
 #ifdef GRAVITY
   integer, save, allocatable :: gravity_type_int
@@ -46,8 +43,6 @@ module meth_params_module
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
 
-  integer, allocatable, save :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
-
   ! Create versions of these variables on the GPU
   ! the device update is then done in Castro_nd.f90
 #if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
@@ -56,22 +51,18 @@ module meth_params_module
   attributes(managed) :: do_inelastic_scattering
   attributes(managed) :: comoving
 #endif
-  attributes(managed) :: qpass_map, upass_map
 #ifdef GRAVITY
   attributes(managed) :: gravity_type_int
 #endif
-  attributes(managed) :: xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext
 #endif
 
   !$acc declare &
 #ifdef RADIATION
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &
 #endif
-  !$acc create(qpass_map, upass_map) &
 #ifdef GRAVITY
   !$acc create(gravity_type_int) &
 #endif
-  !$acc create(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
   ! Begin the declarations of the ParmParse parameters
 
@@ -97,7 +88,6 @@ contains
     allocate(do_inelastic_scattering)
     allocate(comoving)
 #endif
-    allocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     @@set_castro_params@@
 
@@ -120,49 +110,6 @@ contains
     end if
 #endif
 
-    ! now set the external BC flags
-    select case (xl_ext_bc_type)
-    case ("hse", "HSE")
-       xl_ext = EXT_HSE
-    case default
-       xl_ext = EXT_UNDEFINED
-    end select
-
-    select case (yl_ext_bc_type)
-    case ("hse", "HSE")
-       yl_ext = EXT_HSE
-    case default
-       yl_ext = EXT_UNDEFINED
-    end select
-
-    select case (zl_ext_bc_type)
-    case ("hse", "HSE")
-       zl_ext = EXT_HSE
-    case default
-       zl_ext = EXT_UNDEFINED
-    end select
-
-    select case (xr_ext_bc_type)
-    case ("hse", "HSE")
-       xr_ext = EXT_HSE
-    case default
-       xr_ext = EXT_UNDEFINED
-    end select
-
-    select case (yr_ext_bc_type)
-    case ("hse", "HSE")
-       yr_ext = EXT_HSE
-    case default
-       yr_ext = EXT_UNDEFINED
-    end select
-
-    select case (zr_ext_bc_type)
-    case ("hse", "HSE")
-       zr_ext = EXT_HSE
-    case default
-       zr_ext = EXT_UNDEFINED
-    end select
-
 #ifdef GRAVITY
     !$acc update device(gravity_type_int)
 #endif
@@ -178,7 +125,6 @@ contains
     deallocate(do_inelastic_scattering)
     deallocate(comoving)
 #endif
-    deallocate(xl_ext, yl_ext, zl_ext, xr_ext, yr_ext, zr_ext)
 
     @@free_castro_params@@
 

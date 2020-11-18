@@ -242,7 +242,7 @@ Castro::variableSetUp ()
   ca_microphysics_init();
 
   // now initialize the C++ Microphysics
-#ifdef CXX_REACTIONS
+#ifdef REACTIONS
   network_init();
 #endif
 
@@ -296,32 +296,6 @@ Castro::variableSetUp ()
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);
-
-  // setup the passive maps -- this follows the same logic as the
-  // Fortran versions in ca_set_method_params
-  int ipassive = 0;
-
-  upass_map.resize(npassive);
-  qpass_map.resize(npassive);
-
-  for (int iadv = 0; iadv < NumAdv; ++iadv) {
-    upass_map[ipassive] = UFA + iadv;
-    qpass_map[ipassive] = QFA + iadv;
-    ++ipassive;
-  }
-
-  for (int ispec = 0; ispec < NumSpec; ++ispec) {
-    upass_map[ipassive] = UFS + ispec;
-    qpass_map[ipassive] = QFS + ispec;
-    ++ipassive;
-  }
-
-  for (int iaux = 0; iaux < NumAux; ++iaux) {
-    upass_map[ipassive] = UFX + iaux;
-    qpass_map[ipassive] = QFX + iaux;
-    ++ipassive;
-  }
-
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
@@ -893,12 +867,15 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
+#ifndef NSE_THERMO
   //
   // Abar
+  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+#endif
 
   //
   // Velocities

@@ -205,6 +205,12 @@ adjacent cells above which we refine), and ``field_name`` (name of the string
 defining the field in the code). If a refinement indicator is added, either
 ``value_greater``, ``value_less``, or ``gradient`` must be provided.
 
+.. note::
+
+   Zones adjacent to a physical boundary cannot be tagged for refinement when
+   using the Poisson gravity solver. If your tagging criteria are met in these
+   zones, they will be ignored.
+
 .. _sec:amr_synchronization:
 
 Synchronization Algorithm

@@ -203,12 +203,6 @@ extern "C"
 #endif
 
 
-/* rotation */
-#ifdef ROTATION
-#include <Castro_rotation_F.H>
-#endif
-
-
 /* SDC */
 #ifdef TRUE_SDC
 #include <Castro_sdc_F.H>
@@ -276,9 +270,5 @@ BL_FORT_PROC_DECL(CA_INITMAG,ca_initmag)
    const int& nz, BL_FORT_FAB_ARG_3D(magz),
    const amrex::Real dx[], const amrex::Real xlo[], const amrex::Real xhi[]);
 #endif
-
-
-/* problem-specific includes */
-#include <Problem_F.H>
 
 #endif

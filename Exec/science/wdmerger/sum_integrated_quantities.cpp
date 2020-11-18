@@ -10,7 +10,7 @@
 #include <AMReX_ParallelDescriptor.H>
 
 #include <Problem.H>
-#include <Problem_F.H>
+#include <wdmerger_F.H>
 
 #include <Gravity.H>
 #include <Gravity_F.H>
@@ -57,12 +57,6 @@ Castro::sum_integrated_quantities ()
     Real internal_energy      = 0.0;
     Real total_energy         = 0.0;
     Real total_E_grid         = 0.0;
-
-    // Rotation frequency.
-
-    Real omega[3] = { 0.0 };
-
-    get_omega_vec(omega);
 
     // Mass transfer rate
 

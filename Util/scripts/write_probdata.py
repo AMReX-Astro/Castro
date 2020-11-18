@@ -73,6 +73,8 @@ CXX_HEADER = """
 #define problem_parameters_H
 #include <AMReX_BLFort.H>
 
+#include <network_properties.H>
+
 """
 
 CXX_FOOTER = """
@@ -394,7 +396,9 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 for p in params:
                     # We don't currently support the case where a module
                     # is required since we have no C++ equivalent for the module.
-                    if p.is_array() and p.has_module():
+                    # The exception is specific cases where we know how to do the
+                    # translation from Fortran to C++.
+                    if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                         continue
                     if p.dtype == "logical":
                         continue
@@ -421,6 +425,8 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                         fout.write("{}subroutine get_f90_{}({}_in) bind(C, name=\"get_f90_{}\")\n".format(
                             indent, p.var, p.var, p.var))
                         if p.is_array():
+                            if p.has_module():
+                                fout.write("{}   use {}, only: {}\n".format(indent, p.module, p.size))
                             fout.write("{}   {}, intent(inout) :: {}_in({})\n".format(
                                 indent, p.get_f90_decl(), p.var, p.size))
                         else:
@@ -436,7 +442,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 # to set the value of the parameters.
 
                 for p in params:
-                    if p.is_array() and p.has_module():
+                    if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                         continue
                     if p.dtype == "logical" or p.dtype == "character":
                         continue
@@ -444,6 +450,8 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                     fout.write("{}subroutine set_f90_{}({}_in) bind(C, name=\"set_f90_{}\")\n".format(
                         indent, p.var, p.var, p.var))
                     if p.is_array():
+                        if p.has_module():
+                            fout.write("{}   use {}, only: {}\n".format(indent, p.module, p.size))
                         fout.write("{}   {}, intent(in) :: {}_in({})\n".format(
                             indent, p.get_f90_decl(), p.var, p.size))
                     else:
@@ -469,7 +477,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
         fout.write(CXX_F_HEADER)
 
         for p in params:
-            if p.is_array() and p.has_module():
+            if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                 continue
 
             if p.dtype == "character":
@@ -493,17 +501,22 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
 
         fout.write("  void init_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
 
+        fout.write("  void cxx_to_f90_{}_parameters();\n\n".format(os.path.basename(cxx_prefix)))
+
         fout.write("  namespace problem {\n\n")
 
         for p in params:
-            if p.is_array() and p.has_module():
+            if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                 continue
 
             if p.dtype == "character":
                 fout.write("  extern std::string {};\n\n".format(p.var))
             else:
                 if p.is_array():
-                    fout.write("  extern AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                    if p.size == "nspec" and p.module == "network":
+                        fout.write("  extern AMREX_GPU_MANAGED {} {}[NumSpec];\n\n".format(p.get_cxx_decl(), p.var))
+                    else:
+                        fout.write("  extern AMREX_GPU_MANAGED {} {}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
                 else:
                     fout.write("  extern AMREX_GPU_MANAGED {} {};\n\n".format(p.get_cxx_decl(), p.var))
 
@@ -518,7 +531,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
         fout.write("#include <{}_parameters_F.H>\n\n".format(os.path.basename(cxx_prefix)))
 
         for p in params:
-            if p.is_array() and p.has_module():
+            if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                 continue
             if p.dtype == "logical":
                 continue
@@ -527,7 +540,10 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                 fout.write("  std::string problem::{};\n\n".format(p.var))
             else:
                 if p.is_array():
-                    fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
+                    if p.size == "nspec" and p.module == "network":
+                        fout.write("  AMREX_GPU_MANAGED {} problem::{}[NumSpec];\n\n".format(p.get_cxx_decl(), p.var))
+                    else:
+                        fout.write("  AMREX_GPU_MANAGED {} problem::{}[{}];\n\n".format(p.get_cxx_decl(), p.var, p.size))
                 else:
                     fout.write("  AMREX_GPU_MANAGED {} problem::{};\n\n".format(p.get_cxx_decl(), p.var))
 
@@ -536,7 +552,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
         fout.write("    int slen = 0;\n\n")
 
         for p in params:
-            if p.is_array() and p.has_module():
+            if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
                 continue
             if p.dtype == "logical":
                 continue
@@ -553,6 +569,24 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                     fout.write("    get_f90_{}(&problem::{});\n\n".format(p.var, p.var))
 
         fout.write("  }\n")
+
+        fout.write("\n")
+        fout.write("  void cxx_to_f90_{}_parameters() {{\n".format(os.path.basename(cxx_prefix)))
+        fout.write("    int slen = 0;\n\n")
+
+        for p in params:
+            if p.is_array() and p.has_module() and not (p.size == "nspec" and p.module == "network"):
+                continue
+            if p.dtype == "logical" or p.dtype == "character":
+                continue
+
+            if p.is_array():
+                fout.write("    set_f90_{}(problem::{});\n\n".format(p.var, p.var))
+            else:
+                fout.write("    set_f90_{}(&problem::{});\n\n".format(p.var, p.var))
+
+        fout.write("  }\n")
+
 
 def main():
 

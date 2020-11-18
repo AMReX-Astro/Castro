@@ -37,7 +37,6 @@
      use math_module, only: cross_product ! function
      use castro_util_module, only: position ! function
      use rotation_frequency_module, only: get_omega
-     use wdmerger_util_module, only: inertial_velocity ! function
      use probdata_module, only: center_P_initial, center_S_initial, mass_P, mass_S, vel_P, vel_S, &
                                 bulk_velx, bulk_vely, bulk_velz, smallu, &
                                 problem, axis_1, axis_2, nsub, &
@@ -206,5 +205,37 @@
         enddo
      enddo
      !$OMP END PARALLEL DO
+
+   contains
+
+     ! Given a rotating frame velocity, get the inertial frame velocity.
+     ! Note that we simply return the original velocity if we're
+     ! already in the inertial frame.
+
+     function inertial_velocity(loc, vel, time) result(vel_i)
+
+       use amrex_fort_module, only: rt => amrex_real
+       use meth_params_module, only: do_rotation, state_in_rotating_frame
+       use rotation_frequency_module, only: get_omega
+       use math_module, only: cross_product ! function
+
+       implicit none
+
+       real(rt), intent(in   ) :: loc(3), vel(3), time
+       real(rt) :: omega(3)
+
+       real(rt) :: vel_i(3)
+
+       !$gpu
+
+       call get_omega(omega)
+
+       vel_i = vel
+
+       if (do_rotation .eq. 1 .and. state_in_rotating_frame .eq. 1) then
+          vel_i = vel_i + cross_product(omega, loc)
+       endif
+
+     end function inertial_velocity
 
    end subroutine ca_initdata

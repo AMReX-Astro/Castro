@@ -46,9 +46,6 @@ Castro::ctoprim(const Box& bx,
 #endif
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
   GeometryData geomdata = geom.data();
 #endif
 
@@ -111,7 +108,7 @@ Castro::ctoprim(const Box& bx,
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
 
-      inertial_to_rotational_velocity_c(i, j, k, geomdata, omega.begin(), time, vel);
+      inertial_to_rotational_velocity_c(i, j, k, geomdata, time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
