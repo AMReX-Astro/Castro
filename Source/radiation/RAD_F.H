@@ -174,21 +174,6 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
     const BL_FORT_FAB_ARG(msk),
     amrex::Real* derat, amrex::Real* dTrat);
 
-extern "C"
-{
-  void ca_update_matter
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(rhoe_new),
-    const BL_FORT_FAB_ARG_3D(Er_new),
-    const BL_FORT_FAB_ARG_3D(Er_pi),
-    const BL_FORT_FAB_ARG_3D(rhoe_star),
-    const BL_FORT_FAB_ARG_3D(rhoe_step),
-    const BL_FORT_FAB_ARG_3D(eta1),
-    const BL_FORT_FAB_ARG_3D(coupT),
-    const BL_FORT_FAB_ARG_3D(kappa_p),
-    amrex::Real dt, amrex::Real ptc_tau);
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif

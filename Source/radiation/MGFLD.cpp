@@ -721,28 +721,47 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                               int level, Real delta_t, Real ptc_tau,
                               int it, bool conservative_update)
 {
+    const Real cdt = C::c_light * delta_t;
+    const Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
+        auto re_n = rhoe_new[mfi].array();
         auto temp_new_arr = temp_new[mfi].array();
         auto S_new_arr = S_new[mfi].array();
+        auto Tp_n = temp_new[mfi].array();
+        auto Er_n = Er_new[mfi].array();
+        auto Er_l = Er_pi[mfi].array();
+        auto re_s = rhoe_star[mfi].array();
+        auto re_2 = rhoe_step[mfi].array();
+        auto eta1_arr = eta1[mfi].array();
+        auto cpT = coupT[mfi].array();
+        auto etTz = etaTz[mfi].array();
+        auto kpp  = kappa_p[mfi].array();
+        auto jg_arr = jg[mfi].array();
 
         if (conservative_update) {
-#pragma gpu box(bx) sync
-            ca_update_matter
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-                 BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
-                 BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
-                 BL_TO_FORTRAN_ANYD(eta1[mfi]),
-                 BL_TO_FORTRAN_ANYD(coupT[mfi]),
-                 BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-                 delta_t, ptc_tau);
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real H1 = eta1_arr(i,j,k);
+
+                Real dkEE = 0.0;
+                for (int g = 0; g < NGROUPS; ++g) {
+                    dkEE += kpp(i,j,k,g) * (Er_n(i,j,k,g) - Er_l(i,j,k,g));
+                }
+
+                Real chg = cdt * dkEE + H1 * ((re_2(i,j,k) - re_s(i,j,k)) + cdt * cpT(i,j,k));
+
+                re_n(i,j,k) = re_s(i,j,k) + chg;
+
+                re_n(i,j,k) = (re_n(i,j,k) + ptc_tau * re_s(i,j,k)) / (1.e0_rt + ptc_tau);
+            });
 
             temp_new[mfi].copy<RunOn::Device>(rhoe_new[mfi],bx);
             Gpu::synchronize();
@@ -782,15 +801,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
         }
         else {
 
-            auto Tp_n = temp_new[mfi].array();
-            auto Er_n = Er_new[mfi].array();
-            auto re_s = rhoe_star[mfi].array();
-            auto re_2 = rhoe_step[mfi].array();
-            auto etTz = etaTz[mfi].array();
-            auto kpp  = kappa_p[mfi].array();
-            auto jg_arr = jg[mfi].array();
-
-            const Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
             const Real fac = 0.01_rt;
 
             amrex::ParallelFor(bx,
