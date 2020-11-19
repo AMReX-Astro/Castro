@@ -10,6 +10,8 @@
 #include <RAD_F.H>
 #include <AMReX_PROB_AMR_F.H>
 
+#include <opacity.H>
+
 #include <iostream>
 
 #ifdef _OPENMP
@@ -886,11 +888,31 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                 // This is the only case where we need a direct call for
                 // Planck mean as a function of temperature.
 
-#pragma gpu box(bx) sync
-                ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                                  BL_TO_FORTRAN_ANYD(eta[mfi]),
-                                  BL_TO_FORTRAN_ANYD(state[mfi]),
-                                  igroup, igroup, 1, dT);
+                auto eta_arr = eta[mfi].array();
+                auto state_arr = state[mfi].array();
+
+                const Real nu = nugroup[igroup];
+                const Real dT_loc = dT;
+
+                amrex::ParallelFor(bx,
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                {
+                    Real rho = state_arr(i,j,k,URHO);
+                    Real temp = state_arr(i,j,k,UTEMP) + dT_loc;
+                    Real Ye;
+                    if (NumAux > 0)  {
+                        Ye = state_arr(i,j,k,UFX);
+                    } else {
+                        Ye = 0.e0_rt;
+                    }
+
+                    Real kp, kr;
+                    bool comp_kp = true;
+                    bool comp_kr = false;
+                    opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+                    eta_arr(i,j,k,igroup) = kp;
+                });
 
             }
 
@@ -1401,6 +1423,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
 
         const Box& bx = mfi.tilebox();
 
+        auto fkp_arr = fkp[mfi].array(igroup);
         auto temp_arr = temp[mfi].array();
         auto state_arr = state[mfi].array();
 
@@ -1436,11 +1459,27 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
             }
         });
 
-#pragma gpu box(bx)
-        ca_compute_planck(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                          BL_TO_FORTRAN_N_ANYD(fkp[mfi], igroup),
-                          BL_TO_FORTRAN_ANYD(state[mfi]),
-                          igroup, igroup, 1, 0.0);
+        const Real nu = nugroup[igroup];
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real rho = state_arr(i,j,k,URHO);
+            Real temp = state_arr(i,j,k,UTEMP);
+            Real Ye;
+            if (NumAux > 0)  {
+                Ye = state_arr(i,j,k,UFX);
+            } else {
+                Ye = 0.e0_rt;
+            }
+
+            Real kp, kr;
+            bool comp_kp = true;
+            bool comp_kr = false;
+            opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+            fkp_arr(i,j,k) = kp;
+        });
 
         int ncomp = temp[mfi].nComp();
 
@@ -2100,8 +2139,24 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             temp.resize(reg);
             Elixir temp_elix = temp.elixir();
 
+            kp.resize(reg);
+            Elixir kp_elix = kp.elixir();
+
+            kp2.resize(reg);
+            Elixir kp2_elix = kp2.elixir();
+
+            c_v.resize(reg);
+            Elixir c_v_elix = c_v.elixir();
+
             auto temp_arr = temp.array();
             auto S_arr = S[mfi].array();
+            auto v_arr = v[mfi].array();
+            auto er_arr = Er[mfi].array();
+            auto kr_arr = kappa_r[mfi].array();
+            auto kp_arr = kp.array();
+            auto kp2_arr = kp2.array();
+            auto c_v_arr = c_v.array();
+            auto dcf_arr = dcf[mfi].array();
 
             amrex::ParallelFor(reg,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -2136,7 +2191,6 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             });
             Gpu::synchronize();
 
-            c_v.resize(reg);
             get_c_v(c_v, temp, S[mfi], reg);
 
             S[mfi].copy<RunOn::Device>(temp,reg,0,reg,UTEMP,1);
@@ -2148,33 +2202,33 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                                  BL_TO_FORTRAN_ANYD(S[mfi]),
                                  igroup, igroup, 1);
 
-            kp.resize(reg);
-#pragma gpu box(reg) sync
-            ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                              BL_TO_FORTRAN_ANYD(kp),
-                              BL_TO_FORTRAN_ANYD(S[mfi]),
-                              igroup, igroup, 1, 0.0);
+            const Real nu = nugroup[igroup];
 
-            kp2.resize(reg);
-            S[mfi].plus<RunOn::Device>(dT, UTEMP, 1);
-            Gpu::synchronize();
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real rho = S_arr(i,j,k,URHO);
+                Real temp = S_arr(i,j,k,UTEMP);
+                Real Ye;
+                if (NumAux > 0)  {
+                    Ye = S_arr(i,j,k,UFX);
+                } else {
+                    Ye = 0.e0_rt;
+                }
 
-#pragma gpu box(reg) sync
-            ca_compute_planck(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                              BL_TO_FORTRAN_ANYD(kp2),
-                              BL_TO_FORTRAN_ANYD(S[mfi]),
-                              igroup, igroup, 1, 0.0);
+                Real kp, kr;
+                bool comp_kp = true;
+                bool comp_kr = false;
+                opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
 
-            S[mfi].plus<RunOn::Device>(-dT, UTEMP, 1);
-            Gpu::synchronize();
+                kp_arr(i,j,k) = kp;
 
-            auto v_arr = v[mfi].array();
-            auto er_arr = Er[mfi].array();
-            auto kr_arr = kappa_r[mfi].array();
-            auto kp_arr = kp.array();
-            auto kp2_arr = kp2.array();
-            auto c_v_arr = c_v.array();
-            auto dcf_arr = dcf[mfi].array();
+                temp += dT_loc;
+
+                opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+                kp2_arr(i,j,k) = kp;
+            });
 
             amrex::ParallelFor(reg,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)

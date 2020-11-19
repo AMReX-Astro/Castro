@@ -203,13 +203,6 @@ extern "C" {
     BL_FORT_FAB_ARG_3D(kps),
     const BL_FORT_FAB_ARG_3D(state));
 
-  void ca_compute_planck
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(kpp),
-     const BL_FORT_FAB_ARG_3D(state),
-     int first_group, int last_group, int num_groups,
-     amrex::Real temp_offset);
-
   void ca_filt_prim
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(Stmp),
