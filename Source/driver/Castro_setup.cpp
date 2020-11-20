@@ -404,13 +404,13 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
@@ -436,13 +436,13 @@ Castro::variableSetUp ()
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, source_ng, NSRC,
-                         &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                         interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 #endif
 
@@ -455,7 +455,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -467,7 +467,7 @@ Castro::variableSetUp ()
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
                              StateDescriptor::Point, NUM_GROW, NQSRC,
-                             &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                             interp, state_data_extrap, store_in_checkpoint);
 
   }
 #endif
