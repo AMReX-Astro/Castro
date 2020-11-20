@@ -265,12 +265,6 @@ extern "C"
 extern "C" 
 {
 #endif
-  void ca_compute_c_v
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cv),
-     const BL_FORT_FAB_ARG_3D(temp),
-     const BL_FORT_FAB_ARG_3D(state));
-
   void ca_get_rhoe
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rhoe),

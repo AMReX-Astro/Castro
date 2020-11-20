@@ -269,12 +269,31 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& box = mfi.tilebox();
 
-#pragma gpu box(box)
-      ca_compute_c_v
-          (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-           BL_TO_FORTRAN_ANYD(dedT[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto dedT_arr = dedT[mfi].array();
+      auto temp_arr = temp_new[mfi].array();
+      auto S_new_arr = S_new[mfi].array();
+
+      amrex::ParallelFor(box,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+          eos_t eos_state;
+          eos_state.rho = S_new_arr(i,j,k,URHO);
+          eos_state.T   = temp_arr(i,j,k);
+          for (int n = 0; n < NumSpec; ++n) {
+              eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+              eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
+
+          eos(eos_input_rt, eos_state);
+
+          dedT_arr(i,j,k) = eos_state.cv;
+      });
   }
 
   if (dedT_fac > 1.0) {

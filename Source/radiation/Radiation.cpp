@@ -1379,12 +1379,32 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
 {
     BL_PROFILE("Radiation::get_c_v");
 
-#pragma gpu box(reg) sync
-    ca_compute_c_v
-        (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-         BL_TO_FORTRAN_ANYD(c_v),
-         BL_TO_FORTRAN_ANYD(temp),
-         BL_TO_FORTRAN_ANYD(state));
+    auto c_v_arr = c_v.array();
+    auto temp_arr = temp.array();
+    auto state_arr = state.array();
+
+    amrex::ParallelFor(reg,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+        Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
+
+        eos_t eos_state;
+        eos_state.rho = state_arr(i,j,k,URHO);
+        eos_state.T   = temp_arr(i,j,k);
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = state_arr(i,j,k,UFS+n) * rhoInv;
+        }
+#if NAUX_NET > 0
+        for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = state_arr(i,j,k,UFX+n) * rhoInv;
+        }
+#endif
+
+        eos(eos_input_rt, eos_state);
+
+        c_v_arr(i,j,k) = eos_state.cv;
+    });
+    Gpu::synchronize();
 }
 
 void Radiation::get_frhoe(MultiFab& frhoe,
