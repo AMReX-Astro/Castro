@@ -593,7 +593,16 @@ Castro::normalize_species_fluxes(const Box& bx,
     }
 
     Real fac = 1.0_rt;
-    if (sum != 0.0_rt) {
+
+    // We skip the normalization if the sum is zero or within epsilon.
+    // There can be numerical problems here if the density flux is
+    // approximately zero at the interface but not exactly, resulting in
+    // division by a small number and/or resulting in one of the species
+    // fluxes being negative because of roundoff error. There are also other
+    // terms like artificial viscosity which can cause these problems.
+    // So checking that sum is sufficiently large helps avoid this.
+
+    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * std::abs(flux(i,j,k,URHO))) {
       fac = flux(i,j,k,URHO) / sum;
     }
 

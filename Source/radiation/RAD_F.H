@@ -177,12 +177,6 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_compute_rosseland
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(kpr),
-     const BL_FORT_FAB_ARG_3D(state),
-     int first_group, int last_group, int num_groups);
-
   void ca_compute_scattering
    (const int * lo, const int* hi,
     BL_FORT_FAB_ARG_3D(kps),
@@ -265,12 +259,6 @@ extern "C"
 extern "C" 
 {
 #endif
-  void ca_compute_c_v
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cv),
-     const BL_FORT_FAB_ARG_3D(temp),
-     const BL_FORT_FAB_ARG_3D(state));
-
   void ca_get_rhoe
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(rhoe),

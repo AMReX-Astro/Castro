@@ -931,68 +931,6 @@ contains
 
 
 
-  subroutine ca_compute_rosseland(lo, hi, &
-                                  kpr, k_lo, k_hi, &
-                                  state, s_lo, s_hi, &
-                                  first_group, last_group, num_groups) &
-                                  bind(C, name="ca_compute_rosseland")
-
-    use rad_params_module, only: nugroup
-    use opacity_table_module, only: get_opacities
-    use network, only: naux
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFX
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: k_lo(3), k_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: kpr(k_lo(1):k_hi(1),k_lo(2):k_hi(2),k_lo(3):k_hi(3),0:num_groups-1)
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-    integer,  intent(in   ), value :: first_group, last_group, num_groups
-
-    integer  :: i, j, k, g
-    real(rt) :: kp, kr, nu, rho, temp, Ye
-    logical, parameter :: comp_kp = .false. 
-    logical, parameter :: comp_kr = .true.
-
-    !$gpu
-
-    ! Note: the group index here will always correspond to the actual frequency
-    ! group (so that the access to nugroup makes sense), while the indexing of
-    ! the opacity array does not correspond to that. It will always be true when
-    ! calling this that num_groups == last_group - first_group + 1.
-
-    do g = first_group, last_group
-
-       nu = nugroup(g)
-
-       do k = lo(3), hi(3)
-          do j = lo(2), hi(2)
-             do i = lo(1), hi(1)
-
-                rho = state(i,j,k,URHO)
-                temp = state(i,j,k,UTEMP)
-                if (naux > 0) then
-                   Ye = state(i,j,k,UFX)
-                else
-                   Ye = 0.e0_rt
-                end if
-
-                call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-                kpr(i,j,k,g-first_group) = kr
-
-             end do
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_rosseland
-
-
-
   subroutine ca_compute_scattering(lo, hi, &
                                    kps, kps_lo, kps_hi, &
                                    sta, sta_lo, sta_hi) &
@@ -1124,58 +1062,6 @@ contains
 
   end subroutine ca_compute_emissivity
 
-
-
-
-  subroutine ca_compute_c_v(lo, hi, &
-                            cv, c_lo, c_hi, &
-                            temp, t_lo, t_hi, &
-                            state, s_lo, s_hi) &
-                            bind(C, name="ca_compute_c_v")
-
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rt
-    use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UFS, UFX, &
-                                  prop_temp_floor
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: c_lo(3), c_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    integer     :: i, j, k
-    real(rt)    :: rhoInv
-    type(eos_t) :: eos_state
-    real(rt)    :: alpha, teff
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rhoInv = 1.e0_rt / state(i,j,k,URHO)
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = temp(i,j,k)
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             call eos(eos_input_rt, eos_state)
-
-             cv(i,j,k) = eos_state % cv
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_c_v
 
 
 
