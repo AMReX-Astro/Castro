@@ -47,7 +47,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
-    const Real* probhi = geomdata.ProbLo();
+    const Real* probhi = geomdata.ProbHi();
 
     Real L = probhi[0] - problo[0];
     Real x_int = problo[0] + problem::pert_frac * L;
