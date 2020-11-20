@@ -1,6 +1,7 @@
 #include <Radiation.H>
 #include <Castro_F.H>
 #include <RAD_F.H>
+#include <rad_util.H>
 
 #include <opacity.H>
 
@@ -990,19 +991,25 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
 void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto geomdata = parent->Geom(level).data();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) 
     {
-        const Box& bx = ri.tilebox();       
+        const Box& bx = ri.tilebox();
 
-#pragma gpu box(bx)
-        ca_rhstoer(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(rhs[ri]),
-                   AMREX_REAL_ANYD(dx), dt);
+        auto rhs_arr = rhs[ri].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real r, s;
+            cell_center_metric(i, j, k, geomdata, r, s);
+
+            rhs_arr(i,j,k) *= dt / r;
+        });
     }
 }
 
