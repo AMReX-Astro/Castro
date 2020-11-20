@@ -1521,6 +1521,8 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
   FillPatchIterator fpi(*castro, S_new, 1, time, State_Type, 0, nstate);
   MultiFab& state = fpi.get_mf();
 
+  const Real nu = nugroup[igroup];
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1534,6 +1536,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
           auto frhoe_arr = frhoe.array();
           auto state_arr = state[mfi].array();
+          auto kpr = kappa_r[mfi].array();
 
           amrex::ParallelFor(bx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -1567,13 +1570,24 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
 
                   state_arr(i,j,k,UTEMP) = frhoe_arr(i,j,k);
               }
-          });
 
-#pragma gpu box(bx)
-          ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                               BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
-                               BL_TO_FORTRAN_ANYD(state[mfi]),
-                               igroup, igroup, 1);
+              Real rho = state_arr(i,j,k,URHO);
+              Real temp = state_arr(i,j,k,UTEMP);
+              Real Ye;
+              if (NumAux > 0) {
+                  Ye = state_arr(i,j,k,UFX);
+              } else {
+                  Ye = 0.e0_rt;
+              }
+
+              Real kp, kr;
+              bool comp_kp = false;
+              bool comp_kr = true;
+
+              opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+              kpr(i,j,k,igroup) = kr;
+          });
       }
   }
 }
@@ -1593,21 +1607,40 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
   BL_ASSERT(temp.nGrow()    == 0);
   BL_ASSERT(kappa_r.nComp() == Radiation::nGroups);
 
+  const Real nu = nugroup[igroup];
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(state, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-      Array4<Real> const state_arr = state.array(mfi);
-      Array4<Real> const temp_arr = temp.array(mfi);
-      AMREX_PARALLEL_FOR_3D(bx, i, j, k, { state_arr(i,j,k,UTEMP) = temp_arr(i,j,k); });
+      auto state_arr = state[mfi].array();
+      auto temp_arr = temp[mfi].array();
+      auto kpr = kappa_r[mfi].array();
 
-#pragma gpu box(bx)
-      ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                           BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
-                           BL_TO_FORTRAN_ANYD(state[mfi]),
-                           igroup, igroup, 1);
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          state_arr(i,j,k,UTEMP) = temp_arr(i,j,k);
+
+          Real rho = state_arr(i,j,k,URHO);
+          Real temp = state_arr(i,j,k,UTEMP);
+          Real Ye;
+          if (NumAux > 0) {
+              Ye = state_arr(i,j,k,UFX);
+          } else {
+              Ye = 0.e0_rt;
+          }
+
+          Real kp, kr;
+          bool comp_kp = false;
+          bool comp_kr = true;
+
+          opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+          kpr(i,j,k,igroup) = kr;
+      });
   }
 
   kappa_r.FillBoundary(geom.periodicity());
@@ -1617,17 +1650,38 @@ void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 {
   BL_PROFILE("Radiation::SGFLD_compute_rosseland (MultiFab)");
 
+  const int igroup = 0;
+  const Real nu = nugroup[igroup];
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
   for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& kbox = mfi.growntilebox();
 
-#pragma gpu box(kbox)
-      ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-                           BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
-                           BL_TO_FORTRAN_ANYD(state[mfi]),
-                           0, 0, 1);
+      auto state_arr = state[mfi].array();
+      auto kpr = kappa_r[mfi].array();
+
+      amrex::ParallelFor(kbox,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real rho = state_arr(i,j,k,URHO);
+          Real temp = state_arr(i,j,k,UTEMP);
+          Real Ye;
+          if (NumAux > 0) {
+              Ye = state_arr(i,j,k,UFX);
+          } else {
+              Ye = 0.e0_rt;
+          }
+
+          Real kp, kr;
+          bool comp_kp = false;
+          bool comp_kr = true;
+
+          opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+          kpr(i,j,k,igroup) = kr;
+      });
   }
 }
 
@@ -1637,11 +1691,33 @@ void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 
   const Box& kbox = kappa_r.box();
 
-#pragma gpu box(kbox) sync
-  ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-                       BL_TO_FORTRAN_ANYD(kappa_r),
-                       BL_TO_FORTRAN_ANYD(state),
-                       0, 0, 1);
+  const int igroup = 0;
+  const Real nu = nugroup[igroup];
+
+  auto state_arr = state.array();
+  auto kpr = kappa_r.array();
+
+  amrex::ParallelFor(kbox,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+      Real rho = state_arr(i,j,k,URHO);
+      Real temp = state_arr(i,j,k,UTEMP);
+      Real Ye;
+      if (NumAux > 0) {
+          Ye = state_arr(i,j,k,UFX);
+      } else {
+          Ye = 0.e0_rt;
+      }
+
+      Real kp, kr;
+      bool comp_kp = false;
+      bool comp_kr = true;
+
+      opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+      kpr(i,j,k,igroup) = kr;
+  });
+  Gpu::synchronize();
 }
 
 void Radiation::deferred_sync_setup(int crse_level)
@@ -2194,13 +2270,6 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             get_c_v(c_v, temp, S[mfi], reg);
 
             S[mfi].copy<RunOn::Device>(temp,reg,0,reg,UTEMP,1);
-            Gpu::synchronize();
-
-#pragma gpu box(reg) sync
-            ca_compute_rosseland(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                                 BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], igroup),
-                                 BL_TO_FORTRAN_ANYD(S[mfi]),
-                                 igroup, igroup, 1);
 
             const Real nu = nugroup[igroup];
 
@@ -2218,10 +2287,11 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
 
                 Real kp, kr;
                 bool comp_kp = true;
-                bool comp_kr = false;
+                bool comp_kr = true;
                 opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
 
                 kp_arr(i,j,k) = kp;
+                kr_arr(i,j,k) = kr;
 
                 temp += dT_loc;
 
