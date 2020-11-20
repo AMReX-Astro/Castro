@@ -3042,8 +3042,19 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
             Real rhoX_sum = 0.0_rt;
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
             for (int n = 0; n < NumSpec; ++n) {
+#ifndef AMREX_USE_GPU
+                const Real X_failure_tolerance = 1.e-2_rt;
+
+                // Abort if X is unphysically large.
+                Real X = u(i,j,k,UFS+n) * rhoInv;
+
+                if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                    amrex::Error("Invalid mass fraction in Castro::normalize_species()");
+                }
+#endif
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
                 rhoX_sum += u(i,j,k,UFS+n);
             }
