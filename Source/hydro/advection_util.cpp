@@ -602,7 +602,7 @@ Castro::normalize_species_fluxes(const Box& bx,
     // terms like artificial viscosity which can cause these problems.
     // So checking that sum is sufficiently large helps avoid this.
 
-    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * flux(i,j,k,URHO)) {
+    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * std::abs(flux(i,j,k,URHO))) {
       fac = flux(i,j,k,URHO) / sum;
     }
 
