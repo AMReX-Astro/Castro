@@ -1065,58 +1065,6 @@ contains
 
 
 
-  subroutine ca_compute_c_v(lo, hi, &
-                            cv, c_lo, c_hi, &
-                            temp, t_lo, t_hi, &
-                            state, s_lo, s_hi) &
-                            bind(C, name="ca_compute_c_v")
-
-    use eos_module, only: eos
-    use eos_type_module, only: eos_t, eos_input_rt
-    use network, only: nspec, naux
-    use meth_params_module, only: NVAR, URHO, UFS, UFX, &
-                                  prop_temp_floor
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: c_lo(3), c_hi(3)
-    integer,  intent(in   ) :: t_lo(3), t_hi(3)
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: cv(c_lo(1):c_hi(1),c_lo(2):c_hi(2),c_lo(3):c_hi(3))
-    real(rt), intent(in   ) :: temp(t_lo(1):t_hi(1),t_lo(2):t_hi(2),t_lo(3):t_hi(3))
-    real(rt), intent(in   ) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    integer     :: i, j, k
-    real(rt)    :: rhoInv
-    type(eos_t) :: eos_state
-    real(rt)    :: alpha, teff
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rhoInv = 1.e0_rt / state(i,j,k,URHO)
-             eos_state % rho = state(i,j,k,URHO)
-             eos_state % T   = temp(i,j,k)
-             eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-             eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
-
-             call eos(eos_input_rt, eos_state)
-
-             cv(i,j,k) = eos_state % cv
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_c_v
-
-
-
   subroutine ca_get_rhoe(lo, hi, &
                          rhoe, r_lo, r_hi, &
                          temp, t_lo, t_hi, &
