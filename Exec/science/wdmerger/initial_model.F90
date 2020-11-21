@@ -12,6 +12,8 @@ module initial_model_module
   use fundamental_constants_module, only: Gconst, M_solar
   use meth_params_module, only: small_temp
 
+  integer, parameter :: initial_model_max_npts = 10000
+
   type :: initial_model
 
      ! Physical characteristics
@@ -25,8 +27,8 @@ module initial_model_module
 
      ! Composition
 
-     real(rt), allocatable :: core_comp(:)
-     real(rt), allocatable :: envelope_comp(:)
+     real(rt) :: core_comp(nspec)
+     real(rt) :: envelope_comp(nspec)
 
      ! Model storage
 
@@ -34,32 +36,25 @@ module initial_model_module
      integer  :: npts
      real(rt) :: mass_tol, hse_tol
 
-     real(rt), allocatable :: r(:), rl(:), rr(:)
-     real(rt), allocatable :: M_enclosed(:), g(:)
-     type (eos_t), allocatable :: state(:)
+     real(rt) :: r(initial_model_max_npts), rl(initial_model_max_npts), rr(initial_model_max_npts)
+     real(rt) :: M_enclosed(initial_model_max_npts), g(initial_model_max_npts)
+     type (eos_t) :: state(initial_model_max_npts)
 
   end type initial_model
 
   ! 1D initial models
 
-  type (initial_model), allocatable :: model_P, model_S
-  real(rt), allocatable :: rho_P(:), rho_S(:)
-  real(rt), allocatable :: T_P(:), T_S(:)
-  real(rt), allocatable :: xn_P(:,:), xn_S(:,:)
-  real(rt), allocatable :: r_P(:), r_S(:)
-
-#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
-  attributes(managed) :: model_P, model_S
-  attributes(managed) :: rho_P, rho_S
-  attributes(managed) :: T_P, T_S
-  attributes(managed) :: xn_P, xn_S
-  attributes(managed) :: r_P, r_S
-#endif
-
+  type (initial_model) :: model_P, model_S
+  real(rt) :: rho_P(initial_model_max_npts), rho_S(initial_model_max_npts)
+  real(rt) :: T_P(initial_model_max_npts), T_S(initial_model_max_npts)
+  real(rt) :: xn_P(initial_model_max_npts,nspec), xn_S(initial_model_max_npts,nspec)
+  real(rt) :: r_P(initial_model_max_npts), r_S(initial_model_max_npts)
 
 contains
 
   subroutine initialize_model(primary, dx, npts, mass_tol, hse_tol)
+
+    use castro_error_module, only: castro_error
 
     implicit none
 
@@ -68,6 +63,10 @@ contains
     real(rt), intent(in   ) :: dx, mass_tol, hse_tol
 
     integer :: i
+
+    if (npts > initial_model_max_npts) then
+       call castro_error("npts too large, please increase initial_model_max_npts")
+    end if
 
     if (primary) then
 
@@ -78,9 +77,6 @@ contains
        model_P % min_density = ZERO
        model_P % radius = ZERO
 
-       allocate(model_P % core_comp(nspec))
-       allocate(model_P % envelope_comp(nspec))
-
        model_P % core_comp(:) = ZERO
        model_P % envelope_comp(:) = ZERO
 
@@ -88,18 +84,6 @@ contains
        model_P % npts = npts
        model_P % mass_tol = mass_tol
        model_P % hse_tol = hse_tol
-
-       allocate(model_P % r(npts))
-       allocate(model_P % rl(npts))
-       allocate(model_P % rr(npts))
-       allocate(model_P % M_enclosed(npts))
-       allocate(model_P % g(npts))
-       allocate(model_P % state(npts))
-
-       allocate(rho_P(npts))
-       allocate(T_P(npts))
-       allocate(xn_P(npts,nspec))
-       allocate(r_P(npts))
 
        do i = 1, npts
 
@@ -119,9 +103,6 @@ contains
        model_S % min_density = ZERO
        model_S % radius = ZERO
 
-       allocate(model_S % core_comp(nspec))
-       allocate(model_S % envelope_comp(nspec))
-
        model_S % core_comp(:) = ZERO
        model_S % envelope_comp(:) = ZERO
 
@@ -129,18 +110,6 @@ contains
        model_S % npts = npts
        model_S % mass_tol = mass_tol
        model_S % hse_tol = hse_tol
-
-       allocate(model_S % r(npts))
-       allocate(model_S % rl(npts))
-       allocate(model_S % rr(npts))
-       allocate(model_S % M_enclosed(npts))
-       allocate(model_S % g(npts))
-       allocate(model_S % state(npts))
-
-       allocate(rho_S(npts))
-       allocate(T_S(npts))
-       allocate(xn_S(npts,nspec))
-       allocate(r_S(npts))
 
        do i = 1, npts
 
