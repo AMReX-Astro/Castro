@@ -320,13 +320,6 @@ extern "C" {
              BL_FORT_FAB_ARG_3D(kappa_r), 
              amrex::Real c, const amrex::Real* dx);
 
-  void scgrd(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(R), 
-             int idim, const amrex::Real* dx,
-             BL_FORT_FAB_ARG_3D(kappa_r), 
-             BL_FORT_FAB_ARG_3D(Er),
-             int include_cross_terms);
-
   void lrhs(const int* lo, const int* hi,
             BL_FORT_FAB_ARG_3D(rhs),
             BL_FORT_FAB_ARG_3D(temp),
