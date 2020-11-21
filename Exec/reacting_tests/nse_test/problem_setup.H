@@ -57,7 +57,7 @@ void problem_initialize_state_data (int i, int j, int k,
     constexpr Real ye0 = 0.5_rt;
     constexpr Real dye = -0.05_rt;
 
-    Real dist = sqrt(xx * xx + yy * yy + zz * zz);
+    Real dist = std::sqrt(xx * xx + yy * yy + zz * zz);
 
     Real T;
     Real ye;
