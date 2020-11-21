@@ -2134,7 +2134,7 @@ void Radiation::scaledGradient(int level,
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
 
       for (MFIter mfi(R[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
@@ -2179,7 +2179,7 @@ void Radiation::scaledGradient(int level,
                   {
                       if (include_cross_terms == 1)
                       {
-#if (BL_SPACEDIM >= 2)
+#if (AMREX_SPACEDIM >= 2)
                           dal = Er_arr(i-1,j+1,k) - Er_arr(i-1,j-1,k);
                           dar = Er_arr(i  ,j+1,k) - Er_arr(i  ,j-1,k);
 
@@ -2205,7 +2205,7 @@ void Radiation::scaledGradient(int level,
                           dar = 0.e0_rt;
 #endif
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                           dbl = Er_arr(i-1,j,k+1) - Er_arr(i-1,j,k-1);
                           dbr = Er_arr(i  ,j,k+1) - Er_arr(i  ,j,k-1);
 
@@ -2290,7 +2290,7 @@ void Radiation::scaledGradient(int level,
                               dar = 2.e0_rt * (Er_arr(i  ,j  ,k  ) - Er_arr(i-1,j  ,k  ));
                           }
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
                           dbl = Er_arr(i  ,j-1,k+1) - Er_arr(i  ,j-1,k-1);
                           dbr = Er_arr(i  ,j  ,k+1) - Er_arr(i  ,j  ,k-1);
 
