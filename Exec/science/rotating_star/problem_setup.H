@@ -125,9 +125,11 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state(i,j,k,UFS+n);
     }
+#ifdef NSE_THERMO
     for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state(i,j,k,UFX+n);
     }
+#endif
 
     eos(eos_input_rt, eos_state);
 
