@@ -1028,11 +1028,33 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 
     const Box& kbox = kappa_s.box();
 
-#pragma gpu box(kbox) sync
-    ca_compute_scattering
-        (AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-         BL_TO_FORTRAN_ANYD(kappa_s), 
-         BL_TO_FORTRAN_ANYD(state));
+    auto kps = kappa_s.array();
+    auto sta = state.array();
+
+    // scattering is assumed to be independent of nu.
+    const Real nu = nugroup[0];
+
+    amrex::ParallelFor(kbox,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        Real rho = sta(i,j,k,URHO);
+        Real temp = sta(i,j,k,UTEMP);
+        Real Ye;
+        if (NumAux > 0) {
+            Ye = sta(i,j,k,UFX);
+        }
+        else {
+            Ye = 0.e0_rt;
+        }
+
+        Real kp, kr;
+        bool comp_kp = true;
+        bool comp_kr = true;
+        opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+        kps(i,j,k) = amrex::max(kr - kp, 0.e0_rt);
+    });
+    Gpu::synchronize();
 }
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 

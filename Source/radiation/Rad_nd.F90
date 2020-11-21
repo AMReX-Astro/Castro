@@ -623,60 +623,6 @@ contains
 
 
 
-  subroutine ca_compute_scattering(lo, hi, &
-                                   kps, kps_lo, kps_hi, &
-                                   sta, sta_lo, sta_hi) &
-                                   bind(C, name='ca_compute_scattering')
-
-    use rad_params_module, only: nugroup
-    use opacity_table_module, only: get_opacities
-    use network, only: naux
-    use meth_params_module, only: NVAR, URHO, UTEMP, UFX
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: kps_lo(3), kps_hi(3)
-    integer,  intent(in   ) :: sta_lo(3), sta_hi(3)
-    real(rt), intent(inout) :: kps(kps_lo(1):kps_hi(1),kps_lo(2):kps_hi(2),kps_lo(3):kps_hi(3))
-    real(rt), intent(in   ) :: sta(sta_lo(1):sta_hi(2),sta_lo(2):sta_hi(2),sta_lo(3):sta_hi(3),NVAR)
-
-    integer  :: i, j, k
-    real(rt) :: kp, kr, nu, rho, temp, Ye
-    logical, parameter :: comp_kp = .true.
-    logical, parameter :: comp_kr = .true.
-
-    !$gpu
-
-    ! scattering is assumed to be independent of nu.
-
-    nu = nugroup(0)
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             rho = sta(i,j,k,URHO)
-             temp = sta(i,j,k,UTEMP)
-             if (naux > 0) then
-                Ye = sta(i,j,k,UFX)
-             else
-                Ye = 0.e0_rt
-             end if
-
-             call get_opacities(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr)
-
-             kps(i,j,k) = max(kr - kp, 0.e0_rt)
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_scattering
-
-
-
   subroutine ca_compute_emissivity(lo, hi, &
                                    jg, jg_lo, jg_hi, &
                                    djdT, djdT_lo, djdT_hi, &
