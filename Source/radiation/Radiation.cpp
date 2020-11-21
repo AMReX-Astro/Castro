@@ -865,108 +865,95 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
 {
     BL_PROFILE("Radiation::compute_eta");
 
+    Real dT_loc = dT;
+
+    const Real fac1 = 16.e0_rt * sigma * delta_t;
+    const Real fac0 = 0.25e0_rt * fac1 / dT;
+    const Real fac2 = delta_t * c / dT;
+
+    const Real nu = nugroup[igroup];
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
-        FArrayBox c_v;
+    for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
-        for (MFIter mfi(eta, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        const Box& bx = mfi.tilebox();
 
-            const Box& bx = mfi.tilebox();
+        auto state_arr = state[mfi].array();
+        auto eta_arr = eta[mfi].array();
+        auto etainv_arr = etainv[mfi].array();
+        auto temp_arr = temp[mfi].array();
+        auto fkp_arr = fkp[mfi].array();
+        auto Er_arr = Er[mfi].array(igroup);
 
-            if (lag_planck) {
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            // Get c_v
+            Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                Array4<Real> const eta_arr = eta.array(mfi);
-                Array4<Real> const fkp_arr = fkp.array(mfi);
-                AMREX_PARALLEL_FOR_3D(bx, i, j, k,
-                                      { eta_arr(i,j,k) = fkp_arr(i,j,k); });
-
+            eos_t eos_state;
+            eos_state.rho = state_arr(i,j,k,URHO);
+            eos_state.T   = temp_arr(i,j,k);
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = state_arr(i,j,k,UFS+n) * rhoInv;
             }
-            else {
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; ++n) {
+                eos_state.aux[n] = state_arr(i,j,k,UFX+n) * rhoInv;
+            }
+#endif
 
+            eos(eos_input_rt, eos_state);
+
+            Real c_v = eos_state.cv;
+
+            Real d;
+
+            if (lag_planck)
+            {
+                // assume eta and fkp are the same
+                d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 3);
+            }
+            else
+            {
                 // This is the only case where we need a direct call for
                 // Planck mean as a function of temperature.
 
-                auto eta_arr = eta[mfi].array();
-                auto state_arr = state[mfi].array();
-
-                const Real nu = nugroup[igroup];
-                const Real dT_loc = dT;
-
-                amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-                {
-                    Real rho = state_arr(i,j,k,URHO);
-                    Real temp = state_arr(i,j,k,UTEMP) + dT_loc;
-                    Real Ye;
-                    if (NumAux > 0)  {
-                        Ye = state_arr(i,j,k,UFX);
-                    } else {
-                        Ye = 0.e0_rt;
-                    }
-
-                    Real kp, kr;
-                    bool comp_kp = true;
-                    bool comp_kr = false;
-                    opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
-
-                    eta_arr(i,j,k,igroup) = kp;
-                });
-
-            }
-
-            c_v.resize(bx);
-            Elixir c_v_elix = c_v.elixir();
-
-            get_c_v(c_v, temp[mfi], state[mfi], bx);
-
-            auto eta_arr = eta[mfi].array();
-            auto etainv_arr = etainv[mfi].array();
-            auto frho_arr = state[mfi].array(URHO);
-            auto temp_arr = temp[mfi].array();
-            auto c_v_arr = c_v.array();
-            auto fkp_arr = fkp[mfi].array();
-            auto Er_arr = Er[mfi].array(igroup);
-
-            Real dT_loc = dT;
-
-            const Real fac1 = 16.e0_rt * sigma * delta_t;
-            const Real fac0 = 0.25e0_rt * fac1 / dT;
-            const Real fac2 = delta_t * c / dT;
-
-            amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
-            {
-                Real d;
-
-                if (lag_planck != 0)
-                {
-                    // assume eta and fkp are the same
-                    d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 3);
+                Real rho = state_arr(i,j,k,URHO);
+                Real temp = state_arr(i,j,k,UTEMP) + dT_loc;
+                Real Ye;
+                if (NumAux > 0)  {
+                    Ye = state_arr(i,j,k,UFX);
+                } else {
+                    Ye = 0.e0_rt;
                 }
-                else
-                {
-                    d = fac0 * (eta_arr(i,j,k) * std::pow(temp_arr(i,j,k) + dT_loc, 4) -
-                                fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4)) -
-                        fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+
+                Real kp, kr;
+                bool comp_kp = true;
+                bool comp_kr = false;
+                opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+                d = fac0 * (kp * std::pow(temp_arr(i,j,k) + dT_loc, 4) -
+                            fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4)) -
+                    fac2 * (kp - fkp_arr(i,j,k)) * Er_arr(i,j,k);
                     // alternate form, sometimes worse, sometimes better:
                     //   d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 3) +
-                    //       fac0 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * std::pow(temp(i,j,k), 4) -
-                    //       fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+                    //       fac0 * (kp - fkp_arr(i,j,k)) * std::pow(temp(i,j,k), 4) -
+                    //       fac2 * (kp - fkp_arr(i,j,k)) * Er_arr(i,j,k);
                     // another alternate form (much worse):
                     //   d = fac1 * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k) + dtTloc, 3) +
-                    //       fac0 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * std::pow(temp(i,j,k) + dT_loc, 4) -
-                    //       fac2 * (eta_arr(i,j,k) - fkp_arr(i,j,k)) * Er_arr(i,j,k);
-                }
+                    //       fac0 * (kp - fkp_arr(i,j,k)) * std::pow(temp(i,j,k) + dT_loc, 4) -
+                    //       fac2 * (kp - fkp_arr(i,j,k)) * Er_arr(i,j,k);
+            }
 
-                Real frc = frho_arr(i,j,k) * c_v_arr(i,j,k) + 1.0e-50_rt;
-                eta_arr(i,j,k) = d / (d + frc);
-                etainv_arr(i,j,k) = underrel * frc / (d + frc);
-                eta_arr(i,j,k) = 1.e0_rt - etainv_arr(i,j,k);
-                // eta_arr(i,j,k) = 1.e0_rt - underrel * (1.e0_rt - eta_arr(i,j,k));
-            });
-        }
+            Real frc = state_arr(i,j,k,URHO) * c_v + 1.0e-50_rt;
+            eta_arr(i,j,k) = d / (d + frc);
+            etainv_arr(i,j,k) = underrel * frc / (d + frc);
+            eta_arr(i,j,k) = 1.e0_rt - etainv_arr(i,j,k);
+            // eta_arr(i,j,k) = 1.e0_rt - underrel * (1.e0_rt - eta_arr(i,j,k));
+        });
     }
 }
 
