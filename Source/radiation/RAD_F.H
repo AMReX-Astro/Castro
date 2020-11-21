@@ -303,14 +303,6 @@ extern "C" {
   void sphe(amrex::Real* r, amrex::Real* s, const int& idim, 
             ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const amrex::Real* dx);
 
-  void lacoef(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(acoefs), 
-              BL_FORT_FAB_ARG_3D(fkp),
-              BL_FORT_FAB_ARG_3D(eta),
-              BL_FORT_FAB_ARG_3D(etainv),
-              const amrex::Real* dx,
-              amrex::Real c, amrex::Real dt, amrex::Real theta);
-
   amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
   void bclim(const int* lo, const int* hi,

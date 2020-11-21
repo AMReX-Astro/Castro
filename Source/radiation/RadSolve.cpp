@@ -8,6 +8,8 @@
 #include <RadSolve.H>
 #include <Radiation.H>  // for access to static physical constants only
 
+#include <rad_util.H>
+
 #include <iostream>
 
 #ifdef _OPENMP
@@ -200,8 +202,8 @@ void RadSolve::levelACoeffs(int level,
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
-  const Geometry& geom = parent->Geom(level);
-  const Real* dx       = geom.CellSize();
+
+  auto geomdata = parent->Geom(level).data();
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
@@ -216,14 +218,27 @@ void RadSolve::levelACoeffs(int level,
   for (MFIter mfi(fkp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box &bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      lacoef(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(acoefs[mfi]),
-             BL_TO_FORTRAN_ANYD(fkp[mfi]),
-             BL_TO_FORTRAN_ANYD(eta[mfi]),
-             BL_TO_FORTRAN_ANYD(etainv[mfi]),
-             AMREX_REAL_ANYD(dx),
-             c, delta_t, theta);
+      auto a = acoefs[mfi].array();
+      auto fkp_arr = fkp[mfi].array();
+      auto eta_arr = eta[mfi].array();
+      auto etainv_arr = etainv[mfi].array();
+
+      const Real dtm = 1.e0_rt / delta_t;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          if (AMREX_SPACEDIM == 1) {
+              s = 1.e0_rt;
+          }
+
+          a(i,j,k) = r * s *
+                     (fkp_arr(i,j,k) * etainv_arr(i,j,k) * c + dtm) /
+                     (1.e0_rt - (1.e0_rt - theta) * eta_arr(i,j,k));
+      });
   }
 
   if (hd) {
