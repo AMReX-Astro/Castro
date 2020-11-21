@@ -2129,24 +2129,22 @@ void Radiation::scaledGradient(int level,
 
   MultiFab& Erborder = (nGrow_Er==0) ? Erbtmp : Er;
 
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-  for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
+  for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
 
       for (MFIter mfi(R[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
           const Box& nbx = mfi.tilebox();  // note that R is edge based
-          const Box& bx = amrex::enclosedCells(nbx);
 
-          Array4<Real> const R_arr = R[idim].array(mfi);
+          auto R_arr = R[idim][mfi].array(Rcomp);
 
           if (limiter == 0) {
 
-              int comp = Rcomp;
-              AMREX_PARALLEL_FOR_3D(nbx, i, j, k, { R_arr(i,j,k,comp) = 0.0; });
+              R[idim][mfi].setVal<RunOn::Device>(0.0, Rcomp);
 
           }
           else {
@@ -2161,18 +2159,277 @@ void Radiation::scaledGradient(int level,
                   amrex::Abort("Unknown limiter");
               }
 
-#pragma gpu box(bx)
-              scgrd(AMREX_INT_ANYD(nbx.loVect()), AMREX_INT_ANYD(nbx.hiVect()),
-                    BL_TO_FORTRAN_N_ANYD(R[idim][mfi], Rcomp),
-                    idim, AMREX_REAL_ANYD(dx),
-                    BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp),
-                    BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                    include_cross_terms);
+              auto kap_arr = kappa_r[mfi].array(kcomp);
+              auto Er_arr = Erborder[mfi].array();
 
+              amrex::ParallelFor(nbx,
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              {
+                  Real dxInv[3] = {0.0};
+
+                  for (int d = 0; d < AMREX_SPACEDIM; ++d) {
+                      dxInv[d] = 1.e0_rt / dx[d];
+                  }
+
+                  Real dal, dar, dbl, dbr;
+
+                  const Real tiny = 1.e-50_rt;
+
+                  if (idim == 0)
+                  {
+                      if (include_cross_terms == 1)
+                      {
+#if (AMREX_SPACEDIM >= 2)
+                          dal = Er_arr(i-1,j+1,k) - Er_arr(i-1,j-1,k);
+                          dar = Er_arr(i  ,j+1,k) - Er_arr(i  ,j-1,k);
+
+                          if      (Er_arr(i-1,j-1,k) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i-1,j+1,k) - Er_arr(i-1,j  ,k));
+                          }
+                          else if (Er_arr(i-1,j+1,k) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i-1,j  ,k) - Er_arr(i-1,j-1,k));
+                          }
+
+                          if      (Er_arr(i  ,j-1,k) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i  ,j+1,k) - Er_arr(i  ,j  ,k));
+                          }
+                          else if (Er_arr(i  ,j+1,k) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i  ,j  ,k) - Er_arr(i  ,j-1,k));
+                          }
+#else
+                          dal = 0.e0_rt;
+                          dar = 0.e0_rt;
+#endif
+
+#if (AMREX_SPACEDIM == 3)
+                          dbl = Er_arr(i-1,j,k+1) - Er_arr(i-1,j,k-1);
+                          dbr = Er_arr(i  ,j,k+1) - Er_arr(i  ,j,k-1);
+
+                          if      (Er_arr(i-1,j,k-1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i-1,j,k+1) - Er_arr(i-1,j,k  ));
+                          }
+                          else if (Er_arr(i-1,j,k+1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i-1,j,k  ) - Er_arr(i-1,j,k-1));
+                          }
+
+                          if      (Er_arr(i  ,j,k-1) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j,k+1) - Er_arr(i  ,j,k  ));
+                          }
+                          else if (Er_arr(i  ,j,k+1) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j,k  ) - Er_arr(i  ,j,k-1));
+                          }
+#else
+                          dbl = 0.e0_rt;
+                          dbr = 0.e0_rt;
+#endif
+
+                      }
+                      else
+                      {
+                          dal = 0.e0_rt;
+                          dar = 0.e0_rt;
+                          dbl = 0.e0_rt;
+                          dbr = 0.e0_rt;
+                      }
+
+                      Real rg;
+
+                      if (Er_arr(i-1,j,k) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i+1,j,k) - Er_arr(i,j,k)) * dxInv[0], 2) +
+                               std::pow(0.5_rt * dar * dxInv[1], 2) +
+                               std::pow(0.5_rt * dbr * dxInv[2], 2);
+                      }
+                      else if (Er_arr(i,j,k) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i-1,j,k) - Er_arr(i-2,j,k)) * dxInv[0], 2) +
+                               std::pow(0.5_rt * dal * dxInv[1], 2) +
+                               std::pow(0.5_rt * dbl * dxInv[2], 2);
+                      }
+                      else
+                      {
+                          rg = std::pow((Er_arr(i,j,k) - Er_arr(i-1,j,k)) * dxInv[0], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dal + dar) * dxInv[1], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dbl + dbr) * dxInv[2], 2);
+                      }
+
+                      Real kap = kavg(kap_arr(i-1,j,k), kap_arr(i,j,k), dx[0], -1);
+                      R_arr(i,j,k) = std::sqrt(rg) / (kap * amrex::max(Er_arr(i-1,j,k), Er_arr(i,j,k), tiny));
+
+                  }
+                  else if (idim == 1)
+                  {
+                      if (include_cross_terms == 1)
+                      {
+                          dal = Er_arr(i+1,j-1,k  ) - Er_arr(i-1,j-1,k  );
+                          dar = Er_arr(i+1,j  ,k  ) - Er_arr(i-1,j  ,k  );
+
+                          if      (Er_arr(i-1,j-1,k  ) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i+1,j-1,k  ) - Er_arr(i  ,j-1,k  ));
+                          }
+                          else if (Er_arr(i+1,j-1,k  ) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i  ,j-1,k  ) - Er_arr(i-1,j-1,k  ));
+                          }
+
+                          if      (Er_arr(i-1,j  ,k  ) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i+1,j  ,k  ) - Er_arr(i  ,j  ,k  ));
+                          }
+                          else if (Er_arr(i+1,j  ,k  ) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i  ,j  ,k  ) - Er_arr(i-1,j  ,k  ));
+                          }
+
+#if (AMREX_SPACEDIM == 3)
+                          dbl = Er_arr(i  ,j-1,k+1) - Er_arr(i  ,j-1,k-1);
+                          dbr = Er_arr(i  ,j  ,k+1) - Er_arr(i  ,j  ,k-1);
+
+                          if      (Er_arr(i  ,j-1,k-1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i  ,j-1,k+1) - Er_arr(i  ,j-1,k  ));
+                          }
+                          else if (Er_arr(i  ,j-1,k+1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i  ,j-1,k  ) - Er_arr(i  ,j-1,k-1));
+                          }
+
+                          if      (Er_arr(i  ,j  ,k-1) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j  ,k+1) - Er_arr(i  ,j,  k  ));
+                          }
+                          else if (Er_arr(i  ,j  ,k+1) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j  ,k  ) - Er_arr(i  ,j,  k-1));
+                          }
+#else
+                          dbl = 0.e0_rt;
+                          dbr = 0.e0_rt;
+#endif
+                      }
+                      else
+                      {
+                          dal = 0.e0_rt;
+                          dar = 0.e0_rt;
+                          dbl = 0.e0_rt;
+                          dbr = 0.e0_rt;
+                      }
+
+                      Real rg;
+
+                      if (Er_arr(i,j-1,k) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i,j+1,k) - Er_arr(i,j,k)) * dxInv[1], 2) +
+                               std::pow(0.5_rt * dar * dxInv[0], 2) +
+                               std::pow(0.5_rt * dbr * dxInv[2], 2);
+                      }
+                      else if (Er_arr(i,j,k) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i,j-1,k) - Er_arr(i,j-2,k)) * dxInv[1], 2) +
+                               std::pow(0.5_rt * dal * dxInv[0], 2) +
+                               std::pow(0.5_rt * dbl * dxInv[2], 2);
+                      }
+                      else
+                      {
+                          rg = std::pow((Er_arr(i,j,k) - Er_arr(i,j-1,k)) * dxInv[1], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dal + dar) * dxInv[0], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dbl + dbr) * dxInv[2], 2);
+                      }
+
+                      Real kap = kavg(kap_arr(i,j-1,k), kap_arr(i,j,k), dx[1], -1);
+                      R_arr(i,j,k) = std::sqrt(rg) / (kap * amrex::max(Er_arr(i,j-1,k), Er_arr(i,j,k), tiny));
+                  }
+                  else
+                  {
+                      if (include_cross_terms == 1)
+                      {
+                          dal = Er_arr(i+1,j  ,k-1) - Er_arr(i-1,j  ,k-1);
+                          dar = Er_arr(i+1,j  ,k  ) - Er_arr(i-1,j  ,k  );
+
+                          if      (Er_arr(i-1,j  ,k-1) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i+1,j  ,k-1) - Er_arr(i  ,j  ,k-1));
+                          }
+                          else if (Er_arr(i+1,j  ,k-1) == -1.e0_rt)
+                          {
+                              dal = 2.e0_rt * (Er_arr(i  ,j  ,k-1) - Er_arr(i-1,j  ,k-1));
+                          }
+
+                          if      (Er_arr(i-1,j  ,k  ) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i+1,j  ,k  ) - Er_arr(i  ,j  ,k  ));
+                          }
+                          else if (Er_arr(i+1,j  ,k  ) == -1.e0_rt)
+                          {
+                              dar = 2.e0_rt * (Er_arr(i  ,j  ,k  ) - Er_arr(i-1,j  ,k  ));
+                          }
+
+                          dbl = Er_arr(i  ,j+1,k-1) - Er_arr(i  ,j-1,k-1);
+                          dbr = Er_arr(i  ,j+1,k  ) - Er_arr(i  ,j-1,k  );
+
+                          if      (Er_arr(i  ,j-1,k-1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i  ,j+1,k-1) - Er_arr(i  ,j  ,k-1));
+                          }
+                          else if (Er_arr(i  ,j+1,k-1) == -1.e0_rt)
+                          {
+                              dbl = 2.e0_rt * (Er_arr(i  ,j  ,k-1) - Er_arr(i  ,j-1,k-1));
+                          }
+
+                          if      (Er_arr(i  ,j-1,k  ) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j+1,k  ) - Er_arr(i  ,j,  k  ));
+                          }
+                          else if (Er_arr(i  ,j+1,k  ) == -1.e0_rt)
+                          {
+                              dbr = 2.e0_rt * (Er_arr(i  ,j  ,k  ) - Er_arr(i  ,j-1,k  ));
+                          }
+                      }
+                      else
+                      {
+                          dal = 0.e0_rt;
+                          dar = 0.e0_rt;
+                          dbl = 0.e0_rt;
+                          dbr = 0.e0_rt;
+                      }
+
+                      Real rg;
+
+                      if (Er_arr(i,j,k-1) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i,j,k+1) - Er_arr(i,j,k)) * dxInv[2], 2) +
+                               std::pow(0.5_rt * dar * dxInv[0], 2) +
+                               std::pow(0.5_rt * dbr * dxInv[1], 2);
+                      }
+                      else if (Er_arr(i,j,k) == -1.e0_rt)
+                      {
+                          rg = std::pow((Er_arr(i,j,k-1) - Er_arr(i,j,k-2)) * dxInv[2], 2) +
+                               std::pow(0.5_rt * dal * dxInv[0], 2) +
+                               std::pow(0.5_rt * dbl * dxInv[1], 2);
+                      }
+                      else
+                      {
+                          rg = std::pow((Er_arr(i,j,k) - Er_arr(i,j,k-1)) * dxInv[2], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dal + dar) * dxInv[0], 2) +
+                               std::pow((1.0_rt / 4.0_rt) * (dbl + dbr) * dxInv[1], 2);
+                      }
+
+                      Real kap = kavg(kap_arr(i,j,k-1), kap_arr(i,j,k), dx[2], -1);
+                      R_arr(i,j,k) = std::sqrt(rg) / (kap * amrex::max(Er_arr(i,j,k-1), Er_arr(i,j,k), tiny));
+                  }
+              });
           }
       }
   }
-
 }
 
 // On input, lambda should contain scaled gradient.

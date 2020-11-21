@@ -120,4 +120,39 @@ Real FLDlambda (Real r, int limiter)
     return lambda;
 }
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+amrex::Real kavg(Real a, Real b, Real d, int opt)
+{
+#ifndef AMREX_USE_GPU
+    if (opt > 2) {
+        amrex::Error("kavg: invalid averaging option");
+    }
+#endif
+
+    Real k;
+    const Real tiny = 1.e-50_rt;
+
+    if (opt == 0)
+    {
+        // arithmetic average, geometrically correct(?) but underestimates surface flux
+        k = 0.5e0_rt * (a + b + tiny);
+
+    }
+    else if (opt == 1)
+    {
+        // harmonic average, overestimates surface flux
+        k = (2.e0_rt * a * b) / (a + b + tiny) + tiny;
+    }
+    else
+    {
+        // chooses arithmetic where optically thin, harmonic where optically thick,
+        // surface flux approximation at a thick/thin boundary
+        k = amrex::min(0.5e0_rt * (a + b + tiny),
+                       amrex::max((2.e0_rt * a * b) / (a + b + tiny) + tiny,
+                                  4.e0_rt / (3.e0_rt * d)));
+    }
+
+    return k;
+}
+
 #endif
