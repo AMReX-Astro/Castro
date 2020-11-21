@@ -244,21 +244,6 @@ extern "C"
 #endif
 // </ MGFLD>
 
-// RadEOS
-#ifdef __cplusplus
-extern "C" 
-{
-#endif
-  void ca_get_rhoe
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(rhoe),
-     const BL_FORT_FAB_ARG_3D(temp),
-     const BL_FORT_FAB_ARG_3D(state));
-
-#ifdef __cplusplus
-}
-#endif
-
 BL_FORT_PROC_DECL(CA_ER_COM2LAB, ca_er_com2lab)
   (const int lo[], const int hi[],
    const BL_FORT_FAB_ARG(Snew),
