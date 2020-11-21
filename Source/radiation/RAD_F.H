@@ -177,11 +177,6 @@ BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_compute_scattering
-   (const int * lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(kps),
-    const BL_FORT_FAB_ARG_3D(state));
-
   void ca_filt_prim
     (const int lo[], const int hi[],
      BL_FORT_FAB_ARG(Stmp),
