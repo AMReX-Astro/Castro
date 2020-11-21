@@ -38,7 +38,6 @@ module initial_model_module
 
      real(rt) :: r(initial_model_max_npts), rl(initial_model_max_npts), rr(initial_model_max_npts)
      real(rt) :: M_enclosed(initial_model_max_npts), g(initial_model_max_npts)
-     type (eos_t) :: state(initial_model_max_npts)
 
   end type initial_model
 
@@ -147,13 +146,15 @@ contains
 
     real(rt) :: rho_c, rho_c_old, drho_c, mass, mass_old, radius
 
-    real(rt) :: p_want, rho_avg, drho
+    real(rt) :: p_want, rho_avg, drho, p_last
 
     integer :: max_hse_iter = 250, max_mass_iter
 
     integer :: hse_iter, mass_iter
 
     logical :: converged_hse, fluff, mass_converged
+
+    type(eos_t) :: eos_state
 
     ! Note that if central_density > 0, then this initial model generator will use it in calculating
     ! the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of 
@@ -209,15 +210,16 @@ contains
        rho(1)  = rho_c
        xn(1,:) = model % core_comp
 
-       model % state(1) % rho  = rho(1)
-       model % state(1) % T    = T(1)
-       model % state(1) % xn   = xn(1,:)
+       eos_state % rho  = rho(1)
+       eos_state % T    = T(1)
+       eos_state % xn   = xn(1,:)
 
-       call eos(eos_input_rt, model % state(1))
+       call eos(eos_input_rt, eos_state)
+
+       p_last = eos_state % p
 
        ! Make the initial guess be completely uniform.
 
-       model % state(:) = model % state(1)
        rho(:) = rho(1)
        T(:)   = T(1)
        do n = 1, nspec
@@ -236,14 +238,13 @@ contains
           ! As the initial guess for the density, use the underlying zone.
 
           rho(i) = rho(i-1)
-          model % state(i) % rho = model % state(i-1) % rho
 
           if (model % mass > ZERO .and. model % M_enclosed(i-1) .ge. model % mass - model % envelope_mass) then
              xn(i,:) = model % envelope_comp
-             model % state(i) % xn = xn(i,:)
+             eos_state % xn = xn(i,:)
           else
              xn(i,:) = model % core_comp
-             model % state(i) % xn = xn(i,:)
+             eos_state % xn = xn(i,:)
           endif
 
           model % g(i) = -Gconst * model % M_enclosed(i-1) / model % rl(i)**2
@@ -261,7 +262,7 @@ contains
 
              if (fluff) then
                 rho(i) = model % min_density
-                model % state(i) % rho = model % min_density
+                eos_state % rho = model % min_density
                 exit
              endif
 
@@ -272,14 +273,14 @@ contains
              ! zone and the one just inside.
 
              rho_avg = HALF * (rho(i) + rho(i-1))
-             p_want = model % state(i-1) % p + model % dx * rho_avg * model % g(i)
+             p_want = p_last + model % dx * rho_avg * model % g(i)
 
-             call eos(eos_input_rt, model % state(i))
+             call eos(eos_input_rt, eos_state)
 
-             drho = (p_want - model % state(i) % p) / (model % state(i) % dpdr - HALF * model % dx * model % g(i))
+             drho = (p_want - eos_state % p) / (eos_state % dpdr - HALF * model % dx * model % g(i))
 
              rho(i) = max(0.9 * rho(i), min(rho(i) + drho, 1.1 * rho(i)))
-             model % state(i) % rho = rho(i)
+             eos_state % rho = rho(i)
 
              if (rho(i) < model % min_density) then
                 icutoff = i
@@ -297,7 +298,7 @@ contains
 
              print *, 'Error: zone', i, ' did not converge in init_hse().'
              print *, rho(i), T(i)
-             print *, p_want, model % state(i) % p
+             print *, p_want, eos_state % p
              print *, drho, model % hse_tol * rho(i)
              call castro_error('Error: HSE non-convergence.')
 
@@ -305,7 +306,9 @@ contains
 
           ! Call the EOS to establish the final properties of this zone.
 
-          call eos(eos_input_rt, model % state(i))
+          call eos(eos_input_rt, eos_state)
+
+          p_last = eos_state % p
 
           ! Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
