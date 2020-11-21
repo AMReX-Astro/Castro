@@ -183,42 +183,6 @@ contains
 
 
 
-  subroutine ca_rhstoer(lo, hi, &
-                        rhs, r_lo, r_hi, &
-                        dx, dt) &
-                        bind(C, name="ca_rhstoer")
-
-    use habec_nd_module, only: cell_center_metric
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: r_lo(3), r_hi(3)
-    real(rt), intent(inout) :: rhs(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ), value :: dt
-
-    integer  :: i, j, k
-    real(rt) :: r, s
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             call cell_center_metric(i, j, k, dx, r, s)
-
-             rhs(i,j,k) = rhs(i,j,k) * dt / r
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_rhstoer
-
-
-
   subroutine ca_compute_rhs(lo, hi, &
                             rhs, rhs_lo, rhs_hi, &
                             jg, jg_lo, jg_hi, &
