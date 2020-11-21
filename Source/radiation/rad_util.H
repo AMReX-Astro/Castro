@@ -1,11 +1,55 @@
-#include <cmath>
-
 #ifndef CASTRO_RAD_UTIL_H
 #define CASTRO_RAD_UTIL_H
+
+#include <cmath>
+
+#include <Castro_util.H>
 
 #include <fluxlimiter.H>
 
 using namespace amrex;
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void cell_center_metric(int i, int j, int k, const GeometryData& geomdata,
+                        Real& r, Real& s)
+{
+    if (geomdata.Coord() == 0)
+    {
+        r = 1.0_rt;
+        s = 1.0_rt;
+    }
+    else if (geomdata.Coord() == 1)
+    {
+        GpuArray<Real, 3> loc;
+        position(i, j, k, geomdata, loc);
+
+        r = loc[0];
+        s = 1.0_rt;
+    }
+    else if (geomdata.Coord() == 2)
+    {
+       GpuArray<Real, 3> loc;
+       position(i, j, k, geomdata, loc);
+
+       Real h1 = 0.5e0_rt * geomdata.CellSize(0);
+       Real d1 = 1.e0_rt / (3.e0_rt * geomdata.CellSize(0));
+
+       r = loc[0];
+       r = d1 * (std::pow(r + h1, 3) - std::pow(r - h1, 3));
+
+#if AMREX_SPACEDIM >= 2
+       Real h2 = 0.5e0_rt * geomdata.CellSize(1);
+       Real d2 = 1.e0_rt / geomdata.CellSize(1);
+
+       s = loc[1];
+       s = d2 * (std::cos(s - h2) - std::cos(s + h2));
+#else
+       s = 1.0_rt;
+#endif
+    }
+}
+
+
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
