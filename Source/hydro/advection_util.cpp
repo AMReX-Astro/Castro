@@ -1097,7 +1097,15 @@ Castro::do_enforce_minimum_density(const Box& bx,
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
-        } else {
+        }
+        else if (state_arr(i,j,k,URHO) == 0.0_rt) {
+          // If the density is *exactly* zero, that almost certainly means something has gone wrong,
+          // like we failed to properly fill the state data on grid creation.
+          amrex::Error("Density exactly zero at " + std::to_string(i) + ", " +
+                                                    std::to_string(j) + ", " +
+                                                    std::to_string(k));
+        }
+        else {
           std::cout << ">>> RESETTING SMALL DENSITY AT " << i << ", " << j << ", " << k << std::endl;
         }
         std::cout << ">>> FROM " << state_arr(i,j,k,URHO) << " TO " << small_dens << std::endl;

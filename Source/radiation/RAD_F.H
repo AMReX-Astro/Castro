@@ -236,11 +236,6 @@ extern "C"
            BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
 
-  void ca_rhstoer
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(rhs),
-     const amrex::Real* dx, const amrex::Real dt);
-
   void ca_derertot
     (BL_FORT_FAB_ARG_3D(der),const int* nvar,
      const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
