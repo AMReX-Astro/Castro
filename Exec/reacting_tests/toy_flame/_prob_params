@@ -6,3 +6,7 @@ pert_delta     real     0.02_rt     y
 rho_fuel       real     1.0_rt      y
 
 T_fuel         real     1.0_rt      y
+
+ifuel          integer  -1
+
+iash           integer  -1
