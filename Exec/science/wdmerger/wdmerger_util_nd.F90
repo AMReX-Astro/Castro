@@ -76,11 +76,6 @@ contains
 
     implicit none
 
-    ! Allocate parameters and set defaults.
-
-    allocate(model_P)
-    allocate(model_S)
-
     ! Convert masses from solar masses to grams.
 
     mass_P = mass_P * M_solar
