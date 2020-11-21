@@ -753,7 +753,6 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
         const Box& bx = mfi.tilebox();
 
         auto re_n = rhoe_new[mfi].array();
-        auto temp_new_arr = temp_new[mfi].array();
         auto S_new_arr = S_new[mfi].array();
         auto Tp_n = temp_new[mfi].array();
         auto Er_n = Er_new[mfi].array();
@@ -793,9 +792,9 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
             {
                 // Get T from rhoe (temp_new comes in with rhoe)
 
-                if (temp_new_arr(i,j,k) <= 0.e0_rt)
+                if (Tp_n(i,j,k) <= 0.e0_rt)
                 {
-                    temp_new_arr(i,j,k) = small_temp;
+                    Tp_n(i,j,k) = small_temp;
                 }
                 else
                 {
@@ -804,7 +803,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                     eos_t eos_state;
                     eos_state.rho = S_new_arr(i,j,k,URHO);
                     eos_state.T   = S_new_arr(i,j,k,UTEMP);
-                    eos_state.e   = temp_new_arr(i,j,k) * rhoInv;
+                    eos_state.e   = Tp_n(i,j,k) * rhoInv;
                     for (int n = 0; n < NumSpec; ++n) {
                         eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
                     }
@@ -816,7 +815,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
                     eos(eos_input_re, eos_state);
 
-                    temp_new_arr(i,j,k) = eos_state.T;
+                    Tp_n(i,j,k) = eos_state.T;
                 }
             });
             Gpu::synchronize();
@@ -843,14 +842,25 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 }
 
                 Tp_n(i,j,k) = Tp_n(i,j,k) + dTemp;
-            });
 
-#pragma gpu box(bx) sync
-            ca_get_rhoe
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]));
+                Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+                eos_t eos_state;
+                eos_state.rho = S_new_arr(i,j,k,URHO);
+                eos_state.T   = Tp_n(i,j,k);
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+                }
+#endif
+
+                eos(eos_input_rt, eos_state);
+
+                re_n(i,j,k) = eos_state.rho * eos_state.e;
+            });
         }
     }  
 }
@@ -1070,12 +1080,31 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
   for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_get_rhoe
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-           BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto rhoe = rhoe_new[mfi].array();
+      auto temp = temp_new[mfi].array();
+      auto state = S_new[mfi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real rhoInv = 1.e0_rt / state(i,j,k,URHO);
+
+          eos_t eos_state;
+          eos_state.rho = state(i,j,k,URHO);
+          eos_state.T   =  temp(i,j,k);
+          for (int n = 0; n < NumSpec; ++n) {
+              eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+              eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
+
+          eos(eos_input_rt, eos_state);
+
+          rhoe(i,j,k) = eos_state.rho * eos_state.e;
+      });
   }
 }
 
