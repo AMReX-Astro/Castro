@@ -480,59 +480,6 @@ contains
 
 
 
-  subroutine lacoef(lo, hi, &
-                    a, a_lo, a_hi, &
-                    fkp, f_lo, f_hi, &
-                    eta, et_lo, et_hi, &
-                    etainv, ei_lo, ei_hi, &
-                    dx, c, dt, theta) &
-                    bind(C, name="lacoef")
-
-    use amrex_fort_module, only: rt => amrex_real
-    use prob_params_module, only: dim
-    use habec_nd_module, only: cell_center_metric
-
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: a_lo(3), a_hi(3)
-    integer,  intent(in   ) :: f_lo(3), f_hi(3)
-    integer,  intent(in   ) :: et_lo(3), et_hi(3)
-    integer,  intent(in   ) :: ei_lo(3), ei_hi(3)
-    real(rt), intent(inout) :: a(a_lo(1):a_hi(1),a_lo(2):a_hi(2),a_lo(3):a_hi(3))
-    real(rt), intent(in   ) :: fkp(f_lo(1):f_hi(1),f_lo(2):f_hi(2),f_lo(3):f_hi(3))
-    real(rt), intent(in   ) :: eta(et_lo(1):et_hi(1),et_lo(2):et_hi(2),et_lo(3):et_hi(3))
-    real(rt), intent(in   ) :: etainv(ei_lo(1):ei_hi(1),ei_lo(2):ei_hi(2),ei_lo(3):ei_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-    real(rt), intent(in   ), value :: c, dt, theta
-
-    integer  :: i, j, k
-    real(rt) :: dtm, r, s
-
-    !$gpu
-
-    dtm = 1.e0_rt / dt
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             call cell_center_metric(i, j, k, dx, r, s)
-
-             if (dim == 1) then
-                s = 1.e0_rt
-             end if
-
-             a(i,j,k) = r * s * &
-                  (fkp(i,j,k) * etainv(i,j,k) * c + dtm) / &
-                  (1.e0_rt - (1.e0_rt - theta) * eta(i,j,k))
-
-          end do
-       end do
-    end do
-
-  end subroutine lacoef
-
-
-
   subroutine bclim(lo, hi, &
                    b, b_lo, b_hi, &
                    lambda, l_lo, l_hi, &
