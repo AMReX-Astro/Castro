@@ -136,14 +136,6 @@ void ca_initfluxlimiter
 
 extern "C"
 {
-  void ca_accel_acoe
-   (const int* lo, const int* hi,
-    const BL_FORT_FAB_ARG_3D(eta1),
-    const BL_FORT_FAB_ARG_3D(spc),
-    const BL_FORT_FAB_ARG_3D(kap),
-    BL_FORT_FAB_ARG_3D(aco),
-    amrex::Real dt, amrex::Real ptc_tau);
-
   void ca_compute_rhs
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),
@@ -189,16 +181,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-extern "C"
-{
-  void ca_accel_ccoe
-   (const int* lo, const int* hi, 
-    const BL_FORT_FAB_ARG_3D(bcgr),
-    const BL_FORT_FAB_ARG_3D(spec),
-    BL_FORT_FAB_ARG_3D(ccoe),
-    const amrex::Real* dx, int idim, int igroup);
-}
 
 #ifdef __cplusplus
 extern "C"
