@@ -36,11 +36,11 @@ namespace initial_model {
 
 extern "C" {
 
-void establish_hse (model& model,
-                    Real rho[initial_model_max_npts],
-                    Real T[initial_model_max_npts],
-                    Real xn[NumSpec][initial_model_max_npts],
-                    Real r[initial_model_max_npts]);
+void establish_hse (initial_model::model& model,
+                    amrex::Real rho[initial_model::initial_model_max_npts],
+                    amrex::Real T[initial_model::initial_model_max_npts],
+                    amrex::Real xn[NumSpec][initial_model::initial_model_max_npts],
+                    amrex::Real r[initial_model::initial_model_max_npts]);
 
 }
 
