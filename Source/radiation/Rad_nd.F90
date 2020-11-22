@@ -150,39 +150,6 @@ contains
 
 
 
-  subroutine multrs(lo, hi, &
-                    d, d_lo, d_hi, &
-                    dx) &
-                    bind(C, name="multrs")
-
-    use habec_nd_module, only: cell_center_metric
-  
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: d_lo(3), d_hi(3)
-    real(rt), intent(inout) :: d(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-
-    integer  :: i, j, k
-    real(rt) :: r, s
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             call cell_center_metric(i, j, k, dx, r, s)
-
-             d(i,j,k) = d(i,j,k) * r * s
-
-          end do
-       end do
-    end do
-
-  end subroutine multrs
-
-
-
   subroutine ca_compute_rhs(lo, hi, &
                             rhs, rhs_lo, rhs_hi, &
                             jg, jg_lo, jg_hi, &
