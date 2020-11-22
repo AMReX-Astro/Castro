@@ -448,7 +448,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            Real delta_t, Real ptc_tau)
 {
   const Geometry& geom = parent->Geom(level);
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const DistributionMapping& dmap = castro->DistributionMap();
 
@@ -521,14 +521,25 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(acoefs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_accel_acoe
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(eta1[mfi]),
-           BL_TO_FORTRAN_ANYD(spec[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(acoefs[mfi]),
-           delta_t, ptc_tau);    
+      auto eta1_arr = eta1[mfi].array();
+      auto spec_arr = spec[mfi].array();
+      auto kappa_p_arr = kappa_p[mfi].array();
+      auto acoefs_arr = acoefs[mfi].array();
+
+      const Real dt1 = (1.e0_rt + ptc_tau) / delta_t;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real kbar = 0.0;
+          for (int g = 0; g < NGROUPS; ++g) {
+              kbar += spec_arr(i,j,k,g) * kappa_p_arr(i,j,k,g);
+          }
+
+          Real H1 = eta1_arr(i,j,k);
+
+          acoefs_arr(i,j,k) = H1 * kbar * C::c_light + dt1;
+      });
   }  
 
   solver->cellCenteredApplyMetrics(level, acoefs);
@@ -567,6 +578,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
           auto bcoefs_arr = bcoefs[idim][mfi].array();
           auto bcgrp_arr = bcgrp[idim][mfi].array();
           auto spec_arr = spec[mfi].array(igroup);
+          auto ccoefs_arr = ccoefs[idim][mfi].array();
 
           amrex::ParallelFor(bx,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -583,13 +595,36 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
           });
           
           if (nGroups > 1) {
-#pragma gpu box(bx)
-              ca_accel_ccoe
-                  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(bcgrp[idim][mfi]),
-                   BL_TO_FORTRAN_ANYD(spec[mfi]),
-                   BL_TO_FORTRAN_ANYD(ccoefs[idim][mfi]),
-                   AMREX_REAL_ANYD(dx), idim, igroup);
+              amrex::ParallelFor(bx,
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              {
+                  int ioff, joff, koff;
+                  Real h1;
+
+                  if (idim == 0) {
+                      ioff = 1;
+                      joff = 0;
+                      koff = 0;
+                      h1 = 1.e0_rt / dx[0];
+                  }
+                  else if (idim == 1) {
+                      ioff = 0;
+                      joff = 1;
+                      koff = 0;
+                      h1 = 1.e0_rt / dx[1];
+                  }
+                  else {
+                      ioff = 0;
+                      joff = 0;
+                      koff = 1;
+                      h1 = 1.e0_rt / dx[2];
+                  }
+
+                  Real grad_spec = (spec_arr(i,j,k) - spec_arr(i-ioff,j-joff,k-koff)) * h1;
+                  Real foo = -0.5e0_rt * bcgrp_arr(i,j,k) * grad_spec;
+                  ccoefs_arr(i,j,k,0) += foo;
+                  ccoefs_arr(i,j,k,1) += foo;
+              });
           }
       }
     }
