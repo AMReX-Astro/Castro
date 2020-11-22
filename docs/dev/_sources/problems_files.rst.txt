@@ -12,6 +12,7 @@ Problems
    file/ext__bc__types_8H
    file/problem__bc__fill_8H
    file/problem__checkpoint_8H
+   file/problem__emissivity_8H
    file/problem__mhd__setup_8H
    file/problem__restart_8H
    file/problem__setup_8H

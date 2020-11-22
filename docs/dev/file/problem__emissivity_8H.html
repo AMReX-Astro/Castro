@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File fluxlimiter.H &mdash; Castro  documentation</title>
+  <title>File problem_emissivity.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File rad_util.H" href="rad__util_8H.html" />
-    <link rel="prev" title="File blackbody.H" href="blackbody_8H.html" /> 
+    <link rel="next" title="File problem_mhd_setup.H" href="problem__mhd__setup_8H.html" />
+    <link rel="prev" title="File problem_checkpoint.H" href="problem__checkpoint_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/fluxlimiter_8H.html">main</a> | <a href="../file/fluxlimiter_8H.html">development</a>
+        Branch: <a href="../../file/problem__emissivity_8H.html">main</a> | <a href="../file/problem__emissivity_8H.html">development</a>
     </div>
 
         </div>
@@ -142,22 +142,24 @@
 <li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../radiation_files.html">Radiation</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="HypreABec_8H.html">File HypreABec.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="HypreExtMultiABec_8H.html">File HypreExtMultiABec.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="MGRadBndry_8H.html">File MGRadBndry.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="NGBndry_8H.html">File NGBndry.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadBndry_8H.html">File RadBndry.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadHydro_8H.html">File RadHydro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadSolve_8H.html">File RadSolve.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="RadTypes_8H.html">File RadTypes.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="Radiation_8H.html">File Radiation.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="blackbody_8H.html">File blackbody.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File fluxlimiter.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="rad__util_8H.html">File rad_util.H</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../problems_files.html">Problems</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__bc__fill__nd_8H.html">File Castro_bc_fill_nd.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem_8H.html">File Problem.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem__Derive_8H.html">File Problem_Derive.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_emissivity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__mhd__setup_8H.html">File problem_mhd_setup.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__setup_8H.html">File problem_setup.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__source_8H.html">File problem_source.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__tagging_8H.html">File problem_tagging.H</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
@@ -218,15 +220,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../radiation_files.html">Radiation</a> &raquo;</li>
+          <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File fluxlimiter.H</li>
+      <li>File problem_emissivity.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/fluxlimiter_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/problem__emissivity_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -239,13 +241,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-fluxlimiter-h">
-<h1>File fluxlimiter.H<a class="headerlink" href="#file-fluxlimiter-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-problem-emissivity-h">
+<h1>File problem_emissivity.H<a class="headerlink" href="#file-problem-emissivity-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="fluxlimiter_8H_1a36bfdb201dc317844f573e0c28db8302"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE amrex::Real Edd_factor (Real lambda, int limiter, int closure)</code></dt>
+<span class="target" id="problem__emissivity_8H_1a6cf97ebd80075472d02aa02c0269bc7f"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_emissivity (int i, int j, int k, int g, const GpuArray&lt; Real, NGROUPS &gt; &amp;nu, const GpuArray&lt; Real, NGROUPS+1 &gt; &amp;xnu, Real T, Real kg, Real dkdT, Real &amp;jg, Real &amp;djdT)</code></dt>
 <dd></dd></dl>
 
 </div>
@@ -259,10 +261,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="rad__util_8H.html" class="btn btn-neutral float-right" title="File rad_util.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem__mhd__setup_8H.html" class="btn btn-neutral float-right" title="File problem_mhd_setup.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="blackbody_8H.html" class="btn btn-neutral float-left" title="File blackbody.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem__checkpoint_8H.html" class="btn btn-neutral float-left" title="File problem_checkpoint.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
