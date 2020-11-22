@@ -20,6 +20,18 @@ module wdmerger_util_module
        real(rt), intent(in   ), value :: mass, distance
        real(rt), intent(inout) :: vel
      end subroutine freefall_velocity
+
+     subroutine establish_hse (model, rho, T, xn, r) bind(C)
+       use amrex_fort_module, only: rt => amrex_real
+       use initial_model_module, only: initial_model, initial_model_max_npts
+       use network, only: nspec
+       implicit none
+       type (initial_model), intent(inout) :: model
+       real(rt), intent(inout) :: rho(initial_model_max_npts)
+       real(rt), intent(inout) :: T(initial_model_max_npts)
+       real(rt), intent(inout) :: xn(initial_model_max_npts, nspec)
+       real(rt), intent(inout) :: r(initial_model_max_npts)
+     end subroutine establish_hse
   end interface
 
 contains
