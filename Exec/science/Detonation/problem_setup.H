@@ -4,6 +4,9 @@
 #include <prob_parameters.H>
 #include <eos.H>
 #include <network.H>
+#ifdef NSE_THERMO
+#include <nse.H>
+#endif
 
 AMREX_INLINE
 void problem_initialize ()
