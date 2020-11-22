@@ -150,39 +150,6 @@ contains
 
 
 
-  subroutine multrs(lo, hi, &
-                    d, d_lo, d_hi, &
-                    dx) &
-                    bind(C, name="multrs")
-
-    use habec_nd_module, only: cell_center_metric
-  
-    integer,  intent(in   ) :: lo(3), hi(3)
-    integer,  intent(in   ) :: d_lo(3), d_hi(3)
-    real(rt), intent(inout) :: d(d_lo(1):d_hi(1),d_lo(2):d_hi(2),d_lo(3):d_hi(3))
-    real(rt), intent(in   ) :: dx(3)
-
-    integer  :: i, j, k
-    real(rt) :: r, s
-
-    !$gpu
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             call cell_center_metric(i, j, k, dx, r, s)
-
-             d(i,j,k) = d(i,j,k) * r * s
-
-          end do
-       end do
-    end do
-
-  end subroutine multrs
-
-
-
   subroutine ca_compute_rhs(lo, hi, &
                             rhs, rhs_lo, rhs_hi, &
                             jg, jg_lo, jg_hi, &
@@ -569,83 +536,6 @@ contains
   end subroutine bclim
 
 
-
-  subroutine ca_compute_emissivity(lo, hi, &
-                                   jg, jg_lo, jg_hi, &
-                                   djdT, djdT_lo, djdT_hi, &
-                                   T, T_lo, T_hi, &
-                                   kap, kap_lo, kap_hi, &
-                                   dkdT, dkdT_lo, dkdT_hi) &
-                                   bind(C, name='ca_compute_emissivity')
-
-    use amrex_fort_module, only: rt => amrex_real
-    use rad_params_module, only: ngroups, nugroup, dnugroup, xnu, arad
-    use blackbody_module, only: BdBdTIndefInteg
-    use emissivity_override_module, only: emissivity_override
-
-    implicit none
-
-    integer,  intent(in   ) :: lo(3), hi(3) 
-    integer,  intent(in   ) :: jg_lo(3), jg_hi(3)
-    integer,  intent(in   ) :: djdT_lo(3), djdT_hi(3)
-    integer,  intent(in   ) :: T_lo(3), T_hi(3)
-    integer,  intent(in   ) :: kap_lo(3), kap_hi(3)
-    integer,  intent(in   ) :: dkdT_lo(3), dkdT_hi(3)
-    real(rt), intent(inout) :: jg(jg_lo(1):jg_hi(1),jg_lo(2):jg_hi(2),jg_lo(3):jg_hi(3),0:ngroups-1)
-    real(rt), intent(inout) :: djdT(djdT_lo(1):djdT_hi(1),djdT_lo(2):djdT_hi(2),djdT_lo(3):djdT_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: T(T_lo(1):T_hi(1),T_lo(2):T_hi(2),T_lo(3):T_hi(3))
-    real(rt), intent(in   ) :: kap(kap_lo(1):kap_hi(1),kap_lo(2):kap_hi(2),kap_lo(3):kap_hi(3),0:ngroups-1)
-    real(rt), intent(in   ) :: dkdT(dkdT_lo(1):dkdT_hi(1),dkdT_lo(2):dkdT_hi(2),dkdT_lo(3):dkdT_hi(3),0:ngroups-1)
-
-    integer  :: i, j, k, g
-    real(rt) :: dBdT, Bg
-    real(rt) :: Teff
-    real(rt) :: B0, B1, dBdT0, dBdT1
-    real(rt) :: xnup
-
-    !$gpu
-
-    ! Integrate the Planck distribution upward from zero frequency.
-    ! This handles both the single-group and multi-group cases.
-
-    do k = lo(3), hi(3)
-       do j = lo(2), hi(2)
-          do i = lo(1), hi(1)
-
-             Teff = max(T(i,j,k), 1.e-50_rt)
-             call BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1)
-
-             do g = 0, ngroups-1
-
-                xnup = xnu(g+1)
-
-                ! For the last group, make sure that we complete
-                ! the integral up to "infinity".
-
-                if (g == ngroups - 1) then
-                   xnup = max(xnup, 1.e25_rt)
-                end if
-
-                B0 = B1
-                dBdT0 = dBdT1
-                call BdBdTIndefInteg(Teff, xnup, B1, dBdT1)
-                Bg = B1 - B0
-                dBdT = dBdT1 - dBdT0
-
-                jg(i,j,k,g) = Bg * kap(i,j,k,g)
-                djdT(i,j,k,g) = dkdT(i,j,k,g) * Bg + dBdT * kap(i,j,k,g)
-
-                ! Allow a problem to override this emissivity.
-
-                call emissivity_override(i, j, k, g, T(i,j,k), kap(i,j,k,g), dkdT(i,j,k,g), jg(i,j,k,g), djdT(i,j,k,g))
-
-             end do
-
-          end do
-       end do
-    end do
-
-  end subroutine ca_compute_emissivity
 
 end module rad_nd_module
 

@@ -192,17 +192,6 @@ extern "C" {
 
 extern "C"
 {
-  void ca_compute_emissivity
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(jg),
-    BL_FORT_FAB_ARG_3D(djdT),
-    const BL_FORT_FAB_ARG_3D(temp),
-    const BL_FORT_FAB_ARG_3D(kappa_p),
-    const BL_FORT_FAB_ARG_3D(dkdT));
-}
-
-extern "C"
-{
   void ca_accel_ccoe
    (const int* lo, const int* hi, 
     const BL_FORT_FAB_ARG_3D(bcgr),
@@ -269,10 +258,6 @@ BL_FORT_PROC_DECL(CA_TRANSFORM_FLUX, ca_transform_flux)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void multrs(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(cc),
-              const amrex::Real* dx);
-
   void sphc(amrex::Real* r, amrex::Real* s, ARLIM_P(reglo), ARLIM_P(reghi), const amrex::Real* dx);
 
   void sphe(amrex::Real* r, amrex::Real* s, const int& idim, 
