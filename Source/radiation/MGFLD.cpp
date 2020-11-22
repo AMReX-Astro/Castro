@@ -2,8 +2,9 @@
 #include <Castro_F.H>
 #include <RAD_F.H>
 #include <rad_util.H>
-
+#include <blackbody.H>
 #include <opacity.H>
+#include <problem_emissivity.H>
 
 #include <iostream>
 
@@ -313,12 +314,18 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       auto kappa_p_arr = kappa_p[mfi].array();
       auto kappa_r_arr = kappa_r[mfi].array();
       auto dkdT_arr = dkdT[mfi].array();
+      auto jg_arr = jg[mfi].array();
+      auto djdT_arr = djdT[mfi].array();
 
       bool use_dkdT_loc = use_dkdT;
 
       GpuArray<Real, NGROUPS> nugroup_loc;
       for (int g = 0; g < NGROUPS; ++g) {
           nugroup_loc[g] = nugroup[g];
+      }
+      GpuArray<Real, NGROUPS+1> xnu_loc;
+      for (int g = 0; g < NGROUPS+1; ++g) {
+          xnu_loc[g] = xnu[g];
       }
 
       amrex::ParallelFor(bx,
@@ -384,14 +391,45 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
 
       const Box& reg = mfi.tilebox();
 
-#pragma gpu box(reg)
-      ca_compute_emissivity
-          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-           BL_TO_FORTRAN_ANYD(jg[mfi]),  
-           BL_TO_FORTRAN_ANYD(djdT[mfi]),  
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(dkdT[mfi]));
+      amrex::ParallelFor(reg,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          // Integrate the Planck distribution upward from zero frequency.
+          // This handles both the single-group and multi-group cases.
+
+          Real Teff = amrex::max(temp_new_arr(i,j,k), 1.e-50_rt);
+
+          Real B1, dBdT1;
+          BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1);
+
+          for (int g = 0; g < NGROUPS; ++g) {
+
+              Real xnup = xnu_loc[g+1];
+
+              // For the last group, make sure that we complete
+              // the integral up to "infinity".
+
+              if (g == NGROUPS - 1) {
+                  xnup = amrex::max(xnup, 1.e25_rt);
+              }
+
+              Real B0 = B1;
+              Real dBdT0 = dBdT1;
+              BdBdTIndefInteg(Teff, xnup, B1, dBdT1);
+              Real Bg = B1 - B0;
+              Real dBdT = dBdT1 - dBdT0;
+
+              jg_arr(i,j,k,g) = Bg * kappa_p_arr(i,j,k,g);
+              djdT_arr(i,j,k,g) = dkdT_arr(i,j,k,g) * Bg + dBdT * kappa_p_arr(i,j,k,g);
+
+              // Allow a problem to override this emissivity.
+
+              problem_emissivity(i, j, k, g,
+                                 nugroup_loc, xnu_loc,
+                                 temp_new_arr(i,j,k), kappa_p_arr(i,j,k,g),
+                                 dkdT_arr(i,j,k,g), jg_arr(i,j,k,g), djdT_arr(i,j,k,g));
+          }
+      });
   }    
 
   if (ngrow == 0 && !lag_opac) {
