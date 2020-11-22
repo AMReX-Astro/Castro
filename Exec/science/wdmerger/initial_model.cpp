@@ -159,7 +159,7 @@ void establish_hse (model& model,
 
                 drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * model.dx * model.g[i]);
 
-                rho[i] = amrex::max(0.9 * rho[i], min(rho[i] + drho, 1.1 * rho[i]));
+                rho[i] = amrex::max(0.9_rt * rho[i], amrex::min(rho[i] + drho, 1.1_rt * rho[i]));
                 eos_state.rho = rho[i];
 
                 if (rho[i] < model.min_density) {
