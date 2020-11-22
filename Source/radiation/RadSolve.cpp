@@ -145,8 +145,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
     BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
     BL_ASSERT(cc.nGrow() == 0);
 
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx       = geom.CellSize();
+    auto geomdata = parent->Geom(level).data();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -155,10 +154,16 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        multrs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-               BL_TO_FORTRAN_ANYD(cc[mfi]),
-               dx);
+        auto cc_arr = cc[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real r, s;
+            cell_center_metric(i, j, k, geomdata, r, s);
+
+            cc_arr(i,j,k) *= r * s;
+        });
     }
 }
 
