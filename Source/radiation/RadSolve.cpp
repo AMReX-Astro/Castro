@@ -320,8 +320,8 @@ void RadSolve::levelBCoeffs(int level,
   BL_PROFILE("RadSolve::levelBCoeffs");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  const Geometry& geom = parent->Geom(level);
-  const Real* dx       = geom.CellSize();
+  auto geomdata = parent->Geom(level).data();
+  auto dx = parent->Geom(level).CellSizeArray();
 
   for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
@@ -333,13 +333,53 @@ void RadSolve::levelBCoeffs(int level,
     for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-              BL_TO_FORTRAN_ANYD(bcoefs[mfi]), 
-              BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
-              idim, 
-              BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
-              c, AMREX_REAL_ANYD(dx));
+        auto bcoefs_arr = bcoefs[mfi].array();
+        auto lambda_arr = lambda[idim][mfi].array(lamcomp);
+        auto kappa_r_arr = kappa_r[mfi].array(kcomp);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (idim == 0) {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i-1,j,k), kappa_r_arr(i,j,k), dx[0], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+            else if (idim == 1) {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i,j-1,k), kappa_r_arr(i,j,k), dx[1], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+            else {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i,j,k-1), kappa_r_arr(i,j,k), dx[2], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+        });
     }
 
     if (hd) {
@@ -749,7 +789,8 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   BL_PROFILE("RadSolve::computeBCoeffs (MGFLD)");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  const Real* dx = geom.CellSize();
+  auto geomdata = geom.data();
+  auto dx = geom.CellSizeArray();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -757,13 +798,53 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   for (MFIter mfi(lambda, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-            BL_TO_FORTRAN_ANYD(bcoefs[mfi]),
-            BL_TO_FORTRAN_N_ANYD(lambda[mfi], lamcomp),
-            idim, 
-            BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
-            c, AMREX_REAL_ANYD(dx));
+      auto bcoefs_arr = bcoefs[mfi].array();
+      auto lambda_arr = lambda[mfi].array(lamcomp);
+      auto kappa_r_arr = kappa_r[mfi].array(kcomp);
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          if (idim == 0) {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i-1,j,k), kappa_r_arr(i,j,k), dx[0], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+          else if (idim == 1) {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i,j-1,k), kappa_r_arr(i,j,k), dx[1], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+          else {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i,j,k-1), kappa_r_arr(i,j,k), dx[2], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+      });
   }
 }
 

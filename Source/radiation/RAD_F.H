@@ -247,13 +247,6 @@ extern "C" {
 
   amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
-  void bclim(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(bcoefs), 
-             BL_FORT_FAB_ARG_3D(lambda), 
-             int idim,
-             BL_FORT_FAB_ARG_3D(kappa_r), 
-             amrex::Real c, const amrex::Real* dx);
-
   void lrhs(const int* lo, const int* hi,
             BL_FORT_FAB_ARG_3D(rhs),
             BL_FORT_FAB_ARG_3D(temp),
