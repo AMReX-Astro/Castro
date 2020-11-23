@@ -14,8 +14,6 @@ void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
                  Real time, const int* /*bcrec*/, int /*level*/)
 {
 
-    // derive the dynamic pressure
-
     const auto dx = geomdata.CellSizeArray();
     const auto problo = geomdata.ProbLoArray();
 
