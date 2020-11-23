@@ -114,26 +114,6 @@ extern "C" {
             BL_FORT_FAB_ARG_3D(bcoefs),
             amrex::Real beta, const amrex::Real* dx, int idir);
 
-  void hma2c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(a2coefs), 
-             amrex::Real alpha2, int idir);
-
-  void hmcc(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(mat),
-            BL_FORT_FAB_ARG_3D(ccoefs),
-            amrex::Real gamma, const amrex::Real* dx, int idir);
-
-  void hmd1c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(d1coefs),
-             amrex::Real delta1, const amrex::Real* dx, int idir);
-
-  void hmd2c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(d2coefs),
-             amrex::Real delta2, const amrex::Real* dx, int idir);
-
   void hmmat(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(mat),
              int cdir, int bct, int bho, amrex::Real bcl,
