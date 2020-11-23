@@ -205,7 +205,7 @@ void HypreExtMultiABec::loadMatrix()
       const Box &reg = grids[level][i];
 
       matfab.resize(reg,size);
-      Real* mat = matfab.dataPtr();
+      auto mat = matfab.array();
       Elixir mat_elix = matfab.elixir();
 
       matfab.setVal<RunOn::Device>(0.0);
@@ -214,41 +214,110 @@ void HypreExtMultiABec::loadMatrix()
 
       if (a2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-            hma2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                  BL_TO_FORTRAN_ANYD(matfab), 
-                  BL_TO_FORTRAN_ANYD((*a2coefs[level])[idim][mfi]),
-                  alpha2, idim);
+            const Real fac = 0.25_rt * alpha2;
+
+            auto a2 = (*a2coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i+1,j,k));
+                    mat(i,j,k,1) += fac * a2(i,j,k);
+                    mat(i,j,k,2) += fac * a2(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i,j+1,k));
+                    mat(i,j,k,3) += fac * a2(i,j,k);
+                    mat(i,j,k,4) += fac * a2(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i,j,k+1));
+                    mat(i,j,k,5) += fac * a2(i,j,k);
+                    mat(i,j,k,6) += fac * a2(i,j,k+1);
+                }
+            });
         }
       }
 
       if (ccoefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmcc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-               BL_TO_FORTRAN_ANYD(matfab), 
-               BL_TO_FORTRAN_ANYD((*ccoefs[level])[idim][mfi]), 
-               gamma, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+            const Real fac = 0.5_rt * gamma / geom[level].CellSize(idim);
+
+            auto c = (*ccoefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i+1,j,k));
+                    mat(i,j,k,1) += -fac * c(i,j,k);
+                    mat(i,j,k,2) += fac * c(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i,j+1,k));
+                    mat(i,j,k,3) += -fac * c(i,j,k);
+                    mat(i,j,k,4) += fac * c(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += -fac * (c(i,j,k) - c(i,j,k+1));
+                    mat(i,j,k,5) += -fac * c(i,j,k);
+                    mat(i,j,k,6) += fac * c(i,j,k+1);
+                }
+            });
         }
       }
 
       if (d1coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmd1c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
-                BL_TO_FORTRAN_ANYD((*d1coefs[level])[idim][mfi]),
-                delta1, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+            const Real fac = 0.5_rt * delta1 / geom[level].CellSize(idim);
+
+            auto d1 = (*d1coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                if (idim == 0) {
+                    mat(i,j,k,1) += -fac * d1(i,j,k);
+                    mat(i,j,k,2) += fac * d1(i,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,3) += -fac * d1(i,j,k);
+                    mat(i,j,k,4) += fac * d1(i,j,k);
+                }
+                else {
+                    mat(i,j,k,5) += -fac * d1(i,j,k);
+                    mat(i,j,k,6) += fac * d1(i,j,k);
+                }
+            });
         }
       }
 
       if (d2coefs[level]) {
         for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg)
-          hmd2c(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
-                BL_TO_FORTRAN_ANYD((*d2coefs[level])[idim][mfi]),
-                delta2, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+            const Real fac = 0.5_rt * delta2 / geom[level].CellSize(idim);
+
+            auto d2 = (*d2coefs[level])[idim][mfi].array();
+
+            amrex::ParallelFor(reg,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                if (idim == 0) {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i+1,j,k));
+                    mat(i,j,k,1) += -fac * d2(i,j,k);
+                    mat(i,j,k,2) += fac * d2(i+1,j,k);
+                }
+                else if (idim == 1) {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i,j+1,k));
+                    mat(i,j,k,3) += -fac * d2(i,j,k);
+                    mat(i,j,k,4) += fac * d2(i,j+1,k);
+                }
+                else {
+                    mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i,j,k+1));
+                    mat(i,j,k,5) += -fac * d2(i,j,k);
+                    mat(i,j,k,6) += fac * d2(i,j,k+1);
+                }
+            });
         }
       }
 
@@ -262,7 +331,7 @@ void HypreExtMultiABec::loadMatrix()
       int volume = reg.numPts();
       for (int s = 0; s < size; s++) {
         for (int k = 0; k < volume; k++) {
-          mat_tmp[k] = mat[k * size + s];
+          mat_tmp[k] = matfab.dataPtr()[s * volume + k];
         }
         HYPRE_SStructMatrixAddToBoxValues(A, part, loV(reg), hiV(reg), 0,
                                           1, &stencil_indices[s], mat_tmp);
