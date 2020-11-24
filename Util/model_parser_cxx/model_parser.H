@@ -96,7 +96,7 @@ locate(const Real r, const int model_index) {
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
-interpolate(const Real r, const int var_index, const int model_index) {
+interpolate(const Real r, const int var_index, const int model_index=0) {
 
     // find the value of model_state component var_index at point r
     // using linear interpolation.  Eventually, we can do something
@@ -164,7 +164,7 @@ interpolate(const Real r, const int var_index, const int model_index) {
 
 AMREX_INLINE
 void
-read_model_file(std::string& model_file, const int model_index) {
+read_model_file(std::string& model_file, const int model_index=0) {
 
     bool found_model, found_dens, found_temp, found_pres;
     bool found_spec[NumSpec];

@@ -51,10 +51,10 @@ void problem_initialize ()
   // store the state at the very top of the model for the boundary
   // conditions
 
-  problem::hse_rho_top = model::state(model::npts-1, model::idens);
-  problem::hse_T_top = model::state(model::npts-1, model::itemp);
+  problem::hse_rho_top = model::profile(0).state(model::npts-1, model::idens);
+  problem::hse_T_top = model::profile(0).state(model::npts-1, model::itemp);
   for (int n = 0; n < NumSpec; n++) {
-      problem::hse_X_top[n] = model::state(model::npts-1, model::ispec+n);
+      problem::hse_X_top[n] = model::profile(0).state(model::npts-1, model::ispec+n);
   }
 
   // set hse_eint_top and hse_p_top via the EOS
