@@ -181,10 +181,11 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
 endif
 
 MAX_NPTS_MODEL ?= 10000
+NUM_MODELS ?= 1
 
 ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
 else
   Bdirs += Util/model_parser
 endif

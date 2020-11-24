@@ -75,11 +75,11 @@ void problem_initialize_state_data (int i, int j, int k,
     Real height = z;
 #endif
 
-    Real T_height = interpolate(height, model::itemp);
-    Real dens = interpolate(height, model::idens);
-    Real pres = interpolate(height, model::ipres);
+    Real T_height = interpolate(height, model::itemp, 0);
+    Real dens = interpolate(height, model::idens, 0);
+    Real pres = interpolate(height, model::ipres, 0);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
+        state(i,j,k,UFS+n) = interpolate(height, model::ispec+n, 0);
     }
 
     // add an isobaric perturbation
