@@ -28,51 +28,51 @@ void problem_initialize ()
 
     bool species_defined = true;
 
-    int ifuel1 = network_spec_index(fuel1_name);
+    int ifuel1 = network_spec_index(problem::fuel1_name);
     if (ifuel1 < 0) {
         species_defined = false;
     }
 
     int ifuel2;
-    if (fuel2_name != "") {
-        ifuel2 = network_spec_index(fuel2_name);
+    if (problem::fuel2_name != "") {
+        ifuel2 = network_spec_index(problem::fuel2_name);
         if (ifuel2 < 0) {
             species_defined = false;
         }
     }
 
     int ifuel3;
-    if (fuel3_name != "") {
-        ifuel3 = network_spec_index(fuel3_name);
+    if (problem::fuel3_name != "") {
+        ifuel3 = network_spec_index(problem::fuel3_name);
         if (ifuel3 < 0) {
             species_defined = false;
         }
     }
 
     int ifuel4;
-    if (fuel4_name != "") {
-        ifuel4 = network_spec_index(fuel4_name);
+    if (problem::fuel4_name != "") {
+        ifuel4 = network_spec_index(problem::fuel4_name);
         if (ifuel4 < 0) {
             species_defined = false;
         }
     }
 
-    int iash1 = network_species_index(ash1_name);
+    int iash1 = network_spec_index(problem::ash1_name);
     if (iash1 < 0) {
         species_defined = false;
     }
 
     int iash2;
-    if (ash2_name != "") {
-        iash2 = network_spec_index(ash2_name);
+    if (problem::ash2_name != "") {
+        iash2 = network_spec_index(problem::ash2_name);
         if (iash2 < 0) {
             species_defined = false;
         }
     }
 
     int iash3;
-    if (ash3_name != "") {
-        iash3 = network_spec_index(ash3_name);
+    if (problem::ash3_name != "") {
+        iash3 = network_spec_index(problem::ash3_name);
         if (iash3 < 0) {
             species_defined = false;
         }
@@ -91,12 +91,12 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         model_params.xn_star[n] = problem::smallx;
     }
-    model_params.xn_star[iash1] = ash1_frac;
-    if (ash2_name != "") {
-        model_params.xn_star[iash2] = ash2_frac;
+    model_params.xn_star[iash1] = problem::ash1_frac;
+    if (problem::ash2_name != "") {
+        model_params.xn_star[iash2] = problem::ash2_frac;
     }
-    if (ash3_name != "") {
-        model_params.xn_star[iash3] = ash3_frac;
+    if (problem::ash3_name != "") {
+        model_params.xn_star[iash3] = problem::ash3_frac;
     }
 
     // and the composition of the accreted layer
@@ -104,15 +104,15 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         model_params.xn_base[n] = problem::smallx;
     }
-    model_params.xn_base[ifuel1] = fuel1_frac;
-    if (fuel2_name != "") {
-        model_params.xn_base[ifuel2] = fuel2_frac;
+    model_params.xn_base[ifuel1] = problem::fuel1_frac;
+    if (problem::fuel2_name != "") {
+        model_params.xn_base[ifuel2] = problem::fuel2_frac;
     }
-    if (fuel3_name != "") {
-        model_params.xn_base[ifuel3] = fuel3_frac;
+    if (problem::fuel3_name != "") {
+        model_params.xn_base[ifuel3] = problem::fuel3_frac;
     }
-    if (fuel4_name != "") {
-        model_params.xn_base[ifuel4] = fuel4_frac;
+    if (problem::fuel4_name != "") {
+        model_params.xn_base[ifuel4] = problem::fuel4_frac;
     }
 
     // check if they sum to 1
@@ -121,7 +121,7 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         sumX += model_params.xn_star[n];
     }
-    if (std::abs(sumX - 1.0_rt) > nspec * problem::smallx) {
+    if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: ash mass fractions don't sum to 1");
     }
 
@@ -129,7 +129,7 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         sumX += model_params.xn_base[n];
     }
-    if (std::abs(sumX - 1.0_rt) > nspec * problem::smallx) {
+    if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: fuel mass fractions don't sum to 1");
     }
 

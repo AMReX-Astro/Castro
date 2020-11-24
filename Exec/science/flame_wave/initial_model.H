@@ -51,6 +51,10 @@
 
 // this version allows for mutiple initial models
 
+namespace fw {
+    constexpr Real MAX_ITER = 250;
+    constexpr Real TOL = 1.e-10_rt;
+}
 
 struct model_t {
 
@@ -67,7 +71,7 @@ struct model_t {
     Real atm_delta;
 
     Real low_density_cutoff;
-}
+};
 
 
 // Evaluate tanh using the exponential form to workaround a PGI bug on Power9
@@ -102,10 +106,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     // model, so we'll just set it each time
 
     model::npts = npts_model;
-    model::initialized = true.
-
-    ! compute the coordinates of the new gridded function
-    dCoord = (xmax - xmin) / static_cast<Real>(npts_model)
+    model::initialized = true;
 
     if (npts_model > NPTS_MODEL) {
         amrex::Error("Error: model has more than NPTS_MODEL points,  Increase MAX_NPTS_MODEL");
@@ -124,8 +125,8 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     // find the index of the base height
 
     int index_base = -1;
-    for (int n = 0; n < npts_model; n++) {
-        if (model::profile(model_num).r(i) >= xmin + model_params,H_star) {
+    for (int i = 0; i < npts_model; i++) {
+        if (model::profile(model_num).r(i) >= xmin + model_params.H_star) {
             index_base = i+1;
             break;
         }
@@ -138,7 +139,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     // put the model onto our new uniform grid
 
-    logical fluff = false;
+    bool fluff = false;
 
     // determine the conditions at the base -- this is below the atmosphere
 
@@ -197,7 +198,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         // for now, set them to the base conditions
 
         model::profile(model_num).state(i, model::idens) = model_params.dens_base;
-        model::proflie(model_num).state(i, model::ipres) = pres_base;
+        model::profile(model_num).state(i, model::ipres) = pres_base;
 
     }
 
@@ -277,7 +278,11 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
        if (!fluff) {
 
-           for (int iter = 0; iter < MAX_ITER; iter++) {
+           Real p_want;
+           Real drho;
+           Real dtemp = 0;
+
+           for (int iter = 0; iter < fw::MAX_ITER; iter++) {
 
                // get the pressure we want from the HSE equation, just the
                // zone below the current.  Note, we are using an average of
@@ -291,8 +296,8 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
                // HSE differencing
 
-               Real p_want = model::profile(model_num).state(i-1, model::ipres) +
-                       dx * 0.5_rt * (dens_zone + model::profile(model_num).state(i-1, model::idens)) * gravity::const_grav;
+               p_want = model::profile(model_num).state(i-1, model::ipres) +
+                   dx * 0.5_rt * (dens_zone + model::profile(model_num).state(i-1, model::idens)) * gravity::const_grav;
 
                if (isentropic) {
 
@@ -319,18 +324,18 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                    entropy = eos_state.s;
                    pres_zone = eos_state.p;
 
-                   Real dpt = eos_state.dpdt;
+                   Real dpt = eos_state.dpdT;
                    Real dpd = eos_state.dpdr;
-                   Real dst = eos_state.dsdt;
+                   Real dst = eos_state.dsdT;
                    Real dsd = eos_state.dsdr;
 
                    Real A = p_want - pres_zone;
                    Real B = entropy_base - entropy;
 
-                   Real dtemp = ((dsd / (dpd - 0.5_rt * dx * gravity::const_grav)) * A - B) /
+                   dtemp = ((dsd / (dpd - 0.5_rt * dx * gravity::const_grav)) * A - B) /
                        (dsd * dpt / (dpd - 0.5_rt * dx * gravity::const_grav) - dst);
 
-                   Real drho = (A - dpt * dtemp) / (dpd - 0.5_rt * dx * gravity::const_grav);
+                   drho = (A - dpt * dtemp) / (dpd - 0.5_rt * dx * gravity::const_grav);
 
                    dens_zone = amrex::max(0.9_rt * dens_zone,
                                           amrex::min(dens_zone + drho, 1.1_rt * dens_zone));
@@ -351,7 +356,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                    }
 
                    // if (A < TOL .and. B < ETOL) then
-                   if (std::abs(drho) < TOL * dens_zone && std::abs(dtemp) < TOL * temp_zone) {
+                   if (std::abs(drho) < fw::TOL * dens_zone && std::abs(dtemp) < fw::TOL * temp_zone) {
                        converged_hse = true;
                        break;
                    }
@@ -379,12 +384,12 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
                    Real dpd = eos_state.dpdr;
 
-                   Real drho = (p_want - pres_zone) / (dpd - 0.5_rt * dx * gravity::const_grav);
+                   drho = (p_want - pres_zone) / (dpd - 0.5_rt * dx * gravity::const_grav);
 
                    dens_zone = amrex::max(0.9_rt * dens_zone,
                                           amrex::min(dens_zone + drho, 1.1_rt * dens_zone));
 
-                   if (std::abs(drho) < TOL * dens_zone) {
+                   if (std::abs(drho) < fw::TOL * dens_zone) {
                        converged_hse = true;
                        break;
                    }
@@ -404,15 +409,15 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                    isentropic = false;
                }
 
-          }
+           }
 
-          if (!converged_hse) {
-              std::cout << "Error zone " << i << " did not converge in init_1d" << std::endl;
-              std::cout << "integrate up" << std::endl;
-              std::cout << dens_zone << " " << temp_zone << std::endl;
-              std::cout << p_want << " " << entropy_base << " " << entropy << std::endl;
-              std::cout << drho << " " << dtemp << std::endl;
-              amrex::Error("Error: HSE non-convergence");
+           if (!converged_hse) {
+               std::cout << "Error zone " << i << " did not converge in init_1d" << std::endl;
+               std::cout << "integrate up" << std::endl;
+               std::cout << dens_zone << " " << temp_zone << std::endl;
+               std::cout << p_want << " " << entropy_base << " " << entropy << std::endl;
+               std::cout << drho << " " << dtemp << std::endl;
+               amrex::Error("Error: HSE non-convergence");
           }
 
        } else {
@@ -476,8 +481,10 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
         bool converged_hse = false;
 
         Real pres_zone;
+        Real p_want;
+        Real drho;
 
-        for (int iter = 0; iter < MAX_ITER; iter++) {
+        for (int iter = 0; iter < fw::MAX_ITER; iter++) {
 
             // get the pressure we want from the HSE equation, just the
             // zone above the current.  Note, we are using an average of
@@ -487,7 +494,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
             // HSE differencing
 
-            Real p_want = model::profile(model_num).state(i+1, model::ipres) -
+            p_want = model::profile(model_num).state(i+1, model::ipres) -
                 dx * 0.5_rt * (dens_zone + model::profile(model_num).state(i+1, model::idens)) * gravity::const_grav;
 
             // we will take the temperature already defined in gen_model_state
@@ -509,12 +516,12 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
             Real A = p_want - pres_zone;
 
-            Real drho = A / (dpd + 0.5_rt * delx * gravity::const_grav);
+            drho = A / (dpd + 0.5_rt * dx * gravity::const_grav);
 
             dens_zone = amrex::max(0.9_rt * dens_zone,
                                    amrex::min(dens_zone + drho, 1.1_rt * dens_zone));
 
-            if (std::abs(drho) < TOL * dens_zone) {
+            if (std::abs(drho) < fw::TOL * dens_zone) {
                 converged_hse = true;
                 break;
             }
