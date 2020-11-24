@@ -212,116 +212,97 @@ void problem_initialize ()
 }
 
 
-subroutine ca_initdata(lo, hi, &
-                       state, s_lo, s_hi, &
-                       dx, problo) bind(C, name='ca_initdata')
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void problem_initialize_state_data (int i, int j, int k,
+                                    Array4<Real> const& state,
+                                    const GeometryData& geomdata)
+{
 
-  use amrex_fort_module, only: rt => amrex_real
-  use amrex_constants_module, only: ZERO, HALF, ONE
-#ifndef AMREX_USE_CUDA
-  use castro_error_module, only: castro_error
+    const Real* dx = geomdata.CellSize();
+    const Real* problo = geomdata.ProbLo();
+
+    Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
+
+    Real y = 0.0;
+#if AMREX_SPACEDIM >= 2
+    y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #endif
-  use probdata_module, only: x_half_width, x_half_max
-  use eos_module, only: eos
-  use eos_type_module, only: eos_t, eos_input_rt, eos_input_tp, eos_input_rp
-  use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEDEN, UEINT, UFS, UTEMP
-  use network, only: nspec
-  use initial_model_module, only: gen_npts_model, gen_model_r, gen_model_state, &
-                                  idens_model, itemp_model, ipres_model, ispec_model
-  use interpolate_module, only: interpolate ! function
-  use prob_params_module, only : center
 
-  implicit none
+    Real z = 0.0;
+#if AMREX_SPACEDIM == 3
+    z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
+#endif
 
-  integer,  intent(in   ) :: lo(3), hi(3)
-  integer,  intent(in   ) :: s_lo(3), s_hi(3)
-  real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-  real(rt), intent(in   ) :: dx(3), problo(3)
+    // lateral distance and height
 
-  real(rt) :: x, y, z, r, height
-  integer :: i, j, k, n
+    Real r;
+    Real height;
 
-  real(rt) :: temppres
+    if (AMREX_SPACEDIM == 1) {
+        r = 1.0_rt;
+        height = x;
 
-  type (eos_t) :: eos_state
-  real(rt) :: f
+    } else if (AMREX_SPACEDIM == 2) {
+        r = x;
+        height = y;
 
-  !$gpu
+    } else if (AMREX_SPACEDIM == 3) {
+        r = std::sqrt(x * x + y * y);
+        height = z;
+    }
 
-  do k = lo(3), hi(3)
-     z = problo(3) + (dble(k) + HALF) * dx(3)
+    // blending factor
 
-     do j = lo(2), hi(2)
-        y = problo(2) + (dble(j) + HALF) * dx(2) - center(2)
+    Real f;
 
-        do i = lo(1), hi(1)
-           x = problo(1) + (dble(i) + HALF) * dx(1) - center(1)
+    if (r < problem::x_half_max) {
+        f = 1.0_rt;
 
-           ! lateral distance
-           if (AMREX_SPACEDIM == 1) then
-              r = 1.0_rt
-              height = x
-           else if (AMREX_SPACEDIM == 2) then
-              r = x
-              height = y
-           else if (AMREX_SPACEDIM == 3) then
-              r = sqrt(x**2 + y**2)
-              height = z
-           end if
+    } else if (r > problem::x_half_max + problem::x_half_width) {
+        f = 0.0_rt;
 
-           if (r < x_half_max) then
-              f = 1.0_rt
-           else if (r > x_half_max + x_half_width) then
-              f = 0.0_rt
-           else
-              f = -(r - x_half_max)/x_half_width + ONE
-           endif
+    } else {
+        f = -(r - problem::x_half_max) / problem::x_half_width + 1.0_rt;
+    }
 
-           state(i,j,k,URHO)  = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
-                                                gen_model_state(:,idens_model,2)) + &
-                     (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
-                                                gen_model_state(:,idens_model,1))
+    state(i,j,k,URHO) = f * interpolate(height, model::idens, 1) +
+             (1.0_rt - f) * interpolate(height, model::idens, 0);
 
-           state(i,j,k,UTEMP) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
-                                                gen_model_state(:,itemp_model,2)) + &
-                     (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
-                                                gen_model_state(:,itemp_model,1))
+    state(i,j,k,UTEMP) = f * interpolate(height, model::itemp, 1) +
+              (1.0_rt - f) * interpolate(height, model::itemp, 0);
 
-           temppres = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
-                                             gen_model_state(:,ipres_model,2)) + &
-                  (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
-                                             gen_model_state(:,ipres_model,1))
+    Real temppres = f * interpolate(height, model::ipres, 1) +
+         (1.0_rt - f) * interpolate(height, model::ipres, 0);
 
-           state(i,j,k,UFS:UFS-1+nspec) = ZERO
+    for (int n = 0; n < NumSpec; n++) {
+        state(i,j,k,UFS+n) = f * interpolate(height, model::ispec+n, 1) +
+                  (1.0_rt - f) * interpolate(height, model::ispec+n, 0);
+    }
 
-           do n = 1, nspec
-              state(i,j,k,UFS-1+n) = f * interpolate(height,gen_npts_model,gen_model_r(:,2), &
-                                                     gen_model_state(:,ispec_model-1+n,2)) + &
-                          (1.0_rt - f) * interpolate(height,gen_npts_model,gen_model_r(:,1), &
-                                                     gen_model_state(:,ispec_model-1+n,1))
-           enddo
+    eos_t eos_state;
+    eos_state.rho = state(i,j,k,URHO);
+    eos_state.T = state(i,j,k,UTEMP);
+    eos_state.p = temppres;
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = state(i,j,k,UFS+n);
+    }
 
-           eos_state%rho = state(i,j,k,URHO)
-           eos_state%T = state(i,j,k,UTEMP)
-           eos_state%p = temppres
-           eos_state%xn(:) = state(i,j,k,UFS:UFS-1+nspec)
+    eos(eos_input_rp, eos_state);
 
-           call eos(eos_input_rp, eos_state)
+    state(i,j,k,UTEMP) = eos_state.T;
+    state(i,j,k,UEINT) = eos_state.rho * eos_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,UEINT);
 
-           state(i,j,k,UTEMP) = eos_state % T
-           state(i,j,k,UEINT) = eos_state % rho * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEINT)
+    // Initial velocities = 0
 
-           ! Initial velocities = 0
-           state(i,j,k,UMX:UMZ) = 0.e0_rt
+    state(i,j,k,UMX) = 0.e0_rt;
+    state(i,j,k,UMY) = 0.e0_rt;
+    state(i,j,k,UMZ) = 0.e0_rt;
 
-           ! convert to partial densities
-           do n = 1, nspec
-              state(i,j,k,UFS+n-1) = state(i,j,k,URHO) * state(i,j,k,UFS+n-1)
-           end do
+    // convert to partial densities
 
-        end do
-     end do
-  end do
-
-end subroutine ca_initdata
+    for (int n = 0; n < NumSpec; n++) {
+        state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
+    }
+}
+#endif
