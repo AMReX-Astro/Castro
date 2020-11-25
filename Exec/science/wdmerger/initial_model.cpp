@@ -8,6 +8,40 @@ using namespace initial_model;
 
 extern "C" {
 
+void initialize_model (model& model, Real r[initial_model_max_npts],
+                       Real dx, int npts, Real mass_tol, Real hse_tol)
+{
+    if (npts > initial_model_max_npts) {
+        amrex::Error("npts too large, please increase initial_model_max_npts");
+    }
+
+    model.mass = 0.0_rt;
+    model.envelope_mass = 0.0_rt;
+    model.central_density = 0.0_rt;
+    model.central_temp = 0.0_rt;
+    model.min_density = 0.0_rt;
+    model.radius = 0.0_rt;
+
+    for (int n = 0; n < NumSpec; ++n) {
+        model.core_comp[n] = 0.0_rt;
+        model.envelope_comp[n] = 0.0_rt;
+    }
+
+    model.dx = dx;
+    model.npts = npts;
+    model.mass_tol = mass_tol;
+    model.hse_tol = hse_tol;
+
+    for (int i = 0; i < npts; ++i) {
+        model.rl[i] = (static_cast<Real>(i)         ) * dx;
+        model.rr[i] = (static_cast<Real>(i) + 1.0_rt) * dx;
+        model.r[i]  = 0.5_rt * (model.rl[i] + model.rr[i]);
+        r[i] = model.r[i];
+    }
+}
+
+
+
 void establish_hse (model& model,
                     Real rho[initial_model_max_npts],
                     Real T[initial_model_max_npts],

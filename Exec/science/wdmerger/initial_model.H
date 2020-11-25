@@ -36,6 +36,11 @@ namespace initial_model {
 
 extern "C" {
 
+void initialize_model (initial_model::model& model,
+                       amrex::Real r[initial_model::initial_model_max_npts],
+                       amrex::Real dx, int npts,
+                       amrex::Real mass_tol, amrex::Real hse_tol);
+
 void establish_hse (initial_model::model& model,
                     amrex::Real rho[initial_model::initial_model_max_npts],
                     amrex::Real T[initial_model::initial_model_max_npts],
