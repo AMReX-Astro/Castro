@@ -40,15 +40,6 @@ extern "C" {
               amrex::Real flux_factor,
               const amrex::Real* spa, const int* s_lo, const int* s_hi);
 
-  void hbvec(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(vec),
-             int cdir, int bct, int bho,
-             amrex::Real bcl,
-             const BL_FORT_FAB_ARG_3D(bcval),
-             const int* mask, const int* m_lo, const int* m_hi,
-             BL_FORT_FAB_ARG_3D(bcoefs),
-             amrex::Real beta, const amrex::Real* dx);
-
   void hbvec3(const int* lo, const int* hi,
               int lo_x, int hi_x,
               int ori_lo, int idir,
