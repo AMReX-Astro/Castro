@@ -586,7 +586,7 @@ void HypreExtMultiABec::loadMatrix()
 //        const Mask &msk = bd[level]->bndryMasks(ori,i);
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori,i)(v).empty() &&
-              !entry(ori,i)(v).slave()) {
+              !entry(ori,i)(v).secondary()) {
             entry(ori,i)(v).collapse();
             Vector<int> levels;
             Vector<IntVect> cells;
@@ -784,7 +784,7 @@ void HypreExtMultiABec::loadMatrix()
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
-                !(*c_entry[level])(ori,i,j)(vc).slave()) {
+                !(*c_entry[level])(ori,i,j)(vc).secondary()) {
               (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
