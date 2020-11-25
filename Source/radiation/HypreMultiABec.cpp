@@ -1805,14 +1805,11 @@ void HypreMultiABec::loadLevelVectors(int level,
                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-#pragma gpu box(reg) sync
-              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    cdir, bct, bho, bcl,
-                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+              HypreABec::hbvec(reg, f->array(fcomp),
+                               cdir, bct, bho, bcl,
+                               fs.array(bdcomp), msk.array(),
+                               (*bcoefs[level])[idim][mfi].array(),
+                               beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an
@@ -1921,14 +1918,11 @@ void HypreMultiABec::loadLevelVectorB(int level,
                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
           }
           else {
-#pragma gpu box(reg) sync
-              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    cdir, bct, bho, bcl,
-                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+              HypreABec::hbvec(reg, f->array(),
+                               cdir, bct, bho, bcl,
+                               fs.array(bdcomp), msk.array(),
+                               (*bcoefs[level])[idim][mfi].array(),
+                               beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an

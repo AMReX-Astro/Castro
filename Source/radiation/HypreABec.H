@@ -136,6 +136,13 @@ class HypreABec {
 ///
   void setupSolver(amrex::Real _reltol, amrex::Real _abstol, int maxiter);
 
+  static void hbvec (const amrex::Box& bx,
+                     amrex::Array4<amrex::Real> const& vec,
+                     int cdir, int bct, int bho, amrex::Real bcl,
+                     amrex::Array4<amrex::Real const> const& bcval,
+                     amrex::Array4<int const> const& mask,
+                     amrex::Array4<amrex::Real const> const& b,
+                     amrex::Real beta, const amrex::Real* dx);
 
 ///
 /// @param dest
