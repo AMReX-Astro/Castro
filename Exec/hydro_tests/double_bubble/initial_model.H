@@ -40,7 +40,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     Real dx = (xmax - xmin) / npts_model;
 
     for (int i = 0; i < npts_model; i++) {
-        model::r(i) = xmin + (static_cast<Real>(i) + 0.5_rt) * dx;
+        model::profile(0).r(i) = xmin + (static_cast<Real>(i) + 0.5_rt) * dx;
     }
 
     // create the constant if we are isentropic
@@ -60,41 +60,41 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
     Real gamma_const = model_params.p_base/(model_params.dens_base * eos_state.e) + 1.0_rt;
 
-    model::state(0, model::idens) = model_params.dens_base;
-    model::state(0, model::ipres) = model_params.p_base;
-    model::state(0, model::itemp) = eos_state.T;
+    model::profile(0).state(0, model::idens) = model_params.dens_base;
+    model::profile(0).state(0, model::ipres) = model_params.p_base;
+    model::profile(0).state(0, model::itemp) = eos_state.T;
 
     for (int n = 0; n < NumSpec; n++) {
-        model::state(0, model::ispec+n) = model_params.xn[n];
+        model::profile(0).state(0, model::ispec+n) = model_params.xn[n];
     }
 
-    model::r(0) = xmin + 0.5_rt * dx;
+    model::profile(0).r(0) = xmin + 0.5_rt * dx;
 
     // integrate up from the base
 
     for (int j = 1; j < npts_model; j++) {
 
-        model::r(j) = xmin + (static_cast<Real>(j) + 0.5_rt) * dx;
+        model::profile(0).r(j) = xmin + (static_cast<Real>(j) + 0.5_rt) * dx;
 
         if (problem::do_isentropic == 1) {
-            model::state(j, model::idens) = model_params.dens_base *
+            model::profile(0).state(j, model::idens) = model_params.dens_base *
                 std::pow(gravity::const_grav * model_params.dens_base * (gamma_const - 1.0) *
-                         (model::r(j) - model::r(0)) /
+                         (model::profile(0).r(j) - model::profile(0).r(0)) /
                          (gamma_const * model_params.p_base) + 1.0_rt, 1.0_rt/(gamma_const - 1.e0_rt));
         } else {
-            model::state(j, model::idens) = model_params.dens_base *
-                std::exp(-(model::r(j) - model::r(0)) / H);
+            model::profile(0).state(j, model::idens) = model_params.dens_base *
+                std::exp(-(model::profile(0).r(j) - model::profile(0).r(0)) / H);
         }
 
-        model::state(j, model::ipres) = model::state(j-1, model::ipres) -
-            dx * 0.5_rt * (model::state(j, model::idens) + model::state(j-1, model::idens)) *
+        model::profile(0).state(j, model::ipres) = model::profile(0).state(j-1, model::ipres) -
+            dx * 0.5_rt * (model::profile(0).state(j, model::idens) + model::profile(0).state(j-1, model::idens)) *
             std::abs(gravity::const_grav);
 
 
         eos_t eos_state;
 
-        eos_state.rho = model::state(j, model::idens);
-        eos_state.p = model::state(j, model::ipres);
+        eos_state.rho = model::profile(0).state(j, model::idens);
+        eos_state.p = model::profile(0).state(j, model::ipres);
         for (int n = 0; n < NumSpec; n++) {
             eos_state.xn[n] = model_params.xn[n];
         }
@@ -105,10 +105,10 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
         eos(eos_input_rp, eos_state);
 
-        model::state(j, model::itemp) = eos_state.T;
+        model::profile(0).state(j, model::itemp) = eos_state.T;
 
         for (int n = 0; n < NumSpec; n++) {
-            model::state(j, model::ispec+n) = model_params.xn[n];
+            model::profile(0).state(j, model::ispec+n) = model_params.xn[n];
         }
     }
 }

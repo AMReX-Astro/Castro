@@ -23,7 +23,7 @@ void problem_initialize ()
 
     if (ParallelDescriptor::IOProcessor()) {
         for (int i = 0; i < model::npts; i++) {
-            std::cout << i << " " << model::r(i) << " " << model::state(i,model::idens) << std::endl;
+            std::cout << i << " " << model::profile(0).r(i) << " " << model::profile(0).state(i,model::idens) << std::endl;
         }
     }
 

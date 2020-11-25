@@ -62,14 +62,14 @@ namespace model_string
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 int
-locate(const Real r) {
+locate(const Real r, const int model_index) {
 
     int loc;
 
-    if (r <= model::r(0)) {
+    if (r <= model::profile(model_index).r(0)) {
        loc = 0;
 
-    } else if (r > model::r(model::npts-2)) {
+    } else if (r > model::profile(model_index).r(model::npts-2)) {
        loc = model::npts-1;
 
     } else {
@@ -80,7 +80,7 @@ locate(const Real r) {
         while (ilo+1 != ihi) {
             int imid = (ilo + ihi) / 2;
 
-            if (r <= model::r(imid)) {
+            if (r <= model::profile(model_index).r(imid)) {
                 ihi = imid;
             } else {
                 ilo = imid;
@@ -96,63 +96,63 @@ locate(const Real r) {
 
 AMREX_INLINE AMREX_GPU_HOST_DEVICE
 Real
-interpolate(const Real r, const int var_index) {
+interpolate(const Real r, const int var_index, const int model_index=0) {
 
     // find the value of model_state component var_index at point r
     // using linear interpolation.  Eventually, we can do something
     // fancier here.
 
-    int id = locate(r);
+    int id = locate(r, model_index);
 
     Real slope;
     Real interp;
 
     if (id == 0) {
 
-       slope = (model::state(id+1, var_index) -
-                model::state(id, var_index)) /
-           (model::r(id+1) - model::r(id));
-       interp = slope * (r - model::r(id)) + model::state(id, var_index);
+       slope = (model::profile(model_index).state(id+1, var_index) -
+                model::profile(model_index).state(id, var_index)) /
+           (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
+       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
 
        // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::state(id+1, var_index),
-                                model::state(id, var_index));
-       Real maxvar = amrex::max(model::state(id+1, var_index),
-                                model::state(id, var_index));
+       Real minvar = amrex::min(model::profile(model_index).state(id+1, var_index),
+                                model::profile(model_index).state(id, var_index));
+       Real maxvar = amrex::max(model::profile(model_index).state(id+1, var_index),
+                                model::profile(model_index).state(id, var_index));
        interp = amrex::max(interp, minvar);
        interp = amrex::min(interp, maxvar);
 
     } else if (id == model::npts-1) {
 
-       slope = (model::state(id, var_index) -
-                model::state(id-1, var_index)) /
-           (model::r(id) - model::r(id-1));
-       interp = slope * (r - model::r(id)) + model::state(id, var_index);
+       slope = (model::profile(model_index).state(id, var_index) -
+                model::profile(model_index).state(id-1, var_index)) /
+           (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
+       interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
 
 
        // safety check to make sure interp lies within the bounding points
-       Real minvar = amrex::min(model::state(id-1, var_index),
-                                model::state(id, var_index));
-       Real maxvar = amrex::max(model::state(id-1, var_index),
-                                model::state(id, var_index));
+       Real minvar = amrex::min(model::profile(model_index).state(id-1, var_index),
+                                model::profile(model_index).state(id, var_index));
+       Real maxvar = amrex::max(model::profile(model_index).state(id-1, var_index),
+                                model::profile(model_index).state(id, var_index));
        interp = amrex::max(interp, minvar);
        interp = amrex::min(interp, maxvar);
 
     } else {
 
-        if (r >= model::r(id)) {
+        if (r >= model::profile(model_index).r(id)) {
 
-            slope = (model::state(id+1, var_index) -
-                     model::state(id, var_index)) /
-                (model::r(id+1) - model::r(id));
-            interp = slope * (r - model::r(id)) + model::state(id, var_index);
+            slope = (model::profile(model_index).state(id+1, var_index) -
+                     model::profile(model_index).state(id, var_index)) /
+                (model::profile(model_index).r(id+1) - model::profile(model_index).r(id));
+            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
 
         } else {
 
-            slope = (model::state(id, var_index) -
-                     model::state(id-1, var_index)) /
-                (model::r(id) - model::r(id-1));
-            interp = slope * (r - model::r(id)) + model::state(id, var_index);
+            slope = (model::profile(model_index).state(id, var_index) -
+                     model::profile(model_index).state(id-1, var_index)) /
+                (model::profile(model_index).r(id) - model::profile(model_index).r(id-1));
+            interp = slope * (r - model::profile(model_index).r(id)) + model::profile(model_index).state(id, var_index);
 
         }
 
@@ -164,7 +164,7 @@ interpolate(const Real r, const int var_index) {
 
 AMREX_INLINE
 void
-read_model_file(std::string& model_file) {
+read_model_file(std::string& model_file, const int model_index=0) {
 
     bool found_model, found_dens, found_temp, found_pres;
     bool found_spec[NumSpec];
@@ -217,14 +217,14 @@ read_model_file(std::string& model_file) {
     vars_stored.resize(nvars_model_file);
 
     for (int i = 0; i < model::npts; i++) {
-        initial_model_file >> model::r(i);
+        initial_model_file >> model::profile(model_index).r(i);
 
         for (int j = 0; j < nvars_model_file; j++) {
             initial_model_file >> vars_stored[j];
         }
 
         for (int j = 0; j < model::nvars; j++) {
-            model::state(i,j) = 0.0_rt;
+            model::profile(model_index).state(i,j) = 0.0_rt;
         }
 
         // make sure that each of the variables we care about is found
@@ -242,24 +242,24 @@ read_model_file(std::string& model_file) {
             found_model = false;
 
             if (varnames_stored[j] == "density") {
-                model::state(i,model::idens) = vars_stored[j];
+                model::profile(model_index).state(i,model::idens) = vars_stored[j];
                 found_model = true;
                 found_dens = true;
 
             } else if (varnames_stored[j] == "temperature") {
-                model::state(i,model::itemp) = vars_stored[j];
+                model::profile(model_index).state(i,model::itemp) = vars_stored[j];
                 found_model = true;
                 found_temp = true;
 
             } else if (varnames_stored[j] == "pressure") {
-                model::state(i,model::ipres) = vars_stored[j];
+                model::profile(model_index).state(i,model::ipres) = vars_stored[j];
                 found_model = true;
                 found_pres = true;
 
             } else {
                 for (int comp = 0; comp < NumSpec; comp++) {
                     if (varnames_stored[j] == spec_names_cxx[comp]) {
-                        model::state(i,model::ispec+comp) = vars_stored[j];
+                        model::profile(model_index).state(i,model::ispec+comp) = vars_stored[j];
                         found_model = true;
                         found_spec[comp] = true;
                         break;

@@ -8,7 +8,6 @@ namespace model
     AMREX_GPU_MANAGED int npts;
     AMREX_GPU_MANAGED bool initialized;
 
-    AMREX_GPU_MANAGED amrex::Array2D<Real, 0, NPTS_MODEL-1, 0, nvars-1> state;
-    AMREX_GPU_MANAGED amrex::Array1D<Real, 0, NPTS_MODEL-1> r;
+    AMREX_GPU_MANAGED amrex::Array1D<initial_model_t, 0, NUM_MODELS-1> profile;
 
 }
