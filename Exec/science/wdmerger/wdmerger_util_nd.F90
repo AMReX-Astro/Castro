@@ -21,6 +21,16 @@ module wdmerger_util_module
        real(rt), intent(inout) :: vel
      end subroutine freefall_velocity
 
+     subroutine initialize_model (model, r, dx, npts, mass_tol, hse_tol) bind(C)
+       use amrex_fort_module, only: rt => amrex_real
+       use initial_model_module, only: initial_model, initial_model_max_npts
+       implicit none
+       type (initial_model), intent(inout) :: model
+       real(rt), intent(inout) :: r(initial_model_max_npts)
+       real(rt), intent(in   ), value :: dx, mass_tol, hse_tol
+       integer,  intent(in   ), value :: npts
+     end subroutine initialize_model
+
      subroutine establish_hse (model, rho, T, xn, r) bind(C)
        use amrex_fort_module, only: rt => amrex_real
        use initial_model_module, only: initial_model, initial_model_max_npts
@@ -508,8 +518,8 @@ contains
 
     ! Allocate arrays to hold the stellar models.
 
-    call initialize_model(.true.,  initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
-    call initialize_model(.false., initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(model_P, r_P, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
+    call initialize_model(model_S, r_S, initial_model_dx, initial_model_npts, initial_model_mass_tol, initial_model_hse_tol)
 
     model_P % min_density = ambient_state(URHO)
     model_S % min_density = ambient_state(URHO)
