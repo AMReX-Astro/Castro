@@ -22,6 +22,8 @@ CASTRO_HOME  := ../../..
 
 GPU_COMPATIBLE_PROBLEM = TRUE
 
+USE_CXX_MODEL_PARSER = TRUE
+NUM_MODELS := 2
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/eos
 EOS_DIR     := helmholtz
