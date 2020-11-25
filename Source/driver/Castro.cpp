@@ -52,9 +52,10 @@
 
 #include <microphysics_F.H>
 
-#include <problem_setup.H>
+#include <problem_initialize.H>
+#include <problem_initialize_state_data.H>
 #ifdef MHD
-#include <problem_mhd_setup.H>
+#include <problem_initialize_mhd_data.H>
 #endif
 #include <problem_tagging.H>
 
