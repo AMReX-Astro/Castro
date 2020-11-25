@@ -136,20 +136,6 @@ void ca_initfluxlimiter
 
 extern "C"
 {
-  void ca_compute_rhs
-    (const int* lo, const int* hi, 
-     BL_FORT_FAB_ARG_3D(rhs),
-     const BL_FORT_FAB_ARG_3D(jg),
-     const BL_FORT_FAB_ARG_3D(mugT),
-     const BL_FORT_FAB_ARG_3D(coupT),
-     const BL_FORT_FAB_ARG_3D(etaT),
-     const BL_FORT_FAB_ARG_3D(Er_step),
-     const BL_FORT_FAB_ARG_3D(rhoe_step),
-     const BL_FORT_FAB_ARG_3D(Er_star),
-     const BL_FORT_FAB_ARG_3D(rhoe_star),    
-     const amrex::Real* dx, amrex::Real dt,
-     int igroup, amrex::Real ptc_tau);
-
   void ca_rad_source
     (const int* lo, const int* hi, 
      BL_FORT_FAB_ARG_3D(rhs),

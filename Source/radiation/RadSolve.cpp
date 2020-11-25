@@ -903,6 +903,9 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   Real time = castro->get_state_data(Rad_Type).curTime();
   const Real* dx = parent->Geom(level).CellSize();
+  auto geomdata = parent->Geom(level).data();
+
+  const Real dt1 = 1.0_rt / delta_t;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -911,18 +914,30 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
       const Box& bx = ri.tilebox();
 
-#pragma gpu box(bx)
-      ca_compute_rhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(rhs[ri]),
-                     BL_TO_FORTRAN_ANYD(jg[ri]),
-                     BL_TO_FORTRAN_ANYD(mugT[ri]),
-                     BL_TO_FORTRAN_ANYD(coupT[ri]),
-                     BL_TO_FORTRAN_ANYD(etaT[ri]),
-                     BL_TO_FORTRAN_ANYD(Er_step[ri]),
-                     BL_TO_FORTRAN_ANYD(rhoe_step[ri]),
-                     BL_TO_FORTRAN_ANYD(Er_star[ri]),
-                     BL_TO_FORTRAN_ANYD(rhoe_star[ri]),
-                     AMREX_REAL_ANYD(dx), delta_t, igroup, ptc_tau);
+      auto rhs_arr = rhs[ri].array();
+      auto jg_arr = jg[ri].array();
+      auto mugT_arr = mugT[ri].array();
+      auto coupT_arr = coupT[ri].array();
+      auto etaT_arr = etaT[ri].array();
+      auto Er_step_arr = Er_step[ri].array();
+      auto rhoe_step_arr = rhoe_step[ri].array();
+      auto Er_star_arr = Er_star[ri].array();
+      auto rhoe_star_arr = rhoe_star[ri].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real Hg = mugT_arr(i,j,k,igroup) * etaT_arr(i,j,k);
+
+          rhs_arr(i,j,k) = C::c_light * (jg_arr(i,j,k,igroup) + Hg * coupT_arr(i,j,k))
+                           + dt1 * (Er_step_arr(i,j,k,igroup) - Hg * (rhoe_star_arr(i,j,k) - rhoe_step_arr(i,j,k))
+                                    + ptc_tau * Er_star_arr(i,j,k,igroup));
+
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          rhs_arr(i,j,k) *= r;
+      });
 
 #pragma gpu box(bx)
       ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
