@@ -13,9 +13,10 @@ Problems
    file/problem__bc__fill_8H
    file/problem__checkpoint_8H
    file/problem__emissivity_8H
-   file/problem__mhd__setup_8H
+   file/problem__initialize_8H
+   file/problem__initialize__mhd__data_8H
+   file/problem__initialize__state__data_8H
    file/problem__restart_8H
-   file/problem__setup_8H
    file/problem__source_8H
    file/problem__tagging_8H
    

@@ -225,7 +225,8 @@ of the groups and place in it the following files:</p>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
 Castro what options to use and what network and EOS to build.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code> : this holds the problem
+<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_initialize.H</span></code> and
+<code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data.H</span></code> : this holds the problem
 initialization routines, which may be implemented either in Fortran
 or in C++.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that

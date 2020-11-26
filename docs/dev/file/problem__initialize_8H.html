@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File problem_bc_fill.H &mdash; Castro  documentation</title>
+  <title>File problem_initialize.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File problem_checkpoint.H" href="problem__checkpoint_8H.html" />
-    <link rel="prev" title="File ext_bc_types.H" href="ext__bc__types_8H.html" /> 
+    <link rel="next" title="File problem_initialize_mhd_data.H" href="problem__initialize__mhd__data_8H.html" />
+    <link rel="prev" title="File problem_emissivity.H" href="problem__emissivity_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/problem__bc__fill_8H.html">main</a> | <a href="../file/problem__bc__fill_8H.html">development</a>
+        Branch: <a href="../../file/problem__initialize_8H.html">main</a> | <a href="../file/problem__initialize_8H.html">development</a>
     </div>
 
         </div>
@@ -149,10 +149,10 @@
 <li class="toctree-l3"><a class="reference internal" href="Problem__Derives_8H.html">File Problem_Derives.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ambient_8H.html">File ambient.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_bc_fill.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__emissivity_8H.html">File problem_emissivity.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="problem__initialize_8H.html">File problem_initialize.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_initialize.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__initialize__mhd__data_8H.html">File problem_initialize_mhd_data.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__initialize__state__data_8H.html">File problem_initialize_state_data.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
@@ -223,13 +223,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File problem_bc_fill.H</li>
+      <li>File problem_initialize.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/problem__bc__fill_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/problem__initialize_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -242,27 +242,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-problem-bc-fill-h">
-<h1>File problem_bc_fill.H<a class="headerlink" href="#file-problem-bc-fill-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-problem-initialize-h">
+<h1>File problem_initialize.H<a class="headerlink" href="#file-problem-initialize-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="problem__bc__fill_8H_1a3d720f84f91971bb9aff4a7264e0f78d"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_bc_fill (int i, int j, int k, Array4&lt; Real &gt; const &amp;state, Real time, Array1D&lt; BCRec, 0, NUM_STATE-1 &gt; bcs, GeometryData geomdata)</code></dt>
-<dd><p>Problem-specific boundary condition fill</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: x-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: y-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: z-index </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: simulation state (Fab) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bcs</span></code>: boundary conditions </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: geometry data </p></li>
-</ul>
-</dd>
-</dl>
-</p>
+<span class="target" id="problem__initialize_8H_1a2cd7895c29a726fd2da349251bc7f463"></span><code class="sig-name descname">AMREX_INLINE void problem_initialize ()</code></dt>
+<dd><p>Initialize problem-specific variables </p>
 </dd></dl>
 
 </div>
@@ -276,10 +263,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="problem__checkpoint_8H.html" class="btn btn-neutral float-right" title="File problem_checkpoint.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem__initialize__mhd__data_8H.html" class="btn btn-neutral float-right" title="File problem_initialize_mhd_data.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="ext__bc__types_8H.html" class="btn btn-neutral float-left" title="File ext_bc_types.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem__emissivity_8H.html" class="btn btn-neutral float-left" title="File problem_emissivity.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
