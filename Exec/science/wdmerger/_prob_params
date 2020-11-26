@@ -57,7 +57,7 @@ init                            integer               1                        n
 
 # Are we doing a single star simulation?
 
-single_star                     logical               .false.                  n
+single_star                     integer               0                        n
 
 
 

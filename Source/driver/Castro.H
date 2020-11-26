@@ -1154,6 +1154,11 @@ public:
 
     void write_info ();
 
+///
+/// Return BCs
+///
+    static amrex::BCRec physbc () { return phys_bc; }
+
 #ifdef GRAVITY
 
 ///
