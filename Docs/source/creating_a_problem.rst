@@ -14,7 +14,8 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` OR ``problem_setup.H`` : this holds the problem
+  * ``Prob_nd.F90`` OR ``problem_initialize.H`` and
+    ``problem_initialize_state_data.H`` : this holds the problem
     initialization routines, which may be implemented either in Fortran
     or in C++.
 

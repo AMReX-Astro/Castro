@@ -30,7 +30,7 @@
 #include <omp.h>
 #endif
 
-#include <problem_setup.H>
+#include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
 
