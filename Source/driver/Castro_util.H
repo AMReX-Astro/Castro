@@ -2,6 +2,8 @@
 #define CASTRO_UTIL_H
 
 #include <AMReX_Geometry.H>
+#include <network_properties.H>
+#include <state_indices.H>
 
 using namespace amrex;
 
