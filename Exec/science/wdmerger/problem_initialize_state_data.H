@@ -87,8 +87,7 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_P_initial[1],
                        loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::rho_P, initial_model::T_P, initial_model::xn_P, initial_model::r_P,
-                               initial_model::model_P.npts, pos, initial_model::model_P.radius, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(initial_model::model_P, pos, dx, zone_state, problem::nsub);
 
     }
     else if (problem::mass_S > 0.0_rt && (dist_S < initial_model::model_S.radius ||
@@ -98,8 +97,7 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_S_initial[1],
                        loc[2] - problem::center_S_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::rho_S, initial_model::T_S, initial_model::xn_S, initial_model::r_S,
-                               initial_model::model_S.npts, pos, initial_model::model_S.radius, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(initial_model::model_S, pos, dx, zone_state, problem::nsub);
 
     }
     else {
