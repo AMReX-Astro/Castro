@@ -6,19 +6,10 @@
 
 AMREX_GPU_MANAGED initial_model::model initial_model::model_P;
 AMREX_GPU_MANAGED initial_model::model initial_model::model_S;
-AMREX_GPU_MANAGED Real initial_model::rho_P[initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::rho_S[initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::T_P[initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::T_S[initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::xn_P[NumSpec][initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::xn_S[NumSpec][initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::r_P[initial_model::initial_model_max_npts];
-AMREX_GPU_MANAGED Real initial_model::r_S[initial_model::initial_model_max_npts];
 
 using namespace initial_model;
 
-void initialize_model (model& model, Real r[initial_model_max_npts],
-                       Real dx, int npts, Real mass_tol, Real hse_tol)
+void initialize_model (model& model, Real dx, int npts, Real mass_tol, Real hse_tol)
 {
     if (npts > initial_model_max_npts) {
         amrex::Error("npts too large, please increase initial_model_max_npts");
@@ -45,17 +36,12 @@ void initialize_model (model& model, Real r[initial_model_max_npts],
         model.rl[i] = (static_cast<Real>(i)         ) * dx;
         model.rr[i] = (static_cast<Real>(i) + 1.0_rt) * dx;
         model.r[i]  = 0.5_rt * (model.rl[i] + model.rr[i]);
-        r[i] = model.r[i];
     }
 }
 
 
 
-void establish_hse (model& model,
-                    Real rho[initial_model_max_npts],
-                    Real T[initial_model_max_npts],
-                    Real xn[NumSpec][initial_model_max_npts],
-                    Real r[initial_model_max_npts])
+void establish_hse (model& model)
 {
     // Note that if central_density > 0, then this initial model generator will use it in calculating
     // the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of 
@@ -115,17 +101,17 @@ void establish_hse (model& model,
         // We start at the center of the WD and integrate outward.  Initialize
         // the central conditions.
 
-        T[0]    = model.central_temp;
-        rho[0]  = rho_c;
+        model.T[0]    = model.central_temp;
+        model.rho[0]  = rho_c;
         for (int n = 0; n < NumSpec; ++n) {
-            xn[n][0] = model.core_comp[n];
+            model.xn[n][0] = model.core_comp[n];
         }
 
         eos_t eos_state;
-        eos_state.rho  = rho[0];
-        eos_state.T    = T[0];
+        eos_state.rho  = model.rho[0];
+        eos_state.T    = model.T[0];
         for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn[n] = xn[n][0];
+            eos_state.xn[n] = model.xn[n][0];
         }
 
         eos(eos_input_rt, eos_state);
@@ -136,17 +122,17 @@ void establish_hse (model& model,
 
         // Make the initial guess be completely uniform.
 
-        for (int i = 0; i < initial_model_max_npts; ++i) {
-            rho[i] = rho[0];
-            T[i]   = T[0];
+        for (int i = 1; i < initial_model_max_npts; ++i) {
+            model.rho[i] = model.rho[0];
+            model.T[i]   = model.T[0];
             for (int n = 0; n < NumSpec; ++n) {
-                xn[n][i] = xn[n][0];
+                model.xn[n][i] = model.xn[n][0];
             }
         }
 
         // Keep track of the mass enclosed below the current zone.
 
-        model.M_enclosed[0] = (4.0_rt / 3.0_rt) * M_PI * (std::pow(model.rr[0], 3) - std::pow(model.rl[0], 3)) * rho[0];
+        model.M_enclosed[0] = (4.0_rt / 3.0_rt) * M_PI * (std::pow(model.rr[0], 3) - std::pow(model.rl[0], 3)) * model.rho[0];
 
         //-------------------------------------------------------------------------
         // HSE solve
@@ -155,18 +141,18 @@ void establish_hse (model& model,
 
             // As the initial guess for the density, use the underlying zone.
 
-            rho[i] = rho[i-1];
+            model.rho[i] = model.rho[i-1];
 
             if (model.mass > 0.0_rt && model.M_enclosed[i-1] >= model.mass - model.envelope_mass) {
                 for (int n = 0; n < NumSpec; ++n) {
-                    xn[n][i] = model.envelope_comp[n];
-                    eos_state.xn[n] = xn[n][i];
+                    model.xn[n][i] = model.envelope_comp[n];
+                    eos_state.xn[n] = model.xn[n][i];
                 }
             }
-            else{
+            else {
                 for (int n = 0; n < NumSpec; ++n) {
-                    xn[n][i] = model.core_comp[n];
-                    eos_state.xn[n] = xn[n][i];
+                    model.xn[n][i] = model.core_comp[n];
+                    eos_state.xn[n] = model.xn[n][i];
                 }
             }
 
@@ -184,7 +170,7 @@ void establish_hse (model& model,
             for (int hse_iter = 1; hse_iter <= max_hse_iter; ++hse_iter) {
 
                 if (fluff) {
-                    rho[i] = model.min_density;
+                    model.rho[i] = model.min_density;
                     eos_state.rho = model.min_density;
                     break;
                 }
@@ -195,22 +181,22 @@ void establish_hse (model& model,
                 // We difference HSE about the interface between the current
                 // zone and the one just inside.
 
-                Real rho_avg = 0.5_rt * (rho[i] + rho[i-1]);
+                Real rho_avg = 0.5_rt * (model.rho[i] + model.rho[i-1]);
                 p_want = p_last + model.dx * rho_avg * model.g[i];
 
                 eos(eos_input_rt, eos_state);
 
                 drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * model.dx * model.g[i]);
 
-                rho[i] = amrex::max(0.9_rt * rho[i], amrex::min(rho[i] + drho, 1.1_rt * rho[i]));
-                eos_state.rho = rho[i];
+                model.rho[i] = amrex::max(0.9_rt * model.rho[i], amrex::min(model.rho[i] + drho, 1.1_rt * model.rho[i]));
+                eos_state.rho = model.rho[i];
 
-                if (rho[i] < model.min_density) {
+                if (model.rho[i] < model.min_density) {
                     icutoff = i;
                     fluff = true;
                 }
 
-                if (std::abs(drho) < model.hse_tol * rho[i]) {
+                if (std::abs(drho) < model.hse_tol * model.rho[i]) {
                     converged_hse = true;
                     break;
                 }
@@ -220,9 +206,9 @@ void establish_hse (model& model,
             if (!converged_hse && (!fluff)) {
 
                 std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
-                std::cout << rho[i] << " " << T[i] << std::endl;
+                std::cout << model.rho[i] << " " << model.T[i] << std::endl;
                 std::cout << p_want << " " << eos_state.p;
-                std::cout << drho << " " << model.hse_tol * rho[i];
+                std::cout << drho << " " << model.hse_tol * model.rho[i];
                 amrex::Error("Error: HSE non-convergence.");
 
             }
@@ -236,7 +222,7 @@ void establish_hse (model& model,
             // Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
             model.M_enclosed[i] = model.M_enclosed[i-1] +
-                                  (4.0_rt / 3.0_rt) * M_PI * rho[i] * model.dx *
+                                  (4.0_rt / 3.0_rt) * M_PI * model.rho[i] * model.dx *
                                   (std::pow(model.rr[i], 2) + model.rl[i] * model.rr[i] + std::pow(model.rl[i], 2));
 
         } // End loop over zones
@@ -279,7 +265,7 @@ void establish_hse (model& model,
         amrex::Error("ERROR: WD mass did not converge.");
     }
 
-    model.central_density = rho[0];
+    model.central_density = model.rho[0];
     model.radius = radius;
     model.mass = mass;
 }

@@ -459,11 +459,11 @@ void binary_setup ()
 
     // Allocate arrays to hold the stellar models.
 
-    initialize_model(initial_model::model_P, initial_model::r_P,
+    initialize_model(initial_model::model_P,
                      problem::initial_model_dx, problem::initial_model_npts,
                      problem::initial_model_mass_tol, problem::initial_model_hse_tol);
 
-    initialize_model(initial_model::model_S, initial_model::r_S,
+    initialize_model(initial_model::model_S,
                      problem::initial_model_dx, problem::initial_model_npts,
                      problem::initial_model_mass_tol, problem::initial_model_hse_tol);
 
@@ -496,8 +496,7 @@ void binary_setup ()
 
         initial_model::model_P.central_density = problem::central_density_P;
 
-        establish_hse(initial_model::model_P, initial_model::rho_P, initial_model::T_P,
-                      initial_model::xn_P, initial_model::r_P);
+        establish_hse(initial_model::model_P);
 
         set_wd_composition(initial_model::model_P);
 
@@ -527,8 +526,7 @@ void binary_setup ()
 
             initial_model::model_S.central_density = problem::central_density_S;
 
-            establish_hse(initial_model::model_S, initial_model::rho_S, initial_model::T_S,
-                          initial_model::xn_S, initial_model::r_S);
+            establish_hse(initial_model::model_S);
 
             set_wd_composition(initial_model::model_S);
 
@@ -579,8 +577,7 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
-    establish_hse(initial_model::model_P, initial_model::rho_P, initial_model::T_P,
-                  initial_model::xn_P, initial_model::r_P);
+    establish_hse(initial_model::model_P);
 
     amrex::Print() << std::endl;
 
@@ -594,8 +591,7 @@ void binary_setup ()
 
     if (!problem::single_star) {
 
-        establish_hse(initial_model::model_S, initial_model::rho_S, initial_model::T_S,
-                      initial_model::xn_S, initial_model::r_S);
+        establish_hse(initial_model::model_S);
 
         amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << initial_model::model_S.mass / C::M_solar
                        << " solar masses, central density " << std::setprecision(3) << std::scientific << initial_model::model_S.central_density
