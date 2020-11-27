@@ -4,9 +4,18 @@
 
 #include <eos.H>
 
-using namespace initial_model;
+AMREX_GPU_MANAGED initial_model::model initial_model::model_P;
+AMREX_GPU_MANAGED initial_model::model initial_model::model_S;
+AMREX_GPU_MANAGED Real initial_model::rho_P[initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::rho_S[initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::T_P[initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::T_S[initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::xn_P[NumSpec][initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::xn_S[NumSpec][initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::r_P[initial_model::initial_model_max_npts];
+AMREX_GPU_MANAGED Real initial_model::r_S[initial_model::initial_model_max_npts];
 
-extern "C" {
+using namespace initial_model;
 
 void initialize_model (model& model, Real r[initial_model_max_npts],
                        Real dx, int npts, Real mass_tol, Real hse_tol)
@@ -273,6 +282,4 @@ void establish_hse (model& model,
     model.central_density = rho[0];
     model.radius = radius;
     model.mass = mass;
-}
-
 }

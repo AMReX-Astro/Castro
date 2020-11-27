@@ -8,6 +8,8 @@
 
 #include <Rotation.H>
 
+#include <initial_model.H>
+
 // If we are in a rotating reference frame, then rotate a vector
 // by an amount corresponding to the time that has passed
 // since the beginning of the simulation.
@@ -77,14 +79,26 @@ GpuArray<Real, 3> inertial_velocity(const GpuArray<Real, 3>& loc, const GpuArray
     return vel_i;
 }
 
-extern "C" {
-
 void freefall_velocity (Real mass, Real distance, Real& vel);
 
 void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
                        Real& period, Real eccentricity, Real phi, Real& a,
                        Real& r_1, Real& r_2, Real& v_1r, Real& v_2r, Real& v_1p, Real& v_2p);
 
-}
+void set_wd_composition (initial_model::model& model);
+
+void ensure_primary_mass_larger ();
+
+void initialize_problem ();
+
+void finalize_probdata ();
+
+void binary_setup ();
+
+void set_small ();
+
+void set_star_data ();
+
+void update_center (Real time);
 
 #endif

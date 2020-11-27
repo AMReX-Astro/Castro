@@ -10,7 +10,6 @@
 
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
-#include <wdmerger_F.H>
 #include <binary.H>
 
 #include <fstream>
@@ -75,36 +74,15 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Get the current stellar data
-    get_f90_com_P(com_P);
-    get_f90_com_S(com_S);
-    get_f90_vel_P(vel_P);
-    get_f90_vel_S(vel_S);
-    get_f90_mass_P(&mass_P);
-    get_f90_mass_S(&mass_S);
-    get_f90_t_ff_P(&t_ff_P);
-    get_f90_t_ff_S(&t_ff_S);
-
     // Update the problem center using the system bulk velocity
-    update_center(&time);
-    get_f90_center(center);
+    update_center(time);
 
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;
     }
 
-    // Now send this first estimate of the COM to Fortran, and then re-calculate
-    // a more accurate result using it as a starting point.
-
-    set_f90_com_P(com_P);
-    set_f90_com_S(com_S);
-    set_f90_vel_P(vel_P);
-    set_f90_vel_S(vel_S);
-    set_f90_mass_P(&mass_P);
-    set_f90_mass_S(&mass_S);
-    set_f90_t_ff_P(&t_ff_P);
-    set_f90_t_ff_S(&t_ff_S);
+    // Now re-calculate a more accurate result using this as a starting point.
 
     // Save relevant current data.
 
@@ -417,7 +395,7 @@ Castro::wd_update (Real time, Real dt)
 
     // Send this updated information back to the Fortran module
 
-    set_star_data(com_P, com_S, vel_P, vel_S, &mass_P, &mass_S, &t_ff_P, &t_ff_S);
+    set_star_data();
 
 }
 
@@ -920,11 +898,6 @@ void Castro::problem_post_init() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Update the rotational period and axis; some problems change this from what's in the inputs parameters.
-
-  get_period(&rotational_period);
-  get_rot_axis(&rot_axis);
-
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
   // This should generally be the last operation
@@ -949,11 +922,6 @@ void Castro::problem_post_restart() {
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
-
-  // Get the rotational period and axis.
-
-  get_period(&rotational_period);
-  get_rot_axis(&rot_axis);
 
   // Reset current values of extrema.
 
@@ -1506,9 +1474,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
         MultiFab& S_new = get_new_data(State_Type);
 
-        Real relaxation_density_cutoff;
-        get_relaxation_density_cutoff(&relaxation_density_cutoff);
-
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
         using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -1560,9 +1525,6 @@ Castro::update_relaxation(Real time, Real dt) {
     // We can also turn off the relaxation if we've passed
     // a certain number of dynamical timescales.
 
-    Real relaxation_cutoff_time;
-    get_relaxation_cutoff_time(&relaxation_cutoff_time);
-
     if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_P, t_ff_S)) {
         relaxation_is_done = 1;
         amrex::Print() << "Disabling relaxation at time " << time
@@ -1571,9 +1533,7 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     if (relaxation_is_done > 0) {
-	set_relaxation_status(&relaxation_is_done);
-        const Real factor = -1.0;
-	set_relaxation_damping_factor(factor);
+	relaxation_damping_factor = -1.0;
     }
 
 }
