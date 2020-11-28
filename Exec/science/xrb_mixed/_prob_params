@@ -4,7 +4,7 @@ cutoff_density        real           50.0_rt       y
 
 model_name            character      ""            y
 
-apply_vel_field       logical        .false.       y
+apply_vel_field       integer        0             y
 
 velpert_scale         real           1.0e2_rt      y
 
