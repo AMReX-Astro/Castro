@@ -3,8 +3,6 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
-#include <model_parser.H>
-#include <initial_model.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -28,7 +26,7 @@ void problem_initialize ()
 
     eos_t eos_state;
 
-    if (use_Tinit == 1) {
+    if (problem::use_Tinit == 1) {
 
         eos_state.rho = problem::rho_l;
         eos_state.T = problem::T_l;

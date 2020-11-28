@@ -3,8 +3,6 @@
 
 #include <prob_parameters.H>
 #include <eos.H>
-#include <model_parser.H>
-#include <initial_model.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
