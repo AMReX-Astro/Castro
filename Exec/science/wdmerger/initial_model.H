@@ -4,39 +4,18 @@
 #include <AMReX.H>
 
 #include <network_properties.H>
-
 #include <eos.H>
-
 #include <interpolate.H>
+#include <prob_parameters.H>
 
 namespace initial_model {
     const int initial_model_max_npts = 10000;
 
     struct model {
-        // Physical characteristics
-
-        amrex::Real mass;
-        amrex::Real envelope_mass;
-        amrex::Real central_density;
-        amrex::Real central_temp;
-        amrex::Real min_density;
-        amrex::Real radius;
-
-        // Composition
-
-        amrex::Real core_comp[NumSpec];
-        amrex::Real envelope_comp[NumSpec];
-
-        // Model storage
-
-        amrex::Real dx;
-        int npts;
-        amrex::Real mass_tol, hse_tol;
-
-        amrex::Real r[initial_model_max_npts], rl[initial_model_max_npts], rr[initial_model_max_npts];
-        amrex::Real M_enclosed[initial_model_max_npts], g[initial_model_max_npts];
+        amrex::Real r[initial_model_max_npts];
         amrex::Real rho[initial_model_max_npts];
         amrex::Real T[initial_model_max_npts];
+        amrex::Real p[initial_model_max_npts];
         amrex::Real xn[NumSpec][initial_model_max_npts];
     };
 
@@ -46,18 +25,17 @@ namespace initial_model {
     extern AMREX_GPU_MANAGED model model_S;
 }
 
-void initialize_model (initial_model::model& model,
-                       amrex::Real dx, int npts,
-                       amrex::Real mass_tol, amrex::Real hse_tol);
-
-void establish_hse (initial_model::model& model);
+void establish_hse (initial_model::model& model,
+                    Real& mass, Real& central_density,
+                    Real envelope_mass, Real& radius,
+                    const Real core_comp[NumSpec], const Real envelope_comp[NumSpec]);
 
 // Takes a one-dimensional stellar model and interpolates it to a point in
 // 3D Cartesian grid space. Optionally does a sub-grid-scale interpolation
 // if nsub > 1 (set in the probin file).
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void interpolate_3d_from_1d (initial_model::model& model,
+void interpolate_3d_from_1d (initial_model::model& model, Real radius,
                              const Real* loc, const Real* dx, eos_t& state, int nsub = 1)
 {
     state.rho = 0.0_rt;
@@ -79,7 +57,7 @@ void interpolate_3d_from_1d (initial_model::model& model,
         max_dx = amrex::max(max_dx, dx[2]);
     }
 
-    if (model.radius <= max_dx && dist < max_dx) {
+    if (radius <= max_dx && dist < max_dx) {
 
         state.rho = model.rho[0];
         state.T   = model.T[0];
@@ -109,11 +87,11 @@ void interpolate_3d_from_1d (initial_model::model& model,
 
                     Real dist = std::sqrt(x * x + y * y + z * z);
 
-                    state.rho = state.rho + interpolate::interpolate(dist, model.npts, model.r, model.rho);
-                    state.T   = state.T   + interpolate::interpolate(dist, model.npts, model.r, model.T);
+                    state.rho = state.rho + interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.rho);
+                    state.T   = state.T   + interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.T);
 
                     for (int n = 0; n < NumSpec; ++n) {
-                        state.xn[n] += interpolate::interpolate(dist, model.npts, model.r, model.xn[n]);
+                        state.xn[n] += interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.xn[n]);
                     }
                 }
             }

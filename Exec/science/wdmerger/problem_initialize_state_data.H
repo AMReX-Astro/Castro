@@ -81,23 +81,23 @@ void problem_initialize_state_data (int i, int j, int k,
 
     eos_t zone_state;
 
-    if (problem::mass_P > 0.0_rt && (dist_P < initial_model::model_P.radius ||
-                                     (initial_model::model_P.radius <= max_dx && dist_P < max_dx))) {
+    if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P ||
+                                     (problem::radius_P <= max_dx && dist_P < max_dx))) {
         Real pos[3] = {loc[0] - problem::center_P_initial[0],
                        loc[1] - problem::center_P_initial[1],
                        loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::model_P, pos, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(initial_model::model_P, problem::radius_P, pos, dx, zone_state, problem::nsub);
 
     }
-    else if (problem::mass_S > 0.0_rt && (dist_S < initial_model::model_S.radius ||
-                                          (initial_model::model_S.radius <= max_dx && dist_S < max_dx))) {
+    else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
+                                          (problem::radius_S <= max_dx && dist_S < max_dx))) {
 
         Real pos[3] = {loc[0] - problem::center_S_initial[0],
                        loc[1] - problem::center_S_initial[1],
                        loc[2] - problem::center_S_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::model_S, pos, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(initial_model::model_S, problem::radius_S, pos, dx, zone_state, problem::nsub);
 
     }
     else {
@@ -136,12 +136,12 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::problem != 1) {
 
-        if (dist_P < initial_model::model_P.radius) {
+        if (dist_P < problem::radius_P) {
             state(i,j,k,UMX) += problem::vel_P[0] * state(i,j,k,URHO);
             state(i,j,k,UMY) += problem::vel_P[1] * state(i,j,k,URHO);
             state(i,j,k,UMZ) += problem::vel_P[2] * state(i,j,k,URHO);
         }
-        else if (dist_S < initial_model::model_S.radius) {
+        else if (dist_S < problem::radius_S) {
             state(i,j,k,UMX) += problem::vel_S[0] * state(i,j,k,URHO);
             state(i,j,k,UMY) += problem::vel_S[1] * state(i,j,k,URHO);
             state(i,j,k,UMZ) += problem::vel_S[2] * state(i,j,k,URHO);
@@ -167,8 +167,8 @@ void problem_initialize_state_data (int i, int j, int k,
 
         if (state(i,j,k,URHO) <= castro::ambient_safety_factor * ambient::ambient_state[URHO]) {
 
-            Real cap_radius = 1.25e0_rt * amrex::max(initial_model::model_P.radius + std::abs(problem::center_P_initial[problem::axis_1-1]),
-                                                     initial_model::model_S.radius + std::abs(problem::center_S_initial[problem::axis_1-1]));
+            Real cap_radius = 1.25e0_rt * amrex::max(problem::radius_P + std::abs(problem::center_P_initial[problem::axis_1-1]),
+                                                     problem::radius_S + std::abs(problem::center_S_initial[problem::axis_1-1]));
 
             for (int n = 0; n < 3; ++n) {
                 rot_loc[n] = amrex::min(cap_radius, std::abs(rot_loc[n])) * std::copysign(1.0_rt, rot_loc[n]);
@@ -199,7 +199,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::problem == 1 && problem::initial_radial_velocity_factor > 0.0_rt) {
 
-        if (dist_P < initial_model::model_P.radius || dist_P < initial_model::model_S.radius) {
+        if (dist_P < problem::radius_P || dist_P < problem::radius_S) {
 
             Real R_prp    = std::sqrt(std::pow(loc[problem::axis_1-1], 2) + std::pow(loc[problem::axis_2-1], 2));
             Real cosTheta = loc[problem::axis_1-1] / R_prp;
