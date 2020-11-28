@@ -100,8 +100,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   model_params % low_density_cutoff = low_density_cutoff
 
-  model_params % index_base_from_temp = index_base_from_temp
-
   call init_1d_tanh(nx_model+ng, &
                     problo(AMREX_SPACEDIM)-ng*dx_model, probhi(AMREX_SPACEDIM), &
                     model_params, 1)

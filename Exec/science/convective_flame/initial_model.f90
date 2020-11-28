@@ -87,8 +87,6 @@ module initial_model_module
 
      real(rt) :: low_density_cutoff
 
-     logical :: index_base_from_temp
-
   end type model_t
 
 contains
