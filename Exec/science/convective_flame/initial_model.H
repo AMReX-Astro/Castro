@@ -338,7 +338,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
                    }
 
                    // if (A < TOL .and. B < ETOL) then
-                   if (std::abs(drho) < fw::TOL * dens_zone && std::abs(dtemp) < fw::TOL * temp_zone) {
+                   if (std::abs(drho) < cf::TOL * dens_zone && std::abs(dtemp) < cf::TOL * temp_zone) {
                        converged_hse = true;
                        break;
                    }

@@ -139,8 +139,8 @@ void problem_initialize ()
 
     model_params.low_density_cutoff = problem::low_density_cutoff;
 
-    generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+    generate_initial_model(problem::nx_model + ng,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 0);
 
@@ -149,8 +149,8 @@ void problem_initialize ()
 
     model_params.T_hi = model_params.T_hi + problem::dtemp;
 
-    generate_initial_model(nx_model + ng,
-                           problo[AMREX_SPACEDIM-1] - ng * problem::dx_model,
+    generate_initial_model(problem::nx_model + ng,
+                           problo[AMREX_SPACEDIM-1] - ng * dx_model,
                            probhi[AMREX_SPACEDIM-1],
                            model_params, 1);
 

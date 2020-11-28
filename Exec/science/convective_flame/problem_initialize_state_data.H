@@ -17,11 +17,11 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
-    Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt)
+    Real x = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 
     Real y = 0.0;
 #if AMREX_SPACEDIM >= 2
-    y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt)
+    y = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
 #endif
 
     Real z = 0.0;
