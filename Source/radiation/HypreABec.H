@@ -144,6 +144,17 @@ class HypreABec {
                      amrex::Array4<amrex::Real const> const& b,
                      amrex::Real beta, const amrex::Real* dx);
 
+  static void hbvec3 (const amrex::Box& bx,
+                      int ori_lo, int idir,
+                      amrex::Array4<amrex::Real> const& vec,
+                      int cdir, int bct,
+                      amrex::Array4<int const> const& tf,
+                      int bho, amrex::Real bcl,
+                      amrex::Array4<amrex::Real const> const& bcval,
+                      amrex::Array4<int const> const& mask,
+                      amrex::Array4<amrex::Real const> const& b,
+                      amrex::Real beta, const amrex::GeometryData& geomdata);
+
 ///
 /// @param dest
 /// @param icomp

@@ -133,6 +133,65 @@ void edge_center_metric (int i, int j, int k, int idir, const GeometryData& geom
 
 
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void face_metric (int i, int j, int k, int lo, int hi,
+                  const GeometryData& geomdata, int ori_dir, int ori_lo, Real& r)
+{
+    const Real* problo = geomdata.ProbLo();
+    const Real* dx = geomdata.CellSize();
+
+    if (ori_dir == 0) {
+
+        if (geomdata.Coord() == 0) {
+
+            r = 1.0_rt;
+
+        }
+        else {
+
+            if (ori_lo == 1) {
+
+                r = problo[0] + lo * dx[0];
+
+            }
+            else {
+
+                r = problo[0] + (hi + 1) * dx[0];
+
+            }
+
+            if (geomdata.Coord() == 2) {
+
+                r = r * r;
+
+            }
+
+        }
+
+    }
+    else {
+
+        if (geomdata.Coord() == 0) {
+
+            r = 1.0_rt;
+
+        }
+        else {
+
+            // This must be RZ since we only support spherical coordinates in 1D.
+
+            GpuArray<Real, 3> loc;
+            position(i, j, k, geomdata, loc);
+
+            r = loc[0];
+
+        }
+
+    }
+}
+
+
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 compute_ptot_ctot(const Real* lam, const Real* q,

@@ -1784,25 +1784,23 @@ void HypreMultiABec::loadLevelVectors(int level,
           // for the linear solver:
 
           if (reg[oitr()] == domain[oitr()]) {
-            const int *tfp = NULL;
+            Array4<const int> tfp{};
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
               const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-              tfp = tf.dataPtr();
+              tfp = tf.array();
               bctype = -1;
             }
-#pragma gpu box(reg) sync
-            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   reg.loVect()[0], reg.hiVect()[0],
-                   oitr().isLow(), idim+1,
-                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   cdir, bctype,
-                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
-                   bho, bcl,
-                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+            HypreABec::hbvec3(reg,
+                              oitr().isLow(), idim,
+                              f->array(fcomp),
+                              cdir, bctype,
+                              tfp,
+                              bho, bcl,
+                              fs.array(bdcomp),
+                              msk.array(),
+                              (*bcoefs[level])[idim][mfi].array(),
+                              beta, geom[level].data());
           }
           else {
               HypreABec::hbvec(reg, f->array(fcomp),
@@ -1897,25 +1895,23 @@ void HypreMultiABec::loadLevelVectorB(int level,
           // for the linear solver:
 
           if (reg[oitr()] == domain[oitr()]) {
-            const int *tfp = NULL;
+            Array4<const int> tfp{};
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
               const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-              tfp = tf.dataPtr();
+              tfp = tf.array();
               bctype = -1;
             }
-#pragma gpu box(reg) sync
-            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   reg.loVect()[0], reg.hiVect()[0],
-                   oitr().isLow(), idim+1,
-                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   cdir, bctype,
-                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
-                   bho, bcl,
-                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+            HypreABec::hbvec3(reg,
+                              oitr().isLow(), idim,
+                              f->array(),
+                              cdir, bctype,
+                              tfp,
+                              bho, bcl,
+                              fs.array(bdcomp),
+                              msk.array(),
+                              (*bcoefs[level])[idim][mfi].array(),
+                              beta, geom[level].data());
           }
           else {
               HypreABec::hbvec(reg, f->array(),
