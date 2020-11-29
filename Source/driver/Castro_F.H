@@ -187,12 +187,6 @@ extern "C"
 
 
 
-/* reactions */
-#ifdef REACTIONS
-#include <Castro_react_F.H>
-#endif
-
-
 /* sources */
 #include <Castro_sources_F.H>
 
