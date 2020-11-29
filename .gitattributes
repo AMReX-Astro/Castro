@@ -1,4 +1,3 @@
 *.ipynb linguist-vendored
-Docs/* linguist-documentation
-Docs/source/* linguist-documentation
+*.tex linguist-documentation
 
