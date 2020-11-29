@@ -400,7 +400,7 @@ void HypreABec::hbcoef (const Box& bx,
         amrex::ParallelFor(bx,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
         {
-            mat(i,j,k)[0] = -fac * b(i,j,k);
+            mat(i,j,k)[1] = -fac * b(i,j,k);
             mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i,j+1,k));
         });
 
