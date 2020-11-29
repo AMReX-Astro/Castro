@@ -1,47 +1,18 @@
 #include <initial_model.H>
-
 #include <castro_params.H>
-
+#include <prob_parameters.H>
 #include <eos.H>
+#include <ambient.H>
 
 AMREX_GPU_MANAGED initial_model::model initial_model::model_P;
 AMREX_GPU_MANAGED initial_model::model initial_model::model_S;
 
 using namespace initial_model;
 
-void initialize_model (model& model, Real dx, int npts, Real mass_tol, Real hse_tol)
-{
-    if (npts > initial_model_max_npts) {
-        amrex::Error("npts too large, please increase initial_model_max_npts");
-    }
-
-    model.mass = 0.0_rt;
-    model.envelope_mass = 0.0_rt;
-    model.central_density = 0.0_rt;
-    model.central_temp = 0.0_rt;
-    model.min_density = 0.0_rt;
-    model.radius = 0.0_rt;
-
-    for (int n = 0; n < NumSpec; ++n) {
-        model.core_comp[n] = 0.0_rt;
-        model.envelope_comp[n] = 0.0_rt;
-    }
-
-    model.dx = dx;
-    model.npts = npts;
-    model.mass_tol = mass_tol;
-    model.hse_tol = hse_tol;
-
-    for (int i = 0; i < npts; ++i) {
-        model.rl[i] = (static_cast<Real>(i)         ) * dx;
-        model.rr[i] = (static_cast<Real>(i) + 1.0_rt) * dx;
-        model.r[i]  = 0.5_rt * (model.rl[i] + model.rr[i]);
-    }
-}
-
-
-
-void establish_hse (model& model)
+void establish_hse (model& model,
+                    Real& mass_want, Real& central_density_want,
+                    Real envelope_mass, Real& radius,
+                    const Real core_comp[NumSpec], const Real envelope_comp[NumSpec])
 {
     // Note that if central_density > 0, then this initial model generator will use it in calculating
     // the model. If mass is also provided in this case, we assume it is an estimate used for the purpose of 
@@ -49,7 +20,7 @@ void establish_hse (model& model)
 
     // Check to make sure we've specified at least one of them.
 
-    if (model.mass < 0.0_rt && model.central_density < 0.0_rt) {
+    if (mass_want < 0.0_rt && central_density_want < 0.0_rt) {
         amrex::Error("Error: Must specify either mass or central density in the initial model generator.");
     }
 
@@ -66,15 +37,15 @@ void establish_hse (model& model)
     int max_mass_iter;
 
     Real rho_c, rho_c_old, drho_c;
-    Real mass, mass_old, radius;
-    Real p_want, p_last, drho;
+    Real mass, mass_old;
+    Real p_want, drho;
 
-    if (model.central_density > 0.0_rt) {
+    if (central_density_want > 0.0_rt) {
 
         max_mass_iter = 1;
 
-        rho_c_old = model.central_density;
-        rho_c     = model.central_density;
+        rho_c_old = central_density_want;
+        rho_c     = central_density_want;
 
     }
     else {
@@ -88,7 +59,7 @@ void establish_hse (model& model)
 
     // Check to make sure the initial temperature makes sense.
 
-    if (model.central_temp < castro::small_temp) {
+    if (problem::stellar_temp < castro::small_temp) {
         amrex::Error("Error: WD central temperature is less than small_temp. Aborting.");
     }
 
@@ -101,10 +72,10 @@ void establish_hse (model& model)
         // We start at the center of the WD and integrate outward.  Initialize
         // the central conditions.
 
-        model.T[0]    = model.central_temp;
+        model.T[0]    = problem::stellar_temp;
         model.rho[0]  = rho_c;
         for (int n = 0; n < NumSpec; ++n) {
-            model.xn[n][0] = model.core_comp[n];
+            model.xn[n][0] = core_comp[n];
         }
 
         eos_t eos_state;
@@ -116,47 +87,58 @@ void establish_hse (model& model)
 
         eos(eos_input_rt, eos_state);
 
-        p_last = eos_state.p;
+        model.p[0] = eos_state.p;
 
-        int icutoff;
+        model.r[0] = 0.5 * problem::initial_model_dx;
+
+        int icutoff = initial_model_max_npts;
 
         // Make the initial guess be completely uniform.
 
         for (int i = 1; i < initial_model_max_npts; ++i) {
             model.rho[i] = model.rho[0];
             model.T[i]   = model.T[0];
+            model.p[i]   = model.p[0];
             for (int n = 0; n < NumSpec; ++n) {
                 model.xn[n][i] = model.xn[n][0];
             }
+            model.r[i] = model.r[i-1] + problem::initial_model_dx;
         }
 
         // Keep track of the mass enclosed below the current zone.
 
-        model.M_enclosed[0] = (4.0_rt / 3.0_rt) * M_PI * (std::pow(model.rr[0], 3) - std::pow(model.rl[0], 3)) * model.rho[0];
+        Real rl = 0.0_rt;
+        Real rr = rl + problem::initial_model_dx;
+
+        Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.rho[0];
+        mass = M_enclosed;
 
         //-------------------------------------------------------------------------
         // HSE solve
         //-------------------------------------------------------------------------
-        for (int i = 1; i < model.npts; ++i) {
+        for (int i = 1; i < problem::initial_model_npts; ++i) {
+
+            rl += problem::initial_model_dx;
+            rr += problem::initial_model_dx;
 
             // As the initial guess for the density, use the underlying zone.
 
             model.rho[i] = model.rho[i-1];
 
-            if (model.mass > 0.0_rt && model.M_enclosed[i-1] >= model.mass - model.envelope_mass) {
+            if (mass_want > 0.0_rt && M_enclosed >= mass_want - envelope_mass) {
                 for (int n = 0; n < NumSpec; ++n) {
-                    model.xn[n][i] = model.envelope_comp[n];
+                    model.xn[n][i] = envelope_comp[n];
                     eos_state.xn[n] = model.xn[n][i];
                 }
             }
             else {
                 for (int n = 0; n < NumSpec; ++n) {
-                    model.xn[n][i] = model.core_comp[n];
+                    model.xn[n][i] = core_comp[n];
                     eos_state.xn[n] = model.xn[n][i];
                 }
             }
 
-            model.g[i] = -C::Gconst * model.M_enclosed[i-1] / (std::pow(model.rl[i], 2));
+            Real g = -C::Gconst * M_enclosed / (std::pow(rl, 2));
 
 
             //----------------------------------------------------------------------
@@ -170,8 +152,8 @@ void establish_hse (model& model)
             for (int hse_iter = 1; hse_iter <= max_hse_iter; ++hse_iter) {
 
                 if (fluff) {
-                    model.rho[i] = model.min_density;
-                    eos_state.rho = model.min_density;
+                    model.rho[i] = ambient::ambient_state[URHO];
+                    eos_state.rho = ambient::ambient_state[URHO];
                     break;
                 }
 
@@ -182,21 +164,21 @@ void establish_hse (model& model)
                 // zone and the one just inside.
 
                 Real rho_avg = 0.5_rt * (model.rho[i] + model.rho[i-1]);
-                p_want = p_last + model.dx * rho_avg * model.g[i];
+                p_want = model.p[i-1] + problem::initial_model_dx * rho_avg * g;
 
                 eos(eos_input_rt, eos_state);
 
-                drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * model.dx * model.g[i]);
+                drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * problem::initial_model_dx * g);
 
                 model.rho[i] = amrex::max(0.9_rt * model.rho[i], amrex::min(model.rho[i] + drho, 1.1_rt * model.rho[i]));
                 eos_state.rho = model.rho[i];
 
-                if (model.rho[i] < model.min_density) {
+                if (model.rho[i] < ambient::ambient_state[URHO]) {
                     icutoff = i;
                     fluff = true;
                 }
 
-                if (std::abs(drho) < model.hse_tol * model.rho[i]) {
+                if (std::abs(drho) < problem::initial_model_hse_tol * model.rho[i]) {
                     converged_hse = true;
                     break;
                 }
@@ -208,7 +190,7 @@ void establish_hse (model& model)
                 std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
                 std::cout << model.rho[i] << " " << model.T[i] << std::endl;
                 std::cout << p_want << " " << eos_state.p;
-                std::cout << drho << " " << model.hse_tol * model.rho[i];
+                std::cout << drho << " " << problem::initial_model_hse_tol * model.rho[i];
                 amrex::Error("Error: HSE non-convergence.");
 
             }
@@ -217,17 +199,21 @@ void establish_hse (model& model)
 
             eos(eos_input_rt, eos_state);
 
-            p_last = eos_state.p;
+            model.p[i] = eos_state.p;
 
-            // Discretize the mass enclose as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
+            // Discretize the mass enclosed as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
-            model.M_enclosed[i] = model.M_enclosed[i-1] +
-                                  (4.0_rt / 3.0_rt) * M_PI * model.rho[i] * model.dx *
-                                  (std::pow(model.rr[i], 2) + model.rl[i] * model.rr[i] + std::pow(model.rl[i], 2));
+            Real dM = (4.0_rt / 3.0_rt) * M_PI * model.rho[i] * problem::initial_model_dx *
+                      (rr * rr + rl * rr + rl * rl);
+            M_enclosed += dM;
+
+            if (i <= icutoff) {
+                // Also update the final WD mass if we're not in the ambient material.
+                mass += dM;
+            }
 
         } // End loop over zones
 
-        mass = model.M_enclosed[icutoff];
         radius = model.r[icutoff];
 
         if (rho_c_old < 0.0_rt) {
@@ -242,7 +228,7 @@ void establish_hse (model& model)
 
             // Check if we have converged.
 
-            if (std::abs(mass - model.mass) / model.mass < model.mass_tol) {
+            if (std::abs(mass - mass_want) / mass_want < problem::initial_model_mass_tol) {
                 mass_converged = true;
                 break;
             }
@@ -250,7 +236,7 @@ void establish_hse (model& model)
             // Do a secant iteration:
             // M_tot = M(rho_c) + dM/drho |_rho_c x drho + ...
 
-            drho_c = (model.mass - mass) / ((mass  - mass_old) / (rho_c - rho_c_old));
+            drho_c = (mass_want - mass) / ((mass  - mass_old) / (rho_c - rho_c_old));
 
             rho_c_old = rho_c;
             rho_c = amrex::min(1.1e0_rt * rho_c_old, amrex::max((rho_c + drho_c), 0.9e0_rt * rho_c_old));
@@ -265,7 +251,6 @@ void establish_hse (model& model)
         amrex::Error("ERROR: WD mass did not converge.");
     }
 
-    model.central_density = model.rho[0];
-    model.radius = radius;
-    model.mass = mass;
+    central_density_want = model.rho[0];
+    mass_want = mass;
 }

@@ -7,11 +7,15 @@ mass_P                          real                  1.0e0_rt                 y
 mass_S                          real                  1.0e0_rt                 y
 central_density_P               real                 -1.0e0_rt                 y
 central_density_S               real                 -1.0e0_rt                 y
+radius_P                        real                 -1.0e0_rt                 n
+radius_S                        real                 -1.0e0_rt                 n
 stellar_temp                    real                  1.0e7_rt                 y
-primary_envelope_mass           real                  0.0e0_rt                 n
-secondary_envelope_mass         real                  0.0e0_rt                 n
-primary_envelope_comp           real                  0.0e0_rt                 n                      (nspec, network)
-secondary_envelope_comp         real                  0.0e0_rt                 n                      (nspec, network)
+core_comp_P                     real                  0.0e0_rt                 n                      (nspec, network)
+core_comp_S                     real                  0.0e0_rt                 n                      (nspec, network)
+envelope_mass_P                 real                  0.0e0_rt                 n
+envelope_mass_S                 real                  0.0e0_rt                 n
+envelope_comp_P                 real                  0.0e0_rt                 n                      (nspec, network)
+envelope_comp_S                 real                  0.0e0_rt                 n                      (nspec, network)
 
 
 

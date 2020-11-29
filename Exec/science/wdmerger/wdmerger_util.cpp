@@ -71,7 +71,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
 // Given a WD mass, set its core and envelope composition.
 
-void set_wd_composition (initial_model::model& model)
+void set_wd_composition (initial_model::model& model, Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
 {
     int iHe4 = network_spec_index("helium-4");
     int iC12 = network_spec_index("carbon-12");
@@ -80,28 +80,28 @@ void set_wd_composition (initial_model::model& model)
     int iMg24 = network_spec_index("magnesium-24");
 
     for (int n = 0; n < NumSpec; ++n) {
-        model.core_comp[n] = small_x;
-        model.envelope_comp[n] = small_x;
+        core_comp[n] = small_x;
+        envelope_comp[n] = small_x;
     }
 
-    model.envelope_mass = 0.0_rt;
+    envelope_mass = 0.0_rt;
 
     // Here we follow the prescription of Dan et al. 2012.
 
-    if (model.mass > 0.0_rt && model.mass < problem::max_he_wd_mass) {
+    if (mass > 0.0_rt && mass < problem::max_he_wd_mass) {
 
         if (iHe4 < 0) {
             amrex::Error("Must have He4 in the nuclear network.");
         }
 
-        model.core_comp[iHe4] = 1.0_rt;
+        core_comp[iHe4] = 1.0_rt;
 
         for (int n = 0; n < NumSpec; ++n) {
-            model.envelope_comp[n] = model.core_comp[n];
+            envelope_comp[n] = core_comp[n];
         }
 
     }
-    else if (model.mass >= problem::max_he_wd_mass && model.mass < problem::max_hybrid_wd_mass) {
+    else if (mass >= problem::max_he_wd_mass && mass < problem::max_hybrid_wd_mass) {
 
         if (iC12 < 0) {
             amrex::Error("Must have C12 in the nuclear network.");
@@ -110,25 +110,25 @@ void set_wd_composition (initial_model::model& model)
             amrex::Error("Must have O16 in the nuclear network.");
         }
 
-        model.core_comp[iC12] = problem::hybrid_wd_c_frac;
-        model.core_comp[iO16] = problem::hybrid_wd_o_frac;
+        core_comp[iC12] = problem::hybrid_wd_c_frac;
+        core_comp[iO16] = problem::hybrid_wd_o_frac;
 
-        model.envelope_mass = problem::hybrid_wd_he_shell_mass;
+        envelope_mass = problem::hybrid_wd_he_shell_mass;
 
-        if (model.envelope_mass > 0.0_rt) {
+        if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
                 amrex::Error("Must have He4 in the nuclear network.");
             }
-            model.envelope_comp[iHe4] = 1.0_rt;
+            envelope_comp[iHe4] = 1.0_rt;
         }
         else {
             for (int n = 0; n < NumSpec; ++n) {
-                model.envelope_comp[n] = model.core_comp[n];
+                envelope_comp[n] = core_comp[n];
             }
         }
 
     }
-    else if (model.mass >= problem::max_hybrid_wd_mass && model.mass < problem::max_co_wd_mass) {
+    else if (mass >= problem::max_hybrid_wd_mass && mass < problem::max_co_wd_mass) {
 
         if (iC12 < 0) {
             amrex::Error("Must have C12 in the nuclear network.");
@@ -137,25 +137,25 @@ void set_wd_composition (initial_model::model& model)
             amrex::Error("Must have O16 in the nuclear network.");
         }
 
-        model.core_comp[iC12] = problem::co_wd_c_frac;
-        model.core_comp[iO16] = problem::co_wd_o_frac;
+        core_comp[iC12] = problem::co_wd_c_frac;
+        core_comp[iO16] = problem::co_wd_o_frac;
 
-        model.envelope_mass = problem::co_wd_he_shell_mass;
+        envelope_mass = problem::co_wd_he_shell_mass;
 
-        if (model.envelope_mass > 0.0_rt) {
+        if (envelope_mass > 0.0_rt) {
             if (iHe4 < 0) {
                 amrex::Error("Must have He4 in the nuclear network.");
             }
-            model.envelope_comp[iHe4] = 1.0_rt;
+            envelope_comp[iHe4] = 1.0_rt;
         }
         else {
             for (int n = 0; n < NumSpec; ++n) {
-                model.envelope_comp[n] = model.core_comp[n];
+                envelope_comp[n] = core_comp[n];
             }
         }
 
     }
-    else if (model.mass > problem::max_co_wd_mass) {
+    else if (mass > problem::max_co_wd_mass) {
 
         if (iO16 < 0) {
             amrex::Error("Must have O16 in the nuclear network.");
@@ -167,12 +167,12 @@ void set_wd_composition (initial_model::model& model)
             amrex::Error("Must have Mg24 in the nuclear network.");
         }
 
-        model.core_comp[iO16]  = problem::onemg_wd_o_frac;
-        model.core_comp[iNe20] = problem::onemg_wd_ne_frac;
-        model.core_comp[iMg24] = problem::onemg_wd_mg_frac;
+        core_comp[iO16]  = problem::onemg_wd_o_frac;
+        core_comp[iNe20] = problem::onemg_wd_ne_frac;
+        core_comp[iMg24] = problem::onemg_wd_mg_frac;
 
         for (int n = 0; n < NumSpec; ++n) {
-            model.envelope_comp[n] = model.core_comp[n];
+            envelope_comp[n] = core_comp[n];
         }
 
     }
@@ -183,13 +183,13 @@ void set_wd_composition (initial_model::model& model)
     Real envelope_sum = 0.0_rt;
 
     for (int n = 0; n < NumSpec; ++n) {
-        core_sum += model.core_comp[n];
-        envelope_sum += model.envelope_comp[n];
+        core_sum += core_comp[n];
+        envelope_sum += envelope_comp[n];
     }
 
     for (int n = 0; n < NumSpec; ++n) {
-        model.core_comp[n] /= core_sum;
-        model.envelope_comp[n] /= envelope_sum;
+        core_comp[n] /= core_sum;
+        envelope_comp[n] /= envelope_sum;
     }
 }
 
@@ -457,96 +457,45 @@ void binary_setup ()
         problem::vel_S[n] = 0.0_rt;
     }
 
-    // Allocate arrays to hold the stellar models.
-
-    initialize_model(initial_model::model_P,
-                     problem::initial_model_dx, problem::initial_model_npts,
-                     problem::initial_model_mass_tol, problem::initial_model_hse_tol);
-
-    initialize_model(initial_model::model_S,
-                     problem::initial_model_dx, problem::initial_model_npts,
-                     problem::initial_model_mass_tol, problem::initial_model_hse_tol);
-
-    initial_model::model_P.min_density = ambient::ambient_state[URHO];
-    initial_model::model_S.min_density = ambient::ambient_state[URHO];
-
-    initial_model::model_P.central_temp = problem::stellar_temp;
-    initial_model::model_S.central_temp = problem::stellar_temp;
-
-
-
     // Fill in the model's physical details.
     // If we're integrating to reach a desired mass, set the composition accordingly.
     // If instead we're fixing the central density, then first we'll assume the composition is
     // that of a solar mass WD as a initial guess, and get the corresponding mass. 
     // Then we set the composition to match this preliminary mass, and we'll get a final mass later.
 
-    if (problem::mass_P > 0.0_rt) {
-
-        initial_model::model_P.mass = problem::mass_P;
-
-        set_wd_composition(initial_model::model_P);
-
+    if (problem::central_density_P > 0.0_rt) {
+        // Initial guess for the mass
+        problem::mass_P = C::M_solar;
     }
-    else if (problem::central_density_P > 0.0_rt) {
-
-        initial_model::model_P.mass = C::M_solar;
-
-        set_wd_composition(initial_model::model_P);
-
-        initial_model::model_P.central_density = problem::central_density_P;
-
-        establish_hse(initial_model::model_P);
-
-        set_wd_composition(initial_model::model_P);
-
-    }
-    else {
-
+    else if (problem::mass_P <= 0.0_rt) {
         amrex::Error("Must specify either a positive primary mass or a positive primary central density.");
-
     }
+
+    set_wd_composition(initial_model::model_P, problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
 
 
 
     if (!problem::single_star) {
 
-        if (problem::mass_S > 0.0_rt) {
-
-            initial_model::model_S.mass = problem::mass_S;
-
-            set_wd_composition(initial_model::model_S);
-
+        if (problem::central_density_S > 0.0_rt) {
+            // Initial guess for the mass
+            problem::mass_S = C::M_solar;
         }
-        else if (problem::central_density_S > 0.0_rt) {
-
-            initial_model::model_S.mass = C::M_solar;
-
-            set_wd_composition(initial_model::model_S);
-
-            initial_model::model_S.central_density = problem::central_density_S;
-
-            establish_hse(initial_model::model_S);
-
-            set_wd_composition(initial_model::model_S);
-
-        }
-        else {
-
+        else if (problem::mass_S <= 0.0_rt) {
             amrex::Error("If we are doing a binary calculation, we must specify either a positive secondary mass or a positive secondary central density");
-
         }
+
+        set_wd_composition(initial_model::model_S, problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
 
         for (int n = 0; n < NumSpec; ++n) {
-            ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (initial_model::model_P.envelope_comp[n] +
-                                                                            initial_model::model_S.envelope_comp[n]) / 2;
+            ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (problem::envelope_comp_P[n] + problem::envelope_comp_S[n]) / 2;
         }
 
     }
     else {
 
         for (int n = 0; n < NumSpec; ++n) {
-            ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * initial_model::model_P.envelope_comp[n];
+            ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * problem::envelope_comp_P[n];
         }
 
     }
@@ -577,29 +526,29 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
-    establish_hse(initial_model::model_P);
+    establish_hse(initial_model::model_P, problem::mass_P, problem::central_density_P, problem::envelope_mass_P,
+                  problem::radius_P, problem::core_comp_P, problem::envelope_comp_P);
 
     amrex::Print() << std::endl;
 
-    amrex::Print() << "Generated initial model for primary WD of mass " << std::setprecision(3) << initial_model::model_P.mass / C::M_solar
-                   << " solar masses, central density " << std::setprecision(3) << std::scientific << initial_model::model_P.central_density
-                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << initial_model::model_P.radius << " cm."
+    amrex::Print() << "Generated initial model for primary WD of mass " << std::setprecision(3) << problem::mass_P / C::M_solar
+                   << " solar masses, central density " << std::setprecision(3) << std::scientific << problem::central_density_P
+                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::radius_P << " cm."
                    << std::endl << std::endl;
 
-    problem::mass_P = initial_model::model_P.mass;
-    problem::roche_rad_P = initial_model::model_P.radius;
+    problem::roche_rad_P = problem::radius_P;
 
     if (!problem::single_star) {
 
-        establish_hse(initial_model::model_S);
+        establish_hse(initial_model::model_S, problem::mass_S, problem::central_density_S, problem::envelope_mass_S,
+                      problem::radius_S, problem::core_comp_S, problem::envelope_comp_S);
 
-        amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << initial_model::model_S.mass / C::M_solar
-                       << " solar masses, central density " << std::setprecision(3) << std::scientific << initial_model::model_S.central_density
-                       << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << initial_model::model_S.radius << " cm."
+        amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << problem::mass_S / C::M_solar
+                       << " solar masses, central density " << std::setprecision(3) << std::scientific << problem::central_density_S
+                       << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::radius_S << " cm."
                        << std::endl << std::endl;
 
-        problem::mass_S = initial_model::model_S.mass;
-        problem::roche_rad_S = initial_model::model_S.radius;
+        problem::roche_rad_S = problem::radius_S;
 
         // Compute initial Roche radii
 
@@ -609,7 +558,7 @@ void binary_setup ()
 
         if (problem::problem == 0) {
 
-            problem::collision_separation *= initial_model::model_S.radius;
+            problem::collision_separation *= problem::radius_S;
 
             if (problem::collision_velocity < 0.0e0_rt) {
 
@@ -641,7 +590,7 @@ void binary_setup ()
             // Since the secondary's radius is greater than the primary's, measuring in the
             // units of the primary's radius will guarantee contact.
 
-            Real collision_offset = problem::collision_impact_parameter * initial_model::model_P.radius;
+            Real collision_offset = problem::collision_impact_parameter * problem::radius_P;
 
             problem::center_P_initial[problem::axis_2-1] -= collision_offset;
             problem::center_S_initial[problem::axis_2-1] += collision_offset;
@@ -660,7 +609,7 @@ void binary_setup ()
 
                 // Set the orbital distance, then calculate the rotational period.
 
-                problem::a = problem::roche_radius_factor * (initial_model::model_S.radius / problem::roche_rad_S);
+                problem::a = problem::roche_radius_factor * (problem::radius_S / problem::roche_rad_S);
 
                 castro::rotational_period = -1.0_rt;
 
@@ -668,7 +617,7 @@ void binary_setup ()
 
             Real v_P_r, v_S_r, v_P_phi, v_S_phi;
 
-            kepler_third_law(initial_model::model_P.radius, initial_model::model_P.mass, initial_model::model_S.radius, initial_model::model_S.mass,
+            kepler_third_law(problem::radius_P, problem::mass_P, problem::radius_S, problem::mass_S,
                              castro::rotational_period, problem::orbital_eccentricity, problem::orbital_angle,
                              problem::a, problem::r_P_initial, problem::r_S_initial, v_P_r, v_S_r, v_P_phi, v_S_phi);
 
@@ -679,12 +628,12 @@ void binary_setup ()
             if (Castro::physbc().lo(problem::axis_1-1) == Symmetry) {
 
                 // In this case we're only modelling the secondary.
-                length = problem::r_P_initial + initial_model::model_P.radius;
+                length = problem::r_P_initial + problem::radius_P;
 
             }
             else {
 
-                length = (problem::r_S_initial - problem::r_P_initial) + initial_model::model_P.radius + initial_model::model_S.radius;
+                length = (problem::r_S_initial - problem::r_P_initial) + problem::radius_P + problem::radius_S;
 
             }
 
@@ -694,7 +643,7 @@ void binary_setup ()
 
             // Make sure the stars are not touching.
 
-            if (initial_model::model_P.radius + initial_model::model_S.radius > problem::a) {
+            if (problem::radius_P + problem::radius_S > problem::a) {
                 amrex::Error("ERROR: Stars are touching!");
             }
 
@@ -748,7 +697,7 @@ void binary_setup ()
             // The tidal radius is given by (M_BH / M_WD)^(1/3) * R_WD.
 
             problem::tde_tidal_radius = std::pow(castro::point_mass / problem::mass_P, 1.0_rt / 3.0_rt) *
-                                        initial_model::model_P.radius;
+                                        problem::radius_P;
 
             // The usual definition for the Schwarzschild radius.
 
@@ -809,23 +758,23 @@ void binary_setup ()
 
     if (!(AMREX_SPACEDIM == 2 && Castro::physbc().lo(1) == Symmetry)) {
 
-        if ((0.5_rt * (probhi[0] - problo[0]) < initial_model::model_P.radius) ||
-            (0.5_rt * (probhi[1] - problo[1]) < initial_model::model_P.radius) ||
-            (0.5_rt * (probhi[2] - problo[2]) < initial_model::model_P.radius && AMREX_SPACEDIM == 3)) {
+        if ((0.5_rt * (probhi[0] - problo[0]) < problem::radius_P) ||
+            (0.5_rt * (probhi[1] - problo[1]) < problem::radius_P) ||
+            (0.5_rt * (probhi[2] - problo[2]) < problem::radius_P && AMREX_SPACEDIM == 3)) {
             amrex::Error("Primary does not fit inside the domain.");
         }
 
-        if ((0.5_rt * (probhi[0] - problo[0]) < initial_model::model_S.radius) ||
-            (0.5_rt * (probhi[1] - problo[1]) < initial_model::model_S.radius) ||
-            (0.5_rt * (probhi[2] - problo[2]) < initial_model::model_S.radius && AMREX_SPACEDIM == 3) ) {
+        if ((0.5_rt * (probhi[0] - problo[0]) < problem::radius_S) ||
+            (0.5_rt * (probhi[1] - problo[1]) < problem::radius_S) ||
+            (0.5_rt * (probhi[2] - problo[2]) < problem::radius_S && AMREX_SPACEDIM == 3) ) {
             amrex::Error("Secondary does not fit inside the domain.");
         }
 
     }
     else {
 
-        if ((probhi[0] - problo[0] < initial_model::model_S.radius) ||
-            (probhi[1] - problo[1] < 2.0_rt * initial_model::model_S.radius)) {
+        if ((probhi[0] - problo[0] < problem::radius_S) ||
+            (probhi[1] - problo[1] < 2.0_rt * problem::radius_S)) {
             amrex::Error("Secondary does not fit inside the domain.");
         }
 
