@@ -421,6 +421,162 @@ void HypreABec::hbcoef (const Box& bx,
     Gpu::synchronize();
 }
 
+void HypreABec::hbmat (const Box& bx,
+                       Array4<GpuArray<Real, AMREX_SPACEDIM+1>> const& mat,
+                       int cdir, int bct, Real bcl,
+                       Array4<int const> const& mask,
+                       Array4<Real const> const& b,
+                       Real beta, const Real* dx)
+{
+    bool xlo = false;
+    bool ylo = false;
+    bool zlo = false;
+
+    bool xhi = false;
+    bool yhi = false;
+    bool zhi = false;
+
+    Real h;
+
+    if (AMREX_SPACEDIM == 1) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            xhi = true;
+            h = dx[0];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else if (AMREX_SPACEDIM == 2) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 2) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 3) {
+            yhi = true;
+            h = dx[1];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 3) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 4) {
+            yhi = true;
+            h = dx[1];
+        }
+        else if (cdir == 2) {
+            zlo = true;
+            h = dx[2];
+        }
+        else if (cdir == 5) {
+            zhi = true;
+            h = dx[2];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+
+    const Real fac = beta / (h * h);;
+
+    Real bfv, bfm;
+
+    if (bct == LO_DIRICHLET) {
+        bfv = fac * h / (0.5e0_rt * h + bcl);
+        bfm = bfv - fac;
+    }
+    else if (bct == LO_NEUMANN) {
+        bfv = beta / h;
+        bfm = -fac;
+    }
+    else {
+        amrex::Error("hbmat: unsupported boundary type");
+    }
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        if (mask.contains(i-1,j,k)) {
+
+            if (xlo && mask(i-1,j,k) > 0) {
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm * b(i,j,k);
+                mat(i,j,k)[0] = 0.e0_rt;
+            }
+
+        }
+        else if (mask.contains(i+1,j,k)) {
+
+            if (xhi && mask(i+1,j,k) > 0) {
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm * b(i+1,j,k);
+            }
+
+        }
+        else if (mask.contains(i,j-1,k)) {
+
+            if (ylo && mask(i,j-1,k) > 0) {
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm * b(i,j,k);
+                mat(i,j,k)[1] = 0.e0_rt;
+            }
+
+        }
+        else if (mask.contains(i,j+1,k)) {
+
+            if (yhi && mask(i,j+1,k) > 0) {
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm * b(i,j+1,k);
+            }
+
+        }
+        else if (mask.contains(i,j,k-1)) {
+
+            if (zlo && mask(i,j,k-1) > 0) {
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm * b(i,j,k);
+                mat(i,j,k)[2] = 0.e0_rt;
+            }
+
+        }
+        else if (mask.contains(i,j,k+1)) {
+
+            if (zhi && mask(i,j,k+1) > 0) {
+                mat(i,j,k)[3] += bfm * b(i,j,k+1);
+            }
+
+        }
+    });
+
+    Gpu::synchronize();
+}
+
 void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
   BL_PROFILE("HypreABec::setupSolver");
@@ -502,13 +658,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
                pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
       }
       else {
-#pragma gpu box(reg) sync
-        hbmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-              mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
-              cdir, bct, bcl,
-              msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-              BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
-              beta, AMREX_REAL_ANYD(dx));
+          hbmat(reg, matfab.array(), cdir, bct, bcl, msk.array(), (*bcoefs[idim])[ai].array(), beta, dx);
       }
     }
 
