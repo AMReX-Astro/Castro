@@ -355,6 +355,72 @@ void HypreABec::getFaceMetric(Vector<Real>& r,
   }
 }
 
+void HypreABec::hacoef (const Box& bx,
+                        Array4<GpuArray<Real, AMREX_SPACEDIM+1>> const& mat,
+                        Array4<Real const> const& a,
+                        Real alpha)
+{
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        if (alpha == 0.e0_rt) {
+            mat(i,j,k)[AMREX_SPACEDIM] = 0.e0_rt;
+        }
+        else {
+            mat(i,j,k)[AMREX_SPACEDIM] = alpha * a(i,j,k);
+        }
+    });
+
+    Gpu::synchronize();
+}
+
+void HypreABec::hbcoef (const Box& bx,
+                        Array4<GpuArray<Real, AMREX_SPACEDIM+1>> const& mat,
+                        Array4<Real const> const& b,
+                        Real beta, const Real* dx,
+                        int idir)
+{
+
+    if (idir == 0) {
+
+        const Real fac = beta / (dx[0] * dx[0]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[0] = -fac * b(i,j,k);
+            mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i+1,j,k));
+        });
+
+    }
+    else if (idir == 1) {
+
+        const Real fac = beta / (dx[1] * dx[1]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[1] = -fac * b(i,j,k);
+            mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i,j+1,k));
+        });
+
+    }
+    else {
+
+        const Real fac = beta / (dx[2] * dx[2]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[2] = -fac * b(i,j,k);
+            mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i,j,k+1));
+        });
+
+    }
+
+    Gpu::synchronize();
+}
+
 void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
   BL_PROFILE("HypreABec::setupSolver");
@@ -372,31 +438,21 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 
   Real foo=1.e200;
 
-  FArrayBox matfab;
+  BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   for (MFIter ai(*acoefs); ai.isValid(); ++ai) {
     i = ai.index();
     const Box &reg = grids[i];
 
-    matfab.resize(reg,size);
+    matfab.resize(reg);
     Elixir matfab_elix = matfab.elixir();
-    Real* mat = matfab.dataPtr();
+    Real* mat = (Real*) matfab.dataPtr();
 
     // build matrix interior
 
-    // Note that we are using AoS indexing of matfab inside these functions.
-
-#pragma gpu box(reg) sync
-    hacoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-           BL_TO_FORTRAN_ANYD(matfab), 
-           BL_TO_FORTRAN_ANYD((*acoefs)[ai]),
-           alpha);
+    hacoef(reg, matfab.array(), (*acoefs)[ai].array(), alpha);
 
     for (idim = 0; idim < BL_SPACEDIM; ++idim) {
-#pragma gpu box(reg) sync
-        hbcoef(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-               BL_TO_FORTRAN_ANYD(matfab),
-               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
-               beta, AMREX_REAL_ANYD(dx), idim);
+        hbcoef(reg, matfab.array(), (*bcoefs[idim])[ai].array(), beta, dx, idim);
     }
 
     // add b.c.'s to matrix diagonal, and
@@ -436,7 +492,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
         hbmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                reg.loVect()[0], reg.hiVect()[0],
                oitr().isLow(), idim+1,
-               BL_TO_FORTRAN_ANYD(matfab),
+               mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
                cdir, bctype,
                tfp, AMREX_INT_ANYD(fsb.loVect()), AMREX_INT_ANYD(fsb.hiVect()),
                bcl,
@@ -448,7 +504,7 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       else {
 #pragma gpu box(reg) sync
         hbmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-              BL_TO_FORTRAN_ANYD(matfab),
+              mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
               cdir, bct, bcl,
               msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),

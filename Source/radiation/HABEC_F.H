@@ -10,16 +10,6 @@ extern "C" {
 #define RadBoundCond int
 #endif
 
-  void hacoef(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(mat),
-              const BL_FORT_FAB_ARG_3D(acoefs),
-              amrex::Real alpha);
-
-  void hbcoef(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(mat),
-              const BL_FORT_FAB_ARG_3D(bcoefs),
-              amrex::Real beta, const amrex::Real* dx, int idir);
-
   void hbmat(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(mat),
              int cdir, int bct, amrex::Real bcl,

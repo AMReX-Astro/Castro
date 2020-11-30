@@ -126,6 +126,16 @@ class HypreABec {
 ///
   void boundaryFlux(amrex::MultiFab* Flux, amrex::MultiFab& Er, int icomp, BC_Mode inhom);
 
+  void hacoef (const amrex::Box& bx,
+               amrex::Array4<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM+1>> const& mat,
+               amrex::Array4<amrex::Real const> const& a,
+               amrex::Real alpha);
+
+  void hbcoef (const amrex::Box& bx,
+               amrex::Array4<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM+1>> const& mat,
+               amrex::Array4<amrex::Real const> const& b,
+               amrex::Real beta, const amrex::Real* dx,
+               int idir);
 
 ///
 /// Three steps separated so that multiple calls to solve can be made
