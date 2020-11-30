@@ -137,6 +137,13 @@ class HypreABec {
                amrex::Real beta, const amrex::Real* dx,
                int idir);
 
+  void hbmat (const amrex::Box& bx,
+              amrex::Array4<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM+1>> const& mat,
+              int cdir, int bct, amrex::Real bcl,
+              amrex::Array4<int const> const& mask,
+              amrex::Array4<amrex::Real const> const& b,
+              amrex::Real beta, const amrex::Real* dx);
+
 ///
 /// Three steps separated so that multiple calls to solve can be made
 ///
