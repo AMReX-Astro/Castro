@@ -127,9 +127,9 @@ void problem_initialize_state_data (int i, int j, int k,
         dye  = 0.5_rt * (std::tanh((yy - y2) / delta_y) - std::tanh((yy - y1) / delta_y ) + 2.0_rt);
 
     } else {
-
+#ifndef AMREX_USE_GPU
         amrex::Error("Error: This problem choice is undefined.");
-
+#endif
     }
 
     state(i,j,k,URHO) = dens;
