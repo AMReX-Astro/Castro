@@ -11,6 +11,7 @@ void problem_initialize_state_data (int i, int j, int k,
 {
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
+    const Real* probhi = geomdata.ProbHi();
 
 
     Real vel1 = -0.5_rt;
@@ -31,17 +32,17 @@ void problem_initialize_state_data (int i, int j, int k,
         w0 = 0.1_rt;
         delta_y = 0.05_rt;
 
-    } else if (problem == 3) {
+    } else if (problem::problem == 3) {
         sine_n = 4;
         w0 = 0.01_rt;
         delta_y = 0.025_rt;
 
-    } else if (problem == 4) {
+    } else if (problem::problem == 4) {
         sine_n = 2;
         w0 = 0.01_rt;
         delta_y = 0.025_rt;
 
-    } else if (problem == 5) {
+    } else if (problem::problem == 5) {
         sine_n = 2;
         w0 = 0.01_rt;
         delta_y = 0.05_rt;
@@ -76,7 +77,7 @@ void problem_initialize_state_data (int i, int j, int k,
     Real dens;
     Real velx;
 
-    if (problem == 1) {
+    if (problem::problem == 1) {
 
         if (std::abs(yy - 0.5_rt * (y1 + y2)) < 0.5_rt * (y2 - y1)) {
             dens = problem::rho2;
@@ -90,9 +91,9 @@ void problem_initialize_state_data (int i, int j, int k,
             (std::exp(-(yy - y1) * (yy - y1) / (2 * sigma * sigma)) +
              std::exp(-(yy - y2) * (yy - y2) / (2 * sigma * sigma)));
 
-    } else if (problem == 2) {
+    } else if (problem::problem == 2) {
 
-        Real ramp = 1.0_rt / ((1.0_rt + std::exp(-2.0_rt * (yy - y1) / delta_y))
+        Real ramp = 1.0_rt / ((1.0_rt + std::exp(-2.0_rt * (yy - y1) / delta_y)) *
                               (1.0_rt + std::exp(2.0_rt * (yy - y2) / delta_y)));
 
         dens = problem::rho1 + ramp * (problem::rho2 - problem::rho1);
@@ -100,9 +101,9 @@ void problem_initialize_state_data (int i, int j, int k,
 
         vely += w0 * std::sin(sine_n * M_PI * xx);
 
-    } else if (problem == 3 || problem == 4) {
+    } else if (problem::problem == 3 || problem::problem == 4) {
 
-        if (yy < y ) {
+        if (yy < y1 ) {
             dens = problem::rho1 - (problem::rho1 - problem::rho2) / 2 * std::exp((yy - y1) / delta_y);
             velx = vel1 - (vel1 - vel2) / 2 * std::exp((yy - y1) / delta_y);
         } else if (yy <= 0.5_rt * (y1 + y2) ) {
@@ -118,7 +119,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
         vely += w0 * std::sin(sine_n * M_PI * xx);
 
-    } else if (problem == 5) {
+    } else if (problem::problem == 5) {
 
         dens = problem::rho1 + (problem::rho2 - problem::rho1) * 0.5_rt * (std::tanh((yy - y1) / delta_y ) - std::tanh((yy - y2) / delta_y));
         velx = vel1 * (std::tanh((yy - y1) / delta_y) - std::tanh((yy - y2) / delta_y ) - 1.0_rt);
@@ -141,8 +142,8 @@ void problem_initialize_state_data (int i, int j, int k,
     eos_t eos_state;
 
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = ONE / static_cast<Real>(NumSpec);
-        eos_state.xn[n] = ONE / static_cast<Real>(NumSpec);
+        state(i,j,k,UFS+n) = 1.0_rt / static_cast<Real>(NumSpec);
+        eos_state.xn[n] = 1.0_rt / static_cast<Real>(NumSpec);
     }
 
     eos_state.rho = state(i,j,k,URHO);
