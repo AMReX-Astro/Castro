@@ -120,7 +120,8 @@ be aware that CLEARing a zone this way may not have the desired effect.
 
 We provide also the ability for the user to define their own tagging criteria.
 This is done through the Fortran function set_problem_tags in the
-problem_tagging_d.f90 files. This function is provided the entire
+file problem_tagging_nd.F90, or through the C++ function problem_tagging
+in the file problem_tagging.H. This function is provided the entire
 state (including density, temperature, velocity, etc.) and the array
 of tagging status for every zone. As an example of how to use this, suppose we
 have a 3D Cartesian simulation where we want to tag any zone that has a
@@ -203,6 +204,12 @@ which to refine), ``gradient`` (absolute value of the difference between
 adjacent cells above which we refine), and ``field_name`` (name of the string
 defining the field in the code). If a refinement indicator is added, either
 ``value_greater``, ``value_less``, or ``gradient`` must be provided.
+
+.. note::
+
+   Zones adjacent to a physical boundary cannot be tagged for refinement when
+   using the Poisson gravity solver. If your tagging criteria are met in these
+   zones, they will be ignored.
 
 .. _sec:amr_synchronization:
 

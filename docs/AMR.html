@@ -323,7 +323,8 @@ ca_denerror, ca_temperror, etc. operate. This is not recommended, and if you do 
 be aware that CLEARing a zone this way may not have the desired effect.</p>
 <p>We provide also the ability for the user to define their own tagging criteria.
 This is done through the Fortran function set_problem_tags in the
-problem_tagging_d.f90 files. This function is provided the entire
+file problem_tagging_nd.F90, or through the C++ function problem_tagging
+in the file problem_tagging.H. This function is provided the entire
 state (including density, temperature, velocity, etc.) and the array
 of tagging status for every zone. As an example of how to use this, suppose we
 have a 3D Cartesian simulation where we want to tag any zone that has a
@@ -402,6 +403,12 @@ which to refine), <code class="docutils literal notranslate"><span class="pre">g
 adjacent cells above which we refine), and <code class="docutils literal notranslate"><span class="pre">field_name</span></code> (name of the string
 defining the field in the code). If a refinement indicator is added, either
 <code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Zones adjacent to a physical boundary cannot be tagged for refinement when
+using the Poisson gravity solver. If your tagging criteria are met in these
+zones, they will be ignored.</p>
+</div>
 </div>
 <div class="section" id="synchronization-algorithm">
 <span id="sec-amr-synchronization"></span><h2>Synchronization Algorithm<a class="headerlink" href="#synchronization-algorithm" title="Permalink to this headline">¶</a></h2>

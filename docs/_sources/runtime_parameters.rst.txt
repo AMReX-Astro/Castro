@@ -178,23 +178,23 @@ namespace: ``castro``
 |                                        | reconstructed profiles to be flat, resulting in a       |               |
 |                                        | first-order method                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``xl_ext_bc_type``                     | if we are doing an external -x boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``xr_ext_bc_type``                     | if we are doing an external +x boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``yl_ext_bc_type``                     | if we are doing an external -y boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``yr_ext_bc_type``                     | if we are doing an external +y boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``zl_ext_bc_type``                     | if we are doing an external -z boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | "fillme"      |
-|                                        | do we interpret it?                                     |               |
+| ``zr_ext_bc_type``                     | if we are doing an external +z boundary condition, who  | -1            |
+|                                        | do we interpret it? 1 = HSE                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``hse_zero_vels``                      | if we are doing HSE boundary conditions, do we zero the | 0             |
 |                                        | velocity?                                               |               |

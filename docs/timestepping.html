@@ -278,15 +278,15 @@ grow in subsequent steps (Real <span class="math notranslate nohighlight">\(\geq
 or other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">castro.initial_dt</span></code>: initial level 0 time
 step regardless of other settings (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; unused if not set)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">castro.dt_cutoff</span></code>: time step below which calculation
-will abort (Real <span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 0.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">castro.dt_cutoff</span></code>: as a fraction of the current simulation time,
+the time step below which the calculation will abort (Real
+<span class="math notranslate nohighlight">\(&gt; 0\)</span>; default: 1.e-12); typically not user-defined</p></li>
 </ul>
 </div></blockquote>
 <p>As an example, consider:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">cfl</span> <span class="o">=</span> <span class="mf">0.9</span>
 <span class="n">castro</span><span class="o">.</span><span class="n">init_shrink</span> <span class="o">=</span> <span class="mf">0.01</span>
 <span class="n">castro</span><span class="o">.</span><span class="n">change_max</span> <span class="o">=</span> <span class="mf">1.1</span>
-<span class="n">castro</span><span class="o">.</span><span class="n">dt_cutoff</span> <span class="o">=</span> <span class="mf">1.e-20</span>
 </pre></div>
 </div>
 <p>This defines the <span class="math notranslate nohighlight">\(\mathtt{cfl}\)</span> parameter in <a class="reference internal" href="#equation-eq-cfl">(2)</a> to be
@@ -297,7 +297,7 @@ the hydrodynamic timestep at the start of a simulation. The
 more than 10% over a coarse timestep. Note that the time step can
 shrink by any factor; this only controls the extent to which it can
 grow. The <code class="docutils literal notranslate"><span class="pre">dt_cutoff</span></code> parameter will force the code to abort if
-the timestep ever drops below <span class="math notranslate nohighlight">\(10^{-20}\)</span>. This is a safety
+the timestep ever drops below <span class="math notranslate nohighlight">\(10^{-12}\)</span> of the current time. This is a safety
 feature—if the code hits such a small value, then something likely
 went wrong in the simulation, and by aborting, you won’t burn through
 your entire allocation before noticing that there is an issue.</p>
