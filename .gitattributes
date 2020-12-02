@@ -1,4 +1,6 @@
 *.ipynb linguist-vendored
 *.tex linguist-documentation
+*.bib linguist-documentation
+*.[123]d* linguist-vendored
 
 *.H linguist-language=C++
