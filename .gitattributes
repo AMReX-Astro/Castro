@@ -6,5 +6,6 @@
 *.mg linguist-vendored
 *.M2 linguist-vendored
 *.3alpha linguist-vendored
+*.nse linguist-vendored
 
 *.H linguist-language=C++
