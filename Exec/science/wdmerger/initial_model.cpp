@@ -251,4 +251,7 @@ void establish_hse (model::initial_model_t& model,
 
     central_density_want = model.state(0, model::idens);
     mass_want = mass;
+
+    model::npts = problem::initial_model_npts;
+    model::initialized = true;
 }

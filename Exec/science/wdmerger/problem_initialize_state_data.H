@@ -2,10 +2,9 @@
 #define problem_initialize_state_data_H
 
 #include <initial_model.H>
-
 #include <ambient.H>
-
 #include <Rotation.H>
+#include <model_parser.H>
 
 // Given a rotating frame velocity, get the inertial frame velocity.
 // Note that we simply return the original velocity if we're
@@ -83,21 +82,26 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P ||
                                      (problem::radius_P <= max_dx && dist_P < max_dx))) {
-        Real pos[3] = {loc[0] - problem::center_P_initial[0],
-                       loc[1] - problem::center_P_initial[1],
-                       loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(model::profile(0), problem::radius_P, pos, dx, zone_state, problem::nsub);
+        zone_state.rho = interpolate(dist_P, model::idens, 0);
+        zone_state.T   = interpolate(dist_P, model::itemp, 0);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate(dist_P, model::ispec + n, 0);
+        }
+
+        eos(eos_input_rt, zone_state);
 
     }
     else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
                                           (problem::radius_S <= max_dx && dist_S < max_dx))) {
 
-        Real pos[3] = {loc[0] - problem::center_S_initial[0],
-                       loc[1] - problem::center_S_initial[1],
-                       loc[2] - problem::center_S_initial[2]};
+        zone_state.rho = interpolate(dist_S, model::idens, 1);
+        zone_state.T   = interpolate(dist_S, model::itemp, 1);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate(dist_S, model::ispec + n, 1);
+        }
 
-        interpolate_3d_from_1d(model::profile(1), problem::radius_S, pos, dx, zone_state, problem::nsub);
+        eos(eos_input_rt, zone_state);
 
     }
     else {
