@@ -31,7 +31,7 @@ jobs:
 
       - name: Check header includes
         run: |
-          echo ::set-env name=HEADER_INCLUDES::$(grep -rIE --include="*.cpp" --include="*.H" --exclude-dir=external "#\s?include\s+\"\w+\.\w+\"")
+          echo 'HEADER_INCLUDES=$(grep -rIE --include="*.cpp" --include="*.H" --exclude-dir=external "#\s?include\s+\"\w+\.\w+\"")' >> $GITHUB_ENV
           echo $HEADER_INCLUDES
           if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
 

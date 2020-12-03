@@ -1,40 +1,58 @@
 #include <AMReX_REAL.H>
 
 #include <Derive.H>
-#include <Problem_Derive_F.H>
 #include <Castro.H>
 #include <Castro_F.H>
+#include <prob_parameters.H>
+#include <extern_parameters.H>
+#include <gravity_params.H>
+#include <problem_util.H>
+#include <RAD_F.H>
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+
+void deranalytic(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+                 const FArrayBox& datfab, const Geometry& geomdata,
+                 Real time, const int* /*bcrec*/, int /*level*/)
 {
+
+  const auto dx = geomdata.CellSizeArray();
+  const auto problo = geomdata.ProbLoArray();
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  GpuArray<Real, NGROUPS> nugroup = {0.0};
+  ca_get_nugroup(nugroup.begin());
+
+  GpuArray<Real, NGROUPS> dnugroup = {0.0};
+  ca_get_dnugroup(dnugroup.begin());
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real loc[3] = {0.0};
+
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+#if AMREX_SPACEDIM >= 2
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
+#if AMREX_SPACEDIM == 3
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #endif
 
-    // Note that in the following routines, we are NOT passing
-    // several variables to Fortran that would be unused.
+    Real r = std::sqrt(loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2]);
 
-    // These routines are called in an MFIter loop, so we do not
-    // need to explicitly synchronize after GPU kernels.
-
-    void ca_deranalytic(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                        const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                        const int* lo, const int* hi,
-                        const int* domain_lo, const int* domain_hi,
-                        const Real* dx, const Real* xlo,
-                        const Real* time, const Real* dt, const int* bcrec, 
-                        const int* level, const int* grid_no)
-    {
-
-        deranalytic(der, AMREX_ARLIM_ANYD(der_lo), AMREX_ARLIM_ANYD(der_hi), *nvar,
-                    data, AMREX_ARLIM_ANYD(data_lo), AMREX_ARLIM_ANYD(data_hi), *ncomp,
-                    AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                    AMREX_ARLIM_ANYD(domain_lo), AMREX_ARLIM_ANYD(domain_hi),
-                    AMREX_REAL_ANYD(dx), *time);
-
+    // compute the analytic radiating sphere solution for each point
+    for (int g = 0; g < NGROUPS; g++) {
+      Real F = F_radsphere(r, time, nugroup[g]);
+      Real E = planck(nugroup[g], problem::T_0) +
+        (R_sphere / r) * (planck(nugroup[g], T_sphere) - planck(nugroup[g], problem::T_0)) * F;
+      der(i,j,k,g) = E * dnugroup[g];
     }
-    
-#ifdef __cplusplus
+
+  });
+
 }
-#endif

@@ -12,8 +12,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
   ! Define rho_0
   rho_0 = p_ref**(1e0_rt/gamma_const)
 

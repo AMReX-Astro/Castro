@@ -39,24 +39,26 @@ $(CASTRO_AUTO_SOURCE_DIR)/extern.F90: $(EXTERN_PARAMETERS) $(EXTERN_TEMPLATE)
 #------------------------------------------------------------------------------
 
 # runtime parameter support for extern/ routines
-ifeq ($(USE_PROB_PARAMS), TRUE)
-   F90EXE_sources += prob_params_auto.F90
-   CEXE_sources += prob_parameters.cpp
-   FEXE_headers += prob_parameters_F.H
-   CEXE_headers += prob_parameters.H
-
-   DEFINES += -DPROB_PARAMS
-endif
+F90EXE_sources += prob_params_auto.F90
+CEXE_sources += prob_parameters.cpp
+FEXE_headers += prob_parameters_F.H
+CEXE_headers += prob_parameters.H
 
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
 PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
+DEFAULT_PROB_PARAMETERS := $(TOP)/Source/problems/_default_prob_params
 
-$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(PROB_PARAMETERS) $(PROB_PARAMS_TEMPLATE)
+# Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
+# on that; if it doesn't exist, it's ignored as a make target. The default
+# parameters file will always exist.
+$(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(DEFAULT_PROB_PARAMETERS) $(wildcard $(PROB_PARAMETERS)) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
 	$(TOP)/Util/scripts/write_probdata.py \
-           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 -p $(PROB_PARAMETERS) \
+           -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 \
+           -d $(DEFAULT_PROB_PARAMETERS) \
+           -p $(PROB_PARAMETERS) \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
 
 #------------------------------------------------------------------------------

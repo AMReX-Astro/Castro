@@ -16,8 +16,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! compute the internal energy (erg/cc) for the left and right state
   xn(:) = 0.0e0_rt
   xn(1) = 1.0e0_rt

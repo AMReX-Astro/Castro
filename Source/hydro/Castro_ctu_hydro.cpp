@@ -2,7 +2,6 @@
 #include <Castro_util.H>
 #include <Castro_F.H>
 #include <Castro_hydro.H>
-#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -39,9 +38,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
   const Real *dx = geom.CellSize();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
   MultiFab& S_new = get_new_data(State_Type);
 
@@ -1261,7 +1257,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-              loc[dir] -= center[dir];
+              loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;
@@ -1274,28 +1270,27 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #ifdef RADIATION
-#pragma gpu box(bx)
-      ctu_rad_consup(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(hydro_source[mfi]),
-                     BL_TO_FORTRAN_ANYD(Erborder[mfi]),
-                     BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                     BL_TO_FORTRAN_ANYD(rad_flux[0]),
-                     BL_TO_FORTRAN_ANYD(qe[0]),
-                     BL_TO_FORTRAN_ANYD(area[0][mfi]),
+      ctu_rad_consup(bx,
+                     update_arr,
+                     Erborder.array(mfi),
+                     S_new.array(mfi),
+                     Er_new.array(mfi),
+                     (rad_flux[0]).array(),
+                     (qe[0]).array(),
+                     (area[0]).array(mfi),
 #if AMREX_SPACEDIM >= 2
-                     BL_TO_FORTRAN_ANYD(rad_flux[1]),
-                     BL_TO_FORTRAN_ANYD(qe[1]),
-                     BL_TO_FORTRAN_ANYD(area[1][mfi]),
+                     (rad_flux[1]).array(),
+                     (qe[1]).array(),
+                     (area[1]).array(mfi),
 #endif
 #if AMREX_SPACEDIM == 3
-                     BL_TO_FORTRAN_ANYD(rad_flux[2]),
-                     BL_TO_FORTRAN_ANYD(qe[2]),
-                     BL_TO_FORTRAN_ANYD(area[2][mfi]),
+                     (rad_flux[2]).array(),
+                     (qe[2]).array(),
+                     (area[2]).array(mfi),
 #endif
-                     &priv_nstep_fsp,
-                     BL_TO_FORTRAN_ANYD(volume[mfi]),
-                     AMREX_REAL_ANYD(dx), dt);
+                     priv_nstep_fsp,
+                     volume.array(mfi),
+                     dt);
 
       nstep_fsp = std::max(nstep_fsp, priv_nstep_fsp);
 #endif

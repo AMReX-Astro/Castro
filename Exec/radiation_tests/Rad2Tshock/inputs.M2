@@ -44,8 +44,8 @@ amr.grid_log        = grdlog  # name of grid logging file
 # 1 = Inflow             4 = SlipWall
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
-castro.lo_bc       =  1    0    0
-castro.hi_bc       =  1    0    0
+castro.lo_bc       =  2    0    0
+castro.hi_bc       =  2    0    0
 
 # WHICH PHYSICS
 castro.do_grav        = 0

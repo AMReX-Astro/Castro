@@ -10,23 +10,6 @@ extern "C" {
 #define RadBoundCond int
 #endif
 
-  void hacoef(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(mat),
-              const BL_FORT_FAB_ARG_3D(acoefs),
-              amrex::Real alpha);
-
-  void hbcoef(const int* lo, const int* hi,
-              BL_FORT_FAB_ARG_3D(mat),
-              const BL_FORT_FAB_ARG_3D(bcoefs),
-              amrex::Real beta, const amrex::Real* dx, int idir);
-
-  void hbmat(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             int cdir, int bct, amrex::Real bcl,
-             const int* mask, const int* m_lo, const int* m_hi,
-             BL_FORT_FAB_ARG_3D(bcoefs),
-             amrex::Real beta, const amrex::Real* dx);
-
   void hbmat3(const int* lo, const int* hi,
               int lo_x, int hi_x,
               int ori_lo, int idir,
@@ -39,27 +22,6 @@ extern "C" {
               amrex::Real beta, const amrex::Real* dx,
               amrex::Real flux_factor,
               const amrex::Real* spa, const int* s_lo, const int* s_hi);
-
-  void hbvec(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(vec),
-             int cdir, int bct, int bho,
-             amrex::Real bcl,
-             const BL_FORT_FAB_ARG_3D(bcval),
-             const int* mask, const int* m_lo, const int* m_hi,
-             BL_FORT_FAB_ARG_3D(bcoefs),
-             amrex::Real beta, const amrex::Real* dx);
-
-  void hbvec3(const int* lo, const int* hi,
-              int lo_x, int hi_x,
-              int ori_lo, int idir,
-              BL_FORT_FAB_ARG_3D(vec),
-              int cdir, int bctype,
-              const int* tf, const int* t_lo, const int* t_hi,
-              const int bho, amrex::Real bcl,
-              const BL_FORT_FAB_ARG_3D(bcval),
-              const int* mask, const int* m_lo, const int* m_hi,
-              BL_FORT_FAB_ARG_3D(bcoefs),
-              amrex::Real beta, const amrex::Real* dx);
 
   void hbflx(BL_FORT_FAB_ARG(flux),
              BL_FORT_FAB_ARG(soln),
@@ -113,26 +75,6 @@ extern "C" {
             BL_FORT_FAB_ARG_3D(mat),
             BL_FORT_FAB_ARG_3D(bcoefs),
             amrex::Real beta, const amrex::Real* dx, int idir);
-
-  void hma2c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(a2coefs), 
-             amrex::Real alpha2, int idir);
-
-  void hmcc(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(mat),
-            BL_FORT_FAB_ARG_3D(ccoefs),
-            amrex::Real gamma, const amrex::Real* dx, int idir);
-
-  void hmd1c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(d1coefs),
-             amrex::Real delta1, const amrex::Real* dx, int idir);
-
-  void hmd2c(const int* lo, const int* hi,
-             BL_FORT_FAB_ARG_3D(mat),
-             BL_FORT_FAB_ARG_3D(d2coefs),
-             amrex::Real delta2, const amrex::Real* dx, int idir);
 
   void hmmat(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(mat),

@@ -30,6 +30,9 @@
 #include <omp.h>
 #endif
 
+#include <problem_initialize_state_data.H>
+#include <problem_checkpoint.H>
+#include <problem_restart.H>
 
 #include <AMReX_buildInfo.H>
 
@@ -191,21 +194,7 @@ Castro::restart (Amr&     papa,
         // eliminating the need for a broadcast
         std::string dir = parent->theRestartFile();
 
-        char * dir_for_pass = new char[dir.size() + 1];
-        std::copy(dir.begin(), dir.end(), dir_for_pass);
-        dir_for_pass[dir.size()] = '\0';
-
-        int len = dir.size();
-
-        Vector<int> int_dir_name(len);
-        for (int j = 0; j < len; j++) {
-          int_dir_name[j] = (int) dir_for_pass[j];
-        }
-
-        problem_restart(int_dir_name.dataPtr(), &len);
-
-        delete [] dir_for_pass;
-
+        problem_restart(dir);
     }
 
     const Real* dx  = geom.CellSize();
@@ -284,12 +273,22 @@ Castro::restart (Amr&     papa,
 
            if (! orig_domain.contains(bx)) {
 
+               auto s = S_new[mfi].array();
+               auto geomdata = geom.data();
+
+               amrex::ParallelFor(bx,
+               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+               {
+                   // C++ problem initialization; has no effect if not implemented
+                   // by a problem setup (defaults to an empty routine).
+                   problem_initialize_state_data(i, j, k, s, geomdata);
+               });
+
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(bx)
-              ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
 
@@ -489,20 +488,7 @@ Castro::checkPoint(const std::string& dir,
 
         {
             // store any problem-specific stuff
-            char * dir_for_pass = new char[dir.size() + 1];
-            std::copy(dir.begin(), dir.end(), dir_for_pass);
-            dir_for_pass[dir.size()] = '\0';
-
-            int len = dir.size();
-
-            Vector<int> int_dir_name(len);
-            for (int j = 0; j < len; j++) {
-              int_dir_name[j] = (int) dir_for_pass[j];
-            }
-
-            problem_checkpoint(int_dir_name.dataPtr(), &len);
-
-            delete [] dir_for_pass;
+            problem_checkpoint(dir);
         }
     }
 
@@ -740,10 +726,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   jobInfoFile << " Domain geometry info\n";
 
-  Real center[3];
-  ca_get_center(center);
-
-  jobInfoFile << "     center: " << center[0] << " , " << center[1] << " , " << center[2] << "\n";
+  jobInfoFile << "     center: " << problem::center[0] << " , " << problem::center[1] << " , " << problem::center[2] << "\n";
   jobInfoFile << "\n";
 
   jobInfoFile << "     geometry.is_periodic: ";
@@ -841,9 +824,7 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
-#ifdef PROB_PARAMS
   prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
-#endif
 
 }
 

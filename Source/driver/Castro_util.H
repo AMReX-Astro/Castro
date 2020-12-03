@@ -2,8 +2,11 @@
 #define CASTRO_UTIL_H
 
 #include <AMReX_Geometry.H>
+#include <network_properties.H>
+#include <state_indices.H>
 
 using namespace amrex;
+
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)

@@ -22,7 +22,6 @@ GPU_COMPATIBLE_PROBLEM = TRUE
 
 # Opt in to the auto-generated problem parameters.
 
-USE_PROB_PARAMS = TRUE
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 

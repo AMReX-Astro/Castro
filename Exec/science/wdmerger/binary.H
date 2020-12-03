@@ -4,30 +4,31 @@
 // This header contains a number of routines that are designed to
 // calculate generic properties of binary orbits.
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real gforce (Real M, Real r)
 {
     return -C::Gconst * M / (r * r) * std::copysign(1.0_rt, r);
 }
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real dgforcedr (Real M, Real r)
 {
     return 2.0_rt * C::Gconst * M / (r * r * r) * std::copysign(1.0_rt, r);
 }
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real cforce (Real M, Real a, Real r)
 {
     return C::Gconst * M / (a * a * a) * r;
 }
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real dcforcedr (Real M, Real a, Real r)
 {
     return C::Gconst * M / (a * a * a);
 }
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real fL (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 {
     Real g1 = gforce(M1, r - r1);
@@ -38,7 +39,7 @@ Real fL (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
     return g1 + g2 + c;
 }
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real fdLdr (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 {
     Real dg1 = dgforcedr(M1, r - r1);
@@ -55,6 +56,7 @@ Real fdLdr (Real M1, Real M2, Real r1, Real r2, Real r, Real a)
 // since in general the equation has multiple roots.
 // We assume that r comes in with a valid starting guess value.
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real a, Real r_min, Real r_max)
 {
     // Root-find parameters
@@ -129,6 +131,7 @@ void lagrange_iterate (Real& r, Real mass_1, Real mass_2, Real r1, Real r2, Real
 // Calculate Lagrange points. In each case we give the zone index
 // closest to it (assuming we're on the coarse grid).
 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void get_lagrange_points (Real mass_1, Real mass_2, const Real* com_1, const Real* com_2,
                           GpuArray<Real, 3>& L1, GpuArray<Real, 3>& L2, GpuArray<Real, 3>& L3)
 {
@@ -180,6 +183,26 @@ void get_lagrange_points (Real mass_1, Real mass_2, const Real* com_1, const Rea
     for (int n = 0; n < 3; ++n) {
         L3[n] = r * (com_2[n] - com_1[n]) / a;
     }
+}
+
+// Given the mass ratio q of two stars (assumed to be q = M_1 / M_2),
+// compute the effective Roche radii of the stars, normalized to unity,
+// using the approximate formula of Eggleton (1983). Optionally we can
+// pass in a distance scale.
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void get_roche_radii (Real mass_ratio, Real& r_1, Real& r_2, Real a = 1.0_rt)
+{
+    const Real c1 = 0.49e0_rt;
+    const Real c2 = 0.60e0_rt;
+
+    Real q = mass_ratio;
+
+    r_1 = a * c1 * std::pow(q, 2.0_rt / 3.0_rt) / (c2 * std::pow(q, 2.0_rt / 3.0_rt) + std::log(1.0_rt + std::pow(q, 1.0_rt / 3.0_rt)));
+
+    q = 1.0_rt / q;
+
+    r_2 = a * c1 * std::pow(q, 2.0_rt / 3.0_rt) / (c2 * std::pow(q, 2.0_rt / 3.0_rt) + std::log(1.0_rt + std::pow(q, 1.0_rt / 3.0_rt)));
 }
 
 #endif

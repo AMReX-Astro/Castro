@@ -17,8 +17,6 @@ subroutine amrex_probinit (init,name,namlen,problo,probhi) bind(c)
 
   integer :: k, n
 
-  call probdata_init(name, namlen)
-
   ! read the initial model
   call read_model_file(model_name)
 

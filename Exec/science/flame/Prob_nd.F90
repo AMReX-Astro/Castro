@@ -22,8 +22,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   integer :: ifuel1, iash1, ifuel2, iash2, ifuel3, iash3, ifuel4, iash4
 
-  call probdata_init(name, namlen)
-
   ifuel1 = network_species_index(fuel1_name)
   iash1 = network_species_index(ash1_name)
 

@@ -41,7 +41,7 @@ to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://github.com/hypre-space/hypre (the minimum
-supported release version is 2.15.0). Their install
+supported release version is 2.19.0). Their install
 instructions describe what to do; we recommend using the autotools
 and GNU Make build. On HPC clusters, you typically want to build
 with the same compiler you're using to build Castro, and you also
