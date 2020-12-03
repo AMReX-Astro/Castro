@@ -163,6 +163,45 @@ interpolate(const Real r, const int var_index, const int model_index=0) {
 
 }
 
+// Subsample the interpolation to get an averaged profile. For this we need to know the
+// 3D coordinate (relative to the model center) and cell size.
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real interpolate_3d (const Real* loc, const Real* dx, int var_index, int nsub = 1, int model_index = 0)
+{
+    // We perform a sub-grid-scale interpolation, where
+    // nsub determines the number of intervals we split the zone into.
+    // If nsub = 1, we simply interpolate using the cell-center location.
+    // As an example, if nsub = 3, then the sampled locations will be
+    // k = 0 --> z = loc(3) - dx(3) / 3   (1/6 of way from left edge of zone)
+    // k = 1 --> z = loc(3)               (halfway between left and right edge)
+    // k = 2 --> z = loc(3) + dx(3) / 3   (1/6 of way from right edge of zone)
+
+    Real interp = 0.0_rt;
+
+    for (int k = 0; k < nsub; ++k) {
+        Real z = loc[2] + (static_cast<Real>(k) + 0.5_rt * (1 - nsub)) * dx[2] / nsub;
+
+        for (int j = 0; j < nsub; ++j) {
+            Real y = loc[1] + (static_cast<Real>(j) + 0.5_rt * (1 - nsub)) * dx[1] / nsub;
+
+            for (int i = 0; i < nsub; ++i) {
+                Real x = loc[0] + (static_cast<Real>(i) + 0.5_rt * (1 - nsub)) * dx[0] / nsub;
+
+                Real dist = std::sqrt(x * x + y * y + z * z);
+
+                interp += interpolate(dist, var_index, model_index);
+            }
+        }
+    }
+
+    // Now normalize by the number of intervals.
+
+    interp /= (nsub * nsub * nsub);
+
+    return interp;
+}
+
 AMREX_INLINE
 void
 read_model_file(std::string& model_file, const int model_index=0) {
