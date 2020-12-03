@@ -71,7 +71,7 @@ void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,
 
 // Given a WD mass, set its core and envelope composition.
 
-void set_wd_composition (initial_model::model& model, Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
+void set_wd_composition (Real mass, Real& envelope_mass, Real core_comp[NumSpec], Real envelope_comp[NumSpec])
 {
     int iHe4 = network_spec_index("helium-4");
     int iC12 = network_spec_index("carbon-12");
@@ -471,7 +471,7 @@ void binary_setup ()
         amrex::Error("Must specify either a positive primary mass or a positive primary central density.");
     }
 
-    set_wd_composition(initial_model::model_P, problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
+    set_wd_composition(problem::mass_P, problem::envelope_mass_P, problem::core_comp_P, problem::envelope_comp_P);
 
 
 
@@ -485,7 +485,7 @@ void binary_setup ()
             amrex::Error("If we are doing a binary calculation, we must specify either a positive secondary mass or a positive secondary central density");
         }
 
-        set_wd_composition(initial_model::model_S, problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
+        set_wd_composition(problem::mass_S, problem::envelope_mass_S, problem::core_comp_S, problem::envelope_comp_S);
 
         for (int n = 0; n < NumSpec; ++n) {
             ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (problem::envelope_comp_P[n] + problem::envelope_comp_S[n]) / 2;
@@ -526,7 +526,7 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
-    establish_hse(initial_model::model_P, problem::mass_P, problem::central_density_P, problem::envelope_mass_P,
+    establish_hse(model::profile(0), problem::mass_P, problem::central_density_P, problem::envelope_mass_P,
                   problem::radius_P, problem::core_comp_P, problem::envelope_comp_P);
 
     amrex::Print() << std::endl;
@@ -540,7 +540,7 @@ void binary_setup ()
 
     if (!problem::single_star) {
 
-        establish_hse(initial_model::model_S, problem::mass_S, problem::central_density_S, problem::envelope_mass_S,
+        establish_hse(model::profile(1), problem::mass_S, problem::central_density_S, problem::envelope_mass_S,
                       problem::radius_S, problem::core_comp_S, problem::envelope_comp_S);
 
         amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << problem::mass_S / C::M_solar

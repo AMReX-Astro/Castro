@@ -6,26 +6,10 @@
 #include <network_properties.H>
 #include <eos.H>
 #include <interpolate.H>
+#include <model_parser_data.H>
 #include <prob_parameters.H>
 
-namespace initial_model {
-    const int initial_model_max_npts = 10000;
-
-    struct model {
-        amrex::Real r[initial_model_max_npts];
-        amrex::Real rho[initial_model_max_npts];
-        amrex::Real T[initial_model_max_npts];
-        amrex::Real p[initial_model_max_npts];
-        amrex::Real xn[NumSpec][initial_model_max_npts];
-    };
-
-    // 1D initial models
-
-    extern AMREX_GPU_MANAGED model model_P;
-    extern AMREX_GPU_MANAGED model model_S;
-}
-
-void establish_hse (initial_model::model& model,
+void establish_hse (model::initial_model_t& profile,
                     Real& mass, Real& central_density,
                     Real envelope_mass, Real& radius,
                     const Real core_comp[NumSpec], const Real envelope_comp[NumSpec]);
@@ -35,7 +19,7 @@ void establish_hse (initial_model::model& model,
 // if nsub > 1 (set in the probin file).
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void interpolate_3d_from_1d (initial_model::model& model, Real radius,
+void interpolate_3d_from_1d (model::initial_model_t& profile, Real radius,
                              const Real* loc, const Real* dx, eos_t& state, int nsub = 1)
 {
     state.rho = 0.0_rt;
@@ -59,10 +43,10 @@ void interpolate_3d_from_1d (initial_model::model& model, Real radius,
 
     if (radius <= max_dx && dist < max_dx) {
 
-        state.rho = model.rho[0];
-        state.T   = model.T[0];
+        state.rho = profile.state(0, model::idens);
+        state.T   = profile.state(0, model::itemp);
         for (int n = 0; n < NumSpec; ++n) {
-            state.xn[n]  = model.xn[n][0];
+            state.xn[n]  = profile.state(0, model::ispec + n);
         }
 
     }
@@ -87,11 +71,11 @@ void interpolate_3d_from_1d (initial_model::model& model, Real radius,
 
                     Real dist = std::sqrt(x * x + y * y + z * z);
 
-                    state.rho = state.rho + interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.rho);
-                    state.T   = state.T   + interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.T);
+                    state.rho = state.rho + interpolate::interpolate(dist, problem::initial_model_npts, &profile.r(0), &profile.state(0, model::idens));
+                    state.T   = state.T   + interpolate::interpolate(dist, problem::initial_model_npts, &profile.r(0), &profile.state(0, model::itemp));
 
                     for (int n = 0; n < NumSpec; ++n) {
-                        state.xn[n] += interpolate::interpolate(dist, problem::initial_model_npts, model.r, model.xn[n]);
+                        state.xn[n] += interpolate::interpolate(dist, problem::initial_model_npts, &profile.r(0), &profile.state(0, model::ispec + n));
                     }
                 }
             }

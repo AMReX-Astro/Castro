@@ -1,15 +1,11 @@
 #include <initial_model.H>
 #include <castro_params.H>
 #include <prob_parameters.H>
+#include <model_parser_data.H>
 #include <eos.H>
 #include <ambient.H>
 
-AMREX_GPU_MANAGED initial_model::model initial_model::model_P;
-AMREX_GPU_MANAGED initial_model::model initial_model::model_S;
-
-using namespace initial_model;
-
-void establish_hse (model& model,
+void establish_hse (model::initial_model_t& model,
                     Real& mass_want, Real& central_density_want,
                     Real envelope_mass, Real& radius,
                     const Real core_comp[NumSpec], const Real envelope_comp[NumSpec])
@@ -72,37 +68,37 @@ void establish_hse (model& model,
         // We start at the center of the WD and integrate outward.  Initialize
         // the central conditions.
 
-        model.T[0]    = problem::stellar_temp;
-        model.rho[0]  = rho_c;
+        model.state(0, model::itemp) = problem::stellar_temp;
+        model.state(0, model::idens) = rho_c;
         for (int n = 0; n < NumSpec; ++n) {
-            model.xn[n][0] = core_comp[n];
+            model.state(0, model::ispec + n) = core_comp[n];
         }
 
         eos_t eos_state;
-        eos_state.rho  = model.rho[0];
-        eos_state.T    = model.T[0];
+        eos_state.rho  = model.state(0, model::idens);
+        eos_state.T    = model.state(0, model::itemp);
         for (int n = 0; n < NumSpec; ++n) {
-            eos_state.xn[n] = model.xn[n][0];
+            eos_state.xn[n] = model.state(0, model::ispec + n);
         }
 
         eos(eos_input_rt, eos_state);
 
-        model.p[0] = eos_state.p;
+        model.state(0, model::ipres) = eos_state.p;
 
-        model.r[0] = 0.5 * problem::initial_model_dx;
+        model.r(0) = 0.5 * problem::initial_model_dx;
 
-        int icutoff = initial_model_max_npts;
+        int icutoff = NPTS_MODEL;
 
         // Make the initial guess be completely uniform.
 
-        for (int i = 1; i < initial_model_max_npts; ++i) {
-            model.rho[i] = model.rho[0];
-            model.T[i]   = model.T[0];
-            model.p[i]   = model.p[0];
+        for (int i = 1; i < NPTS_MODEL; ++i) {
+            model.state(i, model::idens) = model.state(0, model::idens);
+            model.state(i, model::itemp) = model.state(0, model::itemp);
+            model.state(i, model::ipres) = model.state(0, model::ipres);
             for (int n = 0; n < NumSpec; ++n) {
-                model.xn[n][i] = model.xn[n][0];
+                model.state(i, model::ispec + n) = model.state(0, model::ispec + n);
             }
-            model.r[i] = model.r[i-1] + problem::initial_model_dx;
+            model.r(i) = model.r(i-1) + problem::initial_model_dx;
         }
 
         // Keep track of the mass enclosed below the current zone.
@@ -110,7 +106,7 @@ void establish_hse (model& model,
         Real rl = 0.0_rt;
         Real rr = rl + problem::initial_model_dx;
 
-        Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.rho[0];
+        Real M_enclosed = (4.0_rt / 3.0_rt) * M_PI * (std::pow(rr, 3) - std::pow(rl, 3)) * model.state(0, model::idens);
         mass = M_enclosed;
 
         //-------------------------------------------------------------------------
@@ -123,18 +119,18 @@ void establish_hse (model& model,
 
             // As the initial guess for the density, use the underlying zone.
 
-            model.rho[i] = model.rho[i-1];
+            model.state(i, model::idens) = model.state(i-1, model::idens);
 
             if (mass_want > 0.0_rt && M_enclosed >= mass_want - envelope_mass) {
                 for (int n = 0; n < NumSpec; ++n) {
-                    model.xn[n][i] = envelope_comp[n];
-                    eos_state.xn[n] = model.xn[n][i];
+                    model.state(i, model::ispec + n) = envelope_comp[n];
+                    eos_state.xn[n] = model.state(i, model::ispec + n);
                 }
             }
             else {
                 for (int n = 0; n < NumSpec; ++n) {
-                    model.xn[n][i] = core_comp[n];
-                    eos_state.xn[n] = model.xn[n][i];
+                    model.state(i, model::ispec + n) = core_comp[n];
+                    eos_state.xn[n] = model.state(i, model::ispec + n);
                 }
             }
 
@@ -152,7 +148,7 @@ void establish_hse (model& model,
             for (int hse_iter = 1; hse_iter <= max_hse_iter; ++hse_iter) {
 
                 if (fluff) {
-                    model.rho[i] = ambient::ambient_state[URHO];
+                    model.state(i, model::idens) = ambient::ambient_state[URHO];
                     eos_state.rho = ambient::ambient_state[URHO];
                     break;
                 }
@@ -163,22 +159,24 @@ void establish_hse (model& model,
                 // We difference HSE about the interface between the current
                 // zone and the one just inside.
 
-                Real rho_avg = 0.5_rt * (model.rho[i] + model.rho[i-1]);
-                p_want = model.p[i-1] + problem::initial_model_dx * rho_avg * g;
+                Real rho_avg = 0.5_rt * (model.state(i, model::idens) + model.state(i-1, model::idens));
+                p_want = model.state(i-1, model::ipres) + problem::initial_model_dx * rho_avg * g;
 
                 eos(eos_input_rt, eos_state);
 
                 drho = (p_want - eos_state.p) / (eos_state.dpdr - 0.5_rt * problem::initial_model_dx * g);
 
-                model.rho[i] = amrex::max(0.9_rt * model.rho[i], amrex::min(model.rho[i] + drho, 1.1_rt * model.rho[i]));
-                eos_state.rho = model.rho[i];
+                model.state(i, model::idens) = amrex::max(0.9_rt * model.state(i, model::idens),
+                                                     amrex::min(model.state(i, model::idens) + drho,
+                                                                1.1_rt * model.state(i, model::idens)));
+                eos_state.rho = model.state(i, model::idens);
 
-                if (model.rho[i] < ambient::ambient_state[URHO]) {
+                if (model.state(i, model::idens) < ambient::ambient_state[URHO]) {
                     icutoff = i;
                     fluff = true;
                 }
 
-                if (std::abs(drho) < problem::initial_model_hse_tol * model.rho[i]) {
+                if (std::abs(drho) < problem::initial_model_hse_tol * model.state(i, model::idens)) {
                     converged_hse = true;
                     break;
                 }
@@ -188,9 +186,9 @@ void establish_hse (model& model,
             if (!converged_hse && (!fluff)) {
 
                 std::cout << "Error: zone " <<  i << " did not converge in init_hse()" << std::endl;
-                std::cout << model.rho[i] << " " << model.T[i] << std::endl;
+                std::cout << model.state(i, model::idens) << " " << model.state(i, model::itemp) << std::endl;
                 std::cout << p_want << " " << eos_state.p;
-                std::cout << drho << " " << problem::initial_model_hse_tol * model.rho[i];
+                std::cout << drho << " " << problem::initial_model_hse_tol * model.state(i, model::idens);
                 amrex::Error("Error: HSE non-convergence.");
 
             }
@@ -199,11 +197,11 @@ void establish_hse (model& model,
 
             eos(eos_input_rt, eos_state);
 
-            model.p[i] = eos_state.p;
+            model.state(i, model::ipres) = eos_state.p;
 
             // Discretize the mass enclosed as (4 pi / 3) * rho * dr * (rl**2 + rl * rr + rr**2).
 
-            Real dM = (4.0_rt / 3.0_rt) * M_PI * model.rho[i] * problem::initial_model_dx *
+            Real dM = (4.0_rt / 3.0_rt) * M_PI * model.state(i, model::idens) * problem::initial_model_dx *
                       (rr * rr + rl * rr + rl * rl);
             M_enclosed += dM;
 
@@ -214,7 +212,7 @@ void establish_hse (model& model,
 
         } // End loop over zones
 
-        radius = model.r[icutoff];
+        radius = model.r(icutoff);
 
         if (rho_c_old < 0.0_rt) {
 
@@ -251,6 +249,6 @@ void establish_hse (model& model,
         amrex::Error("ERROR: WD mass did not converge.");
     }
 
-    central_density_want = model.rho[0];
+    central_density_want = model.state(0, model::idens);
     mass_want = mass;
 }
