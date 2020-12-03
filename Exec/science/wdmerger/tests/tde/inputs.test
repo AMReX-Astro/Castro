@@ -192,7 +192,7 @@ _
 amr.plot_vars = ALL
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = ALL
+amr.derive_plot_vars = enuc rho_phiGrav angular_momentum_x angular_momentum_y angular_momentum_z
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
