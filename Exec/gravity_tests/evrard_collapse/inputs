@@ -21,6 +21,7 @@ castro.hi_bc       =  2   2   2
 castro.do_hydro = 1
 castro.do_grav  = 1
 castro.ppm_type = 0
+castro.grav_source_type = 4
 
 castro.small_dens = 1.0e-2
 castro.small_temp = 1.0e0

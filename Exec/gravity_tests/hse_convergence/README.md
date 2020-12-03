@@ -18,6 +18,7 @@ To run this problem, use one of the convergence scripts:
   * convergence_ppm.sh :
 
     this runs CTU + PPM in a similar set of configurations as PLM above
+    (with one additional one: grav_source_type = 4)
 
     These tests show that the best results come from HSE BCs + reflect vel
 

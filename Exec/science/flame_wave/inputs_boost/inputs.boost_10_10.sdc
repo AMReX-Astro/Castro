@@ -50,6 +50,8 @@ castro.sdc_solver_tol_ener = 1.e-6
 castro.sdc_solver_atol = 1.e-10
 castro.sdc_solver = 1
 
+castro.grav_source_type = 2
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e14
 

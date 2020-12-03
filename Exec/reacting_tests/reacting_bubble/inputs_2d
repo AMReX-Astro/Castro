@@ -35,6 +35,7 @@ castro.do_sponge = 1
 castro.small_temp = 1.e6
 
 castro.ppm_type = 1
+castro.grav_source_type = 2
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.5e10

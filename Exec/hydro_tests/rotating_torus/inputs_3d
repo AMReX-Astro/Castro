@@ -32,6 +32,9 @@ castro.limit_fluxes_on_small_dens = 1
 
 castro.use_retry = 1
 
+castro.grav_source_type = 4
+castro.rot_source_type = 4
+
 # THERMODYNAMICS
 
 castro.dual_energy_eta1 = 1.0e-3

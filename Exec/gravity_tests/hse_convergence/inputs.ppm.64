@@ -33,6 +33,8 @@ castro.time_integration_method = 0
 castro.ppm_type=1
 #castro.plm_well_balanced=1
 
+castro.grav_source_type = 2
+
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.e10
 
