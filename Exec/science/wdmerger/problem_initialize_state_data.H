@@ -2,9 +2,7 @@
 #define problem_initialize_state_data_H
 
 #include <initial_model.H>
-
 #include <ambient.H>
-
 #include <Rotation.H>
 
 // Given a rotating frame velocity, get the inertial frame velocity.
@@ -87,7 +85,7 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_P_initial[1],
                        loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(model::profile(0), problem::radius_P, pos, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(0, problem::radius_P, pos, dx, zone_state, problem::nsub);
 
     }
     else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
@@ -97,7 +95,7 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_S_initial[1],
                        loc[2] - problem::center_S_initial[2]};
 
-        interpolate_3d_from_1d(model::profile(1), problem::radius_S, pos, dx, zone_state, problem::nsub);
+        interpolate_3d_from_1d(1, problem::radius_S, pos, dx, zone_state, problem::nsub);
 
     }
     else {

@@ -5,8 +5,8 @@
 
 #include <network_properties.H>
 #include <eos.H>
-#include <interpolate.H>
 #include <model_parser_data.H>
+#include <model_parser.H>
 #include <prob_parameters.H>
 
 void establish_hse (model::initial_model_t& model,
@@ -19,7 +19,7 @@ void establish_hse (model::initial_model_t& model,
 // if nsub > 1 (set in the probin file).
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void interpolate_3d_from_1d (model::initial_model_t& model, Real radius,
+void interpolate_3d_from_1d (int model_index, Real radius,
                              const Real* loc, const Real* dx, eos_t& state, int nsub = 1)
 {
     state.rho = 0.0_rt;
@@ -43,10 +43,10 @@ void interpolate_3d_from_1d (model::initial_model_t& model, Real radius,
 
     if (radius <= max_dx && dist < max_dx) {
 
-        state.rho = model.state(0, model::idens);
-        state.T   = model.state(0, model::itemp);
+        state.rho = model::profile(model_index).state(0, model::idens);
+        state.T   = model::profile(model_index).state(0, model::itemp);
         for (int n = 0; n < NumSpec; ++n) {
-            state.xn[n]  = model.state(0, model::ispec + n);
+            state.xn[n]  = model::profile(model_index).state(0, model::ispec + n);
         }
 
     }
@@ -71,11 +71,11 @@ void interpolate_3d_from_1d (model::initial_model_t& model, Real radius,
 
                     Real dist = std::sqrt(x * x + y * y + z * z);
 
-                    state.rho = state.rho + interpolate::interpolate(dist, problem::initial_model_npts, &model.r(0), &model.state(0, model::idens));
-                    state.T   = state.T   + interpolate::interpolate(dist, problem::initial_model_npts, &model.r(0), &model.state(0, model::itemp));
+                    state.rho = state.rho + interpolate(dist, model::idens, model_index);
+                    state.T   = state.T   + interpolate(dist, model::itemp, model_index);
 
                     for (int n = 0; n < NumSpec; ++n) {
-                        state.xn[n] += interpolate::interpolate(dist, problem::initial_model_npts, &model.r(0), &model.state(0, model::ispec + n));
+                        state.xn[n] += interpolate(dist, model::ispec + n, model_index);
                     }
                 }
             }

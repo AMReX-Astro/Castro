@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <network.H>
 #include <model_parser_data.H>
+#include <AMReX_Print.H>
 
 using namespace amrex;
 
