@@ -46,7 +46,7 @@ constexpr int Shock = USHK;
 #include <AMReX_FluxRegister.H>
 #include <network.H>
 #include <eos.H>
-#ifdef CXX_REACTIONS
+#ifdef REACTIONS
 #include <burner.H>
 #endif
 
@@ -588,6 +588,13 @@ public:
 ///
     amrex::Real estdt_temp_diffusion();
 
+#ifdef REACTIONS
+///
+/// Reactions-limited timestep
+///
+    amrex::Real estdt_burning();
+#endif
+
 ///
 /// Compute initial time step.
 ///
@@ -749,6 +756,15 @@ public:
 /// @param time         current time
 ///
     void apply_problem_tags (amrex::TagBoxArray& tags, amrex::Real time);
+
+
+///
+/// Apply any tagging restrictions that must be satisfied by all problems.
+///
+/// @param tags         TagBoxArray of tags
+/// @param time         current time
+///
+    void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
 
 
 ///
@@ -1138,6 +1154,11 @@ public:
 
     void write_info ();
 
+///
+/// Return BCs
+///
+    static amrex::BCRec physbc () { return phys_bc; }
+
 #ifdef GRAVITY
 
 ///
@@ -1175,9 +1196,6 @@ public:
 #endif
 
     static amrex::Vector<std::string> source_names;
-
-    static amrex::Vector<int> upass_map;
-    static amrex::Vector<int> qpass_map;
 
 ///
 /// Vector storing list of custom error tags.

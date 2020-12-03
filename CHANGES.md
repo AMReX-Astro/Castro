@@ -1,6 +1,32 @@
-# 20.12
+# 21.01
 
    * grav_source_type and rot_source_type have been removed. (#580)
+
+# 20.12
+
+   * An issue with incorrect application of HSE boundary conditions on derived quantities
+     is now resolved (#1356). Also, at this point the old Fortran implementations hypfill,
+     denfill, ext_hypfill, and ext_denfill have been removed; problem-specific boundary
+     conditions should be implemented using the new C++ interface in this release from #1289.
+
+   * The minimum supported Hypre version is now 2.19.0. (#1333)
+
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
+   * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
+     Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
+     are now deleted from the code; if you were using these to implement problem-specific
+     functionality, you can still manually add these files to the `Make.package` for your
+     problem setup. (#1311)
+
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
 
    * An interface for doing problem tagging in C++ has been added. (#1289)
 

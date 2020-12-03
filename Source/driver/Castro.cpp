@@ -52,9 +52,10 @@
 
 #include <microphysics_F.H>
 
-#include <problem_setup.H>
+#include <problem_initialize.H>
+#include <problem_initialize_state_data.H>
 #ifdef MHD
-#include <problem_mhd_setup.H>
+#include <problem_initialize_mhd_data.H>
 #endif
 #include <problem_tagging.H>
 
@@ -77,9 +78,6 @@ Real         Castro::lastDtBeforePlotLimiting = 0.0;
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
-
-Vector<int> Castro::upass_map;
-Vector<int> Castro::qpass_map;
 
 Vector<AMRErrorTag> Castro::custom_error_tags;
 
@@ -148,10 +146,6 @@ int          Castro::num_state_type = 0;
 
 int          Castro::do_init_probparams = 0;
 
-
-namespace amrex {
-    extern int compute_new_dt_on_regrid;
-}
 
 // Castro::variableSetUp is in Castro_setup.cpp
 // variableCleanUp is called once at the end of a simulation
@@ -479,7 +473,7 @@ Castro::read_params ()
     // in Amr::InitAmr(), right before the ParmParse checks, so if the user opts to
     // override our overriding, they can do so.
 
-    compute_new_dt_on_regrid = 1;
+    Amr::setComputeNewDtOnRegrid(1);
 
     // Read in custom refinement scheme.
 
@@ -561,6 +555,7 @@ Castro::Castro (Amr&            papa,
     // initialize the C++ values of the runtime parameters
     if (do_init_probparams == 0) {
       init_prob_parameters();
+
       do_init_probparams = 1;
 
       // Copy ambient data from Fortran to C++. This should be done prior to
@@ -1125,10 +1120,9 @@ Castro::initData ()
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(box)
-          ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+          ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                      AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+                      AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
           RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -1409,11 +1403,10 @@ Castro::initData ()
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(box)
           ca_initrad
-              (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              (AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+               AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
           RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
@@ -1550,7 +1543,7 @@ Castro::init ()
 
     for (int s = 0; s < num_state_type; ++s) {
         MultiFab& state_MF = get_new_data(s);
-        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp());
+        FillCoarsePatch(state_MF, 0, time, s, 0, state_MF.nComp(), state_MF.nGrow());
     }
 }
 
@@ -1689,38 +1682,14 @@ Castro::estTimeStep ()
 #endif  // diffusion
 
 #ifdef REACTIONS
-    MultiFab& S_new = get_new_data(State_Type);
-    MultiFab& R_new = get_new_data(Reactions_Type);
-
     // Dummy value to start with
     Real estdt_burn = max_dt;
 
     if (do_react) {
 
-        const Real* dx = geom.CellSize();
-
         // Compute burning-limited timestep.
 
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_burn)
-#endif
-        {
-            Real dt = max_dt;
-
-            for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-            {
-                const Box& box = mfi.validbox();
-
-#pragma gpu box(box)
-                ca_estdt_burning(AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-                                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                                 BL_TO_FORTRAN_ANYD(R_new[mfi]),
-                                 AMREX_REAL_ANYD(dx), AMREX_MFITER_REDUCE_MIN(&dt));
-
-            }
-
-            estdt_burn = std::min(estdt_burn,dt);
-        }
+        estdt_burn = estdt_burning();
 
         ParallelDescriptor::ReduceRealMin(estdt_burn);
 
@@ -3309,6 +3278,11 @@ Castro::errorEst (TagBoxArray& tags,
     // Now we'll tag any user-specified zones using the full state array.
 
     apply_problem_tags(tags, ltime);
+
+    // Finally we'll apply any tagging restrictions which must be obeyed by any setup.
+
+    apply_tagging_restrictions(tags, ltime);
+
 }
 
 
@@ -3323,6 +3297,8 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
     const Real* prob_lo   = geom.ProbLo();
 
     MultiFab& S_new = get_new_data(State_Type);
+
+    int lev = level;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -3345,15 +3321,14 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             amrex::ParallelFor(bx,
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
-                problem_tagging(i, j, k, tag_arr, state_arr, geomdata);
+                problem_tagging(i, j, k, tag_arr, state_arr, lev, geomdata);
             });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
-#pragma gpu box(bx)
-            set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                              BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
 #else
             set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
@@ -3365,6 +3340,89 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
         }
     }
 
+}
+
+
+
+void
+Castro::apply_tagging_restrictions(TagBoxArray& tags, Real time)
+{
+    BL_PROFILE("Castro::apply_tagging_restrictions()");
+
+    // If we are using Poisson gravity, we must ensure that the outermost zones are untagged
+    // due to the Poisson equation boundary conditions (we currently do not know how to fill
+    // the boundary conditions for fine levels that touch the physical boundary.)
+    // To do this properly we need to be aware of AMReX's strategy for tagging, which is not
+    // cell-based, but rather chunk-based. The size of the chunk on the coarse grid is given
+    // by blocking_factor / ref_ratio -- the idea here being that blocking_factor is the
+    // smallest possible group of cells on a given level, so the smallest chunk of cells
+    // possible on the coarse grid is given by that number divided by the refinement ratio.
+    // So we cannot tag anything within that distance from the boundary. Additionally we
+    // need to stay a further amount n_error_buf away, since n_error_buf zones are always
+    // added as padding around tagged zones.
+
+#ifdef GRAVITY
+    if (gravity::gravity_type == "PoissonGrav") {
+
+        int lev = level;
+
+        int n_error_buf[3] = {0};
+        int ref_ratio[3] = {0};
+        int domlo[3] = {0};
+        int domhi[3] = {0};
+        int physbc_lo[3] = {-1};
+        int physbc_hi[3] = {-1};
+        int blocking_factor[3] = {0};
+        for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+            n_error_buf[dim] = parent->nErrorBuf(lev, dim);
+            ref_ratio[dim] = parent->refRatio(lev)[dim];
+            domlo[dim] = geom.Domain().loVect()[dim];
+            domhi[dim] = geom.Domain().hiVect()[dim];
+            physbc_lo[dim] = phys_bc.lo()[dim];
+            physbc_hi[dim] = phys_bc.hi()[dim];
+            blocking_factor[dim] = parent->blockingFactor(lev)[dim];
+        }
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+        for (MFIter mfi(tags); mfi.isValid(); ++mfi) {
+            const Box& bx = mfi.tilebox();
+
+            auto tag = tags[mfi].array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                bool outer_boundary_test[3] = {false};
+
+                int idx[3] = {i, j, k};
+
+                for (int dim = 0; dim < AMREX_SPACEDIM; ++dim) {
+
+                    int boundary_buf = n_error_buf[dim] + blocking_factor[dim] / ref_ratio[dim];
+
+                    if ((physbc_lo[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] <= domlo[dim] + boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+
+                    if ((physbc_hi[dim] != Symmetry && physbc_lo[dim] != Interior) &&
+                        (idx[dim] >= domhi[dim] - boundary_buf)) {
+                        outer_boundary_test[dim] = true;
+                    }
+                }
+
+                if (outer_boundary_test[0] || outer_boundary_test[1] || outer_boundary_test[2]) {
+
+                    tag(i,j,k) = TagBox::CLEAR;
+
+                }
+            });
+        }
+
+    }
+#endif
 }
 
 

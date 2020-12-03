@@ -46,9 +46,6 @@ Castro::ctoprim(const Box& bx,
 #endif
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
   GeometryData geomdata = geom.data();
 #endif
 
@@ -111,7 +108,7 @@ Castro::ctoprim(const Box& bx,
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
 
-      inertial_to_rotational_velocity_c(i, j, k, geomdata, omega.begin(), time, vel);
+      inertial_to_rotational_velocity_c(i, j, k, geomdata, time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
@@ -596,7 +593,16 @@ Castro::normalize_species_fluxes(const Box& bx,
     }
 
     Real fac = 1.0_rt;
-    if (sum != 0.0_rt) {
+
+    // We skip the normalization if the sum is zero or within epsilon.
+    // There can be numerical problems here if the density flux is
+    // approximately zero at the interface but not exactly, resulting in
+    // division by a small number and/or resulting in one of the species
+    // fluxes being negative because of roundoff error. There are also other
+    // terms like artificial viscosity which can cause these problems.
+    // So checking that sum is sufficiently large helps avoid this.
+
+    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * std::abs(flux(i,j,k,URHO))) {
       fac = flux(i,j,k,URHO) / sum;
     }
 
@@ -1091,7 +1097,15 @@ Castro::do_enforce_minimum_density(const Box& bx,
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
-        } else {
+        }
+        else if (state_arr(i,j,k,URHO) == 0.0_rt) {
+          // If the density is *exactly* zero, that almost certainly means something has gone wrong,
+          // like we failed to properly fill the state data on grid creation.
+          amrex::Error("Density exactly zero at " + std::to_string(i) + ", " +
+                                                    std::to_string(j) + ", " +
+                                                    std::to_string(k));
+        }
+        else {
           std::cout << ">>> RESETTING SMALL DENSITY AT " << i << ", " << j << ", " << k << std::endl;
         }
         std::cout << ">>> FROM " << state_arr(i,j,k,URHO) << " TO " << small_dens << std::endl;

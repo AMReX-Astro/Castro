@@ -96,12 +96,12 @@ void AuxVar::collapse()
 void AuxVar::clear()
 {
   a.clear();
-  slave_flag = 0;
+  secondary_flag = 0;
 }
 
 int AuxVar::get_locations(Vector<int>& levels, Vector<IntVect>& cells)
 {
-  if (slave()) {
+  if (secondary()) {
     return 1; // failure
   }
 
@@ -124,7 +124,7 @@ int AuxVar::get_locations(Vector<int>& levels, Vector<IntVect>& cells)
 
 int AuxVar::get_coeffs(Vector<Real>& values)
 {
-  if (slave()) {
+  if (secondary()) {
     return 1; // failure
   }
 
@@ -190,7 +190,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
     }
   }
 
-  // Make master-slave connections:
+  // Make primary-secondary connections:
 
   if (loc == INTERIOR) {
     for (int i = firstLocal(); isValid(i); i = nextLocal(i)) {
@@ -206,7 +206,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
             if (bm.intersects(bs)) {
               Box reg = (bm & bs);
               for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-                  (*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
+                  (*aux[om][i])(v).push_secondary(&(*aux[os][i])(v));
               }
             }
           }
@@ -219,17 +219,17 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
       Orientation oylo(1, Orientation::low);
       Orientation oyhi(1, Orientation::high);
       IntVect p = aux[oxlo][i]->box().smallEnd();
-      (*aux[oxlo][i])(p).push_slave(&(*aux[oylo][i])(p));
+      (*aux[oxlo][i])(p).push_secondary(&(*aux[oylo][i])(p));
       p = aux[oxlo][i]->box().bigEnd();
-      (*aux[oxlo][i])(p).push_slave(&(*aux[oyhi][i])(p));
+      (*aux[oxlo][i])(p).push_secondary(&(*aux[oyhi][i])(p));
       p = aux[oxhi][i]->box().smallEnd();
-      (*aux[oxhi][i])(p).push_slave(&(*aux[oylo][i])(p));
+      (*aux[oxhi][i])(p).push_secondary(&(*aux[oylo][i])(p));
       p = aux[oxhi][i]->box().bigEnd();
-      (*aux[oxhi][i])(p).push_slave(&(*aux[oyhi][i])(p));
+      (*aux[oxhi][i])(p).push_secondary(&(*aux[oyhi][i])(p));
 #elif 0
       // This version is like the new default, except that
       // it loops through orientations in a different order.
-      // Some master/slave pairs are therefore flipped, and in
+      // Some primary/secondary pairs are therefore flipped, and in
       // the end the solvers return slightly different numbers.
       // (Results should be the same within the solver tolerance.)
       for (OrientationIter omitr; omitr; ++omitr) {
@@ -241,7 +241,7 @@ BndryAuxVar::BndryAuxVar(const BoxArray& _grids,
           if (bm.intersects(bs)) {
             Box reg = (bm & bs);
             for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-                (*aux[om][i])(v).push_slave(&(*aux[os][i])(v));
+                (*aux[om][i])(v).push_secondary(&(*aux[os][i])(v));
             }
           }
         }
@@ -330,7 +330,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
     }
   }
 
-  initialize_slaves(loc);
+  initialize_secondaries(loc);
 }
 
 CrseBndryAuxVar::CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc)
@@ -366,7 +366,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const CrseBndryAuxVar& other, Location loc)
     }
   }
 
-  initialize_slaves(loc);
+  initialize_secondaries(loc);
 }
 
 CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
@@ -432,7 +432,7 @@ CrseBndryAuxVar::CrseBndryAuxVar(const BoxArray& _cgrids,
     }
   }
 
-  initialize_slaves(loc);
+  initialize_secondaries(loc);
 }
 
 void CrseBndryAuxVar::reinitialize_connections(Location loc)
@@ -450,12 +450,12 @@ void CrseBndryAuxVar::reinitialize_connections(Location loc)
     }
   }
 
-  initialize_slaves(loc);
+  initialize_secondaries(loc);
 }
 
-void CrseBndryAuxVar::initialize_slaves(Location loc)
+void CrseBndryAuxVar::initialize_secondaries(Location loc)
 {
-  // Make master-slave connections:
+  // Make primary-secondary connections:
 
   if (loc == EXTERIOR) {
     for (int i = firstLocal(); isValid(i); i = nextLocal(i)) {
@@ -472,7 +472,7 @@ void CrseBndryAuxVar::initialize_slaves(Location loc)
               if (bm.intersects(bs)) {
                 Box reg = (bm & bs);
                 for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
-                    (*aux[om][i][jm])(v).push_slave(&(*aux[os][i][js])(v));
+                    (*aux[om][i][jm])(v).push_secondary(&(*aux[os][i][js])(v));
                 }
               }
 
@@ -1105,16 +1105,16 @@ void HypreMultiABec::buildMatrixStructure()
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
 #if (0 && !defined(NDEBUG))
           if (msk(v+vin) == RadBndryData::not_covered &&
-              entry(ori,i)(v).slave()) {
-            std::cout << v << " is slave in orientation " << ori
+              entry(ori,i)(v).secondary()) {
+            std::cout << v << " is secondary in orientation " << ori
                  << " on processor " << ParallelDescriptor::MyProc()
                  << std::endl;
           }
 #endif
           // Even if this entry is covered, it could have a
-          // not_covered slave:
+          // not_covered secondary:
           if (!entry(ori,i)(v).empty() &&
-              !entry(ori,i)(v).slave()) {
+              !entry(ori,i)(v).secondary()) {
             entry(ori,i)(v).collapse();
             Vector<int> levels;
             Vector<IntVect> cells;
@@ -1233,9 +1233,9 @@ void HypreMultiABec::buildMatrixStructure()
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             // Unlike fine entry, it should not be possible for this
-            // entry to be covered but have a not_covered slave:
+            // entry to be covered but have a not_covered secondary:
             if (msk(vf) == RadBndryData::not_covered &&
-                !(*c_entry[level])(ori,i,j)(vc).slave()) {
+                !(*c_entry[level])(ori,i,j)(vc).secondary()) {
               (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
@@ -1552,7 +1552,7 @@ void HypreMultiABec::loadMatrix()
 //        const Mask &msk = bd[level]->bndryMasks(ori,i);
         for (IntVect v = reg.smallEnd(); v <= reg.bigEnd(); reg.next(v)) {
           if (!entry(ori,i)(v).empty() &&
-              !entry(ori,i)(v).slave()) {
+              !entry(ori,i)(v).secondary()) {
             entry(ori,i)(v).collapse();
             Vector<int> levels;
             Vector<IntVect> cells;
@@ -1668,7 +1668,7 @@ void HypreMultiABec::loadMatrix()
             IntVect vf = rat * vc;
             vf[idir] = reg.smallEnd(idir); // same as bigEnd(idir)
             if (msk(vf) == RadBndryData::not_covered &&
-                !(*c_entry[level])(ori,i,j)(vc).slave()) {
+                !(*c_entry[level])(ori,i,j)(vc).secondary()) {
               (*c_entry[level])(ori,i,j)(vc).collapse();
               Vector<int> levels;
               Vector<IntVect> cells;
@@ -1784,35 +1784,30 @@ void HypreMultiABec::loadLevelVectors(int level,
           // for the linear solver:
 
           if (reg[oitr()] == domain[oitr()]) {
-            const int *tfp = NULL;
+            Array4<const int> tfp{};
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
               const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-              tfp = tf.dataPtr();
+              tfp = tf.array();
               bctype = -1;
             }
-#pragma gpu box(reg) sync
-            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   reg.loVect()[0], reg.hiVect()[0],
-                   oitr().isLow(), idim+1,
-                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   cdir, bctype,
-                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
-                   bho, bcl,
-                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+            HypreABec::hbvec3(reg,
+                              oitr().isLow(), idim,
+                              f->array(fcomp),
+                              cdir, bctype,
+                              tfp,
+                              bho, bcl,
+                              fs.array(bdcomp),
+                              msk.array(),
+                              (*bcoefs[level])[idim][mfi].array(),
+                              beta, geom[level].data());
           }
           else {
-#pragma gpu box(reg) sync
-              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    cdir, bct, bho, bcl,
-                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+              HypreABec::hbvec(reg, f->array(fcomp),
+                               cdir, bct, bho, bcl,
+                               fs.array(bdcomp), msk.array(),
+                               (*bcoefs[level])[idim][mfi].array(),
+                               beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an
@@ -1900,35 +1895,30 @@ void HypreMultiABec::loadLevelVectorB(int level,
           // for the linear solver:
 
           if (reg[oitr()] == domain[oitr()]) {
-            const int *tfp = NULL;
+            Array4<const int> tfp{};
             int bctype = bct;
             if (bd[level]->mixedBndry(oitr())) {
               const BaseFab<int> &tf = *(bd[level]->bndryTypes(oitr())[i]);
-              tfp = tf.dataPtr();
+              tfp = tf.array();
               bctype = -1;
             }
-#pragma gpu box(reg) sync
-            hbvec3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   reg.loVect()[0], reg.hiVect()[0],
-                   oitr().isLow(), idim+1,
-                   vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                   cdir, bctype,
-                   tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
-                   bho, bcl,
-                   BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                   msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                   BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                   beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+            HypreABec::hbvec3(reg,
+                              oitr().isLow(), idim,
+                              f->array(),
+                              cdir, bctype,
+                              tfp,
+                              bho, bcl,
+                              fs.array(bdcomp),
+                              msk.array(),
+                              (*bcoefs[level])[idim][mfi].array(),
+                              beta, geom[level].data());
           }
           else {
-#pragma gpu box(reg) sync
-              hbvec(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    vec, AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                    cdir, bct, bho, bcl,
-                    BL_TO_FORTRAN_N_ANYD(fs, bdcomp),
-                    msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-                    BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                    beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+              HypreABec::hbvec(reg, f->array(),
+                               cdir, bct, bho, bcl,
+                               fs.array(bdcomp), msk.array(),
+                               (*bcoefs[level])[idim][mfi].array(),
+                               beta, geom[level].CellSize());
           }
         }
         // There is no else here, since we would then be at an

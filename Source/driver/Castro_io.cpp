@@ -30,7 +30,9 @@
 #include <omp.h>
 #endif
 
-#include <problem_setup.H>
+#include <problem_initialize_state_data.H>
+#include <problem_checkpoint.H>
+#include <problem_restart.H>
 
 #include <AMReX_buildInfo.H>
 
@@ -192,21 +194,7 @@ Castro::restart (Amr&     papa,
         // eliminating the need for a broadcast
         std::string dir = parent->theRestartFile();
 
-        char * dir_for_pass = new char[dir.size() + 1];
-        std::copy(dir.begin(), dir.end(), dir_for_pass);
-        dir_for_pass[dir.size()] = '\0';
-
-        int len = dir.size();
-
-        Vector<int> int_dir_name(len);
-        for (int j = 0; j < len; j++) {
-          int_dir_name[j] = (int) dir_for_pass[j];
-        }
-
-        problem_restart(int_dir_name.dataPtr(), &len);
-
-        delete [] dir_for_pass;
-
+        problem_restart(dir);
     }
 
     const Real* dx  = geom.CellSize();
@@ -298,10 +286,9 @@ Castro::restart (Amr&     papa,
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(bx)
-              ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                           BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
 
@@ -501,20 +488,7 @@ Castro::checkPoint(const std::string& dir,
 
         {
             // store any problem-specific stuff
-            char * dir_for_pass = new char[dir.size() + 1];
-            std::copy(dir.begin(), dir.end(), dir_for_pass);
-            dir_for_pass[dir.size()] = '\0';
-
-            int len = dir.size();
-
-            Vector<int> int_dir_name(len);
-            for (int j = 0; j < len; j++) {
-              int_dir_name[j] = (int) dir_for_pass[j];
-            }
-
-            problem_checkpoint(int_dir_name.dataPtr(), &len);
-
-            delete [] dir_for_pass;
+            problem_checkpoint(dir);
         }
     }
 

@@ -119,7 +119,11 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  USE_GPU_PRAGMA ?= TRUE
+  ifeq ($(USE_RAD),TRUE)
+    USE_GPU_PRAGMA ?= TRUE
+  else
+    USE_GPU_PRAGMA ?= FALSE
+  endif
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
 
@@ -177,10 +181,11 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
 endif
 
 MAX_NPTS_MODEL ?= 10000
+NUM_MODELS ?= 1
 
 ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
 else
   Bdirs += Util/model_parser
 endif
@@ -225,12 +230,10 @@ ifeq ($(USE_REACT), TRUE)
     # we need the compositional derivatives for SDC
     DEFINES += -DEXTRA_THERMO
     # we only implement this for C++ reactions
-    USE_CXX_REACTIONS = TRUE
   endif
 
-  ifeq ($(USE_CXX_REACTIONS), TRUE)
-    DEFINES += -DCXX_REACTIONS
-  endif
+  USE_CXX_REACTIONS = TRUE
+  DEFINES += -DCXX_REACTIONS
 endif
 
 ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)

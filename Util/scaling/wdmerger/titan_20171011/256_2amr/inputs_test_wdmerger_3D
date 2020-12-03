@@ -17,7 +17,6 @@ geometry.prob_lo = -5.12e9 -5.12e9 -5.12e9         # Lower boundary limits in ph
 geometry.prob_hi =  5.12e9  5.12e9  5.12e9         # Upper boundary limits in physical space
 castro.center =      0.0e0   0.0e0   0.0e0         # System center of mass
 
-castro.dt_cutoff = 1.e-8                           # Level 0 timestep below which we halt
 castro.cfl = 0.5                                   # CFL number for hyperbolic system
 castro.init_shrink = 0.1                           # Scale back initial timestep by this factor
 castro.change_max = 1.1                            # Factor by which dt is allowed to change each timestep

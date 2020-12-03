@@ -10,8 +10,9 @@
 #include <Castro_generic_fill.H>
 #include <Derive.H>
 #ifdef RADIATION
-# include <Radiation.H>
-# include <RAD_F.H>
+#include <Radiation.H>
+#include <RAD_F.H>
+#include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
 
@@ -242,11 +243,15 @@ Castro::variableSetUp ()
   ca_microphysics_init();
 
   // now initialize the C++ Microphysics
-#ifdef CXX_REACTIONS
+#ifdef REACTIONS
   network_init();
 #endif
 
   eos_init();
+
+#ifdef RADIATION
+  opacity_init();
+#endif
 
   // Ensure that Castro's small variables are consistent
   // with the minimum permitted by the EOS, and vice versa.
@@ -296,32 +301,6 @@ Castro::variableSetUp ()
 
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);
-
-  // setup the passive maps -- this follows the same logic as the
-  // Fortran versions in ca_set_method_params
-  int ipassive = 0;
-
-  upass_map.resize(npassive);
-  qpass_map.resize(npassive);
-
-  for (int iadv = 0; iadv < NumAdv; ++iadv) {
-    upass_map[ipassive] = UFA + iadv;
-    qpass_map[ipassive] = QFA + iadv;
-    ++ipassive;
-  }
-
-  for (int ispec = 0; ispec < NumSpec; ++ispec) {
-    upass_map[ipassive] = UFS + ispec;
-    qpass_map[ipassive] = QFS + ispec;
-    ++ipassive;
-  }
-
-  for (int iaux = 0; iaux < NumAux; ++iaux) {
-    upass_map[ipassive] = UFX + iaux;
-    qpass_map[ipassive] = QFX + iaux;
-    ++ipassive;
-  }
-
 
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
@@ -425,13 +404,13 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
@@ -457,13 +436,13 @@ Castro::variableSetUp ()
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, source_ng, NSRC,
-                         &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                         interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 #endif
 
@@ -476,7 +455,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -488,7 +467,7 @@ Castro::variableSetUp ()
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
                              StateDescriptor::Point, NUM_GROW, NQSRC,
-                             &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                             interp, state_data_extrap, store_in_checkpoint);
 
   }
 #endif
@@ -893,12 +872,15 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
+#ifndef NSE_THERMO
   //
   // Abar
+  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+#endif
 
   //
   // Velocities

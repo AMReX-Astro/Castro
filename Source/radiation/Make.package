@@ -51,6 +51,7 @@ ca_F90EXE_sources += filter.F90
 ca_F90EXE_sources += RadDerive_nd.F90
 ca_F90EXE_sources += rad_util_nd.F90
 CEXE_headers += rad_util.H
+CEXE_headers += blackbody.H
 
 ca_F90EXE_sources += rad_source.F90
 

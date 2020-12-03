@@ -12,18 +12,6 @@ hse_eint_top       real             0.0_rt
 
 hse_X_top          real             0.0_rt              n         (nspec, network)
 
-xmin               real             0.0_rt
-
-xmax               real             0.0_rt
-
-ymin               real             0.0_rt
-
-ymax               real             0.0_rt
-
-zmin               real             0.0_rt
-
-zmax               real             0.0_rt
-
 heating_time       real             0.5_rt              y
 
 heating_rad        real             0.0_rt              y

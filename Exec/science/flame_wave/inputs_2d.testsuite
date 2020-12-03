@@ -17,7 +17,7 @@ amr.n_cell           = 128        64
 castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
@@ -44,7 +44,9 @@ castro.rotational_period = 0.001
 castro.rotation_include_centrifugal = 0
 
 castro.diffuse_temp = 1
-castro.diffuse_cutoff_density = 5.e4
+castro.diffuse_cutoff_density_hi = 5.e4
+castro.diffuse_cutoff_density = 2.e4
+
 castro.diffuse_cond_scale_fac = 10.0
 
 castro.react_rho_min = 1.e2

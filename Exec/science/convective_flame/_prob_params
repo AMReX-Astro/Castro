@@ -54,5 +54,3 @@ low_density_cutoff     real            1.e-4_rt                     y
 
 smallx                 real            1.e-10_rt                    y
 
-index_base_from_temp   logical         .false.                      y
-

@@ -38,9 +38,9 @@ threads.
 The code structure in the Castro/ directory reflects the
 division between C++ and Fortran.
 
--  ``constants/``: contains a file of useful constants in CGS units
+-  ``Diagnostics/``: various analysis routines for specific problems
 
--  ``docs/``: you’re reading this now!
+-  ``Docs/``: you’re reading this now!
 
 -  ``Exec/``: various problem implementations, sorted by category:
 
@@ -58,22 +58,14 @@ division between C++ and Fortran.
 
    -  ``unit_tests/``: test problems that exercise primarily a single module
 
--  ``external/Microphysics/``: contains directories for different default
-   microphysics (these are all implemented in Fortran)
+-  ``external/``: if you are using git submodules, the Microphysics and AMReX git
+   submodules will be in this directory.
 
-   -  ``conductivity/``: the thermal conductivity
+-  ``paper/``: the JOSS paper source
 
-   -  ``EOS/``: the equation of state
-
-   -  ``networks/``: the nuclear reaction networks
-
-   -  ``opacity/``: the radiative opacity (used with radiation)
-
-   -  ``viscosity/``: the viscous transport coefficient
-
-- ``Source/``: source code. In this main directory is all of the
-  code. Sources are mixed C++ and Fortran and are organized by topic
-  as:
+-  ``Source/``: source code. In this main directory is all of the
+   code. Sources are mixed C++ and Fortran and are organized by topic
+   as:
 
    -  ``diffusion/`` : thermal diffusion code
 
@@ -82,6 +74,8 @@ division between C++ and Fortran.
    -  ``gravity/`` : self-gravity code
 
    -  ``hydro/`` : the compressible hydrodynamics code
+
+   -  ``mhd/`` : the MHD solver code
 
    -  ``particles/`` : support for particles
 
@@ -94,6 +88,8 @@ division between C++ and Fortran.
    -  ``rotation/`` : rotating code
 
    -  ``scf/`` : the self-consistent field initialization support
+
+   -  ``sdc/``: code specified for the true SDC method
 
    -  ``sources/`` : hydrodynamics source terms support
 
