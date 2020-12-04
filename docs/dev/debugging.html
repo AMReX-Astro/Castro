@@ -298,16 +298,6 @@ the <code class="docutils literal notranslate"><span class="pre">contains_nan()<
 </div>
 <p>There are other versions of <code class="docutils literal notranslate"><span class="pre">contains_nan()</span></code> that can take a Box
 to operate over.</p>
-<p>For Fortran code, the module <code class="docutils literal notranslate"><span class="pre">nan_check</span></code> has the function
-<code class="docutils literal notranslate"><span class="pre">check_for_nan()</span></code> that can be called in a Fortran routine to look
-for NaNs:</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">check_for_nan</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span><span class="p">,</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">ncomp</span>
-  <span class="kt">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span><span class="p">)</span>
-</pre></div>
-</div>
 </div>
 </div>
 <div class="section" id="physics-issues">
