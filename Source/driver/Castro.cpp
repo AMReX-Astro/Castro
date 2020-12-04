@@ -57,6 +57,9 @@
 #ifdef MHD
 #include <problem_initialize_mhd_data.H>
 #endif
+#ifdef RADIATION
+#include <problem_initialize_rad_data.H>
+#endif
 #include <problem_tagging.H>
 
 #include <ambient.H>
@@ -1400,6 +1403,18 @@ Castro::initData ()
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
+
+          auto r = Rad_new[mfi].array();
+          auto geomdata = geom.data();
+
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ problem initialization; has no effect if not implemented
+              // by a problem setup (defaults to an empty routine).
+              problem_initialize_rad_data(i, j, k, r, geomdata);
+          });
+
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
