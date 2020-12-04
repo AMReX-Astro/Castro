@@ -10,19 +10,6 @@ extern "C" {
 #define RadBoundCond int
 #endif
 
-  void hbmat3(const int* lo, const int* hi,
-              int lo_x, int hi_x,
-              int ori_lo, int idir,
-              BL_FORT_FAB_ARG_3D(mat),
-              int cdir, int bctype,
-              const int* tf, const int* tf_lo, const int* tf_hi,
-              amrex::Real bcl,
-              const int* mask, const int* m_lo, const int* m_hi,
-              BL_FORT_FAB_ARG_3D(bcoefs),
-              amrex::Real beta, const amrex::Real* dx,
-              amrex::Real flux_factor,
-              const amrex::Real* spa, const int* s_lo, const int* s_hi);
-
   void hbflx(BL_FORT_FAB_ARG(flux),
              BL_FORT_FAB_ARG(soln),
              ARLIM_P(reglo), ARLIM_P(reghi), 

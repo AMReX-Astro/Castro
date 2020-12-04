@@ -144,6 +144,18 @@ class HypreABec {
               amrex::Array4<amrex::Real const> const& b,
               amrex::Real beta, const amrex::Real* dx);
 
+  void hbmat3 (const amrex::Box& bx,
+               int ori_lo, int idir,
+               amrex::Array4<amrex::GpuArray<amrex::Real, AMREX_SPACEDIM+1>> const& mat,
+               int cdir, int bctype,
+               amrex::Array4<int const> const& tf,
+               amrex::Real bcl,
+               amrex::Array4<int const> const& mask,
+               amrex::Array4<amrex::Real const> const& b,
+               amrex::Real beta, const amrex::GeometryData& geomdata,
+               amrex::Real c,
+               amrex::Array4<amrex::Real const> const& spa);
+
 ///
 /// Three steps separated so that multiple calls to solve can be made
 ///
