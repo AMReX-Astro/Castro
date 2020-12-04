@@ -76,3 +76,28 @@ subroutine ca_initdata(lo, hi, &
 end subroutine ca_initdata
 
 #endif
+
+#ifdef RADIATION
+subroutine ca_initrad(level, time, lo, hi, nrad, &
+                      rad_state, rad_state_lo, rad_state_hi, &
+                      delta, xlo, xhi)
+
+  use probdata_module
+
+  use amrex_fort_module, only : rt => amrex_real
+
+  implicit none
+
+  integer, intent(in) :: level, nrad
+  integer, intent(in) :: lo(3), hi(3)
+  integer, intent(in) :: rad_state_lo(3), rad_state_hi(3)
+  real(rt), intent(in) :: xlo(3), xhi(3), time, delta(3)
+  real(rt), intent(inout) :: rad_state(rad_state_lo(1):rad_state_hi(1), &
+                                       rad_state_lo(2):rad_state_hi(2), &
+                                       rad_state_lo(3):rad_state_hi(3), 0:nrad-1)
+
+  ! This call does nothing by default; it should be copied to a problem directory
+  ! and overwritten for the problem setup of interest.
+
+end subroutine ca_initrad
+#endif

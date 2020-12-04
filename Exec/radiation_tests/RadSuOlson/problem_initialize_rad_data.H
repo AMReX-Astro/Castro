@@ -8,7 +8,7 @@ void problem_initialize_rad_data (int i, int j, int k,
 {
 
     for (int g = 0; g < NGROUPS; g++) {
-        rad_state(i,j,k,g) = 0.0_rt;
+        rad(i,j,k,g) = 0.0_rt;
     }
 }
 #endif
