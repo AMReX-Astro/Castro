@@ -53,16 +53,6 @@ extern "C" {
                BL_FORT_FAB_ARG(dcoefs),
                const amrex::Real* dx);
 
-  void hmac(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(mat),
-            BL_FORT_FAB_ARG_3D(acoefs),
-            amrex::Real alpha);
-
-  void hmbc(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(mat),
-            BL_FORT_FAB_ARG_3D(bcoefs),
-            amrex::Real beta, const amrex::Real* dx, int idir);
-
   void hmmat(const int* lo, const int* hi,
              BL_FORT_FAB_ARG_3D(mat),
              int cdir, int bct, int bho, amrex::Real bcl,

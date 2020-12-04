@@ -1337,6 +1337,73 @@ void HypreMultiABec::SPalpha(int level, const MultiFab& a)
   MultiFab::Copy(*SPa[level], a, 0, 0, 1, 0);
 }
 
+void HypreMultiABec::hmac (const Box& bx,
+                           Array4<GpuArray<Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+                           Array4<Real const> const& a,
+                           Real alpha)
+{
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        if (alpha == 0.e0_rt) {
+            mat(i,j,k)[0] = 0.e0_rt;
+        }
+        else {
+            mat(i,j,k)[0] = alpha * a(i,j,k);
+        }
+    });
+
+    Gpu::synchronize();
+}
+
+void HypreMultiABec::hmbc (const Box& bx,
+                           Array4<GpuArray<Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+                           Array4<Real const> const& b,
+                           Real beta, const Real* dx, int n)
+{
+    if (n == 0) {
+
+        const Real fac = beta / (dx[0] * dx[0]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[0] += fac * (b(i,j,k) + b(i+1,j,k));
+            mat(i,j,k)[1] = -fac * b(i,j,k);
+            mat(i,j,k)[2] = -fac * b(i+1,j,k);
+        });
+
+    }
+    else if (n == 1) {
+
+        const Real fac = beta / (dx[1] * dx[1]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[0] += fac * (b(i,j,k) + b(i,j+1,k));
+            mat(i,j,k)[3] = -fac * b(i,j,k);
+            mat(i,j,k)[4] = -fac * b(i,j+1,k);
+        });
+
+    }
+    else {
+
+        const Real fac = beta / (dx[2] * dx[2]);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            mat(i,j,k)[0] += fac * (b(i,j,k) + b(i,j,k+1));
+            mat(i,j,k)[5] = -fac * b(i,j,k);
+            mat(i,j,k)[6] = -fac * b(i,j,k+1);
+        });
+
+    }
+
+    Gpu::synchronize();
+}
+
 void HypreMultiABec::loadMatrix()
 {
   BL_PROFILE("HypreMultiABec::loadMatrix");
@@ -1379,7 +1446,7 @@ void HypreMultiABec::loadMatrix()
 
   Real foo = 1.e200;
 
-  FArrayBox matfab;
+  BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   FArrayBox smatfab;
   for (int level = crse_level; level <= fine_level; level++) {
     int part = level - crse_level;
@@ -1388,24 +1455,17 @@ void HypreMultiABec::loadMatrix()
       i = mfi.index();
       const Box &reg = grids[level][i];
 
-      matfab.resize(reg,size);
-      Real* mat = matfab.dataPtr();
+      matfab.resize(reg);
+      Real* mat = (Real*) matfab.dataPtr();
       Elixir mat_elix = matfab.elixir();
 
       // build matrix interior
 
-#pragma gpu box(reg) sync
-      hmac(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-           BL_TO_FORTRAN_ANYD(matfab),
-           BL_TO_FORTRAN_ANYD((*acoefs[level])[mfi]),
-           alpha);
+      hmac(reg, matfab.array(), (*acoefs[level])[mfi].array(), alpha);
 
       for (idim = 0; idim < BL_SPACEDIM; idim++) {
-#pragma gpu box(reg) sync
-        hmbc(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-             BL_TO_FORTRAN_ANYD(matfab), 
-             BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-             beta, AMREX_REAL_ANYD(geom[level].CellSize()), idim);
+          hmbc(reg, matfab.array(), (*bcoefs[level])[idim][mfi].array(),
+               beta, geom[level].CellSize(), idim);
       }
 
       // add b.c.'s to matrix diagonal, and
@@ -1448,7 +1508,7 @@ void HypreMultiABec::loadMatrix()
             hmmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
                    reg.loVect()[0], reg.hiVect()[0],
                    oitr().isLow(), idim+1,
-                   BL_TO_FORTRAN_ANYD(matfab),
+                   mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
                    cdir, bctype,
                    tfp, AMREX_INT_ANYD(fs.loVect()), AMREX_INT_ANYD(fs.hiVect()),
                    bho, bcl,
@@ -1461,7 +1521,7 @@ void HypreMultiABec::loadMatrix()
           else {
 #pragma gpu box(reg) sync
           hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
+                mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
                 cdir, bct, bho, bcl,
                 BL_TO_FORTRAN_ANYD(msk),
                 BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
@@ -1477,7 +1537,7 @@ void HypreMultiABec::loadMatrix()
           const RadBoundCond bct_coarse = LO_NEUMANN;
 #pragma gpu box(reg) sync
           hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                BL_TO_FORTRAN_ANYD(matfab),
+                mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
                 cdir, bct_coarse, bho, bcl,
                 BL_TO_FORTRAN_ANYD(msk),
                 BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
