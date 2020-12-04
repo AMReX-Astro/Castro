@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>File problem_emissivity.H &mdash; Castro  documentation</title>
+  <title>File problem_initialize_rad_data.H &mdash; Castro  documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File problem_initialize.H" href="problem__initialize_8H.html" />
-    <link rel="prev" title="File problem_checkpoint.H" href="problem__checkpoint_8H.html" /> 
+    <link rel="next" title="File problem_initialize_state_data.H" href="problem__initialize__state__data_8H.html" />
+    <link rel="prev" title="File problem_initialize_mhd_data.H" href="problem__initialize__mhd__data_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -80,7 +80,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../../file/problem__emissivity_8H.html">main</a> | <a href="../file/problem__emissivity_8H.html">development</a>
+        Branch: <a href="../../file/problem__initialize__rad__data_8H.html">main</a> | <a href="../file/problem__initialize__rad__data_8H.html">development</a>
     </div>
 
         </div>
@@ -151,10 +151,10 @@
 <li class="toctree-l3"><a class="reference internal" href="ext__bc__types_8H.html">File ext_bc_types.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__bc__fill_8H.html">File problem_bc_fill.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__checkpoint_8H.html">File problem_checkpoint.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_emissivity.H</a></li>
+<li class="toctree-l3"><a class="reference internal" href="problem__emissivity_8H.html">File problem_emissivity.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__initialize_8H.html">File problem_initialize.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__initialize__mhd__data_8H.html">File problem_initialize_mhd_data.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="problem__initialize__rad__data_8H.html">File problem_initialize_rad_data.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File problem_initialize_rad_data.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__initialize__state__data_8H.html">File problem_initialize_state_data.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__restart_8H.html">File problem_restart.H</a></li>
 <li class="toctree-l3"><a class="reference internal" href="problem__source_8H.html">File problem_source.H</a></li>
@@ -224,13 +224,13 @@
         
           <li><a href="../problems_files.html">Problems</a> &raquo;</li>
         
-      <li>File problem_emissivity.H</li>
+      <li>File problem_initialize_rad_data.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/file/problem__emissivity_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/problem__initialize__rad__data_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -243,14 +243,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-problem-emissivity-h">
-<h1>File problem_emissivity.H<a class="headerlink" href="#file-problem-emissivity-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-problem-initialize-rad-data-h">
+<h1>File problem_initialize_rad_data.H<a class="headerlink" href="#file-problem-initialize-rad-data-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="problem__emissivity_8H_1a6cf97ebd80075472d02aa02c0269bc7f"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_emissivity (int i, int j, int k, int g, const GpuArray&lt; Real, NGROUPS &gt; &amp;nu, const GpuArray&lt; Real, NGROUPS+1 &gt; &amp;xnu, Real T, Real kg, Real dkdT, Real &amp;jg, Real &amp;djdT)</code></dt>
-<dd></dd></dl>
+<span class="target" id="problem__initialize__rad__data_8H_1a0c49d59330bb1af93f37e47b189ad63a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void problem_initialize_rad_data (int i, int j, int k, Array4&lt; Real &gt; const &amp;rad, const GeometryData &amp;geomdata)</code></dt>
+<dd><p>Initialize the simulation state data</p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>: x-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: y-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">k</span></code>: z-index </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rad</span></code>: radiation energy groups </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geomdata</span></code>: geometry data </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
 
 </div>
 </div>
@@ -263,10 +275,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="problem__initialize_8H.html" class="btn btn-neutral float-right" title="File problem_initialize.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="problem__initialize__state__data_8H.html" class="btn btn-neutral float-right" title="File problem_initialize_state_data.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="problem__checkpoint_8H.html" class="btn btn-neutral float-left" title="File problem_checkpoint.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="problem__initialize__mhd__data_8H.html" class="btn btn-neutral float-left" title="File problem_initialize_mhd_data.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

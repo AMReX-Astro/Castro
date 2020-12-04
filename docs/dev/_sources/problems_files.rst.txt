@@ -15,6 +15,7 @@ Problems
    file/problem__emissivity_8H
    file/problem__initialize_8H
    file/problem__initialize__mhd__data_8H
+   file/problem__initialize__rad__data_8H
    file/problem__initialize__state__data_8H
    file/problem__restart_8H
    file/problem__source_8H
