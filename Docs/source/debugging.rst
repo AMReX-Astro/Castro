@@ -98,18 +98,6 @@ the ``contains_nan()`` method:
 There are other versions of ``contains_nan()`` that can take a Box
 to operate over.
 
-For Fortran code, the module ``nan_check`` has the function
-``check_for_nan()`` that can be called in a Fortran routine to look
-for NaNs:
-
-.. code-block:: fortran
-
-  subroutine check_for_nan(s, s_lo, s_hi, lo, hi, ncomp, comp)
-    integer, intent(in) :: s_lo(3), s_hi(3)
-    integer, intent(in) :: lo(3), hi(3)
-    integer, intent(in) :: ncomp
-    real(rt), intent(in) :: s(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), ncomp)
-
 
 
 Physics issues
