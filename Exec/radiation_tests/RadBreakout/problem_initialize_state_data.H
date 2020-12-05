@@ -22,99 +22,113 @@ void problem_initialize_state_data (int i, int j, int k,
     Real rhowind0 = problem::rhowind1 *
         std::pow(problem::rwind1/problem::rwind0, 2);
     Real rlast = model::profile(0).r(model::npts-1);
-    Real rholast = model::profile(0).state(model::dens, model::npts-1);
+    Real rholast = model::profile(0).state(model::npts-1, model::idens);
     Real rbase = rlast * problem::rbasefac;
 
-    Real Twind0 = Twind1 * std::pow(problem::rwind1/problem::rwind0, Tindex);
-    Tlast = model_T(npts_model)
+    Real Twind0 = Twind1 * std::pow(problem::rwind1 / problem::rwind0, Tindex);
+    Real Tlast = model::profile(0).state(model::npts-1, model::itemp);
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
+    Real xcl = problo[0] + dx[0] * static_cast<Real>(i);
 
-           xcl = problo(1) + delta(1) * dble(i)
+    Real vtot = 0.0_rt;
+    Real rho = 0.0_rt;
+    Real T = 0.0_rt;
+    Real u = 0.0_rt;
+    Real Ye = 0.0_rt;
+    Real Abar = 0.0_rt;
 
-           vtot = 0.e0_rt
-           rho = 0.e0_rt
-           T = 0.e0_rt
-           u = 0.e0_rt
-           Ye = 0.e0_rt
-           Abar = 0.e0_rt
+    for (int ii = 0; ii < problem::nsub; ii++) {
+        Real xx = xcl + (static_cast<Real>(ii) + 0.5_rt) * dx_sub;
+        Real vsub = xx * xx;
+        vtot += vsub;
 
-           do ii=0,nsub-1
-              xx = xcl + (dble(ii)+0.5e0_rt) * dx_sub
-              vsub = xx**2
-              vtot = vtot + vsub
-              if (xx .ge. model_r(npts_model)) then
-                 if (xx .ge. rwind0 ) then
-                    rho_tmp = rhowind1 * (rwind1/xx)**2
-                 else
-                    rho_tmp = rholast * (rhowind0/rholast)** &
-                         ((log(xx-rbase)-log(rlast-rbase))/(log(rwind0-rbase)-log(rlast-rbase)))
-                 end if
-                 rho = rho + rho_tmp * vsub
+        if (xx >= model::profile(0).r(model::npts-1)) {
+            if (xx >= rwind0 ) {
+                rho_tmp = rhowind1 * (rwind1 / xx) * (rwind1 / xx);
+            } else {
+                rho_tmp = rholast * std::pow(rhowind0 / rholast,
+                                             ((std::log(xx - rbase) - std::log(rlast - rbase)) /
+                                              (std::log(rwind0 - rbase) - std::log(rlast - rbase))));
+            }
+            rho += rho_tmp * vsub;
 
-                 if (xx .ge. rwind0 ) then
-                    T_tmp = Twind1 * (rwind1/xx)**Tindex
-                 else
-                    T_tmp = Tlast * (Twind0/Tlast)** &
-                         ((log(xx-rbase)-log(rlast-rbase))/(log(rwind0-rbase)-log(rlast-rbase)))
-                 end if
-                 T = T + vsub * T_tmp
+            if (xx >= rwind0) {
+                T_tmp = Twind1 * std::pow(rwind1 / xx, Tindex);
+            } else {
+                T_tmp = Tlast * std::pow(Twind0 / Tlast,
+                                         ((std::log(xx - rbase) - std::log(rlast - rbase)) /
+                                          (std::log(rwind0 - rbase) - std::log(rlast - rbase))));
+            }
+            T += vsub * T_tmp;
 
-                 Ye = Ye + model_Ye(npts_model) * vsub
-                 Abar = Abar + model_Abar(npts_model) * vsub
+            Ye += model::profile(0).state(model::npts-1, model::iaux+iye) * vsub;
+            Abar += model::profile(0).state(model::npts-1, model::iaux+iinvmu) * vsub;
 
-                 u = u + 0.e0_rt
+            // u += 0.e0_rt;
 
-              else if (xx .le. model_r(1)) then
-                 rho = rho + model_rho(1) * vsub
-                 T = T + model_T(1) * vsub
-                 u = u + 0.e0_rt
-                 Ye = Ye + model_Ye(1) * vsub
-                 Abar = Abar + model_Abar(1) * vsub
-              else
-                 rho = rho + interpolate(xx,npts_model,model_r,model_rho) * vsub
-                 T   = T   + interpolate(xx,npts_model,model_r,model_T  ) * vsub
-                 u   = u   + interpolate(xx,npts_model,model_r,model_v  ) * vsub
-                 Ye  = Ye  + interpolate(xx,npts_model,model_r,model_Ye ) * vsub
-                 Abar=Abar + interpolate(xx,npts_model,model_r,model_Abar) * vsub
-              end if
-           end do
+        } else if (xx <= model::profile(0).r(0)) {
+            rho += model::profile(0).state(0, model::idens) * vsub;
+            T += model::profile(0).state(0, model::itemp) * vsub;
+            // u += 0.e0_rt;
+            Ye += model::profile(0).state(0, model::iaux+iye) * vsub;
+            Abar += model::profile(0).state(0, model::iaux+iinvmu) * vsub;
 
-           rho = rho / vtot
-           T = T / vtot
-           u = u / vtot
-           Ye = Ye / vtot
-           Abar = Abar / vtot
+        } else {
+            rho += interpolate(xx, model::idens) * vsub;
+            T += interpolate(xx, model::itemp) * vsub;
+            u += interpolate(xx, model::ivelr) * vsub;
+            Ye += interpolate(xx, model::iaux+iye) * vsub;
+            Abar += interpolate(xx, model::iaux+iinvmu) * vsub;
+        }
+    }
 
-           invmu = (1.e0_rt+Abar*Ye)/Abar
+    rho /= vtot;
+    T /= vtot;
+    u /= vtot;
+    Ye /= vtot;
+    Abar /= vtot;
 
-           state(i,j,k,URHO)  = rho
-           state(i,j,k,UTEMP)  = T
-           state(i,j,k,UMX)   = rho * u
-           state(i,j,k,UMY:UMZ) = 0.e0_rt
+    // what we read in from the model was really 1/mu_I, which is why we called it Abar here.
+    // now we compute that total 1/mu = 1/mu_I + 1/mu_e = 1/Abar + Ye
 
-           ! set the composition to be all in the first species
-           state(i,j,k,UFS:UFS-1+nspec) = 0.e0_rt
-           state(i,j,k,UFS  ) = state(i,j,k,URHO)
-           state(i,j,k,UFX) = Ye*rho
-           state(i,j,k,UFX+1) = invmu*rho
+    Real invmu = (1.0_rt + Abar * Ye) / Abar;
 
-           ! set the internal energy via the EOS
-           rhoInv = 1.e0_rt / state(i,j,k,URHO)
-           eos_state % rho = state(i,j,k,URHO)
-           eos_state % T   = state(i,j,k,UTEMP)
-           eos_state % xn  = state(i,j,k,UFS:UFS+nspec-1) * rhoInv
-           eos_state % aux = state(i,j,k,UFX:UFX+naux-1) * rhoInv
+    state(i,j,k,URHO) = rho;
+    state(i,j,k,UTEMP) = T;
+    state(i,j,k,UMX) = rho * u;
+    state(i,j,k,UMY) = 0.0_rt;
+    state(i,j,k,UMZ) = 0.0_rt;
 
-           call eos(eos_input_rt, eos_state)
+    // set the composition to be all in the first species
 
-           state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state % e
-           state(i,j,k,UEDEN) = state(i,j,k,UEINT) + &
-                0.5e0_rt*sum(state(i,j,k,UMX:UMZ)**2)/state(i,j,k,URHO)
-        end do
-     end do
-  end do
+    for (int n = 0; n < NumAux; n++) {
+        state(i,j,k,UFS+n) = 0.0_rt;
+    }
+    state(i,j,k,UFS) = state(i,j,k,URHO);
 
-end subroutine ca_initdata
+    state(i,j,k,UFX+iye) = Ye * rho;
+    state(i,j,k,UFX+iinvmu) = invmu * rho;
+
+    // set the internal energy via the EOS
+
+    Real rhoInv = 1.0_rt / state(i,j,k,URHO);
+
+    eos_t eos_state;
+    eos_state.rho = state(i,j,k,URHO);
+    eos_state.T = state(i,j,k,UTEMP);
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
+    }
+    for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
+    }
+
+    eos(eos_input_rt, eos_state);
+
+    state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
+    state(i,j,k,UEDEN) = state(i,j,k,UEINT) +
+        0.5_rt * (state(i,j,k,UMX) * state(i,j,k,UMX) +
+                  state(i,j,k,UMY) * state(i,j,k,UMY) +
+                  state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
+}
+#endif
