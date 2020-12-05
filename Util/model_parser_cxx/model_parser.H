@@ -169,6 +169,9 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
     bool found_model, found_dens, found_temp, found_pres;
     bool found_spec[NumSpec];
+#if NAUX_NET > 0
+    bool found_aux[NumAux];
+#endif
 
     // read in the initial model
 
@@ -266,6 +269,18 @@ read_model_file(std::string& model_file, const int model_index=0) {
                         break;
                     }
                 }
+#if NAUX_NET > 0
+                if (!found_model) {
+                    for (int comp = 0; comp < NumAux; comp++) {
+                        if (varnames_stored[j] == aux_names_cxx[comp]) {
+                            model::profile(model_index).state(i,model::iaux+comp) = vars_stored[j];
+                            found_model = true;
+                            found_aux[comp] = true;
+                            break;
+                        }
+                    }
+                }
+#endif
             }
 
             // yell if we didn't find the current variable
