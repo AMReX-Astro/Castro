@@ -247,7 +247,7 @@ Castro::variableSetUp ()
   network_init();
 #endif
 
-  eos_init();
+  eos_init(castro::small_dens, castro::small_temp);
 
 #ifdef RADIATION
   opacity_init();
