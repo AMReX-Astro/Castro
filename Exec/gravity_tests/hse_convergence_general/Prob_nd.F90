@@ -3,7 +3,7 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   use amrex_fort_module, only: rt => amrex_real
   use amrex_constants_module, only: ZERO, ONE, HALF
   use castro_error_module, only: castro_error
-  use model_parser_module, only: model_parser_init
+  use model_parser_module, only: model_parser_init, ispec_model, idens_model, itemp_model, npts_model, model_state
   use initial_model_module, only: model_t, init_model_data, gen_model_r, gen_model_state, init_1d_tanh
   use probdata_module, only: dx_model, dtemp, &
                              dens_base, T_star, &
@@ -16,7 +16,10 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   use network, only: nspec, network_species_index
   use prob_params_module, only : center
-  use meth_params_module, only : small_dens
+  use meth_params_module
+  use ambient_module
+  use eos_type_module
+  use eos_module
 
   implicit none
 
@@ -32,6 +35,9 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
 
   integer :: nx_model
   integer :: ng
+
+  integer :: n
+  type(eos_t) :: eos_state
 
   ! check to make sure that small_dens is less than low_density_cutoff
   ! if not, funny things can happen above the atmosphere
@@ -146,6 +152,31 @@ subroutine amrex_probinit (init, name, namlen, problo, probhi) bind(c)
   ! for axisymmetry, put the x-center on the x-axis
   center(1) = ZERO
 #endif
+
+  ! set the ambient state for the upper boundary condition
+
+  ambient_state(URHO) = model_state(npts_model, idens_model)
+  ambient_state(UTEMP) = model_state(npts_model, itemp_model)
+  do n = 0, nspec-1
+     ambient_state(UFS+n) = ambient_state(URHO) * model_state(npts_model, ispec_model+n)
+  end do
+
+  ambient_state(UMX) = 0.0
+  ambient_state(UMY) = 0.0
+  ambient_state(UMZ) = 0.0
+
+  ! make the ambient state thermodynamically consistent
+
+  eos_state % rho = ambient_state(URHO)
+  eos_state % T = ambient_state(UTEMP)
+  do n = 1, nspec
+     eos_state % xn(n) = ambient_state(UFS-1+n) / eos_state % rho
+  end do
+
+  call eos(eos_input_rt, eos_state)
+
+  ambient_state(UEINT) = eos_state % rho * eos_state % e
+  ambient_state(UEDEN) = eos_state % rho * eos_state % e
 
 end subroutine amrex_probinit
 
