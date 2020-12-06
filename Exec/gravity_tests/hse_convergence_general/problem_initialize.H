@@ -68,6 +68,7 @@ void problem_initialize ()
         }
     }
 
+    int iash3 = -1;
     if (problem::ash3_name != "") {
         iash3 = network_spec_index(problem::ash3_name);
         if (iash3 < 0) {
@@ -84,32 +85,32 @@ void problem_initialize ()
 
     // set the composition of the underlying star
 
-    model_T model_params;
+    model_t model_params;
 
     for (int n = 0; n < NumSpec; n++) {
-        model_params.xn_star[n] = smallx;
+        model_params.xn_star[n] = problem::smallx;
     }
     model_params.xn_star[iash1] = problem::ash1_frac;
-    if (ash2_name != "") {
+    if (problem::ash2_name != "") {
         model_params.xn_star[iash2] = problem::ash2_frac;
     }
-    if (ash3_name != "") {
+    if (problem::ash3_name != "") {
         model_params.xn_star[iash3] = problem::ash3_frac;
     }
 
     // and the composition of the accreted layer
 
     for (int n = 0; n < NumSpec; n++) {
-        model_params.xn_base[n] = smallx;
+        model_params.xn_base[n] = problem::smallx;
     }
     model_params.xn_base[ifuel1] = problem::fuel1_frac;
-    if (fuel2_name != "") {
+    if (problem::fuel2_name != "") {
         model_params.xn_base[ifuel2] = problem::fuel2_frac;
     }
-    if (fuel3_name != "") {
+    if (problem::fuel3_name != "") {
         model_params.xn_base[ifuel3] = problem::fuel3_frac;
     }
-    if (fuel4_name != "") {
+    if (problem::fuel4_name != "") {
         model_params.xn_base[ifuel4] = problem::fuel4_frac;
     }
 
@@ -119,7 +120,7 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         sumX += model_params.xn_star[n];
     }
-    if (std::abs(sumX - 1.0_rt) > NumSpec * smallx) {
+    if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: ash mass fractions don't sum to 1");
     }
 
@@ -127,7 +128,7 @@ void problem_initialize ()
     for (int n = 0; n < NumSpec; n++) {
         sumX += model_params.xn_base[n];
     }
-    if (std::abs(sumX - 1.0_rt) > NumSpec * smallx) {
+    if (std::abs(sumX - 1.0_rt) > NumSpec * problem::smallx) {
         amrex::Error("ERROR: fuel mass fractions don't sum to 1");
     }
 
