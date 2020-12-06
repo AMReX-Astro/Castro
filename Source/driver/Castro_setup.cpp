@@ -2,7 +2,6 @@
 
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include <eos.H>
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_bc_fill_nd_F.H>
@@ -18,6 +17,7 @@
 
 #include <AMReX_buildInfo.H>
 #include <microphysics_F.H>
+#include <eos.H>
 #include <prob_parameters_F.H>
 
 using std::string;
