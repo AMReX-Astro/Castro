@@ -127,7 +127,10 @@ void problem_source (int i, int j, int k,
         auto cosTheta = loc[axis_1-1] / R_prp;
         auto sinTheta = loc[axis_2-1] / R_prp;
 
-        auto vel_i = inertial_velocity(loc, vel);
+        GpuArray<Real, 3> vel_i{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, vel_i);
+#endif
 
         auto v_rad = cosTheta * vel_i[axis_1-1] + sinTheta * vel_i[axis_2-1];
 

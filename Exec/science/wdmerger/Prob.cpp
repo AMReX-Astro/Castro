@@ -630,7 +630,10 @@ Castro::gwstrain (Real time,
                 // Account for rotation, if there is any. These will leave
                 // r and vel and changed, if not.
 
-                GpuArray<Real, 3> pos = inertial_rotation(r, time);
+                GpuArray<Real, 3> pos{r};
+#ifdef ROTATION
+                pos = inertial_rotation(r, time);
+#endif
 
                 // For constructing the velocity in the inertial frame, we need to
                 // account for the fact that we have rotated the system already, so that 
@@ -646,7 +649,10 @@ Castro::gwstrain (Real time,
                 vel[1] = ymom(i,j,k) * rhoInv;
                 vel[2] = zmom(i,j,k) * rhoInv;
 
-                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel);
+                GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
 
                 GpuArray<Real, 3> g;
                 g[0] = gravx(i,j,k);
@@ -655,7 +661,10 @@ Castro::gwstrain (Real time,
 
                 // We need to rotate the gravitational field to be consistent with the rotated position.
 
-                GpuArray<Real, 3> inertial_g = inertial_rotation(g, time);
+                GpuArray<Real, 3> inertial_g{g};
+#ifdef ROTATION
+                inertial_g = inertial_rotation(g, time);
+#endif
 
                 // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
 
