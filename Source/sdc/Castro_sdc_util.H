@@ -196,7 +196,7 @@ sdc_newton_solve(const Real dt,
     Real tol_ener = sdc_solver_tol_ener * relax_fac;
 
     // update the momenta for this zone -- they don't react
-    for (int n = 0; n < DIM; ++n) {
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt * C[UMX+n];
     }
 
@@ -226,22 +226,26 @@ sdc_newton_solve(const Real dt,
         f_source[NUM_SPECIES+1] = U_old[UEDEN] + dt * C[UEDEN];
     }
 
-    for (int n = 0; n < NUM_SPECIES+2; ++n) {
-        rpar[irp_f_source+n] = f_source[n];
-    }
-    rpar[irp_dt] = dt;
-    for (int n = 0; n < DIM; ++n) {
-        rpar[irp_mom+n] = U_new[UMX+n];
+    burn_t burn_state;
+    burn_state.rho = f_source[0];
+    for (int n = 0; n < NUM_SPECIES; ++n) {
+        burn_state.xn[n] = f_source[1+n];
     }
 
+#if defined(SDC_EVOLVE_ENERGY)
+    burn_state.umx_orig = U_new[UMX];
+    burn_state.umy_orig = U_new[UMY];
+    burn_state.umz_orig = U_new[UMZ];
+#endif
+
     // temperature will be used as an initial guess in the EOS
-    rpar[irp_temp] = U_old[UTEMP];
+    burn_state.T = U_old[UTEMP];
 
     // we should be able to do an update for this somehow?
     if (sdc_solve_for_rhoe == 1) {
-        rpar[irp_evar] = U_new[UEDEN];
+        burn_state.e = U_new[UEDEN];
     } else {
-        rpar[irp_evar] = U_new[UEINT];
+        burn_state.e = U_new[UEINT];
     }
 
     // store the subset for the nonlinear solve
@@ -265,7 +269,8 @@ sdc_newton_solve(const Real dt,
     bool converged = false;
 
     while (!converged && iter < max_newton_iter) {
-        f_sdc_jac(NUM_SPECIES+2, U_react, f, Jac, NUM_SPECIES+2, info, rpar);
+        int info = 0;
+        f_sdc_jac(NUM_SPECIES+2, dt, U_react, f, Jac, NUM_SPECIES+2, &info, rpar, burn_state);
 
         GpuArray<Real, NUM_SPECIES+2> ipvt;
 
@@ -338,14 +343,14 @@ sdc_newton_solve(const Real dt,
     if (sdc_solve_for_rhoe == 1) {
         U_new[UEINT] = U_react[NUM_SPECIES+1];
         auto v2 = 0.0_rt;
-        for (int m = 0; m < DIM; ++m) {
+        for (int m = 0; m < AMREX_SPACEDIM; ++m) {
             v2 += U_new[UMX+m] * U_new[UMX+m];
         }
         U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
     } else {
         U_new[UEDEN] = U_react[NUM+SPECIES+1];
         auto v2 = 0.0_rt;
-        for (int m = 0; m < DIM; ++m) {
+        for (int m = 0; m < AMREX_SPACEDIM; ++m) {
             v2 += U_new[UMX+m] * U_new[UMX+m];
         }
         U_new[UEINT] = U_new[UEDEN] - 0.5_rt * v2 / U_new[URHO];
@@ -383,7 +388,7 @@ sdc_vode_solve(const Real dt,
     auto tol_ener = sdc_solver_tol_ener * relax_fac;
 
     // update the momenta for this zone -- they don't react
-    for (int n = 0; n < DIM; ++n) {
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt * C[UMX+n];
     }
 
@@ -397,6 +402,7 @@ sdc_vode_solve(const Real dt,
     // solving
     //   dU/dt = R(U) + C
     // so we simply pass in C
+    GpuArray<Real, NUM_SPECIES+2> C_react;
     C_react[0] = C[URHO];
     for (int n = 0; n < NUM_SPECIES; ++n) {
         C_react[1+n] = C[UFS+n];
@@ -405,19 +411,22 @@ sdc_vode_solve(const Real dt,
 
     dvode_t dvode_state;
     burn_t burn_state;
-    for (int n = 0; n < NUM_SPECIES+2; ++n) {
-        burn_state.rpar[irp_f_source+n] = C_react[n];
+    burn_state.rho = C_react[0];
+    for (int n = 0; n < NUM_SPECIES; ++n) {
+        burn_state.xn[n] = C_react[1+n];
     }
-    burn_state.rpar[irp_dt] = dt;
-    for (int n = 0; n < DIM; ++n) {
-        burn_state.rpar[irp_mom+n] = U_new[UMX+n];
-    }
+
+#if defined(SDC_EVOLVE_ENERGY)
+    burn_state.umx_orig = U_new[UMX];
+    burn_state.umy_orig = U_new[UMY];
+    burn_state.umz_orig = U_new[UMZ];
+#endif
 
     // temperature will be used as an initial guess in the EOS
-    burn_state.rpar[irp_temp] = U_old[UTEMP];
+    burn_state.T = U_old[UTEMP];
 
     // we are always solving for rhoe with the VODE predict
-    burn_state.rpar[irp_evar] = U_new[UEDEN];
+    burn_state.e = U_new[UEDEN];
 
     // store the subset for the nonlinear solve. We only 
     // consider (rho e), not (rho E). This is because at 
@@ -437,22 +446,9 @@ sdc_vode_solve(const Real dt,
     dvode_state.istate = 1;
 
     // set the maximum number of steps allowed
-    dvode_state.MXSTEP = 25000
+    dvode_state.MXSTEP = 25000;
 
-    dvode_state.T = 0.0_rt;
-    dvode_state.TPUT = dt;
-
-    if (sdc_use_analytic_jac == 1) {
-        dvode_state.jacobian = 1;
-    } else {
-        dvode_state.jacobian = 2;
-    }
-
-    if (use_jacobian_caching) {
-        dvode_state.JSV = 1;
-    } else {
-        dvode_state.JSV = -1;
-    }
+    dvode_state.t = 0.0_rt;
 
     // relative tolerances 
     rtol[0] = tol_dens;
@@ -491,13 +487,13 @@ sdc_vode_solve(const Real dt,
     }
     U_new[UEINT] = dvode_state.y[NUM_SPECIES+2];
     auto v2 = 0.0_rt;
-    for (int n = 0; n < DIM; ++n) {
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         v2 += U_new[UMX+n] * U_new[UMX+n];
     }
     U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 
     // keep our temperature guess 
-    U_new[UTEMP] = burn_state.rpar[irp_temp];
+    U_new[UTEMP] = burn_state.T;
 
 #endif
 }
@@ -505,18 +501,20 @@ sdc_vode_solve(const Real dt,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 f_sdc_jac(const int neq, 
+          const Real dt_m,
           GpuArray<const Real, neq> const& U, 
           GpuArray<const Real, neq> const& f, 
           Array2d<Real, 0, ldjac, 0, neq> Jac, 
-          const int ldjac, int iflag, 
-          GpuArray<Real, n_rpar_comps> const& rpar) {
+          const int ldjac, int& iflag, 
+          GpuArray<Real, n_rpar_comps> const& rpar
+          burn_t burn_state) {
     // this is used with the Newton solve and returns f and the Jacobian
 
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
     GpuArray<Real, neq> R_react;
     GpuArray<Real, neq> f_source;
-    burn_t burn_state;
+
     eos_t eos_state;
     eos_xderivs_t eos_xderivs;
 
@@ -532,11 +530,11 @@ f_sdc_jac(const int neq,
     }
 
     if (sdc_solve_for_rhoe == 1) {
-        U_full[UEINT] = U[NumSpec];
-        U_full[UEDEN] = rpar[irp_evar];
+        U_full[UEINT] = U[NumSpec+1];
+        U_full[UEDEN] = burn_state.e;
     } else {
-        U_full[UEDEN] = U[NumSpec];
-        U_full[UEINT] = rpar[irp_evar];
+        U_full[UEDEN] = U[NumSpec+1];
+        U_full[UEINT] = burn_state.e;
     }
 
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
@@ -555,7 +553,6 @@ f_sdc_jac(const int neq,
     }
 
     // unpack rpar
-    auto dt_m = rpar[irp_dt];
     for (int n = 0; n < neq; ++n) {
         f_source[n] = rpar[irp_f_source+n];
     }
@@ -565,7 +562,7 @@ f_sdc_jac(const int neq,
     // returned by single_zone_react_source, since it is
     // more consistent T from e
     eos_state.rho = U_full[URHO];
-    eos_state.T = rpar[irp_temp];   // initial guess
+    eos_state.T = burn_state.T;   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = U_full[UFS+n]/U_full[URHO];
     }
@@ -635,8 +632,8 @@ f_sdc_jac(const int neq,
                                0.5_rt * u2_sum / (eos_state.rho*eos_state.rho));
     }
 
-    for (int m = 1; m < NumSpec+1; ++m) {
-        dwdU(iwT,m) = -denom * eos_xderivs.dedX[m];
+    for (int m = 0; m < NumSpec; ++m) {
+        dwdU(iwT,m+1) = -denom * eos_xderivs.dedX[m];
     }
 
     dwdU(iwT, nspec+1) = denom;
