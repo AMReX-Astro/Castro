@@ -1412,7 +1412,7 @@ Castro::initData ()
           {
               // C++ problem initialization; has no effect if not implemented
               // by a problem setup (defaults to an empty routine).
-              problem_initialize_rad_data(i, j, k, r, geomdata);
+              problem_initialize_rad_data(i, j, k, r, Radiation::xnu, geomdata);
           });
 
 

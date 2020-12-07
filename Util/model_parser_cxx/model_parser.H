@@ -311,6 +311,14 @@ read_model_file(std::string& model_file, const int model_index=0) {
                     amrex::Print() << "WARNING: " << spec_names_cxx[comp] << " not provided in inputs file" << std::endl;
                 }
             }
+
+#if NAUX_NET > 0
+            for (int comp = 0; comp < NumAux; comp++) {
+                if (!found_aux[comp]) {
+                    amrex::Print() << "WARNING: " << aux_names_cxx[comp] << " not provided in inputs file" << std::endl;
+                }
+            }
+#endif
         }
 
     }  // end of loop over lines in the model file

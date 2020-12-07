@@ -18,6 +18,9 @@ void problem_initialize_state_data (int i, int j, int k,
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
+    int iye = network_aux_index("Ye");
+    int iinvmu = network_aux_index("invmu");
+
     Real dx_sub = dx[0] / static_cast<Real>(nsub);
 
     Real rhowind0 = problem::rhowind1 *
