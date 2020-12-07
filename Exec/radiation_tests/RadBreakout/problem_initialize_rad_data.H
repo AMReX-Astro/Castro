@@ -11,13 +11,17 @@ void problem_initialize_rad_data (int i, int j, int k,
 {
 
     constexpr Real Tindex = 0.5;
+    constexpr int nsub = 16;
 
-    Real dx_sub = dx[0] / static_cast<Real>(problem::nsub);
+    const Real* dx = geomdata.CellSize();
+    const Real* problo = geomdata.ProbLo();
+
+    Real dx_sub = dx[0] / static_cast<Real>(nsub);
 
     Real rlast = model::profile(0).r(model::npts-1);
     Real rbase = rlast * problem::rbasefac;
 
-    Real Twind0 = Twind1 * std::pow(problem::rwind1 / problem::rwind0, Tindex);
+    Real Twind0 = problem::Twind1 * std::pow(problem::rwind1 / problem::rwind0, Tindex);
     Real Tlast = model::profile(0).state(model::npts-1, model::itemp);
 
     Real xcl = problo[0] + dx[0] * static_cast<Real>(i);
@@ -25,18 +29,19 @@ void problem_initialize_rad_data (int i, int j, int k,
     Real vtot = 0.0_rt;
     Real T = 0.0_rt;
 
-    for (int ii = 0; ii < problem::nsub; ii++) {
+    for (int ii = 0; ii < nsub; ii++) {
         Real xx = xcl + (static_cast<Real>(ii) + 0.5_rt) * dx_sub;
         Real vsub = xx * xx;
         vtot += vsub;
 
         if (xx >= model::profile(0).r(model::npts-1)) {
-            if (xx >= rwind0) {
-                T_tmp = Twind1 * std::pow(rwind1 / xx, Tindex);
+            Real T_tmp;
+            if (xx >= problem::rwind0) {
+                T_tmp = problem::Twind1 * std::pow(problem::rwind1 / xx, Tindex);
             } else {
                 T_tmp = Tlast * std::pow(Twind0 / Tlast,
                                          ((std::log(xx - rbase) - std::log(rlast - rbase)) /
-                                          (std::log(rwind0 - rbase) - std::log(rlast - rbase))));
+                                          (std::log(problem::rwind0 - rbase) - std::log(rlast - rbase))));
             }
             T += vsub * T_tmp;
 
@@ -57,7 +62,7 @@ void problem_initialize_rad_data (int i, int j, int k,
 
     } else {
         for (int g = 0; g < NGROUPS; g++) {
-            rad_state(i,j,k,g) = BGroup(T, xnu[igroup], xnu[igroup+1]);
+            rad(i,j,k,g) = BGroup(T, xnu[g], xnu[g+1]);
         }
     }
 }

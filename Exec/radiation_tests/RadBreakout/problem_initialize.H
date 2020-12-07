@@ -12,7 +12,7 @@ void problem_initialize ()
 
     // Read initial model
 
-    read_model_file(problem::model_name);
+    read_model_file(problem::model_file);
 
     if (NumAux != 2) {
         amrex::Error("NumAux in network is not equal to 2");
