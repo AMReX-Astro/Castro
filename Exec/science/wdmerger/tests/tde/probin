@@ -8,6 +8,8 @@
   tde_separation = 8.0d0
   tde_beta = 6.0d0
 
+  nsub = 16
+
   max_stellar_tagging_level = 20
   max_temperature_tagging_level = 0
   stellar_density_threshold = 1.0d4

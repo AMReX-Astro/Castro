@@ -2,6 +2,7 @@
 #define problem_initialize_state_data_H
 
 #include <initial_model.H>
+#include <model_parser.H>
 #include <ambient.H>
 #ifdef ROTATION
 #include <Rotation.H>
@@ -61,17 +62,28 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_P_initial[1],
                        loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(0, problem::radius_P, pos, dx, zone_state, problem::nsub);
+        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 0);
+        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 0);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
+        }
+
+        eos(eos_input_rt, zone_state);
 
     }
     else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
                                           (problem::radius_S <= max_dx && dist_S < max_dx))) {
-
         Real pos[3] = {loc[0] - problem::center_S_initial[0],
                        loc[1] - problem::center_S_initial[1],
                        loc[2] - problem::center_S_initial[2]};
 
-        interpolate_3d_from_1d(1, problem::radius_S, pos, dx, zone_state, problem::nsub);
+        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 1);
+        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 1);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
+        }
+
+        eos(eos_input_rt, zone_state);
 
     }
     else {
