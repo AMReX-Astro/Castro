@@ -1,1 +1,2 @@
-ca_F90EXE_sources += initial_model.F90
+CEXE_headers += initial_model.H
+

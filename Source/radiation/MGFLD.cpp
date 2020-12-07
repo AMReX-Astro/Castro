@@ -1,6 +1,10 @@
 #include <Radiation.H>
 #include <Castro_F.H>
 #include <RAD_F.H>
+#include <rad_util.H>
+#include <blackbody.H>
+#include <opacity.H>
+#include <problem_emissivity.H>
 
 #include <iostream>
 
@@ -267,12 +271,31 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& box = mfi.tilebox();
 
-#pragma gpu box(box)
-      ca_compute_c_v
-          (AMREX_INT_ANYD(box.loVect()), AMREX_INT_ANYD(box.hiVect()),
-           BL_TO_FORTRAN_ANYD(dedT[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto dedT_arr = dedT[mfi].array();
+      auto temp_arr = temp_new[mfi].array();
+      auto S_new_arr = S_new[mfi].array();
+
+      amrex::ParallelFor(box,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+          eos_t eos_state;
+          eos_state.rho = S_new_arr(i,j,k,URHO);
+          eos_state.T   = temp_arr(i,j,k);
+          for (int n = 0; n < NumSpec; ++n) {
+              eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+              eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
+
+          eos(eos_input_rt, eos_state);
+
+          dedT_arr(i,j,k) = eos_state.cv;
+      });
   }
 
   if (dedT_fac > 1.0) {
@@ -285,27 +308,128 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
   for (MFIter mfi(S_new, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.growntilebox(ngrow);
 
-#pragma gpu box(bx)
-      ca_opacs
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(S_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_star[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
-           BL_TO_FORTRAN_ANYD(dkdT[mfi]),
-           use_dkdT, star_is_valid, lag_opac);
+      auto S_new_arr = S_new[mfi].array();
+      auto temp_new_arr = temp_new[mfi].array();
+      auto temp_star_arr = temp_star[mfi].array();
+      auto kappa_p_arr = kappa_p[mfi].array();
+      auto kappa_r_arr = kappa_r[mfi].array();
+      auto dkdT_arr = dkdT[mfi].array();
+      auto jg_arr = jg[mfi].array();
+      auto djdT_arr = djdT[mfi].array();
+
+      bool use_dkdT_loc = use_dkdT;
+
+      GpuArray<Real, NGROUPS> nugroup_loc;
+      for (int g = 0; g < NGROUPS; ++g) {
+          nugroup_loc[g] = nugroup[g];
+      }
+      GpuArray<Real, NGROUPS+1> xnu_loc;
+      for (int g = 0; g < NGROUPS+1; ++g) {
+          xnu_loc[g] = xnu[g];
+      }
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          const Real fac = 0.5e0_rt;
+          const Real minfrac = 1.e-8_rt;
+
+          if (lag_opac) {
+              dkdT_arr(i,j,k) = 0.0_rt;
+              return;
+          }
+
+          Real rho = S_new_arr(i,j,k,URHO);
+          Real temp = temp_new_arr(i,j,k);
+
+          Real Ye;
+          if (NumAux > 0) {
+              Real Ye = S_new_arr(i,j,k,UFX);
+          } else {
+              Ye = 0.e0_rt;
+          }
+
+          Real dT;
+          if (star_is_valid > 0) {
+              dT = fac * std::abs(temp_star_arr(i,j,k) - temp_new_arr(i,j,k));
+              dT = amrex::max(dT, minfrac * temp_new_arr(i,j,k));
+          } else {
+              dT = temp_new_arr(i,j,k) * 1.e-3_rt + 1.e-50_rt;
+          }
+
+          for (int g = 0; g < NGROUPS; ++g) {
+              Real nu = nugroup_loc[g];
+
+              bool comp_kp = true;
+              bool comp_kr = true;
+
+              Real kp, kr;
+
+              opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+              kappa_p_arr(i,j,k,g) = kp;
+              kappa_r_arr(i,j,k,g) = kr;
+
+              if (use_dkdT_loc == 0) {
+
+                  dkdT_arr(i,j,k,g) = 0.e0_rt;
+
+              } else {
+
+                  bool comp_kp = true;
+                  bool comp_kr = false;
+
+                  Real kp1, kr1, kp2, kr2;
+
+                  opacity(kp1, kr1, rho, temp-dT, Ye, nu, comp_kp, comp_kr);
+                  opacity(kp2, kr2, rho, temp+dT, Ye, nu, comp_kp, comp_kr);
+
+                  dkdT_arr(i,j,k,g) = (kp2 - kp1) / (2.e0_rt * dT);
+              }
+          }
+      });
 
       const Box& reg = mfi.tilebox();
 
-#pragma gpu box(reg)
-      ca_compute_emissivity
-          (AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-           BL_TO_FORTRAN_ANYD(jg[mfi]),  
-           BL_TO_FORTRAN_ANYD(djdT[mfi]),  
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(dkdT[mfi]));
+      amrex::ParallelFor(reg,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          // Integrate the Planck distribution upward from zero frequency.
+          // This handles both the single-group and multi-group cases.
+
+          Real Teff = amrex::max(temp_new_arr(i,j,k), 1.e-50_rt);
+
+          Real B1, dBdT1;
+          BdBdTIndefInteg(Teff, 0.0_rt, B1, dBdT1);
+
+          for (int g = 0; g < NGROUPS; ++g) {
+
+              Real xnup = xnu_loc[g+1];
+
+              // For the last group, make sure that we complete
+              // the integral up to "infinity".
+
+              if (g == NGROUPS - 1) {
+                  xnup = amrex::max(xnup, 1.e25_rt);
+              }
+
+              Real B0 = B1;
+              Real dBdT0 = dBdT1;
+              BdBdTIndefInteg(Teff, xnup, B1, dBdT1);
+              Real Bg = B1 - B0;
+              Real dBdT = dBdT1 - dBdT0;
+
+              jg_arr(i,j,k,g) = Bg * kappa_p_arr(i,j,k,g);
+              djdT_arr(i,j,k,g) = dkdT_arr(i,j,k,g) * Bg + dBdT * kappa_p_arr(i,j,k,g);
+
+              // Allow a problem to override this emissivity.
+
+              problem_emissivity(i, j, k, g,
+                                 nugroup_loc, xnu_loc,
+                                 temp_new_arr(i,j,k), kappa_p_arr(i,j,k,g),
+                                 dkdT_arr(i,j,k,g), jg_arr(i,j,k,g), djdT_arr(i,j,k,g));
+          }
+      });
   }    
 
   if (ngrow == 0 && !lag_opac) {
@@ -324,7 +448,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
                            Real delta_t, Real ptc_tau)
 {
   const Geometry& geom = parent->Geom(level);
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   const DistributionMapping& dmap = castro->DistributionMap();
 
@@ -397,14 +521,25 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
   for (MFIter mfi(acoefs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_accel_acoe
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(eta1[mfi]),
-           BL_TO_FORTRAN_ANYD(spec[mfi]),
-           BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-           BL_TO_FORTRAN_ANYD(acoefs[mfi]),
-           delta_t, ptc_tau);    
+      auto eta1_arr = eta1[mfi].array();
+      auto spec_arr = spec[mfi].array();
+      auto kappa_p_arr = kappa_p[mfi].array();
+      auto acoefs_arr = acoefs[mfi].array();
+
+      const Real dt1 = (1.e0_rt + ptc_tau) / delta_t;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real kbar = 0.0;
+          for (int g = 0; g < NGROUPS; ++g) {
+              kbar += spec_arr(i,j,k,g) * kappa_p_arr(i,j,k,g);
+          }
+
+          Real H1 = eta1_arr(i,j,k);
+
+          acoefs_arr(i,j,k) = H1 * kbar * C::c_light + dt1;
+      });
   }  
 
   solver->cellCenteredApplyMetrics(level, acoefs);
@@ -440,21 +575,56 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       for (MFIter mfi(spec, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box&  bx  = mfi.nodaltilebox(idim);
 
-#pragma gpu box(bx)
-          lbcoefna(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(bcoefs[idim][mfi]),
-                   BL_TO_FORTRAN_ANYD(bcgrp[idim][mfi]),
-                   BL_TO_FORTRAN_N_ANYD(spec[mfi], igroup), 
-                   idim);
+          auto bcoefs_arr = bcoefs[idim][mfi].array();
+          auto bcgrp_arr = bcgrp[idim][mfi].array();
+          auto spec_arr = spec[mfi].array(igroup);
+          auto ccoefs_arr = ccoefs[idim][mfi].array();
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              if (idim == 0) {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i-1,j,k) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+              else if (idim == 1) {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j-1,k) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+              else {
+                  bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i,j,k-1) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
+              }
+          });
           
           if (nGroups > 1) {
-#pragma gpu box(bx)
-              ca_accel_ccoe
-                  (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(bcgrp[idim][mfi]),
-                   BL_TO_FORTRAN_ANYD(spec[mfi]),
-                   BL_TO_FORTRAN_ANYD(ccoefs[idim][mfi]),
-                   AMREX_REAL_ANYD(dx), idim, igroup);
+              amrex::ParallelFor(bx,
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              {
+                  int ioff, joff, koff;
+                  Real h1;
+
+                  if (idim == 0) {
+                      ioff = 1;
+                      joff = 0;
+                      koff = 0;
+                      h1 = 1.e0_rt / dx[0];
+                  }
+                  else if (idim == 1) {
+                      ioff = 0;
+                      joff = 1;
+                      koff = 0;
+                      h1 = 1.e0_rt / dx[1];
+                  }
+                  else {
+                      ioff = 0;
+                      joff = 0;
+                      koff = 1;
+                      h1 = 1.e0_rt / dx[2];
+                  }
+
+                  Real grad_spec = (spec_arr(i,j,k) - spec_arr(i-ioff,j-joff,k-koff)) * h1;
+                  Real foo = -0.5e0_rt * bcgrp_arr(i,j,k) * grad_spec;
+                  ccoefs_arr(i,j,k,0) += foo;
+                  ccoefs_arr(i,j,k,1) += foo;
+              });
           }
       }
     }
@@ -646,54 +816,124 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                               int level, Real delta_t, Real ptc_tau,
                               int it, bool conservative_update)
 {
+    const Real cdt = C::c_light * delta_t;
+    const Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
-        const Box& bx = mfi.tilebox(); 
+        const Box& bx = mfi.tilebox();
+
+        auto re_n = rhoe_new[mfi].array();
+        auto S_new_arr = S_new[mfi].array();
+        auto Tp_n = temp_new[mfi].array();
+        auto Er_n = Er_new[mfi].array();
+        auto Er_l = Er_pi[mfi].array();
+        auto re_s = rhoe_star[mfi].array();
+        auto re_2 = rhoe_step[mfi].array();
+        auto eta1_arr = eta1[mfi].array();
+        auto cpT = coupT[mfi].array();
+        auto etTz = etaTz[mfi].array();
+        auto kpp  = kappa_p[mfi].array();
+        auto jg_arr = jg[mfi].array();
 
         if (conservative_update) {
-#pragma gpu box(bx) sync
-            ca_update_matter
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(Er_pi[mfi]),
-                 BL_TO_FORTRAN_ANYD(rhoe_star[mfi]),
-                 BL_TO_FORTRAN_ANYD(rhoe_step[mfi]),
-                 BL_TO_FORTRAN_ANYD(eta1[mfi]),
-                 BL_TO_FORTRAN_ANYD(coupT[mfi]),
-                 BL_TO_FORTRAN_ANYD(kappa_p[mfi]),
-                 delta_t, ptc_tau);
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real H1 = eta1_arr(i,j,k);
+
+                Real dkEE = 0.0;
+                for (int g = 0; g < NGROUPS; ++g) {
+                    dkEE += kpp(i,j,k,g) * (Er_n(i,j,k,g) - Er_l(i,j,k,g));
+                }
+
+                Real chg = cdt * dkEE + H1 * ((re_2(i,j,k) - re_s(i,j,k)) + cdt * cpT(i,j,k));
+
+                re_n(i,j,k) = re_s(i,j,k) + chg;
+
+                re_n(i,j,k) = (re_n(i,j,k) + ptc_tau * re_s(i,j,k)) / (1.e0_rt + ptc_tau);
+            });
 
             temp_new[mfi].copy<RunOn::Device>(rhoe_new[mfi],bx);
             Gpu::synchronize();
 
-#pragma gpu box(bx) sync
-            ca_compute_temp_given_rhoe
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                 0);
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                // Get T from rhoe (temp_new comes in with rhoe)
+
+                if (Tp_n(i,j,k) <= 0.e0_rt)
+                {
+                    Tp_n(i,j,k) = small_temp;
+                }
+                else
+                {
+                    Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+                    eos_t eos_state;
+                    eos_state.rho = S_new_arr(i,j,k,URHO);
+                    eos_state.T   = S_new_arr(i,j,k,UTEMP);
+                    eos_state.e   = Tp_n(i,j,k) * rhoInv;
+                    for (int n = 0; n < NumSpec; ++n) {
+                        eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+                    }
+#endif
+
+                    eos(eos_input_re, eos_state);
+
+                    Tp_n(i,j,k) = eos_state.T;
+                }
+            });
+            Gpu::synchronize();
         }
         else {
-            BL_FORT_PROC_CALL(CA_NCUPDATE_MATTER, ca_ncupdate_matter)
-                (bx.loVect(), bx.hiVect(),
-                 BL_TO_FORTRAN(temp_new[mfi]),
-                 BL_TO_FORTRAN(Er_new[mfi]),
-                 BL_TO_FORTRAN(rhoe_star[mfi]),
-                 BL_TO_FORTRAN(rhoe_step[mfi]),
-                 BL_TO_FORTRAN(etaTz[mfi]),
-                 BL_TO_FORTRAN(kappa_p[mfi]),
-                 BL_TO_FORTRAN(jg[mfi]),
-                 &delta_t);
 
-#pragma gpu box(bx) sync
-            ca_get_rhoe
-                (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                 BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-                 BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]));
+            const Real fac = 0.01_rt;
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real cpT = 0.e0_rt;
+
+                for (int g = 0; g < NGROUPS; ++g) {
+                    cpT = cpT + kpp(i,j,k,g) * Er_n(i,j,k,g) - jg_arr(i,j,k,g);
+                }
+
+                Real scrch_re = cpT - (re_s(i,j,k) - re_2(i,j,k)) * cdt1;
+
+                Real dTemp = etTz(i,j,k) * scrch_re;
+
+                if (std::abs(dTemp / (Tp_n(i,j,k) + 1.e-50_rt)) > fac) {
+                    dTemp = std::copysign(fac * Tp_n(i,j,k), dTemp);
+                }
+
+                Tp_n(i,j,k) = Tp_n(i,j,k) + dTemp;
+
+                Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
+
+                eos_t eos_state;
+                eos_state.rho = S_new_arr(i,j,k,URHO);
+                eos_state.T   = Tp_n(i,j,k);
+                for (int n = 0; n < NumSpec; ++n) {
+                    eos_state.xn[n] = S_new_arr(i,j,k,UFS+n) * rhoInv;
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    eos_state.aux[n] = S_new_arr(i,j,k,UFX+n) * rhoInv;
+                }
+#endif
+
+                eos(eos_input_rt, eos_state);
+
+                re_n(i,j,k) = eos_state.rho * eos_state.e;
+            });
         }
     }  
 }
@@ -790,12 +1030,36 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
 
   const Box& kbox = kappa_r.box();
 
-#pragma gpu box(kbox) sync
-  ca_compute_rosseland(AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-                       BL_TO_FORTRAN_ANYD(kappa_r),
-                       BL_TO_FORTRAN_ANYD(state),
-                       0, nGroups-1, nGroups);
+  auto state_arr = state.array();
+  auto kpr = kappa_r.array();
 
+  GpuArray<Real, NGROUPS> nugroup_loc;
+  for (int g = 0; g < NGROUPS; ++g) {
+      nugroup_loc[g] = nugroup[g];
+  }
+
+  amrex::ParallelFor(kbox,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+      Real rho = state_arr(i,j,k,URHO);
+      Real temp = state_arr(i,j,k,UTEMP);
+      Real Ye;
+      if (NumAux > 0) {
+          Ye = state_arr(i,j,k,UFX);
+      } else {
+          Ye = 0.e0_rt;
+      }
+
+      Real kp, kr;
+      bool comp_kp = false;
+      bool comp_kr = true;
+
+      for (int g = 0; g < NGROUPS; ++g) {
+          opacity(kp, kr, rho, temp, Ye, nugroup_loc[g], comp_kp, comp_kr);
+          kpr(i,j,k,g) = kr;
+      }
+  });
+  Gpu::synchronize();
 }
 
 
@@ -803,17 +1067,41 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
 {
     BL_PROFILE("Radiation::MGFLD_compute_rosseland (MultiFab)");
 
+    GpuArray<Real, NGROUPS> nugroup_loc;
+    for (int g = 0; g < NGROUPS; ++g) {
+        nugroup_loc[g] = nugroup[g];
+    }
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter mfi(kappa_r, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.growntilebox();
 
-#pragma gpu box(bx)
-        ca_compute_rosseland(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                             BL_TO_FORTRAN_ANYD(kappa_r[mfi]),
-                             BL_TO_FORTRAN_ANYD(state[mfi]),
-                             0, nGroups-1, nGroups);
+        auto state_arr = state[mfi].array();
+        auto kpr = kappa_r[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real rho = state_arr(i,j,k,URHO);
+            Real temp = state_arr(i,j,k,UTEMP);
+            Real Ye;
+            if (NumAux > 0) {
+                Ye = state_arr(i,j,k,UFX);
+            } else {
+                Ye = 0.e0_rt;
+            }
+
+            Real kp, kr;
+            bool comp_kp = false;
+            bool comp_kr = true;
+
+            for (int g = 0; g < NGROUPS; ++g) {
+                opacity(kp, kr, rho, temp, Ye, nugroup_loc[g], comp_kp, comp_kr);
+                kpr(i,j,k,g) = kr;
+            }
+        });
     }
 }
 
@@ -823,11 +1111,33 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
 
     const Box& kbox = kappa_s.box();
 
-#pragma gpu box(kbox) sync
-    ca_compute_scattering
-        (AMREX_INT_ANYD(kbox.loVect()), AMREX_INT_ANYD(kbox.hiVect()),
-         BL_TO_FORTRAN_ANYD(kappa_s), 
-         BL_TO_FORTRAN_ANYD(state));
+    auto kps = kappa_s.array();
+    auto sta = state.array();
+
+    // scattering is assumed to be independent of nu.
+    const Real nu = nugroup[0];
+
+    amrex::ParallelFor(kbox,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        Real rho = sta(i,j,k,URHO);
+        Real temp = sta(i,j,k,UTEMP);
+        Real Ye;
+        if (NumAux > 0) {
+            Ye = sta(i,j,k,UFX);
+        }
+        else {
+            Ye = 0.e0_rt;
+        }
+
+        Real kp, kr;
+        bool comp_kp = true;
+        bool comp_kr = true;
+        opacity(kp, kr, rho, temp, Ye, nu, comp_kp, comp_kr);
+
+        kps(i,j,k) = amrex::max(kr - kp, 0.e0_rt);
+    });
+    Gpu::synchronize();
 }
 
 void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new, 
@@ -843,31 +1153,56 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
   for (MFIter mfi(rhoe_new,true); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      ca_get_rhoe
-          (AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(rhoe_new[mfi]),
-           BL_TO_FORTRAN_ANYD(temp_new[mfi]), 
-           BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto rhoe = rhoe_new[mfi].array();
+      auto temp = temp_new[mfi].array();
+      auto state = S_new[mfi].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real rhoInv = 1.e0_rt / state(i,j,k,URHO);
+
+          eos_t eos_state;
+          eos_state.rho = state(i,j,k,URHO);
+          eos_state.T   =  temp(i,j,k);
+          for (int n = 0; n < NumSpec; ++n) {
+              eos_state.xn[n] = state(i,j,k,UFS+n) * rhoInv;
+          }
+#if NAUX_NET > 0
+          for (int n = 0; n < NumAux; ++n) {
+              eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
+          }
+#endif
+
+          eos(eos_input_rt, eos_state);
+
+          rhoe(i,j,k) = eos_state.rho * eos_state.e;
+      });
   }
 }
 
 
 void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
 {
-    const Real* dx = parent->Geom(level).CellSize();
+    auto geomdata = parent->Geom(level).data();
 
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
     for (MFIter ri(rhs, TilingIfNotGPU()); ri.isValid(); ++ri) 
     {
-        const Box& bx = ri.tilebox();       
+        const Box& bx = ri.tilebox();
 
-#pragma gpu box(bx)
-        ca_rhstoer(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                   BL_TO_FORTRAN_ANYD(rhs[ri]),
-                   AMREX_REAL_ANYD(dx), dt);
+        auto rhs_arr = rhs[ri].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real r, s;
+            cell_center_metric(i, j, k, geomdata, r, s);
+
+            rhs_arr(i,j,k) *= dt / r;
+        });
     }
 }
 

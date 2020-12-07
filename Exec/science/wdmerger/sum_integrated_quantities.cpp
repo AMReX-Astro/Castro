@@ -10,7 +10,6 @@
 #include <AMReX_ParallelDescriptor.H>
 
 #include <Problem.H>
-#include <wdmerger_F.H>
 
 #include <Gravity.H>
 #include <Gravity_F.H>
@@ -57,12 +56,6 @@ Castro::sum_integrated_quantities ()
     Real internal_energy      = 0.0;
     Real total_energy         = 0.0;
     Real total_E_grid         = 0.0;
-
-    // Rotation frequency.
-
-    Real omega[3] = { 0.0 };
-
-    get_omega_vec(omega);
 
     // Mass transfer rate
 
@@ -122,14 +115,7 @@ Castro::sum_integrated_quantities ()
     int fixwidth      = 25; // Floating point data not in scientific notation
     int intwidth      = 12; // Integer data
 
-    int axis_1;
-    int axis_2;
-    int axis_3;
-
-    // Determine various coordinate axes
-    get_axes(&axis_1, &axis_2, &axis_3);
-
-    wd_dist_init[axis_1 - 1] = 1.0;
+    wd_dist_init[problem::axis_1 - 1] = 1.0;
 
     // Determine the names of the species in the simulation.
 
@@ -289,23 +275,27 @@ Castro::sum_integrated_quantities ()
 
 #if (BL_SPACEDIM == 3)
     if (mass_P > 0.0) {
-      vel_P_rad = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_1 - 1] + (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_2 - 1];
-      vel_P_phi = (com_P[axis_1 - 1] / com_P_mag) * vel_P[axis_2 - 1] - (com_P[axis_2 - 1] / com_P_mag) * vel_P[axis_1 - 1];
+      vel_P_rad = (com_P[problem::axis_1 - 1] / com_P_mag) * vel_P[problem::axis_1 - 1] +
+                  (com_P[problem::axis_2 - 1] / com_P_mag) * vel_P[problem::axis_2 - 1];
+      vel_P_phi = (com_P[problem::axis_1 - 1] / com_P_mag) * vel_P[problem::axis_2 - 1] -
+                  (com_P[problem::axis_2 - 1] / com_P_mag) * vel_P[problem::axis_1 - 1];
     }
 
     if (mass_S > 0.0) {
-      vel_S_rad = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_1 - 1] + (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_2 - 1];
-      vel_S_phi = (com_S[axis_1 - 1] / com_S_mag) * vel_S[axis_2 - 1] - (com_S[axis_2 - 1] / com_S_mag) * vel_S[axis_1 - 1];
+      vel_S_rad = (com_S[problem::axis_1 - 1] / com_S_mag) * vel_S[problem::axis_1 - 1] +
+                  (com_S[problem::axis_2 - 1] / com_S_mag) * vel_S[problem::axis_2 - 1];
+      vel_S_phi = (com_S[problem::axis_1 - 1] / com_S_mag) * vel_S[problem::axis_2 - 1] -
+                  (com_S[problem::axis_2 - 1] / com_S_mag) * vel_S[problem::axis_1 - 1];
     }
 #else
     if (mass_P > 0.0) {
-      vel_P_rad = vel_P[axis_1 - 1];
-      vel_P_phi = vel_P[axis_3 - 1];
+      vel_P_rad = vel_P[problem::axis_1 - 1];
+      vel_P_phi = vel_P[problem::axis_3 - 1];
     }
 
     if (mass_S > 0.0) {
-      vel_S_rad = vel_S[axis_1 - 1];
-      vel_S_phi = vel_S[axis_3 - 1];
+      vel_S_rad = vel_S[problem::axis_1 - 1];
+      vel_S_phi = vel_S[problem::axis_3 - 1];
     }
 #endif
 
@@ -322,8 +312,8 @@ Castro::sum_integrated_quantities ()
       // the line currently joining the two stars. Note that this
       // neglects any motion in the plane perpendicular to the initial orbit.
 
-      angle = atan2( wd_dist[axis_2 - 1] - wd_dist_init[axis_2 - 1],
-                     wd_dist[axis_1 - 1] - wd_dist_init[axis_1 - 1] ) * 180.0 / M_PI;
+      angle = std::atan2(wd_dist[problem::axis_2 - 1] - wd_dist_init[problem::axis_2 - 1],
+                         wd_dist[problem::axis_1 - 1] - wd_dist_init[problem::axis_1 - 1]) * 180.0 / M_PI;
 
       // Now let's transform from [-180, 180] to [0, 360].
 

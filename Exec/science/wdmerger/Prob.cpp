@@ -10,7 +10,6 @@
 
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
-#include <wdmerger_F.H>
 #include <binary.H>
 
 #include <fstream>
@@ -75,36 +74,15 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Get the current stellar data
-    get_f90_com_P(com_P);
-    get_f90_com_S(com_S);
-    get_f90_vel_P(vel_P);
-    get_f90_vel_S(vel_S);
-    get_f90_mass_P(&mass_P);
-    get_f90_mass_S(&mass_S);
-    get_f90_t_ff_P(&t_ff_P);
-    get_f90_t_ff_S(&t_ff_S);
-
     // Update the problem center using the system bulk velocity
-    update_center(&time);
-    get_f90_center(center);
+    update_center(time);
 
     for ( int i = 0; i < 3; i++ ) {
       com_P[i] += vel_P[i] * dt;
       com_S[i] += vel_S[i] * dt;
     }
 
-    // Now send this first estimate of the COM to Fortran, and then re-calculate
-    // a more accurate result using it as a starting point.
-
-    set_f90_com_P(com_P);
-    set_f90_com_S(com_S);
-    set_f90_vel_P(vel_P);
-    set_f90_vel_S(vel_S);
-    set_f90_mass_P(&mass_P);
-    set_f90_mass_S(&mass_S);
-    set_f90_t_ff_P(&t_ff_P);
-    set_f90_t_ff_S(&t_ff_S);
+    // Now re-calculate a more accurate result using this as a starting point.
 
     // Save relevant current data.
 
@@ -417,7 +395,7 @@ Castro::wd_update (Real time, Real dt)
 
     // Send this updated information back to the Fortran module
 
-    set_star_data(com_P, com_S, vel_P, vel_S, &mass_P, &mass_S, &t_ff_P, &t_ff_S);
+    set_star_data();
 
 }
 
@@ -548,9 +526,6 @@ Castro::gwstrain (Real time,
 
     GeometryData geomdata = geom.data();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
-
     auto mfrho   = derive("density",time,0);
     auto mfxmom  = derive("xmom",time,0);
     auto mfymom  = derive("ymom",time,0);
@@ -655,7 +630,10 @@ Castro::gwstrain (Real time,
                 // Account for rotation, if there is any. These will leave
                 // r and vel and changed, if not.
 
-                GpuArray<Real, 3> pos = inertial_rotation(r, omega, time);
+                GpuArray<Real, 3> pos{r};
+#ifdef ROTATION
+                pos = inertial_rotation(r, time);
+#endif
 
                 // For constructing the velocity in the inertial frame, we need to
                 // account for the fact that we have rotated the system already, so that 
@@ -671,7 +649,10 @@ Castro::gwstrain (Real time,
                 vel[1] = ymom(i,j,k) * rhoInv;
                 vel[2] = zmom(i,j,k) * rhoInv;
 
-                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel, omega);
+                GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+                rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
 
                 GpuArray<Real, 3> g;
                 g[0] = gravx(i,j,k);
@@ -680,7 +661,10 @@ Castro::gwstrain (Real time,
 
                 // We need to rotate the gravitational field to be consistent with the rotated position.
 
-                GpuArray<Real, 3> inertial_g = inertial_rotation(g, omega, time);
+                GpuArray<Real, 3> inertial_g{g};
+#ifdef ROTATION
+                inertial_g = inertial_rotation(g, time);
+#endif
 
                 // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
 
@@ -923,10 +907,6 @@ void Castro::problem_post_init() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Update the rotational period; some problems change this from what's in the inputs parameters.
-
-  get_period(&rotational_period);
-
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
   // This should generally be the last operation
@@ -951,10 +931,6 @@ void Castro::problem_post_restart() {
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
-
-  // Get the rotational period.
-
-  get_period(&rotational_period);
 
   // Reset current values of extrema.
 
@@ -1419,7 +1395,6 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     rotational_period = period;
-    set_period(&period);
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the
@@ -1508,9 +1483,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
         MultiFab& S_new = get_new_data(State_Type);
 
-        Real relaxation_density_cutoff;
-        get_relaxation_density_cutoff(&relaxation_density_cutoff);
-
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
         using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -1562,9 +1534,6 @@ Castro::update_relaxation(Real time, Real dt) {
     // We can also turn off the relaxation if we've passed
     // a certain number of dynamical timescales.
 
-    Real relaxation_cutoff_time;
-    get_relaxation_cutoff_time(&relaxation_cutoff_time);
-
     if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_P, t_ff_S)) {
         relaxation_is_done = 1;
         amrex::Print() << "Disabling relaxation at time " << time
@@ -1573,9 +1542,7 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     if (relaxation_is_done > 0) {
-	set_relaxation_status(&relaxation_is_done);
-        const Real factor = -1.0;
-	set_relaxation_damping_factor(factor);
+	relaxation_damping_factor = -1.0;
     }
 
 }

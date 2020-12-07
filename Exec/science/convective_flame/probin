@@ -23,8 +23,6 @@
 
   low_density_cutoff = 1.d-8
 
-  index_base_from_temp = T
-
 /
 
 &tagging

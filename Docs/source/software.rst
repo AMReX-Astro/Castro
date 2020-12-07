@@ -1114,13 +1114,6 @@ the module.
 This provides the CGS values of many physical constants.
 
 
-``math_module``
----------------
-
-This provides simple mathematical functions. At the moment, a cross
-product routine.
-
-
 ``meth_params_module``
 ----------------------
 

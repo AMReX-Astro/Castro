@@ -8,25 +8,24 @@
 #include <wdmerger_util.H>
 #include <wdmerger_data.H>
 #ifdef ROTATION
-#include <Castro_rotation_F.H>
+#include <Rotation.H>
 #endif
 
 using namespace amrex;
 
 void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                             const FArrayBox& datfab, const Geometry& geomdata,
-                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                             const FArrayBox& datfab, const Geometry& geom,
+                             Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -48,25 +47,27 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
         der(i,j,k,0) = rho * inertial_vel[0];
     });
 }
 
 void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                             const FArrayBox& datfab, const Geometry& geomdata,
-                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                             const FArrayBox& datfab, const Geometry& geom,
+                             Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -88,25 +89,27 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
         der(i,j,k,0) = rho * inertial_vel[1];
     });
 }
 
 void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                             const FArrayBox& datfab, const Geometry& geomdata,
-                             Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                             const FArrayBox& datfab, const Geometry& geom,
+                             Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -128,25 +131,27 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
         der(i,j,k,0) = rho * inertial_vel[2];
     });
 }
 
 void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive angular momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -168,7 +173,10 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -178,19 +186,18 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive angular momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -212,7 +219,10 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -222,19 +232,18 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive angular momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -256,7 +265,10 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 
         Real rho = dat(i,j,k,0);
         GpuArray<Real, 3> vel{dat(i,j,k,1) / rho, dat(i,j,k,2) / rho, dat(i,j,k,3) / rho};
-        GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, omega);
+        GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
 
         GpuArray<Real, 3> angular_vel;
         cross_product(loc, inertial_vel, angular_vel);
@@ -266,19 +278,18 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive radial momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -299,7 +310,10 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom{mom};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_mom);
+#endif
 
         Real radInv = 1.0_rt / std::sqrt(loc[1] * loc[1] + loc[2] * loc[2]);
 
@@ -308,19 +322,18 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive radial momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -341,7 +354,10 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom{mom};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_mom);
+#endif
 
         Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[2] * loc[2]);
 
@@ -350,19 +366,18 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                           const FArrayBox& datfab, const Geometry& geomdata,
-                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
+                           const FArrayBox& datfab, const Geometry& geom,
+                           Real time, const int* /*bcrec*/, int /*level*/)
 {
     // Derive radial momentum, given the grid momenta.
 
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
+    const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -383,7 +398,10 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 #endif
 
         GpuArray<Real, 3> mom{dat(i,j,k,1), dat(i,j,k,2), dat(i,j,k,3)};
-        GpuArray<Real, 3> inertial_mom = inertial_velocity(loc, mom, omega);
+        GpuArray<Real, 3> inertial_mom{mom};
+#ifdef ROTATION
+        rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_mom);
+#endif
 
         Real radInv = 1.0_rt / std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]);
 
@@ -392,7 +410,7 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
 }
 
 void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& geomdata,
+                  const FArrayBox& datfab, const Geometry& geom,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Derive the effective potential phiEff = phiGrav + phiRot
@@ -408,7 +426,7 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 }
 
 void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Derive an approximation to the effective potential of the primary only,
@@ -419,8 +437,8 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -456,7 +474,7 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 }
 
 void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Same as above, but for the secondary.
@@ -464,8 +482,8 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -501,7 +519,7 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 }
 
 void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+                      const FArrayBox& datfab, const Geometry& geom,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     auto const dat = datfab.array();
@@ -515,7 +533,7 @@ void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
 }
 
 void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+                     const FArrayBox& datfab, const Geometry& geom,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     auto const dat = datfab.array();
@@ -529,7 +547,7 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
 }
 
 void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& geomdata,
+                       const FArrayBox& datfab, const Geometry& geom,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Create a mask for all zones considered to be within the primary star.
@@ -542,8 +560,8 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -594,7 +612,7 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
 }
 
 void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                         const FArrayBox& datfab, const Geometry& geomdata,
+                         const FArrayBox& datfab, const Geometry& geom,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
 {
     // Same as above, but for the secondary.
@@ -602,8 +620,8 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
     auto const dat = datfab.array();
     auto const der = derfab.array();
 
-    const auto dx = geomdata.CellSizeArray();
-    const auto problo = geomdata.ProbLoArray();
+    const auto dx = geom.CellSizeArray();
+    const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept

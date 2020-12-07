@@ -52,9 +52,13 @@
 
 #include <microphysics_F.H>
 
-#include <problem_setup.H>
+#include <problem_initialize.H>
+#include <problem_initialize_state_data.H>
 #ifdef MHD
-#include <problem_mhd_setup.H>
+#include <problem_initialize_mhd_data.H>
+#endif
+#ifdef RADIATION
+#include <problem_initialize_rad_data.H>
 #endif
 #include <problem_tagging.H>
 
@@ -77,9 +81,6 @@ Real         Castro::lastDtBeforePlotLimiting = 0.0;
 Real         Castro::num_zones_advanced = 0.0;
 
 Vector<std::string> Castro::source_names;
-
-Vector<int> Castro::upass_map;
-Vector<int> Castro::qpass_map;
 
 Vector<AMRErrorTag> Castro::custom_error_tags;
 
@@ -1122,10 +1123,9 @@ Castro::initData ()
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(box)
-          ca_initdata(AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+          ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                       BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                      AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+                      AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
           RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
@@ -1404,13 +1404,24 @@ Castro::initData ()
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
 
+          auto r = Rad_new[mfi].array();
+          auto geomdata = geom.data();
+
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ problem initialization; has no effect if not implemented
+              // by a problem setup (defaults to an empty routine).
+              problem_initialize_rad_data(i, j, k, r, geomdata);
+          });
+
+
 #ifdef GPU_COMPATIBLE_PROBLEM
 
-#pragma gpu box(box)
           ca_initrad
-              (AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
+              (AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
                BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
-               AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo));
+               AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
 
 #else
           RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
@@ -3329,11 +3340,10 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             });
 
 #ifdef GPU_COMPATIBLE_PROBLEM
-#pragma gpu box(bx)
-            set_problem_tags(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
+            set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
                              (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
                              BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                             AMREX_REAL_ANYD(dx), AMREX_REAL_ANYD(prob_lo),
+                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
                              tagval, clearval, time, level);
 #else
             set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),

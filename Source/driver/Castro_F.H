@@ -187,12 +187,6 @@ extern "C"
 
 
 
-/* reactions */
-#ifdef REACTIONS
-#include <Castro_react_F.H>
-#endif
-
-
 /* sources */
 #include <Castro_sources_F.H>
 
@@ -200,12 +194,6 @@ extern "C"
 /* gravity */
 #ifdef GRAVITY
 #include <Castro_gravity_F.H>
-#endif
-
-
-/* rotation */
-#ifdef ROTATION
-#include <Castro_rotation_F.H>
 #endif
 
 

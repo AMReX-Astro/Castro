@@ -32,7 +32,7 @@ void problem_tagging(int i, int j, int k,
         Real dist = std::abs(loc[0] - problem::center[0]);
 #else
         Real dist = std::sqrt((loc[0] - problem::center[0]) * (loc[0] - problem::center[0]) +
-                              (log[1] - problem::center[1]) * (loc[1] - problem::center[1]));
+                              (loc[1] - problem::center[1]) * (loc[1] - problem::center[1]));
 #endif
         if (level < problem::max_hse_tagging_level && dist < problem::x_refine_distance) {
             tag(i,j,k) = TagBox::SET;

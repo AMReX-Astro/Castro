@@ -2,8 +2,27 @@
 #define ROTATION_H
 
 #include <math.H>
+#include <AMReX_Array.H>
 #include <Castro.H>
 #include <Castro_util.H>
+
+///
+/// Return the omega vector corresponding to the current rotational period
+///
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+GpuArray<Real, 3> get_omega()
+{
+    GpuArray<Real, 3> omega = {0.0_rt};
+
+    // If rotational_period is less than zero, that means rotation is disabled, and so we should effectively
+    // shut off the source term by setting omega = 0.
+
+    if (castro::rotational_period > 0.0_rt) {
+        omega[castro::rot_axis - 1] = 2.0_rt * M_PI / castro::rotational_period;
+    }
+
+    return omega;
+}
 
 ///
 /// Compute the rotational acceleration for a single zone
@@ -11,14 +30,12 @@
 ///
 /// @param r         distance from origin of rotation vector
 /// @param v         velocity
-/// @param omega     rotation vector
 /// @param coriolis  do we include the Coriolis force
 /// @param Sr        rotational acceleration
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
-                        GpuArray<Real, 3> const& omega,
                         const bool coriolis, Real* Sr) {
 
   // Given a position and velocity, calculate
@@ -30,6 +47,8 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
   Sr[0] = 0.0;
   Sr[1] = 0.0;
   Sr[2] = 0.0;
+
+  auto omega = get_omega();
 
   if (castro::state_in_rotating_frame == 1) {
 
@@ -90,12 +109,14 @@ rotational_acceleration(GpuArray<Real, 3>& r, GpuArray<Real, 3>& v,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real
-rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega) {
+rotational_potential(GpuArray<Real, 3>& r) {
 
   // Construct rotational potential, phi_R = -1/2 | omega x r |**2
   //
 
   Real phi = 0.0_rt;
+
+  auto omega = get_omega();
 
   if (state_in_rotating_frame == 1) {
 
@@ -115,18 +136,107 @@ rotational_potential(GpuArray<Real, 3>& r, GpuArray<Real, 3> const& omega) {
 
 }
 
-AMREX_GPU_HOST_DEVICE 
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-inertial_to_rotational_velocity_c(const int i, const int j, const int k,
-                                    const GeometryData& geomdata,
-                                    const Real* omega,
-                                    const Real time, Real* v);
+inertial_to_rotational_velocity (const int i, const int j, const int k,
+                                 const GeometryData& geomdata,
+                                 const Real time, GpuArray<Real, 3>& v) {
 
-AMREX_GPU_HOST_DEVICE 
+  // Given a velocity vector in the inertial frame, transform it to a
+  // velocity vector in the rotating frame.
+
+  // Note: this version assumes all cell-centers
+
+  GpuArray<Real, 3> loc;
+
+  position(i, j, k, geomdata, loc);
+
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    loc[dir] -= problem::center[dir];
+  }
+
+  auto omega = get_omega();
+
+  // do the cross product Omega x loc
+  v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
+  v[1] += -(omega[2]*loc[0] - omega[0]*loc[2]);
+  v[2] += -(omega[0]*loc[1] - omega[1]*loc[0]);
+
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-inertial_to_rotational_velocity(const int i, const int j, const int k,
-                                const GeometryData& geomdata,
-                                const GpuArray<Real, 3>& omega,
-                                const Real time, GpuArray<Real, 3>& v);
+rotational_to_inertial_velocity (const int i, const int j, const int k,
+                                 const GeometryData& geomdata,
+                                 const Real time, GpuArray<Real, 3>& v) {
+
+  // Given a velocity vector in the rotating frame, transform it to a
+  // velocity vector in the inertial frame.
+
+  // Note: this version assumes all cell-centers
+
+  GpuArray<Real, 3> loc;
+
+  position(i, j, k, geomdata, loc);
+
+  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+    loc[dir] -= problem::center[dir];
+  }
+
+  auto omega = get_omega();
+
+  // do the cross product Omega x loc
+  v[0] += (omega[1]*loc[2] - omega[2]*loc[1]);
+  v[1] += (omega[2]*loc[0] - omega[0]*loc[2]);
+  v[2] += (omega[0]*loc[1] - omega[1]*loc[0]);
+
+}
+
+// If we are in a rotating reference frame, then rotate a vector
+// by an amount corresponding to the time that has passed
+// since the beginning of the simulation.
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+GpuArray<Real, 3> inertial_rotation(const GpuArray<Real, 3>& vec, Real time)
+{
+    GpuArray<Real, 3> vec_i{};
+
+    Array1D<Real, 0, 2> theta{};
+    Array2D<Real, 0, 2, 0, 2> rot_matrix{};
+
+    auto omega = get_omega();
+
+    if (castro::do_rotation == 1) {
+        for (int n = 0; n < 3; ++n) {
+            theta(n) = omega[n] * time;
+        }
+    }
+
+    // This is the 3D rotation matrix for converting between reference frames.
+    // It is the composition of rotations along the x, y, and z axes. Therefore
+    // it allows for the case where we are rotating about multiple axes. Normally
+    // we use the right-hand convention for constructing the usual rotation matrix,
+    // but this is the transpose of that rotation matrix to account for the fact
+    // that we are rotating *back* to the inertial frame, rather than from the
+    // inertial frame to the rotating frame.
+
+    rot_matrix(0,0) =  cos(theta(1)) * cos(theta(2));
+    rot_matrix(0,1) = -cos(theta(1)) * sin(theta(2));
+    rot_matrix(0,2) =  sin(theta(1));
+    rot_matrix(1,0) =  cos(theta(0)) * sin(theta(2)) + sin(theta(0)) * sin(theta(1)) * cos(theta(2));
+    rot_matrix(1,1) =  cos(theta(0)) * cos(theta(2)) - sin(theta(0)) * sin(theta(1)) * sin(theta(2));
+    rot_matrix(1,2) = -sin(theta(0)) * cos(theta(1));
+    rot_matrix(2,0) =  sin(theta(0)) * sin(theta(2)) - cos(theta(0)) * sin(theta(1)) * cos(theta(2));
+    rot_matrix(2,1) =  sin(theta(0)) * cos(theta(2)) + cos(theta(0)) * sin(theta(1)) * sin(theta(2));
+    rot_matrix(2,2) =  cos(theta(0)) * cos(theta(1));
+
+    for (int l = 0; l < 3; ++l) {
+        for (int m = 0; m < 3; ++m) {
+            vec_i[l] += rot_matrix(l,m) * vec[m];
+        }
+    }
+
+    return vec_i;
+}
 
 #endif

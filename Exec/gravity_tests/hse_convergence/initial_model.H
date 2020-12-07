@@ -78,7 +78,7 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
     Real dx = (xmax - xmin) / nx;
 
     for (int i = 0; i < npts_model; i++) {
-        model::r(i) = xmin + (static_cast<Real>(i - nbuf) + 0.5_rt) * dx;
+        model::profile(0).r(i) = xmin + (static_cast<Real>(i - nbuf) + 0.5_rt) * dx;
     }
 
     // note, those conditions are the lower boundary.  This means we
@@ -105,8 +105,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
                 rho = eos_state.rho;
                 T = eos_state.T;
             } else {
-                rho = model::state(i-1, model::idens);
-                T = model::state(i-1, model::itemp);
+                rho = model::profile(0).state(i-1, model::idens);
+                T = model::profile(0).state(i-1, model::itemp);
             }
 
             Real xn[NumSpec];
@@ -149,11 +149,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // update the thermodynamics in this zone
 
-            model::state(i, model::idens) = eos_state.rho;
-            model::state(i, model::itemp) = eos_state.T;
-            model::state(i, model::ipres) = eos_state.p;
+            model::profile(0).state(i, model::idens) = eos_state.rho;
+            model::profile(0).state(i, model::itemp) = eos_state.T;
+            model::profile(0).state(i, model::ipres) = eos_state.p;
             for (int n = 0; n < NumSpec; n++) {
-                model::state(i, model::ispec+n) = eos_state.xn[n];
+                model::profile(0).state(i, model::ispec+n) = eos_state.xn[n];
             }
 
             // reset for the next iteration
@@ -164,12 +164,12 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
         // now integrate down
 
-        p = model::state(ibase, model::ipres);
+        p = model::profile(0).state(ibase, model::ipres);
 
         for (int i = ibase-1; i >= 0; --i) {
 
-            Real rho = model::state(i+1, model::idens);
-            Real T = model::state(i+1, model::itemp);
+            Real rho = model::profile(0).state(i+1, model::idens);
+            Real T = model::profile(0).state(i+1, model::itemp);
 
             Real h = -dx;
 
@@ -198,11 +198,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // update the thermodynamics in this zone
 
-            model::state(i, model::idens) = eos_state.rho;
-            model::state(i, model::itemp) = eos_state.T;
-            model::state(i, model::ipres) = eos_state.p;
+            model::profile(0).state(i, model::idens) = eos_state.rho;
+            model::profile(0).state(i, model::itemp) = eos_state.T;
+            model::profile(0).state(i, model::ipres) = eos_state.p;
             for (int n = 0; n < NumSpec; n++) {
-                model::state(i, model::ispec+n) = eos_state.xn[n];
+                model::profile(0).state(i, model::ispec+n) = eos_state.xn[n];
             }
 
             // reset for the next iteration
@@ -218,14 +218,14 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
         for (int i = ibase; i <= itop + nbuf; i++) {
 
             if (i == ibase) {
-                model::state(i, model::idens) = model_params.dens_base; // initial guess
-                model::state(i, model::ipres) =
+                model::profile(0).state(i, model::idens) = model_params.dens_base; // initial guess
+                model::profile(0).state(i, model::ipres) =
                     p + 0.5_rt * dx * model_params.dens_base * gravity::const_grav;
 
                 eos_t eos_state;
-                eos_state.rho = model::state(i, model::idens);
+                eos_state.rho = model::profile(0).state(i, model::idens);
                 eos_state.T = model_params.dens_base;
-                eos_state.p = model::state(i, model::ipres);
+                eos_state.p = model::profile(0).state(i, model::ipres);
                 for (int n = 0; n < NumSpec; n++) {
                     eos_state.xn[n] = model_params.xn[n];
                 }
@@ -233,15 +233,15 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                 eos(eos_input_ps, eos_state);
 
-                model::state(i, model::idens) = eos_state.rho;
-                model::state(i, model::itemp) = eos_state.T;
+                model::profile(0).state(i, model::idens) = eos_state.rho;
+                model::profile(0).state(i, model::itemp) = eos_state.T;
                 for (int n = 0; n < NumSpec; n++) {
-                    model::state(i, model::ispec+n) = model_params.xn[n];
+                    model::profile(0).state(i, model::ispec+n) = model_params.xn[n];
                 }
 
             } else {
 
-                Real dens_zone = model::state(i-1, model::idens);
+                Real dens_zone = model::profile(0).state(i-1, model::idens);
 
                 bool converged_hse = false;
 
@@ -250,8 +250,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                 for (int iter = 0; iter < MAX_ITER; iter++) {
 
-                    p_want = model::state(i-1, model::ipres) +
-                        dx * 0.5_rt * (dens_zone + model::state(i-1, model::idens)) * gravity::const_grav;
+                    p_want = model::profile(0).state(i-1, model::ipres) +
+                        dx * 0.5_rt * (dens_zone + model::profile(0).state(i-1, model::idens)) * gravity::const_grav;
 
                     // use the EOS with constant entropy to find corrected state
 
@@ -280,24 +280,24 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
                 // initialze zone
 
-                model::state(i, model::idens) = dens_zone;
-                model::state(i, model::ipres) = p_want;
-                model::state(i, model::itemp) = eos_state.T;
+                model::profile(0).state(i, model::idens) = dens_zone;
+                model::profile(0).state(i, model::ipres) = p_want;
+                model::profile(0).state(i, model::itemp) = eos_state.T;
                 for (int n = 0; n < NumSpec; n++) {
-                    model::state(i, model::ispec+n) = model_params.xn[n];
+                    model::profile(0).state(i, model::ispec+n) = model_params.xn[n];
                 }
 
 
             }
 
-            amrex::Print() << i << " " << model::state(i, model::idens) << " " << model::state(i, model::ipres) << std::endl;
+            amrex::Print() << i << " " << model::profile(0).state(i, model::idens) << " " << model::profile(0).state(i, model::ipres) << std::endl;
         }
 
         //  now integrate down
 
         for (int i = ibase-1; i >= 0; --i) {
 
-            Real dens_zone = model::state(i+1, model::idens);
+            Real dens_zone = model::profile(0).state(i+1, model::idens);
 
             bool converged_hse = false;
 
@@ -306,8 +306,8 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             for (int iter = 0; iter < MAX_ITER; iter++) {
 
-                p_want = model::state(i+1, model::ipres) -
-                    dx * 0.5_rt * (dens_zone + model::state(i+1, model::idens)) * gravity::const_grav;
+                p_want = model::profile(0).state(i+1, model::ipres) -
+                    dx * 0.5_rt * (dens_zone + model::profile(0).state(i+1, model::idens)) * gravity::const_grav;
 
                 // use the EOS with constant entropy to find corrected state
 
@@ -335,11 +335,11 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
 
             // initialze zone
 
-            model::state(i, model::idens) = dens_zone;
-            model::state(i, model::ipres) = p_want;
-            model::state(i, model::itemp) = eos_state.T;
+            model::profile(0).state(i, model::idens) = dens_zone;
+            model::profile(0).state(i, model::ipres) = p_want;
+            model::profile(0).state(i, model::itemp) = eos_state.T;
             for (int n = 0; n < NumSpec; n++) {
-                model::state(i, model::ispec+n) = model_params.xn[n];
+                model::profile(0).state(i, model::ispec+n) = model_params.xn[n];
             }
 
         }
