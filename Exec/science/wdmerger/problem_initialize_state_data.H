@@ -3,33 +3,9 @@
 
 #include <initial_model.H>
 #include <ambient.H>
+#ifdef ROTATION
 #include <Rotation.H>
-
-// Given a rotating frame velocity, get the inertial frame velocity.
-// Note that we simply return the original velocity if we're
-// already in the inertial frame.
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> inertial_velocity (const GpuArray<Real, 3>& loc,
-                                     const GpuArray<Real, 3>& vel,
-                                     Real time)
-{
-    GpuArray<Real, 3> inertial_vel{vel};
-
-    auto omega = get_omega();
-
-    if (castro::do_rotation == 1 && castro::state_in_rotating_frame == 1) {
-        GpuArray<Real, 3> dvel;
-        cross_product(omega, loc, dvel);
-        for (int n = 0; n < 3; ++n) {
-            inertial_vel[n] += dvel[n];
-        }
-    }
-
-    return inertial_vel;
-}
-
-
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -204,7 +180,10 @@ void problem_initialize_state_data (int i, int j, int k,
             Real sinTheta = loc[problem::axis_2-1] / R_prp;
 
             GpuArray<Real, 3> vel = {state(i,j,k,UMX), state(i,j,k,UMY), state(i,j,k,UMZ)};
-            GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, time);
+            GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+            rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
             Real mag_vel = std::sqrt(inertial_vel[0] * inertial_vel[0] +
                                      inertial_vel[1] * inertial_vel[1] +
                                      inertial_vel[2] * inertial_vel[2]);
