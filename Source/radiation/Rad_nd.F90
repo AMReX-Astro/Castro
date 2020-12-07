@@ -493,6 +493,18 @@ subroutine ca_get_dlognu(dlognu_out) bind(C, name="ca_get_dlognu")
 
 end subroutine ca_get_dlognu
 
+subroutine ca_get_xnu(xnu_out) bind(C, name="ca_get_xnu")
+
+  use amrex_fort_module, only: rt => amrex_real
+  use rad_params_module, only: ngroups, xnu
+  implicit none
+
+  real(rt), intent(out) :: xnu_out(0:ngroups)
+
+  xnu_out(:) = xnu(:)
+
+end subroutine ca_get_xnu
+
 subroutine ca_get_nugroup(nugroup_out) bind(C, name="ca_get_nugroup")
 
   use amrex_fort_module, only: rt => amrex_real

@@ -1407,12 +1407,17 @@ Castro::initData ()
           auto r = Rad_new[mfi].array();
           auto geomdata = geom.data();
 
+          GpuArray<Real, NGROUPS+1> xnu = {0.0};
+#if NGROUPS > 1
+          ca_get_xnu(xnu.begin())
+#endif
+
           amrex::ParallelFor(box,
           [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
           {
               // C++ problem initialization; has no effect if not implemented
               // by a problem setup (defaults to an empty routine).
-              problem_initialize_rad_data(i, j, k, r, geomdata);
+              problem_initialize_rad_data(i, j, k, r, xnu, geomdata);
           });
 
 
