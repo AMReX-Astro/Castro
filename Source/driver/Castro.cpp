@@ -1409,7 +1409,7 @@ Castro::initData ()
 
           GpuArray<Real, NGROUPS+1> xnu = {0.0};
 #if NGROUPS > 1
-          ca_get_xnu(xnu.begin())
+          ca_get_xnu(xnu.begin());
 #endif
 
           amrex::ParallelFor(box,
