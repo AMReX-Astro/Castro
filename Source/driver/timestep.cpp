@@ -70,12 +70,12 @@ Castro::estdt_cfl(const Real time)
 
 #ifdef ROTATION
       if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        Real vel[3];
+        GpuArray<Real, 3> vel;
         vel[0] = ux;
         vel[1] = uy;
         vel[2] = uz;
 
-        inertial_to_rotational_velocity_c(i, j, k, geomdata, time, vel);
+        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
 
         ux = vel[0];
         uy = vel[1];

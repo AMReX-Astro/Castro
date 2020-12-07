@@ -103,12 +103,12 @@ Castro::ctoprim(const Box& bx,
 
 #ifdef ROTATION
     if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-      Real vel[3];
+      GpuArray<Real, 3> vel;
       for (int n = 0; n < 3; n++) {
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
 
-      inertial_to_rotational_velocity_c(i, j, k, geomdata, time, vel);
+      inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
