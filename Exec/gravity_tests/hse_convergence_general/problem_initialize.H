@@ -6,6 +6,7 @@
 #include <model_parser.H>
 #include <initial_model.H>
 #include <network.H>
+#include <ambient.H>
 
 AMREX_INLINE
 void problem_initialize ()
@@ -132,10 +133,6 @@ void problem_initialize ()
         amrex::Error("ERROR: fuel mass fractions don't sum to 1");
     }
 
-    // we are going to generate an initial model from problo(2) to
-    // probhi(2) with nx_model zones.  But to allow for a interpolated
-    // lower boundary, we'll add 4 ghostcells to this, so we need to
-    // compute dx
 
     int nx_model = static_cast<int>((probhi[AMREX_SPACEDIM-1] -
                                      problo[AMREX_SPACEDIM-1]) / problem::dx_model);
@@ -154,9 +151,6 @@ void problem_initialize ()
 
     model_params.low_density_cutoff = problem::low_density_cutoff;
 
-    // we are actually just doing the "perturbed" model for this problem
-    model_params.T_hi = model_params.T_hi + problem::dtemp;
-
     generate_initial_model(nx_model + ng,
                            problo[AMREX_SPACEDIM-1] - ng*problem::dx_model,
                            probhi[AMREX_SPACEDIM-1],
@@ -172,6 +166,33 @@ void problem_initialize ()
     // for axisymmetry, put the x-center on the x-axis
     problem::center[0] = 0.0_rt;
 #endif
+
+    // set the ambient state for the upper boundary condition
+
+    ambient::ambient_state[URHO] = model::profile(0).state(model::npts-1, model::idens);
+    ambient::ambient_state[UTEMP] = model::profile(0).state(model::npts-1, model::itemp);
+    for (int n = 0; n < NumSpec; n++) {
+        ambient::ambient_state[UFS+n] =
+            ambient::ambient_state[URHO] * model::profile(0).state(model::npts-1, model::ispec+n);
+    }
+
+    ambient::ambient_state[UMX] = 0.0_rt;
+    ambient::ambient_state[UMY] = 0.0_rt;
+    ambient::ambient_state[UMZ] = 0.0_rt;
+
+    // make the ambient state thermodynamically consistent
+
+    eos_t eos_state;
+    eos_state.rho = ambient::ambient_state[URHO];
+    eos_state.T = ambient::ambient_state[UTEMP];
+    for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = ambient::ambient_state[UFS+n] / eos_state.rho;
+    }
+
+    eos(eos_input_rt, eos_state);
+
+    ambient::ambient_state[UEINT] = eos_state.rho * eos_state.e;
+    ambient::ambient_state[UEDEN] = eos_state.rho * eos_state.e;
 
 }
 #endif
