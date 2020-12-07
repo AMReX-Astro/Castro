@@ -44,11 +44,11 @@ amr.refinement_indicators = denerr dengrad presserr pressgrad
 
 amr.refine.denerr.max_level = 3
 amr.refine.denerr.value_greater = 3
-amr.refine.denerr.field_name = Density
+amr.refine.denerr.field_name = density
 
 amr.refine.dengrad.max_level = 3
 amr.refine.dengrad.value_greater = 0.01
-amr.refine.dengrad.field_name = Density
+amr.refine.dengrad.field_name = density
 
 amr.refine.presserr.max_level = 3
 amr.refine.presserr.value_greater = 3
