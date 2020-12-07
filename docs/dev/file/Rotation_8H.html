@@ -262,12 +262,17 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1a95303527355e4405bfc04479adbd19ad"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity_c (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, Real *v)</code></dt>
+<span class="target" id="Rotation_8H_1af585f6f037e10cc19763d95400148441"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void inertial_to_rotational_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1ad24abc71e693433dc0f48f9e9093db94"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE void inertial_to_rotational_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
+<span class="target" id="Rotation_8H_1af3147d52469c4e9d0bbd4ae86feb7f62"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_to_inertial_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Rotation_8H_1ab5aca3be37c64313b3c8e4b162565177"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE GpuArray&lt; Real, 3 &gt; inertial_rotation (const GpuArray&lt; Real, 3 &gt; &amp;vec, Real time)</code></dt>
 <dd></dd></dl>
 
 </div>
