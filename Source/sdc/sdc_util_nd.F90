@@ -446,10 +446,6 @@ contains
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
-    ! update the non-reacting species
-    U_new(UFS+nspec:UFS-1+nspec) = U_old(UFS+nspec:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec:UFS-1+nspec)
-
     ! now only save the subset that participates in the nonlinear
     ! solve -- note: we include the old state in f_source
 
