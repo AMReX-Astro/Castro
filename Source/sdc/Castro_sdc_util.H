@@ -96,8 +96,14 @@ sdc_newton_subdivide(const Real dt,
                      Array4<Real> const& U_new,
                      Array4<const Real> const& C,
                      const int sdc_iteration,
-                     Real err_out,
-                     int ierr) {
+                     Real& err_out,
+                     int& ierr) {
+    // This is the driver for solving the nonlinear update for
+    // the reating/advecting system using Newton's method. It 
+    // attempts to do the solution for the full dt requested, 
+    // but if it fails, will subdivide the domain until it 
+    // converges or reaches our limit on the number of 
+    // subintervals.
 
     const int MAX_NSUB = 64;
 
@@ -135,7 +141,7 @@ sdc_newton_subdivide(const Real dt,
                 U_begin[UFS + n] *= U_begin[URHO] / sum_rhoX;
             }
 
-            sdc_newton_solve(dt, U_begin, U_new, C, sdc_iteration, &err_out, &ierr);
+            sdc_newton_solve(dt, U_begin, U_new, C, sdc_iteration, err_out, ierr);
 
             for (int n = 0; n < NUM_STATE; ++n) {
                 U_begin[n] = U_new[n];
@@ -152,8 +158,8 @@ sdc_newton_solve(const Real dt,
                  Array4<Real> const& U_new,
                  Array4<const Real> const& C,
                  const int sdc_iteration,
-                 Real err_out,
-                 int ierr) {
+                 Real& err_out,
+                 int& ierr) {
     // the purpose of this function is to solve the system 
     // U - dt R(U) = U_old + dt C using a Newton solve.
     // 
@@ -182,7 +188,7 @@ sdc_newton_solve(const Real dt,
 
     ierr = NEWTON_SUCCESS;
 
-    // ther tolerance we are solving to may depend on the
+    // the tolerance we are solving to may depend on the
     // iteration
     Real relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
     Real tol_dens = sdc_solver_tol_dens * relax_fac;
@@ -262,7 +268,6 @@ sdc_newton_solve(const Real dt,
         f_sdc_jac(NUM_SPECIES+2, U_react, f, Jac, NUM_SPECIES+2, info, rpar);
 
         GpuArray<Real, NUM_SPECIES+2> ipvt;
-        int info;
 
         // solve the linear system: Jac dU_react = -f
         dgefa(Jac, ipvt, &info);
@@ -290,7 +295,7 @@ sdc_newton_solve(const Real dt,
 
         // we still need to normalize here
         // then there was some commented out stuff 
-
+        GpuArray<Real, NUM_SPECIES+2> eps_tot;
         eps_tot[0] = tol_dens * amrex::abs(U_react[0]) + sdc_solver_atol;
         // for species, atol is the mass fraction limit, so we
         // multiply by density to get a partial density limit
@@ -303,7 +308,7 @@ sdc_newton_solve(const Real dt,
         // weights are 1/eps_tot
         auto err_sum = 0.0_rt;
         for (int n = 0; n < NUM_SPECIES+2; ++n) {
-            err_sum += dU_react * dU_react / (eps_tot*eps_tot);
+            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n]*eps_tot[n]);
         }
         err = std::sqrt(err_sum / (NUM_SPECIES+2));
 
@@ -312,7 +317,6 @@ sdc_newton_solve(const Real dt,
         }
 
         iter++;
-
     }
 
     err_out = err;
@@ -332,17 +336,17 @@ sdc_newton_solve(const Real dt,
         U_new[UFS+n] = U_react[1+n];
     }
     if (sdc_solve_for_rhoe == 1) {
-        U_new[UEINT] = U_react[NUM+SPECIES+1];
+        U_new[UEINT] = U_react[NUM_SPECIES+1];
         auto v2 = 0.0_rt;
         for (int m = 0; m < DIM; ++m) {
-            v2 += U_new[UMX+n] * U_new[UMX+n];
+            v2 += U_new[UMX+m] * U_new[UMX+m];
         }
         U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
     } else {
         U_new[UEDEN] = U_react[NUM+SPECIES+1];
         auto v2 = 0.0_rt;
         for (int m = 0; m < DIM; ++m) {
-            v2 += U_new[UMX+n] * U_new[UMX+n];
+            v2 += U_new[UMX+m] * U_new[UMX+m];
         }
         U_new[UEINT] = U_new[UEDEN] - 0.5_rt * v2 / U_new[URHO];
     }
@@ -356,7 +360,13 @@ sdc_vode_solve(const Real dt,
                Array4<const Real> const& C,
                const int sdc_iteration) {
 
-    // we will do the implicit update of only the terms that 
+    // The purpose of this function is to solve the system the
+    // approximate system dU/dt = R + C using the VODE ODE
+    // integrator.
+    // The solution we get here will then be used as the 
+    // initial guess to the Newton solve on the real system.
+
+    // We will do the implicit update of only the terms that 
     // have reactive sources
     //
     // 0 : rho 
@@ -377,11 +387,6 @@ sdc_vode_solve(const Real dt,
         U_new[UMX+n] = U_old[UMX+n] + dt * C[UMX+n];
     }
 
-    // update the non-reacting species
-    for (int n = 0; n < NUM_SPECIES; ++n) {
-        U_new[UFS+n] = U_old[UFS+n] + dt * C[UFS+NUM_SPECIES];
-    }
-
     // now only save the subset that participates in the
     // nonlinear solve -- note: we include the old state
     // in f_source
@@ -399,19 +404,20 @@ sdc_vode_solve(const Real dt,
     C_react[NUM_SPECIES+1] = C[UEINT];
 
     dvode_t dvode_state;
+    burn_t burn_state;
     for (int n = 0; n < NUM_SPECIES+2; ++n) {
-        dvode_state.rpar[irp_f_source+n] = C_react[n];
+        burn_state.rpar[irp_f_source+n] = C_react[n];
     }
-    dvode_state.rpar[irp_dt] = dt;
+    burn_state.rpar[irp_dt] = dt;
     for (int n = 0; n < DIM; ++n) {
-        dvode_state.rpar[irp_mom+n] = U_new[UMX+n];
+        burn_state.rpar[irp_mom+n] = U_new[UMX+n];
     }
 
     // temperature will be used as an initial guess in the EOS
-    dvode_state.rpar[irp_temp] = U_old[UTEMP];
+    burn_state.rpar[irp_temp] = U_old[UTEMP];
 
     // we are always solving for rhoe with the VODE predict
-    dvode_state.rpar[irp_evar] = U_new[UEDEN];
+    burn_state.rpar[irp_evar] = U_new[UEDEN];
 
     // store the subset for the nonlinear solve. We only 
     // consider (rho e), not (rho E). This is because at 
@@ -472,7 +478,7 @@ sdc_vode_solve(const Real dt,
         dvode_state.rtol[n] = rtol[n];
     }
 
-    dvode(dvode_state);
+    dvode(dvode_state, burn_state);
 
     if (dvode_state.istate < 0) {
         Abort("vode termination poorly");
@@ -491,7 +497,7 @@ sdc_vode_solve(const Real dt,
     U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 
     // keep our temperature guess 
-    U_new[UTEMP] = dvode_state.rpar[irp_temp];
+    U_new[UTEMP] = burn_state.rpar[irp_temp];
 
 #endif
 }
@@ -558,8 +564,8 @@ f_sdc_jac(const int neq,
     // maybe this should be done using the burn_state
     // returned by single_zone_react_source, since it is
     // more consistent T from e
-    eos_state.rho = U_full[URHO]
-    eos_state.T = rpar(irp_temp)   // initial guess
+    eos_state.rho = U_full[URHO];
+    eos_state.T = rpar[irp_temp];   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n] = U_full[UFS+n]/U_full[URHO];
     }
@@ -575,7 +581,7 @@ f_sdc_jac(const int neq,
     single_zone_react_source(U_full, R_full, 0, 0, 0, burn_state);
 
     // store the subset of R used in the Jacobian
-    R_react[0] = R_full[URHO]
+    R_react[0] = R_full[URHO];
     for (int n = 0; n < NumSpec; ++n) {
         R_react[n+1] = R_full[UFS+n];
     }
@@ -605,11 +611,11 @@ f_sdc_jac(const int neq,
 
     // the X_k rows
     for (int m = 1; m < NumSpec+1; ++m) {
-        dwdU(iwfs-1+m,0) = -U[m] / (U[0]*U[0])
+        dwdU(iwfs-1+m,0) = -U[m] / (U[0]*U[0]);
         dwdU(iwfs-1+m,m) = 1.0_rt / U[0];
     }
 
-    composition_derivatives(eos_state, eos_xderivs)
+    composition_derivatives(eos_state, eos_xderivs);
 
     // now the T row -- this depends on whether we are evolving (rho E) or (rho e)
     auto denom = 1.0_rt / (eos_state.rho * eos_state.dedT);
