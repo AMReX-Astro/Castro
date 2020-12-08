@@ -39,9 +39,6 @@ void ca_initsinglegroup
 void ca_get_dlognu
   (amrex::Real* dlognu_out);
 
-void ca_get_xnu
-  (amrex::Real* xnu_out);
-
 void ca_get_nugroup
   (amrex::Real* nugroup);
 
