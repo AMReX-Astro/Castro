@@ -1,7 +1,6 @@
 #ifndef problem_initialize_state_data_H
 #define problem_initialize_state_data_H
 
-#include <initial_model.H>
 #include <model_parser.H>
 #include <ambient.H>
 #ifdef ROTATION

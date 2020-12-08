@@ -8,8 +8,6 @@
 
 #include <Rotation.H>
 
-#include <initial_model.H>
-
 void freefall_velocity (Real mass, Real distance, Real& vel);
 
 void kepler_third_law (Real radius_1, Real mass_1, Real radius_2, Real mass_2,

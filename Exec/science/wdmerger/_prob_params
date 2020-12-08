@@ -76,25 +76,9 @@ smallu                          real                  0.e0_rt                  y
 # 6.25 km. No simulation we do is likely to have a resolution
 # higher than that inside the stars (it represents
 # three jumps by a factor of four compared to our 
-# normal coarse grid resolution). By using 4096
-# grid points, the size of the 1D domain will be 2.56e9 cm,
-# which is larger than any reasonable mass white dwarf.
+# normal coarse grid resolution).
 
 initial_model_dx                real                  6.25e5_rt                y
-initial_model_npts              integer               4096                     y
-
-# initial_model_mass_tol is tolerance used for getting the total WD mass 
-# equal to the desired mass. It can be reasonably small, since there
-# will always be a central density value that can give the desired
-# WD mass on the grid we use.
-
-initial_model_mass_tol          real                  1.e-6_rt                 y
-
-# hse_tol is the tolerance used when iterating over a zone to force
-# it into HSE by adjusting the current density (and possibly
-# temperature).  hse_tol should be very small (~ 1.e-10).
-
-initial_model_hse_tol           real                  1.e-10_rt                y
 
 # Composition properties of initial models.
 # We follow the prescription of Dan et al. 2012 for determining
