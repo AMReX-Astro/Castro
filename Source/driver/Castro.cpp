@@ -84,6 +84,9 @@ Vector<std::string> Castro::source_names;
 
 Vector<AMRErrorTag> Castro::custom_error_tags;
 
+Vector<std::unique_ptr<std::fstream>> Castro::data_logs;
+Vector<std::unique_ptr<std::fstream>> Castro::problem_data_logs;
+
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
 Vector<Real> Castro::dt_sdc;
@@ -460,6 +463,18 @@ Castro::read_params ()
 #endif
 
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
+
+   // Open up Castro data logs
+   // Note that this functionality also exists in the Amr class
+   // but we implement it on our own to have a little more control.
+
+   data_logs.resize(1);
+
+   data_logs[0].reset(new std::fstream);
+   data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
+   if (!data_logs[0]->good()) {
+       amrex::FileOpenFailed("grid_diag.out");
+   }
 
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);

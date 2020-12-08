@@ -1152,6 +1152,11 @@ public:
 ///
     void sum_integrated_quantities ();
 
+///
+/// Problem-specific diagnostics (called by sum_integrated_quantities)
+///
+    void problem_diagnostics ();
+
     void write_info ();
 
 ///
@@ -1220,6 +1225,12 @@ public:
 ///     non-integer number.
 ///
     static amrex::Real num_zones_advanced;
+
+///
+/// diagnostics
+///
+    static Vector<std::unique_ptr<std::fstream> > data_logs;
+    static Vector<std::unique_ptr<std::fstream> > problem_data_logs;
 
 protected:
 

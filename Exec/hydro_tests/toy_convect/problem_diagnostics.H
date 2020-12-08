@@ -1,14 +1,10 @@
-#include <iomanip>
+#ifndef problem_diagnostics_H
+#define problem_diagnostics_H
 
-#include <Castro.H>
-#include <Castro_F.H>
-
-using namespace amrex;
-
+AMREX_INLINE
 void
-Castro::sum_integrated_quantities ()
+Castro::problem_diagnostics ()
 {
-
     int finest_level = parent->finestLevel();
     Real time        = state[State_Type].curTime();
     Real mass        = 0.0;
@@ -26,13 +22,15 @@ Castro::sum_integrated_quantities ()
 	
 	rho_E    += ca_lev.volWgtSum("rho_E", time);
 
-	Tmax_level = ca_lev.maxVal("Temp", time);
+        auto temp_mf = ca_lev.derive("Temp", time, 0);
+	Tmax_level = temp_mf->max(0, 0);
 	if (Tmax_level > Tmax)
 	  {
 	    Tmax = Tmax_level;
 	  }
 
-	MachMax_level = ca_lev.maxVal("MachNumber", time);
+        auto mach_mf = ca_lev.derive("MachNumber", time, 0);
+	MachMax_level = mach_mf->max(0, 0);
 	if (MachMax_level > MachMax)
 	  {
 	    MachMax = MachMax_level;
@@ -48,7 +46,7 @@ Castro::sum_integrated_quantities ()
         std::cout << "TIME= " << time << " RHO*E = "   << rho_E     << '\n';
 
 	// get output files
-	std::ostream& data_log1 = parent->DataLog(0);
+	std::ostream& data_log1 = *Castro::problem_data_logs[0];
 
         if (time == 0.0) {
            data_log1 << std::setw(14) <<  "#     time    ";
@@ -69,18 +67,4 @@ Castro::sum_integrated_quantities ()
     }
 }
 
-
-Real
-Castro::maxVal (const std::string& name,
-                Real               time)
-{
-  Real        maxval  = 0.0;
-  const Real* dx      = geom.CellSize();
-  auto        mf      = derive(name,time,0);
-  BL_ASSERT(mf);
-
-  maxval = (*mf).max(0,0);
-
-  return maxval;
-}
-
+#endif
