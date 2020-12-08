@@ -34,5 +34,16 @@ void problem_initialize ()
     for (int i = 0; i < problem::num_vortices; i++) {
         problem::xloc_vortices[i] = (static_cast<Real>(i) + 0.5_rt) * offset + problo[0];
     }
+
+    // Set up Castro data logs for this problem
+
+    Castro::problem_data_logs.resize(1);
+
+    Castro::problem_data_logs[0].reset(new std::fstream);
+    Castro::problem_data_logs[0]->open("problem_diag.out", std::ios::out | std::ios::app);
+    if (!Castro::problem_data_logs[0]->good()) {
+        amrex::FileOpenFailed("problem_diag.out");
+    }
+
 }
 #endif

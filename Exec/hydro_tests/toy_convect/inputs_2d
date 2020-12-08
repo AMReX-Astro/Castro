@@ -61,6 +61,3 @@ amr.derive_plot_vars = ALL
 
 #PROBIN FILENAME
 amr.probin_file = probin
-
-# DATA LOG
-amr.data_log = log
