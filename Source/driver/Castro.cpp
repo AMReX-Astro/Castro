@@ -3476,9 +3476,6 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
 
         const int ncomp = dat.nComp();
 
-        const int8_t tagval   = (int8_t) TagBox::SET;
-        const int8_t clearval = (int8_t) TagBox::CLEAR;
-
         int lev = level;
 
         if (err_list_names[jcomp] == "density") {
