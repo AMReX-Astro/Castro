@@ -167,7 +167,7 @@ AMREX_INLINE
 void
 read_model_file(std::string& model_file, const int model_index=0) {
 
-    bool found_model, found_dens, found_temp, found_pres;
+    bool found_model, found_dens, found_temp, found_pres, found_velr;
     bool found_spec[NumSpec];
 #if NAUX_NET > 0
     bool found_aux[NumAux];
@@ -235,6 +235,7 @@ read_model_file(std::string& model_file, const int model_index=0) {
         found_dens = false;
         found_temp = false;
         found_pres = false;
+        found_velr = false;
         for (int n = 0; n < NumSpec; n++) {
             found_spec[n] = false;
         }
@@ -259,6 +260,11 @@ read_model_file(std::string& model_file, const int model_index=0) {
                 model::profile(model_index).state(i,model::ipres) = vars_stored[j];
                 found_model = true;
                 found_pres = true;
+
+            } else if (varnames_stored[j] == "velocity") {
+                model::profile(model_index).state(i,model::ivelr) = vars_stored[j];
+                found_model = true;
+                found_velr = true;
 
             } else {
                 for (int comp = 0; comp < NumSpec; comp++) {
@@ -304,6 +310,10 @@ read_model_file(std::string& model_file, const int model_index=0) {
 
             if (!found_pres) {
                 amrex::Print() << "WARNING: pressure not provided in inputs file" << std::endl;
+            }
+
+            if (!found_velr) {
+                amrex::Print() << "WARNING: velocity not provided in inputs file" << std::endl;
             }
 
             for (int comp = 0; comp < NumSpec; comp++) {

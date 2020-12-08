@@ -6,7 +6,7 @@ namespace model
 
     // integer keys for indexing the model_state array
 
-    constexpr int nvars = 3 + NumSpec + NumAux;
+    constexpr int nvars = 4 + NumSpec + NumAux;
     constexpr int idens = 0;
     constexpr int itemp = 1;
     constexpr int ipres = 2;
