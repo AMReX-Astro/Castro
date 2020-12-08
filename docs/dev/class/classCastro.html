@@ -1345,6 +1345,12 @@
 </dd></dl>
 
 <dl class="cpp function">
+<dt id="_CPPv4N6Castro19problem_diagnosticsEv">
+<span id="_CPPv3N6Castro19problem_diagnosticsEv"></span><span id="_CPPv2N6Castro19problem_diagnosticsEv"></span><span id="Castro::problem_diagnostics"></span><span class="target" id="classCastro_1a38bdc5d1c03ef0bc625e67a237b24812"></span>void <code class="sig-name descname">problem_diagnostics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro19problem_diagnosticsEv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Problem-specific diagnostics (called by sum_integrated_quantities) </p>
+</dd></dl>
+
+<dl class="cpp function">
 <dt id="_CPPv4N6Castro10write_infoEv">
 <span id="_CPPv3N6Castro10write_infoEv"></span><span id="_CPPv2N6Castro10write_infoEv"></span><span id="Castro::write_info"></span><span class="target" id="classCastro_1ad9c261d24ed58ea7e5e671a945a42a36"></span>void <code class="sig-name descname">write_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N6Castro10write_infoEv" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -1509,6 +1515,17 @@
 <span id="_CPPv3N6Castro18num_zones_advancedE"></span><span id="_CPPv2N6Castro18num_zones_advancedE"></span><span id="Castro::num_zones_advanced__amrex::Real"></span><span class="target" id="classCastro_1ad09d050c7a2b17af5a4312d530f23330"></span><a class="reference internal" href="../file/Castro__util_8H.html#_CPPv45amrex" title="amrex">amrex</a>::Real <code class="sig-name descname">num_zones_advanced</code><a class="headerlink" href="#_CPPv4N6Castro18num_zones_advancedE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>A record of how many cells we have advanced throughout the simulation. This is saved as a real because we will be storing the number of zones advanced as a ratio with the number of zones on the coarse grid (to help prevent the number from getting too large), and that may be a non-integer number. </p>
 </dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N6Castro9data_logsE">
+<span id="_CPPv3N6Castro9data_logsE"></span><span id="_CPPv2N6Castro9data_logsE"></span><span id="Castro::data_logs__Vector:std::unique_ptr:std::fstream::"></span><span class="target" id="classCastro_1a324898efaa44d3cc2e5b448482d3bb69"></span>Vector&lt;std::unique_ptr&lt;std::fstream&gt;&gt; <code class="sig-name descname">data_logs</code><a class="headerlink" href="#_CPPv4N6Castro9data_logsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>diagnostics </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv4N6Castro17problem_data_logsE">
+<span id="_CPPv3N6Castro17problem_data_logsE"></span><span id="_CPPv2N6Castro17problem_data_logsE"></span><span id="Castro::problem_data_logs__Vector:std::unique_ptr:std::fstream::"></span><span class="target" id="classCastro_1ab0c303a0d370d47572260dbde431bbad"></span>Vector&lt;std::unique_ptr&lt;std::fstream&gt;&gt; <code class="sig-name descname">problem_data_logs</code><a class="headerlink" href="#_CPPv4N6Castro17problem_data_logsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 <div class="breathe-sectiondef docutils container">

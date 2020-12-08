@@ -1,0 +1,4 @@
+File problem_diagnostics.H
+==========================
+
+.. doxygenfile:: problem_diagnostics.H
