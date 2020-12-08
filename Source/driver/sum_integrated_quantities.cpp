@@ -7,6 +7,8 @@
 #include <Gravity.H>
 #endif
 
+#include <problem_diagnostics.H>
+
 using namespace amrex;
 
 void
@@ -159,60 +161,57 @@ Castro::sum_integrated_quantities ()
             std::cout << "TIME= " << time << " RHO*PHI     = "   << rho_phi   << '\n';
             std::cout << "TIME= " << time << " TOTAL ENERGY= "   << total_energy << '\n';
 #endif
-            if (parent->NumDataLogs() > 0 ) {
 
-               std::ostream& data_log1 = parent->DataLog(0);
+            std::ostream& data_log1 = *Castro::data_logs[0];
 
-               if (data_log1.good()) {
+            if (data_log1.good()) {
 
-                  if (time == 0.0) {
-                      data_log1 << std::setw(datwidth) <<  "          time";
-                      data_log1 << std::setw(datwidth) <<  "          mass";
-                      data_log1 << std::setw(datwidth) <<  "          xmom";
-                      data_log1 << std::setw(datwidth) <<  "          ymom";
-                      data_log1 << std::setw(datwidth) <<  "          zmom";
-                      data_log1 << std::setw(datwidth) <<  "     ang mom x";
-                      data_log1 << std::setw(datwidth) <<  "     ang mom y";
-                      data_log1 << std::setw(datwidth) <<  "     ang mom z";
+               if (time == 0.0) {
+                   data_log1 << std::setw(datwidth) <<  "          time";
+                   data_log1 << std::setw(datwidth) <<  "          mass";
+                   data_log1 << std::setw(datwidth) <<  "          xmom";
+                   data_log1 << std::setw(datwidth) <<  "          ymom";
+                   data_log1 << std::setw(datwidth) <<  "          zmom";
+                   data_log1 << std::setw(datwidth) <<  "     ang mom x";
+                   data_log1 << std::setw(datwidth) <<  "     ang mom y";
+                   data_log1 << std::setw(datwidth) <<  "     ang mom z";
 #ifdef HYBRID_MOMENTUM
-                      data_log1 << std::setw(datwidth) <<  "     hyb mom r";
-                      data_log1 << std::setw(datwidth) <<  "     hyb mom l";
-                      data_log1 << std::setw(datwidth) <<  "     hyb mom p";
+                   data_log1 << std::setw(datwidth) <<  "     hyb mom r";
+                   data_log1 << std::setw(datwidth) <<  "     hyb mom l";
+                   data_log1 << std::setw(datwidth) <<  "     hyb mom p";
 #endif
-                      data_log1 << std::setw(datwidth) <<  "         rho_K";
-                      data_log1 << std::setw(datwidth) <<  "         rho_e";
-                      data_log1 << std::setw(datwidth) <<  "         rho_E";
+                   data_log1 << std::setw(datwidth) <<  "         rho_K";
+                   data_log1 << std::setw(datwidth) <<  "         rho_e";
+                   data_log1 << std::setw(datwidth) <<  "         rho_E";
 #ifdef GRAVITY
-                      data_log1 << std::setw(datwidth) <<  "       rho_phi";
-                      data_log1 << std::setw(datwidth) <<  "  total energy";
+                   data_log1 << std::setw(datwidth) <<  "       rho_phi";
+                   data_log1 << std::setw(datwidth) <<  "  total energy";
 #endif
-                      data_log1 << std::endl;
-                  }
-
-                  // Write the quantities at this time
-                  data_log1 << std::setw(datwidth) <<  time;
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mass;
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[0];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[1];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[2];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[0];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[1];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[2];
-#ifdef HYBRID_MOMENTUM
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[0];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[1];
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[2];
-#endif
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_K;
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_e;
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_E;
-#ifdef GRAVITY
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
-                  data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
-#endif
-                  data_log1 << std::endl;
-
+                   data_log1 << std::endl;
                }
+
+               // Write the quantities at this time
+               data_log1 << std::setw(datwidth) <<  time;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mass;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << mom[2];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << ang_mom[2];
+#ifdef HYBRID_MOMENTUM
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[0];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[1];
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << hyb_mom[2];
+#endif
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_K;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_e;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_E;
+#ifdef GRAVITY
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << rho_phi;
+               data_log1 << std::setw(datwidth) <<  std::setprecision(datprecision) << total_energy;
+#endif
+               data_log1 << std::endl;
 
             }
 
@@ -236,4 +235,6 @@ Castro::sum_integrated_quantities ()
         });
 #endif
     }
+
+    problem_diagnostics();
 }

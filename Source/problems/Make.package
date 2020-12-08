@@ -13,6 +13,7 @@ CEXE_headers += problem_restart.H
 CEXE_headers += problem_bc_fill.H
 CEXE_headers += problem_source.H
 CEXE_headers += problem_emissivity.H
+CEXE_headers += problem_diagnostics.H
 
 ca_F90EXE_sources += bc_fill_nd.F90
 ca_F90EXE_sources += Prob_nd.F90
