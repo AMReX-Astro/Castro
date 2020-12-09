@@ -51,7 +51,6 @@ generate_initial_model(const int nx, const Real xmin, const Real xmax,
     constexpr int MAX_ITER = 100;
     constexpr Real TOL = 1.e-10_rt;
 
-    // allocate the storage in the model_parser_module
     int npts_model = nx + 2*nbuf;
 
     model::npts = npts_model;
