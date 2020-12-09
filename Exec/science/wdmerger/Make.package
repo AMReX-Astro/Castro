@@ -3,5 +3,3 @@ CEXE_headers += wdmerger_data.H
 CEXE_sources += wdmerger_data.cpp
 CEXE_headers += binary.H
 CEXE_sources += wdmerger_util.cpp
-CEXE_headers += initial_model.H
-CEXE_sources += initial_model.cpp

@@ -1,9 +1,8 @@
 #include <wdmerger_util.H>
 #include <binary.H>
-
 #include <network.H>
-
 #include <ambient.H>
+#include <model_parser.H>
 
 // Given total mass of a binary system and the initial separation of
 // two point particles, obtain the velocity at this separation
@@ -526,8 +525,9 @@ void binary_setup ()
 
     // Generate primary and secondary WD models.
 
-    establish_hse(model::profile(0), problem::mass_P, problem::central_density_P, problem::envelope_mass_P,
-                  problem::radius_P, problem::core_comp_P, problem::envelope_comp_P);
+    establish_hse(problem::mass_P, problem::central_density_P, problem::radius_P,
+                  problem::core_comp_P, problem::stellar_temp, problem::initial_model_dx,
+                  problem::envelope_mass_P, problem::envelope_comp_P, 0);
 
     amrex::Print() << std::endl;
 
@@ -540,8 +540,9 @@ void binary_setup ()
 
     if (!problem::single_star) {
 
-        establish_hse(model::profile(1), problem::mass_S, problem::central_density_S, problem::envelope_mass_S,
-                      problem::radius_S, problem::core_comp_S, problem::envelope_comp_S);
+        establish_hse(problem::mass_S, problem::central_density_S, problem::radius_S,
+                      problem::core_comp_S, problem::stellar_temp, problem::initial_model_dx,
+                      problem::envelope_mass_S, problem::envelope_comp_S, 1);
 
         amrex::Print() << "Generated initial model for secondary WD of mass " << std::setprecision(3) << problem::mass_S / C::M_solar
                        << " solar masses, central density " << std::setprecision(3) << std::scientific << problem::central_density_S
