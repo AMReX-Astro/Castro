@@ -9,9 +9,14 @@ AMREX_INLINE
 void problem_initialize ()
 {
 
+    const Geometry& dgeom = DefaultGeometry();
+
+    const Real* problo = dgeom.ProbLo();
+    const Real* probhi = dgeom.ProbHi();
+
     // Read initial model
 
-    read_model_file(problem::model_file);
+    read_model_file(problem::model_name);
 
 #if AMREX_SPACEDIM == 2
     // assume axisymmetric
