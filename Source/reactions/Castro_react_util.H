@@ -128,7 +128,7 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
                 burn_t burn_state,
-                Array2D<Real, 1, NumSpec+2, 1, NumSpec+2>& dRdw) {
+                Array2D<Real, 0, NumSpec+2, 0, NumSpec+2>& dRdw) {
 
 #ifdef SIMPLIFIED_SDC
 #ifndef AMREX_USE_GPU
@@ -166,7 +166,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
         // The Jacobian from the nets is in terms of dYdot/dY, but we want
         // it was dXdot/dX, so convert here.
         for (int n = 1; n <= NumSpec; ++n) {
-            for (int m = 1; m <= NumSpec; ++m) {
+            for (int m = 0; m < VODE_NEQS; ++m) {
                 Jac(n,m) = Jac(n,m) * aion[n];
                 Jac(m,n) = Jac(m,n) * aion_inv[n];
             }
@@ -189,8 +189,8 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     //  |   ...                                                                         |
     //  \ d(rho Edot)/drho   d(rho Edot)/dX1    d(rho Edot)/dX2    ...  d(rho Edot)/dT  /
 
-    for (int n = 0; n < NumSpec; ++n) {
-        for (int m = 0; m < NumSpec; ++m) {
+    for (int n = 0; n < NumSpec+2; ++n) {
+        for (int m = 0; m < NumSpec+2; ++m) {
             dRdw(n,m) = 0.0_rt;
         }
     }
@@ -233,21 +233,21 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // fill the columns of dRdw corresponding to each derivative
     // with respect to species mass fraction
     for (int n = 1; n <= NumSpec; ++n) {
-       dRdw(1, iwfs+n) = 0.0_rt;  // density source
+       dRdw(0, iwfs+n) = 0.0_rt;  // density source
 
        for (int m = 1; m <= NumSpec; ++m) {
           // d( d(rho X_m)/dt)/dX_n
-          dRdw(m, iwfs+n) = state[URHO] * Jac(m, n);
+          dRdw(m, iwfs-1+n) = state[URHO] * Jac(m, n);
        }
 
        // d( d(rho E)/dt)/dX_n
-       dRdw(NumSpec, iwfs+n) = state[URHO] * Jac(net_ienuc, n);
+       dRdw(NumSpec+1, iwfs-1+n) = state[URHO] * Jac(net_ienuc, n);
 
     }
 
     // now fill the column corresponding to derivatives with respect to
     // temperature -- this column is iwT
-    dRdw(1, iwT) = 0.0_rt;
+    dRdw(0, iwT) = 0.0_rt;
 
     // d( d(rho X_m)/dt)/dT
     for (int m = 1; m <= NumSpec; ++m) {
@@ -255,7 +255,7 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     }
 
     // d( d(rho E)/dt)/dT
-    dRdw(NumSpec, iwT) = state[URHO] * Jac(net_ienuc, net_itemp);
+    dRdw(NumSpec+1, iwT) = state[URHO] * Jac(net_ienuc, net_itemp);
 }
 
 #endif

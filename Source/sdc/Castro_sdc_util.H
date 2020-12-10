@@ -20,7 +20,7 @@ constexpr int ldjac = NumSpec + 2;
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_solve(const Real dt, 
+sdc_solve(const Real dt_m, 
           GpuArray<Real, NUM_STATE> const& U_old, 
           GpuArray<Real, NUM_STATE>& U_new, 
           GpuArray<Real, NUM_STATE> const& C, 
@@ -28,7 +28,7 @@ sdc_solve(const Real dt,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_newton_subdivide(const Real dt,
+sdc_newton_subdivide(const Real dt_m,
                      GpuArray<Real, NUM_STATE> const& U_old,
                      GpuArray<Real, NUM_STATE>& U_new,
                      GpuArray<Real, NUM_STATE> const& C,
@@ -38,7 +38,7 @@ sdc_newton_subdivide(const Real dt,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_vode_solve(const Real dt,
+sdc_vode_solve(const Real dt_m,
                GpuArray<Real, NUM_STATE> const& U_old,
                GpuArray<Real, NUM_STATE>& U_new,
                GpuArray<Real, NUM_STATE> const& C,
@@ -46,7 +46,7 @@ sdc_vode_solve(const Real dt,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_newton_solve(const Real dt,
+sdc_newton_solve(const Real dt_m,
                  amrex::GpuArray<Real, NUM_STATE> const& U_old,
                  amrex::GpuArray<Real, NUM_STATE>& U_new,
                  amrex::GpuArray<Real, NUM_STATE> const& C,
@@ -67,7 +67,7 @@ f_sdc_jac(const Real dt_m,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 normalize_species_sdc(const int i, const int j, const int k,
-                  Array4<Real> const& u) {
+                      Array4<Real> const& u) {
 
     GpuArray<Real, NumSpec> xn;
 
@@ -80,7 +80,7 @@ normalize_species_sdc(const int i, const int j, const int k,
     }
 
     for (int n = 0; n < NumSpec; ++n) {
-        xn[n] = u(i,j,k,URHO) * (xn[n] / xn_sum);
+        xn[n] *= u(i,j,k,URHO) / xn_sum;
         u(i,j,k,UFS+n) = xn[n];
     }
 }
@@ -90,11 +90,12 @@ normalize_species_sdc(const int i, const int j, const int k,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
 sdc_solve(const int i, const int j, const int k,
-          const Real dt, 
+          const Real dt_m, 
           Array4<const Real> const& U_old, 
           Array4<Real> const& U_new, 
           Array4<const Real> const& C, 
           const int sdc_iteration) {
+    // wrapper for the zone-by-zone version
 
     GpuArray<Real, NUM_STATE> U_old_zone;
     GpuArray<Real, NUM_STATE> U_new_zone;
@@ -106,7 +107,7 @@ sdc_solve(const int i, const int j, const int k,
         C_zone[n] = C(i,j,k,n);
     }
 
-    sdc_solve(dt, U_old_zone, U_new_zone, C_zone, sdc_iteration);
+    sdc_solve(dt_m, U_old_zone, U_new_zone, C_zone, sdc_iteration);
 
     for (int n = 0; n < NUM_STATE; ++n) {
         U_new(i,j,k,n) = U_new_zone[n];
@@ -115,7 +116,7 @@ sdc_solve(const int i, const int j, const int k,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_solve(const Real dt, 
+sdc_solve(const Real dt_m, 
           GpuArray<Real, NUM_STATE> const& U_old, 
           GpuArray<Real, NUM_STATE>& U_new, 
           GpuArray<Real, NUM_STATE> const& C, 
@@ -132,32 +133,31 @@ sdc_solve(const Real dt,
     }
 
     if (sdc_solver == NEWTON_SOLVE) {
-        // we are going to assume we already have a good guess
+        // We are going to assume we already have a good guess
         // for the solve in U_new and just pass the solve onto
         // the main Newton solve
-
-        sdc_newton_subdivide(dt, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
         // failing?
         if (ierr != NEWTON_SUCCESS) {
             Abort("Newton subcycling failed in sdc_solve");
         }
     } else if (sdc_solver == VODE_SOLVE) {
-        // use VODE to do the solution
+        // Use VODE to do the solution
+        sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
 
-        sdc_vode_solve(dt, U_old, U_new, C, sdc_iteration);
     } else if (sdc_solver == HYBRID_SOLVE) {
-        // if it is the first iteration, we will use VODE to
+        // If it is the first iteration, we will use VODE to
         // predict the solution. Otherwise, we will use Newton.
         if (sdc_iteration == 0) {
-            sdc_vode_solve(dt, U_old, U_new, C, sdc_iteration);
+            sdc_vode_solve(dt_m, U_old, U_new, C, sdc_iteration);
         }
 
-        // now U_new is the update that VODE predicts, so we 
+        // Now U_new is the update that VODE predicts, so we 
         // will use that as the initial guess to the Newton solve
-        sdc_newton_subdivide(dt, U_old, U_new, C, sdc_iteration, err_out, ierr);
+        sdc_newton_subdivide(dt_m, U_old, U_new, C, sdc_iteration, err_out, ierr);
 
-        // failing?
+        // Failing?
         if (ierr != NEWTON_SUCCESS) {
             Abort("Newton failure in sdc_solve");
         }
@@ -166,7 +166,7 @@ sdc_solve(const Real dt,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_newton_subdivide(const Real dt,
+sdc_newton_subdivide(const Real dt_m,
                      GpuArray<Real, NUM_STATE> const& U_old,
                      GpuArray<Real, NUM_STATE>& U_new,
                      GpuArray<Real, NUM_STATE> const& C,
@@ -175,13 +175,12 @@ sdc_newton_subdivide(const Real dt,
                      int& ierr) {
     // This is the driver for solving the nonlinear update for
     // the reating/advecting system using Newton's method. It 
-    // attempts to do the solution for the full dt requested, 
+    // attempts to do the solution for the full dt_m requested, 
     // but if it fails, will subdivide the domain until it 
     // converges or reaches our limit on the number of 
     // subintervals.
 
     const int MAX_NSUB = 64;
-
     GpuArray<Real, NUM_STATE> U_begin;
 
     // subdivide the timestep and do multiple Newtons. We come
@@ -203,7 +202,7 @@ sdc_newton_subdivide(const Real dt,
                 U_new[n] = U_old[n];
             }
         }
-        Real dt_sub = dt / nsub;
+        Real dt_sub = dt_m / nsub;
 
         for (int isub = 0; isub < nsub; ++isub) {
             // normalize species 
@@ -228,7 +227,7 @@ sdc_newton_subdivide(const Real dt,
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_newton_solve(const Real dt,
+sdc_newton_solve(const Real dt_m,
                  GpuArray<Real, NUM_STATE> const& U_old,
                  GpuArray<Real, NUM_STATE> & U_new,
                  GpuArray<Real, NUM_STATE> const& C,
@@ -243,7 +242,6 @@ sdc_newton_solve(const Real dt,
     // nonlinear function
 
     RArray2D Jac;
-    // GpuArray<Real, NumSpec+2> w;
 
     // we will do the implicit update of only the terms that 
     // have reactive sources
@@ -272,12 +270,12 @@ sdc_newton_solve(const Real dt,
 
     // update the momenta for this zone -- they don't react
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-        U_new[UMX+n] = U_old[UMX+n] + dt * C[UMX+n];
+        U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
 
     // update the non-reacting species
     for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS + n] = U_old[UFS+n] + dt * C[UFS + n];
+        U_new[UFS + n] = U_old[UFS+n] + dt_m * C[UFS + n];
     }
 
     // now only save the subset that participates in the
@@ -291,17 +289,17 @@ sdc_newton_solve(const Real dt,
     // we define f_source = U_old + dt C so we are solving 
     //   f(U) = U - dt R(U) - f_source = 0
 
-    f_source[0] = U_old[URHO] + dt * C[URHO];
+    f_source[0] = U_old[URHO] + dt_m * C[URHO];
     for (int n = 0; n < NumSpec; ++n) {
-        f_source[1 + n] = U_old[UFS + n] + dt * C[UFS + n];
+        f_source[1 + n] = U_old[UFS + n] + dt_m * C[UFS + n];
     }
     if (sdc_solve_for_rhoe == 1) {
-        f_source[NumSpec+1] = U_old[UEINT] + dt * C[UEINT];
+        f_source[NumSpec+1] = U_old[UEINT] + dt_m * C[UEINT];
     } else {
-        f_source[NumSpec+1] = U_old[UEDEN] + dt * C[UEDEN];
+        f_source[NumSpec+1] = U_old[UEDEN] + dt_m * C[UEDEN];
     }
 
-    // set the moment to be U_new
+    // set the momenta to be U_new
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
         mom_source[n] = U_new[UMX+n];
     }
@@ -353,7 +351,7 @@ sdc_newton_solve(const Real dt,
 
     while (!converged && iter < max_newton_iter) {
         int info = 0;
-        f_sdc_jac(dt, U_react, f, Jac, f_source, mom_source, burn_state);
+        f_sdc_jac(dt_m, U_react, f, Jac, f_source, mom_source, burn_state);
 
         IArray1D ipvt;
 
@@ -384,7 +382,9 @@ sdc_newton_solve(const Real dt,
         // we still need to normalize here
         // then there was some commented out stuff 
         GpuArray<Real, NumSpec+2> eps_tot;
+
         eps_tot[0] = tol_dens * amrex::abs(U_react[0]) + sdc_solver_atol;
+
         // for species, atol is the mass fraction limit, so we
         // multiply by density to get a partial density limit
         for (int n = 0; n < NumSpec; ++n) {
@@ -396,7 +396,7 @@ sdc_newton_solve(const Real dt,
         // weights are 1/eps_tot
         auto err_sum = 0.0_rt;
         for (int n = 0; n < NumSpec+2; ++n) {
-            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n]*eps_tot[n]);
+            err_sum += dU_react[n] * dU_react[n] / (eps_tot[n]* eps_tot[n]);
         }
         err = std::sqrt(err_sum / (NumSpec+2));
 
@@ -422,26 +422,23 @@ sdc_newton_solve(const Real dt,
     for (int n = 0; n < NumSpec; ++n) {
         U_new[UFS+n] = U_react[1+n];
     }
+    auto v2 = 0.0_rt;
+    for (int m = 0; m < AMREX_SPACEDIM; ++m) {
+        v2 += U_new[UMX+m] * U_new[UMX+m];
+    }
+
     if (sdc_solve_for_rhoe == 1) {
         U_new[UEINT] = U_react[NumSpec+1];
-        auto v2 = 0.0_rt;
-        for (int m = 0; m < AMREX_SPACEDIM; ++m) {
-            v2 += U_new[UMX+m] * U_new[UMX+m];
-        }
         U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
     } else {
         U_new[UEDEN] = U_react[NumSpec+1];
-        auto v2 = 0.0_rt;
-        for (int m = 0; m < AMREX_SPACEDIM; ++m) {
-            v2 += U_new[UMX+m] * U_new[UMX+m];
-        }
         U_new[UEINT] = U_new[UEDEN] - 0.5_rt * v2 / U_new[URHO];
     }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
-sdc_vode_solve(const Real dt,
+sdc_vode_solve(const Real dt_m,
                GpuArray<Real, NUM_STATE> const& U_old,
                GpuArray<Real, NUM_STATE>& U_new,
                GpuArray<Real, NUM_STATE> const& C,
@@ -462,29 +459,30 @@ sdc_vode_solve(const Real dt,
 
 #if (INTEGRATOR == 0)
 
-    // the tolerance we are solving to may depend on the
+    // The tolerance we are solving to may depend on the
     // iteration
     auto relax_fac = std::pow(sdc_solver_relax_factor, sdc_order - sdc_iteration - 1);
     auto tol_dens = sdc_solver_tol_dens * relax_fac;
     auto tol_spec = sdc_solver_tol_spec * relax_fac;
     auto tol_ener = sdc_solver_tol_ener * relax_fac;
 
-    // update the momenta for this zone -- they don't react
+    // Update the momenta for this zone -- they don't react
     for (int n = 0; n < AMREX_SPACEDIM; ++n) {
-        U_new[UMX+n] = U_old[UMX+n] + dt * C[UMX+n];
+        U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
 
-    // now only save the subset that participates in the
+    // Now only save the subset that participates in the
     // nonlinear solve -- note: we include the old state
     // in f_source
 
     // load rpar
 
-    // if we are solving the system as an ODE, then we are 
+    // If we are solving the system as an ODE, then we are 
     // solving
     //   dU/dt = R(U) + C
     // so we simply pass in C
     GpuArray<Real, NumSpec+2> C_react;
+
     C_react[0] = C[URHO];
     for (int n = 0; n < NumSpec; ++n) {
         C_react[1+n] = C[UFS+n];
@@ -493,9 +491,16 @@ sdc_vode_solve(const Real dt,
 
     dvode_t dvode_state;
     burn_t burn_state;
+
     burn_state.rho = C_react[0];
     for (int n = 0; n < NumSpec; ++n) {
         burn_state.xn[n] = C_react[1+n];
+    }
+
+    // set the momenta to be U_new
+    GpuArray<Real, AMREX_SPACEDIM> mom_source;
+    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+        mom_source[n] = U_new[UMX+n];
     }
 
 #if defined(SDC_EVOLVE_ENERGY)
@@ -560,7 +565,7 @@ sdc_vode_solve(const Real dt,
     int istate = dvode(burn_state, dvode_state);
 
     if (istate < 0) {
-        Abort("vode termination poorly");
+        Abort("Vode terminated poorly");
     }
 
     // update the full U_new
@@ -590,7 +595,7 @@ f_sdc_jac(const Real dt_m,
           GpuArray<Real, VODE_NEQS>& f_source,
           GpuArray<Real, AMREX_SPACEDIM>& mom_source,
           burn_t burn_state) {
-    // this is used with the Newton solve and returns f and the Jacobian
+    // This is used with the Newton solve and returns f and the Jacobian
 
     GpuArray<Real, NUM_STATE> U_full;
     GpuArray<Real, NUM_STATE> R_full;
@@ -601,22 +606,22 @@ f_sdc_jac(const Real dt_m,
 #if defined(SDC_EVOLVE_ENERGY)
     constexpr int iwrho = 1;
     constexpr int iwfs = 2;
-    constexpr int iwK = iwfs+NumSpec;
-    constexpr int iwT = iwK+1;
-    constexpr int iwvar = 3+NumSpec;
+    constexpr int iwK = iwfs + NumSpec;
+    constexpr int iwT = iwK + 1;
+    constexpr int iwvar = 3 + NumSpec;
 #else
     constexpr int iwrho = 1;
-    constexpr int iwfs=2;
-    constexpr int iwT = iwfs+NumSpec;
-    constexpr int iwvar = 2+NumSpec;
+    constexpr int iwfs = 2;
+    constexpr int iwT = iwfs + NumSpec;
+    constexpr int iwvar = 2 + NumSpec;
 #endif
 
-    Array2D<Real, 1, NumSpec+2, 1, NumSpec+2> dRdw = {0.0_rt};
-    Array2D<Real, 1, NumSpec+2, 1, NumSpec+2> dwdU = {0.0_rt};
+    Array2D<Real, 0, NumSpec+2, 0, NumSpec+2> dRdw = {0.0_rt};
+    Array2D<Real, 0, NumSpec+2, 0, NumSpec+2> dwdU = {0.0_rt};
 
     // Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dRdw;
     // Array2D<Real, 0, NumSpec+1, 0, NumSpec+1> dwdU;
-    Array2D<Real, 1, NumSpec+2, 1, NumSpec+2> dRdU;
+    Array2D<Real, 0, NumSpec+2, 0, NumSpec+2> dRdU;
 
     // we are not solving the momentum equations
     // create a full state -- we need this for some interfaces
@@ -661,11 +666,11 @@ f_sdc_jac(const Real dt_m,
     eos_state.rho = U_full[URHO];
     eos_state.T = burn_state.T;   // initial guess
     for (int n = 0; n < NumSpec; ++n) {
-        eos_state.xn[n] = U_full[UFS+n]/U_full[URHO];
+        eos_state.xn[n] = U_full[UFS+n] / U_full[URHO];
     }
 #if NAUX_NET > 0
     for (int n = 0; n < NumAux; ++n) {
-        eos_state.aux[n] = U_full[UFX+n]/U_full[URHO];
+        eos_state.aux[n] = U_full[UFX+n] / U_full[URHO];
     }
 #endif
     eos_state.e = U_full[UEINT] / U_full[URHO];  // (U_full[UEDEN] - 0.5_rt*sum(U_full(UMX:UMZ))/U_full[URHO])/U_full[URHO]
@@ -696,12 +701,12 @@ f_sdc_jac(const Real dt_m,
     single_zone_jac(U_full, burn_state, dRdw);
 
     // the density row
-    dwdU(iwrho, 1) = 1.0_rt;
+    dwdU(iwrho, 0) = 1.0_rt;
 
     // the X_k rows
     for (int m = 1; m < NumSpec+1; ++m) {
-        dwdU(iwfs-1+m,1) = -U[m] / (U[0]*U[0]);
-        dwdU(iwfs-1+m,m) = 1.0_rt / U[0];
+        dwdU(iwfs-1+m, 0) = -U[m] / (U[0]*U[0]);
+        dwdU(iwfs-1+m, m) = 1.0_rt / U[0];
     }
 
     auto eos_xderivs = composition_derivatives(eos_state);
@@ -714,14 +719,14 @@ f_sdc_jac(const Real dt_m,
     }
 
     if (sdc_solve_for_rhoe == 1) {
-        dwdU(iwT,0) = denom*(xn_sum - eos_state.rho * eos_state.dedr - eos_state.e);
+        dwdU(iwT, 0) = denom * (xn_sum - eos_state.rho * eos_state.dedr - eos_state.e);
     } else {
         auto u2_sum = 0.0_rt;
         for (auto n = 0; n < AMREX_SPACEDIM; ++n) {
             u2_sum += U_full[UMX+n] * U_full[UMX+n];
         }
-        dwdU(iwT,1) = denom * (xn_sum - eos_state.rho * eos_state.dedr - eos_state.e - 
-                               0.5_rt * u2_sum / (eos_state.rho*eos_state.rho));
+        dwdU(iwT, 0) = denom * (xn_sum - eos_state.rho * eos_state.dedr - eos_state.e - 
+                               0.5_rt * u2_sum / (eos_state.rho * eos_state.rho));
     }
 
     for (int m = 0; m < NumSpec; ++m) {
@@ -739,7 +744,7 @@ f_sdc_jac(const Real dt_m,
         }
     }
 
-    for (int m = 1; m < NumSpec+1; ++m) {
+    for (int m = 0; m < NumSpec+1; ++m) {
         Jac(m, m) = 1.0_rt;
     }
 
@@ -786,7 +791,7 @@ sdc_update_o2(const int i, const int j, const int k,
         C_zone[n] = C(i,j,k,n);
     }
 
-    // only burn if we are within the temperature and density
+    // Only burn if we are within the temperature and density
     // limits for burning
     if (!okay_to_burn(U_old)) {
         for (int n = 0; n < NUM_STATE; ++n) {
@@ -794,7 +799,7 @@ sdc_update_o2(const int i, const int j, const int k,
         }
     } else {
 
-        // this is the full state -- this will be updated as we
+        // This is the full state -- this will be updated as we
         // solve the nonlinear system.  We want to start with a
         // good initial guess.  For later iterations, we should
         // begin with the result from the previous iteration.  For
@@ -834,12 +839,12 @@ sdc_update_centers_o4(const int i, const int j, const int k,
                       Array4<const Real> const& C, 
                       const Real dt_m,
                       const int sdc_iteration) {
-    // update U_old to U_new on cell-centers.  This is an implicit
+    // Update U_old to U_new on cell-centers.  This is an implicit
     // solve because of reactions.  Here U_old corresponds to time node
     // m and U_new is node m+1.  dt_m is the timestep between m and
     // m+1
 
-    // we come in with U_new being a guess for the updated solution
+    // We come in with U_new being a guess for the updated solution
     if (okay_to_burn(i, j, k, U_old)) {
         sdc_solve(i, j, k, dt_m, U_old, U_new, C, sdc_iteration);
     } else {
