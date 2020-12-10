@@ -11,6 +11,8 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
                          GpuArray<Real, NUM_STATE>& R,
                          burn_t burn_state);
 
+void numerical_jac(burn_t& state, RArray2D& jac);
+
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 bool
@@ -196,8 +198,18 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // now perturb density and call the RHS to compute the derivative wrt rho
     // species rates come back in terms of molar fractions
     burn_t burn_state_pert;
-    copy_burn_t(burn_state_pert, burn_state);
+    // copy_burn_t(burn_state_pert, burn_state);
     burn_state_pert.rho = burn_state.rho * (1.0_rt + eps);
+    burn_state_pert.T = burn_state.T;
+    burn_state_pert.e = burn_state.e;
+    for (int n = 0; n < NumSpec; ++n) {
+        burn_state_pert.xn[n] = burn_state.xn[n];
+    }
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; ++n) {
+        burn_state_pert.aux[n] = burn_state.aux[n];
+    }
+#endif 
 
     actual_rhs(burn_state_pert, ydot_pert);
 
