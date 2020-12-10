@@ -19,26 +19,26 @@ Castro::problem_diagnostics ()
         Castro& ca_lev = getLevel(lev);
 
         mass     += ca_lev.volWgtSum("density", time);
-	
-	rho_E    += ca_lev.volWgtSum("rho_E", time);
+
+        rho_E    += ca_lev.volWgtSum("rho_E", time);
 
         auto temp_mf = ca_lev.derive("Temp", time, 0);
-	Tmax_level = temp_mf->max(0, 0);
-	if (Tmax_level > Tmax)
+        Tmax_level = temp_mf->max(0, 0);
+        if (Tmax_level > Tmax)
         {
-	    Tmax = Tmax_level;
+            Tmax = Tmax_level;
         }
 
         auto mach_mf = ca_lev.derive("MachNumber", time, 0);
-	MachMax_level = mach_mf->max(0, 0);
-	if (MachMax_level > MachMax)
+        MachMax_level = mach_mf->max(0, 0);
+        if (MachMax_level > MachMax)
         {
-	    MachMax = MachMax_level;
+            MachMax = MachMax_level;
         }
 
     }
 
- 
+
     if (ParallelDescriptor::IOProcessor())
     {
         if (verbose > 0) {
@@ -47,7 +47,7 @@ Castro::problem_diagnostics ()
             std::cout << "TIME= " << time << " RHO*E = "   << rho_E     << '\n';
         }
 
-	std::ostream& datalog = *Castro::problem_data_logs[0];
+        std::ostream& datalog = *Castro::problem_data_logs[0];
 
         if (time == 0.0) {
             datalog << std::setw(14) <<  "#     time    ";
