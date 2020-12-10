@@ -16,20 +16,20 @@ Castro::problem_diagnostics ()
 
     Real flame_width = 0.0;
     Real flame_speed = 0.0;
-    
+
     for (int lev = 0; lev <= finest_level; lev++)
     {
         Castro& ca_lev = getLevel(lev);
 
-	ca_lev.flame_width_properties(time, T_max, T_min, grad_T_max);
+        ca_lev.flame_width_properties(time, T_max, T_min, grad_T_max);
 
-	// For now we only do the flame speed calculation on the coarse grid since
-	// it doesn't share the same timestep as the fine grids.
+        // For now we only do the flame speed calculation on the coarse grid since
+        // it doesn't share the same timestep as the fine grids.
 
-	if (lev == 0)
-	  ca_lev.flame_speed_properties(time, rho_fuel_dot);
+        if (lev == 0)
+            ca_lev.flame_speed_properties(time, rho_fuel_dot);
     }
- 
+
     ParallelDescriptor::ReduceRealMax(T_max);
     ParallelDescriptor::ReduceRealMin(T_min);
     ParallelDescriptor::ReduceRealMax(grad_T_max);
@@ -50,7 +50,7 @@ Castro::problem_diagnostics ()
             std::cout << "TIME= " << time << " FLAME WIDTH = "   << flame_width << '\n';
             std::cout << "TIME= " << time << " FLAME SPEED = "   << flame_speed << '\n';
         }
-	    
+
         std::ostream& datalog = *Castro::problem_data_logs[0];
 
         if (time == 0.0) {
