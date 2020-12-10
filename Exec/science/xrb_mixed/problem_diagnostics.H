@@ -25,16 +25,16 @@ Castro::problem_diagnostics ()
         auto temp_mf = ca_lev.derive("Temp", time, 0);
 	Tmax_level = temp_mf->max(0, 0);
 	if (Tmax_level > Tmax)
-	  {
+        {
 	    Tmax = Tmax_level;
-	  }
+        }
 
         auto mach_mf = ca_lev.derive("MachNumber", time, 0);
 	MachMax_level = mach_mf->max(0, 0);
 	if (MachMax_level > MachMax)
-	  {
+        {
 	    MachMax = MachMax_level;
-	  }
+        }
 
     }
 
@@ -50,11 +50,11 @@ Castro::problem_diagnostics ()
 	std::ostream& datalog = *Castro::problem_data_logs[0];
 
         if (time == 0.0) {
-           datalog << std::setw(14) <<  "#     time    ";
-           datalog << std::setw(14) <<  "       max(T) ";
-           datalog << std::setw(14) <<  "       max(M) ";
-           datalog << std::setw(14) <<  "        rho_E ";
-           datalog << std::endl;
+            datalog << std::setw(14) <<  "#     time    ";
+            datalog << std::setw(14) <<  "       max(T) ";
+            datalog << std::setw(14) <<  "       max(M) ";
+            datalog << std::setw(14) <<  "        rho_E ";
+            datalog << std::endl;
         }
 
         // Write the quantities at this time
