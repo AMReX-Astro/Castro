@@ -38,9 +38,9 @@ void problem_initialize ()
     Castro::problem_data_logs.resize(1);
 
     Castro::problem_data_logs[0].reset(new std::fstream);
-    Castro::problem_data_logs[0]->open("problem_diag.out", std::ios::out | std::ios::app);
+    Castro::problem_data_logs[0]->open("toy_flame.log", std::ios::out | std::ios::app);
     if (!Castro::problem_data_logs[0]->good()) {
-        amrex::FileOpenFailed("problem_diag.out");
+        amrex::FileOpenFailed("toy_flame.log");
     }
 
 }
