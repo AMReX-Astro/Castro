@@ -9,7 +9,6 @@ AMREX_INLINE
 void problem_initialize ()
 {
 
-
     problem::ifuel = network_spec_index("fuel");
     problem::iash = network_spec_index("ash");
 
@@ -33,6 +32,16 @@ void problem_initialize ()
 
     std::cout << "flame width = " << lambda_f << std::endl;
     std::cout << "flame speed = " << v_f << std::endl;
+
+    // Set up Castro data logs for this problem
+
+    Castro::problem_data_logs.resize(1);
+
+    Castro::problem_data_logs[0].reset(new std::fstream);
+    Castro::problem_data_logs[0]->open("problem_diag.out", std::ios::out | std::ios::app);
+    if (!Castro::problem_data_logs[0]->good()) {
+        amrex::FileOpenFailed("problem_diag.out");
+    }
 
 }
 
