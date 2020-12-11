@@ -562,6 +562,18 @@ class HypreMultiABec {
               amrex::Array4<amrex::Real const> const& b,
               amrex::Real beta, const amrex::Real* dx);
 
+  void hmmat3 (const amrex::Box& bx,
+               int ori_lo, int idir,
+               amrex::Array4<amrex::GpuArray<amrex::Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+               int cdir, int bctype,
+               amrex::Array4<int const> const& tf,
+               int bho, amrex::Real bcl,
+               amrex::Array4<int const> const& mask,
+               amrex::Array4<amrex::Real const> const& b,
+               amrex::Real beta, const amrex::Real* dx,
+               const amrex::GeometryData& geomdata, amrex::Real c,
+               amrex::Array4<amrex::Real const> const& spa);
+
   virtual void loadMatrix(); ///< once all level coeffs and scalars have been set
   void finalizeMatrix(); ///< once matrix load completed in derived classes also
 

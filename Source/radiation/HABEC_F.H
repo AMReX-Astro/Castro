@@ -53,19 +53,6 @@ extern "C" {
                BL_FORT_FAB_ARG(dcoefs),
                const amrex::Real* dx);
 
-  void hmmat3(const int* lo, const int* hi,
-              int lo_x, int hi_x,
-              int ori_lo, int idir,
-              BL_FORT_FAB_ARG_3D(mat),
-              int cdir, int bctype,
-              const BL_FORT_IFAB_ARG_3D(tf),
-              int bho, amrex::Real bcl,
-              const BL_FORT_IFAB_ARG_3D(mask),
-              BL_FORT_FAB_ARG_3D(bcoefs),
-              amrex::Real beta, const amrex::Real* dx,
-              amrex::Real flux_factor,
-              BL_FORT_FAB_ARG_3D(spa));
-
   void set_abec_flux(const int* lo, const int* hi,
                      int idir,
                      BL_FORT_FAB_ARG_3D(c), 
