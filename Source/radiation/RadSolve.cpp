@@ -429,11 +429,11 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 
                     edge_center_metric(i, j, k, idim, geomdata, r, s);
 
-                    if (vel_arr(i-1,j,k,1) + vel_arr(i,j,k,1) > 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i-1,j,k) * vel_arr(i-1,j,k,1) * lambda_arr(i,j,k);
+                    if (vel_arr(i-1,j,k,0) + vel_arr(i,j,k,0) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i-1,j,k) * vel_arr(i-1,j,k,0) * lambda_arr(i,j,k);
                     }
-                    else if (vel_arr(i-1,j,k,1) + vel_arr(i,j,k,1) < 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,1) * lambda_arr(i,j,k);
+                    else if (vel_arr(i-1,j,k,0) + vel_arr(i,j,k,0) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,0) * lambda_arr(i,j,k);
                     }
                     else {
                         dcoefs_arr(i,j,k) = 0.e0_rt;
@@ -446,11 +446,11 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 
                     edge_center_metric(i, j, k, idim, geomdata, r, s);
 
-                    if (vel_arr(i,j-1,k,2) + vel_arr(i,j,k,2) > 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i,j-1,k) * vel_arr(i,j-1,k,2) * lambda_arr(i,j,k);
+                    if (vel_arr(i,j-1,k,1) + vel_arr(i,j,k,1) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j-1,k) * vel_arr(i,j-1,k,1) * lambda_arr(i,j,k);
                     }
-                    else if (vel_arr(i,j-1,k,2) + vel_arr(i,j,k,2) < 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,2) * lambda_arr(i,j,k);
+                    else if (vel_arr(i,j-1,k,1) + vel_arr(i,j,k,1) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,1) * lambda_arr(i,j,k);
                     }
                     else {
                         dcoefs_arr(i,j,k) = 0.e0_rt;
@@ -463,11 +463,11 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 
                     edge_center_metric(i, j, k, idim, geomdata, r, s);
 
-                    if (vel_arr(i,j,k-1,3) + vel_arr(i,j,k,3) > 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k-1) * vel_arr(i,j,k-1,3) * lambda_arr(i,j,k);
+                    if (vel_arr(i,j,k-1,2) + vel_arr(i,j,k,2) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k-1) * vel_arr(i,j,k-1,2) * lambda_arr(i,j,k);
                     }
-                    else if (vel_arr(i,j,k-1,3) + vel_arr(i,j,k,3) < 0.e0_rt) {
-                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,3) * lambda_arr(i,j,k);
+                    else if (vel_arr(i,j,k-1,2) + vel_arr(i,j,k,2) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,2) * lambda_arr(i,j,k);
                     }
                     else {
                         dcoefs_arr(i,j,k) = 0.e0_rt;
