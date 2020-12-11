@@ -1425,7 +1425,7 @@ Castro::initData ()
           GpuArray<Real, NGROUPS+1> xnu_pass = {0.0};
 #if NGROUPS > 1
           for (int g = 0; g <= NGROUPS; g++) {
-            xnu_pass[g] = Radiation::xnu[g];
+              xnu_pass[g] = radiation->xnu[g];
           }
 #endif
 
