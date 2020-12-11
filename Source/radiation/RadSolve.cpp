@@ -401,7 +401,8 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
     const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
     const DistributionMapping& dm = castro->DistributionMap();
     const Geometry& geom = parent->Geom(level);
-    const Real* dx       = geom.CellSize();
+    const auto dx = geom.CellSizeArray();
+    const auto geomdata = geom.data();
 
     for (int idim=0; idim<BL_SPACEDIM; idim++) {
 
@@ -414,14 +415,69 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
 
             const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-            ca_compute_dcoefs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                              BL_TO_FORTRAN_ANYD(dcoefs[mfi]),
-                              BL_TO_FORTRAN_ANYD(lambda[idim][mfi]),
-                              BL_TO_FORTRAN_ANYD(vel[mfi]),
-                              BL_TO_FORTRAN_ANYD(dcf[mfi]), 
-                              AMREX_REAL_ANYD(dx), idim);
+            auto dcoefs_arr = dcoefs[mfi].array();
+            auto lambda_arr = lambda[idim][mfi].array();
+            auto vel_arr = vel[mfi].array();
+            auto dcf_arr = dcf[mfi].array();
 
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                Real r, s;
+
+                if (idim == 0) {
+
+                    edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                    if (vel_arr(i-1,j,k,1) + vel_arr(i,j,k,1) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i-1,j,k) * vel_arr(i-1,j,k,1) * lambda_arr(i,j,k);
+                    }
+                    else if (vel_arr(i-1,j,k,1) + vel_arr(i,j,k,1) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,1) * lambda_arr(i,j,k);
+                    }
+                    else {
+                        dcoefs_arr(i,j,k) = 0.e0_rt;
+                    }
+
+                    dcoefs_arr(i,j,k) = dcoefs_arr(i,j,k) * r;
+
+                }
+                else if (idim == 1) {
+
+                    edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                    if (vel_arr(i,j-1,k,2) + vel_arr(i,j,k,2) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j-1,k) * vel_arr(i,j-1,k,2) * lambda_arr(i,j,k);
+                    }
+                    else if (vel_arr(i,j-1,k,2) + vel_arr(i,j,k,2) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,2) * lambda_arr(i,j,k);
+                    }
+                    else {
+                        dcoefs_arr(i,j,k) = 0.e0_rt;
+                    }
+
+                    dcoefs_arr(i,j,k) = dcoefs_arr(i,j,k) * r;
+
+                }
+                else {
+
+                    edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                    if (vel_arr(i,j,k-1,3) + vel_arr(i,j,k,3) > 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k-1) * vel_arr(i,j,k-1,3) * lambda_arr(i,j,k);
+                    }
+                    else if (vel_arr(i,j,k-1,3) + vel_arr(i,j,k,3) < 0.e0_rt) {
+                        dcoefs_arr(i,j,k) = dcf_arr(i,j,k) * vel_arr(i,j,k,3) * lambda_arr(i,j,k);
+                    }
+                    else {
+                        dcoefs_arr(i,j,k) = 0.e0_rt;
+                    }
+
+                    dcoefs_arr(i,j,k) = dcoefs_arr(i,j,k) * r;
+
+                }
+
+            });
         }
 
         hem->d2Coefficients(level, dcoefs, idim);
