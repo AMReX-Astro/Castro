@@ -41,12 +41,16 @@ void problem_initialize ()
 
     // Set up Castro data logs for this problem
 
-    Castro::problem_data_logs.resize(1);
+    if (castro::sum_interval > 0 && amrex::ParallelDescriptor::IOProcessor()) {
 
-    Castro::problem_data_logs[0].reset(new std::fstream);
-    Castro::problem_data_logs[0]->open("xrb_diag.out", std::ios::out | std::ios::app);
-    if (!Castro::problem_data_logs[0]->good()) {
-        amrex::FileOpenFailed("xrb_diag.out");
+        Castro::problem_data_logs.resize(1);
+
+        Castro::problem_data_logs[0].reset(new std::fstream);
+        Castro::problem_data_logs[0]->open("xrb_diag.out", std::ios::out | std::ios::app);
+        if (!Castro::problem_data_logs[0]->good()) {
+            amrex::FileOpenFailed("xrb_diag.out");
+        }
+
     }
 
 }
