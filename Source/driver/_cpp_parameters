@@ -472,6 +472,11 @@ point_mass                   Real          0.0                y        GRAVITY
 # adding their mass to the point mass object
 point_mass_fix_solution      int           0                  y        GRAVITY
 
+# Distance (in kpc) used for calculation of the gravitational wave amplitude
+# (this wil be calculated along all three coordinate axes). Only relevant if
+# castro.sum_interval > 0.
+gw_dist                      Real          10.0e0             y        GRAVITY
+
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------

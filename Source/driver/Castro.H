@@ -982,6 +982,26 @@ public:
 
 #ifdef GRAVITY
 ///
+/// Calculate the gravitational wave signal
+///
+/// @param time       current time
+/// @param h_plus_1   gravitational wave signal in x-direction
+/// @param h_cross_1  gravitational wave signal in x-direction
+/// @param h_plus_2   gravitational wave signal in y-direction
+/// @param h_cross_2  gravitational wave signal in y-direction
+/// @param h_plus_3   gravitational wave signal in z-direction
+/// @param h_cross_3  gravitational wave signal in z-direction
+/// @param local      is sum local
+
+    void gwstrain (Real time,
+                   Real& h_plus_1, Real& h_cross_1,
+                   Real& h_plus_2, Real& h_cross_2,
+                   Real& h_plus_3, Real& h_cross_3,
+                   bool local);
+#endif
+
+#ifdef GRAVITY
+///
 /// Are we using point mass gravity?
 ///
     int using_point_mass ();

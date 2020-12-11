@@ -88,17 +88,6 @@ Castro::sum_integrated_quantities ()
     Real vel_P_phi = 0.0;
     Real vel_S_phi = 0.0;
 
-    // Gravitational wave amplitudes.
-    
-    Real h_plus_1  = 0.0;
-    Real h_cross_1 = 0.0;
-
-    Real h_plus_2  = 0.0;
-    Real h_cross_2 = 0.0;
-
-    Real h_plus_3  = 0.0;
-    Real h_cross_3 = 0.0;
-
     // Species names and total masses on the domain.
 
     const Real M_solar = 1.9884e33;
@@ -172,13 +161,6 @@ Castro::sum_integrated_quantities ()
 	rho_phirot += ca_lev.volProductSum("density", "phiRot", time, local_flag);
 #endif
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-      // Gravitational wave signal. This is designed to add to these quantities so we can send them directly.
-      ca_lev.gwstrain(time, h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, local_flag);
-#endif
-#endif
-
       // Integrated mass of all species on the domain.
       for (int i = 0; i < NumSpec; i++)
 	species_mass[i] += ca_lev.volWgtSum("rho_" + species_names[i], time, local_flag) / M_solar;
@@ -191,7 +173,7 @@ Castro::sum_integrated_quantities ()
 
     // Do the reductions.
 
-    int nfoo_sum = 24 + NumSpec;
+    int nfoo_sum = 18 + NumSpec;
 
     amrex::Vector<Real> foo_sum(nfoo_sum);
 
@@ -209,15 +191,9 @@ Castro::sum_integrated_quantities ()
     foo_sum[15] = rho_e;
     foo_sum[16] = rho_phi;
     foo_sum[17] = rho_phirot;
-    foo_sum[18] = h_plus_1;
-    foo_sum[19] = h_cross_1;
-    foo_sum[20] = h_plus_2;
-    foo_sum[21] = h_cross_2;
-    foo_sum[22] = h_plus_3;
-    foo_sum[23] = h_cross_3;
 
     for (int i = 0; i < NumSpec; i++) {
-      foo_sum[i + 24] = species_mass[i];
+      foo_sum[i + 18] = species_mass[i];
     }
 
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
@@ -236,15 +212,9 @@ Castro::sum_integrated_quantities ()
     rho_e      = foo_sum[15];
     rho_phi    = foo_sum[16];
     rho_phirot = foo_sum[17];
-    h_plus_1   = foo_sum[18];
-    h_cross_1  = foo_sum[19];
-    h_plus_2   = foo_sum[20];
-    h_cross_2  = foo_sum[21];
-    h_plus_3   = foo_sum[22];
-    h_cross_3  = foo_sum[23];
 
     for (int i = 0; i < NumSpec; i++) {
-      species_mass[i] = foo_sum[i + 24];
+      species_mass[i] = foo_sum[i + 18];
     }
 
     // Complete calculations for energy and momenta
@@ -405,12 +375,6 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "                R COM VEL"; ++n;
 	     header << std::setw(datwidth) << "                Z COM VEL"; ++n;
 #endif
-	     header << std::setw(datwidth) << "             h_+ (axis 1)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 1)"; ++n;
-	     header << std::setw(datwidth) << "             h_+ (axis 2)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 2)"; ++n;
-	     header << std::setw(datwidth) << "             h_+ (axis 3)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 3)"; ++n;
 
 	     header << std::endl;
 
@@ -468,12 +432,6 @@ Castro::sum_integrated_quantities ()
 #if (BL_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_1;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_1;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_2;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_2;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_3;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_3;
 
 	   log << std::endl;
 	 }
