@@ -1404,6 +1404,215 @@ void HypreMultiABec::hmbc (const Box& bx,
     Gpu::synchronize();
 }
 
+void
+HypreMultiABec::hmmat (const Box& bx,
+                       Array4<GpuArray<Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+                       int cdir, int bct, int bho, Real bcl,
+                       Array4<int const> const& mask,
+                       Array4<Real const> const& b,
+                       Real beta, const Real* dx)
+{
+    bool xlo = false;
+    bool ylo = false;
+    bool zlo = false;
+
+    bool xhi = false;
+    bool yhi = false;
+    bool zhi = false;
+
+    Real h;
+
+    if (AMREX_SPACEDIM == 1) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            xhi = true;
+            h = dx[0];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else if (AMREX_SPACEDIM == 2) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 2) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 3) {
+            yhi = true;
+            h = dx[1];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 3) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 4) {
+            yhi = true;
+            h = dx[1];
+        }
+        else if (cdir == 2) {
+            zlo = true;
+            h = dx[2];
+        }
+        else if (cdir == 5) {
+            zhi = true;
+            h = dx[2];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+
+    const Real fac = beta / (h * h);
+
+    Real bfm, bfv;
+    Real bfm2, h2, th2;
+
+    if (bct == LO_DIRICHLET) {
+
+        if (bho >= 1) {
+
+            h2 = 0.5e0_rt * h;
+            th2 = 3.e0_rt * h2;
+            bfm = fac * (th2 - bcl) / (bcl + h2) - fac;
+            bfm2 = fac * (bcl - h2) / (bcl + th2);
+
+        }
+        else {
+
+            bfv = (beta / h) / (0.5e0_rt * h + bcl);
+            bfm = bfv - fac;
+
+        }
+
+    }
+    else if (bct == LO_NEUMANN) {
+
+        bfm = -fac;
+        bfm2 = 0.e0_rt;
+
+    }
+    else {
+
+        amrex::Error("hmmat: unsupported boundary type");
+
+    }
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        if (mask.contains(i-1,j,k)) {
+
+            if (xlo && mask(i-1,j,k) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i,j,k);
+                mat(i,j,k)[1] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[2] += bfm2 * b(i,j,k);
+                }
+
+            }
+
+        }
+        else if (mask.contains(i+1,j,k)) {
+
+            if (xhi && mask(i+1,j,k) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i+1,j,k);
+                mat(i,j,k)[2] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[1] += bfm2 * b(i+1,j,k);
+                }
+
+            }
+
+        }
+        else if (mask.contains(i,j-1,k)) {
+
+            if (ylo && mask(i,j-1,k) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i,j,k);
+                mat(i,j,k)[3] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[4] += bfm2 * b(i,j,k);
+                }
+
+            }
+
+        }
+        else if (mask.contains(i,j+1,k)) {
+
+            if (yhi && mask(i,j+1,k) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i,j+1,k);
+                mat(i,j,k)[4] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[3] += bfm2 * b(i,j+1,k);
+                }
+
+            }
+
+        }
+        else if (mask.contains(i,j,k-1)) {
+
+            if (zlo && mask(i,j,k-1) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i,j,k);
+                mat(i,j,k)[5] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[6] += bfm2 * b(i,j,k);
+                }
+
+            }
+
+        }
+        else if (mask.contains(i,j,k+1)) {
+
+            if (zhi && mask(i,j,k+1) > 0) {
+
+                mat(i,j,k)[0] += bfm * b(i,j,k+1);
+                mat(i,j,k)[6] = 0.e0_rt;
+                if (bho >= 1) {
+                    mat(i,j,k)[5] += bfm2 * b(i,j,k+1);
+                }
+
+            }
+
+        }
+    });
+
+    Gpu::synchronize();
+}
+
 void HypreMultiABec::loadMatrix()
 {
   BL_PROFILE("HypreMultiABec::loadMatrix");
@@ -1519,13 +1728,9 @@ void HypreMultiABec::loadMatrix()
                    pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
           }
           else {
-#pragma gpu box(reg) sync
-          hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
-                cdir, bct, bho, bcl,
-                BL_TO_FORTRAN_ANYD(msk),
-                BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+              hmmat(reg, matfab.array(), cdir, bct, bho, bcl,
+                    msk.array(), (*bcoefs[level])[idim][mfi].array(),
+                    beta, geom[level].CellSize());
           }
         }
         else {
@@ -1535,13 +1740,9 @@ void HypreMultiABec::loadMatrix()
           // stencil using Neumann BC:
 
           const RadBoundCond bct_coarse = LO_NEUMANN;
-#pragma gpu box(reg) sync
-          hmmat(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-                mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
-                cdir, bct_coarse, bho, bcl,
-                BL_TO_FORTRAN_ANYD(msk),
-                BL_TO_FORTRAN_ANYD((*bcoefs[level])[idim][mfi]),
-                beta, AMREX_REAL_ANYD(geom[level].CellSize()));
+          hmmat(reg, matfab.array(), cdir, bct_coarse, bho, bcl,
+                msk.array(), (*bcoefs[level])[idim][mfi].array(),
+                beta, geom[level].CellSize());
         }
       }
 
