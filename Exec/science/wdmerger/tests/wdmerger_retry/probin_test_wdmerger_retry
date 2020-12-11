@@ -40,8 +40,6 @@
   center_fracy = 0.5d0
   center_fracz = 0.5d0
 
-  gw_dist = 10.0
-
   max_he_wd_mass = 0.45d0
   max_hybrid_wd_mass = 0.6d0
   hybrid_wd_he_shell_mass = 0.1d0
