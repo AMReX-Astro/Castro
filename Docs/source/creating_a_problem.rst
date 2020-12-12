@@ -76,7 +76,7 @@ The variables will all be initialized for the GPU as well.
 
 
 ``Problem Initialization``
----------------
+--------------------------
 
 Here we describe the main problem initialization routines. There are
 two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
