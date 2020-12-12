@@ -59,6 +59,9 @@ extensions = ['sphinx.ext.autodoc',
               'breathe',
               'IPython.sphinxext.ipython_console_highlighting']
 
+# bibtex
+bibtex_bibfiles = ["refs.bib"]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
