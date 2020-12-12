@@ -467,13 +467,28 @@ Castro::read_params ()
    // Open up Castro data logs
    // Note that this functionality also exists in the Amr class
    // but we implement it on our own to have a little more control.
+   // Some of these will only be filled for certain ifdefs, but
+   // we should use consistent indexing regardless of ifdefs (so some
+   // logs may be unused in a given run).
 
-   data_logs.resize(1);
+   if (sum_interval > 0 && ParallelDescriptor::IOProcessor()) {
 
-   data_logs[0].reset(new std::fstream);
-   data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
-   if (!data_logs[0]->good()) {
-       amrex::FileOpenFailed("grid_diag.out");
+       data_logs.resize(2);
+
+       data_logs[0].reset(new std::fstream);
+       data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[0]->good()) {
+           amrex::FileOpenFailed("grid_diag.out");
+       }
+
+       data_logs[1].reset(new std::fstream);
+#ifdef GRAVITY
+       data_logs[1]->open("gravity_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[1]->good()) {
+           amrex::FileOpenFailed("gravity_diag.out");
+       }
+#endif
+
    }
 
    ParmParse ppa("amr");

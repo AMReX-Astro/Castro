@@ -218,13 +218,6 @@ initial_radial_velocity_factor  real                 -1.0e-3_rt                y
 
 
 
-# Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes).
-
-gw_dist                         real                  10.0e0_rt                y
-
-
-
 # Current value of the dynamical timescale for each star
 
 t_ff_P                          real                  0.0e0_rt                 n

@@ -21,6 +21,7 @@ Castro::sum_integrated_quantities ()
 
     int finest_level = parent->finestLevel();
     Real time        = state[State_Type].curTime();
+    int timestep     = parent->levelSteps(0);
     Real mass        = 0.0;
     Real mom[3]      = { 0.0 };
     Real ang_mom[3]  = { 0.0 };
@@ -37,8 +38,11 @@ Castro::sum_integrated_quantities ()
     Real total_energy = 0.0;
 #endif
 
-    int datwidth     = 14;
-    int datprecision = 6;
+    int datprecision = 16;
+
+    int datwidth     = 25; // Floating point data in scientific notation
+    int fixwidth     = 25; // Floating point data not in scientific notation
+    int intwidth     = 12; // Integer data
 
     for (int lev = 0; lev <= finest_level; lev++)
     {
@@ -236,5 +240,107 @@ Castro::sum_integrated_quantities ()
 #endif
     }
 
+#ifdef GRAVITY
+    // Gravity diagnostics
+    {
+        // Gravitational wave amplitudes
+
+        Real h_plus_1  = 0.0;
+        Real h_cross_1 = 0.0;
+
+        Real h_plus_2  = 0.0;
+        Real h_cross_2 = 0.0;
+
+        Real h_plus_3  = 0.0;
+        Real h_cross_3 = 0.0;
+
+        for (int lev = 0; lev <= finest_level; lev++)
+        {
+            Castro& ca_lev = getLevel(lev);
+
+#if (AMREX_SPACEDIM > 1)
+            // Gravitational wave signal. This is designed to add to these quantities so we can send them directly.
+            ca_lev.gwstrain(time, h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, local_flag);
+#endif
+
+        }
+
+        const int nfoo_sum = 6;
+
+        amrex::Vector<Real> foo_sum(nfoo_sum);
+
+        foo_sum[0] = h_plus_1;
+        foo_sum[1] = h_cross_1;
+        foo_sum[2] = h_plus_2;
+        foo_sum[3] = h_cross_2;
+        foo_sum[4] = h_plus_3;
+        foo_sum[5] = h_cross_3;
+
+        amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
+
+        h_plus_1   = foo_sum[0];
+        h_cross_1  = foo_sum[1];
+        h_plus_2   = foo_sum[2];
+        h_cross_2  = foo_sum[3];
+        h_plus_3   = foo_sum[4];
+        h_cross_3  = foo_sum[5];
+
+        if (ParallelDescriptor::IOProcessor()) {
+
+            std::ostream& log = *Castro::data_logs[1];
+
+            // Write header row
+
+            if (time == 0.0) {
+
+                log << std::setw(intwidth) << "#   COLUMN 1";
+                log << std::setw(fixwidth) << "                         2";
+                log << std::setw(fixwidth) << "                         3";
+                log << std::setw(fixwidth) << "                         4";
+                log << std::setw(fixwidth) << "                         5";
+                log << std::setw(fixwidth) << "                         6";
+                log << std::setw(fixwidth) << "                         7";
+
+                std::ostringstream header;
+
+                header << std::setw(intwidth) << "#   TIMESTEP";
+                header << std::setw(fixwidth) << "                     TIME";
+
+                header << std::setw(datwidth) << "             h_+ (x)";
+                header << std::setw(datwidth) << "             h_x (x)";
+                header << std::setw(datwidth) << "             h_+ (y)";
+                header << std::setw(datwidth) << "             h_x (y)";
+                header << std::setw(datwidth) << "             h_+ (z)";
+                header << std::setw(datwidth) << "             h_x (z)";
+
+                header << std::endl;
+
+                log << std::endl;
+
+                log << header.str();
+
+            }
+
+            log << std::fixed;
+
+            log << std::setw(intwidth)                                    << timestep;
+            log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+
+            log << std::scientific;
+
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_plus_1;
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_cross_1;
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_plus_2;
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_cross_2;
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_plus_3;
+            log << std::setw(datwidth) << std::setprecision(datprecision) << h_cross_3;
+
+            log << std::endl;
+
+        }
+
+    }
+
     problem_diagnostics();
 }
+#endif
