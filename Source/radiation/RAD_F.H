@@ -69,22 +69,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
    (const BL_FORT_FAB_ARG(Er), const BL_FORT_FAB_ARG(kap), 
     BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  void ca_compute_dcoefs
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(d), 
-    const BL_FORT_FAB_ARG_3D(lam), 
-    const BL_FORT_FAB_ARG_3D(v),
-    const BL_FORT_FAB_ARG_3D(dcf),
-    const amrex::Real* dx, int idir);
-
-#ifdef __cplusplus
-}
-#endif
  
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
