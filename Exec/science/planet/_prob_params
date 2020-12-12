@@ -12,8 +12,6 @@ velpert_amplitude     real             1.0e2_rt        y
 
 velpert_height_loc    real             6.5e3_rt        y
 
-num_vortices          integer          1               y
-
 shear_height_loc      real             0.0_rt          y
 
 shear_amplitude       real             0.0_rt          y
@@ -25,4 +23,8 @@ shear_width_x         real             0.0_rt          y
 
 shear_width_y         real             0.0_rt          y
 
-xloc_vortices         real             0.0_rt          n      num_vortices
+num_vortices        integer         1             y
+
+max_num_vortices    integer         10            n
+
+xloc_vortices       real            0.0_rt        n     10

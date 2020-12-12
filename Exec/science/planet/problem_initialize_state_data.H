@@ -33,10 +33,10 @@ void problem_initialize_state_data (int i, int j, int k,
 
     int shear_bottom_index = static_cast<int>(problem::shear_height_loc / dx[2]) - problem::shear_height;
 
-    state(i,j,k,URHO) = interpolate(height, model::idens);
-    state(i,j,k,UTEMP) = interpolate(height, model::itemp);
+    state(i,j,k,URHO) = interpolate(coord[AMREX_SPACEDIM-1], model::idens);
+    state(i,j,k,UTEMP) = interpolate(coord[AMREX_SPACEDIM-1], model::itemp);
     for (int n = 0; n < NumSpec; n++) {
-        state(i,j,k,UFS+n) = interpolate(height, model::ispec+n);
+        state(i,j,k,UFS+n) = interpolate(coord[AMREX_SPACEDIM-1], model::ispec+n);
     }
 
     eos_t eos_state;
@@ -53,7 +53,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UEDEN) = state(i,j,k,URHO) * eos_state.e;
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
 
-    for (n = 0; n < NumSpec; n++) {
+    for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = state(i,j,k,URHO) * state(i,j,k,UFS+n);
     }
 
@@ -73,14 +73,16 @@ void problem_initialize_state_data (int i, int j, int k,
                 velocity_gradient * std::abs(k - shear_bottom_index);
 
         } else if (k > shear_bottom_index + problem::shear_height) {
-           state(i,j,k,UMX) = state(i,j,k,URHO) * shear_amplitude;
+           state(i,j,k,UMX) = state(i,j,k,URHO) * problem::shear_amplitude;
         }
 
         if (int_shear_width_y > 2) {
             if (k > shear_bottom_index &&
                 k <= shear_bottom_index + problem::shear_height &&
                 j % int_shear_width_y <= 4) {
-                state(i,j,k,UMX:UMZ) = 0.0_rt;
+                state(i,j,k,UMX) = 0.0_rt;
+                state(i,j,k,UMY) = 0.0_rt;
+                state(i,j,k,UMZ) = 0.0_rt;
             }
         }
 
@@ -88,14 +90,16 @@ void problem_initialize_state_data (int i, int j, int k,
             if (k > shear_bottom_index &&
                 k <= shear_bottom_index + problem::shear_height &&
                 i % int_shear_width_x <= 4) {
-                state(i,j,k,UMX:UMZ) = 0.0_rt;
+                state(i,j,k,UMX) = 0.0_rt;
+                state(i,j,k,UMY) = 0.0_rt;
+                state(i,j,k,UMZ) = 0.0_rt;
             }
         }
     }
 #endif
 
     //  Now add the velocity perturbation (update the kinetic energy too)
-    if (apply_vel_field) {
+    if (problem::apply_vel_field) {
 
 #if AMREX_SPACEDIM == 2
         Real ydist = coord[1] - problem::velpert_height_loc;

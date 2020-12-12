@@ -26,7 +26,7 @@ void problem_initialize ()
     // HSE check
 
     Real max_hse_err = -1.e30_rt;
-    Real dr_model = model::profile(0).r[1] - model::profile(0).r[0];
+    Real dr_model = model::profile(0).r(1) - model::profile(0).r(0);
 
     for (int i = 1; i < model::npts-2; i++) {
         Real dpdr = (model::profile(0).state(i, model::ipres) -
