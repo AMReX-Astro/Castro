@@ -220,13 +220,13 @@ problems are:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">DustCollapse</span></code>: A pressureless cloud collapse that is a
 standard test problem for gravity. An analytic solution that
 describes the radius of the sphere as a function of time is found
-in Colgate and White <a class="bibtex reference internal" href="zreferences.html#colgwhite" id="id1">[24]</a>. This problem is also
+in Colgate and White <span class="bibtex" id="id1">[colgwhite]</span>. This problem is also
 found in the FLASH User’s Guide.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">evrard_collapse</span></code>: This is the collapse of an isothermal
 spherical gas cloud.  This problem was originally discussed in
-<a class="bibtex reference internal" href="zreferences.html#evrard1988" id="id2">[30]</a>.
+<span class="bibtex" id="id2">[Evrard1988]</span>.
 This implementation of the test comes from section 9.1 of
-<a class="bibtex reference internal" href="zreferences.html#springel-2010" id="id3">[56]</a>.</p></li>
+<span class="bibtex" id="id3">[springel:2010]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: Model a 1-d stellar atmosphere (plane-parallel or
 spherical/self-gravitating) and dump energy in via an analytic
 heat source and watch the atmosphere’s hydrostatic state adjust
@@ -237,14 +237,14 @@ hydro + gravity in maintaining HSE.  Convergence can be measured either
 by looking at the max <span class="math notranslate nohighlight">\(|U|\)</span> in the plotfiles.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hydrostatic_adjust</span></code>: This is a problem that explores the
 change in a hydrostatic structure due to heating.  This was used
-originally in <a class="bibtex reference internal" href="zreferences.html#maestro-ii" id="id4">[14]</a>.</p></li>
+originally in <span class="bibtex" id="id4">[maestro:II]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">StarGrav</span></code>: This problem sets up a single spherical star in
 hydrostatic equilibrium and is used to assess the ability to
 maintain HSE.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">uniform_cube_sphere</span></code>: This is used to compute the
 gravitational potential of a perfect cube, for which there is an
 analytic solution.  It tests our isolated boundary conditions.
-This was demonstrated in <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id5">[43]</a>.</p></li>
+This was demonstrated in <span class="bibtex" id="id5">[katz:2016]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -252,12 +252,12 @@ This was demonstrated in <a class="bibtex reference internal" href="zreferences.
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code>: The acoustic pulse problem from
-<a class="bibtex reference internal" href="zreferences.html#mccorquodalecolella" id="id6">[4]</a> used to measure convergence of pure
+<span class="bibtex" id="id6">[mccorquodalecolella]</span> used to measure convergence of pure
 hydrodynamics problems (as used for Castro in
-<a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id7">[66]</a>).</p></li>
+<span class="bibtex" id="id7">[castro-sdc]</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">acoustic_pulse_general</span></code>: a general equation of state version
 of <code class="docutils literal notranslate"><span class="pre">acoustic_pulse</span></code> used for measuring convergence in
-<a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id8">[66]</a>.</p></li>
+<span class="bibtex" id="id8">[castro-sdc]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">double_bubble</span></code>: Initialize 1 or 2 bubbles in a stratified
 atmosphere (isothermal or isentropic) and allow for the bubbles
 to have the same or a different <span class="math notranslate nohighlight">\(\gamma\)</span> from one another /
@@ -266,17 +266,17 @@ An analogous problem is implemented in Maestro.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">KH</span></code>: A Kelvin-Helmholtz shear instability problem.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">oddeven</span></code>: A grid-aligned shock hitting a very small density
 perturbation.  This demonstrates the odd-even decoupling problem
-discussed in <a class="bibtex reference internal" href="zreferences.html#quirk1997" id="id9">[7]</a>. This setup serves to test the
+discussed in <span class="bibtex" id="id9">[quirk1997]</span>. This setup serves to test the
 castro.hybrid_riemann option to hydrodynamics.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: A single-model Rayleigh-Taylor instability problem.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sedov</span></code>: The standard Sedov-Taylor blast wave problem. This
-setup was used in the first Castro paper <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id10">[12]</a>.</p></li>
+setup was used in the first Castro paper <span class="bibtex" id="id10">[castro_I]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod</span></code>: A one-dimensional shock tube setup, including the
 classic Sod problem. This setup was used in the original Castro
 paper.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Sod_stellar</span></code>: A version of the Sod shock tube for the general
 stellar equation of state. This setup and the included inputs
-files was used in <a class="bibtex reference internal" href="zreferences.html#zingalekatz" id="id11">[65]</a>.</p></li>
+files was used in <span class="bibtex" id="id11">[zingalekatz]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">toy_convect</span></code>: A simple nova-like convection problem with an
 external heating source. This problem shows how to use the model
 parser to initialize a 1-d atmosphere on the Castro grid,
@@ -289,13 +289,13 @@ A MAESTROeX version of this problem setup also exists.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mhd_tests</span></code>:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Alfven</span></code>: a linearized MHD wave test problem from <a class="bibtex reference internal" href="zreferences.html#crockett-2005" id="id12">[25]</a> and <a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id13">[5]</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">BrioWu</span></code>: the Brio Wu shock tube problem as described in <a class="bibtex reference internal" href="zreferences.html#briowu" id="id14">[15]</a>.  This is a standard
-test problem used in many MHD code papers (e.g. <a class="bibtex reference internal" href="zreferences.html#athena" id="id15">[57]</a>).</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DaiWoodward</span></code>: a shock tube problem described in <a class="bibtex reference internal" href="zreferences.html#dai-1998" id="id16">[3]</a></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FastRarefaction</span></code>: a shock tube problem dominated by kinetic energy, as described in <a class="bibtex reference internal" href="zreferences.html#miniati-martin" id="id17">[5]</a></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MagnetosonicWaves</span></code>: the fast and slow magnetosonic wave problem from <a class="bibtex reference internal" href="zreferences.html#crockett-2005" id="id18">[25]</a></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">OrszagTang</span></code>: a two-dimensional magnetized vortex problem, following <a class="bibtex reference internal" href="zreferences.html#athena" id="id19">[57]</a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Alfven</span></code>: a linearized MHD wave test problem from <span class="bibtex" id="id12">[crockett:2005]</span> and <span class="bibtex" id="id13">[miniati_martin]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BrioWu</span></code>: the Brio Wu shock tube problem as described in <span class="bibtex" id="id14">[briowu]</span>.  This is a standard
+test problem used in many MHD code papers (e.g. <span class="bibtex" id="id15">[athena]</span>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DaiWoodward</span></code>: a shock tube problem described in <span class="bibtex" id="id16">[Dai_1998]</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FastRarefaction</span></code>: a shock tube problem dominated by kinetic energy, as described in <span class="bibtex" id="id17">[miniati_martin]</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MagnetosonicWaves</span></code>: the fast and slow magnetosonic wave problem from <span class="bibtex" id="id18">[crockett:2005]</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OrszagTang</span></code>: a two-dimensional magnetized vortex problem, following <span class="bibtex" id="id19">[athena]</span></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RT</span></code>: a magnetized Rayleigh-Taylor instability problem</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">species</span></code>: a simple test problem to ensure that species are accurately advected.</p></li>
 </ul>
@@ -305,22 +305,22 @@ test problem used in many MHD code papers (e.g. <a class="bibtex reference inter
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Rad2Tshock</span></code>: This sets up a radiating shock that can be
-compared to a semi-analytic solution described in <a class="bibtex reference internal" href="zreferences.html#lowrieedwards" id="id20">[46]</a>.</p></li>
+compared to a semi-analytic solution described in <span class="bibtex" id="id20">[lowrieedwards]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadFront</span></code>: This is the optically-thin streaming of a radiation front problem
 demonstrated originally in Castro in <span class="bibtex" id="id21">[castroII]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadShestakovBolstad</span></code>: This is a linear multigroup diffusion test problem first described
-by <a class="bibtex reference internal" href="zreferences.html#shestakov2005" id="id22">[8]</a> and demonstrated in Castro in <span class="bibtex" id="id23">[castroIII]</span>.</p></li>
+by <span class="bibtex" id="id22">[SHESTAKOV2005]</span> and demonstrated in Castro in <span class="bibtex" id="id23">[castroIII]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadSourceTest</span></code>: Test the implementation of the source terms in the gray radiation
 solver.  This does the “relaxation to thermal equilibrium” test as
-described in <a class="bibtex reference internal" href="zreferences.html#swestymyra-2009" id="id24">[58]</a>  (originally described in <a class="bibtex reference internal" href="zreferences.html#turnerstone2001" id="id25">[60]</a>).</p></li>
+described in <span class="bibtex" id="id24">[swestymyra:2009]</span>  (originally described in <span class="bibtex" id="id25">[turnerstone2001]</span>).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">RadSphere</span></code>: This is a multigroup radiating sphere test problem with an analytic solution,
-described in <a class="bibtex reference internal" href="zreferences.html#graziani-2008" id="id26">[34]</a> and <a class="bibtex reference internal" href="zreferences.html#swestymyra-2009" id="id27">[58]</a> and shown in Castro in <a class="bibtex reference internal" href="zreferences.html#castroiii" id="id28">[64]</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code>: This is a non-equlibrium Marshak wave test described in <a class="bibtex reference internal" href="zreferences.html#suolson-1996" id="id29">[2]</a> and shown
-in Castro in <a class="bibtex reference internal" href="zreferences.html#castroii" id="id30">[63]</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlsonMG</span></code>: This is a multigroup version of <code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code> described in <a class="bibtex reference internal" href="zreferences.html#suolson-1999" id="id31">[9]</a>
-and shown in Castro in <a class="bibtex reference internal" href="zreferences.html#castroiii" id="id32">[64]</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RadThermalWave</span></code>: A thermal wave test adapted from <a class="bibtex reference internal" href="zreferences.html#howellgreenough-2003" id="id33">[37]</a> and shown in Castro
-in <a class="bibtex reference internal" href="zreferences.html#castroii" id="id34">[63]</a>.</p></li>
+described in <span class="bibtex" id="id26">[graziani:2008]</span> and <span class="bibtex" id="id27">[swestymyra:2009]</span> and shown in Castro in <span class="bibtex" id="id28">[CastroIII]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code>: This is a non-equlibrium Marshak wave test described in <span class="bibtex" id="id29">[suolson:1996]</span> and shown
+in Castro in <span class="bibtex" id="id30">[CastroII]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadSuOlsonMG</span></code>: This is a multigroup version of <code class="docutils literal notranslate"><span class="pre">RadSuOlson</span></code> described in <span class="bibtex" id="id31">[suolson:1999]</span>
+and shown in Castro in <span class="bibtex" id="id32">[CastroIII]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RadThermalWave</span></code>: A thermal wave test adapted from <span class="bibtex" id="id33">[howellgreenough:2003]</span> and shown in Castro
+in <span class="bibtex" id="id34">[CastroII]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -328,12 +328,12 @@ in <a class="bibtex reference internal" href="zreferences.html#castroii" id="id3
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">bubble_convergence</span></code>: a reacting bubble problem designed for measuring the convergence of
-the reactive hydro algorithms in Castro.  This was used in <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id35">[66]</a>.</p></li>
+the reactive hydro algorithms in Castro.  This was used in <span class="bibtex" id="id35">[castro-sdc]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code>: A reacting bubble in a stratified white
 dwarf atmosphere. This problem was featured in the
-Maestro reaction paper <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id36">[13]</a>.</p></li>
+Maestro reaction paper <span class="bibtex" id="id36">[maestro:III]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reacting_convergence</span></code>: a simple reacting hydrodynamics problem for measuring convergence,
-used in <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id37">[66]</a>.</p></li>
+used in <span class="bibtex" id="id37">[castro-sdc]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -345,17 +345,17 @@ here for reproducibility.</p>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Detonation</span></code>: this sets up a 1-d detonation that propagates through the domain.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flame</span></code>: this sets up a 1-d deflagration that propagates through the domain.  This setup
-was used for the testing in <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id38">[27]</a>.</p></li>
+was used for the testing in <span class="bibtex" id="id38">[eiden:2020]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">flame_wave</span></code>: this is a model of a flame propagating across a neutron star as a model for
-an X-ray burst.  This was presented in <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id39">[27]</a>.</p></li>
+an X-ray burst.  This was presented in <span class="bibtex" id="id39">[eiden:2020]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">nova</span></code>: this models convection at the base of an accreted layer
 on a white dwarf as a model of a nova.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">planet</span></code>: this is the problem setup from <a class="bibtex reference internal" href="zreferences.html#ryu-2018" id="id40">[53]</a> that models shear and turbulence in a
+<li><p><code class="docutils literal notranslate"><span class="pre">planet</span></code>: this is the problem setup from <span class="bibtex" id="id40">[ryu:2018]</span> that models shear and turbulence in a
 hot Jupiter atmosphere.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">subchandra</span></code>: a model of sub-Chandra Type Ia supernova that initializes a hot spot in a helium
 layer on a low mass carbon-oxygen white dwarf.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">wdmerger</span></code>: a problem setup for modeling white dwarf mergers.  This was used in <a class="bibtex reference internal" href="zreferences.html#katz-2016" id="id41">[43]</a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xrb_mixed</span></code>: a compressible version of the X-ray burst convection problem from <a class="bibtex reference internal" href="zreferences.html#zingale-2015" id="id42">[67]</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wdmerger</span></code>: a problem setup for modeling white dwarf mergers.  This was used in <span class="bibtex" id="id41">[katz:2016]</span>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xrb_mixed</span></code>: a compressible version of the X-ray burst convection problem from <span class="bibtex" id="id42">[zingale:2015]</span>.</p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -363,7 +363,7 @@ layer on a low mass carbon-oxygen white dwarf.</p></li>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">diffusion_test</span></code>: a test of thermal diffusion (without hydro).  This was used to demonstrate convergence
-in both <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id43">[66]</a> and <a class="bibtex reference internal" href="zreferences.html#eiden-2020" id="id44">[27]</a>.</p></li>
+in both <span class="bibtex" id="id43">[castro-sdc]</span> and <span class="bibtex" id="id44">[eiden:2020]</span>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">particles_test</span></code>: a test of passive particles.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">reactions_driver_test</span></code>: a test that just calls the reaction terms on a cube of data.</p></li>
 </ul>

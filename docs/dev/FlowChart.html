@@ -236,7 +236,7 @@ state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
 explicit coupling of the burning and hydro is done.  This code
 path uses the corner-transport upwind (CTU) method (the unsplit,
-characteristic tracing method of <a class="bibtex reference internal" href="zreferences.html#colella-1990" id="id1">[20]</a>).  This is the default method.</p>
+characteristic tracing method of <span class="bibtex" id="id1">[colella:1990]</span>).  This is the default method.</p>
 <p>The MHD solver uses this same driver.</p>
 </li>
 <li><p>SDC: a class of iterative methods that couples the advection and reactions
@@ -254,7 +254,7 @@ to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
 Iterations allow each process to see one another and achieve
-high-order in time convergence.  This is described in <a class="bibtex reference internal" href="zreferences.html#castro-sdc" id="id2">[66]</a>.</p></li>
+high-order in time convergence.  This is described in <span class="bibtex" id="id2">[castro-sdc]</span>.</p></li>
 </ul>
 </li>
 </ul>
@@ -263,7 +263,7 @@ high-order in time convergence.  This is described in <a class="bibtex reference
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <a class="bibtex reference internal" href="zreferences.html#castro-i" id="id3">[12]</a>.  This uses Strang splitting and the CTU
+described in <span class="bibtex" id="id3">[castro_I]</span>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -535,7 +535,7 @@ StateData <code class="docutils literal notranslate"><span class="pre">Source_Ty
 <li><p>sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <a class="bibtex reference internal" href="zreferences.html#maestro-iii" id="id4">[13]</a></p></li>
+follows that of Maestro <span class="bibtex" id="id4">[maestro:III]</span></p></li>
 <li><p>external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
 equations in the conservative state vector, <span class="math notranslate nohighlight">\(\Ub\)</span>, are indexed

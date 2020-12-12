@@ -396,7 +396,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -446,6 +446,11 @@ namespace: ``castro``
 |                                        | from building up in the zones adjacent to it by keeping |               |
 |                                        | their density constant and adding their mass to the     |               |
 |                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``gw_dist``                            | Distance (in kpc) used for calculation of the           | 10.0e0        |
+|                                        | gravitational wave amplitude (this wil be calculated    |               |
+|                                        | along all three coordinate axes). Only relevant if      |               |
+|                                        | castro.sum_interval > 0.                                |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
