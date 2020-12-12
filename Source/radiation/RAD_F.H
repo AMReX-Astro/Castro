@@ -217,20 +217,6 @@ extern "C" {
 
   amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
-  void lrhs(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(rhs),
-            BL_FORT_FAB_ARG_3D(temp),
-            BL_FORT_FAB_ARG_3D(fkp),
-            BL_FORT_FAB_ARG_3D(eta),
-            BL_FORT_FAB_ARG_3D(etainv),
-            BL_FORT_FAB_ARG_3D(rhoem),
-            BL_FORT_FAB_ARG_3D(rhoes),
-            BL_FORT_FAB_ARG_3D(dflux_old),
-            BL_FORT_FAB_ARG_3D(Er_old),
-            BL_FORT_FAB_ARG_3D(Edot), 
-            amrex::Real delta_t, const amrex::Real* dx,
-            amrex::Real sigma, amrex::Real c, amrex::Real theta);
-
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
                  BL_FORT_FAB_ARG(frhoes), 

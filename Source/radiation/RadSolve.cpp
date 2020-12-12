@@ -498,7 +498,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
   BL_ASSERT(rhs.nGrow() == 0);
 
   const Geometry& geom = parent->Geom(level);
-  const Real* dx       = geom.CellSize();
+  auto geomdata = geom.data();
 
   rhs.setVal(0.0);
   if (fine_corr) {
@@ -522,19 +522,39 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
   for (MFIter mfi(rhs, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      lrhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-           BL_TO_FORTRAN_ANYD(rhs[mfi]), 
-           BL_TO_FORTRAN_ANYD(temp[mfi]),
-           BL_TO_FORTRAN_ANYD(fkp[mfi]),
-           BL_TO_FORTRAN_ANYD(eta[mfi]),
-           BL_TO_FORTRAN_ANYD(etainv[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoem[mfi]),
-           BL_TO_FORTRAN_ANYD(rhoes[mfi]),
-           BL_TO_FORTRAN_ANYD(dflux_old[mfi]),
-           BL_TO_FORTRAN_N_ANYD(Er_old[mfi], 0), 
-           BL_TO_FORTRAN_ANYD(Edot[mfi]),
-           delta_t, AMREX_REAL_ANYD(dx), sigma, c, theta);
+      auto rhs_arr = rhs[mfi].array();
+      auto temp_arr = temp[mfi].array();
+      auto fkp_arr = fkp[mfi].array();
+      auto eta_arr = eta[mfi].array();
+      auto etainv_arr = etainv[mfi].array();
+      auto rhoem_arr = rhoem[mfi].array();
+      auto rhoes_arr = rhoes[mfi].array();
+      auto dflux_old_arr = dflux_old[mfi].array();
+      auto Er_old_arr = Er_old[mfi].array(0);
+      auto Edot_arr = Edot[mfi].array();
+
+      const Real dtm = 1.0_rt / delta_t;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real ek = fkp_arr(i,j,k) * eta_arr(i,j,k);
+          Real bs = etainv_arr(i,j,k) * 4.e0_rt * sigma * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4);
+          Real es = eta_arr(i,j,k) * (rhoem_arr(i,j,k) - rhoes_arr(i,j,k));
+          Real ekt = (1.0_rt - theta) * eta_arr(i,j,k);
+
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          if (AMREX_SPACEDIM == 1) {
+              s = 1.0_rt;
+          }
+
+          rhs_arr(i,j,k) = (rhs_arr(i,j,k) + r * s *
+                            (bs + dtm * (Er_old_arr(i,j,k) + es) +
+                             ek * c * Edot_arr(i,j,k) -
+                             ekt * dflux_old_arr(i,j,k))) / (1.0_rt - ekt);
+      });
   }
 }
 
