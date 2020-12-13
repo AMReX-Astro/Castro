@@ -53,14 +53,6 @@ extern "C" {
                BL_FORT_FAB_ARG(dcoefs),
                const amrex::Real* dx);
 
-  void set_abec_flux(const int* lo, const int* hi,
-                     int idir,
-                     BL_FORT_FAB_ARG_3D(c), 
-                     BL_FORT_FAB_ARG_3D(d), 
-                     amrex::Real beta,
-                     const amrex::Real* dx,
-                     BL_FORT_FAB_ARG_3D(flux));
-
 #ifdef __cplusplus
 };
 #endif
