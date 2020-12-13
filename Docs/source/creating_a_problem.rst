@@ -5,7 +5,7 @@ Setting Up Your Own Problem
 Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, ...).  These groups are
 sub-directories under the `Castro/Exec/` directory.  Each problem is
-then placed in a sub-directory of the appropriate group (for example, 
+then placed in a sub-directory of the appropriate group (for example,
 ``Castro/Exec/hydro_tests/Sedov`` holds the Sedov test problem).
 
 To create a new problem, you will create a new directory under one
@@ -40,7 +40,7 @@ existing problem setup into a new directory.
 
 .. index:: _prob_params
 
-Runtime parameters
+Runtime Parameters
 ------------------
 
 The problem-specific runtime parameters are defined in ``_prob_params``.
@@ -53,7 +53,7 @@ Here:
 * `name` is the name of the variable to put into ``probdata_module``
 
 * `datatype` is one of ``real``, ``integer``, ``character``, or
-  ``logical``. 
+  ``logical``.
 
 * `default` is the default value of the runtime parameter.  It may be
   overridden at runtime by reading from the namelist.
@@ -183,7 +183,7 @@ from the zone indices, ``i``, ``j``, and ``k``.
 
 .. _create:bcs:
 
-Boundary conditions
+Boundary Conditions
 -------------------
 
 .. index:: boundary conditions
@@ -197,7 +197,7 @@ direction, e.g., for 2-d as::
    castro.lo_bc       =  0   1
 
 The flag value 1 is traditionally named "inflow" by AMReX, but generally means that
-the boundary implementation is left to the user.  To tell Castro to use the 
+the boundary implementation is left to the user.  To tell Castro to use the
 hydrostatic boundary condition here, we set::
 
    castro.yl_ext_bc_type = "hse"
@@ -297,4 +297,60 @@ each of these in the main source tree.
    An example is provided by ``toy_flame``, where an estimate
    of the flame speed is computed by integrating the mass of fuel on
    the grid.
+
+
+Model Parser
+------------
+
+Many problem setups begin with a 1-d initial model that is mapped onto
+the grid.  The ``model_parser.H`` provides the functions that read in
+the initial model and map it on the Castro grid.  To enable this, add::
+
+  USE_CXX_MODEL_PARSER = TRUE
+
+to the problem ``GNUmakefile``.  There are 2 other parameters that can
+be set in the makefile to control the initial model storage:
+
+  * ``MAX_NPTS_MODEL``: is the maximum number of data points in the
+    1-d initial model.  This needs to be known at compile time so we
+    can make the data managed for GPUs.
+
+  * ``NUM_MODELS``: this is the number of different initial models we
+    want to managed.  Typically we only want 1, but some problems,
+    like ``flame_wave`` use 2, applied to different portions of the
+    domain.
+
+The general form of the initial model is::
+
+    # npts = 896
+    # num of variables = 6
+    # density
+    # temperature
+    # pressure
+    # carbon-12
+    # oxygen-16
+    # magnesium-24
+    195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+    585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+The first line gives the number of points in the initial model, the
+next gives the number of variables, followed by the variable names
+(one per line), and then the data.  The data begins with the
+coordinate and then the variables in the model, with one data point
+per line.
+
+When the model is read, the variables listed in the file are matched
+to the ones that Castro knows about.  If the variable is recognized,
+then it is stored in the model data, otherwise, it is ignored.
+
+The data can then be mapped onto the grid using the ``interpolate()``
+function, e.g., ::
+
+    Real dens = interpolate(height, model::idens);
+
+This fills ``dens`` with the density at the position ``height``.  In
+addition to density, you can specify temperature (``model::itemp``),
+pressure (``model::ipres``), species (indexed from ``model::ispec``),
+or an auxiliary quantity (indexed from ``model::iaux``).
+
 
