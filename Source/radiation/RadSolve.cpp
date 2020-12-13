@@ -1,24 +1,20 @@
 
 #include <AMReX_ParmParse.H>
 #include <AMReX_AmrLevel.H>
-
 #include <AMReX_LO_BCTYPES.H>
-//#include <CompSolver.H>
 
 #include <RadSolve.H>
 #include <Radiation.H>  // for access to static physical constants only
-
 #include <rad_util.H>
+#include <problem_rad_source.H>
+#include <RAD_F.H>
+#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 #include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <RAD_F.H>
-
-#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 using namespace amrex;
 
@@ -1013,9 +1009,10 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
           cell_center_metric(i, j, k, geomdata, r, s);
 
           rhs_arr(i,j,k) *= r;
+
+          problem_rad_source(i, j, k, rhs_arr, geomdata, time, delta_t, igroup);
       });
 
-#pragma gpu box(bx)
       ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                     BL_TO_FORTRAN_ANYD(rhs[ri]),
                     AMREX_REAL_ANYD(dx), delta_t, time, igroup);
