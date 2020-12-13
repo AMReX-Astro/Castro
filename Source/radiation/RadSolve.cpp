@@ -673,7 +673,7 @@ void RadSolve::levelFlux(int level,
 
   Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
 
   for (int n = 0; n < BL_SPACEDIM; n++) {
 
@@ -697,13 +697,37 @@ void RadSolve::levelFlux(int level,
       for (MFIter mfi(Flux[n], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-          set_abec_flux(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        n,
-                        BL_TO_FORTRAN_ANYD(Erborder[mfi]), 
-                        BL_TO_FORTRAN_ANYD(bcoef[mfi]), 
-                        radsolve::beta, AMREX_REAL_ANYD(dx),
-                        BL_TO_FORTRAN_ANYD(Flux[n][mfi]));
+          auto Erborder_arr = Erborder[mfi].array();
+          auto bcoef_arr = bcoef[mfi].array();
+          auto Flux_arr = Flux[n][mfi].array();
+
+          Real beta = radsolve::beta;
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              if (n == 0) {
+
+                  const Real fac = -beta / dx[0];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i-1,j,k)) * fac;
+
+              }
+              else if (n == 1) {
+
+                  const Real fac = -beta / dx[1];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i,j-1,k)) * fac;
+
+              }
+              else {
+
+                  const Real fac = -beta / dx[2];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i,j,k-1)) * fac;
+
+              }
+          });
       }
 
   }
