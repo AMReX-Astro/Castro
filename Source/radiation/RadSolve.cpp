@@ -930,7 +930,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
-  const Real* dx = parent->Geom(level).CellSize();
+  const auto geomdata = parent->Geom(level).data();
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
@@ -944,14 +944,21 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
-          
+
       Real dt_ptc = delta_t / (1.0 + ptc_tau);
 
-#pragma gpu box(bx)
-      lacoefmgfld(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                  BL_TO_FORTRAN_ANYD(acoefs[mfi]), 
-                  BL_TO_FORTRAN_N_ANYD(kpp[mfi], igroup), 
-                  AMREX_REAL_ANYD(dx), dt_ptc, c);
+      auto acoefs_arr = acoefs[mfi].array();
+      auto kpp_arr = kpp[mfi].array(igroup);
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          acoefs_arr(i,j,k) = c * kpp_arr(i,j,k) + 1.e0_rt / dt_ptc;
+          acoefs_arr(i,j,k) = r * s * acoefs_arr(i,j,k);
+      });
   }
 
   // set a coefficients
