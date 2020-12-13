@@ -18,6 +18,7 @@ Problems
    file/problem__initialize__mhd__data_8H
    file/problem__initialize__rad__data_8H
    file/problem__initialize__state__data_8H
+   file/problem__rad__source_8H
    file/problem__restart_8H
    file/problem__source_8H
    file/problem__tagging_8H
