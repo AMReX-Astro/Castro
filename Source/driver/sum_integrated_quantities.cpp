@@ -340,7 +340,7 @@ Castro::sum_integrated_quantities ()
         }
 
     }
+#endif
 
     problem_diagnostics();
 }
-#endif
