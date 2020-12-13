@@ -65,7 +65,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
 
-    if (do_pert) {
+    if (problem::do_pert) {
 
         // Now add the perturbation
         Real t0 = state(i,j,k,UTEMP);
