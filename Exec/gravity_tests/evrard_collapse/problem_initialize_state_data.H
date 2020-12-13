@@ -25,12 +25,12 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
     for (int d = 0; d < AMREX_SPACEDIM; d++) {
         radius += (loc[d] - problem::center[d]) * (loc[d] - problem::center[d]);
     }
-    radius = std::sqrt(radius);
+    radius = std::pow(radius, 0.5_rt);
 
     eos_t eos_state;
     if (radius <= problem::sphere_radius) {
         eos_state.rho = (problem::sphere_mass * C::M_solar) /
-            (2.0_rt * M_PI * problem::sphere_radius * problem::sphere_radius * radius);
+            (2.0_rt * M_PI * (problem::sphere_radius * problem::sphere_radius) * radius);
     } else {
         eos_state.rho = problem::ambient_density;
     }
