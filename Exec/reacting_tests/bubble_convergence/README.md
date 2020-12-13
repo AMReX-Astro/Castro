@@ -7,7 +7,7 @@ SDC solver with gravity and reactions.
 
 * in `Castro/Exec/reacting_tests/bubble_convergence`
     ```
-    make COMP=intel -j 4
+    make USE_TRUE_SDC=TRUE COMP=intel -j 4
     ```
 
 * in output directory:
