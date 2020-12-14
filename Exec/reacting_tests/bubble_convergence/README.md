@@ -33,6 +33,28 @@ resolution was not shown in the paper).
   of convergence for the 32-64-128, 64-128-256, and 128-256-512 runs
   respectively.
 
+* Create a summary table using `create_pretty_tables.py`.  E.g., for
+  the mid and hi resolution cases, you would do:
+  ```
+  python create_pretty_tables.py --simple sdc_converge.mid.out sdc_converge.hi.out
+  ```
+
+  This gives:
+  ```
+  $\rho$                           3.590942e+15   3.264       3.739197e+14   3.713       2.852085e+13
+  $\rho u$                          1.11992e+24   3.794       8.071755e+22   3.930       5.296302e+21
+  $\rho v$                          1.31454e+24   3.544       1.127087e+23   3.839       7.878383e+21
+  $\rho E$                         3.701644e+32   2.947       4.801223e+31   3.646       3.834012e+30
+  $\rho e$                         3.701199e+32   2.947       4.800721e+31   3.646       3.833886e+30
+  $T$                              1.438083e+18   3.508       1.264438e+17   3.829       8.898941e+15
+  $\rho X(\isotm{He}{4})$          3.589696e+15   3.266       3.732104e+14   3.711       2.849884e+13
+  $\rho X(\isotm{C}{12})$          1.519871e+13   2.544       2.605906e+12   3.797       1.874147e+11
+  $\rho X(\isotm{O}{16})$              35896250   3.262            3741870   3.714           285088.2
+  $\rho X(\isotm{Fe}{56})$             35908410   3.264            3739049   3.713           285208.5
+  ```
+
+  which is essentially the same values shown in table 11 of the Castro SDC paper.
+
 ## HSE convergence
 
 This setup can also be used just to test HSE convergence.  
