@@ -48,5 +48,8 @@ void problem_initialize ()
     for (int d = 0; d < AMREX_SPACEDIM; d++) {
         problem::center[d] = 0.5_rt * (problo[d] + probhi[d]);
     }
+    for (int d = AMREX_SPACEDIM; d < 3; d++) {
+        problem::center[d] = 0.0_rt;
+    }
 }
 #endif
