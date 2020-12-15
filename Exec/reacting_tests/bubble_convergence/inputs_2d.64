@@ -49,7 +49,7 @@ castro.change_max     = 1.0     # max time step growth
 castro.fixed_dt = 1.5e-4
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 0       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
