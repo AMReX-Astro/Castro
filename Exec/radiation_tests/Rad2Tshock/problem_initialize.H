@@ -22,7 +22,7 @@ void problem_initialize ()
     eos(eos_input_rt, eos_state);
 
     problem::eint0 = problem::rho0 * eos_state.e;
-    problem::etot0 = eproblem::int0 +
+    problem::etot0 = problem::eint0 +
         0.5_rt * problem::rho0 * (problem::v0 * problem::v0);
 
     eos_state.rho = problem::rho1;

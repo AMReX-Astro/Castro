@@ -19,9 +19,9 @@ void problem_initialize_rad_data (int i, int j, int k,
     Real length_cell;
     if (problem::idir == 1) {
         length_cell = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
-    } else if (idir == 2) {
+    } else if (problem::idir == 2) {
         length_cell = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
-    } else if (idir == 3) {
+    } else if (problem::idir == 3) {
         length_cell = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
     } else {
 #ifndef AMREX_USE_GPU

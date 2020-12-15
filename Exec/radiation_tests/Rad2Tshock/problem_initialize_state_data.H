@@ -19,9 +19,9 @@ void problem_initialize_state_data (int i, int j, int k,
     Real length_cell;
     if (problem::idir == 1) {
         length_cell = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
-    } else if (idir == 2) {
+    } else if (problem::idir == 2) {
         length_cell = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt);
-    } else if (idir == 3) {
+    } else if (problem::idir == 3) {
         length_cell = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
     } else {
 #ifndef AMREX_USE_GPU
@@ -41,17 +41,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
         state(i,j,k,UTEMP) = problem::T0;
 
-        if (idir == 1) {
+        if (problem::idir == 1) {
             state(i,j,k,UMX) = problem::rho0 * problem::v0;
             state(i,j,k,UMY) = 0.0_rt;
             state(i,j,k,UMZ) = 0.0_rt;
 
-        } else if (idir == 2) {
+        } else if (problem::idir == 2) {
             state(i,j,k,UMX) = 0.0_rt;
             state(i,j,k,UMY) = problem::rho0 * problem::v0;
             state(i,j,k,UMZ) = 0.0_rt;
 
-        } else if (idir == 3) {
+        } else if (problem::idir == 3) {
             state(i,j,k,UMX) = 0.0_rt;
             state(i,j,k,UMY) = 0.0_rt;
             state(i,j,k,UMZ) = problem::rho0 * problem::v0;
@@ -68,17 +68,17 @@ void problem_initialize_state_data (int i, int j, int k,
 
          state(i,j,k,UTEMP) = problem::T1;
 
-         if (idir == 1) {
+         if (problem::idir == 1) {
              state(i,j,k,UMX) = problem::rho1 * problem::v1;
              state(i,j,k,UMY) = 0.0_rt;
              state(i,j,k,UMZ) = 0.0_rt;
 
-         } else if (idir == 2) {
+         } else if (problem::idir == 2) {
              state(i,j,k,UMX) = 0.0_rt;
              state(i,j,k,UMY) = problem::rho1 * problem::v1;
              state(i,j,k,UMZ) = 0.0_rt;
 
-         } else if (idir == 3) {
+         } else if (problem::idir == 3) {
              state(i,j,k,UMX) = 0.0_rt;
              state(i,j,k,UMY) = 0.0_rt;
              state(i,j,k,UMZ) = problem::rho1 * problem::v1;
@@ -87,12 +87,12 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
 
-    if (naux > 0) {
-        for (int n = 0; n < NumAux; ++n) {
-            state(i,j,k,UFX+n) = 0.0_rt;
-        }
-        state(i,j,k,UFX) = state(i,j,k,URHO);
+#if NAUX_NET > 0
+    for (int n = 0; n < NumAux; ++n) {
+        state(i,j,k,UFX+n) = 0.0_rt;
     }
+    state(i,j,k,UFX) = state(i,j,k,URHO);
+#endif
 
     eos_t eos_state;
     eos_state.rho = state(i,j,k,URHO);
@@ -102,9 +102,11 @@ void problem_initialize_state_data (int i, int j, int k,
     for (int n = 0; n < NumSpec; ++n) {
         eos_state.xn[n]  = state(i,j,k,UFS+n) * rhoInv;
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; ++n) {
         eos_state.aux[n] = state(i,j,k,UFX+n) * rhoInv;
     }
+#endif
 
     eos(eos_input_rt, eos_state);
 
