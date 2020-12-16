@@ -471,44 +471,8 @@ description of what each line does in the comments of the make
 file</p></li>
 </ul>
 </li>
-<li><p>(when <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code>) Interpret the <code class="docutils literal notranslate"><span class="pre">#pragma</span> <span class="pre">gpu</span></code></p>
-<ul class="simple">
-<li><p>The script <code class="docutils literal notranslate"><span class="pre">write_cuda_headers.py</span></code> (in <code class="docutils literal notranslate"><span class="pre">amrex/Tools/F_scripts/</span></code>) is tasked with
-understanding our custom pragma.  Its flow is:</p>
-<ul>
-<li><p>Loop over all C++ files, looking for routines that are marked
-with the pragma and return a dict keyed by the name of the
-function with values being a list of the arguments</p></li>
-<li><p>Parse the headers</p>
-<ul>
-<li><p>preprocess all of the <code class="docutils literal notranslate"><span class="pre">.H</span></code> files to the <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/s/</span></code>
-directory, giving them the prefix <code class="docutils literal notranslate"><span class="pre">CPP-</span></code>.</p></li>
-<li><p>now parse the preprocessed headers, grab the function
-signatures there, modify them with the CUDA launch, and insert
-them into a copy of the original, unpreprocessed
-header.  These new copies are also put in <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/s/</span></code>.</p></li>
-<li><p>loop through the C++ files that had the pragma, and add the
-needed launch macro.  These new <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> files are put in the same
-<code class="docutils literal notranslate"><span class="pre">tmp_build_dir/s/</span></code> directory.</p></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
 <li><p>Output to stdout the git version of the sources, via
 <code class="docutils literal notranslate"><span class="pre">describe_sources.py</span></code>.  This doesn’t affect the build process</p></li>
-<li><p>(when <code class="docutils literal notranslate"><span class="pre">USE+CUDA=TRUE</span></code>) Create device and host versions of each needed Fortran file. This
-is done as each <code class="docutils literal notranslate"><span class="pre">.F90</span></code> file is compiled with a rule in <code class="docutils literal notranslate"><span class="pre">Make.rules</span></code> that
-invokes <code class="docutils literal notranslate"><span class="pre">gpu_fortran.py</span></code> and then directs the compilation to build
-that version.</p>
-<ul class="simple">
-<li><p>We look for a <code class="docutils literal notranslate"><span class="pre">!$gpu</span></code> comment in routines, and use that as an
-indication to mark it up with a host and device version of the
-routine</p></li>
-<li><p>The modified <code class="docutils literal notranslate"><span class="pre">.F90</span></code> files are placed in <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/s/</span></code></p></li>
-</ul>
-</li>
 </ul>
 <p>For all of this to work, we need the <code class="docutils literal notranslate"><span class="pre">tmp_build_dir/s</span></code> directory to
 be first in the vpath, so our modified sources are found and used.</p>

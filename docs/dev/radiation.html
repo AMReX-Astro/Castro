@@ -288,10 +288,7 @@ where you want the Hypre files to be installed.</p>
 </pre></div>
 </div>
 <p>Then, when you are building Castro, you would build with
-<code class="docutils literal notranslate"><span class="pre">USE_MPI=TRUE</span></code> and <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code> (note that the CUDA build
-of Castro requires the <code class="docutils literal notranslate"><span class="pre">pgi</span></code> module to be loaded; you only
-need to use gcc for the Hypre build, which only has to be done
-once).</p>
+<code class="docutils literal notranslate"><span class="pre">USE_MPI=TRUE</span></code> and <code class="docutils literal notranslate"><span class="pre">USE_CUDA=TRUE</span></code>.</p>
 <p>Castro looks for Hypre in the environment variable <code class="docutils literal notranslate"><span class="pre">HYPRE_DIR</span></code>,
 which you should point to the install directory you chose above.
 Other than that, the only difference for builds with radiation
