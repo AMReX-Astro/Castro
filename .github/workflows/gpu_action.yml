@@ -2,7 +2,7 @@ name: GPU compilation
 
 on: [pull_request]
 jobs:
-  cpp-linter:
+  gpu-compilation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
