@@ -50,10 +50,6 @@ module model_parser_module
 
   public :: read_model_file, close_model_file, interpolate_sub, locate_sub
 
-#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
-  attributes(managed) :: model_state, model_r, npts_model
-#endif
-
 contains
 
   subroutine read_model_file(model_file)
@@ -297,8 +293,6 @@ contains
     integer                         :: id
     real(rt)                        :: slope,minvar,maxvar
 
-    !$gpu
-
     !     find the location in the coordinate array where we want to interpolate
     if (present(iloc)) then
        id = iloc
@@ -361,8 +355,6 @@ contains
     integer,  intent(  out) :: loc
 
     integer :: ilo, ihi, imid
-
-    !$gpu
 
     if (x .le. xs(1)) then
        loc = 1
