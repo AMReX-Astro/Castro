@@ -35,5 +35,5 @@ jobs:
           echo $HEADER_INCLUDES
           if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
 
-      - name: Run cpp linter
+      - name: Compile problems for GPU
         run: python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" -gpu
