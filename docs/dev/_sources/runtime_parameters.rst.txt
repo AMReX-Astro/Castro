@@ -447,10 +447,12 @@ namespace: ``castro``
 |                                        | their density constant and adding their mass to the     |               |
 |                                        | point mass object                                       |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``gw_dist``                            | Distance (in kpc) used for calculation of the           | 10.0e0        |
+| ``gw_dist``                            | Distance (in kpc) used for calculation of the           | 0.0           |
 |                                        | gravitational wave amplitude (this wil be calculated    |               |
 |                                        | along all three coordinate axes). Only relevant if      |               |
-|                                        | castro.sum_interval > 0.                                |               |
+|                                        | castro.sum_interval > 0 and if set to a positive        |               |
+|                                        | number. A standard value in the literature is 10.0      |               |
+|                                        | (kpc).                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
