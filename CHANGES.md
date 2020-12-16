@@ -1,3 +1,8 @@
+# 21.01
+
+   * Compiling with the PGI compiler is no longer a requirement for the CUDA build of Castro.
+     We recommend using COMP=gnu with a version of gcc that is C++14 compliant (gcc >= 5).
+
 # 20.12
 
    * An issue with incorrect application of HSE boundary conditions on derived quantities

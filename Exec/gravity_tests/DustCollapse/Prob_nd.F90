@@ -106,8 +106,6 @@ contains
 
     type (eos_t) :: eos_state
 
-    !$gpu
-
 #if AMREX_SPACEDIM == 1
     volinv = ONE / dble(nsub)
 #elif AMREX_SPACEDIM == 2

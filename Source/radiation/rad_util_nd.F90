@@ -19,8 +19,6 @@ contains
     integer,  intent(in) :: limiter
     real(rt) :: lambda
 
-    !$gpu
-
     if (limiter .eq. 0) then
        ! no limiter
        lambda = 1.e0_rt/3.e0_rt
