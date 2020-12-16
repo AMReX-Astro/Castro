@@ -32,7 +32,7 @@ module conservative_map_module
   public :: read_conserved_model_file, close_conserved_model_file, &
             interpolate_conservative, interpolate_avg_to_center
 
-#ifdef AMREX_USE_CUDA
+#if defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA)
   attributes(managed) :: model_state, model_r, npts_model
 #endif
 

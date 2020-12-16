@@ -67,7 +67,7 @@ main (int   argc,
 
 #ifdef HYPRE
     // Initialize Hypre.
-    HYPRE_Init(argc, argv);
+    HYPRE_Init();
 #endif
 
     BL_PROFILE_VAR("main()", pmain);

@@ -31,8 +31,6 @@ Castro::read_particle_params ()
 
   ParmParse pp("particles");
 
-#include <particles_queries.H>
-
     if (ParallelDescriptor::IOProcessor())
         if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
             amrex::CreateDirectoryFailed(timestamp_dir);

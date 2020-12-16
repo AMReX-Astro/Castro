@@ -3,7 +3,6 @@
 
 CEXE_headers += Castro_rotation.H
 CEXE_headers += Rotation.H
-FEXE_headers += Castro_rotation_F.H
 
 ca_F90EXE_sources += Rotation_frequency.F90
 CEXE_sources += rotation_sources.cpp

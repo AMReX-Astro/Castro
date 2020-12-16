@@ -72,10 +72,14 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   for (MFIter mfi(frhoem,true); mfi.isValid(); ++mfi) {
       const Box& reg = mfi.tilebox();
 
-#pragma gpu box(reg)
-      cfrhoe(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-             BL_TO_FORTRAN_ANYD(frhoem[mfi]),
-             BL_TO_FORTRAN_ANYD(S_new[mfi]));
+      auto frhoem_arr = frhoem[mfi].array();
+      auto S_new_arr = S_new[mfi].array();
+
+      amrex::ParallelFor(reg,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          frhoem_arr(i,j,k) = S_new_arr(i,j,k,UEINT);
+      });
   }
 
   MultiFab::Copy(frhoes, frhoem, 0, 0, 1, 0);

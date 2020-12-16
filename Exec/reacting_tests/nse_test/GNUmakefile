@@ -3,15 +3,14 @@ PROFILE    = FALSE
 
 DEBUG      = FALSE
 
-DIM        = 1
+DIM        = 2
 
 COMP	   = gnu
 
-USE_MPI    = FALSE
+USE_MPI    = TRUE
 
 USE_REACT  = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
@@ -20,6 +19,7 @@ EOS_DIR     := helmholtz
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := aprox19
+USE_NSE := TRUE
 
 INTEGRATOR_DIR := VODE
 

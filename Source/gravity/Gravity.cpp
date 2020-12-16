@@ -108,8 +108,6 @@ Gravity::read_params ()
 
         ParmParse pp("gravity");
 
-#include <gravity_queries.H>
-
         if ( (gravity::gravity_type != "ConstantGrav") &&
              (gravity::gravity_type != "PoissonGrav") &&
              (gravity::gravity_type != "MonopoleGrav") &&
@@ -257,13 +255,6 @@ Gravity::read_params ()
 
         }
 
-        // Warn user about obsolete tolerance parameters.
-
-        if (pp.contains("delta_tol"))
-            amrex::Warning("The gravity parameter delta_tol is no longer used.");
-
-        if (pp.contains("sl_tol"))
-            amrex::Warning("The gravity parameter sl_tol is no longer used.");
         Ggravity = 4.0 * M_PI * C::Gconst;
         if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
         {
@@ -341,13 +332,11 @@ Gravity::install_level (int                   level,
 #if (BL_SPACEDIM > 1)
     if (level == 0)
     {
-        Real center[3];
-        ca_get_center(center);
-        Real x = geom.ProbHi(0) - center[0];
-        Real y = geom.ProbHi(1) - center[1];
+        Real x = geom.ProbHi(0) - problem::center[0];
+        Real y = geom.ProbHi(1) - problem::center[1];
         max_radius_all_in_domain = std::min(x,y);
 #if (BL_SPACEDIM == 3)
-        Real z = geom.ProbHi(2) - center[2];
+        Real z = geom.ProbHi(2) - problem::center[2];
         max_radius_all_in_domain = std::min(max_radius_all_in_domain,z);
 #endif
         if (gravity::verbose > 1 && ParallelDescriptor::IOProcessor())
@@ -1379,9 +1368,6 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
 
     const auto problo = geom.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -1400,16 +1386,16 @@ Gravity::interpolate_monopole_grav(int level, RealVector& radial_grav, MultiFab&
         {
             GpuArray<Real, 3> loc;
 
-            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+            loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 
 #if AMREX_SPACEDIM >= 2
-            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+            loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
             loc[1] = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+            loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
             loc[2] = 0.0_rt;
 #endif
@@ -1487,7 +1473,7 @@ Gravity::compute_radial_mass(const Box& bx,
 {
     const Geometry& geom = parent->Geom(level);
 
-    GpuArray<Real, 3> dx, problo, center;
+    GpuArray<Real, 3> dx, problo;
     for (int i = 0; i < AMREX_SPACEDIM; ++i) {
         dx[i] = geom.CellSizeArray()[i];
         problo[i] = geom.ProbLoArray()[i];
@@ -1496,7 +1482,6 @@ Gravity::compute_radial_mass(const Box& bx,
         dx[i] = 0.0_rt;
         problo[i] = 0.0_rt;
     }
-    ca_get_center(center.begin());
 
     Real dr = dx[0] / static_cast<Real>(gravity::drdxfac);
     Real drinv = 1.0_rt / dr;
@@ -1509,9 +1494,9 @@ Gravity::compute_radial_mass(const Box& bx,
 
     if (coord_type == 0) {
 
-        if ((std::abs(center[0] - problo[0]) < 1.e-2_rt * dx[0]) &&
-            (std::abs(center[1] - problo[1]) < 1.e-2_rt * dx[1]) &&
-            (std::abs(center[2] - problo[2]) < 1.e-2_rt * dx[2])) {
+        if ((std::abs(problem::center[0] - problo[0]) < 1.e-2_rt * dx[0]) &&
+            (std::abs(problem::center[1] - problo[1]) < 1.e-2_rt * dx[1]) &&
+            (std::abs(problem::center[2] - problo[2]) < 1.e-2_rt * dx[2])) {
 
             octant_factor = 8.0_rt;
 
@@ -1519,7 +1504,7 @@ Gravity::compute_radial_mass(const Box& bx,
 
     } else if (coord_type == 1) {
 
-        if (std::abs(center[1] - problo[1]) < 1.e-2_rt * dx[1]) {
+        if (std::abs(problem::center[1] - problo[1]) < 1.e-2_rt * dx[1]) {
 
             octant_factor = 2.0_rt;
 
@@ -1539,14 +1524,14 @@ Gravity::compute_radial_mass(const Box& bx,
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
     {
-        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
-        Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - center[0];
+        Real xc = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+        Real lo_i = problo[0] + static_cast<Real>(i) * dx[0] - problem::center[0];
 
-        Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
-        Real lo_j = problo[1] + static_cast<Real>(j) * dx[1] - center[1];
+        Real yc = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+        Real lo_j = problo[1] + static_cast<Real>(j) * dx[1] - problem::center[1];
 
-        Real zc = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
-        Real lo_k = problo[2] + static_cast<Real>(k) * dx[2] - center[2];
+        Real zc = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+        Real lo_k = problo[2] + static_cast<Real>(k) * dx[2] - problem::center[2];
 
         Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
         int index = static_cast<int>(r * drinv);
@@ -1637,9 +1622,6 @@ Gravity::init_multipole_grav()
       hi_bc[dir] = -1;
     }
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     const auto problo = parent->Geom(0).ProbLoArray();
     const auto probhi = parent->Geom(0).ProbHiArray();
 
@@ -1667,7 +1649,7 @@ Gravity::init_multipole_grav()
     for (int b = 0; b < AMREX_SPACEDIM; ++b) {
 
         if ((lo_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
-            if (std::abs(center[b] - problo[b]) < edgeTolerance) {
+            if (std::abs(problem::center[b] - problo[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionLo(b) = true;
             }
@@ -1678,7 +1660,7 @@ Gravity::init_multipole_grav()
         }
 
         if ((hi_bc[b] == Symmetry) && (parent->Geom(0).Coord() == 0)) {
-            if (std::abs(center[b] - probhi[b]) < edgeTolerance) {
+            if (std::abs(problem::center[b] - probhi[b]) < edgeTolerance) {
                 multipole::volumeFactor *= 2.0_rt;
                 multipole::doReflectionHi(b) = true;
             }
@@ -1836,9 +1818,6 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
     const int boundary_only = 1;
 #endif
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     // Use all available data in constructing the boundary conditions,
     // unless the user has indicated that a maximum level at which
     // to stop using the more accurate data.
@@ -1936,16 +1915,16 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     Real rmax_cubed_inv = 1.0_rt / (multipole::rmax * multipole::rmax * multipole::rmax);
 
-                    Real x = (problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0]) / multipole::rmax;
+                    Real x = (problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0]) / multipole::rmax;
 
 #if AMREX_SPACEDIM >= 2
-                    Real y = (problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1]) / multipole::rmax;
+                    Real y = (problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1]) / multipole::rmax;
 #else
                     Real y = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-                    Real z = (problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2]) / multipole::rmax;
+                    Real z = (problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2]) / multipole::rmax;
 #else
                     Real z = 0.0_rt;
 #endif
@@ -1982,7 +1961,7 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
                     if (multipole::doSymmetricAdd) {
 
-                        multipole_symmetric_add(x, y, z, problo, probhi, center,
+                        multipole_symmetric_add(x, y, z, problo, probhi,
                                                 rho(i,j,k), vol(i,j,k) * rmax_cubed_inv,
                                                 qL0_arr, qLC_arr, qLS_arr, qU0_arr, qUC_arr, qUS_arr,
                                                 npts, nlo, index);
@@ -2136,13 +2115,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 
             Real x;
             if (i > domhi[0]) {
-                x = problo[0] + (static_cast<Real>(i  )         ) * dx[0] - center[0];
+                x = problo[0] + (static_cast<Real>(i  )         ) * dx[0] - problem::center[0];
             }
             else if (i < domlo[0]) {
-                x = problo[0] + (static_cast<Real>(i+1)         ) * dx[0] - center[0];
+                x = problo[0] + (static_cast<Real>(i+1)         ) * dx[0] - problem::center[0];
             }
             else {
-                x = problo[0] + (static_cast<Real>(i  ) + 0.5_rt) * dx[0] - center[0];
+                x = problo[0] + (static_cast<Real>(i  ) + 0.5_rt) * dx[0] - problem::center[0];
             }
 
             x = x / multipole::rmax;
@@ -2150,13 +2129,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 #if AMREX_SPACEDIM >= 2
             Real y;
             if (j > domhi[1]) {
-                y = problo[1] + (static_cast<Real>(j  )         ) * dx[1] - center[1];
+                y = problo[1] + (static_cast<Real>(j  )         ) * dx[1] - problem::center[1];
             }
             else if (j < domlo[1]) {
-                y = problo[1] + (static_cast<Real>(j+1)         ) * dx[1] - center[1];
+                y = problo[1] + (static_cast<Real>(j+1)         ) * dx[1] - problem::center[1];
             }
             else {
-                y = problo[1] + (static_cast<Real>(j  ) + 0.5_rt) * dx[1] - center[1];
+                y = problo[1] + (static_cast<Real>(j  ) + 0.5_rt) * dx[1] - problem::center[1];
             }
 #else
             Real y = 0.0_rt;
@@ -2167,13 +2146,13 @@ Gravity::fill_multipole_BCs(int crse_level, int fine_level, const Vector<MultiFa
 #if AMREX_SPACEDIM == 3
             Real z;
             if (k > domhi[2]) {
-                z = problo[2] + (static_cast<Real>(k  )         ) * dx[2] - center[2];
+                z = problo[2] + (static_cast<Real>(k  )         ) * dx[2] - problem::center[2];
             }
             else if (k < domlo[2]) {
-                z = problo[2] + (static_cast<Real>(k+1)         ) * dx[2] - center[2];
+                z = problo[2] + (static_cast<Real>(k+1)         ) * dx[2] - problem::center[2];
             }
             else {
-                z = problo[2] + (static_cast<Real>(k  ) + 0.5_rt) * dx[2] - center[2];
+                z = problo[2] + (static_cast<Real>(k  ) + 0.5_rt) * dx[2] - problem::center[2];
             }
 #else
             Real z = 0.0;
@@ -2951,9 +2930,6 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
     const auto dx     = parent->Geom(level).CellSizeArray();
     const auto problo = parent->Geom(level).ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -2969,9 +2945,9 @@ Gravity::add_pointmass_to_gravity (int level, MultiFab& phi, MultiFab& grav_vect
         {
             // Compute radial gravity due to a point mass at center[:].
 
-            Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
-            Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
-            Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+            Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
+            Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+            Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 
             Real rsq = x * x + y * y + z * z;
             Real radial_force = -C::Gconst * castro::point_mass / rsq;

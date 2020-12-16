@@ -1,6 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_hydro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -133,11 +133,6 @@ Castro::trace_ppm(const Box& bx,
 
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
-
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; n++){
-    qpass_map_p[n] = qpass_map[n];
-  }
 
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
@@ -309,7 +304,7 @@ Castro::trace_ppm(const Box& bx,
   
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-      int n = qpass_map_p[ipassive];
+      int n = qpassmap(ipassive);
 
       // Plus state on face i
       if ((idir == 0 && i >= vlo[0]) ||

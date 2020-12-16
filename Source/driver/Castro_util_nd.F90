@@ -82,65 +82,6 @@ contains
   end function position
 
 
-  AMREX_CUDA_FORT_DEVICE subroutine ca_clamp_temp(i, j, k, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
-
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
-    use ambient_module, only: ambient_state
-    use amrex_constants_module, only: HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer , intent(in   ), value :: i, j, k
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    real(rt) :: rhoInv
-
-    rhoInv = ONE / state(i,j,k,URHO)
-
-    if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-       state(i,j,k,UTEMP) = ambient_state(UTEMP)
-       state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-       state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-    end if
-
-  end subroutine ca_clamp_temp
-
-
-  subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
-    ! Get the current center of the problem.  This may not be the
-    ! center of the domain, due to any problem symmetries.
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(inout) :: center_out(3)
-
-    center_out = center
-
-  end subroutine ca_get_center
-
-
-  subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
-    !
-    ! .. note::
-    !    Binds to C function ``ca_set_center``
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: center_in(3)
-
-    center = center_in
-
-  end subroutine ca_set_center
-
-
   subroutine ca_find_center(data,new_center,icen,dx,problo) &
        bind(C, name="ca_find_center")
     !
@@ -223,7 +164,8 @@ contains
     !    Binds to C function ``ca_compute_avgstate``
 
     use meth_params_module, only: URHO, UMX, UMY, UMZ
-    use prob_params_module, only: center, dim
+    use prob_params_module, only: dim
+    use probdata_module, only: center
     use amrex_constants_module, only: HALF
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error

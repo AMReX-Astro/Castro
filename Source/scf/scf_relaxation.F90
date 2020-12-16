@@ -13,7 +13,7 @@ contains
 
   subroutine scf_setup_relaxation(d_A, axis_A, d_B, axis_B) bind(C, name='scf_setup_relaxation')
 
-    use prob_params_Module, only: center
+    use probdata_module, only: center
 
     implicit none
 

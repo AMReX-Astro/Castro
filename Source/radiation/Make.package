@@ -44,12 +44,14 @@ ca_F90EXE_sources += rad_params.F90
 ca_F90EXE_sources += blackbody.F90
 ca_F90EXE_sources += Rad_nd.F90
 CEXE_headers += fluxlimiter.H
+CEXE_headers += RadHydro.H
 ca_F90EXE_sources += fluxlimiter.F90
 ca_F90EXE_sources += RadHydro_nd.F90
 ca_F90EXE_sources += filter.F90
 ca_F90EXE_sources += RadDerive_nd.F90
 ca_F90EXE_sources += rad_util_nd.F90
 CEXE_headers += rad_util.H
+CEXE_headers += blackbody.H
 
 ca_F90EXE_sources += rad_source.F90
 

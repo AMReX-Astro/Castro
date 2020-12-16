@@ -70,5 +70,5 @@ amr.derive_plot_vars = ALL
 
 amr.probin_file = probin
 
-castro.small_dens   = 1.e-4
-castro.small_temp   = 1.e6
+castro.small_dens   = 1.e-5
+castro.small_temp   = 1.e5

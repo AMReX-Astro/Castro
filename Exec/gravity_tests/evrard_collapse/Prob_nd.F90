@@ -15,8 +15,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   ! Given the inputs of small_dens and small_temp, figure out small_pres.
 
   if (small_dens > 0.0e0_rt .and. small_temp > 0.0e0_rt) then

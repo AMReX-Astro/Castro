@@ -19,10 +19,10 @@ using namespace amrex;
 void
 Castro::problem_post_timestep()
 {
-
     BL_PROFILE("Castro::problem_post_timestep()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     if (level != 0) return;
 
@@ -51,7 +51,6 @@ Castro::problem_post_timestep()
     // the state of the simulation; those are checked here.
 
     check_to_stop(time);
-
 }
 
 
@@ -67,6 +66,7 @@ Castro::wd_update (Real time, Real dt)
     BL_PROFILE("Castro::wd_update()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     // Ensure we are either on the coarse level, or on the finest level
     // when we are not doing subcycling. The data should be sychronized
@@ -74,26 +74,20 @@ Castro::wd_update (Real time, Real dt)
 
     BL_ASSERT(level == 0 || (!parent->subCycle() && level == parent->finestLevel()));
 
-    // Get the current stellar data
-    get_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
-
     // Update the problem center using the system bulk velocity
-    update_center(&time);
+    update_center(time);
 
     for ( int i = 0; i < 3; i++ ) {
-      com_p[i] += vel_p[i] * dt;
-      com_s[i] += vel_s[i] * dt;
+      com_P[i] += vel_P[i] * dt;
+      com_S[i] += vel_S[i] * dt;
     }
 
-    // Now send this first estimate of the COM to Fortran, and then re-calculate
-    // a more accurate result using it as a starting point.
-
-    set_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
+    // Now re-calculate a more accurate result using this as a starting point.
 
     // Save relevant current data.
 
-    Real old_mass_p = mass_p;
-    Real old_mass_s = mass_s;
+    Real old_mass_P = mass_P;
+    Real old_mass_S = mass_S;
 
     ReduceOps<ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum,
               ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum, ReduceOpSum,
@@ -254,28 +248,28 @@ Castro::wd_update (Real time, Real dt)
 
               }
 
-              Real com_p_x = dmSymmetric * rSymmetric[0] * primary_factor;
-              Real com_p_y = dmSymmetric * rSymmetric[1] * primary_factor;
-              Real com_p_z = dmSymmetric * rSymmetric[2] * primary_factor;
+              Real com_P_x = dmSymmetric * rSymmetric[0] * primary_factor;
+              Real com_P_y = dmSymmetric * rSymmetric[1] * primary_factor;
+              Real com_P_z = dmSymmetric * rSymmetric[2] * primary_factor;
 
-              Real com_s_x = dmSymmetric * rSymmetric[0] * secondary_factor;
-              Real com_s_y = dmSymmetric * rSymmetric[1] * secondary_factor;
-              Real com_s_z = dmSymmetric * rSymmetric[2] * secondary_factor;
+              Real com_S_x = dmSymmetric * rSymmetric[0] * secondary_factor;
+              Real com_S_y = dmSymmetric * rSymmetric[1] * secondary_factor;
+              Real com_S_z = dmSymmetric * rSymmetric[2] * secondary_factor;
 
-              Real vel_p_x = momSymmetric[0] * vol(i,j,k) * primary_factor;
-              Real vel_p_y = momSymmetric[1] * vol(i,j,k) * primary_factor;
-              Real vel_p_z = momSymmetric[2] * vol(i,j,k) * primary_factor;
+              Real vel_P_x = momSymmetric[0] * vol(i,j,k) * primary_factor;
+              Real vel_P_y = momSymmetric[1] * vol(i,j,k) * primary_factor;
+              Real vel_P_z = momSymmetric[2] * vol(i,j,k) * primary_factor;
 
-              Real vel_s_x = momSymmetric[0] * vol(i,j,k) * secondary_factor;
-              Real vel_s_y = momSymmetric[1] * vol(i,j,k) * secondary_factor;
-              Real vel_s_z = momSymmetric[2] * vol(i,j,k) * secondary_factor;
+              Real vel_S_x = momSymmetric[0] * vol(i,j,k) * secondary_factor;
+              Real vel_S_y = momSymmetric[1] * vol(i,j,k) * secondary_factor;
+              Real vel_S_z = momSymmetric[2] * vol(i,j,k) * secondary_factor;
 
-              Real m_p = dmSymmetric * primary_factor;
-              Real m_s = dmSymmetric * secondary_factor;
+              Real m_P = dmSymmetric * primary_factor;
+              Real m_S = dmSymmetric * secondary_factor;
 
-              return {com_p_x, com_p_y, com_p_z, com_s_x, com_s_y, com_s_z,
-                      vel_p_x, vel_p_y, vel_p_z, vel_s_x, vel_s_y, vel_s_z,
-                      m_p, m_s};
+              return {com_P_x, com_P_y, com_P_z, com_S_x, com_S_y, com_S_z,
+                      vel_P_x, vel_P_y, vel_P_z, vel_S_x, vel_S_y, vel_S_z,
+                      m_P, m_S};
           });
 
       }
@@ -289,68 +283,68 @@ Castro::wd_update (Real time, Real dt)
     bool local_flag = true;
 
     for (int i = 0; i <= 6; ++i)
-        Castro::volInBoundary(time, vol_p[i], vol_s[i], pow(10.0,i), local_flag);
+        Castro::volInBoundary(time, vol_P[i], vol_S[i], pow(10.0,i), local_flag);
 
     // Do all of the reductions.
 
     ReduceTuple hv = reduce_data.value();
 
-    com_p[0] = amrex::get<0>(hv);
-    com_p[1] = amrex::get<1>(hv);
-    com_p[2] = amrex::get<2>(hv);
-    com_s[0] = amrex::get<3>(hv);
-    com_s[1] = amrex::get<4>(hv);
-    com_s[2] = amrex::get<5>(hv);
-    vel_p[0] = amrex::get<6>(hv);
-    vel_p[1] = amrex::get<7>(hv);
-    vel_p[2] = amrex::get<8>(hv);
-    vel_s[0] = amrex::get<9>(hv);
-    vel_s[1] = amrex::get<10>(hv);
-    vel_s[2] = amrex::get<11>(hv);
-    mass_p   = amrex::get<12>(hv);
-    mass_s   = amrex::get<13>(hv);
+    com_P[0] = amrex::get<0>(hv);
+    com_P[1] = amrex::get<1>(hv);
+    com_P[2] = amrex::get<2>(hv);
+    com_S[0] = amrex::get<3>(hv);
+    com_S[1] = amrex::get<4>(hv);
+    com_S[2] = amrex::get<5>(hv);
+    vel_P[0] = amrex::get<6>(hv);
+    vel_P[1] = amrex::get<7>(hv);
+    vel_P[2] = amrex::get<8>(hv);
+    vel_S[0] = amrex::get<9>(hv);
+    vel_S[1] = amrex::get<10>(hv);
+    vel_S[2] = amrex::get<11>(hv);
+    mass_P   = amrex::get<12>(hv);
+    mass_S   = amrex::get<13>(hv);
 
     const int nfoo_sum = 28;
     Real foo_sum[nfoo_sum] = { 0.0 };
 
     for (int i = 0; i <= 6; ++i) {
-      foo_sum[i  ] = vol_p[i];
-      foo_sum[i+7] = vol_s[i];
+      foo_sum[i  ] = vol_P[i];
+      foo_sum[i+7] = vol_S[i];
     }
 
-    foo_sum[14] = mass_p;
-    foo_sum[15] = mass_s;
+    foo_sum[14] = mass_P;
+    foo_sum[15] = mass_S;
 
     for (int i = 0; i <= 2; ++i) {
-      foo_sum[i+16] = com_p[i];
-      foo_sum[i+19] = com_s[i];
-      foo_sum[i+22] = vel_p[i];
-      foo_sum[i+25] = vel_s[i];
+      foo_sum[i+16] = com_P[i];
+      foo_sum[i+19] = com_S[i];
+      foo_sum[i+22] = vel_P[i];
+      foo_sum[i+25] = vel_S[i];
     }
 
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum, nfoo_sum);
 
     for (int i = 0; i <= 6; ++i) {
-      vol_p[i] = foo_sum[i  ];
-      vol_s[i] = foo_sum[i+7];
+      vol_P[i] = foo_sum[i  ];
+      vol_S[i] = foo_sum[i+7];
     }
 
-    mass_p = foo_sum[14];
-    mass_s = foo_sum[15];
+    mass_P = foo_sum[14];
+    mass_S = foo_sum[15];
 
     for (int i = 0; i <= 2; ++i) {
-      com_p[i] = foo_sum[i+16];
-      com_s[i] = foo_sum[i+19];
-      vel_p[i] = foo_sum[i+22];
-      vel_s[i] = foo_sum[i+25];
+      com_P[i] = foo_sum[i+16];
+      com_S[i] = foo_sum[i+19];
+      vel_P[i] = foo_sum[i+22];
+      vel_S[i] = foo_sum[i+25];
     }
 
     // Compute effective WD radii
 
     for (int i = 0; i <= 6; ++i) {
 
-        rad_p[i] = std::pow(vol_p[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
-        rad_s[i] = std::pow(vol_s[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
+        rad_P[i] = std::pow(vol_P[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
+        rad_S[i] = std::pow(vol_S[i] * 3.0 / 4.0 / M_PI, 1.0/3.0);
 
     }
 
@@ -358,14 +352,14 @@ Castro::wd_update (Real time, Real dt)
 
     for ( int i = 0; i < 3; i++ ) {
 
-      if ( mass_p > 0.0 ) {
-        com_p[i] = com_p[i] / mass_p;
-        vel_p[i] = vel_p[i] / mass_p;
+      if ( mass_P > 0.0 ) {
+        com_P[i] = com_P[i] / mass_P;
+        vel_P[i] = vel_P[i] / mass_P;
       }
 
-      if ( mass_s > 0.0 ) {
-        com_s[i] = com_s[i] / mass_s;
-        vel_s[i] = vel_s[i] / mass_s;
+      if ( mass_S > 0.0 ) {
+        com_S[i] = com_S[i] / mass_S;
+        vel_S[i] = vel_S[i] / mass_S;
       }
 
     }
@@ -373,35 +367,35 @@ Castro::wd_update (Real time, Real dt)
     // For 1D we force the masses to remain constant
 
 #if (BL_SPACEDIM == 1)
-    mass_p = old_mass_p;
-    mass_s = old_mass_s;
+    mass_P = old_mass_P;
+    mass_S = old_mass_S;
 #endif
 
-    if (mass_p > 0.0 && dt > 0.0)
-      mdot_p = (mass_p - old_mass_p) / dt;
+    if (mass_P > 0.0 && dt > 0.0)
+      mdot_P = (mass_P - old_mass_P) / dt;
     else
-      mdot_p = 0.0;
+      mdot_P = 0.0;
 
-    if (mass_s > 0.0 && dt > 0.0)
-      mdot_s = (mass_s - old_mass_s) / dt;
+    if (mass_S > 0.0 && dt > 0.0)
+      mdot_S = (mass_S - old_mass_S) / dt;
     else
-      mdot_s = 0.0;
+      mdot_S = 0.0;
 
     // Free-fall timescale ~ 1 / sqrt(G * rho_avg}
 
-    if (mass_p > 0.0 && vol_p[2] > 0.0) {
-      rho_avg_p = mass_p / vol_p[2];
-      t_ff_p = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_p));
+    if (mass_P > 0.0 && vol_P[2] > 0.0) {
+      rho_avg_P = mass_P / vol_P[2];
+      t_ff_P = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_P));
     }
 
-    if (mass_s > 0.0 && vol_s[2] > 0.0) {
-      rho_avg_s = mass_s / vol_s[2];
-      t_ff_s = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_s));
+    if (mass_S > 0.0 && vol_S[2] > 0.0) {
+      rho_avg_S = mass_S / vol_S[2];
+      t_ff_S = sqrt(3.0 * M_PI / (32.0 * C::Gconst * rho_avg_S));
     }
 
     // Send this updated information back to the Fortran module
 
-    set_star_data(com_p, com_s, vel_p, vel_s, &mass_p, &mass_s, &t_ff_p, &t_ff_s);
+    set_star_data();
 
 }
 
@@ -413,16 +407,17 @@ Castro::wd_update (Real time, Real dt)
 // We also impose a distance requirement so that we only look
 // at zones that are within twice the original radius of the white dwarf.
 
-void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff, bool local)
+void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff, bool local)
 {
     BL_PROFILE("Castro::volInBoundary()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     BL_ASSERT(level == 0);
 
-    vol_p = 0.0;
-    vol_s = 0.0;
+    vol_P = 0.0;
+    vol_S = 0.0;
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
@@ -499,13 +494,13 @@ void Castro::volInBoundary (Real time, Real& vol_p, Real& vol_s, Real rho_cutoff
 
       ReduceTuple hv = reduce_data.value();
 
-      vol_p += amrex::get<0>(hv);
-      vol_s += amrex::get<1>(hv);
+      vol_P += amrex::get<0>(hv);
+      vol_S += amrex::get<1>(hv);
 
     }
 
     if (!local)
-      amrex::ParallelDescriptor::ReduceRealSum({vol_p, vol_s});
+      amrex::ParallelDescriptor::ReduceRealSum({vol_P, vol_S});
 
     ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
@@ -527,14 +522,9 @@ Castro::gwstrain (Real time,
     BL_PROFILE("Castro::gwstrain()");
 
     using namespace wdmerger;
+    using namespace problem;
 
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
-    GpuArray<Real, 3> omega;
-    get_omega(omega.begin());
 
     auto mfrho   = derive("density",time,0);
     auto mfxmom  = derive("xmom",time,0);
@@ -640,7 +630,7 @@ Castro::gwstrain (Real time,
                 // Account for rotation, if there is any. These will leave
                 // r and vel and changed, if not.
 
-                GpuArray<Real, 3> pos = inertial_rotation(r, omega, time);
+                GpuArray<Real, 3> pos = inertial_rotation(r, time);
 
                 // For constructing the velocity in the inertial frame, we need to
                 // account for the fact that we have rotated the system already, so that 
@@ -656,7 +646,7 @@ Castro::gwstrain (Real time,
                 vel[1] = ymom(i,j,k) * rhoInv;
                 vel[2] = zmom(i,j,k) * rhoInv;
 
-                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel, omega);
+                GpuArray<Real, 3> inertial_vel = inertial_velocity(pos, vel);
 
                 GpuArray<Real, 3> g;
                 g[0] = gravx(i,j,k);
@@ -665,7 +655,7 @@ Castro::gwstrain (Real time,
 
                 // We need to rotate the gravitational field to be consistent with the rotated position.
 
-                GpuArray<Real, 3> inertial_g = inertial_rotation(g, omega, time);
+                GpuArray<Real, 3> inertial_g = inertial_rotation(g, time);
 
                 // Absorb the factor of 2 outside the integral into the zone mass, for efficiency.
 
@@ -747,11 +737,120 @@ Castro::gwstrain (Real time,
     // Now that we have the second time derivative of the quadrupole
     // tensor, we can calculate the transverse-trace gauge strain tensor.
 
-    gw_strain_tensor(&h_plus_1, &h_cross_1,
-		     &h_plus_2, &h_cross_2,
-		     &h_plus_3, &h_cross_3,
-		     Qtt.dataPtr(), &time);
+    // Standard Kronecker delta.
 
+    Real delta[3][3] = {0.0};
+
+    for (int i = 0; i < 3; ++i) {
+        delta[i][i] = 1.0;
+    }
+
+    // Unit vector for the wave is simply the distance
+    // vector to the observer normalized by the total distance.
+    // We are going to repeat this process by looking along
+    // all three coordinate axes.
+
+    for (int dir = 0; dir < 3; ++dir) {
+
+        Real dist[3] = {0.0};
+        dist[dir] = problem::gw_dist;
+
+        Real r = std::sqrt(dist[0] * dist[0] + dist[1] * dist[1] + dist[2] * dist[2]);
+
+        Real n[3] = {dist[0] / r, dist[1] / r, dist[2] / r};
+
+        // Projection operator onto the unit vector n.
+
+        Real proj[3][3][3][3] = {0.0};
+
+        for (int l = 0; l < 3; ++l) {
+            for (int k = 0; k < 3; ++k) {
+                for (int j = 0; j < 3; ++j) {
+                    for (int i = 0; i < 3; ++i) {
+                        proj[l][k][j][i] = (delta[k][i] - n[i] * n[k]) * (delta[l][j] - n[j] * n[l]) -
+                                            0.5_rt * (delta[j][i] - n[i] * n[j]) * (delta[l][k] - n[k] * n[l]);
+                    }
+                }
+            }
+        }
+
+        // Now we can calculate the strain tensor.
+
+        Real h[3][3] = {0.0};
+
+        for (int l = 0; l < 3; ++l) {
+            for (int k = 0; k < 3; ++k) {
+                for (int j = 0; j < 3; ++j) {
+                    for (int i = 0; i < 3; ++i) {
+                        h[j][i] += proj[l][k][j][i] * Qtt.array()(k, l, 0);
+                    }
+                }
+            }
+        }
+        // Finally multiply by the coefficients.
+
+        r *= C::parsec * 1.e3_rt; // Convert from kpc to cm
+
+        for (int j = 0; j < 3; ++j) {
+            for (int i = 0; i < 3; ++i) {
+                h[j][i] *= 2.0_rt * C::Gconst / (std::pow(C::c_light, 4) * r);
+            }
+        }
+
+        if (AMREX_SPACEDIM == 3) {
+
+            // If rot_axis == 3, then h_+ = h_{11} = -h_{22} and h_x = h_{12} = h_{21}.
+            // Analogous statements hold along the other axes.
+
+            // We are adding here so that this calculation makes sense on multiple levels.
+
+            if (dir == axis_1 - 1) {
+
+                h_plus_1  += h[axis_2 - 1][axis_2 - 1];
+                h_cross_1 += h[axis_3 - 1][axis_2 - 1];
+
+            }
+            else if (dir == axis_2 - 1) {
+
+                h_plus_2  += h[axis_3 - 1][axis_3 - 1];
+                h_cross_2 += h[axis_1 - 1][axis_3 - 1];
+
+            }
+            else if (dir == axis_3 - 1) {
+
+                h_plus_3  += h[axis_1 - 1][axis_1 - 1];
+                h_cross_3 += h[axis_2 - 1][axis_1 - 1];
+
+            }
+
+        }
+        else {
+
+            // In 2D axisymmetric coordinates, enforce that axis_1 is the x-axis,
+            // axis_2 is the y-axis, and axis_3 is the z-axis.
+
+            if (dir == 0) {
+
+                h_plus_1  += h[1][1];
+                h_cross_1 += h[2][1];
+
+            }
+            else if (dir == 1) {
+
+                h_plus_2  += h[2][2];
+                h_cross_2 += h[0][2];
+
+            }
+            else if (dir == 2) {
+
+                h_plus_3  += h[0][0];
+                h_cross_3 += h[1][0];
+
+            }
+
+        }
+
+    }
 }
 
 
@@ -788,7 +887,8 @@ Real Castro::norm(const Real a[]) {
 void Castro::problem_post_init() {
 
   using namespace wdmerger;
-    
+  using namespace problem;
+
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -797,25 +897,6 @@ void Castro::problem_post_init() {
   pp.query("use_energy_stopping_criterion", use_energy_stopping_criterion);
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
-
-  // Get the problem number fom Fortran.
-
-  get_problem_number(&problem);
-
-  // Get the relaxation status.
-
-  get_relaxation_status(&relaxation_is_done);
-
-  // Update the rotational period; some problems change this from what's in the inputs parameters.
-
-  get_period(&rotational_period);
-
-  // Initialize the energy storage array.
-
-  for (int i = 0; i < num_previous_ener_timesteps; ++i)
-    total_ener_array[i] = -1.e200;
-
-  set_total_ener_array(total_ener_array);
 
   // Execute the post timestep diagnostics here,
   // so that the results at t = 0 and later are smooth.
@@ -831,7 +912,8 @@ void Castro::problem_post_init() {
 void Castro::problem_post_restart() {
 
   using namespace wdmerger;
-    
+  using namespace problem;
+
   // Read in inputs.
 
   ParmParse pp("castro");
@@ -841,25 +923,7 @@ void Castro::problem_post_restart() {
   pp.query("ts_te_stopping_criterion", ts_te_stopping_criterion);
   pp.query("T_stopping_criterion", T_stopping_criterion);
 
-  // Get the problem number from Fortran.
-
-  get_problem_number(&problem);
-
-  // Get the relaxation status.
-
-  get_relaxation_status(&relaxation_is_done);
-
-  // Get the rotational period.
-
-  get_period(&rotational_period);
-
-  // Get the energy data from Fortran.
-
-  get_total_ener_array(total_ener_array);
-
-  // Get the extrema.
-
-  get_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
+  // Reset current values of extrema.
 
   T_curr_max = T_global_max;
   rho_curr_max = rho_global_max;
@@ -924,12 +988,7 @@ void Castro::writeGitHashes(std::ostream& log) {
 void Castro::check_to_stop(Real time, bool dump) {
 
     using namespace wdmerger;
-    
-    int jobDoneStatus;
-
-    // Get the current job done status.
-
-    get_job_status(&jobDoneStatus);
+    using namespace problem;
 
     if (use_stopping_criterion) {
 
@@ -981,10 +1040,6 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             total_ener_array[0] = E_tot;
 
-            // Send the data to Fortran.
-
-            set_total_ener_array(total_ener_array);
-
             bool stop_flag = false;
 
             int i = 0;
@@ -1007,9 +1062,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
             if (stop_flag) {
 
-                jobDoneStatus = 1;
-
-                set_job_status(&jobDoneStatus);
+                problem::jobIsDone = 1;
 
                 amrex::Print() << std::endl 
                                << "Ending simulation because total energy is positive and decreasing." 
@@ -1022,9 +1075,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (ts_te_curr_max >= ts_te_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the threshold for unstable burning."
@@ -1034,9 +1085,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
         if (T_curr_max >= T_stopping_criterion) {
 
-            jobDoneStatus = 1;
-
-            set_job_status(&jobDoneStatus);
+            problem::jobIsDone = 1;
 
             amrex::Print() << std::endl
                            << "Ending simulation because we are above the temperature threshold."
@@ -1049,9 +1098,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 
     // Is the job done? If so, signal this to AMReX.
 
-    get_job_status(&jobDoneStatus);
-
-    if (jobDoneStatus == 1) {
+    if (problem::jobIsDone) {
 
       signalStopJob = true;
 
@@ -1079,6 +1126,7 @@ void Castro::check_to_stop(Real time, bool dump) {
 void Castro::update_extrema(Real time) {
 
     using namespace wdmerger;
+    using namespace problem;
 
     // Compute extrema
 
@@ -1136,10 +1184,6 @@ void Castro::update_extrema(Real time) {
     rho_global_max   = std::max(rho_global_max, rho_curr_max);
     ts_te_global_max = std::max(ts_te_global_max, ts_te_curr_max);
 
-    // Send extrema data to Fortran
-
-    set_extrema(&T_global_max, &rho_global_max, &ts_te_global_max);
-
 }
 
 
@@ -1148,11 +1192,12 @@ void
 Castro::update_relaxation(Real time, Real dt) {
 
     using namespace wdmerger;
-    
+    using namespace problem;
+
     // Check to make sure whether we should be doing the relaxation here.
     // Update the relaxation conditions if we are not stopping.
 
-    if (problem != 1 || relaxation_is_done || mass_p <= 0.0 || mass_s <= 0.0 || dt <= 0.0) return;
+    if (problem::problem != 1 || relaxation_is_done || mass_P <= 0.0 || mass_S <= 0.0 || dt <= 0.0) return;
 
     // Construct the update to the rotation frequency. We calculate
     // the gravitational force at the end of the timestep, set the
@@ -1204,8 +1249,8 @@ Castro::update_relaxation(Real time, Real dt) {
 
     // Construct omega from this.
 
-    Real force_p[3] = { 0.0 };
-    Real force_s[3] = { 0.0 };
+    Real force_P[3] = { 0.0 };
+    Real force_S[3] = { 0.0 };
 
     for (int lev = coarse_level; lev <= finest_level; ++lev) {
 
@@ -1308,29 +1353,29 @@ Castro::update_relaxation(Real time, Real dt) {
 
         ReduceTuple hv = reduce_data.value();
 
-        force_p[0] += amrex::get<0>(hv);
-        force_p[1] += amrex::get<1>(hv);
-        force_p[2] += amrex::get<2>(hv);
+        force_P[0] += amrex::get<0>(hv);
+        force_P[1] += amrex::get<1>(hv);
+        force_P[2] += amrex::get<2>(hv);
 
-        force_s[0] += amrex::get<3>(hv);
-        force_s[1] += amrex::get<4>(hv);
-        force_s[2] += amrex::get<5>(hv);
+        force_S[0] += amrex::get<3>(hv);
+        force_S[1] += amrex::get<4>(hv);
+        force_S[2] += amrex::get<5>(hv);
 
     }
 
     // Do the reduction over processors.
 
-    amrex::ParallelDescriptor::ReduceRealSum({force_p[0], force_p[1], force_p[2], force_s[0], force_s[1], force_s[2]});
+    amrex::ParallelDescriptor::ReduceRealSum({force_P[0], force_P[1], force_P[2], force_S[0], force_S[1], force_S[2]});
 
     // Divide by the mass of the stars to obtain the acceleration, and then get the new rotation frequency.
 
-    Real fp = std::sqrt(std::pow(force_p[0], 2) + std::pow(force_p[1], 2) + std::pow(force_p[2], 2));
-    Real fs = std::sqrt(std::pow(force_s[0], 2) + std::pow(force_s[1], 2) + std::pow(force_s[2], 2));
+    Real fp = std::sqrt(std::pow(force_P[0], 2) + std::pow(force_P[1], 2) + std::pow(force_P[2], 2));
+    Real fs = std::sqrt(std::pow(force_S[0], 2) + std::pow(force_S[1], 2) + std::pow(force_S[2], 2));
 
-    Real ap = std::sqrt(std::pow(com_p[0], 2) + std::pow(com_p[1], 2) + std::pow(com_p[2], 2));
-    Real as = std::sqrt(std::pow(com_s[0], 2) + std::pow(com_s[1], 2) + std::pow(com_s[2], 2));
+    Real ap = std::sqrt(std::pow(com_P[0], 2) + std::pow(com_P[1], 2) + std::pow(com_P[2], 2));
+    Real as = std::sqrt(std::pow(com_S[0], 2) + std::pow(com_S[1], 2) + std::pow(com_S[2], 2));
 
-    Real omega = 0.5 * ( std::sqrt((fp / mass_p) / ap) + std::sqrt((fs / mass_s) / as) );
+    Real omega = 0.5 * ( std::sqrt((fp / mass_P) / ap) + std::sqrt((fs / mass_S) / as) );
 
     Real period = 2.0 * M_PI / omega;
 
@@ -1341,7 +1386,6 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     rotational_period = period;
-    set_period(&period);
 
     // Check to see whether the relaxation should be turned off.
     // Note that at present the following check is only done on the
@@ -1354,7 +1398,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // First, calculate the location of the L1 Lagrange point.
 
     GpuArray<Real, 3> L1, L2, L3;
-    get_lagrange_points(mass_p, mass_s, com_p, com_s, L1, L2, L3);
+    get_lagrange_points(mass_P, mass_S, com_P, com_S, L1, L2, L3);
 
     const auto dx = geom.CellSizeArray();
     GeometryData geomdata = geom.data();
@@ -1430,9 +1474,6 @@ Castro::update_relaxation(Real time, Real dt) {
 
         MultiFab& S_new = get_new_data(State_Type);
 
-        Real relaxation_density_cutoff;
-        get_relaxation_density_cutoff(&relaxation_density_cutoff);
-
         ReduceOps<ReduceOpSum> reduce_op;
         ReduceData<Real> reduce_data(reduce_op);
         using ReduceTuple = typename decltype(reduce_data)::Type;
@@ -1484,10 +1525,7 @@ Castro::update_relaxation(Real time, Real dt) {
     // We can also turn off the relaxation if we've passed
     // a certain number of dynamical timescales.
 
-    Real relaxation_cutoff_time;
-    get_relaxation_cutoff_time(&relaxation_cutoff_time);
-
-    if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_p, t_ff_s)) {
+    if (relaxation_cutoff_time > 0.0 && time > relaxation_cutoff_time * std::max(t_ff_P, t_ff_S)) {
         relaxation_is_done = 1;
         amrex::Print() << "Disabling relaxation at time " << time
                        << "s because the maximum number of dynamical timescales has passed."
@@ -1495,9 +1533,7 @@ Castro::update_relaxation(Real time, Real dt) {
     }
 
     if (relaxation_is_done > 0) {
-	set_relaxation_status(&relaxation_is_done);
-        const Real factor = -1.0;
-	set_relaxation_damping_factor(factor);
+	relaxation_damping_factor = -1.0;
     }
 
 }

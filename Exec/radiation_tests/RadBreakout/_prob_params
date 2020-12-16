@@ -1,0 +1,25 @@
+rwind0              real        0.7e14_rt      y
+rwind1              real        1.e14_rt       y
+rhowind1            real        1.e-14_rt      y
+Twind1              real        1.1e3_rt       y
+rbasefac            real        0.99e0_rt      y
+
+xmin                real        0.0e0_rt       n
+xmax                real        0.0e0_rt       n
+ymin                real        0.0e0_rt       n
+ymax                real        0.0e0_rt       n
+zmin                real        0.0e0_rt       n
+zmax                real        0.0e0_rt       n
+
+filter_rhomax       real        -1.e20_rt      y
+filter_timemax      real        -1.e20_rt      y
+
+npts_model          integer     1000           n
+npts_max            integer     1000           n
+model_r             real        0.0e0_rt       n            1000
+model_rho           real        0.0e0_rt       n            1000
+model_v             real        0.0e0_rt       n            1000
+model_T             real        0.0e0_rt       n            1000
+model_Ye            real        0.0e0_rt       n            1000
+model_Abar          real        0.0e0_rt       n            1000
+model_file          character   "model.input"  y

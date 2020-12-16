@@ -245,9 +245,6 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
@@ -309,7 +306,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
             GpuArray<Real, 3> loc;
             for (int n = 0; n < 3; ++n) {
                 position(i, j, k, geomdata, loc);
-                loc[n] -= center[n];
+                loc[n] -= problem::center[n];
             }
 
             GpuArray<Real, 3> hybrid_src;
@@ -404,9 +401,6 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
 
 #ifdef HYBRID_MOMENTUM
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 #endif
 
     AMREX_ALWAYS_ASSERT(castro::grav_source_type >= 1 && castro::grav_source_type <= 4);
@@ -504,7 +498,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
                 GpuArray<Real, 3> loc;
                 position(i, j, k, geomdata, loc);
                 for (int n = 0; n < 3; ++n) {
-                    loc[n] -= center[n];
+                    loc[n] -= problem::center[n];
                 }
 
                 GpuArray<Real, 3> hybrid_src;

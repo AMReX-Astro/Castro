@@ -7,11 +7,15 @@ mass_P                          real                  1.0e0_rt                 y
 mass_S                          real                  1.0e0_rt                 y
 central_density_P               real                 -1.0e0_rt                 y
 central_density_S               real                 -1.0e0_rt                 y
+radius_P                        real                 -1.0e0_rt                 n
+radius_S                        real                 -1.0e0_rt                 n
 stellar_temp                    real                  1.0e7_rt                 y
-primary_envelope_mass           real                  0.0e0_rt                 n
-secondary_envelope_mass         real                  0.0e0_rt                 n
-primary_envelope_comp           real                  0.0e0_rt                 n                      (nspec, network)
-secondary_envelope_comp         real                  0.0e0_rt                 n                      (nspec, network)
+core_comp_P                     real                  0.0e0_rt                 n                      (nspec, network)
+core_comp_S                     real                  0.0e0_rt                 n                      (nspec, network)
+envelope_mass_P                 real                  0.0e0_rt                 n
+envelope_mass_S                 real                  0.0e0_rt                 n
+envelope_comp_P                 real                  0.0e0_rt                 n                      (nspec, network)
+envelope_comp_S                 real                  0.0e0_rt                 n                      (nspec, network)
 
 
 
@@ -57,7 +61,7 @@ init                            integer               1                        n
 
 # Are we doing a single star simulation?
 
-single_star                     logical               .false.                  n
+single_star                     integer               0                        n
 
 
 
@@ -193,10 +197,8 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 max_stellar_tagging_level       integer               20                       y
 max_temperature_tagging_level   integer               20                       y
-max_center_tagging_level        integer               20                       y
 stellar_density_threshold       real                  1.0e0_rt                 y
 temperature_tagging_threshold   real                  5.0e8_rt                 y
-center_tagging_radius           real                  0.0e0_rt                 y
 max_tagging_radius              real                  0.75e0_rt                y
 roche_tagging_factor            real                  2.0e0_rt                 y
 
@@ -256,8 +258,7 @@ ts_te_global_max                real                  0.0e0_rt                 n
 
 # Stores whether we assert that the simulation has completed.
 
-jobIsDone                       logical               .false.                  n
-signalJobIsNotDone              logical               .false.                  n
+jobIsDone                       integer               0                        n
 
 
 

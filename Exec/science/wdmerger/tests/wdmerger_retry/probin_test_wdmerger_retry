@@ -32,10 +32,8 @@
 
   max_stellar_tagging_level = 0
   max_temperature_tagging_level = 0
-  max_center_tagging_level = 20
   stellar_density_threshold = 1.0d0
   temperature_tagging_threshold = 5.0d8
-  center_tagging_radius = 2.0d8
   max_tagging_radius = 0.75d0
   roche_tagging_factor = 2.0d0
 

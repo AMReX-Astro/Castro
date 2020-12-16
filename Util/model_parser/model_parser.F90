@@ -50,7 +50,7 @@ module model_parser_module
 
   public :: read_model_file, close_model_file, interpolate_sub, locate_sub
 
-#ifdef AMREX_USE_CUDA
+#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
   attributes(managed) :: model_state, model_r, npts_model
 #endif
 

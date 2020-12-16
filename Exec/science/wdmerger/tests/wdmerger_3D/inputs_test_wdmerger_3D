@@ -45,6 +45,12 @@ amr.n_cell = 96 96 96                              # Number of cells on the coar
 amr.max_level = 1                                  # Maximum level number allowed
 amr.ref_ratio = 2
 
+amr.refinement_indicators = temperature
+
+amr.refine.temperature.max_level = 4
+amr.refine.temperature.value_greater = 2.e8
+amr.refine.temperature.field_name = Temp
+
 amr.max_grid_size = 32                             # Maximum grid size at each level
 amr.blocking_factor = 16                           # Grid sizes must be a multiple of this
 

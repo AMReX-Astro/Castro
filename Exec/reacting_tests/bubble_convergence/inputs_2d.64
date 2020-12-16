@@ -17,9 +17,6 @@ amr.n_cell           = 64      64
 castro.lo_bc       =  0   3
 castro.hi_bc       =  0   3
 
-castro.yl_ext_bc_type = "interp"
-castro.yr_ext_bc_type = "interp"
-
 # WHICH PHYSICS
 castro.do_hydro = 1
 castro.do_react = 1

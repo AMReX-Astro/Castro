@@ -1,4 +1,4 @@
-# name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+# name   type   default   need in Fortran?   ifdef
 #
 # note, name can have two values, as (a, b).  a will be the name used
 # in the inputs file, b is the variable name in the C++ class.
@@ -198,22 +198,28 @@ source_term_predictor        int           0
 first_order_hydro            int           0                  y
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yr_ext_bc_type               int          -1                  y
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zl_ext_bc_type               int          -1                  y
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zr_ext_bc_type               int          -1                  y
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
 hse_zero_vels                int           0                  y
@@ -328,6 +334,10 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
+# Skip retries for small (or negative) density if the zone's density prior
+# to the update was below this threshold.
+retry_small_density_cutoff   Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
@@ -424,7 +434,7 @@ grav_source_type             int           4                  y
 do_rotation                  int          -1                  y
 
 # the rotation period for the corotating frame
-rotational_period            Real         -1.e200             y        ROTATION        rot_period
+rotational_period            Real         -1.e200             y        ROTATION
 
 # permits the centrifugal terms in the rotation to be turned on and off
 rotation_include_centrifugal int           1                  y        ROTATION

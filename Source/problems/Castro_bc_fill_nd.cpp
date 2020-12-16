@@ -3,8 +3,8 @@
 #include <Castro.H>
 #include <Castro_bc_fill_nd.H>
 #include <Castro_bc_fill_nd_F.H>
-#include <Castro_bc_ext_fill_nd.H>
 #include <Castro_generic_fill.H>
+#include <problem_bc_fill.H>
 
 using namespace amrex;
 
@@ -14,58 +14,45 @@ void ca_statefill(Box const& bx, FArrayBox& data,
                   const Vector<BCRec>& bcr, const int bcomp,
                   const int scomp)
 {
-    // Make a copy of the raw BCRec data in the format
-    // our BC routines can handle (a contiguous array
-    // of integers).
+    // Here dcomp is the component in the destination array that we
+    // are filling and bcr is a vector of length ncomp which are the
+    // BC values corresponding to components dcomp to dcomp + ncomp -
+    // 1
 
-    Vector<int> bcrs(2 * AMREX_SPACEDIM * numcomp);
+    // First, fill all the BC data using the default routines.
+    // We replace inflow with outflow in the generic fill to ensure that
+    // valid data is always present.
 
-    for (int n = 0; n < numcomp; ++n) {
-        for (int k = 0; k < 2 * AMREX_SPACEDIM; ++k) {
-            bcrs[2 * AMREX_SPACEDIM * n + k] = bcr[n].vect()[k];
+    Vector<BCRec> bcr_noinflow{bcr};
+    for (int i = 0; i < bcr_noinflow.size(); ++i) {
+        for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
+            if (bcr_noinflow[i].lo(dir) == EXT_DIR) {
+                bcr_noinflow[i].setLo(dir, FOEXTRAP);
+            }
+            if (bcr_noinflow[i].hi(dir) == EXT_DIR) {
+                bcr_noinflow[i].setHi(dir, FOEXTRAP);
+            }
         }
     }
 
-#ifdef AMREX_USE_CUDA
-    int* bc_f = prepare_bc(bcrs.data(), numcomp);
-#else
-    const int* bc_f = bcrs.data();
-#endif
+    GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(CastroGenericFill{});
+    gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr_noinflow, bcomp, scomp);
 
-    if (Gpu::inLaunchRegion()) {
-        GpuBndryFuncFab<CastroGenericFill> gpu_bndry_func(castro_generic_fill_func);
-        gpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
-    }
-    else {
-        CpuBndryFuncFab cpu_bndry_func(nullptr);
-        cpu_bndry_func(bx, data, dcomp, numcomp, geom, time, bcr, bcomp, scomp);
+    // At this point, if we filling anything other than the full state (numcomp == NUM_STATE),
+    // we assume that we are doing a derive or some other routine which is not actually setting
+    // boundary conditions on the state data. So we immediately return. This means that the derive
+    // data may not be exactly what the user wants at the physical boundary, but the impact of that
+    // is usually negligible.
+
+    if (numcomp != NUM_STATE) {
+        return;
     }
 
-    // This routine either comes in with one component or all NUM_STATE.
+    // Fill ambient BCs.
 
-    if (numcomp == 1) {
+    ambient_fill(bx, data.array(dcomp), geom, bcr);
 
-#pragma gpu box(bx)
-        denfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_N_ANYD(data, dcomp),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
-    }
-    else {
-
-        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
-
-#pragma gpu box(bx)
-        hypfill(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                BL_TO_FORTRAN_ANYD(data),
-                AMREX_INT_ANYD(geom.Domain().loVect()), AMREX_INT_ANYD(geom.Domain().hiVect()),
-                AMREX_REAL_ANYD(geom.CellSize()), AMREX_REAL_ANYD(geom.ProbLo()), time, bc_f);
-
-    }
-
-    // we just did the standard BC fills (reflect, outflow, ...)  now
-    // we consider the external ones (HSE).  Note, if we are at a
+    // Now we consider external BCs (HSE).  Note, if we are at a
     // corner where two (or three) faces want to do HSE, we may run
     // into a situation that the data is not valid in the corner where
     // we start the integration.  We'll abort, for now, if we run into
@@ -80,7 +67,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].lo(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].lo(1) == EXT_DIR) ||
         (bcr[URHO].hi(0) == EXT_DIR && bcr[URHO].hi(1) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
@@ -109,34 +96,35 @@ void ca_statefill(Box const& bx, FArrayBox& data,
         (bcr[URHO].hi(0) == EXT_DIR &&           // xr, yr, zr corner
          (bcr[URHO].hi(1) == EXT_DIR || bcr[URHO].hi(2) == EXT_DIR)) ||
         (bcr[URHO].hi(1) == EXT_DIR && bcr[URHO].hi(2) == EXT_DIR)) {
-      amrex::Error("Error: external boundaries meeting at a corner not supported");
+        amrex::Error("Error: external boundaries meeting at a corner not supported");
     }
 #endif
 
-    if (numcomp == 1) {
-
-        ca_ext_denfill(bx, data, dcomp, numcomp, geom, time, bc_f);
-
-    }
-    else {
-
-        AMREX_ALWAYS_ASSERT(numcomp == NUM_STATE);
-
-        ca_ext_fill(bx, data, dcomp, numcomp, geom, time, bc_f);
-
-    }
-
-#ifdef AMREX_USE_CUDA
-    clean_bc(bc_f);
+#ifdef GRAVITY
+    hse_fill(bx, data.array(), geom, bcr, time);
 #endif
 
+    // Finally, override with problem-specific boundary conditions.
+
+    const auto state = data.array();
+
+    // Copy BCs to an Array1D so they can be passed by value to the ParallelFor.
+
+    Array1D<BCRec, 0, NUM_STATE - 1> bcs;
+    for (int n = 0; n < numcomp; ++n) {
+        bcs(n) = bcr[n];
+    }
+
+    const auto geomdata = geom.data();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        problem_bc_fill(i, j, k, state, time, bcs, geomdata);
+    });
   }
 
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #ifdef MHD
   void ca_face_fillx(Real* var, const int* var_lo, const int* var_hi,
@@ -206,6 +194,3 @@ extern "C"
   }
 #endif  
 
-#ifdef __cplusplus
-}
-#endif

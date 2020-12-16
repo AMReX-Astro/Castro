@@ -8,6 +8,8 @@
 #include <RadSolve.H>
 #include <Radiation.H>  // for access to static physical constants only
 
+#include <rad_util.H>
+
 #include <iostream>
 
 #ifdef _OPENMP
@@ -143,8 +145,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
     BL_PROFILE("RadSolve::cellCenteredApplyMetrics");
     BL_ASSERT(cc.nGrow() == 0);
 
-    const Geometry& geom = parent->Geom(level);
-    const Real* dx       = geom.CellSize();
+    auto geomdata = parent->Geom(level).data();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -153,10 +154,16 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
     {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        multrs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()), 
-               BL_TO_FORTRAN_ANYD(cc[mfi]),
-               dx);
+        auto cc_arr = cc[mfi].array();
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            Real r, s;
+            cell_center_metric(i, j, k, geomdata, r, s);
+
+            cc_arr(i,j,k) *= r * s;
+        });
     }
 }
 
@@ -200,8 +207,8 @@ void RadSolve::levelACoeffs(int level,
   BL_PROFILE("RadSolve::levelACoeffs");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
-  const Geometry& geom = parent->Geom(level);
-  const Real* dx       = geom.CellSize();
+
+  auto geomdata = parent->Geom(level).data();
 
   // Allocate space for ABecLapacian acoeffs, fill with values
 
@@ -216,14 +223,27 @@ void RadSolve::levelACoeffs(int level,
   for (MFIter mfi(fkp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box &bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      lacoef(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-             BL_TO_FORTRAN_ANYD(acoefs[mfi]),
-             BL_TO_FORTRAN_ANYD(fkp[mfi]),
-             BL_TO_FORTRAN_ANYD(eta[mfi]),
-             BL_TO_FORTRAN_ANYD(etainv[mfi]),
-             AMREX_REAL_ANYD(dx),
-             c, delta_t, theta);
+      auto a = acoefs[mfi].array();
+      auto fkp_arr = fkp[mfi].array();
+      auto eta_arr = eta[mfi].array();
+      auto etainv_arr = etainv[mfi].array();
+
+      const Real dtm = 1.e0_rt / delta_t;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          if (AMREX_SPACEDIM == 1) {
+              s = 1.e0_rt;
+          }
+
+          a(i,j,k) = r * s *
+                     (fkp_arr(i,j,k) * etainv_arr(i,j,k) * c + dtm) /
+                     (1.e0_rt - (1.e0_rt - theta) * eta_arr(i,j,k));
+      });
   }
 
   if (hd) {
@@ -300,8 +320,8 @@ void RadSolve::levelBCoeffs(int level,
   BL_PROFILE("RadSolve::levelBCoeffs");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  const Geometry& geom = parent->Geom(level);
-  const Real* dx       = geom.CellSize();
+  auto geomdata = parent->Geom(level).data();
+  auto dx = parent->Geom(level).CellSizeArray();
 
   for (int idim = 0; idim < BL_SPACEDIM; ++idim) {
 
@@ -313,13 +333,53 @@ void RadSolve::levelBCoeffs(int level,
     for (MFIter mfi(lambda[idim], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-        bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-              BL_TO_FORTRAN_ANYD(bcoefs[mfi]), 
-              BL_TO_FORTRAN_N_ANYD(lambda[idim][mfi], lamcomp),
-              idim, 
-              BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
-              c, AMREX_REAL_ANYD(dx));
+        auto bcoefs_arr = bcoefs[mfi].array();
+        auto lambda_arr = lambda[idim][mfi].array(lamcomp);
+        auto kappa_r_arr = kappa_r[mfi].array(kcomp);
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        {
+            if (idim == 0) {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i-1,j,k), kappa_r_arr(i,j,k), dx[0], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+            else if (idim == 1) {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i,j-1,k), kappa_r_arr(i,j,k), dx[1], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+            else {
+
+                Real r, s;
+                edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+                if (AMREX_SPACEDIM == 1) {
+                    s = 1.e0_rt;
+                }
+
+                Real kap = kavg(kappa_r_arr(i,j,k-1), kappa_r_arr(i,j,k), dx[2], -1);
+                bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+            }
+        });
     }
 
     if (hd) {
@@ -729,7 +789,8 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   BL_PROFILE("RadSolve::computeBCoeffs (MGFLD)");
   BL_ASSERT(kappa_r.nGrow() == 1);
 
-  const Real* dx = geom.CellSize();
+  auto geomdata = geom.data();
+  auto dx = geom.CellSizeArray();
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -737,13 +798,53 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
   for (MFIter mfi(lambda, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
       const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-      bclim(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-            BL_TO_FORTRAN_ANYD(bcoefs[mfi]),
-            BL_TO_FORTRAN_N_ANYD(lambda[mfi], lamcomp),
-            idim, 
-            BL_TO_FORTRAN_N_ANYD(kappa_r[mfi], kcomp), 
-            c, AMREX_REAL_ANYD(dx));
+      auto bcoefs_arr = bcoefs[mfi].array();
+      auto lambda_arr = lambda[mfi].array(lamcomp);
+      auto kappa_r_arr = kappa_r[mfi].array(kcomp);
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          if (idim == 0) {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i-1,j,k), kappa_r_arr(i,j,k), dx[0], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+          else if (idim == 1) {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i,j-1,k), kappa_r_arr(i,j,k), dx[1], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+          else {
+
+              Real r, s;
+              edge_center_metric(i, j, k, idim, geomdata, r, s);
+
+              if (AMREX_SPACEDIM == 1) {
+                  s = 1.e0_rt;
+              }
+
+              Real kap = kavg(kappa_r_arr(i,j,k-1), kappa_r_arr(i,j,k), dx[2], -1);
+              bcoefs_arr(i,j,k) = r * s * c * lambda_arr(i,j,k) / kap;
+
+          }
+      });
   }
 }
 
@@ -802,6 +903,9 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
   Real time = castro->get_state_data(Rad_Type).curTime();
   const Real* dx = parent->Geom(level).CellSize();
+  auto geomdata = parent->Geom(level).data();
+
+  const Real dt1 = 1.0_rt / delta_t;
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -810,18 +914,30 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
 
       const Box& bx = ri.tilebox();
 
-#pragma gpu box(bx)
-      ca_compute_rhs(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                     BL_TO_FORTRAN_ANYD(rhs[ri]),
-                     BL_TO_FORTRAN_ANYD(jg[ri]),
-                     BL_TO_FORTRAN_ANYD(mugT[ri]),
-                     BL_TO_FORTRAN_ANYD(coupT[ri]),
-                     BL_TO_FORTRAN_ANYD(etaT[ri]),
-                     BL_TO_FORTRAN_ANYD(Er_step[ri]),
-                     BL_TO_FORTRAN_ANYD(rhoe_step[ri]),
-                     BL_TO_FORTRAN_ANYD(Er_star[ri]),
-                     BL_TO_FORTRAN_ANYD(rhoe_star[ri]),
-                     AMREX_REAL_ANYD(dx), delta_t, igroup, ptc_tau);
+      auto rhs_arr = rhs[ri].array();
+      auto jg_arr = jg[ri].array();
+      auto mugT_arr = mugT[ri].array();
+      auto coupT_arr = coupT[ri].array();
+      auto etaT_arr = etaT[ri].array();
+      auto Er_step_arr = Er_step[ri].array();
+      auto rhoe_step_arr = rhoe_step[ri].array();
+      auto Er_star_arr = Er_star[ri].array();
+      auto rhoe_star_arr = rhoe_star[ri].array();
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real Hg = mugT_arr(i,j,k,igroup) * etaT_arr(i,j,k);
+
+          rhs_arr(i,j,k) = C::c_light * (jg_arr(i,j,k,igroup) + Hg * coupT_arr(i,j,k))
+                           + dt1 * (Er_step_arr(i,j,k,igroup) - Hg * (rhoe_star_arr(i,j,k) - rhoe_step_arr(i,j,k))
+                                    + ptc_tau * Er_star_arr(i,j,k,igroup));
+
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          rhs_arr(i,j,k) *= r;
+      });
 
 #pragma gpu box(bx)
       ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),

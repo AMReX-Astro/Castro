@@ -19,8 +19,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   integer :: lo(3), hi(3), loa(3), hia(3)
 
-  call probdata_init(name, namlen)
-
   ! call the Riemann solver
   lo(:) = [1, 1, 0]
   hi(:) = [1, 1, 0]

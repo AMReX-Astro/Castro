@@ -1,4 +1,106 @@
+# 20.12
+
+   * An issue with incorrect application of HSE boundary conditions on derived quantities
+     is now resolved (#1356). Also, at this point the old Fortran implementations hypfill,
+     denfill, ext_hypfill, and ext_denfill have been removed; problem-specific boundary
+     conditions should be implemented using the new C++ interface in this release from #1289.
+
+   * The minimum supported Hypre version is now 2.19.0. (#1333)
+
+   * We have switched from a Fortran to a C++ implementation of VODE in Microphysics.
+     As a result we have also switched the Strang and simplified SDC burners in Castro
+     to use this C++ implementation. Most networks used in Castro have already been
+     ported to C++. While networks are not required to have a C++ implementation,
+     networks implemented only in Fortran  will not be useable on GPUs, and eventually
+     we will use C++ only. (#1313)
+
+   * `problem_checkpoint` and `problem_restart` are moved to C++ from Fortran. See
+     Exec/science/wdmerger for an example of the new scheme. `Problem.f90` and `Problem_F.H`
+     are now deleted from the code; if you were using these to implement problem-specific
+     functionality, you can still manually add these files to the `Make.package` for your
+     problem setup. (#1311)
+
+   * For setups using Poisson gravity, tagging is now turned off in locations where
+     the fine levels would have been adjacent to a physical boundary. (This previously
+     led to an abort.) (#1302)
+
+   * An interface for doing problem tagging in C++ has been added. (#1289)
+
+   * Simplified SDC now only supports the C++ integrators (#1294)
+
+   * MHD problems can now do the magnetic field initialization in C++
+     (#1298)
+
+# 20.11
+
+   * The minimum C++ standard supported by Castro is now C++14. Most modern compilers
+     support C++14; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 5.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1284)
+
+   * A new option, `castro.retry_small_density_cutoff`, has been added. In some
+     cases a small or negative density retry may be triggered on an update that
+     moves a zone already close to small_dens just below it. This is not uncommon
+     for "ambient"/"fluff" material outside a star. Since these zones are not
+     dynamically important anyway, triggering a retry is unnecessary (and possibly
+     counterproductive, since it may require a very small timestep to avoid). By
+     setting this cutoff value appropriately, the retry will be skipped if the
+     density of the zone prior to the update was below the cutoff. (#1273)
+
 # 20.10
+
+   * A new refinement scheme using the inputs file rather than the Fortran
+     tagging namelist has been added. (#1243, #1246) As an example, consider:
+
+     ```
+     amr.refinement_indicators = dens temp
+
+     amr.refine.dens.max_level = 1
+     amr.refine.dens.value_greater = 2.0
+     amr.refine.dens.field_name = density
+
+     amr.refine.temp.max_level = 2
+     amr.refine.temp.value_less = 1.0
+     amr.refine.temp.field_name = Temp
+     ```
+
+     `amr.refinement_indicators` is a list of user-defined names for refinement
+     schemes. For each defined name, amr.refine.<name> accepts predefined fields
+     describing when to tag. In the current implementation, these are `max_level`
+     (maximum level to refine to), `start_time` (when to start tagging), `end_time`
+     (when to stop tagging), `value_greater` (value above which we refine),
+     `value_less` (value below which to refine), `gradient` (absolute value of the
+     difference between adjacent cells above which we refine), and `field_name`
+     (name of the string defining the field in the code). If a refinement indicator
+     is added, either `value_greater`, `value_less`, or `gradient` must be provided.
+
+   * Automatic problem parameter configuration is now available to every
+     problem by placing a _prob_params file in your problem directory.
+     Examples can be found in most of the problems in Castro/Exec, and you
+     can look at the "Setting Up Your Own Problem" section of the documentation
+     for more information. This functionality is optional, however note that
+     a file containing a Fortran module named "probdata_module" is now
+     automatically generated, so if you have a legacy probdata.F90 file
+     containing a module with that name it should be renamed. (#1210)
+
+   * The variable "center" (in the `problem` namespace) is now part of this
+     automatically generated probdata module; at the present time, the only
+     valid way to change the problem center to a value other than zero is in
+     amrex_probinit(). (#1222)
+
+   * Initialization of these problem parameters is now done automatically for
+     you, so a call to probdata_init() is no longer required in amrex_probinit(). (#1226)
+
+   * Problems may now be initialized in C++ instead of Fortran. Instead of implementing
+     amrex_probinit() and ca_initdata(), the problem should implement the analogous
+     functions initialize_problem() and initialize_problem_state_data(). If you switch to
+     the new C++ initialization, be sure to delete your Prob_nd.F90 file. By default both
+     implementations do nothing, so you can pick either one but do not pick both. (#1227)
+
+   * The external heat source term routines have been ported to C++
+     (#1191).  Any problem using an external heat source should look
+     convert the code over to C++.
 
    * The interpolate_nd.F90 file has been moved to Util/interpolate and
      is only compiled into Castro if you set USE_INTERPOLATE=TRUE

@@ -13,8 +13,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
 
   type(eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   eos_state % rho = rho_0
   eos_state % T   = T_0
   eos_state % xn  = 0.e0_rt
