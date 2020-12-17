@@ -23,8 +23,6 @@ contains
 
     logical :: burn_flag
 
-    !$gpu
-
     burn_flag = .true.
 
     if (state(UTEMP) < react_T_min .or. state(UTEMP) > react_T_max .or. &
@@ -61,8 +59,6 @@ contains
     real(rt) :: rhoInv
     integer :: n
     real(rt) :: small_temp
-
-    !$gpu
 
     rhoInv = ONE / state(URHO)
 

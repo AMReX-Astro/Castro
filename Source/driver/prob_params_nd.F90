@@ -34,17 +34,6 @@ module prob_params_module
   integer         , save, allocatable :: n_error_buf(:)
   integer         , save, allocatable :: blocking_factor(:)
 
-#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
-  attributes(managed) :: physbc_lo, physbc_hi
-  attributes(managed) :: Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall
-  attributes(managed) :: dim
-  attributes(managed) :: dg
-  attributes(managed) :: coord_type
-  attributes(managed) :: problo, probhi
-  attributes(managed) :: domlo_level, domhi_level, dx_level
-  attributes(managed) :: ref_ratio, n_error_buf, blocking_factor
-#endif
-
   !$acc declare create(physbc_lo, physbc_hi)
   !$acc declare create(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
   !$acc declare create(dim)

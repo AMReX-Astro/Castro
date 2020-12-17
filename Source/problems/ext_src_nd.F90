@@ -39,8 +39,6 @@ subroutine ca_ext_src(lo, hi, &
   real(rt), intent(in   ) :: problo(3), dx(3)
   real(rt), intent(in   ), value :: time, dt
 
-  !$gpu
-
   ! By default, nothing is done here.
 
 end subroutine ca_ext_src

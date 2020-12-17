@@ -10,8 +10,4 @@ module ambient_module
 
   real(rt), allocatable :: ambient_state(:)
 
-#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
-  attributes(managed) :: ambient_state
-#endif
-
 end module ambient_module
