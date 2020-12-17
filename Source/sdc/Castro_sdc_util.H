@@ -18,6 +18,7 @@ constexpr int HYBRID_SOLVE = 3;
 
 constexpr int ldjac = NumSpec + 2;
 
+#ifdef REACTIONS
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
 sdc_solve(const Real dt_m, 
@@ -63,6 +64,8 @@ f_sdc_jac(const Real dt_m,
           GpuArray<Real, NumSpec+2>& f_source,
           GpuArray<Real, AMREX_SPACEDIM>& mom_source,
           burn_t burn_state);
+
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
