@@ -1,7 +1,13 @@
 # 21.01
 
+   * A bug was fixed in the 2nd order true SDC (with reactions) that
+     was giving the wrong solution and convergence (#1494).  A second
+     bug was fixed in defining the weights for the Radau quadrature
+     when using true SDC (#1493)
+
    * Compiling with the PGI compiler is no longer a requirement for the CUDA build of Castro.
      We recommend using COMP=gnu with a version of gcc that is C++14 compliant (gcc >= 5).
+
 
 # 20.12
 
