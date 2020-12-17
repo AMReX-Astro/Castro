@@ -157,6 +157,9 @@ castro.sum_interval = 1
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
 
+# Gravitational wave strain observation distance
+castro.gw_dist = 10.0
+
 # Whether or not to output plotfiles
 amr.plot_files_output = 1
 

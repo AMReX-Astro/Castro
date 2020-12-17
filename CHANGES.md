@@ -5,6 +5,10 @@
      bug was fixed in defining the weights for the Radau quadrature
      when using true SDC (#1493)
 
+   * Compiling with the PGI compiler is no longer a requirement for the CUDA build of Castro.
+     We recommend using COMP=gnu with a version of gcc that is C++14 compliant (gcc >= 5).
+
+
 # 20.12
 
    * An issue with incorrect application of HSE boundary conditions on derived quantities

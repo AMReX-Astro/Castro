@@ -295,13 +295,6 @@ def write_probin(probin_template, default_prob_param_file, prob_param_file, out_
                             fout.write("{}{}, allocatable, public :: {}\n".format(
                                 indent, p.get_f90_decl(), p.var))
 
-            elif keyword == "cudaattributes":
-                for p in params:
-                    if p.dtype != "character":
-                        fout.write("#ifdef AMREX_USE_GPU_PRAGMA\n")
-                        fout.write("{}attributes(managed) :: {}\n".format(indent, p.var))
-                        fout.write("#endif\n")
-
             elif keyword == "namelist_vars":
                 for p in params:
                     if p.in_namelist:

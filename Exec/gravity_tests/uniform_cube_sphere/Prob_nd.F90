@@ -43,8 +43,6 @@ contains
     integer  :: i, j, k, n
     real(rt) :: xx, yy, zz
 
-    !$gpu
-
     !$OMP PARALLEL DO PRIVATE(i, j, k, n, xx, yy, zz)
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
