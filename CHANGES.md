@@ -1,3 +1,10 @@
+# 21.01
+
+   * A bug was fixed in the 2nd order true SDC (with reactions) that
+     was giving the wrong solution and convergence (#1494).  A second
+     bug was fixed in defining the weights for the Radau quadrature
+     when using true SDC (#1493)
+
 # 20.12
 
    * An issue with incorrect application of HSE boundary conditions on derived quantities
