@@ -181,11 +181,11 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             //                  &sdc_iteration,
             //                  &m_start);
 
-            auto k_m = k_new[m_start].array(mfi);
-            auto k_n = k_new[m_end].array(mfi);
-            auto A_m = A_new[m_start].array(mfi);
-            auto A_n = A_new[m_end].array(mfi);
-            auto R_m = R_old[m_start].array(mfi);
+            auto k_m = (*k_new[m_start]).array(mfi);
+            auto k_n = (*k_new[m_end]).array(mfi);
+            auto A_m = (*A_new[m_start]).array(mfi);
+            auto A_n = (*A_new[m_end]).array(mfi);
+            auto R_m = (*R_old[m_start]).array(mfi);
             auto C_arr = C2.array();
 
             amrex::ParallelFor(bx,

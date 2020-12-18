@@ -11,7 +11,11 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
                          GpuArray<Real, NUM_STATE>& R,
                          burn_t burn_state);
 
-void numerical_jac(burn_t& state, RArray2D& jac);
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void 
+numerical_jac(burn_t& state, RArray2D& jac) {
+    return;
+}
 
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE

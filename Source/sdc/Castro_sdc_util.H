@@ -386,14 +386,14 @@ sdc_newton_solve(const Real dt_m,
         // then there was some commented out stuff 
         GpuArray<Real, NumSpec+2> eps_tot;
 
-        eps_tot[0] = tol_dens * amrex::abs(U_react[0]) + sdc_solver_atol;
+        eps_tot[0] = tol_dens * std::abs(U_react[0]) + sdc_solver_atol;
 
         // for species, atol is the mass fraction limit, so we
         // multiply by density to get a partial density limit
         for (int n = 0; n < NumSpec; ++n) {
-            eps_tot[1 + n] = tol_spec * amrex::abs(U_react[1 + n]) + sdc_solver_atol * amrex::abs(U_react[0]);
+            eps_tot[1 + n] = tol_spec * std::abs(U_react[1 + n]) + sdc_solver_atol * std::abs(U_react[0]);
         }
-        eps_tot[NumSpec+1] = tol_ener * amrex::abs(U_react[NumSpec+1]) + sdc_solver_atol;
+        eps_tot[NumSpec+1] = tol_ener * std::abs(U_react[NumSpec+1]) + sdc_solver_atol;
 
         // compute the norm of the weighted error, where the
         // weights are 1/eps_tot
