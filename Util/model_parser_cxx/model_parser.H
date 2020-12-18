@@ -469,6 +469,130 @@ void establish_hse (Real& mass_want, Real& central_density_want, Real& radius,
     model::npts = NPTS_MODEL;
 }
 
+// Given a WD mass, set its core and envelope composition using the prescription of Dan et al. 2012.
+
+AMREX_INLINE
+void set_wd_composition (Real mass, Real& envelope_mass,
+                         Real core_comp[NumSpec], Real envelope_comp[NumSpec])
+{
+    int iHe4 = network_spec_index("helium-4");
+    int iC12 = network_spec_index("carbon-12");
+    int iO16 = network_spec_index("oxygen-16");
+    int iNe20 = network_spec_index("neon-20");
+    int iMg24 = network_spec_index("magnesium-24");
+
+    for (int n = 0; n < NumSpec; ++n) {
+        core_comp[n] = small_x;
+        envelope_comp[n] = small_x;
+    }
+
+    envelope_mass = 0.0_rt;
+
+    if (mass > 0.0_rt && mass < problem::max_he_wd_mass) {
+
+        if (iHe4 < 0) {
+            amrex::Error("Must have He4 in the nuclear network.");
+        }
+
+        core_comp[iHe4] = 1.0_rt;
+
+        for (int n = 0; n < NumSpec; ++n) {
+            envelope_comp[n] = core_comp[n];
+        }
+
+    }
+    else if (mass >= problem::max_he_wd_mass && mass < problem::max_hybrid_wd_mass) {
+
+        if (iC12 < 0) {
+            amrex::Error("Must have C12 in the nuclear network.");
+        }
+        if (iO16 < 0) {
+            amrex::Error("Must have O16 in the nuclear network.");
+        }
+
+        core_comp[iC12] = problem::hybrid_wd_c_frac;
+        core_comp[iO16] = problem::hybrid_wd_o_frac;
+
+        envelope_mass = problem::hybrid_wd_he_shell_mass;
+
+        if (envelope_mass > 0.0_rt) {
+            if (iHe4 < 0) {
+                amrex::Error("Must have He4 in the nuclear network.");
+            }
+            envelope_comp[iHe4] = 1.0_rt;
+        }
+        else {
+            for (int n = 0; n < NumSpec; ++n) {
+                envelope_comp[n] = core_comp[n];
+            }
+        }
+
+    }
+    else if (mass >= problem::max_hybrid_wd_mass && mass < problem::max_co_wd_mass) {
+
+        if (iC12 < 0) {
+            amrex::Error("Must have C12 in the nuclear network.");
+        }
+        if (iO16 < 0) {
+            amrex::Error("Must have O16 in the nuclear network.");
+        }
+
+        core_comp[iC12] = problem::co_wd_c_frac;
+        core_comp[iO16] = problem::co_wd_o_frac;
+
+        envelope_mass = problem::co_wd_he_shell_mass;
+
+        if (envelope_mass > 0.0_rt) {
+            if (iHe4 < 0) {
+                amrex::Error("Must have He4 in the nuclear network.");
+            }
+            envelope_comp[iHe4] = 1.0_rt;
+        }
+        else {
+            for (int n = 0; n < NumSpec; ++n) {
+                envelope_comp[n] = core_comp[n];
+            }
+        }
+
+    }
+    else if (mass > problem::max_co_wd_mass) {
+
+        if (iO16 < 0) {
+            amrex::Error("Must have O16 in the nuclear network.");
+        }
+        if (iNe20 < 0) {
+            amrex::Error("Must have Ne20 in the nuclear network.");
+        }
+        if (iMg24 < 0) {
+            amrex::Error("Must have Mg24 in the nuclear network.");
+        }
+
+        core_comp[iO16]  = problem::onemg_wd_o_frac;
+        core_comp[iNe20] = problem::onemg_wd_ne_frac;
+        core_comp[iMg24] = problem::onemg_wd_mg_frac;
+
+        for (int n = 0; n < NumSpec; ++n) {
+            envelope_comp[n] = core_comp[n];
+        }
+
+    }
+
+    // Normalize compositions so that they sum to one.
+
+    Real core_sum = 0.0_rt;
+    Real envelope_sum = 0.0_rt;
+
+    for (int n = 0; n < NumSpec; ++n) {
+        core_sum += core_comp[n];
+        envelope_sum += envelope_comp[n];
+    }
+
+    for (int n = 0; n < NumSpec; ++n) {
+        core_comp[n] /= core_sum;
+        envelope_comp[n] /= envelope_sum;
+    }
+}
+
 AMREX_INLINE
 void
 read_model_file(std::string& model_file, const int model_index=0) {
