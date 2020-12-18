@@ -342,5 +342,96 @@ Castro::sum_integrated_quantities ()
     }
 #endif
 
+    // Species
+
+    {
+        std::vector<Real> species_mass(NumSpec);
+        std::vector<std::string> species_names(NumSpec);
+
+        // Species names
+
+        for (int i = 0; i < NumSpec; i++) {
+            species_names[i] = desc_lst[State_Type].name(UFS+i);
+            species_names[i] = species_names[i].substr(4,std::string::npos);
+            species_mass[i] = 0.0;
+        }
+
+        // Integrated mass of all species on the domain
+
+        for (int lev = 0; lev <= finest_level; ++lev) {
+            for (int i = 0; i < NumSpec; ++i) {
+                species_mass[i] += getLevel(lev).volWgtSum("rho_" + species_names[i], time, local_flag) / C::M_solar;
+            }
+        }
+
+        int nfoo_sum = NumSpec;
+
+        amrex::Vector<Real> foo_sum(nfoo_sum);
+
+        for (int i = 0; i < NumSpec; ++i) {
+            foo_sum[i] = species_mass[i];
+        }
+
+        amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
+
+        for (int i = 0; i < NumSpec; ++i) {
+            species_mass[i] = foo_sum[i];
+        }
+
+        if (ParallelDescriptor::IOProcessor()) {
+
+            std::ostream& log = *Castro::data_logs[2];
+
+            if (time == 0.0) {
+
+                int n = 0;
+
+                std::ostringstream header;
+
+                header << std::setw(intwidth) << "#   TIMESTEP";           ++n;
+                header << std::setw(fixwidth) << "                  TIME"; ++n;
+
+                // We need to be careful here since the species names have differing numbers of characters
+
+                for (int i = 0; i < NumSpec; i++) {
+                    std::string outString  = "";
+                    std::string massString = "Mass ";
+                    std::string specString = species_names[i];
+                    while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
+                    outString += massString;
+                    outString += specString;
+                    header << std::setw(datwidth) << outString; ++n;
+                }
+
+                header << std::endl;
+
+                log << std::setw(intwidth) << "#   COLUMN 1";
+                log << std::setw(fixwidth) << "                        2";
+
+                for (int i = 3; i <= n; ++i)
+                    log << std::setw(datwidth) << i;
+
+                log << std::endl;
+
+                log << header.str();
+
+            }
+
+            log << std::fixed;
+
+            log << std::setw(intwidth)                                    << timestep;
+            log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+
+            log << std::scientific;
+
+            for (int i = 0; i < NumSpec; i++)
+                log << std::setw(datwidth) << std::setprecision(datprecision) << species_mass[i];
+
+            log << std::endl;
+
+        }
+
+    }
+
     problem_diagnostics();
 }
