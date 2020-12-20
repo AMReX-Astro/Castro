@@ -47,7 +47,12 @@ CEXE_headers += prob_parameters.H
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
-PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
+# search Bdirs for _prob_params files
+PROB_SEARCH := $(foreach dir, $(Bdirs), $(TOP)/$(dir))
+PROB_PARAMETERS := $(shell $(TOP)/Util/scripts/findparams.py $(PROB_SEARCH))
+# the problem's own parameters always come at the end so they override
+# any others
+PROB_PARAMETERS += $(PROBLEM_DIR)/_prob_params
 DEFAULT_PROB_PARAMETERS := $(TOP)/Source/problems/_default_prob_params
 
 # Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
@@ -58,7 +63,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(DEFAULT_PROB_PARAMETERS) $(wil
 	$(TOP)/Util/scripts/write_probdata.py \
            -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 \
            -d $(DEFAULT_PROB_PARAMETERS) \
-           -p $(PROB_PARAMETERS) \
+           -p "$(PROB_PARAMETERS)" \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
 
 #------------------------------------------------------------------------------
