@@ -48,8 +48,7 @@ $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_pa
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
 # search Bdirs for _prob_params files
-PROB_SEARCH := $(foreach dir, $(Bdirs), $(TOP)/$(dir))
-PROB_PARAMETERS := $(shell $(TOP)/Util/scripts/findparams.py $(PROB_SEARCH))
+PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_params))
 # the problem's own parameters always come at the end so they override
 # any others
 PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
