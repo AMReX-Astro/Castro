@@ -227,7 +227,8 @@ namespace: ``castro``
 | ``sdc_quadrature``                     | which quadrature type to use with SDC?  0 = Gauss-      | 0             |
 |                                        | Lobatto, 1 = Radau                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_extra``                          | number of extra SDC iterations to take beyond the order | 0             |
+| ``sdc_extra``                          | number of extra SDC iterations to take beyond the       | 0             |
+|                                        | order.  This only applies for true SDC.                 |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_solver``                         | which SDC nonlinear solver to use?  1 = Newton, 2 =     | 1             |
 |                                        | VODE, 3 = VODE for first iter                           |               |
@@ -313,7 +314,7 @@ namespace: ``castro``
 |                                        | parameter. Set to a negative value to disable this      |               |
 |                                        | criterion.                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
+| ``sdc_iters``                          | Number of iterations for the simplified SDC advance.    | 2             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
