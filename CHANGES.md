@@ -1,5 +1,8 @@
 # 21.01
 
+   * The timestep limiter dtnuc_T has been removed. dtnuc_e and dtnuc_X
+     are still available for controlling the burning timestep. (#1501)
+
    * A bug was fixed in the 2nd order true SDC (with reactions) that
      was giving the wrong solution and convergence (#1494).  A second
      bug was fixed in defining the weights for the Radau quadrature
