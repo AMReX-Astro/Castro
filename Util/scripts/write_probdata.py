@@ -140,27 +140,21 @@ def get_next_line(fin):
     return line[:pos]
 
 
-def parse_param_file(default_param_file, prob_param_files):
-    """read all the parameters in both the default parameter file and
-    the problem-specific parameter file and add valid parameters to the
-    params list.  This returns the parameter list.
+def parse_param_file(prob_param_files):
+    """read all the parameters in the prob_param_files and add valid
+    parameters to the params list.  This returns the parameter list.
+
     """
 
     err = 0
     params_list = []
 
-    for param_file in [default_param_file] + prob_param_files:
+    for param_file in prob_param_files:
 
-        # The default parameter file has to exist, but the
-        # problem-specific parameter file is optional, so
-        # skip it if it's not present.
-        if os.path.isfile(param_file):
+        try:
             f = open(param_file, "r")
-        else:
-            if param_file == default_param_file:
-                sys.exit(f"write_probdata.py: ERROR: file {param_file} does not exist")
-            else:
-                continue
+        except FileNotFoundError:
+            sys.exit(f"write_probdata.py: ERROR: file {param_file} does not exist")
 
         line = get_next_line(f)
 
@@ -240,7 +234,7 @@ def abort(outfile):
     sys.exit(1)
 
 
-def write_probin(probin_template, default_prob_param_file, prob_param_files,
+def write_probin(probin_template, prob_param_files,
                  out_file, cxx_prefix):
     """write_probin will read through the list of parameter files and
     output the new out_file
@@ -249,7 +243,7 @@ def write_probin(probin_template, default_prob_param_file, prob_param_files,
 
     # read the parameters defined in the parameter files
 
-    err, params = parse_param_file(default_prob_param_file, prob_param_files)
+    err, params = parse_param_file(prob_param_files)
     if err:
         abort(out_file)
 
@@ -589,7 +583,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', type=str, help='probin_template')
     parser.add_argument('-o', type=str, help='out_file')
-    parser.add_argument('-d', type=str, help='default parameter file name')
     parser.add_argument('-p', type=str, help='problem parameter file names (space separated in quotes)')
     parser.add_argument('--cxx_prefix', type=str, default="prob",
                         help="a name to use in the C++ file names")
@@ -598,13 +591,12 @@ def main():
 
     probin_template = args.t
     out_file = args.o
-    default_prob_params = args.d
     prob_params = args.p.split()
 
     if probin_template == "" or out_file == "":
         sys.exit("write_probdata.py: ERROR: invalid calling sequence")
 
-    write_probin(probin_template, default_prob_params, prob_params, out_file, args.cxx_prefix)
+    write_probin(probin_template, prob_params, out_file, args.cxx_prefix)
 
 if __name__ == "__main__":
     main()
