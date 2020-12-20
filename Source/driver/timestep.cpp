@@ -341,7 +341,7 @@ Real
 Castro::estdt_burning()
 {
 
-    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt && castro::dtnuc_T > 1.e199_rt) return 1.e200_rt;
+    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
 
     ReduceOps<ReduceOpMin> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -378,16 +378,13 @@ Castro::estdt_burning()
         //  nuclear burning, provided that our instantaneous estimate
         // of the energy release is representative of the full timestep.
         //
-        // We do the same thing for the temperature, using a timestep
-        // limiter dtnuc_T * (T / (dT/dt)).
-        //
         // We also do the same thing for the species, using a timestep
         // limiter dtnuc_X * (X_k / (dX_k/dt)). To prevent changes
         // due to trace isotopes that we probably are not interested in,
         // only apply the limiter to species with an abundance greater
         // than a user-specified threshold.
         //
-        // To estimate de/dt, dT/dt, and dX/dt, we are going to call the RHS of the
+        // To estimate de/dt and dX/dt, we are going to call the RHS of the
         // burner given the current state data. We need to do an EOS
         // call before we do the RHS call so that we have accurate
         // values for the thermodynamic data like abar, zbar, etc.
@@ -436,7 +433,6 @@ Castro::estdt_burning()
             actual_rhs(state, ydot);
 
             Real dedt = ydot(net_ienuc);
-            Real dTdt = ydot(net_itemp);
             Real dXdt[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
                 dXdt[n] = ydot(n+1) * aion[n];
@@ -449,7 +445,6 @@ Castro::estdt_burning()
             // ignored compared to other limiters.
 
             dedt = amrex::max(std::abs(dedt), derivative_floor);
-            dTdt = amrex::max(std::abs(dTdt), derivative_floor);
 
             for (int n = 0; n < NumSpec; ++n) {
                 if (X[n] >= castro::dtnuc_X_threshold) {
@@ -459,7 +454,7 @@ Castro::estdt_burning()
                 }
             }
 
-            Real dt_tmp = amrex::min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt);
+            Real dt_tmp = dtnuc_e * e / dedt;
             for (int n = 0; n < NumSpec; ++n) {
                 dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
             }
