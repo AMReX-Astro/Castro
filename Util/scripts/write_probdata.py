@@ -210,6 +210,18 @@ def parse_param_file(default_param_file, prob_param_files):
             current_param.size = size
             current_param.module = module
 
+            # check to see if this parameter is defined in the current
+            # list if we delete the old one and take the new one (we
+            # assume that later files automatically have higher
+            # priority)
+            p_names = [p.var for p in params_list]
+            try:
+                idx = p_names.index(current_param.var)
+            except ValueError:
+                pass
+            else:
+                params_list.pop(idx)
+
             if not err == 1:
                 params_list.append(current_param)
 
