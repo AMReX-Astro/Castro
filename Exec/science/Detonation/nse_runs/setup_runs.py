@@ -24,16 +24,16 @@ do_strang_runs = 1
 do_simple_sdc_runs = 0
 do_true_sdc_runs = 1
 
-COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "nse19.tbl"]
+COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled"] #, "nse19.tbl"]
 
 STRANG_EXEC = "./Castro1d.gnu.ex"
-NEEDED_STRANG_FILES = STRANG_EXEC + COMMON_FILES
+NEEDED_STRANG_FILES = [STRANG_EXEC] + COMMON_FILES
 
 SIMPLE_SDC_EXEC = "./Castro1d.gnu.SMPLSDC.ex"
-NEEDED_SIMPLE_SDC_FILES = SIMPLE_SDC_EXEC + COMMON_FILES
+NEEDED_SIMPLE_SDC_FILES = [SIMPLE_SDC_EXEC] + COMMON_FILES
 
 TRUE_SDC_EXEC = "./Castro1d.gnu.TRUESDC.ex"
-NEEDED_TRUE_SDC_FILES = TRUE_SDC_EXEC + COMMON_FILES
+NEEDED_TRUE_SDC_FILES = [TRUE_SDC_EXEC] + COMMON_FILES
 
 def setup_runs():
 
@@ -115,7 +115,7 @@ def setup_runs():
                             shutil.copy(f, odir)
 
     if do_true_sdc_runs:
-        # setup the simplified SDC runs
+        # setup the true SDC runs
         for nz in NZONES:
             for dtn in DTNUC_E:
                 for c in CFL:
@@ -143,7 +143,7 @@ def setup_runs():
 
                             # write the inputs file
                             with open(f"{odir}/inputs", "w") as inpf:
-                                for line in simple_sdc_template:
+                                for line in true_sdc_template:
                                     inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ORDER@@", str(order)).replace("@@SDC_QUADRATURE@@", str(quad)).replace("@@method@@", "2").replace("@@DTNUC_E@@", str(dtn)))
 
                             # copy the remaining files
