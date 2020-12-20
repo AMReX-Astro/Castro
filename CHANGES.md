@@ -1,5 +1,9 @@
 # 21.01
 
+   * There can now be multiple _prob_params files throughout the source
+     tree.  We read the problem's file last and that takes precedence over
+     any other _prob_params files found. (#1500)
+
    * The timestep limiter dtnuc_T has been removed. dtnuc_e and dtnuc_X
      are still available for controlling the burning timestep. (#1501)
 
