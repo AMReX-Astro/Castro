@@ -365,14 +365,14 @@ sdc_newton_solve(const Real dt_m,
             return;
         }
 
-        for (int n = 0; n < NumSpec+2; ++n) {
+        for (int n = 1; n <= VODE_NEQS; ++n) {
             f_rhs(n) = -f[n];
         }
 
         dgesl(Jac, ipvt, f_rhs);
 
         for (int n = 0; n < NumSpec+2; ++n) {
-            dU_react[n] = f_rhs(n);
+            dU_react[n] = f_rhs(n+1);
         }
 
         // how much of dU_react should we apply?
@@ -560,7 +560,7 @@ sdc_vode_solve(const Real dt_m,
         atol[NumSpec+1] = sdc_solver_atol * U_old[UEDEN];
     }
 
-    for (int n = 0; NumSpec+2; ++n) {
+    for (int n = 1; n <= NumSpec+2; ++n) {
         dvode_state.atol(n) = atol[n];
         dvode_state.rtol(n) = rtol[n];
     }
