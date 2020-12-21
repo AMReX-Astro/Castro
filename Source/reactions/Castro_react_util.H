@@ -6,17 +6,10 @@
 // #include <actual_rhs.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void
-single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
-                         GpuArray<Real, NUM_STATE>& R,
-                         burn_t burn_state);
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void 
 numerical_jac(burn_t& state, RArray2D& jac) {
     return;
 }
-
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 bool
@@ -57,27 +50,6 @@ okay_to_burn_type(burn_t const& state) {
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-single_zone_react_source(const int i, const int j, const int k,
-                         Array4<const Real> const& state,
-                         Array4<Real> const& R,
-                         burn_t burn_state) {
-    GpuArray<Real, NUM_STATE> state_arr;
-    GpuArray<Real, NUM_STATE> R_arr; 
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        state_arr[n] = state(i,j,k,n);
-        R_arr[n] = R(i,j,k,n);
-    }
-
-    single_zone_react_source(state_arr, R_arr, burn_state);
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        R(i,j,k,n) = R_arr[n];
-    }
-}
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-void
 single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
                          GpuArray<Real, NUM_STATE>& R,
                          burn_t burn_state) {
@@ -110,7 +82,7 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
 
     burn_state.self_heat = false;
 
-    Array1D<Real, 1, VODE_NEQS> ydot;
+    Array1D<Real, 1, neqs> ydot;
 
     actual_rhs(burn_state, ydot);
 
@@ -126,6 +98,27 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
 
     R[UEDEN] = state[URHO] * ydot(net_ienuc);
     R[UEINT] = state[URHO] * ydot(net_ienuc);
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+void
+single_zone_react_source(const int i, const int j, const int k,
+                         Array4<const Real> const& state,
+                         Array4<Real> const& R,
+                         burn_t burn_state) {
+    GpuArray<Real, NUM_STATE> state_arr;
+    GpuArray<Real, NUM_STATE> R_arr; 
+
+    for (int n = 0; n < NUM_STATE; ++n) {
+        state_arr[n] = state(i,j,k,n);
+        R_arr[n] = R(i,j,k,n);
+    }
+
+    single_zone_react_source(state_arr, R_arr, burn_state);
+
+    for (int n = 0; n < NUM_STATE; ++n) {
+        R(i,j,k,n) = R_arr[n];
+    }
 }
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -169,10 +162,10 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 
         // The Jacobian from the nets is in terms of dYdot/dY, but we want
         // it was dXdot/dX, so convert here.
-        for (int n = 1; n <= NumSpec; ++n) {
+        for (int n = 0; n < NumSpec; ++n) {
             for (int m = 0; m < VODE_NEQS; ++m) {
-                Jac(n,m) = Jac(n,m) * aion[n];
-                Jac(m,n) = Jac(m,n) * aion_inv[n];
+                Jac(n+1,m) = Jac(n+1,m) * aion[n];
+                Jac(m,n+1) = Jac(m,n+1) * aion_inv[n];
             }
         }
     }
@@ -181,8 +174,8 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     // at this point, our Jacobian should be entirely in terms of X,
     // not Y.  Let's now fix the rhs terms themselves to be in terms of
     // dX/dt and not dY/dt.
-    for (int n = 1; n <= NumSpec; ++n) {
-        ydot(n) *= aion[n];
+    for (int n = 0; n < NumSpec; ++n) {
+        ydot(n+1) *= aion[n];
     }
 
     // Our jacobian, dR/dw has the form:
@@ -218,8 +211,8 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     actual_rhs(burn_state_pert, ydot_pert);
 
     // make the rates dX/dt and not dY/dt
-    for (int n = 1; n <= NumSpec; ++n) {
-        ydot_pert(n) *= aion[n];
+    for (int n = 0; n < NumSpec; ++n) {
+        ydot_pert(n+1) *= aion[n];
     }
 
     // fill the column of dRdw corresponding to the derivative
