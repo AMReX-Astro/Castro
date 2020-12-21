@@ -19,10 +19,10 @@ CEXE_headers += extern_parameters.H
 EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
+EXTERN_SEARCH += $(EXTERN_CORE)
 EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
-EXTERN_PARAMETERS := $(shell $(MICROPHYSICS_HOME)/util/build_scripts/findparams.py $(EXTERN_SEARCH))
+EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern.F90
 
