@@ -8,8 +8,8 @@ from multiprocessing import Pool
 import time
 
 # parameters for all methods
-CFL = [0.5, 0.25] #, 0.1]
-NZONES = [256, 512] #, 1024, 2048] #, 8192]
+CFL = [0.5] #, 0.1]
+NZONES = [512] #, 1024, 2048] #, 8192]
 DTNUC_E = [1.e200, 0.25] #, 0.1]
 
 # simplified SDC parameters
@@ -17,11 +17,11 @@ SDC_ITERS = [2]
 
 # true SDC parameters
 SDC_QUADRATURE = [0, 1]
-SDC_ORDER = [2, 4]
+SDC_ORDER = [2] #, 4]
 
 # turn on or off the different integrator types
 do_strang_runs = 1
-do_simple_sdc_runs = 0
+do_simple_sdc_runs = 1
 do_true_sdc_runs = 1
 
 COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled"] #, "nse19.tbl"]
