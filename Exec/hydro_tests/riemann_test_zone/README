@@ -1,3 +1,0 @@
-This is a simple setup that just uses the PROBINIT function to call a
-Riemann problem and output the solution.  This is used for debugging
-Riemann solver failures.  It is not a hydro problem.
