@@ -9,8 +9,8 @@ import time
 
 # parameters for all methods
 CFL = [0.5] #, 0.1]
-NZONES = [512] #, 1024, 2048] #, 8192]
-DTNUC_E = [1.e200, 0.25] #, 0.1]
+NZONES = [256, 512] #, 1024, 2048] #, 8192]
+DTNUC_E = [1.e200, 1.0, 0.25] #, 0.1]
 
 # simplified SDC parameters
 SDC_ITERS = [2]
