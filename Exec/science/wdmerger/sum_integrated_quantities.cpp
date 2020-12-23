@@ -88,13 +88,6 @@ Castro::sum_integrated_quantities ()
     Real vel_P_phi = 0.0;
     Real vel_S_phi = 0.0;
 
-    // Species names and total masses on the domain.
-
-    const Real M_solar = 1.9884e33;
-
-    std::vector<Real> species_mass(NumSpec);
-    std::vector<std::string> species_names(NumSpec);
-
     std::string name1;
     std::string name2;
 
@@ -105,14 +98,6 @@ Castro::sum_integrated_quantities ()
     int intwidth      = 12; // Integer data
 
     wd_dist_init[problem::axis_1 - 1] = 1.0;
-
-    // Determine the names of the species in the simulation.
-
-    for (int i = 0; i < NumSpec; i++) {
-      species_names[i] = desc_lst[State_Type].name(UFS+i);
-      species_names[i] = species_names[i].substr(4,std::string::npos);
-      species_mass[i]  = 0.0;
-    }
 
     for (int lev = 0; lev <= finest_level; lev++)
     {
@@ -161,10 +146,6 @@ Castro::sum_integrated_quantities ()
 	rho_phirot += ca_lev.volProductSum("density", "phiRot", time, local_flag);
 #endif
 
-      // Integrated mass of all species on the domain.
-      for (int i = 0; i < NumSpec; i++)
-	species_mass[i] += ca_lev.volWgtSum("rho_" + species_names[i], time, local_flag) / M_solar;
-
     }
 
     // Return to the original level.
@@ -173,7 +154,7 @@ Castro::sum_integrated_quantities ()
 
     // Do the reductions.
 
-    int nfoo_sum = 18 + NumSpec;
+    int nfoo_sum = 18;
 
     amrex::Vector<Real> foo_sum(nfoo_sum);
 
@@ -192,10 +173,6 @@ Castro::sum_integrated_quantities ()
     foo_sum[16] = rho_phi;
     foo_sum[17] = rho_phirot;
 
-    for (int i = 0; i < NumSpec; i++) {
-      foo_sum[i + 18] = species_mass[i];
-    }
-
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
 
     mass = foo_sum[0];
@@ -212,10 +189,6 @@ Castro::sum_integrated_quantities ()
     rho_e      = foo_sum[15];
     rho_phi    = foo_sum[16];
     rho_phirot = foo_sum[17];
-
-    for (int i = 0; i < NumSpec; i++) {
-      species_mass[i] = foo_sum[i + 18];
-    }
 
     // Complete calculations for energy and momenta
 
@@ -487,68 +460,6 @@ Castro::sum_integrated_quantities ()
 
 	   log << std::scientific;
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << mdot;
-
-	   log << std::endl;
-
-	 }
-      }
-
-      // Species
-
-      if (parent->NumDataLogs() > 2) {
-
-	 std::ostream& log = parent->DataLog(2);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";           ++n;
-	     header << std::setw(fixwidth) << "                  TIME"; ++n;
-
-	     // We need to be careful here since the species names have differing numbers of characters
-
-	     for (int i = 0; i < NumSpec; i++) {
-	       std::string outString  = "";
-	       std::string massString = "Mass ";
-	       std::string specString = species_names[i];
-               while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
-	       outString += massString;
-	       outString += specString;
-	       header << std::setw(datwidth) << outString; ++n;
-	     }
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-
-	   log << std::scientific;
-
-	   for (int i = 0; i < NumSpec; i++)
-	     log << std::setw(datwidth) << std::setprecision(dataprecision) << species_mass[i];
 
 	   log << std::endl;
 
