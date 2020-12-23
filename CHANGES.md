@@ -4,7 +4,7 @@
      support C++17; the notable exception is RHEL 7 and its derivatives like CentOS 7,
      where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
      particularly a version of gcc >= 7.0, for example by installing devtoolset-7 or (if
-     running on an HPC cluster that provides modules) using a more recent gcc module. (#1505)
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1506)
 
    * There can now be multiple _prob_params files throughout the source
      tree.  We read the problem's file last and that takes precedence over
