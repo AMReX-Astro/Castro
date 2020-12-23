@@ -1,0 +1,23 @@
+# Composition properties of white dwarf initial models.
+# We follow the prescription of Dan et al. 2012 for determining
+# the composition of the WDs. In this approach, below a certain
+# mass there are pure He WDs; just above that are hybrid WDs
+# with pure CO cores and a He mantle; above that are pure CO WDs
+# with slightly more oxygen than carbon; and above that are
+# ONeMg WDs. All masses are in solar masses.
+
+max_he_wd_mass                  real                  0.45e0_rt                y
+max_hybrid_wd_mass              real                  0.6e0_rt                 y
+hybrid_wd_he_shell_mass         real                  0.1e0_rt                 y
+max_co_wd_mass                  real                  1.05e0_rt                y
+co_wd_he_shell_mass             real                  0.0e0_rt                 y
+
+hybrid_wd_c_frac                real                  0.50e0_rt                y
+hybrid_wd_o_frac                real                  0.50e0_rt                y
+
+co_wd_c_frac                    real                  0.40e0_rt                y
+co_wd_o_frac                    real                  0.60e0_rt                y
+
+onemg_wd_o_frac                 real                  0.60e0_rt                y
+onemg_wd_ne_frac                real                  0.35e0_rt                y
+onemg_wd_mg_frac                real                  0.05e0_rt                y
