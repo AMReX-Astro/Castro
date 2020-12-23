@@ -349,6 +349,12 @@ Castro::gwstrain (Real time,
 
     BL_PROFILE("Castro::gwstrain()");
 
+    // We have nothing to do if the user did not request the gravitational wave
+    // strain (inferred from whether the observation distance is positive).
+    if (castro::gw_dist <= 0.0_rt) {
+        return;
+    }
+
     GeometryData geomdata = geom.data();
 
     auto mfrho   = derive("density",time,0);

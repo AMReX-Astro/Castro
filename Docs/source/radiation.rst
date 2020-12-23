@@ -60,10 +60,7 @@ where you want the Hypre files to be installed.
    make install
 
 Then, when you are building Castro, you would build with
-``USE_MPI=TRUE`` and ``USE_CUDA=TRUE`` (note that the CUDA build
-of Castro requires the ``pgi`` module to be loaded; you only
-need to use gcc for the Hypre build, which only has to be done
-once).
+``USE_MPI=TRUE`` and ``USE_CUDA=TRUE``.
 
 Castro looks for Hypre in the environment variable ``HYPRE_DIR``,
 which you should point to the install directory you chose above.

@@ -32,8 +32,6 @@ contains
     integer,    intent(in   ), value :: level
     real(rt),   intent(in   ), value :: time
 
-    !$gpu
-
   end subroutine set_problem_tags
 
 end module problem_tagging_module

@@ -68,8 +68,6 @@ subroutine ca_initdata(lo, hi, &
   real(rt), intent(in   ) :: dx(3), problo(3)
   real(rt), intent(inout) :: state(state_lo(1):state_hi(1),state_lo(2):state_hi(2),state_lo(3):state_hi(3),NVAR)
 
-  !$gpu
-
   ! This call does nothing by default; it should be copied to a problem directory
   ! and overwritten for the problem setup of interest.
 

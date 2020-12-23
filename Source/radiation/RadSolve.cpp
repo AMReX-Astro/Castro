@@ -1,24 +1,20 @@
 
 #include <AMReX_ParmParse.H>
 #include <AMReX_AmrLevel.H>
-
 #include <AMReX_LO_BCTYPES.H>
-//#include <CompSolver.H>
 
 #include <RadSolve.H>
 #include <Radiation.H>  // for access to static physical constants only
-
 #include <rad_util.H>
+#include <problem_rad_source.H>
+#include <RAD_F.H>
+#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 #include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#include <RAD_F.H>
-
-#include <HABEC_F.H>    // only for nonsymmetric flux; may be changed?
 
 using namespace amrex;
 
@@ -673,7 +669,7 @@ void RadSolve::levelFlux(int level,
 
   Erborder.FillBoundary(parent->Geom(level).periodicity()); // zeroes left in off-level boundaries
 
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
 
   for (int n = 0; n < BL_SPACEDIM; n++) {
 
@@ -697,13 +693,37 @@ void RadSolve::levelFlux(int level,
       for (MFIter mfi(Flux[n], TilingIfNotGPU()); mfi.isValid(); ++mfi) {
           const Box& bx = mfi.tilebox();
 
-#pragma gpu box(bx)
-          set_abec_flux(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                        n,
-                        BL_TO_FORTRAN_ANYD(Erborder[mfi]), 
-                        BL_TO_FORTRAN_ANYD(bcoef[mfi]), 
-                        radsolve::beta, AMREX_REAL_ANYD(dx),
-                        BL_TO_FORTRAN_ANYD(Flux[n][mfi]));
+          auto Erborder_arr = Erborder[mfi].array();
+          auto bcoef_arr = bcoef[mfi].array();
+          auto Flux_arr = Flux[n][mfi].array();
+
+          Real beta = radsolve::beta;
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              if (n == 0) {
+
+                  const Real fac = -beta / dx[0];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i-1,j,k)) * fac;
+
+              }
+              else if (n == 1) {
+
+                  const Real fac = -beta / dx[1];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i,j-1,k)) * fac;
+
+              }
+              else {
+
+                  const Real fac = -beta / dx[2];
+
+                  Flux_arr(i,j,k) = bcoef_arr(i,j,k) * (Erborder_arr(i,j,k) - Erborder_arr(i,j,k-1)) * fac;
+
+              }
+          });
       }
 
   }
@@ -930,7 +950,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   BL_PROFILE("RadSolve::levelACoeffs (MGFLD)");
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
-  const Real* dx = parent->Geom(level).CellSize();
+  const auto geomdata = parent->Geom(level).data();
 
   // allocate space for ABecLaplacian acoeffs, fill with values
 
@@ -944,14 +964,21 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
   for (MFIter mfi(kpp, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
 
       const Box& bx = mfi.tilebox();
-          
+
       Real dt_ptc = delta_t / (1.0 + ptc_tau);
 
-#pragma gpu box(bx)
-      lacoefmgfld(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
-                  BL_TO_FORTRAN_ANYD(acoefs[mfi]), 
-                  BL_TO_FORTRAN_N_ANYD(kpp[mfi], igroup), 
-                  AMREX_REAL_ANYD(dx), dt_ptc, c);
+      auto acoefs_arr = acoefs[mfi].array();
+      auto kpp_arr = kpp[mfi].array(igroup);
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      {
+          Real r, s;
+          cell_center_metric(i, j, k, geomdata, r, s);
+
+          acoefs_arr(i,j,k) = c * kpp_arr(i,j,k) + 1.e0_rt / dt_ptc;
+          acoefs_arr(i,j,k) = r * s * acoefs_arr(i,j,k);
+      });
   }
 
   // set a coefficients
@@ -1013,9 +1040,10 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
           cell_center_metric(i, j, k, geomdata, r, s);
 
           rhs_arr(i,j,k) *= r;
+
+          problem_rad_source(i, j, k, rhs_arr, geomdata, time, delta_t, igroup);
       });
 
-#pragma gpu box(bx)
       ca_rad_source(AMREX_INT_ANYD(bx.loVect()), AMREX_INT_ANYD(bx.hiVect()),
                     BL_TO_FORTRAN_ANYD(rhs[ri]),
                     AMREX_REAL_ANYD(dx), delta_t, time, igroup);
