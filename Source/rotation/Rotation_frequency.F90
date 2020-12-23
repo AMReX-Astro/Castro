@@ -21,8 +21,6 @@ contains
     ! shut off the source term by setting omega = 0. Note that by default rot_axis == 3 for Cartesian
     ! coordinates and rot_axis == 2 for cylindrical coordinates.
 
-    !$gpu
-
     omega(:) = ZERO
 
     if (coord_type == 0 .or. coord_type == 1) then
