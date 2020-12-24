@@ -30,7 +30,7 @@ Castro::flame_width_properties (Real time, Real& T_max, Real& T_min, Real& grad_
         const auto temp = (*mf)[mfi].array();
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             // Assumes 1D simulation, right now. Also assumes that
             // we have at least one ghost cell in the x dimension.
@@ -100,7 +100,7 @@ Castro::flame_speed_properties (Real time, Real& rho_fuel_dot)
         const auto omegadot = (*mf)[mfi].array();
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             return {omegadot(i,j,k) * dx[0]};
         });

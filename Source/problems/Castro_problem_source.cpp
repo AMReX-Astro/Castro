@@ -130,7 +130,7 @@ Castro::fill_ext_source (const Real time, const Real dt, const MultiFab& state_o
         Array4<Real> const src = ext_src.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             problem_source(i, j, k, geomdata, snew, src, dt, time);
         });

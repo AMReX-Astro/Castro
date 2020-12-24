@@ -74,7 +74,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     auto coord = geom.Coord();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       int is_shock = 0;
@@ -189,7 +189,7 @@ Castro::riemann_state(const Box& bx,
     const Real lT_guess = T_guess;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
      eos_t eos_state;

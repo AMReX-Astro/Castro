@@ -219,7 +219,7 @@ void HypreExtMultiABec::loadMatrix()
             auto a2 = (*a2coefs[level])[idim][mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 if (idim == 0) {
                     mat(i,j,k,0) += fac * (a2(i,j,k) + a2(i+1,j,k));
@@ -247,7 +247,7 @@ void HypreExtMultiABec::loadMatrix()
             auto c = (*ccoefs[level])[idim][mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 if (idim == 0) {
                     mat(i,j,k,0) += -fac * (c(i,j,k) - c(i+1,j,k));
@@ -275,7 +275,7 @@ void HypreExtMultiABec::loadMatrix()
             auto d1 = (*d1coefs[level])[idim][mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 if (idim == 0) {
                     mat(i,j,k,1) += -fac * d1(i,j,k);
@@ -300,7 +300,7 @@ void HypreExtMultiABec::loadMatrix()
             auto d2 = (*d2coefs[level])[idim][mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 if (idim == 0) {
                     mat(i,j,k,0) += fac * (d2(i,j,k) - d2(i+1,j,k));

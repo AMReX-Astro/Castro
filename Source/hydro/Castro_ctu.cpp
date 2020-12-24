@@ -41,7 +41,7 @@ Castro::consup_hydro(const Box& bx,
   int coord = geom.Coord();
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
     Real volinv = 1.0 / vol(i,j,k);
@@ -310,7 +310,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (lo_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -331,7 +331,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (hi_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -354,7 +354,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (lo_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -375,7 +375,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (hi_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -399,7 +399,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (lo_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the left state at domlo(0) if needed -- it is outside the domain
@@ -420,7 +420,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
       if (hi_bc_test) {
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
 
           // reset the right state at domhi(0)+1 if needed -- it is outside the domain
@@ -451,7 +451,7 @@ Castro::src_to_prim(const Box& bx,
 {
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
 

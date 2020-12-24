@@ -28,7 +28,7 @@ void ca_derinertialmomentumx(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -70,7 +70,7 @@ void ca_derinertialmomentumy(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -112,7 +112,7 @@ void ca_derinertialmomentumz(const Box& bx, FArrayBox& derfab, int dcomp, int /*
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -154,7 +154,7 @@ void ca_derinertialangmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -200,7 +200,7 @@ void ca_derinertialangmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -246,7 +246,7 @@ void ca_derinertialangmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -292,7 +292,7 @@ void ca_derinertialradmomx(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -336,7 +336,7 @@ void ca_derinertialradmomy(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -380,7 +380,7 @@ void ca_derinertialradmomz(const Box& bx, FArrayBox& derfab, int dcomp, int /*nc
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         GpuArray<Real, 3> loc;
         loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
@@ -419,7 +419,7 @@ void ca_derphieff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         der(i,j,k,0) = dat(i,j,k,0) + dat(i,j,k,1);
     });
@@ -441,7 +441,7 @@ void ca_derphieffpm_p(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         der(i,j,k,0) = 0.0_rt;
 
@@ -486,7 +486,7 @@ void ca_derphieffpm_s(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         der(i,j,k,0) = 0.0_rt;
 
@@ -526,7 +526,7 @@ void ca_derrhophiGrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
     });
@@ -540,7 +540,7 @@ void ca_derrhophiRot(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
     auto const der = derfab.array();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         der(i,j,k,0) = dat(i,j,k,0) * dat(i,j,k,1);
     });
@@ -564,7 +564,7 @@ void ca_derprimarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*
     const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         // By default, assume we're not inside the star.
 
@@ -624,7 +624,7 @@ void ca_dersecondarymask(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncom
     const auto problo = geom.ProbLoArray();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         // By default, assume we're not inside the star.
 

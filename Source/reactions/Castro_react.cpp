@@ -80,7 +80,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
         if (level <= castro::reactions_max_solve_level) {
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
 
                 burn_t burn_state;
@@ -178,7 +178,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
         // Now update the state with the reactions data.
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             if (U.contains(i,j,k) && reactions.contains(i,j,k)) {
                 for (int n = 0; n < NumSpec; ++n) {
@@ -314,7 +314,7 @@ Castro::react_state(Real time, Real dt)
         auto mask = interior_mask.array(mfi);
 
         reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
 
             burn_t burn_state;

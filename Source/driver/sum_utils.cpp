@@ -53,7 +53,7 @@ Castro::volWgtSum (const std::string& name,
         //
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             return {fab(i,j,k) * vol(i,j,k)};
         });
@@ -106,7 +106,7 @@ Castro::volWgtSquaredSum (const std::string& name,
         //
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             return {fab(i,j,k) * fab(i,j,k) * vol(i,j,k)};
         });
@@ -162,7 +162,7 @@ Castro::locWgtSum (const std::string& name,
         //
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real loc[3];
 
@@ -241,7 +241,7 @@ Castro::volProductSum (const std::string& name1,
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             return {fab1(i,j,k) * fab2(i,j,k) * vol(i,j,k)};
         });
@@ -291,7 +291,7 @@ Castro::locSquaredSum (const std::string& name,
         const Box& box = mfi.tilebox();
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real loc[3];
 
@@ -440,7 +440,7 @@ Castro::gwstrain (Real time,
 #endif
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Array2D<Real, 0, 2, 0, 2> dQtt{};
 

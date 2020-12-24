@@ -153,7 +153,7 @@ void RadSolve::cellCenteredApplyMetrics(int level, MultiFab& cc)
         auto cc_arr = cc[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real r, s;
             cell_center_metric(i, j, k, geomdata, r, s);
@@ -227,7 +227,7 @@ void RadSolve::levelACoeffs(int level,
       const Real dtm = 1.e0_rt / delta_t;
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real r, s;
           cell_center_metric(i, j, k, geomdata, r, s);
@@ -334,7 +334,7 @@ void RadSolve::levelBCoeffs(int level,
         auto kappa_r_arr = kappa_r[mfi].array(kcomp);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             if (idim == 0) {
 
@@ -417,7 +417,7 @@ void RadSolve::levelDCoeffs(int level, Array<MultiFab, BL_SPACEDIM>& lambda,
             auto dcf_arr = dcf[mfi].array();
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real r, s;
 
@@ -532,7 +532,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs,
       const Real dtm = 1.0_rt / delta_t;
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real ek = fkp_arr(i,j,k) * eta_arr(i,j,k);
           Real bs = etainv_arr(i,j,k) * 4.e0_rt * sigma * fkp_arr(i,j,k) * std::pow(temp_arr(i,j,k), 4);
@@ -700,7 +700,7 @@ void RadSolve::levelFlux(int level,
           Real beta = radsolve::beta;
 
           amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               if (n == 0) {
 
@@ -899,7 +899,7 @@ void RadSolve::computeBCoeffs(MultiFab& bcoefs, int idim,
       auto kappa_r_arr = kappa_r[mfi].array(kcomp);
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           if (idim == 0) {
 
@@ -971,7 +971,7 @@ void RadSolve::levelACoeffs(int level, MultiFab& kpp,
       auto kpp_arr = kpp[mfi].array(igroup);
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real r, s;
           cell_center_metric(i, j, k, geomdata, r, s);
@@ -1028,7 +1028,7 @@ void RadSolve::levelRhs(int level, MultiFab& rhs, const MultiFab& jg,
       auto rhoe_star_arr = rhoe_star[ri].array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real Hg = mugT_arr(i,j,k,igroup) * etaT_arr(i,j,k);
 

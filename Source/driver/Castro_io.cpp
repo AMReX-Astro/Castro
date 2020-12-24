@@ -277,7 +277,7 @@ Castro::restart (Amr&     papa,
                auto geomdata = geom.data();
 
                amrex::ParallelFor(bx,
-               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                {
                    // C++ problem initialization; has no effect if not implemented
                    // by a problem setup (defaults to an empty routine).
