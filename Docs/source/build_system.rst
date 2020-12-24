@@ -1,3 +1,5 @@
+.. _ch:buildsystem:
+
 *********************
 Build System Overview
 *********************
@@ -17,7 +19,7 @@ space for variables that are not used.
 General Build Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE, USE_PROB_PARAMS
+.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE
 
 These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
@@ -44,9 +46,6 @@ Most of these are parameters from AMReX.
   * ``USE_HYPRE``: compile in the Hypre library.  This will be automatically enabled
     for radiation.  You need to specify the path to the Hypre library via either
     ``HYPRE_DIR`` or ``HYPRE_OMP_DIR``.
-
-  * ``USE_PROB_PARAMS``: generate the ``probdata_module`` at runtime by parsing
-    the problem's ``_prob_params`` file.
 
 Parallelization and GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -271,14 +270,14 @@ This is the current build system process.
 
 * Problem-specific runtime parameters are parsed by ``write_probdata.py``
 
-  * If ``USE_PROB_PARAMS = TRUE``, then the ``_prob_param`` file in
-    the problem directory is parsed and used to define the Fortran
-    ``&fortin`` namelist that controls the runtime parameters for
-    problem initialization.
+  * If the problem directory defines a ``_prob_params`` then it is parsed
+    and used to define the Fortran ``&fortin`` namelist that controls the
+    runtime parameters for problem initialization. Either way, the namelist
+    will include all variables in ``Castro/Source/problems/_default_prob_params``.
 
   * The script ``Castro/Util/scripts/write_probdata.py`` is used
 
-  * The hook for this is in ``Make.Castro`` in the ``prob_params_auto.F90`` rule.
+  * The hook for this is in ``Make.auto_source`` in the ``prob_params_auto.F90`` rule.
 
   * The ``prob_params_auto.F90`` file is output into ``tmp_build_dir/castro_sources/``.
 
@@ -299,42 +298,8 @@ This is the current build system process.
     description of what each line does in the comments of the make
     file
 
-* (when ``USE_CUDA=TRUE``) Interpret the ``#pragma gpu``
-
-  * The script ``write_cuda_headers.py`` (in ``amrex/Tools/F_scripts/``) is tasked with
-    understanding our custom pragma.  Its flow is:
-
-    * Loop over all C++ files, looking for routines that are marked
-      with the pragma and return a dict keyed by the name of the
-      function with values being a list of the arguments
-
-    * Parse the headers
-
-      * preprocess all of the ``.H`` files to the ``tmp_build_dir/s/``
-        directory, giving them the prefix ``CPP-``.
-
-      * now parse the preprocessed headers, grab the function
-        signatures there, modify them with the CUDA launch, and insert
-        them into a copy of the original, unpreprocessed
-        header.  These new copies are also put in ``tmp_build_dir/s/``.
-
-      * loop through the C++ files that had the pragma, and add the
-        needed launch macro.  These new ``.cpp`` files are put in the same
-        ``tmp_build_dir/s/`` directory.
-
 * Output to stdout the git version of the sources, via
   ``describe_sources.py``.  This doesn’t affect the build process
-
-* (when ``USE+CUDA=TRUE``) Create device and host versions of each needed Fortran file. This
-  is done as each ``.F90`` file is compiled with a rule in ``Make.rules`` that
-  invokes ``gpu_fortran.py`` and then directs the compilation to build
-  that version.
-
-  * We look for a ``!$gpu`` comment in routines, and use that as an
-    indication to mark it up with a host and device version of the
-    routine
-
-  * The modified ``.F90`` files are placed in ``tmp_build_dir/s/``
 
 For all of this to work, we need the ``tmp_build_dir/s`` directory to
 be first in the vpath, so our modified sources are found and used.

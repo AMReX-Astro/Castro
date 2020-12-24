@@ -3,9 +3,9 @@
 
 #include <state_indices.H>
 
-#include "castro_params.H"
-#include "eos.H"
-#include "conductivity.H"
+#include <castro_params.H>
+#include <eos.H>
+#include <conductivity.H>
 
 using namespace amrex;
 
@@ -27,9 +27,11 @@ fill_temp_cond(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = U_arr(i,j,k,UFS+n) * rhoinv;
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = U_arr(i,j,k,UFX+n) * rhoinv;
     }
+#endif
 
     if (eos_state.e < 0.0_rt) {
       eos_state.T = castro::small_temp;
@@ -74,9 +76,11 @@ fill_temp_diff_coeff(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = U_arr(i,j,k,UFS+n) * rhoinv;
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = U_arr(i,j,k,UFX+n) * rhoinv;
     }
+#endif
 
     if (eos_state.e < 0.0_rt) {
       eos_state.T = castro::small_temp;

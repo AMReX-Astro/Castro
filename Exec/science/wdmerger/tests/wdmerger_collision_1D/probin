@@ -11,7 +11,6 @@
   orbital_eccentricity = 0.0d0
   orbital_angle = 0.0d0
 
-  max_center_tagging_level = 0
   max_stellar_tagging_level = 0
   max_temperature_tagging_level = 0
 
@@ -37,8 +36,6 @@
 
   use_eos_coulomb = T
   eos_input_is_constant = T
-
-  burning_mode = 1
 
   do_constant_volume_burn = T
   call_eos_in_rhs = T

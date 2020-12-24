@@ -8,7 +8,7 @@ through meth_params_module.
 
 parameters have the format:
 
-  name  type  default  need-in-fortran?  ifdef fortran-name  fortran-type
+  name  type  default  need-in-fortran?  ifdef
 
 the first three (name, type, default) are mandatory:
 
@@ -26,10 +26,6 @@ the next are optional:
    need-in-fortran: if "y" then we do a pp.query() in meth_params_nd.F90
 
    ifdef: only define this parameter if the name provided is #ifdef-ed
-
-   fortran-name: if a different variable name in Fortran, specify here
-
-   fortran-type: if a different data type in Fortran, specify here
 
 Any line beginning with a "#" is ignored
 
@@ -94,7 +90,7 @@ class Param:
                  cpp_var_name=None,
                  namespace=None, cpp_class=None,
                  debug_default=None,
-                 in_fortran=0, f90_name=None, f90_dtype=None,
+                 in_fortran=0,
                  ifdef=None):
 
         self.name = name
@@ -113,16 +109,6 @@ class Param:
         else:
             self.ifdef = ifdef
 
-        if f90_name is None:
-            self.f90_name = name
-        else:
-            self.f90_name = f90_name
-
-        if f90_dtype is None:
-            self.f90_dtype = dtype
-        else:
-            self.f90_dtype = f90_dtype
-
     def get_declare_string(self):
         # this is the line that goes into castro_declares.H included
         # into Castro.cpp
@@ -131,7 +117,7 @@ class Param:
             tstr = "AMREX_GPU_MANAGED int         {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "bool":
             tstr = "AMREX_GPU_MANAGED bool        {}::{}".format(self.namespace, self.cpp_var_name)
-        elif self.dtype == "Real":
+        elif self.dtype == "real":
             tstr = "AMREX_GPU_MANAGED amrex::Real {}::{}".format(self.namespace, self.cpp_var_name)
         elif self.dtype == "string":
             tstr = "std::string {}::{}".format(self.namespace, self.cpp_var_name)
@@ -172,18 +158,18 @@ class Param:
 
         if self.debug_default is not None:
             debug_default = self.debug_default
-            if self.dtype == "Real":
+            if self.dtype == "real":
                 if "d" in debug_default:
                     debug_default = debug_default.replace("d", "e")
                 debug_default += "_rt"
 
         default = self.default
-        if self.dtype == "Real":
+        if self.dtype == "real":
             if "d" in default:
                 default = default.replace("d", "e")
             default += "_rt"
 
-        name = self.f90_name
+        name = self.name
 
         # for a character, we need to allocate its length.  We allocate
         # to 1, and the Fortran parmparse will resize
@@ -203,19 +189,6 @@ class Param:
 
         return ostr
 
-    def get_cuda_managed_string(self):
-        """this is the string that sets the variable as managed for CUDA"""
-        if self.f90_dtype == "string":
-            return "\n"
-
-        cstr = ""
-        if self.ifdef is not None:
-            cstr += "#ifdef {}\n".format(self.ifdef)
-        cstr += "attributes(managed) :: {}\n".format(self.f90_name)
-        if self.ifdef is not None:
-            cstr += "#endif\n"
-        return cstr
-
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
         # the value of the runtime parameter from the inputs file.
@@ -225,7 +198,7 @@ class Param:
         if language == "C++":
             ostr += "pp.query(\"{}\", {}::{});\n".format(self.name, self.namespace, self.cpp_var_name)
         elif language == "F90":
-            ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.f90_name)
+            ostr += "    call pp%query(\"{}\", {})\n".format(self.name, self.name)
         else:
             sys.exit("invalid language choice in get_query_string")
 
@@ -257,7 +230,7 @@ class Param:
             tstr = "extern AMREX_GPU_MANAGED int {};\n".format(self.cpp_var_name)
         elif self.dtype == "bool":
             tstr = "extern AMREX_GPU_MANAGED bool {};\n".format(self.cpp_var_name)
-        elif self.dtype == "Real":
+        elif self.dtype == "real":
             tstr = "extern AMREX_GPU_MANAGED amrex::Real {};\n".format(self.cpp_var_name)
         elif self.dtype == "string":
             tstr = "extern std::string {};\n".format(self.cpp_var_name)
@@ -275,16 +248,16 @@ class Param:
         if not self.in_fortran:
             return None
 
-        if self.f90_dtype == "int":
-            tstr = "integer,  allocatable, save :: {}\n".format(self.f90_name)
-        elif self.f90_dtype == "Real":
-            tstr = "real(rt), allocatable, save :: {}\n".format(self.f90_name)
-        elif self.f90_dtype == "logical":
-            tstr = "logical,  allocatable, save :: {}\n".format(self.f90_name)
-        elif self.f90_dtype == "string":
-            tstr = "character (len=:), allocatable, save :: {}\n".format(self.f90_name)
+        if self.dtype == "int":
+            tstr = "integer,  allocatable, save :: {}\n".format(self.name)
+        elif self.dtype == "real":
+            tstr = "real(rt), allocatable, save :: {}\n".format(self.name)
+        elif self.dtype == "logical":
+            tstr = "logical,  allocatable, save :: {}\n".format(self.name)
+        elif self.dtype == "string":
+            tstr = "character (len=:), allocatable, save :: {}\n".format(self.name)
             print("warning: string parameter {} will not be available on the GPU".format(
-                self.f90_name))
+                self.name))
         else:
             sys.exit("unsupported datatype for Fortran: {}".format(self.name))
 
@@ -318,36 +291,23 @@ def write_meth_module(plist, meth_template, out_directory):
     for p in param_decls:
         decls += "  {}".format(p)
 
-    cuda_managed_decls = [p.get_cuda_managed_string() for p in plist if p.in_fortran == 1]
-
-    cuda_managed_string = ""
-    for p in cuda_managed_decls:
-        cuda_managed_string += "{}".format(p)
-
     for line in mt:
         if line.find("@@f90_declarations@@") > 0:
             mo.write(decls)
-
-            # Do the CUDA managed declarations
-
-            mo.write("\n")
-            mo.write("#ifdef AMREX_USE_CUDA\n")
-            mo.write(cuda_managed_string)
-            mo.write("#endif\n")
 
             # Now do the OpenACC declarations
 
             mo.write("\n")
             mo.write("  !$acc declare &\n")
             for n, p in enumerate(params):
-                if p.f90_dtype == "string":
+                if p.dtype == "string":
                     print("warning: string parameter {} will not be on the GPU".format(p.name),
                           file=sys.stderr)
                     continue
 
                 if p.ifdef is not None:
                     mo.write("#ifdef {}\n".format(p.ifdef))
-                mo.write("  !$acc create({})".format(p.f90_name))
+                mo.write("  !$acc create({})".format(p.name))
 
                 if n != len(params)-1:
                     mo.write(" &\n")
@@ -400,13 +360,13 @@ def write_meth_module(plist, meth_template, out_directory):
             mo.write("\n")
 
             for n, p in enumerate(params):
-                if p.f90_dtype == "string":
+                if p.dtype == "string":
                     continue
 
                 if p.ifdef is not None:
                     mo.write("#ifdef {}\n".format(p.ifdef))
 
-                mo.write("    !$acc update device({})\n".format(p.f90_name))
+                mo.write("    !$acc update device({})\n".format(p.name))
 
                 if p.ifdef is not None:
                     mo.write("#endif\n")
@@ -416,8 +376,8 @@ def write_meth_module(plist, meth_template, out_directory):
             params_free = [q for q in params if q.in_fortran == 1]
 
             for p in params_free:
-                mo.write("    if (allocated({})) then\n".format(p.f90_name))
-                mo.write("        deallocate({})\n".format(p.f90_name))
+                mo.write("    if (allocated({})) then\n".format(p.name))
+                mo.write("        deallocate({})\n".format(p.name))
                 mo.write("    end if\n")
 
             mo.write("\n\n")
@@ -473,7 +433,7 @@ def parse_params(infile, meth_template, out_directory):
         else:
             cpp_var_name = name
 
-        dtype = fields[1]
+        dtype = fields[1].lower()
 
         default = fields[2]
         if default[0] == "(":
@@ -496,16 +456,6 @@ def parse_params(infile, meth_template, out_directory):
         except IndexError:
             ifdef = None
 
-        try:
-            f90_name = fields[5]
-        except IndexError:
-            f90_name = None
-
-        try:
-            f90_dtype = fields[6]
-        except IndexError:
-            f90_dtype = None
-
         if namespace is None:
             sys.exit("namespace not set")
 
@@ -514,7 +464,7 @@ def parse_params(infile, meth_template, out_directory):
                             namespace=namespace,
                             cpp_class=cpp_class,
                             debug_default=debug_default,
-                            in_fortran=in_fortran, f90_name=f90_name, f90_dtype=f90_dtype,
+                            in_fortran=in_fortran,
                             ifdef=ifdef))
 
 
@@ -574,7 +524,7 @@ def parse_params(infile, meth_template, out_directory):
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cp.write(p.get_decl_string())
                 cp.write("#endif\n")
-        cp.write("};\n\n")
+        cp.write("}\n\n")
         cp.write("#endif\n")
         cp.close()
 

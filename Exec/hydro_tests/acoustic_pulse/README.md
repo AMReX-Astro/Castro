@@ -3,6 +3,11 @@
 This is the acoustic pulse problem from McCorquodale & Colella 2011.
 We use this to measure convergence.
 
+Note: for DIM > 1, you can still run this in a "1-d" mode by
+setting the probin parameter init_as_1d to 1, 2, or 3, to just
+do the pulse in that coordinate direction.
+
+
 # Convergence testing
 
 Here we detail the procedure used for convergence testing at NERSC and

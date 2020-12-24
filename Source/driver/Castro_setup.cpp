@@ -1,21 +1,24 @@
 #include <cstdio>
 
-#include "AMReX_LevelBld.H"
+#include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include "eos.H"
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_bc_fill_nd_F.H"
-#include "Castro_bc_fill_nd.H"
-#include "Castro_generic_fill.H"
-#include "Derive.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_bc_fill_nd_F.H>
+#include <Castro_bc_fill_nd.H>
+#include <Castro_generic_fill.H>
+#include <Derive.H>
 #ifdef RADIATION
-# include "Radiation.H"
-# include "RAD_F.H"
+#include <Radiation.H>
+#include <RAD_F.H>
+#include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
 
-#include "AMReX_buildInfo.H"
+#include <AMReX_buildInfo.H>
+#include <microphysics_F.H>
+#include <eos.H>
+#include <prob_parameters_F.H>
 
 using std::string;
 using namespace amrex;
@@ -199,6 +202,16 @@ Castro::variableSetUp ()
   // initializations (e.g., set phys_bc)
   read_params();
 
+  // read the probdata parameters
+  const int probin_file_length = probin_file.length();
+  Vector<int> probin_file_name(probin_file_length);
+
+  for (int i = 0; i < probin_file_length; i++) {
+    probin_file_name[i] = probin_file[i];
+  }
+
+  probdata_init(probin_file_name.dataPtr(), &probin_file_length);
+
   // Read in the input values to Fortran.
   ca_set_castro_method_params();
 
@@ -226,16 +239,19 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+  // Initialize the Fortran Microphysics
+  ca_microphysics_init();
 
-  // Initialize the network
-  ca_network_init();
-#ifdef CXX_REACTIONS
+  // now initialize the C++ Microphysics
+#ifdef REACTIONS
   network_init();
 #endif
 
-  // Initialize the EOS
-  ca_eos_init();
-  eos_init();
+  eos_init(castro::small_temp, castro::small_dens);
+
+#ifdef RADIATION
+  opacity_init();
+#endif
 
   // Ensure that Castro's small variables are consistent
   // with the minimum permitted by the EOS, and vice versa.
@@ -250,9 +266,6 @@ Castro::variableSetUp ()
 
   // some consistency checks on the parameters
 #ifdef REACTIONS
-  int abort_on_failure;
-  ca_get_abort_on_failure(&abort_on_failure);
-
 #ifdef TRUE_SDC
   // for TRUE_SDC, we don't support retry, so we need to ensure that abort_on_failure = T
   if (use_retry) {
@@ -269,11 +282,6 @@ Castro::variableSetUp ()
     amrex::Error("use_retry = 0 and abort_on_failure = F is dangerous and not supported");
   }
 #endif
-#endif
-
-#ifdef REACTIONS
-  // Initialize the burner
-  burner_init();
 #endif
 
   // Initialize the amr info
@@ -294,32 +302,6 @@ Castro::variableSetUp ()
   // set the conserved, primitive, aux, and godunov indices in Fortran
   ca_set_method_params(dm);
 
-  // setup the passive maps -- this follows the same logic as the
-  // Fortran versions in ca_set_method_params
-  int ipassive = 0;
-
-  upass_map.resize(npassive);
-  qpass_map.resize(npassive);
-
-  for (int iadv = 0; iadv < NumAdv; ++iadv) {
-    upass_map[ipassive] = UFA + iadv;
-    qpass_map[ipassive] = QFA + iadv;
-    ++ipassive;
-  }
-
-  for (int ispec = 0; ispec < NumSpec; ++ispec) {
-    upass_map[ipassive] = UFS + ispec;
-    qpass_map[ipassive] = QFS + ispec;
-    ++ipassive;
-  }
-
-  for (int iaux = 0; iaux < NumAux; ++iaux) {
-    upass_map[ipassive] = UFX + iaux;
-    qpass_map[ipassive] = QFX + iaux;
-    ++ipassive;
-  }
-
-
   Real run_stop = ParallelDescriptor::second() - run_strt;
 
   ParallelDescriptor::ReduceRealMax(run_stop,ParallelDescriptor::IOProcessorNumber());
@@ -332,24 +314,12 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  // Get the center variable from the inputs and pass it directly to Fortran.
-  Vector<Real> center(BL_SPACEDIM, 0.0);
-  ParmParse ppc("castro");
-  ppc.queryarr("center",center,0,BL_SPACEDIM);
-
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
                         Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi(),center.dataPtr());
+                        dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
-
-  const int probin_file_length = probin_file.length();
-  Vector<int> probin_file_name(probin_file_length);
-
-  for (int i = 0; i < probin_file_length; i++) {
-    probin_file_name[i] = probin_file[i];
-  }
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
@@ -434,13 +404,13 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(PhiGrav_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
                          StateDescriptor::Point,NUM_GROW,3,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
@@ -450,7 +420,7 @@ Castro::variableSetUp ()
   // advance, so it behaves the same way as CTU here.
 
   store_in_checkpoint = true;
-  int source_ng;
+  int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
       source_ng = NUM_GROW;
   }
@@ -466,13 +436,13 @@ Castro::variableSetUp ()
   }
   desc_lst.addDescriptor(Source_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, source_ng, NSRC,
-                         &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                         interp, state_data_extrap, store_in_checkpoint);
 
 #ifdef ROTATION
   store_in_checkpoint = false;
   desc_lst.addDescriptor(PhiRot_Type, IndexType::TheCellType(),
                          StateDescriptor::Point, 1, 1,
-                         &cell_cons_interp, state_data_extrap,
+                         interp, state_data_extrap,
                          store_in_checkpoint);
 #endif
 
@@ -485,7 +455,7 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
-                         &cell_cons_interp,state_data_extrap,store_in_checkpoint);
+                         interp,state_data_extrap,store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -497,7 +467,7 @@ Castro::variableSetUp ()
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
                              StateDescriptor::Point, NUM_GROW, NQSRC,
-                             &cell_cons_interp, state_data_extrap, store_in_checkpoint);
+                             interp, state_data_extrap, store_in_checkpoint);
 
   }
 #endif
@@ -575,6 +545,7 @@ Castro::variableSetUp ()
       name[UFS+i] = "rho_" + short_spec_names_cxx[i];
     }
 
+#if NAUX_NET > 0
   // Get the auxiliary names from the network model.
   std::vector<std::string> aux_names;
   for (int i = 0; i < NumAux; i++) {
@@ -596,6 +567,7 @@ Castro::variableSetUp ()
       bcs[UFX+i] = bc;
       name[UFX+i] = "rho_" + aux_names[i];
     }
+#endif
 
 #ifdef SHOCK_VAR
   set_scalar_bc(bc, phys_bc);
@@ -662,7 +634,7 @@ Castro::variableSetUp ()
 
 #ifdef REACTIONS
   std::string name_react;
-  for (int i=0; i<NumSpec; ++i)
+  for (int i = 0; i < NumSpec; ++i)
     {
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
@@ -675,7 +647,7 @@ Castro::variableSetUp ()
       set_scalar_bc(bc,phys_bc);
       replace_inflow_bc(bc);
       name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_aux, bc, genericBndryFunc);
+      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
   }
 #endif
   desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
@@ -900,12 +872,15 @@ Castro::variableSetUp ()
     derive_lst.addComponent(spec_string,desc_lst,State_Type,UFS+i,1);
   }
 
+#ifndef NSE_THERMO
   //
   // Abar
+  // note: if we are using NSE thermodynamics, then abar is already an aux quantity
   //
   derive_lst.add("abar",IndexType::TheCellType(),1,ca_derabar,the_same_box);
   derive_lst.addComponent("abar",desc_lst,State_Type,URHO,1);
   derive_lst.addComponent("abar",desc_lst,State_Type,UFS,NumSpec);
+#endif
 
   //
   // Velocities
@@ -1041,12 +1016,13 @@ Castro::variableSetUp ()
 #endif 
 
 
+#if NAUX_NET > 0
   for (int i = 0; i < NumAux; i++)  {
     derive_lst.add(aux_names[i],IndexType::TheCellType(),1,ca_derspec,the_same_box);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
-
+#endif
 
   //
   // Problem-specific adds
@@ -1185,9 +1161,6 @@ Castro::variableSetUp ()
     } else {
       amrex::Error("invalid value of sdc_order");
     }
-
-    node_weights.resize(SDC_NODES);
-    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
   } else {
     amrex::Error("invalid value of sdc_quadrature");

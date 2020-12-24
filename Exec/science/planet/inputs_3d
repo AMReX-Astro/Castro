@@ -15,14 +15,12 @@ amr.n_cell           = 64 64 256
 # 2 = Outflow            5 = NoSlipWall
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 castro.lo_bc       =  0    0    1
-castro.hi_bc       =  0    0    1
+castro.hi_bc       =  0    0    2
 
 
-castro.zl_ext_bc_type = "hse"
+castro.zl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
-
-castro.zr_ext_bc_type = "interp"
 
 castro.hse_zero_vels=0
 fab.format=NATIVE_32

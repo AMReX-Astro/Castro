@@ -42,69 +42,6 @@ end subroutine ca_state_update
 
 
 
-subroutine ca_ncupdate_matter( lo, hi,  &
-     Tp_n,Tp_n_l1,Tp_n_l2,Tp_n_h1,Tp_n_h2,  &
-     Er_n,Er_n_l1,Er_n_l2,Er_n_h1,Er_n_h2,  &
-     re_s,re_s_l1,re_s_l2,re_s_h1,re_s_h2,  &
-     re_2,re_2_l1,re_2_l2,re_2_h1,re_2_h2,  &
-     etTz,etTz_l1,etTz_l2,etTz_h1,etTz_h2,  &
-      kpp, kpp_l1, kpp_l2, kpp_h1, kpp_h2,  &
-       jg,  jg_l1,  jg_l2,  jg_h1,  jg_h2,  &
-     dt)
-
-  use rad_params_module, only : ngroups, clight
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer,intent(in)::lo(2),hi(2)
-  integer,intent(in)::Tp_n_l1,Tp_n_h1,Tp_n_l2,Tp_n_h2
-  integer,intent(in)::Er_n_l1,Er_n_h1,Er_n_l2,Er_n_h2
-  integer,intent(in)::re_s_l1,re_s_h1,re_s_l2,re_s_h2
-  integer,intent(in)::re_2_l1,re_2_h1,re_2_l2,re_2_h2
-  integer,intent(in)::etTz_l1,etTz_h1,etTz_l2,etTz_h2
-  integer,intent(in):: kpp_l1, kpp_h1, kpp_l2, kpp_h2
-  integer,intent(in)::  jg_l1,  jg_h1,  jg_l2,  jg_h2
-  real(rt)                   ::Tp_n(Tp_n_l1:Tp_n_h1,Tp_n_l2:Tp_n_h2)
-  real(rt)        ,intent(in)::Er_n(Er_n_l1:Er_n_h1,Er_n_l2:Er_n_h2,0:ngroups-1)
-  real(rt)        ,intent(in)::re_s(re_s_l1:re_s_h1,re_s_l2:re_s_h2)
-  real(rt)        ,intent(in)::re_2(re_2_l1:re_2_h1,re_2_l2:re_2_h2)
-  real(rt)        ,intent(in)::etTz(etTz_l1:etTz_h1,etTz_l2:etTz_h2)
-  real(rt)        ,intent(in):: kpp( kpp_l1: kpp_h1, kpp_l2: kpp_h2,0:ngroups-1)
-  real(rt)        ,intent(in)::  jg(  jg_l1:  jg_h1,  jg_l2:  jg_h2,0:ngroups-1)
-  real(rt)        ,intent(in) :: dt
-
-   integer :: i,j,g
-   real(rt)         :: cdt1, cpT, scrch_re
-   real(rt)         :: dTemp
-   real(rt)        , parameter :: fac = 0.01e0_rt
-
-   cdt1 = 1.e0_rt / (clight * dt)
-   do j = lo(2), hi(2)
-   do i = lo(1), hi(1)
-
-      cpT = 0.e0_rt
-      do g = 0, ngroups-1
-         cpT = cpT + kpp(i,j,g)*Er_n(i,j,g) - jg(i,j,g)
-      end do
-
-      scrch_re = cpT - (re_s(i,j) - re_2(i,j)) * cdt1
-
-      dTemp = etTz(i,j)*scrch_re
-
-      if (abs(dTemp/(Tp_n(i,j)+1.e-50_rt)) > fac) then
-         dTemp = sign(fac*Tp_n(i,j), dTemp)
-      end if
-
-     Tp_n(i,j) = Tp_n(i,j) + dTemp
-
-  end do
-  end do
-
-end subroutine ca_ncupdate_matter
-
-
-
 subroutine ca_flux_face2center( lo, hi, &
      t, t_l1, t_l2, t_h1, t_h2, &
      f, f_l1, f_l2, f_h1, f_h2, &

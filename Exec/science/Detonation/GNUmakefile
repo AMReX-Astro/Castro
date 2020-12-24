@@ -11,7 +11,6 @@ USE_MPI    = FALSE
 
 USE_REACT  = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 

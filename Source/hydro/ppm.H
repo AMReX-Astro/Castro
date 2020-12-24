@@ -1,6 +1,6 @@
 
 #include <cmath>
-#include "reconstruction.H"
+#include <reconstruction.H>
 
 #ifndef _ppm_H_
 #define _ppm_H_

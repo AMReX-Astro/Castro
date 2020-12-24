@@ -1,7 +1,7 @@
-#include "Castro.H"
+#include <Castro.H>
 
 #ifdef DIFFUSION
-#include "conductivity.H"
+#include <conductivity.H>
 #endif
 
 void
@@ -869,9 +869,11 @@ Castro::fourth_add_diffusive_flux(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n] = qint(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = qint(i,j,k,QFX+n);
     }
+#endif
 
     eos(eos_input_re, eos_state);
     conductivity(eos_state);

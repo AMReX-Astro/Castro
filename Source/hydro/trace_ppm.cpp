@@ -1,9 +1,9 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #include <cmath>
@@ -113,7 +113,9 @@ Castro::trace_ppm(const Box& bx,
   // jumps that are moving toward the interface to the reference
   // state to get the full state on that interface.
 
-  int QUN, QUT, QUTT;
+  int QUN = -1;
+  int QUT = -1;
+  int QUTT = -1;
 
   if (idir == 0) {
     QUN = QU;
@@ -132,18 +134,10 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; n++){
-    qpass_map_p[n] = qpass_map[n];
-  }
-
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
   {
-
-    Real rho = q_arr(i,j,k,QRHO);
-
 
     Real cc = qaux_arr(i,j,k,QC);
 
@@ -310,7 +304,7 @@ Castro::trace_ppm(const Box& bx,
   
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-      int n = qpass_map_p[ipassive];
+      int n = qpassmap(ipassive);
 
       // Plus state on face i
       if ((idir == 0 && i >= vlo[0]) ||
@@ -531,6 +525,8 @@ Castro::trace_ppm(const Box& bx,
 #if (AMREX_SPACEDIM < 3)
     // these only apply for x states (idir = 0)
     if (idir == 0 && dloga(i,j,k) != 0.0_rt) {
+      Real rho = q_arr(i,j,k,QRHO);
+
       Real courn = dt/dx[0]*(cc+std::abs(un));
       Real eta = (1.0_rt - courn)/(cc*dt*std::abs(dloga(i,j,k)));
       Real dlogatmp = amrex::min(eta, 1.0_rt)*dloga(i,j,k);

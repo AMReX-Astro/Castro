@@ -17,6 +17,42 @@ module sdc_util
 
 contains
 
+  subroutine ca_normalize_species(lo, hi, u, u_lo, u_hi) bind(c,name='ca_normalize_species')
+
+    use network, only: nspec
+    use meth_params_module, only: NVAR, URHO, UFS
+    use amrex_constants_module, only: ONE
+    use extern_probin_module, only: small_x
+    use amrex_fort_module, only: rt => amrex_real
+
+    implicit none
+
+    integer,  intent(in   ) :: lo(3), hi(3)
+    integer,  intent(in   ) :: u_lo(3), u_hi(3)
+    real(rt), intent(inout) :: u(u_lo(1):u_hi(1),u_lo(2):u_hi(2),u_lo(3):u_hi(3),NVAR)
+
+    ! Local variables
+    integer  :: i, j, k
+    real(rt) :: xn(nspec)
+
+    do k = lo(3), hi(3)
+       do j = lo(2), hi(2)
+          do i = lo(1), hi(1)
+
+             xn = u(i,j,k,UFS:UFS+nspec-1)
+
+             xn = max(small_x * u(i,j,k,URHO), min(u(i,j,k,URHO), xn))
+
+             xn = u(i,j,k,URHO) * (xn / sum(xn))
+
+             u(i,j,k,UFS:UFS+nspec-1) = xn
+
+          enddo
+       enddo
+    enddo
+
+  end subroutine ca_normalize_species
+
 #ifdef REACTIONS
   subroutine sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
     ! this is the main interface to solving the discretized nonlinear
@@ -408,10 +444,6 @@ contains
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
-    ! update the non-reacting species
-    U_new(UFS+nspec:UFS-1+nspec) = U_old(UFS+nspec:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec:UFS-1+nspec)
-
     ! now only save the subset that participates in the nonlinear
     ! solve -- note: we include the old state in f_source
 
@@ -713,7 +745,7 @@ contains
                    U_new(:) = k_n(i,j,k,:)
                 endif
 
-                call sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
+                call sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration)
 
                 ! we solved our system to some tolerance, but let's be sure we are conservative by
                 ! reevaluating the reactions and then doing the full step update

@@ -28,29 +28,11 @@ subroutine ca_initmag(level, time, lo, hi, &
   real(rt) :: xcen, ycen, zcen
   integer  :: i, j, k
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)+1
-           mag_x(i,j,k,1) = 0.0_rt
-        end do
-     end do
-  end do
+  ! This call does nothing by default; it should be copied to a problem directory
+  ! and overwritten for the problem setup of interest.
 
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)+1
-        do i = lo(1), hi(1)
-           mag_y(i,j,k,1) = 0.0_rt
-        end do
-     end do
-  end do
-
-  do k = lo(3), hi(3)+1
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-           mag_z(i,j,k,1) = 0.0_rt
-        end do
-     end do
-  end do
+  ! Note that the B fields are nodal, so you will loop from lo to hi+1
+  ! in the field direction.
 
 end subroutine ca_initmag
 

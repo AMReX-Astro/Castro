@@ -1,6 +1,6 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <Castro_util.H>
 
 using namespace amrex;
 
@@ -149,34 +149,5 @@ void Castro::fill_rotation_field(MultiFab& phi, MultiFab& state_in, Real time)
         fill_rotational_potential(bx, phi.array(mfi), time);
 
     }
-
-}
-
-
-AMREX_GPU_HOST_DEVICE 
-void
-Castro::inertial_to_rotational_velocity_c(const int i, const int j, const int k,
-                                          const GeometryData& geomdata,
-                                          const Real* center,
-                                          const Real* omega,
-                                          const Real time, Real* v) {
-
-  // Given a velocity vector in the inertial frame, transform it to a
-  // velocity vector in the rotating frame.
-
-  // Note: this version assumes all cell-centers
-
-  GpuArray<Real, 3> loc;
-
-  position(i, j, k, geomdata, loc);
-
-  for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-    loc[dir] -= center[dir];
-  }
-
-  // do the cross product Omega x loc
-  v[0] += -(omega[1]*loc[2] - omega[2]*loc[1]);
-  v[1] += -(omega[2]*loc[0] - omega[0]*loc[2]);
-  v[2] += -(omega[0]*loc[1] - omega[1]*loc[0]);
 
 }

@@ -4,7 +4,7 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
-#include "diffusion_params.H"
+#include <diffusion_params.H>
 
 ///
 /// @class Diffusion 

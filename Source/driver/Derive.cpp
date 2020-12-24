@@ -1,11 +1,11 @@
-#include "AMReX_REAL.H"
+#include <AMReX_REAL.H>
 
-#include "Derive.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Derive.H>
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef DIFFUSION
-#include "diffusion_util.H"
+#include <diffusion_util.H>
 #endif
 
 using namespace amrex;
@@ -21,8 +21,8 @@ extern "C"
     // These routines are called in an MFIter loop, so we do not
     // need to explicitly synchronize after GPU kernels.
 
-    void ca_derpres(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_derpres(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -42,9 +42,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -52,8 +54,8 @@ extern "C"
       });
     }
 
-    void ca_dereint1(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dereint1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -74,8 +76,8 @@ extern "C"
       });
     }
 
-    void ca_dereint2(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dereint2(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -90,8 +92,8 @@ extern "C"
       });
     }
 
-    void ca_derlogden(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_derlogden(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -105,8 +107,8 @@ extern "C"
       });
     }
 
-    void ca_deruplusc(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_deruplusc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -127,9 +129,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -138,8 +142,8 @@ extern "C"
       });
     }
 
-    void ca_deruminusc(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_deruminusc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -160,9 +164,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -171,8 +177,8 @@ extern "C"
       });
     }
 
-    void ca_dersoundspeed(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                          const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dersoundspeed(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                          const FArrayBox& datfab, const Geometry& /*geomdata*/,
                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -193,9 +199,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -205,8 +213,8 @@ extern "C"
     }
 
 
-    void ca_dergamma1(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dergamma1(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -227,9 +235,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -238,8 +248,8 @@ extern "C"
       });
     }
 
-    void ca_dermachnumber(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                          const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dermachnumber(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                          const FArrayBox& datfab, const Geometry& /*geomdata*/,
                           Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -260,9 +270,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -274,8 +286,8 @@ extern "C"
       });
     }
 
-    void ca_derentropy(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_derentropy(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -296,9 +308,11 @@ extern "C"
         for (int n = 0; n < NumSpec; n++) {
           eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; n++) {
           eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
         }
+#endif
 
         eos(eos_input_re, eos_state);
 
@@ -307,8 +321,8 @@ extern "C"
     }
 
 #ifdef DIFFUSION
-    void ca_dercond(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dercond(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -319,8 +333,8 @@ extern "C"
 
     }
 
-    void ca_derdiffcoeff(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_derdiffcoeff(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -331,7 +345,7 @@ extern "C"
 
     }
 
-    void ca_derdiffterm(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+    void ca_derdiffterm(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                         const FArrayBox& datfab, const Geometry& geomdata,
                         Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -419,7 +433,7 @@ extern "C"
 #endif
 
 #ifdef REACTIONS
-    void ca_derenuctimescale(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+    void ca_derenuctimescale(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                              const FArrayBox& datfab, const Geometry& geomdata,
                              Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -461,9 +475,11 @@ extern "C"
           for (int n = 0; n < NumSpec; n++) {
             eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
           }
+#if NAUX_NET > 0
           for (int n = 0; n < NumAux; n++) {
             eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
           }
+#endif
 
           eos(eos_input_re, eos_state);
 
@@ -479,14 +495,12 @@ extern "C"
       });
     }
 
-    void ca_derenuc(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_derenuc(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
       auto const dat = datfab.array();
       auto const der = derfab.array();
-
-      auto dx = geomdata.CellSizeArray();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
@@ -499,8 +513,8 @@ extern "C"
     }
 #endif
 
-    void ca_dervel(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                   const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dervel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -515,8 +529,8 @@ extern "C"
     }
 
 
-    void ca_dermagvel(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                      const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dermagvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -536,8 +550,8 @@ extern "C"
     }
 
 
-    void ca_dermaggrav(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                       const FArrayBox& datfab, const Geometry& geomdata,
+    void ca_dermaggrav(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                       const FArrayBox& datfab, const Geometry& /*geomdata*/,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -555,7 +569,7 @@ extern "C"
       });
     }
 
-    void ca_derradialvel(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+    void ca_derradialvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                          const FArrayBox& datfab, const Geometry& geomdata,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -566,25 +580,20 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
         Real y = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
         Real z = 0.0_rt;
 #endif
@@ -615,7 +624,7 @@ extern "C"
     }
 
 
-    void ca_dercircvel(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+    void ca_dercircvel(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                        const FArrayBox& datfab, const Geometry& geomdata,
                        Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -626,25 +635,20 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
-
       auto problo = geomdata.ProbLoArray();
 
       amrex::ParallelFor(bx,
       [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
       {
 
-        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - center[0];
+        Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 #if AMREX_SPACEDIM >= 2
-        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - center[1];
+        Real y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
 #else
         Real y = 0.0_rt;
 #endif
 #if AMREX_SPACEDIM == 3
-        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - center[2];
+        Real z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
 #else
         Real z = 0.0_rt;
 #endif
@@ -685,8 +689,8 @@ extern "C"
     }
 
 
-  void ca_dermagmom(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                    const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_dermagmom(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
                     Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -704,7 +708,7 @@ extern "C"
                        });
   }
 
-  void ca_derangmomx (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomx (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -712,10 +716,6 @@ extern "C"
     int idir = 0;
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
-
-    // center calculated like advection_utils.cpp
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     auto const dat = datfab.array();
     auto const L = derfab.array();
@@ -742,10 +742,10 @@ extern "C"
 #endif
 
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
-                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity_c
+                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
                            L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
                          }
@@ -760,7 +760,7 @@ extern "C"
 
   }
 
-  void ca_derangmomy (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomy (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -769,9 +769,6 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
@@ -794,7 +791,7 @@ extern "C"
                          loc[2] = 0.0_rt;
 #endif
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
@@ -811,7 +808,7 @@ extern "C"
 
   }
 
-  void ca_derangmomz (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derangmomz (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                       const FArrayBox& datfab, const Geometry& geomdata,
                       Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -820,9 +817,6 @@ extern "C"
     auto dx     = geomdata.CellSizeArray();
     auto problo = geomdata.ProbLoArray();
 
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
-
     auto const dat = datfab.array();
     auto const L = derfab.array();
 
@@ -846,7 +840,7 @@ extern "C"
 #endif
 
                          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-                           loc[dir] -= center[dir];
+                           loc[dir] -= problem::center[dir];
                          }
 
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
@@ -863,7 +857,7 @@ extern "C"
 
   }
 
-  void ca_derkineng (const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derkineng (const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                      const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
@@ -881,21 +875,21 @@ extern "C"
 
   }
 
-  void ca_dernull(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                  const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                  const int* lo, const int* hi,
-                  const int* domain_lo, const int* domain_hi,
-                  const Real* delta, const Real* xlo,
-                  const Real* time, const Real* dt, const int* bcrec,
-                  const int* level, const int* grid_no)
+  void ca_dernull(Real* /*der*/, const int* /*der_lo*/, const int* /*der_hi*/, const int* /*nvar*/,
+                  const Real* /*data*/, const int* /*data_lo*/, const int* /*data_hi*/, const int* /*ncomp*/,
+                  const int* /*lo*/, const int* /*hi*/,
+                  const int* /*domain_lo*/, const int* /*domain_hi*/,
+                  const Real* /*delta*/, const Real* /*xlo*/,
+                  const Real* /*time*/, const Real* /*dt*/, const int* /*bcrec*/,
+                  const int* /*level*/, const int* /*grid_no*/)
   {
 
     // This routine is used by particle_count.  Yes it does nothing.
 
   }
 
-  void ca_derspec(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derspec(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -910,8 +904,8 @@ extern "C"
     }
 
 
-  void ca_derabar(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                  const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derabar(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
 
@@ -932,7 +926,7 @@ extern "C"
       });
     }
 
-  void ca_dermagvort(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_dermagvort(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                      const FArrayBox& datfab, const Geometry& geomdata,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -1024,7 +1018,7 @@ extern "C"
       });
     }
 
-  void ca_derdivu(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derdivu(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                          const FArrayBox& datfab, const Geometry& geomdata,
                          Real /*time*/, const int* /*bcrec*/, int /*level*/)
     {
@@ -1033,10 +1027,6 @@ extern "C"
       auto const der = derfab.array();
 
       auto dx = geomdata.CellSizeArray();
-
-      // center calculated like advection_utils.cpp
-      GpuArray<Real, 3> center;
-      ca_get_center(center.begin());
 
       auto problo = geomdata.ProbLoArray();
 
@@ -1094,8 +1084,8 @@ extern "C"
       });
   }
 
-  void ca_derstate(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                   const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derstate(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                   const FArrayBox& datfab, const Geometry& /*geomdata*/,
                    Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1120,8 +1110,8 @@ extern "C"
   }
 
 #ifdef MHD
-  void ca_dermagcenx(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_dermagcenx(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1136,8 +1126,8 @@ extern "C"
 
   }
 
-  void ca_dermagceny(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_dermagceny(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1152,8 +1142,8 @@ extern "C"
 
   }
 
-  void ca_dermagcenz(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                     const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_dermagcenz(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                     const FArrayBox& datfab, const Geometry& /*geomdata*/,
                      Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1168,8 +1158,8 @@ extern "C"
 
   }
 
-  void ca_derex(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derex(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& /*geomdata*/,
                 Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1191,8 +1181,8 @@ extern "C"
 
   }
 
-  void ca_derey(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derey(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& /*geomdata*/,
                 Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1214,8 +1204,8 @@ extern "C"
 
   }
 
-  void ca_derez(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
-                const FArrayBox& datfab, const Geometry& geomdata,
+  void ca_derez(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                const FArrayBox& datfab, const Geometry& /*geomdata*/,
                 Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {
 
@@ -1237,7 +1227,7 @@ extern "C"
 
   }
 
-  void ca_derdivb(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+  void ca_derdivb(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                   const FArrayBox& datfab, const Geometry& geomdata,
                   Real /*time*/, const int* /*bcrec*/, int /*level*/)
   {

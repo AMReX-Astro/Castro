@@ -15,7 +15,7 @@ module probdata_module
 
 end module probdata_module
 
-subroutine probdata_init(name, namlen)
+subroutine probdata_init(name, namlen) bind(C, name='probdata_init')
 
   use probdata_module
   use castro_error_module, only: castro_error
@@ -34,7 +34,7 @@ subroutine probdata_init(name, namlen)
   character (len=maxlen) :: probin_file
 
 
-  @@namelist@@
+  @@namelist_vars@@
 
   @@allocations@@
 
@@ -51,20 +51,7 @@ subroutine probdata_init(name, namlen)
   end do
 
 
-  ! read in the namelist
-  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')
-  read (unit=un, nml=fortin, iostat=status)
-
-  if (status < 0) then
-     ! the namelist does not exist, so we just go with the defaults
-     continue
-
-  else if (status > 0) then
-     ! some problem in the namelist
-     call castro_error("ERROR: problem in the fortin namelist")
-  endif
-
-  close (unit=un)
+  @@namelist_gets@@
 
 end subroutine probdata_init
 

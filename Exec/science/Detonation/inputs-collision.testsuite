@@ -64,6 +64,3 @@ castro.small_plot_per_is_exact = 1
 castro.output_at_completion = 1
 
 amr.message_int = 1
-castro.use_stopping_criterion = 1
-castro.T_stopping_criterion = 4.e9
-castro.ts_te_stopping_criterion = 1.e200

@@ -61,7 +61,7 @@ AMReX-Astrophysics Suite of open-source, adaptive mesh, performance
 portable astrophysical simulation codes.
 
 The core hydrodynamics solver in Castro [@castro] is based on the
-directionally unsplit corner transport upwind method of [@ctu] with
+directionally unsplit corner transport upwind method of @ctu with
 piecewise parabolic reconstruction [@ppm].  Modeling reactive flows in
 stellar environments is a core capability of Castro.  Astrophysical
 reaction networks are stiff and require implicit integration
@@ -107,9 +107,11 @@ thousands of GPUs [@castro_2019] and hundreds of thousands of CPU cores
 for both CPUs and GPUs, and implement our parallel loops in an abstraction
 layer provided by AMReX. An abstract parallel for loop accepts as arguments
 a range of indices and the body of the loop to execute for a given index,
-and the AMReX backend dispatches the work appropriately (e.g. one zone per
+and the AMReX backend dispatches the work appropriately (e.g., one zone per
 GPU thread). This strategy is similar to the way the Kokkos [@Kokkos] and
 RAJA [@RAJA] abstraction models provide performance portability in C++.
+
+# Statement of Need
 
 While there are a number of astrophysical hydrodynamics simulation codes, Castro
 offers a few unique features.  The original motivation for developing

@@ -1,5 +1,5 @@
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 using namespace amrex;
 
@@ -17,7 +17,7 @@ Castro::construct_old_thermo_source(MultiFab& source, MultiFab& state_in, Real t
 
   thermo_src.setVal(0.0);
 
-  fill_thermo_source(time, dt, state_in, thermo_src);
+  fill_thermo_source(state_in, thermo_src);
 
   Real mult_factor = 1.0;
 
@@ -63,7 +63,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
   //Substract off the old-time value first
   Real old_time = time - dt;
 
-  fill_thermo_source(old_time, dt, state_old, thermo_src);
+  fill_thermo_source(state_old, thermo_src);
 
   Real mult_factor = -0.5;
 
@@ -79,7 +79,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
   FillPatchIterator fpi(*this, state_new, 1, time, State_Type, 0, NUM_STATE);
   MultiFab& grown_state = fpi.get_mf();
 
-  fill_thermo_source(time, dt, grown_state, thermo_src);
+  fill_thermo_source(grown_state, thermo_src);
 
   MultiFab::Saxpy(source, mult_factor, thermo_src, 0, 0, source.nComp(), 0);
 
@@ -107,8 +107,7 @@ Castro::construct_new_thermo_source(MultiFab& source, MultiFab& state_old, Multi
 
 
 void
-Castro::fill_thermo_source (Real time, Real dt,
-                            MultiFab& state, MultiFab& thermo_src)
+Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
 {
 
   // Compute thermodynamic sources for the internal energy equation.
@@ -130,7 +129,7 @@ Castro::fill_thermo_source (Real time, Real dt,
 
     const Box& bx = mfi.tilebox();
 
-    Array4<Real const> const U = state.array(mfi);
+    Array4<Real const> const U = state_in.array(mfi);
     Array4<Real> const src = thermo_src.array(mfi);
 
 
@@ -176,9 +175,11 @@ Castro::fill_thermo_source (Real time, Real dt,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = U(i,j,k,UFS+n)/U(i,j,k,URHO);
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = U(i,j,k,UFX+n)/U(i,j,k,URHO);
       }
+#endif
 
       eos(eos_input_rt, eos_state);
 

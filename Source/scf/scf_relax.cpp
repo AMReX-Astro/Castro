@@ -1,7 +1,7 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "fundamental_constants.H"
-#include "Gravity.H"
+#include <Castro.H>
+#include <Castro_F.H>
+#include <fundamental_constants.H>
+#include <Gravity.H>
 
 using namespace amrex;
 
@@ -245,10 +245,6 @@ Castro::do_hscf_solve()
             rotational_period = 2.0 * M_PI / omega;
 
         }
-
-        // Now save the updated rotational frequency in the Fortran module.
-
-        set_rot_period(&rotational_period);
 
         // With the updated period, we can construct the updated rotational
         // potential, which will be used in the remaining steps below.

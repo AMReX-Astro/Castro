@@ -1,7 +1,7 @@
 #ifndef CASTRO_MHD_EIGEN_H
 #define CASTRO_MHD_EIGEN_H
 
-#include "mhd_util.H"
+#include <mhd_util.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void

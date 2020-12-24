@@ -3,11 +3,11 @@
 
 #include <AMReX_AmrLevel.H>
 
-#include "Castro.H"
-#include "RadTypes.H"
-#include "RadBndry.H"
-#include "MGRadBndry.H"
-#include "RadSolve.H"
+#include <Castro.H>
+#include <RadTypes.H>
+#include <RadBndry.H>
+#include <MGRadBndry.H>
+#include <RadSolve.H>
 #include <AMReX_FluxRegister.H>
 #include <AMReX_Array.H>
 
@@ -902,6 +902,8 @@ public:
                                 const amrex::Array<amrex::MultiFab,BL_SPACEDIM>& lambda,
                                 const amrex::MultiFab& Er, const amrex::MultiFab& F, int iflx);
 
+  amrex::Vector<amrex::Real> xnu, nugroup, dnugroup;
+
 protected:
 
   amrex::Amr* parent;
@@ -930,7 +932,6 @@ protected:
 ///
   amrex::Vector<std::unique_ptr<amrex::MultiFab> > dflux;
 
-  amrex::Vector<amrex::Real> xnu, nugroup, dnugroup;
   std::string group_units;
   amrex::Real group_print_factor;
 

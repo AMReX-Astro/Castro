@@ -1,0 +1,46 @@
+&fortin
+  rho_fuel = 2.d6
+  T_fuel = 5.e7
+
+  T_ash = 2.e9
+
+  fuel1_name = "hydrogen-1"
+  X_fuel1 = 0.74d0
+
+  fuel2_name = "helium-4"
+  X_fuel2 = 0.25d0
+
+  fuel3_name = "oxygen-14"
+  X_fuel3 = 3.5e-3
+
+  fuel4_name = "oxygen-15"
+  X_fuel4 = 6.5e-3
+
+  ash1_name = "nickel-56"
+  X_ash1 = 1.0d0
+  
+  pert_frac = 0.2d0
+  pert_delta = 0.05d0
+/
+&tagging
+  denerr = 1.d-7
+  dengrad = 0.01
+  max_denerr_lev = 5
+  max_dengrad_lev = 5
+
+  presserr = 1.d20
+  pressgrad = 1.d20
+  max_presserr_lev = 5
+  max_pressgrad_lev = 5
+/
+&sponge
+  sponge_upper_density = 5.0d-8
+  sponge_lower_density = 1.0d-8
+  sponge_timescale     = 1.0d-6
+  
+/
+&extern
+  rtol_spec = 1.d-10
+  atol_spec = 1.d-10
+  
+/

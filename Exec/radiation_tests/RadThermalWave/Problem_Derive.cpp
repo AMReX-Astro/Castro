@@ -1,59 +1,128 @@
-#include "AMReX_REAL.H"
+#include <AMReX_REAL.H>
 
-#include "Derive.H"
-#include "Problem_Derive_F.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Derive.H>
+#include <Problem_Derive_F.H>
+#include <Castro.H>
+#include <Castro_F.H>
+#include <fundamental_constants.H>
+#include <prob_parameters.H>
+#include <cmath>
 
 using namespace amrex;
 
-#ifdef __cplusplus
-extern "C"
+
+void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+               const FArrayBox& datfab, const Geometry& geomdata,
+               Real time, const int* /*bcrec*/, int /*level*/)
 {
+
+  const auto dx = geomdata.CellSizeArray();
+  const auto problo = geomdata.ProbLoArray();
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real loc[3] = {0.0};
+
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
+#endif
+#if AMREX_SPACEDIM == 3
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
 #endif
 
-    // Note that in the following routines, we are NOT passing
-    // several variables to Fortran that would be unused.
+    Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
 
-    // These routines are called in an MFIter loop, so we do not
-    // need to explicitly synchronize after GPU kernels.
+    Real Q = problem::Eexp / problem::rhocv;
 
-    void ca_dertexact(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* dx, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
-    {
+    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / problem::rhocv;
+    Real pe = kappa_r_exp_n + 3.0_rt;
 
-#pragma gpu
-        dertexact(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(dx), *time);
+    Real pfac = std::exp(std::lgamma(2.5_rt + 1.0_rt / pe) -
+                         std::lgamma(1.0_rt + 1.0_rt / pe) -
+                         std::lgamma(1.5_rt));
 
-    }
+    Real num = 3.0_rt * pe + 2.0_rt;
+    Real fac1 = std::pow(2.0_rt, pe - 1.0_rt) * pe * std::pow(M_PI, pe);
+    Real ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
+    Real fac2 = std::pow(pfac, pe / (3.0_rt * pe + 2.0_rt));
 
-    void ca_derterror(Real* der, const int* der_lo, const int* der_hi, const int* nvar,
-                      const Real* data, const int* data_lo, const int* data_hi, const int* ncomp,
-                      const int* lo, const int* hi,
-                      const int* domain_lo, const int* domain_hi,
-                      const Real* dx, const Real* xlo,
-                      const Real* time, const Real* dt, const int* bcrec, 
-                      const int* level, const int* grid_no)
-    {
+    Real xi0 = std::pow(num / fac1, ex1) * fac2;
 
-#pragma gpu
-        derterror(der, AMREX_INT_ANYD(der_lo), AMREX_INT_ANYD(der_hi), *nvar,
-                  data, AMREX_INT_ANYD(data_lo), AMREX_INT_ANYD(data_hi), *ncomp,
-                  AMREX_INT_ANYD(lo), AMREX_INT_ANYD(hi),
-                  AMREX_INT_ANYD(domain_lo), AMREX_INT_ANYD(domain_hi),
-                  AMREX_REAL_ANYD(dx), *time);
+    fac1 = a * std::pow(Q, pe) * amrex::max(time, 1.e-50_rt);
+    ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
 
-    }
-    
-#ifdef __cplusplus
+    Real xf = xi0 * std::pow(fac1, ex1);
+
+    Real Tbar = Q / std::pow(xf, 3);
+
+    Real Tc = std::pow(xi0, 3) * std::pow(pe * xi0 * xi0 / (6.0_rt * pe + 4.0_rt), 1.0_rt / pe) * Tbar;
+
+    der(i,j,k,0) = Tc * std::pow(amrex::max((1.e0_rt - r2 / (xf * xf)), 0.0_rt), 1.0_rt / pe);
+
+  });
 }
+
+void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
+               const FArrayBox& datfab, const Geometry& geomdata,
+               Real time, const int* /*bcrec*/, int /*level*/)
+
+{
+
+  const auto dx = geomdata.CellSizeArray();
+  const auto problo = geomdata.ProbLoArray();
+
+  auto const dat = datfab.array();
+  auto const der = derfab.array();
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  {
+
+    Real loc[3] = {0.0};
+
+    loc[0] = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+#if AMREX_SPACEDIM >= 2
+    loc[1] = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1];
 #endif
+#if AMREX_SPACEDIM == 3
+    loc[2] = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2];
+#endif
+
+    Real r2 = loc[0] * loc[0] + loc[1] * loc[1] + loc[2] * loc[2];
+
+    Real Q = problem::Eexp / problem::rhocv;
+
+    Real a = (16.0_rt * C::sigma_SB) / (3.0_rt * const_kappa_r) / problem::rhocv;
+    Real pe = kappa_r_exp_n + 3.0_rt;
+
+    Real pfac = std::exp(std::lgamma(2.5_rt + 1.0_rt / pe) -
+                         std::lgamma(1.0_rt + 1.0_rt / pe) -
+                         std::lgamma(1.5_rt));
+
+    Real num = 3.0_rt * pe + 2.0_rt;
+    Real fac1 = std::pow(2.0_rt, pe - 1.0_rt) * pe * std::pow(M_PI, pe);
+    Real ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
+    Real fac2 = std::pow(pfac, pe / (3.0_rt * pe + 2.0_rt));
+
+    Real xi0 = std::pow(num / fac1, ex1) * fac2;
+
+    fac1 = a * std::pow(Q, pe) * amrex::max(time, 1.e-50_rt);
+    ex1 = 1.0_rt / (3.0_rt * pe + 2.0_rt);
+
+    Real xf = xi0 * std::pow(fac1, ex1);
+
+    Real Tbar = Q / std::pow(xf, 3);
+
+    Real Tc = std::pow(xi0, 3) * std::pow(pe * xi0 * xi0 / (6.0_rt * pe + 4.0_rt), 1.0_rt / pe) * Tbar;
+
+    der(i,j,k,0) = dat(i,j,k,0) - Tc * std::pow(amrex::max((1.e0_rt - r2 / (xf * xf)), 0.0_rt), 1.0_rt / pe);
+
+  });
+
+}

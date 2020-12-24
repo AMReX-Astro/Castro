@@ -16,9 +16,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
-
   !get unitary vectors for k and b
   !such that b is 45 degrees from k
 

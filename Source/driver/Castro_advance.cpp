@@ -1,13 +1,13 @@
 
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
 #include <cmath>
@@ -115,15 +115,16 @@ Castro::advance (Real time,
     advance_particles(amr_iteration, time, dt);
 #endif
 
-    finalize_advance(time, dt, amr_iteration, amr_ncycle);
+    finalize_advance();
 
     return dt_new;
 }
 
 
 void
-Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::initialize_do_advance(Real time)
 {
+
     BL_PROFILE("Castro::initialize_do_advance()");
 
     // Reset the CFL violation flag.
@@ -205,7 +206,7 @@ Castro::initialize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncy
 
 
 void
-Castro::finalize_do_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::finalize_do_advance()
 {
     BL_PROFILE("Castro::finalize_do_advance()");
 
@@ -343,7 +344,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-#endif
 
 
     if (sdc_order == 4) {
@@ -354,8 +354,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #endif
     }
 
-
-#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
 
       MultiFab& S_old = get_old_data(State_Type);
@@ -426,7 +424,7 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
 
 void
-Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
+Castro::finalize_advance()
 {
     BL_PROFILE("Castro::finalize_advance()");
 
@@ -443,7 +441,6 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
 #ifdef TRUE_SDC
     q.clear();
     qaux.clear();
-#endif
 
     if (sdc_order == 4) {
       q_bar.clear();
@@ -452,6 +449,7 @@ Castro::finalize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle)
       T_cc.clear();
 #endif
     }
+#endif
 
 #ifdef RADIATION
     Erborder.clear();

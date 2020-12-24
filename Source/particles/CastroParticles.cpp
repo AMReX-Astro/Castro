@@ -2,11 +2,11 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 
-#include "particles_defaults.H"
+#include <particles_defaults.H>
 
 using namespace amrex;
 
@@ -30,8 +30,6 @@ Castro::read_particle_params ()
 {
 
   ParmParse pp("particles");
-
-#include "particles_queries.H"
 
     if (ParallelDescriptor::IOProcessor())
         if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))

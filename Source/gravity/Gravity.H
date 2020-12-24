@@ -4,7 +4,7 @@
 #include <AMReX_AmrLevel.H>
 #include <AMReX_MLLinOp.H>
 
-#include "gravity_params.H"
+#include <gravity_params.H>
 
 // This vector can be accessed on the GPU.
 using RealVector = amrex::Gpu::ManagedVector<amrex::Real>;

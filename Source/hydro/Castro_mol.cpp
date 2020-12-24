@@ -1,17 +1,16 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
 
 #ifdef RADIATION
-#include "Radiation.H"
+#include <Radiation.H>
 #endif
 
 #ifdef GRAVITY
-#include "Gravity.H"
+#include <Gravity.H>
 #endif
 
-#include "ppm.H"
-#include "slope.H"
+#include <ppm.H>
+#include <slope.H>
 
 using namespace amrex;
 
@@ -422,7 +421,9 @@ Castro::mol_ppm_reconstruct(const Box& bx,
 
 void
 Castro::mol_consup(const Box& bx,
+#ifdef SHOCK_VAR
                    Array4<Real const> const& shk,
+#endif
                    Array4<Real const> const& srcU,
                    Array4<Real> const& update,
                    const Real dt,
@@ -440,7 +441,9 @@ Castro::mol_consup(const Box& bx,
 #if AMREX_SPACEDIM == 3
                    Array4<Real const> const& area2,
 #endif
+#if AMREX_SPACEDIM <= 2
                    Array4<Real const> const& q0,
+#endif
                    Array4<Real const> const& vol) {
 
 
@@ -448,9 +451,13 @@ Castro::mol_consup(const Box& bx,
   // essentially the flux divergence.  This can be added with dt to
   // get the update
 
+#if AMREX_SPACEDIM <= 2
   const auto dx = geom.CellSizeArray();
+#endif
 
+#if AMREX_SPACEDIM == 2
   auto coord = geom.Coord();
+#endif
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept

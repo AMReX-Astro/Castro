@@ -33,9 +33,11 @@ Castro::reset_edge_state_thermo(const Box& bx,
                 for (int n = 0; n < NumSpec; ++n) {
                     eos_state.xn[n] = qedge(i,j,k,QFS+n);
                 }
+#if NAUX_NET > 0
                 for (int n = 0; n < NumAux; ++n) {
                     eos_state.aux[n] = qedge(i,j,k,QFX+n);
                 }
+#endif
 
                 eos(eos_input_rt, eos_state);
 
@@ -51,9 +53,11 @@ Castro::reset_edge_state_thermo(const Box& bx,
             for (int n = 0; n < NumSpec; ++n) {
                 eos_state.xn[n] = qedge(i,j,k,QFS+n);
             }
+#if NAUX_NET > 0
             for (int n = 0; n < NumAux; ++n) {
                 eos_state.aux[n] = qedge(i,j,k,QFX+n);
             }
+#endif
 
             eos(eos_input_re, eos_state);
 
@@ -95,9 +99,11 @@ Castro::edge_state_temp_to_pres(const Box& bx,
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = qp(i,j,k,QFS+n);
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; ++n) {
             eos_state.aux[n] = qp(i,j,k,QFX+n);
         }
+#endif
 
         eos(eos_input_rt, eos_state);
 
@@ -110,9 +116,11 @@ Castro::edge_state_temp_to_pres(const Box& bx,
         for (int n = 0; n < NumSpec; ++n) {
             eos_state.xn[n] = qm(i,j,k,QFS+n);
         }
+#if NAUX_NET > 0
         for (int n = 0; n < NumAux; ++n) {
             eos_state.aux[n] = qm(i,j,k,QFX+n);
         }
+#endif
 
         eos(eos_input_rt, eos_state);
 

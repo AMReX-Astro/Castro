@@ -1,68 +1,3 @@
-
-
-subroutine ca_network_init() bind(C, name="ca_network_init")
-    !
-    ! Binds to C function `ca_network_init`
-    !
-
-  use network, only: network_init
-#ifdef REACTIONS
-  use actual_rhs_module, only: actual_rhs_init
-#endif
-
-  call network_init()
-
-#ifdef REACTIONS
-  call actual_rhs_init()
-#endif
-
-end subroutine ca_network_init
-
-
-subroutine ca_network_finalize() bind(C, name="ca_network_finalize")
-    !
-    ! Binds to C function `ca_network_finalize`
-    !
-
-  use network, only: network_finalize
-
-  call network_finalize()
-
-end subroutine ca_network_finalize
-
-
-subroutine ca_eos_init() bind(C, name="ca_eos_init")
-
-  use meth_params_module, only: small_dens, small_temp
-  use eos_module, only: eos_init
-
-  implicit none
-
-  call eos_init(small_dens=small_dens, small_temp=small_temp)
-
-  !$acc update device(small_dens, small_temp)
-
-end subroutine ca_eos_init
-
-
-subroutine ca_eos_finalize() bind(C, name="ca_eos_finalize")
-    !
-    ! Binds to C function `ca_eos_finalize`
-    !
-
-  use eos_module, only: eos_finalize
-
-  call eos_finalize()
-
-end subroutine ca_eos_finalize
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
 subroutine ca_extern_init(name,namlen) bind(C, name="ca_extern_init")
     ! initialize the external runtime parameters in
     ! extern_probin_module
@@ -84,26 +19,21 @@ end subroutine ca_extern_init
 ! ::: ----------------------------------------------------------------
 ! :::
 
+subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
+
+  use microphysics_module
+  use meth_params_module, only: small_dens, small_temp
+  implicit none
+
+  call microphysics_init(small_dens=small_dens, small_temp=small_temp)
+
+  !$acc update device(small_dens, small_temp)
+
+end subroutine ca_microphysics_init
+
 
 
 #ifdef REACTIONS
-subroutine ca_get_abort_on_failure(abort_on_failure_in) bind(C, name="ca_get_abort_on_failure")
-
-  use extern_probin_module, only : abort_on_failure
-
-  implicit none
-
-  integer, intent(inout) :: abort_on_failure_in
-
-  if (abort_on_failure) then
-     abort_on_failure_in = 1
-  else
-     abort_on_failure_in = 0
-  endif
-
-end subroutine ca_get_abort_on_failure
-
-
 subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abort_on_failure")
 
   use extern_probin_module, only : abort_on_failure
@@ -359,42 +289,7 @@ subroutine ca_set_method_params(dm) &
 
   integer, intent(in) :: dm
 
-  integer :: iadv, ispec, iaux, ipassive
-
   integer :: ioproc
-
-
-  ! easy indexing for the passively advected quantities.  This lets us
-  ! loop over all groups (advected, species, aux) in a single loop.
-  ! Note: these sizes are the maximum size we expect for passives.
-  allocate(qpass_map(npassive))
-  allocate(upass_map(npassive))
-
-  ipassive = 1
-
-  if (nadv > 0) then
-     do iadv = 1, nadv
-        upass_map(ipassive) = UFA + iadv - 1
-        qpass_map(ipassive) = QFA + iadv - 1
-        ipassive = ipassive + 1
-     end do
-  end if
-
-  if (nspec > 0) then
-     do ispec = 1, nspec
-        upass_map(ipassive) = UFS + ispec - 1
-        qpass_map(ipassive) = QFS + ispec - 1
-        ipassive = ipassive + 1
-     end do
-  endif
-
-  if (naux > 0) then
-     do iaux = 1, naux
-        upass_map(ipassive) = UFX + iaux - 1
-        qpass_map(ipassive) = QFX + iaux - 1
-        ipassive = ipassive + 1
-     end do
-  endif
 
 
   !---------------------------------------------------------------------
@@ -452,7 +347,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
      Interior_in, Inflow_in, Outflow_in, &
      Symmetry_in, SlipWall_in, NoSlipWall_in, &
      coord_type_in, &
-     problo_in, probhi_in, center_in) &
+     problo_in, probhi_in) &
      bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
@@ -473,7 +368,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer,  intent(in) :: coord_type_in
-  real(rt), intent(in) :: problo_in(dm), probhi_in(dm), center_in(dm)
+  real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
   allocate(dim)
 
@@ -496,7 +391,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   allocate(NoSlipWall)
 
   allocate(coord_type)
-  allocate(center(3))
   allocate(problo(3))
   allocate(probhi(3))
 
@@ -511,11 +405,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   problo = ZERO
   probhi = ZERO
-  center = ZERO
 
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
-  center(1:dm) = center_in(1:dm)
 
   allocate(dg(3))
 
@@ -535,41 +427,15 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   endif
 #endif
 
-  allocate(mom_flux_has_p(3))
-
-  ! sanity check on our allocations
-#ifndef AMREX_USE_CUDA
-  if (UMZ > MAX_MOM_INDEX) then
-     call castro_error("ERROR: not enough space in comp in mom_flux_has_p")
-  endif
-#endif
-
-  ! keep track of which components of the momentum flux have pressure
-  if (dim == 1 .or. (dim == 2 .and. coord_type == 1)) then
-     mom_flux_has_p(1)%comp(UMX) = .false.
-  else
-     mom_flux_has_p(1)%comp(UMX) = .true.
-  endif
-  mom_flux_has_p(1)%comp(UMY) = .false.
-  mom_flux_has_p(1)%comp(UMZ) = .false.
-
-  mom_flux_has_p(2)%comp(UMX) = .false.
-  mom_flux_has_p(2)%comp(UMY) = .true.
-  mom_flux_has_p(2)%comp(UMZ) = .false.
-
-  mom_flux_has_p(3)%comp(UMX) = .false.
-  mom_flux_has_p(3)%comp(UMY) = .false.
-  mom_flux_has_p(3)%comp(UMZ) = .true.
 
   !$acc update device(physbc_lo, physbc_hi)
   !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
   !$acc update device(dim)
   !$acc update device(dg)
   !$acc update device(coord_type)
-  !$acc update device(center, problo, probhi)
+  !$acc update device(problo, probhi)
   !$acc update device(domlo_level, domhi_level, dx_level)
   !$acc update device(ref_ratio, n_error_buf, blocking_factor)
-  !$acc update device(mom_flux_has_p)
 
 end subroutine ca_set_problem_params
 
@@ -1057,6 +923,22 @@ subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_para
   ambient_state(UFS:UFS+nspec-1) = ambient_density * (1.0e0_rt / nspec)
 
 end subroutine ca_get_ambient_params
+
+
+
+subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
+
+  use amrex_fort_module, only: rt => amrex_real
+  use meth_params_module, only: NVAR
+  use ambient_module, only: ambient_state
+
+  implicit none
+
+  real(rt), intent(out) :: ambient_state_out(NVAR)
+
+  ambient_state_out(:) = ambient_state(:)
+
+end subroutine get_ambient_data
 
 
 

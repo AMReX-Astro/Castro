@@ -1,7 +1,7 @@
 #include <AMReX_ParmParse.H>
-#include "Diffusion.H"
-#include "Castro.H"
-#include "Castro_F.H"
+#include <Diffusion.H>
+#include <Castro.H>
+#include <Castro_F.H>
 #include <AMReX_MLABecLaplacian.H>
 #include <AMReX_MLMG.H>
 #include <MGutils.H>
@@ -19,32 +19,16 @@ Diffusion::Diffusion(Amr* Parent, BCRec* _phys_bc)
     area(MAX_LEV),
     phys_bc(_phys_bc)
 {
-    read_params();
     make_mg_bc();
 }
 
 Diffusion::~Diffusion() {}
 
-void
-Diffusion::read_params ()
-{
-    static bool done = false;
-
-    if (!done)
-    {
-        ParmParse pp("diffusion");
-
-#include "diffusion_queries.H"
-
-        done = true;
-    }
-}
-
 
 void 
 Diffusion::output_job_info_params(std::ostream& jobInfoFile)
 {
-#include "diffusion_job_info_tests.H"
+#include <diffusion_job_info_tests.H>
 }
 
 

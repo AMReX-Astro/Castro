@@ -1,19 +1,24 @@
-#include "Castro.H"
-#include "Castro_F.H"
-#include "Castro_util.H"
-#include "Castro_hydro_F.H"
+#include <Castro.H>
+#include <Castro_F.H>
+
+#ifdef ROTATION
+#include <Rotation.H>
+#endif
+
+#include <Castro_util.H>
+#include <advection_util.H>
 
 #ifdef HYBRID_MOMENTUM
-#include "hybrid.H"
+#include <hybrid.H>
 #endif
 
 #ifdef RADIATION
-#include "Radiation.H"
-#include "fluxlimiter.H"
-#include "rad_util.H"
+#include <Radiation.H>
+#include <fluxlimiter.H>
+#include <rad_util.H>
 #endif
 
-#include "eos.H"
+#include <eos.H>
 
 using namespace amrex;
 
@@ -34,27 +39,14 @@ Castro::ctoprim(const Box& bx,
                 Array4<Real> const& q_arr,
                 Array4<Real> const& qaux_arr) {
 
-
-  Real lsmall_dens = small_dens;
-  Real ldual_energy_eta1 = dual_energy_eta1;
-
-#ifdef ROTATION
-  int lstate_in_rotating_frame = state_in_rotating_frame;
-  int ldo_rotation = do_rotation;
-#endif
-
 #ifdef RADIATION
   int is_comoving = Radiation::comoving;
   int limiter = Radiation::limiter;
   int closure = Radiation::closure;
 #endif
 
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
-
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
+  GeometryData geomdata = geom.data();
 #endif
 
   amrex::ParallelFor(bx,
@@ -67,7 +59,7 @@ Castro::ctoprim(const Box& bx,
       std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
       std::cout << ">>> ... negative density " << uin(i,j,k,URHO) << std::endl;
       amrex::Error("Error:: advection_util_nd.f90 :: ctoprim");
-    } else if (uin(i,j,k,URHO) < lsmall_dens) {
+    } else if (uin(i,j,k,URHO) < castro::small_dens) {
       std::cout << std::endl;
       std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
       std::cout << ">>> ... small density " << uin(i,j,k,URHO) << std::endl;
@@ -100,7 +92,7 @@ Castro::ctoprim(const Box& bx,
                                                 q_arr(i,j,k,QV)*q_arr(i,j,k,QV) +
                                                 q_arr(i,j,k,QW)*q_arr(i,j,k,QW));
 
-    if ((uin(i,j,k,UEDEN) - kineng) > ldual_energy_eta1*uin(i,j,k,UEDEN)) {
+    if ((uin(i,j,k,UEDEN) - kineng) > castro::dual_energy_eta1*uin(i,j,k,UEDEN)) {
       q_arr(i,j,k,QREINT) = (uin(i,j,k,UEDEN) - kineng) * rhoinv;
     } else {
       q_arr(i,j,k,QREINT) = uin(i,j,k,UEINT) * rhoinv;
@@ -110,15 +102,13 @@ Castro::ctoprim(const Box& bx,
     // then subtract off the rotation component here.
 
 #ifdef ROTATION
-    if (ldo_rotation == 1 && lstate_in_rotating_frame != 1) {
-      Real vel[3];
+    if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
+      GpuArray<Real, 3> vel;
       for (int n = 0; n < 3; n++) {
         vel[n] = uin(i,j,k,UMX+n) * rhoinv;
       }
 
-      GeometryData geomdata = geom.data();
-
-      inertial_to_rotational_velocity_c(i, j, k, geomdata, center.begin(), omega.begin(), time, vel);
+      inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
 
       q_arr(i,j,k,QU) = vel[0];
       q_arr(i,j,k,QV) = vel[1];
@@ -148,9 +138,11 @@ Castro::ctoprim(const Box& bx,
     for (int n = 0; n < NumSpec; n++) {
       eos_state.xn[n]  = q_arr(i,j,k,QFS+n);
     }
+#if NAUX_NET > 0
     for (int n = 0; n < NumAux; n++) {
       eos_state.aux[n] = q_arr(i,j,k,QFX+n);
     }
+#endif
 
     eos(eos_input_re, eos_state);
 
@@ -252,6 +244,7 @@ Castro::shock(const Box& bx,
       div_u += 0.5_rt * (q_arr(i,j,k+1,QW) - q_arr(i,j,k-1,QW)) * dzinv;
 #endif
 
+#if AMREX_SPACEDIM <= 2
    } else if (coord_type == 1) {
 
      // r-z
@@ -266,7 +259,9 @@ Castro::shock(const Box& bx,
      div_u += 0.5_rt * (rp * q_arr(i+1,j,k,QU) - rm * q_arr(i-1,j,k,QU)) / (rc * dx[0]) +
               0.5_rt * (q_arr(i,j+1,k,QV) - q_arr(i,j-1,k,QV)) * dyinv;
 #endif
+#endif
 
+#if AMREX_SPACEDIM == 1
     } else if (coord_type == 2) {
 
       // 1-d spherical
@@ -275,6 +270,7 @@ Castro::shock(const Box& bx,
       Real rp = (i + 1 + 0.5_rt) * dx[0];
 
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
+#endif
 
 #ifndef AMREX_USE_CUDA
 
@@ -374,7 +370,10 @@ Castro::divu(const Box& bx,
   // this computes the *node-centered* divergence
 
   const auto dx = geom.CellSizeArray();
+
+#if AMREX_SPACEDIM <= 2
   const int coord_type = geom.Coord();
+#endif
 
   const auto problo = geom.ProbLoArray();
 
@@ -386,8 +385,6 @@ Castro::divu(const Box& bx,
 #endif
 #if AMREX_SPACEDIM == 3
   Real dzinv = 1.0_rt / dx[2];
-#else
-  Real dzinv = 0.0_rt;
 #endif
 
   amrex::ParallelFor(bx,
@@ -596,7 +593,16 @@ Castro::normalize_species_fluxes(const Box& bx,
     }
 
     Real fac = 1.0_rt;
-    if (sum != 0.0_rt) {
+
+    // We skip the normalization if the sum is zero or within epsilon.
+    // There can be numerical problems here if the density flux is
+    // approximately zero at the interface but not exactly, resulting in
+    // division by a small number and/or resulting in one of the species
+    // fluxes being negative because of roundoff error. There are also other
+    // terms like artificial viscosity which can cause these problems.
+    // So checking that sum is sufficiently large helps avoid this.
+
+    if (std::abs(sum) > std::numeric_limits<Real>::epsilon() * std::abs(flux(i,j,k,URHO))) {
       fac = flux(i,j,k,URHO) / sum;
     }
 
@@ -652,79 +658,6 @@ Castro::scale_rad_flux(const Box& bx,
 
 
 
-AMREX_GPU_HOST_DEVICE
-void
-Castro::dflux(const GpuArray<Real, NUM_STATE>& u,
-              const GpuArray<Real, NQ>& q,
-              int dir, int coord,
-              const GeometryData& geomdata,
-              const GpuArray<Real, 3>& center,
-              const GpuArray<int, 3>& idx,
-              GpuArray<Real, NUM_STATE>& flux)
-{
-    // Given a conservative state and its corresponding primitive state, calculate the
-    // corresponding flux in a given direction.
-
-    // Set everything to zero; this default matters because some
-    // quantities like temperature are not updated through fluxes.
-
-    for (int n = 0; n < NUM_STATE; ++n) {
-        flux[n] = 0.0_rt;
-    }
-
-    // Determine the advection speed based on the flux direction.
-
-    Real v_adv = q[QU + dir];
-
-    // Core quantities (density, momentum, energy).
-
-    flux[URHO] = u[URHO] * v_adv;
-    flux[UMX] = u[UMX] * v_adv;
-    flux[UMY] = u[UMY] * v_adv;
-    flux[UMZ] = u[UMZ] * v_adv;
-    flux[UEDEN] = (u[UEDEN] + q[QPRES]) * v_adv;
-    flux[UEINT] = u[UEINT] * v_adv;
-
-    // Optionally include the pressure term in the momentum flux.
-    // It is optional because for some geometries we cannot write
-    // the pressure term in a conservative form.
-
-    if (mom_flux_has_p(dir, dir, coord)) {
-        flux[UMX + dir] = flux[UMX + dir] + q[QPRES];
-    }
-
-    // Hybrid flux.
-
-#ifdef HYBRID_MOMENTUM
-    // Create a temporary edge-based q for this routine.
-    GpuArray<Real, NGDNV> qgdnv;
-    for (int n = 0; n < NGDNV; ++n) {
-        qgdnv[n] = 0.0_rt;
-    }
-    qgdnv[GDRHO] = q[QRHO];
-    qgdnv[GDU] = q[QU];
-    qgdnv[GDV] = q[QV];
-    qgdnv[GDW] = q[QW];
-    qgdnv[GDPRES] = q[QPRES];
-    bool cell_centered = true;
-    compute_hybrid_flux(qgdnv, geomdata, center, dir,
-                        idx[0], idx[1], idx[2],
-                        flux, cell_centered);
-#endif
-
-    // Passively advected quantities.
-
-    for (int ipassive = 0; ipassive < npassive; ++ipassive) {
-
-        int n = upassmap(ipassive);
-        flux[n] = u[n] * v_adv;
-
-    }
-
-}
-
-
-
 void
 Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          int idir,
@@ -732,7 +665,7 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
                                          Array4<Real const> const& q,
                                          Array4<Real const> const& vol,
                                          Array4<Real> const& flux,
-                                         Array4<Real const> const& area,
+                                         Array4<Real const> const& area_arr,
                                          Real dt)
 {
 
@@ -775,9 +708,6 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -866,10 +796,10 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
         // Construct cell-centered fluxes.
 
         GpuArray<Real, NUM_STATE> fluxL;
-        dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+        dflux(uL, qL, idir, coord, geomdata, idxL, fluxL);
 
         GpuArray<Real, NUM_STATE> fluxR;
-        dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+        dflux(uR, qR, idir, coord, geomdata, idxR, fluxR);
 
         // Construct the Lax-Friedrichs flux on the interface (Equation 12).
         // Note that we are using the information from Equation 9 to obtain the
@@ -884,8 +814,8 @@ Castro::limit_hydro_fluxes_on_small_dens(const Box& bx,
 
         // Coefficients of fluxes on either side of the interface.
 
-        Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-        Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+        Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+        Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
         // Obtain the one-sided update to the density, based on Hu et al., Eq. 11.
         // If we would violate the floor, then we need to limit the flux. Since the
@@ -970,7 +900,7 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
                                         Array4<Real const> const& q,
                                         Array4<Real const> const& vol,
                                         Array4<Real> const& flux,
-                                        Array4<Real const> const& area,
+                                        Array4<Real const> const& area_arr,
                                         Real dt)
 {
 
@@ -988,9 +918,6 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
     auto coord = geom.Coord();
     GeometryData geomdata = geom.data();
-
-    GpuArray<Real, 3> center;
-    ca_get_center(center.begin());
 
     Real lspeed_limit = speed_limit / (2 * AMREX_SPACEDIM);
 
@@ -1065,10 +992,10 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
         // Construct cell-centered fluxes.
 
          GpuArray<Real, NUM_STATE> fluxL;
-         dflux(uL, qL, idir, coord, geomdata, center, idxL, fluxL);
+         dflux(uL, qL, idir, coord, geomdata, idxL, fluxL);
 
          GpuArray<Real, NUM_STATE> fluxR;
-         dflux(uR, qR, idir, coord, geomdata, center, idxR, fluxR);
+         dflux(uR, qR, idir, coord, geomdata, idxR, fluxR);
 
          // Construct the Lax-Friedrichs flux on the interface.
 
@@ -1079,8 +1006,8 @@ Castro::limit_hydro_fluxes_on_large_vel(const Box& bx,
 
          // Coefficients of fluxes on either side of the interface.
 
-         Real flux_coefR = 2.0_rt * (dt / alpha) * area(i,j,k) / volR;
-         Real flux_coefL = 2.0_rt * (dt / alpha) * area(i,j,k) / volL;
+         Real flux_coefR = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volR;
+         Real flux_coefL = 2.0_rt * (dt / alpha) * area_arr(i,j,k) / volL;
 
          Real theta = 1.0_rt;
 
@@ -1155,10 +1082,9 @@ Castro::do_enforce_minimum_density(const Box& bx,
                                    Array4<Real> const& state_arr,
                                    const int verbose) {
 
+#ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
+#endif
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
@@ -1171,7 +1097,15 @@ Castro::do_enforce_minimum_density(const Box& bx,
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {
           std::cout << ">>> RESETTING NEG.  DENSITY AT " << i << ", " << j << ", " << k << std::endl;
-        } else {
+        }
+        else if (state_arr(i,j,k,URHO) == 0.0_rt) {
+          // If the density is *exactly* zero, that almost certainly means something has gone wrong,
+          // like we failed to properly fill the state data on grid creation.
+          amrex::Error("Density exactly zero at " + std::to_string(i) + ", " +
+                                                    std::to_string(j) + ", " +
+                                                    std::to_string(k));
+        }
+        else {
           std::cout << ">>> RESETTING SMALL DENSITY AT " << i << ", " << j << ", " << k << std::endl;
         }
         std::cout << ">>> FROM " << state_arr(i,j,k,URHO) << " TO " << small_dens << std::endl;
@@ -1191,9 +1125,12 @@ Castro::do_enforce_minimum_density(const Box& bx,
       for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n] = state_arr(i,j,k,UFS+n) / small_dens;
       }
+#if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
         eos_state.aux[n] = state_arr(i,j,k,UFX+n) / small_dens;
       }
+#endif
+
       eos(eos_input_rt, eos_state);
 
       state_arr(i,j,k,URHO ) = eos_state.rho;
@@ -1212,7 +1149,7 @@ Castro::do_enforce_minimum_density(const Box& bx,
       position(i, j, k, geomdata, loc);
 
       for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
-        loc[dir] -= center[dir];
+        loc[dir] -= problem::center[dir];
       }
 
       GpuArray<Real, 3> linear_mom;

@@ -12,6 +12,9 @@ extern "C"
 
 #ifndef AMREX_USE_CUDA
 
+  void ca_normalize_species
+    (const int* lo, const int* hi, BL_FORT_FAB_ARG_3D(S_new));
+
   void ca_sdc_update_advection_o4_lobatto
     (const int* lo, const int* hi,
      const amrex::Real* dt_m,

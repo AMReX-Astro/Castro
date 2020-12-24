@@ -11,8 +11,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(C, name="amre
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  call probdata_init(name, namlen)
-
   t0 = tau0 / (epsilon*c_light*kapbar)
   x0 = x0 / kapbar
   qn(0) = a_rad * Temp0**4 * c_light * kapbar * Q * p0

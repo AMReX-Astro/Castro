@@ -20,13 +20,13 @@
 #include <AMReX_AmrLevel.H>
 
 #ifdef HYPRE
-#include "_hypre_utilities.h"
+#include <_hypre_utilities.h>
 #endif
 
 #include <time.h>
 
-#include "Castro.H"
-#include "Castro_io.H"
+#include <Castro.H>
+#include <Castro_io.H>
 
 using namespace amrex;
 
@@ -67,7 +67,7 @@ main (int   argc,
 
 #ifdef HYPRE
     // Initialize Hypre.
-    HYPRE_Init(argc, argv);
+    HYPRE_Init();
 #endif
 
     BL_PROFILE_VAR("main()", pmain);
