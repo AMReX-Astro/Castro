@@ -5,8 +5,9 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+#include <particles_params.H>
 
-#include <particles_defaults.H>
+#include <particles_declares.H>
 
 using namespace amrex;
 
@@ -54,7 +55,7 @@ Castro::init_particles ()
 
         TracerPC = new AmrTracerParticleContainer(parent);
 
-        TracerPC->SetVerbose(particle_verbose);
+        TracerPC->SetVerbose(particles::particle_verbose);
 
         if (! particle_init_file.empty())
         {
@@ -96,7 +97,7 @@ Castro::ParticlePostRestart (const std::string& restart_file)
 
             TracerPC = new AmrTracerParticleContainer(parent);
 
-            TracerPC->SetVerbose(particle_verbose);
+            TracerPC->SetVerbose(particles::particle_verbose);
             //
             // We want to be able to add new particles on a restart.
             // As well as the ability to write the particles out to an ascii file.
@@ -206,11 +207,11 @@ Castro::TimestampParticles (int ngrow)
 
         // have to do it here, not in read_particle_params, because Density, ..., are set after
         // read_particle_params is called.
-        if (timestamp_density) {
+        if (particles::timestamp_density) {
             timestamp_indices.push_back(URHO);
             std::cout << "Density = " << URHO << std::endl;
         }
-        if (timestamp_temperature) {
+        if (particles::timestamp_temperature) {
             timestamp_indices.push_back(UTEMP);
             std::cout << "Temp = " << UTEMP << std::endl;
         }
