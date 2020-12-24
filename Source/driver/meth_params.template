@@ -43,19 +43,6 @@ module meth_params_module
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
 
-  ! Create versions of these variables on the GPU
-  ! the device update is then done in Castro_nd.f90
-#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))
-#ifdef RADIATION
-  attributes(managed) :: fspace_type
-  attributes(managed) :: do_inelastic_scattering
-  attributes(managed) :: comoving
-#endif
-#ifdef GRAVITY
-  attributes(managed) :: gravity_type_int
-#endif
-#endif
-
   !$acc declare &
 #ifdef RADIATION
   !$acc create(fspace_type, do_inelastic_scattering, comoving) &

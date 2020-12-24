@@ -57,6 +57,9 @@
 #ifdef MHD
 #include <problem_initialize_mhd_data.H>
 #endif
+#ifdef RADIATION
+#include <problem_initialize_rad_data.H>
+#endif
 #include <problem_tagging.H>
 
 #include <ambient.H>
@@ -80,6 +83,9 @@ Real         Castro::num_zones_advanced = 0.0;
 Vector<std::string> Castro::source_names;
 
 Vector<AMRErrorTag> Castro::custom_error_tags;
+
+Vector<std::unique_ptr<std::fstream>> Castro::data_logs;
+Vector<std::unique_ptr<std::fstream>> Castro::problem_data_logs;
 
 #ifdef TRUE_SDC
 int          Castro::SDC_NODES;
@@ -457,6 +463,39 @@ Castro::read_params ()
 #endif
 
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
+
+   // Open up Castro data logs
+   // Note that this functionality also exists in the Amr class
+   // but we implement it on our own to have a little more control.
+   // Some of these will only be filled for certain ifdefs, but
+   // we should use consistent indexing regardless of ifdefs (so some
+   // logs may be unused in a given run).
+
+   if (sum_interval > 0 && ParallelDescriptor::IOProcessor()) {
+
+       data_logs.resize(3);
+
+       data_logs[0].reset(new std::fstream);
+       data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[0]->good()) {
+           amrex::FileOpenFailed("grid_diag.out");
+       }
+
+       data_logs[1].reset(new std::fstream);
+#ifdef GRAVITY
+       data_logs[1]->open("gravity_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[1]->good()) {
+           amrex::FileOpenFailed("gravity_diag.out");
+       }
+#endif
+
+       data_logs[2].reset(new std::fstream);
+       data_logs[2]->open("species_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[2]->good()) {
+           amrex::FileOpenFailed("species_diag.out");
+       }
+
+   }
 
    ParmParse ppa("amr");
    ppa.query("probin_file",probin_file);
@@ -1400,6 +1439,27 @@ Castro::initData ()
           const Box& box = mfi.validbox();
           const int* lo  = box.loVect();
           const int* hi  = box.hiVect();
+
+          auto r = Rad_new[mfi].array();
+          auto geomdata = geom.data();
+
+          GpuArray<Real, NGROUPS+1> xnu_pass = {0.0};
+#if NGROUPS > 1
+          for (int g = 0; g <= NGROUPS; g++) {
+              xnu_pass[g] = radiation->xnu[g];
+          }
+#endif
+
+          amrex::ParallelFor(box,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          {
+              // C++ problem initialization; has no effect if not implemented
+              // by a problem setup (defaults to an empty routine).
+
+              problem_initialize_rad_data(i, j, k, r, xnu_pass, geomdata);
+
+          });
+
 
 #ifdef GPU_COMPATIBLE_PROBLEM
 
@@ -3451,9 +3511,6 @@ Castro::apply_tagging_func(TagBoxArray& tags, Real time, int jcomp)
         auto tag = tags.array(mfi);
 
         const int ncomp = dat.nComp();
-
-        const int8_t tagval   = (int8_t) TagBox::SET;
-        const int8_t clearval = (int8_t) TagBox::CLEAR;
 
         int lev = level;
 

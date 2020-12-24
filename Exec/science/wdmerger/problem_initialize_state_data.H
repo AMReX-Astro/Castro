@@ -1,37 +1,11 @@
 #ifndef problem_initialize_state_data_H
 #define problem_initialize_state_data_H
 
-#include <initial_model.H>
-
+#include <model_parser.H>
 #include <ambient.H>
-
+#ifdef ROTATION
 #include <Rotation.H>
-
-// Given a rotating frame velocity, get the inertial frame velocity.
-// Note that we simply return the original velocity if we're
-// already in the inertial frame.
-
-AMREX_GPU_HOST_DEVICE AMREX_INLINE
-GpuArray<Real, 3> inertial_velocity (const GpuArray<Real, 3>& loc,
-                                     const GpuArray<Real, 3>& vel,
-                                     Real time)
-{
-    GpuArray<Real, 3> inertial_vel{vel};
-
-    auto omega = get_omega();
-
-    if (castro::do_rotation == 1 && castro::state_in_rotating_frame == 1) {
-        GpuArray<Real, 3> dvel;
-        cross_product(omega, loc, dvel);
-        for (int n = 0; n < 3; ++n) {
-            inertial_vel[n] += dvel[n];
-        }
-    }
-
-    return inertial_vel;
-}
-
-
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -87,17 +61,28 @@ void problem_initialize_state_data (int i, int j, int k,
                        loc[1] - problem::center_P_initial[1],
                        loc[2] - problem::center_P_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::model_P, problem::radius_P, pos, dx, zone_state, problem::nsub);
+        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 0);
+        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 0);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 0);
+        }
+
+        eos(eos_input_rt, zone_state);
 
     }
     else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S ||
                                           (problem::radius_S <= max_dx && dist_S < max_dx))) {
-
         Real pos[3] = {loc[0] - problem::center_S_initial[0],
                        loc[1] - problem::center_S_initial[1],
                        loc[2] - problem::center_S_initial[2]};
 
-        interpolate_3d_from_1d(initial_model::model_S, problem::radius_S, pos, dx, zone_state, problem::nsub);
+        zone_state.rho = interpolate_3d(pos, dx, model::idens, problem::nsub, 1);
+        zone_state.T   = interpolate_3d(pos, dx, model::itemp, problem::nsub, 1);
+        for (int n = 0; n < NumSpec; ++n) {
+            zone_state.xn[n] = interpolate_3d(pos, dx, model::ispec + n, problem::nsub, 1);
+        }
+
+        eos(eos_input_rt, zone_state);
 
     }
     else {
@@ -206,7 +191,10 @@ void problem_initialize_state_data (int i, int j, int k,
             Real sinTheta = loc[problem::axis_2-1] / R_prp;
 
             GpuArray<Real, 3> vel = {state(i,j,k,UMX), state(i,j,k,UMY), state(i,j,k,UMZ)};
-            GpuArray<Real, 3> inertial_vel = inertial_velocity(loc, vel, time);
+            GpuArray<Real, 3> inertial_vel{vel};
+#ifdef ROTATION
+            rotational_to_inertial_velocity(i, j, k, geomdata, time, inertial_vel);
+#endif
             Real mag_vel = std::sqrt(inertial_vel[0] * inertial_vel[0] +
                                      inertial_vel[1] * inertial_vel[1] +
                                      inertial_vel[2] * inertial_vel[2]);

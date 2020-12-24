@@ -29,11 +29,6 @@
   center_fracy = 0.5d0
   center_fracz = 0.5d0
 
-  initial_model_dx = 6.25d5	
-  initial_model_npts = 4096
-  initial_model_mass_tol = 1.d-6
-  initial_model_hse_tol = 1.d-10
-
 /
 
 &ambient

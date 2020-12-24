@@ -25,14 +25,6 @@ void wd_update(amrex::Real time, amrex::Real dt);
 
 void volInBoundary (amrex::Real time, amrex::Real& vol_p, amrex::Real& vol_s, amrex::Real rho_cutoff, bool local = false);
 
-// Calculate gravitational wave signal.
-
-void gwstrain (amrex::Real time,
-	       amrex::Real& h_plus_1, amrex::Real& h_cross_1,
-	       amrex::Real& h_plus_2, amrex::Real& h_cross_2,
-	       amrex::Real& h_plus_3, amrex::Real& h_cross_3,
-	       bool local = false);
-
 // Computes standard dot product of two three-vectors.
 
 amrex::Real dot_product(const amrex::Real a[], const amrex::Real b[]);

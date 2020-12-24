@@ -745,7 +745,7 @@ extern "C"
                            loc[dir] -= problem::center[dir];
                          }
 
-                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity_c
+                         // Explicitly computing only the required cross-product as in inertial_to_rotational_velocity
                          if (idir == 0) { // cross_product(loc, mom): ang_mom(1)->x)
                            L(i,j,k,0) = loc[1] * dat(i,j,k,3) - loc[2] * dat(i,j,k,2);
                          }

@@ -2,19 +2,16 @@
 
  model_name =  "newmodelcpp.hse"
 
- apply_vel_field = F
- shear_vel_field = F
+ apply_vel_field = 0
+ shear_vel_field = 0
  velpert_height_loc = 0.0e0
  velpert_scale = 0e0
  velpert_amplitude = 0.0e0
  num_vortices = 2
 
- zero_vels = F
- interp_BC = F
-
  shear_height_loc = 0.99365234538e9
  shear_amplitude  = 3.863080704e5
- shear_height     = 14.0
+ shear_height     = 14
  shear_width_x    = 80.0     
  shear_width_y    = 20.0
 /

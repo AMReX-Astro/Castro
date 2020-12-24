@@ -577,6 +577,345 @@ void HypreABec::hbmat (const Box& bx,
     Gpu::synchronize();
 }
 
+void HypreABec::hbmat3 (const Box& bx,
+                        int ori_lo, int idir,
+                        Array4<GpuArray<Real, AMREX_SPACEDIM+1>> const& mat,
+                        int cdir, int bctype,
+                        Array4<int const> const& tf,
+                        Real bcl,
+                        Array4<int const> const& mask,
+                        Array4<Real const> const& b,
+                        Real beta, const GeometryData& geomdata,
+                        Real c,
+                        Array4<Real const> const& spa)
+{
+    bool xlo = false;
+    bool ylo = false;
+    bool zlo = false;
+
+    bool xhi = false;
+    bool yhi = false;
+    bool zhi = false;
+
+    const auto dx = geomdata.CellSize();
+
+    Real h;
+
+    if (AMREX_SPACEDIM == 1) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            xhi = true;
+            h = dx[0];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else if (AMREX_SPACEDIM == 2) {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 2) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 3) {
+            yhi = true;
+            h = dx[1];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+    else {
+
+        if (cdir == 0) {
+            xlo = true;
+            h = dx[0];
+        }
+        else if (cdir == 3) {
+            xhi = true;
+            h = dx[0];
+        }
+        else if (cdir == 1) {
+            ylo = true;
+            h = dx[1];
+        }
+        else if (cdir == 4) {
+            yhi = true;
+            h = dx[1];
+        }
+        else if (cdir == 2) {
+            zlo = true;
+            h = dx[2];
+        }
+        else if (cdir == 5) {
+            zhi = true;
+            h = dx[2];
+        }
+        else {
+            amrex::Error("Unknown cdir");
+        }
+
+    }
+
+    const Real fac = beta / (h * h);
+
+    // The -fac * b(i,j,k) term applied to the matrix diagonal is the contribution
+    // from the interior stencil which must be removed at the boundary.
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    {
+        Real r;
+        face_metric(i, j, k, bx.loVect()[0], bx.hiVect()[0], geomdata, idir, ori_lo, r);
+
+        int bct;
+        Real bfm, bfv;
+
+        if (mask.contains(i-1,j,k)) {
+
+            if (xlo && mask(i-1,j,k) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i-1,j,k);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i,j,k);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i,j,k);
+                mat(i,j,k)[0] = 0.e0_rt;
+
+            }
+
+        }
+        else if (mask.contains(i+1,j,k)) {
+
+            if (xhi && mask(i+1,j,k) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i+1,j,k);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i+1,j,k);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif                      
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i+1,j,k);
+
+            }
+
+        }
+        else if (mask.contains(i,j-1,k)) {
+
+            if (ylo && mask(i,j-1,k) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i,j-1,k);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i,j,k);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i,j,k);
+                mat(i,j,k)[1] = 0.e0_rt;
+
+            }
+
+        }
+        else if (mask.contains(i,j+1,k)) {
+
+            if (yhi && mask(i,j+1,k) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i,j+1,k);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i,j+1,k);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i,j+1,k);
+
+            }
+
+
+        }
+        else if (mask.contains(i,j,k-1)) {
+
+            if (zlo && mask(i,j,k-1) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i,j,k-1);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i,j,k);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i,j,k);
+                mat(i,j,k)[2] = 0.e0_rt;
+
+            }
+
+        }
+        else if (mask.contains(i,j,k+1)) {
+
+            if (zhi && mask(i,j,k+1) > 0) {
+
+                if (bctype == -1) {
+                    bct = tf(i,j,k+1);
+                }
+                else {
+                    bct = bctype;
+                }
+
+                if (bct == LO_DIRICHLET) {
+                    bfv = fac * h / (0.5e0_rt * h + bcl);
+                    bfm = bfv * b(i,j,k+1);
+                }
+                else if (bct == LO_NEUMANN) {
+                    bfm = 0.e0_rt;
+                }
+                else if (bct == LO_MARSHAK) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = 0.25e0_rt * c * bfv;
+                }
+                else if (bct == LO_SANCHEZ_POMRANING) {
+                    bfv = 2.e0_rt * beta * r / h;
+                    bfm = spa(i,j,k) * c * bfv;
+                }
+#ifndef AMREX_USE_GPU
+                else {
+                    amrex::Error("hbmat3: unsupported boundary type");
+                }
+#endif
+
+                mat(i,j,k)[AMREX_SPACEDIM] += bfm - fac * b(i,j,k+1);
+
+            }
+
+        }
+    });
+
+    Gpu::synchronize();
+}
+
 void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
   BL_PROFILE("HypreABec::setupSolver");
@@ -625,37 +964,25 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
       const Box &bbox = (*bcoefs[idim])[ai].box();
       const Box &msb  = msk.box();
       if (reg[oitr()] == domain[oitr()]) {
-        const int *tfp = NULL;
+        Array4<int const> tfp{};
         int bctype = bct;
         if (bd.mixedBndry(oitr())) {
           const BaseFab<int> &tf = *(bd.bndryTypes(oitr())[i]);
-          tfp = tf.dataPtr();
+          tfp = tf.array();
           bctype = -1;
         }
         const Box &fsb = bd.bndryValues(oitr())[ai].box();
-        Real* pSPa;
-        Box SPabox; 
+        Array4<Real const> pSPa{};
         if (SPa != 0) {
-          pSPa = (*SPa)[ai].dataPtr();
-          SPabox = (*SPa)[ai].box();
-        }
-        else {
-          pSPa = &foo;
-          SPabox = Box(IntVect::TheZeroVector(),IntVect::TheZeroVector());
+          pSPa = (*SPa)[ai].array();
         }
 
-#pragma gpu box(reg) sync
-        hbmat3(AMREX_INT_ANYD(reg.loVect()), AMREX_INT_ANYD(reg.hiVect()),
-               reg.loVect()[0], reg.hiVect()[0],
-               oitr().isLow(), idim+1,
-               mat, AMREX_INT_ANYD(matfab.loVect()), AMREX_INT_ANYD(matfab.hiVect()),
-               cdir, bctype,
-               tfp, AMREX_INT_ANYD(fsb.loVect()), AMREX_INT_ANYD(fsb.hiVect()),
-               bcl,
-               msk.dataPtr(), AMREX_INT_ANYD(msk.loVect()), AMREX_INT_ANYD(msk.hiVect()),
-               BL_TO_FORTRAN_ANYD((*bcoefs[idim])[ai]),
-               beta, AMREX_REAL_ANYD(dx), flux_factor,
-               pSPa, AMREX_INT_ANYD(SPabox.loVect()), AMREX_INT_ANYD(SPabox.hiVect()));
+        hbmat3(reg, oitr().isLow(), idim,
+               matfab.array(), cdir, bctype,
+               tfp, bcl, msk.array(),
+               (*bcoefs[idim])[ai].array(),
+               beta, geom.data(), flux_factor,
+               pSPa);
       }
       else {
           hbmat(reg, matfab.array(), cdir, bct, bcl, msk.array(), (*bcoefs[idim])[ai].array(), beta, dx);
