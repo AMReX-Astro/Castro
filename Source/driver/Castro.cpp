@@ -473,7 +473,7 @@ Castro::read_params ()
 
    if (sum_interval > 0 && ParallelDescriptor::IOProcessor()) {
 
-       data_logs.resize(3);
+       data_logs.resize(4);
 
        data_logs[0].reset(new std::fstream);
        data_logs[0]->open("grid_diag.out", std::ios::out | std::ios::app);
@@ -493,6 +493,12 @@ Castro::read_params ()
        data_logs[2]->open("species_diag.out", std::ios::out | std::ios::app);
        if (!data_logs[2]->good()) {
            amrex::FileOpenFailed("species_diag.out");
+       }
+
+       data_logs[3].reset(new std::fstream);
+       data_logs[3]->open("amr_diag.out", std::ios::out | std::ios::app);
+       if (!data_logs[3]->good()) {
+           amrex::FileOpenFailed("amr_diag.out");
        }
 
    }
