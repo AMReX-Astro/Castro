@@ -850,7 +850,7 @@ void Radiation::compute_exchange(MultiFab& exch,
         Real lc = c;
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             exch_arr(i,j,k) = fkp_arr(i,j,k) * (4.e0_rt * lsigma * std::pow(exch_arr(i,j,k), 4) - lc * Er_arr(i,j,k));
         });
@@ -895,7 +895,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
                 const Real dT_loc = dT;
 
                 amrex::ParallelFor(bx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     Real rho = state_arr(i,j,k,URHO);
                     Real temp = state_arr(i,j,k,UTEMP) + dT_loc;
@@ -936,7 +936,7 @@ void Radiation::compute_eta(MultiFab& eta, MultiFab& etainv,
             const Real fac2 = delta_t * c / dT;
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real d;
 
@@ -1003,7 +1003,7 @@ void Radiation::internal_energy_update(Real& relative, Real& absolute,
       auto frhoes_arr = frhoes[mfi].array();
 
       reduce_op.eval(bx, reduce_data,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
           Real chg = 0.e0_rt;
           Real tot = 0.e0_rt;
@@ -1150,7 +1150,7 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
         auto frhoes_arr = frhoes[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real kin = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
             state_arr(i,j,k,UEINT) = frhoes_arr(i,j,k);
@@ -1420,7 +1420,7 @@ void Radiation::get_frhoe(MultiFab& frhoe,
         auto state_arr = state[si].array();
 
         amrex::ParallelFor(reg,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             frhoe_arr(i,j,k) = state_arr(i,j,k,UEINT);
         });
@@ -1450,7 +1450,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         // Get T from rhoe; overwrite temp with T
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             if (temp_arr(i,j,k) <= 0.e0_rt)
             {
@@ -1482,7 +1482,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         const Real nu = nugroup[igroup];
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rho = state_arr(i,j,k,URHO);
             Real temp = state_arr(i,j,k,UTEMP);
@@ -1504,7 +1504,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
         int ncomp = temp[mfi].nComp();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             const Real temp_floor = 1.e-10_rt;
 
@@ -1559,7 +1559,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
           auto kpr = kappa_r[mfi].array();
 
           amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               // frhoe will be overwritten with temperature here
 
@@ -1640,7 +1640,7 @@ void Radiation::update_rosseland_from_temp(MultiFab& kappa_r,
       auto kpr = kappa_r[mfi].array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           state_arr(i,j,k,UTEMP) = temp_arr(i,j,k);
 
@@ -1683,7 +1683,7 @@ void Radiation::SGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
       auto kpr = kappa_r[mfi].array();
 
       amrex::ParallelFor(kbox,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real rho = state_arr(i,j,k,URHO);
           Real temp = state_arr(i,j,k,UTEMP);
@@ -1718,7 +1718,7 @@ void Radiation::SGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
   auto kpr = kappa_r.array();
 
   amrex::ParallelFor(kbox,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
       Real rho = state_arr(i,j,k,URHO);
       Real temp = state_arr(i,j,k,UTEMP);
@@ -2163,7 +2163,7 @@ void Radiation::scaledGradient(int level,
               auto Er_arr = Erborder[mfi].array();
 
               amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                   Real dxInv[3] = {0.0};
 
@@ -2451,7 +2451,7 @@ void Radiation::fluxLimiter(int level,
             auto lambda_arr = lambda[idim][mfi].array(lamcomp);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 lambda_arr(i,j,k) = FLDlambda(lambda_arr(i,j,k), limiter);
             });
@@ -2512,7 +2512,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             auto dcf_arr = dcf[mfi].array();
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 // Get T from rhoe
 
@@ -2551,7 +2551,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
             const Real nu = nugroup[igroup];
 
             amrex::ParallelFor(reg,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real rho = S_arr(i,j,k,URHO);
                 Real temp = S_arr(i,j,k,UTEMP);
@@ -2619,7 +2619,7 @@ void Radiation::update_dcf(MultiFab& dcf, MultiFab& etainv, MultiFab& kp, MultiF
         auto kr_arr = kr[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             dcf_arr(i,j,k) = 2.e0_rt * etainv_arr(i,j,k) * (kp_arr(i,j,k) / kr_arr(i,j,k));
         });

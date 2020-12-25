@@ -190,7 +190,7 @@ Castro::store_godunov_state(const Box& bx,
   // hydro advancement.
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // the hybrid routine uses the Godunov indices, not the full NQ state

@@ -76,7 +76,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
       auto S_new_arr = S_new[mfi].array();
 
       amrex::ParallelFor(reg,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           frhoem_arr(i,j,k) = S_new_arr(i,j,k,UEINT);
       });

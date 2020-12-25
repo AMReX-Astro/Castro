@@ -174,7 +174,7 @@ Castro::wd_update (Real time, Real dt)
           // and secondary to generate a new estimate.
 
           reduce_op.eval(box, reduce_data,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
           {
               // Add to the COM locations and velocities of the primary and secondary
               // depending on which potential dominates, ignoring unbound material.
@@ -467,7 +467,7 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
           // at zones within the Roche lobe of the white dwarf.
 
           reduce_op.eval(box, reduce_data,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
           {
               Real primary_factor = 0.0_rt;
               Real secondary_factor = 0.0_rt;
@@ -941,7 +941,7 @@ Castro::update_relaxation(Real time, Real dt) {
             Array4<Real const> const smask_arr = (*smask).array(mfi);
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 GpuArray<Real, 3> dF;
                 for (int n = 0; n < 3; ++n) {
@@ -1148,7 +1148,7 @@ Castro::update_relaxation(Real time, Real dt) {
             // turn off the external source terms.
 
             reduce_op.eval(bx, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
                 Real done = 0.0_rt;
 

@@ -361,7 +361,7 @@ void HypreABec::hacoef (const Box& bx,
                         Real alpha)
 {
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         if (alpha == 0.e0_rt) {
             mat(i,j,k)[AMREX_SPACEDIM] = 0.e0_rt;
@@ -386,7 +386,7 @@ void HypreABec::hbcoef (const Box& bx,
         const Real fac = beta / (dx[0] * dx[0]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[0] = -fac * b(i,j,k);
             mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i+1,j,k));
@@ -398,7 +398,7 @@ void HypreABec::hbcoef (const Box& bx,
         const Real fac = beta / (dx[1] * dx[1]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[1] = -fac * b(i,j,k);
             mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i,j+1,k));
@@ -410,7 +410,7 @@ void HypreABec::hbcoef (const Box& bx,
         const Real fac = beta / (dx[2] * dx[2]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[2] = -fac * b(i,j,k);
             mat(i,j,k)[AMREX_SPACEDIM] += fac * (b(i,j,k) + b(i,j,k+1));
@@ -525,7 +525,7 @@ void HypreABec::hbmat (const Box& bx,
     }
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         if (mask.contains(i-1,j,k)) {
 
@@ -677,7 +677,7 @@ void HypreABec::hbmat3 (const Box& bx,
     // from the interior stencil which must be removed at the boundary.
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         Real r;
         face_metric(i, j, k, bx.loVect()[0], bx.hiVect()[0], geomdata, idir, ori_lo, r);
@@ -1263,7 +1263,7 @@ void HypreABec::hbvec3 (const Box& bx,
     }
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         Real r;
         face_metric(i, j, k, bx.loVect()[0], bx.hiVect()[0], geomdata, idir, ori_lo, r);
@@ -1616,7 +1616,7 @@ void HypreABec::hbvec (const Box& bx,
     }
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         if (mask.contains(i-1,j,k)) {
 

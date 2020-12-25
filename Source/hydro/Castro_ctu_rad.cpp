@@ -71,7 +71,7 @@ Castro::ctu_rad_consup(const Box& bx,
   // radiation energy update.  For the moment, we actually update things
   // fully here, instead of creating a source term for the update
   amrex::ParallelFor(bx, NGROUPS,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
   {
 
     Erout(i,j,k,g) = Erin(i,j,k,g) + dt *
@@ -89,7 +89,7 @@ Castro::ctu_rad_consup(const Box& bx,
   // (and only for the radial flux);  also add the radiation pressure gradient
   // to the momentum for all directions
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // pgdnv from the Riemann solver is only the gas contribution,
@@ -187,7 +187,7 @@ Castro::ctu_rad_consup(const Box& bx,
     using ReduceTuple = typename decltype(reduce_data)::Type;
 
     reduce_op.eval(bx, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real ux = 0.5_rt * (qx(i,j,k,GDU) + qx(i+1,j,k,GDU));

@@ -42,7 +42,7 @@ Castro::estdt_cfl(const Real time)
     auto u = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -162,7 +162,7 @@ Castro::estdt_mhd()
     auto bz_arr = bz.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
@@ -276,7 +276,7 @@ Castro::estdt_temp_diffusion(void)
     auto ustate = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
                    {
 
                      if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
@@ -391,7 +391,7 @@ Castro::estdt_burning()
         // But we will call in (rho, T) mode, which is inexpensive.
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
