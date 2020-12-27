@@ -5,6 +5,9 @@
 #include <eos.H>
 #include <network.H>
 #include <actual_network.H>
+#ifdef NSE_THERMO
+#include <nse.H>
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void problem_initialize_state_data (int i, int j, int k,
@@ -62,18 +65,7 @@ void problem_initialize_state_data (int i, int j, int k,
     }
 
 #ifdef NSE_THERMO
-    Real aux[NumAux] = {0.0_rt};
-
-    for (int n = 0; n < NumSpec; n++) {
-        aux[AuxZero::iye] += xn[n] * zion[n] * aion_inv[n];
-        aux[AuxZero::iabar] += xn[n] * aion_inv[n];
-        aux[AuxZero::ibea] += xn[n] * aprox19::bion(n+1) * aion_inv[n];
-    }
-    aux[AuxZero::iabar] = 1.0_rt/aux[AuxZero::iabar];
-
-    for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = aux[n];
-    }
+    set_nse_aux_from_X(eos_state);
 #endif
 
     eos(eos_input_ps, eos_state);
@@ -89,7 +81,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
 #ifdef NSE_THERMO
     for (int n = 0; n < NumAux; n++) {
-        state(i,j,k,UFX+n) = state(i,j,k,URHO) * aux[n];
+        state(i,j,k,UFX+n) = state(i,j,k,URHO) * eos_state.aux[n];
     }
 #endif
 
