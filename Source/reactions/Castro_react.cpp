@@ -290,6 +290,12 @@ Castro::react_state(Real time, Real dt)
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
+#ifdef NSE_THERMO
+    // we need access to the reactive sources if we are doing NSE
+
+    MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+#endif
+
     reactions.setVal(0.0, reactions.nGrow());
 
     // Start off assuming a successful burn.
@@ -312,6 +318,9 @@ Castro::react_state(Real time, Real dt)
         auto asrc = A_src.array(mfi);
         auto react_src = reactions.array(mfi);
         auto mask = interior_mask.array(mfi);
+#ifdef NSE_THERMO
+        auto Iq = SDC_react_new.array(mfi);
+#endif
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -354,7 +363,12 @@ Castro::react_state(Real time, Real dt)
                 burn_state.y[SFX+n] = U_old(i,j,k,UFX+n);
             }
 #endif
-
+#if NSE_THERMO
+            for (int n = 0; n < NumAux; n++) {
+                burn_state.Iq_aux[n] = Iq(i,j,k,UFX+n);
+            }
+            burn_state.Iq_rhoe = Iq(i,j,k,UEINT);
+#endif
             // we need an initial T guess for the EOS
             burn_state.T = U_old(i,j,k,UTEMP);
 
