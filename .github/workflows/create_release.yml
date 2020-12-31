@@ -16,12 +16,12 @@ jobs:
 
       - name: Get the version
         id: get_version
-        run: echo ::set-env name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}"  >> $GITHUB_ENV
 
       - name: Set release text
         id: release_txt
         run: |
-          python3 .github/workflows/get_release_txt.py ${{ env.VERSION }}
+          python3 .github/workflows/get_release_txt.py ${{ env.VERSION }} >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release

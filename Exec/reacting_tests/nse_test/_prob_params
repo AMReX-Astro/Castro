@@ -1,14 +1,9 @@
 
-T_min          real           6.e9_rt        y
+rho0         real          1.4_rt          y
 
-T_max          real           8.e9_rt        y
+T0           real          1.0_rt          y
 
-rho_ambient    real           1.e7_rt        y
+dT_fact      real          1.5_rt          y
 
-width          real           5.e4_rt        y
+L_pert       real          0.5_rt          y
 
-cfrac          real           0.5_rt         y
-
-ofrac          real           0.0_rt         y
-
-xn             real           0.0_rt         n     (nspec, network)

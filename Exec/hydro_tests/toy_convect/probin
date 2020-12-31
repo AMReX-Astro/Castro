@@ -2,14 +2,11 @@
 
  model_name =  "toy_nova_constg_tanh2.hse.smooth_3.00.1024"
 
- apply_vel_field = T
+ apply_vel_field = 1
  velpert_height_loc = 3.95e8
  velpert_scale = 1.d6
  velpert_amplitude = 1.d3
  num_vortices = 6
-
- zero_vels = F
- interp_BC = F
 
 /
 

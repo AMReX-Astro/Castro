@@ -7,7 +7,7 @@
   u_r = 0.0d0
   rho_r = 1.d-4
 
-  use_Tinit = T
+  use_Tinit = 1
 
   idir = 1
   frac = 0.5d0

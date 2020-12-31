@@ -1,0 +1,10 @@
+rwind0              real        0.7e14_rt      y
+rwind1              real        1.e14_rt       y
+rhowind1            real        1.e-14_rt      y
+Twind1              real        1.1e3_rt       y
+rbasefac            real        0.99e0_rt      y
+
+filter_rhomax       real        -1.e20_rt      y
+filter_timemax      real        -1.e20_rt      y
+
+model_file          character   "model.input"  y

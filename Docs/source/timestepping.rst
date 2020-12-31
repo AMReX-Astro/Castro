@@ -75,15 +75,15 @@ The following parameters affect the timestep choice:
   * ``castro.initial_dt``: initial level 0 time
     step regardless of other settings (Real :math:`> 0`; unused if not set)
 
-  * ``castro.dt_cutoff``: time step below which calculation
-    will abort (Real :math:`> 0`; default: 0.0)
+  * ``castro.dt_cutoff``: as a fraction of the current simulation time,
+    the time step below which the calculation will abort (Real
+    :math:`> 0`; default: 1.e-12); typically not user-defined
 
 As an example, consider::
 
     castro.cfl = 0.9
     castro.init_shrink = 0.01
     castro.change_max = 1.1
-    castro.dt_cutoff = 1.e-20
 
 This defines the :math:`\mathtt{cfl}` parameter in :eq:`eq:cfl` to be
 0.9, but sets (via ``init_shrink``) the first timestep we take to
@@ -93,7 +93,7 @@ the hydrodynamic timestep at the start of a simulation. The
 more than 10% over a coarse timestep. Note that the time step can
 shrink by any factor; this only controls the extent to which it can
 grow. The ``dt_cutoff`` parameter will force the code to abort if
-the timestep ever drops below :math:`10^{-20}`. This is a safety
+the timestep ever drops below :math:`10^{-12}` of the current time. This is a safety
 feature—if the code hits such a small value, then something likely
 went wrong in the simulation, and by aborting, you won’t burn through
 your entire allocation before noticing that there is an issue.
@@ -197,6 +197,8 @@ Alternately, we could do::
 
 which will subcycle twice at every level (except level 0).
 
+
+.. index:: retry
 
 .. _ch:retry:
 

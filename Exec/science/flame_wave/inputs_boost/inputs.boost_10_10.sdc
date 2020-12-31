@@ -17,7 +17,7 @@ amr.n_cell           = 6144         1536
 castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 0
 
@@ -78,7 +78,7 @@ castro.change_max     = 1.1     # max time step growth
 castro.dtnuc_e = 0.1
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 0       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 

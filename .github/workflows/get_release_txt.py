@@ -34,4 +34,4 @@ if __name__ == "__main__":
             txt = txt.replace('\r', '%0D')
             txt = txt.replace('%0A   *', '%0A*')
 
-            print(f'::set-env name=RELEASE_TXT::{txt}')
+            print(f'"RELEASE_TXT=${{{txt}}}"')

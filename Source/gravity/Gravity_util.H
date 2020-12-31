@@ -188,7 +188,6 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void multipole_symmetric_add(Real x, Real y, Real z,
                              const GpuArray<Real, AMREX_SPACEDIM>& problo,
                              const GpuArray<Real, AMREX_SPACEDIM>& probhi,
-                             const GpuArray<Real, 3>& center,
                              Real rho, Real vol,
                              Array4<Real> const& qU0,
                              Array4<Real> const& qUC,
@@ -198,16 +197,16 @@ void multipole_symmetric_add(Real x, Real y, Real z,
                              Array4<Real> const& qLS,
                              int npts, int nlo, int index)
 {
-    Real xLo = (2.0_rt * (problo[0] - center[0])) / multipole::rmax - x;
+    Real xLo = (2.0_rt * (problo[0] - problem::center[0])) / multipole::rmax - x;
 
 #if AMREX_SPACEDIM >= 2
-    Real yLo = (2.0_rt * (problo[1] - center[1])) / multipole::rmax - y;
+    Real yLo = (2.0_rt * (problo[1] - problem::center[1])) / multipole::rmax - y;
 #else
     Real yLo = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-    Real zLo = (2.0_rt * (problo[2] - center[2]) ) / multipole::rmax - z;
+    Real zLo = (2.0_rt * (problo[2] - problem::center[2]) ) / multipole::rmax - z;
 #else
     Real zLo = 0.0_rt;
 #endif

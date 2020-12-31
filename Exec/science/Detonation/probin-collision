@@ -16,6 +16,10 @@
   vel = 2.0d8
 
   grav_acceleration = 1.1d8
+
+  use_early_stopping = 1
+  T_stop_cutoff = 4.d9
+  ts_te_stop_cutoff = 1.d200
 /
 
 &tagging

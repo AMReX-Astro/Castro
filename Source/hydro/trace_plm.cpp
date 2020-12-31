@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
-#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -96,7 +95,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   // Compute left and right traced states
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     bool lo_bc_test = lo_symm && ((idir == 0 && i == domlo[0]) ||

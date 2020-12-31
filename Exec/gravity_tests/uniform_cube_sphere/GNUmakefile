@@ -24,7 +24,6 @@ USE_GRAV    ?= TRUE
 
 GPU_COMPATIBLE_PROBLEM = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
 EOS_DIR     := gamma_law

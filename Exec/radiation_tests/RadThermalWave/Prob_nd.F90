@@ -9,11 +9,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
   integer,  intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
 
-  integer i
-
-  ! get the problem parameters
-  call probdata_init(name, namlen)
-
 end subroutine amrex_probinit
 
 
@@ -57,8 +52,6 @@ contains
     type(eos_t) :: eos_state
 
     integer, parameter :: nsub = 64
-
-    !$gpu
 
     Vexp = 4.e0_rt / 3.e0_rt * M_PI * rexp**3
 
@@ -191,8 +184,6 @@ contains
     real(rt), intent(inout) :: rad_state(r_lo(1):r_hi(1),r_lo(2):r_hi(2),r_lo(3):r_hi(3),0:NGROUPS-1)
 
     integer :: i, j, k
-
-    !$gpu
 
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)

@@ -9,23 +9,6 @@
 #include <AMReX_Arena.H>
 #endif
 
-#ifdef AMREX_USE_CUDA
-// Return a pointer to bc valid for use in Fortran. For the CPU this is a no-op.
-
-static int* prepare_bc(const int* bc, const int nvar)
-{
-    int* bc_f = (int*) amrex::The_Arena()->alloc(AMREX_SPACEDIM * 2 * nvar * sizeof(int));
-    AMREX_GPU_SAFE_CALL(cudaMemcpyAsync(bc_f, bc, AMREX_SPACEDIM * 2 * nvar * sizeof(int), cudaMemcpyHostToDevice, amrex::Gpu::Device::cudaStream()));
-    return bc_f;
-}
-
-static void clean_bc(int* bc_f)
-{
-    amrex::Gpu::Device::streamSynchronize();
-    amrex::The_Arena()->free(bc_f);
-}
-#endif
-
 struct CastroGenericFill
 {
     AMREX_GPU_DEVICE
@@ -41,10 +24,6 @@ struct CastroGenericFill
             // extrapolation in variableSetUp().
         }
 };
-
-namespace {
-    static CastroGenericFill castro_generic_fill_func;
-}
 
 void ca_generic_fill(amrex::Box const& bx, amrex::FArrayBox& data,
                      const int dcomp, const int numcomp,

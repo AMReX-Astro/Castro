@@ -17,6 +17,8 @@ USE_RAD = TRUE
 USE_GRAV         = TRUE
 USE_REACT        = FALSE
 
+USE_CXX_MODEL_PARSER = TRUE
+
 CASTRO_HOME = ../../..
 
 #This sets the EOS directory in $(MICROPHYSICS_HOME)/eos

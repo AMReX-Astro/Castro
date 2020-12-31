@@ -5,7 +5,7 @@ Setting Up Your Own Problem
 Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, ...).  These groups are
 sub-directories under the `Castro/Exec/` directory.  Each problem is
-then placed in a sub-directory of the appropriate group (for example, 
+then placed in a sub-directory of the appropriate group (for example,
 ``Castro/Exec/hydro_tests/Sedov`` holds the Sedov test problem).
 
 To create a new problem, you will create a new directory under one
@@ -14,7 +14,10 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` : this holds the problem initialization routines
+  * ``Prob_nd.F90`` OR ``problem_initialize.H`` and
+    ``problem_initialize_state_data.H`` : this holds the problem
+    initialization routines, which may be implemented either in Fortran
+    or in C++.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
@@ -37,7 +40,7 @@ existing problem setup into a new directory.
 
 .. index:: _prob_params
 
-Runtime parameters
+Runtime Parameters
 ------------------
 
 The problem-specific runtime parameters are defined in ``_prob_params``.
@@ -50,7 +53,7 @@ Here:
 * `name` is the name of the variable to put into ``probdata_module``
 
 * `datatype` is one of ``real``, ``integer``, ``character``, or
-  ``logical``. 
+  ``logical``.
 
 * `default` is the default value of the runtime parameter.  It may be
   overridden at runtime by reading from the namelist.
@@ -69,51 +72,50 @@ Here:
   ``(nspec, network)`` and the appropriate use statement will be
   added.
 
-.. note::
-
-   The ``GNUmakefile`` needs to have ``USE_PROB_PARAMS = TRUE`` to
-   tell the build system to parse ``_prob_params`` and write the 
-   ``probdata_module``.
-
 The variables will all be initialized for the GPU as well.
 
 
-``Prob_nd.F90``
----------------
+``Problem Initialization``
+--------------------------
 
-Here we describe the main problem initialization routines.
+Here we describe the main problem initialization routines. There are
+two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
+and you can pick either but not both (C++ is recommended since eventually
+we will switch the whole code to C++).
 
 .. index:: probdata
 
-* ``probinit()``:
+* ``amrex_probinit()`` (Fortran) or ``initialize_problem()`` (C++):
 
-  This routine is primarily responsible for reading in the ``probin``
-  file (by defining the ``&fortin`` namelist) and doing any one-time
+  This routine is primarily responsible for doing any one-time
   initialization for the problem (like reading in an
   initial model through the ``model_parser_module``—see the
   ``toy_convect`` problem setup for an example).
 
-  By convention, this is where we read and initialize the problem parameters
-  by calling ``probdata_init()``.  The parameters will then be defined in
-  ``probdata_module`` defined in ``probdata.F90``.
+  This routine can also postprocess any of the parameters defined
+  in the ``_prob_params`` file, which are defined in ``probdata_module``.
 
   .. note:: many problems set the value of the ``center()`` array
-     from ``prob_params_module`` here.  This is used to note the
+     from ``prob_params_module`` here (in C++, the ``center[]`` variable
+     from the ``problem`` namespace).  This is used to note the
      center of the problem (which does not necessarily need to be
      the center of the domain, e.g., for axisymmetric problems).
      ``center`` is used in source terms (including rotation and
      gravity) and in computing some of the derived variables (like
      angular momentum).
 
-  The arguments include the name and length of the probin file
+  In Fortran the arguments include the name and length of the probin file
   as well as the physical values of the domain's lower-left corner
-  (``problo``) and upper-right corner (``probhi``).
+  (``problo``) and upper-right corner (``probhi``). The C++ version
+  accepts no arguments, but for example ``problo`` and ``probhi`` can
+  be obtained by constructing a ``Geometry`` object using ``DefaultGeometry()``
+  and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
-* ``ca_initdata()``:
+* ``ca_initdata()`` (Fortran) or ``initialize_problem_state_data()`` (C++):
 
   This routine will initialize the state data for a single grid.
-  The inputs to this routine are:
+  In Fortran the inputs to this routine are:
 
   -  ``level``: the level of refinement of the grid we are filling
 
@@ -168,10 +170,20 @@ Filling data is typically done in a loop like::
 Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
 from the zone indices, ``i``, ``j``, and ``k``.
 
+  In C++, the arguments passed are:
+
+  - ``i``, ``j``, ``k``: the index of the zone to fill the data in
+
+  - ``state``: an array containing the simulation state data
+
+  - ``GeomData``: a ``GeometryData`` object that can be used for obtaining
+    ``dx``, ``problo``, ``probhi``, etc.
+
+  Filling data is done by simply writing to ``state(i,j,k,URHO)``, etc.
 
 .. _create:bcs:
 
-Boundary conditions
+Boundary Conditions
 -------------------
 
 .. index:: boundary conditions
@@ -185,7 +197,7 @@ direction, e.g., for 2-d as::
    castro.lo_bc       =  0   1
 
 The flag value 1 is traditionally named "inflow" by AMReX, but generally means that
-the boundary implementation is left to the user.  To tell Castro to use the 
+the boundary implementation is left to the user.  To tell Castro to use the
 hydrostatic boundary condition here, we set::
 
    castro.yl_ext_bc_type = "hse"
@@ -237,9 +249,9 @@ Optional Files
 The follow problem-specific files are optional. There are stubs for
 each of these in the main source tree.
 
--  ``Problem.f90`` :
+-  ``problem_checkpoint.H``, ``problem_restart.H`` :
 
-   This provides two routines, ``problem_checkpoint`` and
+   These provides two routines, respectively ``problem_checkpoint`` and
    ``problem_restart`` that can be used to add information to the
    checkpoint files and read it in upon restart. This is useful for
    some global problem-specific quantities. For instance, the
@@ -248,15 +260,14 @@ each of these in the main source tree.
    runtime diagnostics.
 
    The name of the checkpoint directory is passed in as an argument.
-   ``Problem_F.H`` provides the C++ interfaces for these routines.
 
--  ``problem_tagging_?d.F90``, ``problem_tagging_nd.F90``
+-  ``problem_tagging_nd.F90`` OR ``problem_tagging.H``
 
    This implements problem-specific tagging for refinement, through a
-   subroutine ``set_problem_tags``. The full hydrodynamic state
-   (State_Type) is passed in, and the problem can mark zones for
-   refinement by setting the tag variable for a zone to
-   set. An example is provided by the ``toy_convect``
+   subroutine ``set_problem_tags`` (Fortran) or function ``problem_tagging``
+   (C++). The full hydrodynamic state (State_Type) is passed in, and the
+   problem can mark zones for refinement by setting the tag variable for
+   a zone to set. An example is provided by the ``toy_convect``
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
@@ -277,7 +288,7 @@ each of these in the main source tree.
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
--  ``Prob.cpp``, ``Problem.H``, ``Problem_F.H``
+-  ``Prob.cpp``, ``Problem.H``
 
    These files provide problem-specific routines for computing global
    diagnostic information through the sum_integrated_quantities
@@ -286,4 +297,60 @@ each of these in the main source tree.
    An example is provided by ``toy_flame``, where an estimate
    of the flame speed is computed by integrating the mass of fuel on
    the grid.
+
+
+Model Parser
+------------
+
+Many problem setups begin with a 1-d initial model that is mapped onto
+the grid.  The ``model_parser.H`` provides the functions that read in
+the initial model and map it on the Castro grid.  To enable this, add::
+
+  USE_CXX_MODEL_PARSER = TRUE
+
+to the problem ``GNUmakefile``.  There are 2 other parameters that can
+be set in the makefile to control the initial model storage:
+
+  * ``MAX_NPTS_MODEL``: is the maximum number of data points in the
+    1-d initial model.  This needs to be known at compile time so we
+    can make the data managed for GPUs.
+
+  * ``NUM_MODELS``: this is the number of different initial models we
+    want to managed.  Typically we only want 1, but some problems,
+    like ``flame_wave`` use 2, applied to different portions of the
+    domain.
+
+The general form of the initial model is::
+
+    # npts = 896
+    # num of variables = 6
+    # density
+    # temperature
+    # pressure
+    # carbon-12
+    # oxygen-16
+    # magnesium-24
+    195312.5000  5437711139.  8805500.952   .4695704813E+28  0.3  0.7  0
+    585937.5000  5410152416.  8816689.836  0.4663923963E+28  0.3  0.7  0
+
+The first line gives the number of points in the initial model, the
+next gives the number of variables, followed by the variable names
+(one per line), and then the data.  The data begins with the
+coordinate and then the variables in the model, with one data point
+per line.
+
+When the model is read, the variables listed in the file are matched
+to the ones that Castro knows about.  If the variable is recognized,
+then it is stored in the model data, otherwise, it is ignored.
+
+The data can then be mapped onto the grid using the ``interpolate()``
+function, e.g., ::
+
+    Real dens = interpolate(height, model::idens);
+
+This fills ``dens`` with the density at the position ``height``.  In
+addition to density, you can specify temperature (``model::itemp``),
+pressure (``model::ipres``), species (indexed from ``model::ispec``),
+or an auxiliary quantity (indexed from ``model::iaux``).
+
 

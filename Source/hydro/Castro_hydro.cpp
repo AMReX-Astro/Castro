@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_hydro_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -263,7 +262,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
         auto U = State.array(mfi);
 
         reduce_op.eval(bx, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             // Compute running max of Courant number over grids
 

@@ -15,7 +15,7 @@ Castro::electric_edge_x(const Box& bx,
   // Compute Ex on an edge.  This will compute Ex(i, j-1/2, k-1/2)
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real q_zone[NQ];
@@ -174,7 +174,7 @@ Castro::electric_edge_y(const Box& bx,
   // Compute Ey on an edge.  This will compute Ey(i-1/2, j, k-1/2)
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real q_zone[NQ];
@@ -329,7 +329,7 @@ Castro::electric_edge_z(const Box& bx,
   // Compute Ez on an edge.  This will compute Ez(i-1/2, j-1/2, k)
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real q_zone[NQ];

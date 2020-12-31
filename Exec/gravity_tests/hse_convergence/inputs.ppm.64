@@ -17,8 +17,8 @@ amr.n_cell           = 64      64
 castro.lo_bc       =  1   3
 castro.hi_bc       =  1   3
 
-castro.xl_ext_bc_type = "hse"
-castro.xr_ext_bc_type = "hse"
+castro.xl_ext_bc_type = 1
+castro.xr_ext_bc_type = 1
 
 # WHICH PHYSICS
 castro.do_hydro = 1

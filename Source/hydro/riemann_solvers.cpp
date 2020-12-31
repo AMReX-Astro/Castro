@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_hydro_F.H>
 #include <Castro_util.H>
 
 #ifdef RADIATION
@@ -86,10 +85,10 @@ Castro::riemanncg(const Box& bx,
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lsmall_temp = small_temp;
-  const Real lsmall = small;
+  const Real lsmall = riemann_constants::small;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
 #ifndef AMREX_USE_CUDA
@@ -422,7 +421,7 @@ Castro::riemanncg(const Box& bx,
 
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
       ustar = 0.0_rt;
     }
 
@@ -620,13 +619,13 @@ Castro::riemannus(const Box& bx,
 
   const int luse_eos_in_riemann = use_eos_in_riemann;
 
-  const Real lsmall = small;
+  const Real lsmall = riemann_constants::small;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
   const Real lT_guess = T_guess;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // deal with hard walls
@@ -814,7 +813,7 @@ Castro::riemannus(const Box& bx,
 
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
       ustar = 0.0_rt;
     }
 
@@ -1100,12 +1099,12 @@ Castro::HLLC(const Box& bx,
 
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
-  const Real lsmall = small;
+  const Real lsmall = riemann_constants::small;
 
   int coord = geom.Coord();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // deal with hard walls
@@ -1170,7 +1169,7 @@ Castro::HLLC(const Box& bx,
     pstar = amrex::max(pstar, lsmall_pres);
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
+    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))){
       ustar = 0.0_rt;
     }
 

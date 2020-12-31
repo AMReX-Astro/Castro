@@ -35,8 +35,6 @@ contains
     integer  :: i, j, k
     real(rt) :: xn(nspec)
 
-    !$gpu
-
     do k = lo(3), hi(3)
        do j = lo(2), hi(2)
           do i = lo(1), hi(1)
@@ -446,10 +444,6 @@ contains
     ! update the momenta for this zone -- they don't react
     U_new(UMX:UMZ) = U_old(UMX:UMZ) + dt_m * C(UMX:UMZ)
 
-    ! update the non-reacting species
-    U_new(UFS+nspec:UFS-1+nspec) = U_old(UFS+nspec:UFS-1+nspec) + &
-         dt_m * C(UFS+nspec:UFS-1+nspec)
-
     ! now only save the subset that participates in the nonlinear
     ! solve -- note: we include the old state in f_source
 
@@ -751,7 +745,7 @@ contains
                    U_new(:) = k_n(i,j,k,:)
                 endif
 
-                call sdc_solve(dt_m, U_old, U_new, C, sdc_iteration)
+                call sdc_solve(dt_m, U_old, U_new, C_zone, sdc_iteration)
 
                 ! we solved our system to some tolerance, but let's be sure we are conservative by
                 ! reevaluating the reactions and then doing the full step update

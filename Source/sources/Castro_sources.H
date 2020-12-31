@@ -256,8 +256,8 @@
 /// @param S_new    New state
 /// @param ext_src MultiFab to save sources to
 ///
-    void fill_ext_source(amrex::Real time, amrex::Real dt,
-                         amrex::MultiFab& S_old, amrex::MultiFab& S_new,
+    void fill_ext_source(const amrex::Real time, const amrex::Real dt,
+                         const amrex::MultiFab& S_old, const amrex::MultiFab& S_new,
                          amrex::MultiFab& ext_src);
 
 
