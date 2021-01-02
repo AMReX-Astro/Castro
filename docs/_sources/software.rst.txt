@@ -1114,13 +1114,6 @@ the module.
 This provides the CGS values of many physical constants.
 
 
-``math_module``
----------------
-
-This provides simple mathematical functions. At the moment, a cross
-product routine.
-
-
 ``meth_params_module``
 ----------------------
 
@@ -1133,12 +1126,6 @@ It also provides the values of most of the ``castro.*xxxx*``
 runtime parameters.
 
 
-``model_parser_module``
------------------------
-
-This module is built if ``USE_MODELPARSER`` = ``TRUE`` is set in the
-problem’s ``GNUmakefile``. It then provides storage for the an initial
-model and routines to read it in and interpolate onto the Castro grid.
 
 .. _soft:prob_params:
 

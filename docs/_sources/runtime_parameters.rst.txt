@@ -227,7 +227,8 @@ namespace: ``castro``
 | ``sdc_quadrature``                     | which quadrature type to use with SDC?  0 = Gauss-      | 0             |
 |                                        | Lobatto, 1 = Radau                                      |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_extra``                          | number of extra SDC iterations to take beyond the order | 0             |
+| ``sdc_extra``                          | number of extra SDC iterations to take beyond the       | 0             |
+|                                        | order.  This only applies for true SDC.                 |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``sdc_solver``                         | which SDC nonlinear solver to use?  1 = Newton, 2 =     | 1             |
 |                                        | VODE, 3 = VODE for first iter                           |               |
@@ -313,14 +314,14 @@ namespace: ``castro``
 |                                        | parameter. Set to a negative value to disable this      |               |
 |                                        | criterion.                                              |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_iters``                          | Number of iterations for the SDC advance.               | 2             |
+| ``sdc_iters``                          | Number of iterations for the simplified SDC advance.    | 2             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
 
 **reactions**
 
-.. index:: castro.dtnuc_e, castro.dtnuc_T, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
+.. index:: castro.dtnuc_e, castro.dtnuc_X, castro.dtnuc_X_threshold, castro.do_react, castro.react_T_min, castro.react_T_max, castro.react_rho_min, castro.react_rho_max, castro.disable_shock_burning, castro.T_guess, castro.reactions_max_solve_level
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -329,10 +330,6 @@ namespace: ``castro``
 | ``dtnuc_e``                            | Limit the timestep based on how much the burning can    | 1.e200        |
 |                                        | change the internal energy of a zone. The timestep is   |               |
 |                                        | equal to ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.       |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``dtnuc_T``                            | Limit the timestep based on how much the burning can    | 1.e200        |
-|                                        | change the temperature of a zone. The timestep is equal |               |
-|                                        | to ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 | ``dtnuc_X``                            | Limit the timestep based on how much the burning can    | 1.e200        |
 |                                        | change the species mass fractions of a zone. The        |               |
@@ -396,7 +393,7 @@ namespace: ``castro``
 
 **gravity and rotation**
 
-.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution
+.. index:: castro.do_grav, castro.moving_center, castro.grav_source_type, castro.do_rotation, castro.rotational_period, castro.rotation_include_centrifugal, castro.rotation_include_coriolis, castro.state_in_rotating_frame, castro.rot_source_type, castro.implicit_rotation_update, castro.rot_axis, castro.use_point_mass, castro.point_mass, castro.point_mass_fix_solution, castro.gw_dist
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -446,6 +443,13 @@ namespace: ``castro``
 |                                        | from building up in the zones adjacent to it by keeping |               |
 |                                        | their density constant and adding their mass to the     |               |
 |                                        | point mass object                                       |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``gw_dist``                            | Distance (in kpc) used for calculation of the           | 0.0           |
+|                                        | gravitational wave amplitude (this wil be calculated    |               |
+|                                        | along all three coordinate axes). Only relevant if      |               |
+|                                        | castro.sum_interval > 0 and if set to a positive        |               |
+|                                        | number. A standard value in the literature is 10.0      |               |
+|                                        | (kpc).                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
