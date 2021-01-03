@@ -32,9 +32,8 @@ Any line beginning with a "#" is ignored
 Commands begin with a "@":
 
    @namespace: sets the namespace that these will be under (see below)
-     it also gives the C++ class name.
 
-     e.g. @namespace castro Castro
+     e.g. @namespace castro
 
 Note: categories listed in the input file aren't used for code generation
 but are used for the documentation generation
@@ -88,7 +87,7 @@ class Param:
 
     def __init__(self, name, dtype, default,
                  cpp_var_name=None,
-                 namespace=None, cpp_class=None,
+                 namespace=None,
                  debug_default=None,
                  in_fortran=0,
                  ifdef=None):
@@ -99,7 +98,6 @@ class Param:
         self.cpp_var_name = cpp_var_name
 
         self.namespace = namespace
-        self.cpp_class = cpp_class
 
         self.debug_default = debug_default
         self.in_fortran = in_fortran
@@ -395,7 +393,6 @@ def parse_params(infile, meth_template, out_directory):
     params = []
 
     namespace = None
-    cpp_class = None
 
     try:
         f = open(infile)
@@ -416,7 +413,6 @@ def parse_params(infile, meth_template, out_directory):
             if cmd == "@namespace":
                 fields = value.split()
                 namespace = fields[0]
-                cpp_class = fields[1]
 
             else:
                 sys.exit("invalid command")
@@ -462,7 +458,6 @@ def parse_params(infile, meth_template, out_directory):
         params.append(Param(name, dtype, default,
                             cpp_var_name=cpp_var_name,
                             namespace=namespace,
-                            cpp_class=cpp_class,
                             debug_default=debug_default,
                             in_fortran=in_fortran,
                             ifdef=ifdef))
