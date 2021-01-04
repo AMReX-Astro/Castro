@@ -88,24 +88,6 @@ Castro::sum_integrated_quantities ()
     Real vel_P_phi = 0.0;
     Real vel_S_phi = 0.0;
 
-    // Gravitational wave amplitudes.
-    
-    Real h_plus_1  = 0.0;
-    Real h_cross_1 = 0.0;
-
-    Real h_plus_2  = 0.0;
-    Real h_cross_2 = 0.0;
-
-    Real h_plus_3  = 0.0;
-    Real h_cross_3 = 0.0;
-
-    // Species names and total masses on the domain.
-
-    const Real M_solar = 1.9884e33;
-
-    std::vector<Real> species_mass(NumSpec);
-    std::vector<std::string> species_names(NumSpec);
-
     std::string name1;
     std::string name2;
 
@@ -116,14 +98,6 @@ Castro::sum_integrated_quantities ()
     int intwidth      = 12; // Integer data
 
     wd_dist_init[problem::axis_1 - 1] = 1.0;
-
-    // Determine the names of the species in the simulation.
-
-    for (int i = 0; i < NumSpec; i++) {
-      species_names[i] = desc_lst[State_Type].name(UFS+i);
-      species_names[i] = species_names[i].substr(4,std::string::npos);
-      species_mass[i]  = 0.0;
-    }
 
     for (int lev = 0; lev <= finest_level; lev++)
     {
@@ -172,17 +146,6 @@ Castro::sum_integrated_quantities ()
 	rho_phirot += ca_lev.volProductSum("density", "phiRot", time, local_flag);
 #endif
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-      // Gravitational wave signal. This is designed to add to these quantities so we can send them directly.
-      ca_lev.gwstrain(time, h_plus_1, h_cross_1, h_plus_2, h_cross_2, h_plus_3, h_cross_3, local_flag);
-#endif
-#endif
-
-      // Integrated mass of all species on the domain.
-      for (int i = 0; i < NumSpec; i++)
-	species_mass[i] += ca_lev.volWgtSum("rho_" + species_names[i], time, local_flag) / M_solar;
-
     }
 
     // Return to the original level.
@@ -191,7 +154,7 @@ Castro::sum_integrated_quantities ()
 
     // Do the reductions.
 
-    int nfoo_sum = 24 + NumSpec;
+    int nfoo_sum = 18;
 
     amrex::Vector<Real> foo_sum(nfoo_sum);
 
@@ -209,16 +172,6 @@ Castro::sum_integrated_quantities ()
     foo_sum[15] = rho_e;
     foo_sum[16] = rho_phi;
     foo_sum[17] = rho_phirot;
-    foo_sum[18] = h_plus_1;
-    foo_sum[19] = h_cross_1;
-    foo_sum[20] = h_plus_2;
-    foo_sum[21] = h_cross_2;
-    foo_sum[22] = h_plus_3;
-    foo_sum[23] = h_cross_3;
-
-    for (int i = 0; i < NumSpec; i++) {
-      foo_sum[i + 24] = species_mass[i];
-    }
 
     amrex::ParallelDescriptor::ReduceRealSum(foo_sum.dataPtr(), nfoo_sum);
 
@@ -236,16 +189,6 @@ Castro::sum_integrated_quantities ()
     rho_e      = foo_sum[15];
     rho_phi    = foo_sum[16];
     rho_phirot = foo_sum[17];
-    h_plus_1   = foo_sum[18];
-    h_cross_1  = foo_sum[19];
-    h_plus_2   = foo_sum[20];
-    h_cross_2  = foo_sum[21];
-    h_plus_3   = foo_sum[22];
-    h_cross_3  = foo_sum[23];
-
-    for (int i = 0; i < NumSpec; i++) {
-      species_mass[i] = foo_sum[i + 24];
-    }
 
     // Complete calculations for energy and momenta
 
@@ -321,23 +264,6 @@ Castro::sum_integrated_quantities ()
 
     }
 
-    // Calculate wall time for the step.
-
-    Real wall_time = 0.0;
-
-    if (time > 0.0)
-        wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
-
-    // Calculate GPU memory consumption.
-
-#ifdef AMREX_USE_GPU
-    Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
-
-    Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
-#endif
-
     // Write data out to the log.
 
     if ( amrex::ParallelDescriptor::IOProcessor() )
@@ -405,12 +331,6 @@ Castro::sum_integrated_quantities ()
 	     header << std::setw(datwidth) << "                R COM VEL"; ++n;
 	     header << std::setw(datwidth) << "                Z COM VEL"; ++n;
 #endif
-	     header << std::setw(datwidth) << "             h_+ (axis 1)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 1)"; ++n;
-	     header << std::setw(datwidth) << "             h_+ (axis 2)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 2)"; ++n;
-	     header << std::setw(datwidth) << "             h_+ (axis 3)"; ++n;
-	     header << std::setw(datwidth) << "             h_x (axis 3)"; ++n;
 
 	     header << std::endl;
 
@@ -468,12 +388,6 @@ Castro::sum_integrated_quantities ()
 #if (BL_SPACEDIM == 3)
 	   log << std::setw(datwidth) << std::setprecision(dataprecision) << com_vel[2];
 #endif
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_1;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_1;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_2;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_2;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_plus_3;
-	   log << std::setw(datwidth) << std::setprecision(dataprecision) << h_cross_3;
 
 	   log << std::endl;
 	 }
@@ -533,133 +447,6 @@ Castro::sum_integrated_quantities ()
 	   log << std::endl;
 
 	 }
-      }
-
-      // Species
-
-      if (parent->NumDataLogs() > 2) {
-
-	 std::ostream& log = parent->DataLog(2);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";           ++n;
-	     header << std::setw(fixwidth) << "                  TIME"; ++n;
-
-	     // We need to be careful here since the species names have differing numbers of characters
-
-	     for (int i = 0; i < NumSpec; i++) {
-	       std::string outString  = "";
-	       std::string massString = "Mass ";
-	       std::string specString = species_names[i];
-               while (outString.length() + specString.length() + massString.length() < datwidth) outString += " ";
-	       outString += massString;
-	       outString += specString;
-	       header << std::setw(datwidth) << outString; ++n;
-	     }
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-
-	   log << std::scientific;
-
-	   for (int i = 0; i < NumSpec; i++)
-	     log << std::setw(datwidth) << std::setprecision(dataprecision) << species_mass[i];
-
-	   log << std::endl;
-
-	 }
-      }
-
-      // Information about the AMR driver.
-
-      if (parent->NumDataLogs() > 3) {
-
-	 std::ostream& log = parent->DataLog(3);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(fixwidth) << "                       DT"; ++n;
-	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
-             header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
-#ifdef AMREX_USE_GPU
-             header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
-             header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
-#endif
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i < 4; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::setw(intwidth) << 4; // Handle the finest lev column
-
-             for (int i = 5; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
-	   log << std::setw(intwidth)                                     << parent->finestLevel();
-           log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
-#ifdef AMREX_USE_GPU
-           log << std::setw(datwidth)                                     << gpu_size_used_MB;
-           log << std::setw(datwidth)                                     << gpu_size_free_MB;
-#endif
-
-	   log << std::endl;
-
-	 }
-
       }
 
       // Primary star

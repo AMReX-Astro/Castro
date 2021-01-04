@@ -69,22 +69,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
    (const BL_FORT_FAB_ARG(Er), const BL_FORT_FAB_ARG(kap), 
     BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-  void ca_compute_dcoefs
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG_3D(d), 
-    const BL_FORT_FAB_ARG_3D(lam), 
-    const BL_FORT_FAB_ARG_3D(v),
-    const BL_FORT_FAB_ARG_3D(dcf),
-    const amrex::Real* dx, int idir);
-
-#ifdef __cplusplus
-}
-#endif
  
 BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
    (const BL_FORT_FAB_ARG(Er),
@@ -233,20 +217,6 @@ extern "C" {
 
   amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
-  void lrhs(const int* lo, const int* hi,
-            BL_FORT_FAB_ARG_3D(rhs),
-            BL_FORT_FAB_ARG_3D(temp),
-            BL_FORT_FAB_ARG_3D(fkp),
-            BL_FORT_FAB_ARG_3D(eta),
-            BL_FORT_FAB_ARG_3D(etainv),
-            BL_FORT_FAB_ARG_3D(rhoem),
-            BL_FORT_FAB_ARG_3D(rhoes),
-            BL_FORT_FAB_ARG_3D(dflux_old),
-            BL_FORT_FAB_ARG_3D(Er_old),
-            BL_FORT_FAB_ARG_3D(Edot), 
-            amrex::Real delta_t, const amrex::Real* dx,
-            amrex::Real sigma, amrex::Real c, amrex::Real theta);
-
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
                  BL_FORT_FAB_ARG(frhoes), 
@@ -290,11 +260,6 @@ extern "C" {
                BL_FORT_FAB_ARG_3D(state),
                BL_FORT_FAB_ARG_3D(kappar));
   
-  void lacoefmgfld(const int* lo, const int* hi,
-                   BL_FORT_FAB_ARG_3D(a), 
-                   BL_FORT_FAB_ARG_3D(kappa),
-                   const amrex::Real* dx, amrex::Real delta_t, amrex::Real c);
-
   void rfface(BL_FORT_FAB_ARG(fine), 
               BL_FORT_FAB_ARG(crse), 
               const int& idim, const int* irat);

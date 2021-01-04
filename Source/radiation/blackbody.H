@@ -197,7 +197,7 @@ void BdBdTIndefInteg (Real T, Real nu, Real& B, Real& dBdT)
 }
 
 
-
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real BIndefInteg(Real T, Real nu)
 {
     Real B;

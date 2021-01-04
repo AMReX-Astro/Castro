@@ -1,6 +1,5 @@
-#include <AMReX_Vector.H>
-#include <AMReX_GpuContainers.H>
-#include <model_parser.H>
+#include <AMReX.H>
+#include <model_parser_data.H>
 
 namespace model
 {

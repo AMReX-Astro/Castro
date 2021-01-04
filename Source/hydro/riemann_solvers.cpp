@@ -88,7 +88,7 @@ Castro::riemanncg(const Box& bx,
   const Real lsmall = riemann_constants::small;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
 #ifndef AMREX_USE_CUDA
@@ -625,7 +625,7 @@ Castro::riemannus(const Box& bx,
   const Real lT_guess = T_guess;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // deal with hard walls
@@ -1104,7 +1104,7 @@ Castro::HLLC(const Box& bx,
   int coord = geom.Coord();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // deal with hard walls

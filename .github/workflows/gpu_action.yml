@@ -1,0 +1,50 @@
+name: GPU compilation
+
+on: [pull_request]
+jobs:
+  gpu-compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get submodules 
+        run: |
+          git submodule update --init
+          cd external/Microphysics
+          git fetch; git checkout development
+          cd ../amrex 
+          git fetch; git checkout development
+          cd ../..
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get -qq -y install curl cmake jq clang g++>=9.3.0 gfortran>=9.3.0 
+
+      - name: Install CUDA
+        run: |
+          wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-ubuntu1804.pin
+          sudo mv cuda-ubuntu1804.pin /etc/apt/preferences.d/cuda-repository-pin-600
+          sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+          sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/ /"
+          sudo apt-get update
+          sudo apt-get -y install cuda
+
+      - name: Get cpp linter repo 
+        run: |
+          cd external 
+          git clone https://github.com/AMReX-Astro/cpp-linter-action.git
+          cd .. 
+
+      - name: Check header includes
+        run: |
+          echo 'HEADER_INCLUDES=$(grep -rIE --include="*.cpp" --include="*.H" --exclude-dir=external "#\s?include\s+\"\w+\.\w+\"")' >> $GITHUB_ENV
+          echo $HEADER_INCLUDES
+          if [[ -n "${HEADER_INCLUDES}" ]]; then exit 1; fi
+
+      - name: Compile problems for GPU
+        run: |
+          export PATH=$PATH:/usr/local/cuda/bin
+          python3 external/cpp-linter-action/run_on_changed_files.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -header-filter=Castro -ignore-files="amrex|Microphysics" -gpu

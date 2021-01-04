@@ -14,14 +14,12 @@ USE_GRAV ?= TRUE
 USE_REACT ?= TRUE
 USE_ROTATION ?= TRUE
 
-USE_INTERPOLATE = TRUE
+USE_CXX_MODEL_PARSER = TRUE
+NUM_MODELS = 2
 
 # We want to use the dimension agnostic version of certain source files.
 
 GPU_COMPATIBLE_PROBLEM = TRUE
-
-# Opt in to the auto-generated problem parameters.
-
 
 # Turn on hybrid momentum, but note that it only is used in 3D at present.
 

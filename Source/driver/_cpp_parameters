@@ -4,7 +4,7 @@
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro
+@namespace: castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -256,7 +256,8 @@ sdc_order                    int           2                  y
 # which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
 sdc_quadrature               int           0                  y
 
-# number of extra SDC iterations to take beyond the order
+# number of extra SDC iterations to take beyond the order.  This only applies
+# for true SDC.
 sdc_extra                    int           0                  y
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
@@ -345,7 +346,7 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# Number of iterations for the SDC advance.
+# Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
 
 #-----------------------------------------------------------------------------
@@ -356,11 +357,6 @@ sdc_iters                    int           2
 # energy of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
 dtnuc_e                      Real          1.e200             y
-
-# Limit the timestep based on how much the burning can change the temperature
-# of a zone. The timestep is equal to
-# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
-dtnuc_T                      Real          1.e200             y
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
@@ -471,6 +467,12 @@ point_mass                   Real          0.0                y        GRAVITY
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
 point_mass_fix_solution      int           0                  y        GRAVITY
+
+# Distance (in kpc) used for calculation of the gravitational wave amplitude
+# (this wil be calculated along all three coordinate axes). Only relevant if
+# castro.sum_interval > 0 and if set to a positive number. A standard value
+# in the literature is 10.0 (kpc).
+gw_dist                      Real          0.0                y        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization
@@ -583,7 +585,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro
+@namespace: particles
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -611,7 +613,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity
+@namespace: gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -667,7 +669,7 @@ mlmg_consolidation           int           1                  n
 # Do N-Solve?
 mlmg_nsolve                  int           0                  n
 
-@namespace: diffusion Diffusion
+@namespace: diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
@@ -676,7 +678,7 @@ mlmg_nsolve                  int           0                  n
 # Use MLMG as the operator
 mlmg_maxorder                int           4                  n
 
-@namespace: radsolve RadSolve
+@namespace: radsolve
 
 # the linear solver option to use
 level_solver_flag            int           1                  n
@@ -695,7 +697,7 @@ beta                         Real          1.0                n
 
 (v, verbose)                 int           0                  n
 
-@namespace: radiation Radiation
+@namespace: radiation
 
 prop_temp_floor              Real          0.0                y
 

@@ -40,7 +40,7 @@ Castro::make_cell_center(const Box& bx,
   }
 
   amrex::ParallelFor(bx, U.nComp(),
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
   {
     Real lap = compute_laplacian(i, j, k, n, U,
                                  lo_periodic, hi_periodic, domlo, domhi);
@@ -75,14 +75,14 @@ Castro::make_cell_center_in_place(const Box& bx,
   for (int n = 0; n < U.nComp(); n++) {
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
     {
       tmp(i,j,k) = compute_laplacian(i, j, k, n, U,
                                      lo_periodic, hi_periodic, domlo, domhi);
     });
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_DEVICE (int i, int j, int k)
     {
       U(i,j,k,n) = U(i,j,k,n) - (1.0_rt/24.0_rt) * tmp(i,j,k);
     });
@@ -110,7 +110,7 @@ Castro::compute_lap_term(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_DEVICE (int i, int j, int k)
   {
     lap(i,j,k) = (1.0_rt/24.0_rt) *
       compute_laplacian(i, j, k, ncomp, U,
@@ -141,7 +141,7 @@ Castro::make_fourth_average(const Box& bx,
   }
 
   amrex::ParallelFor(bx, q.nComp(),
-  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
   {
     Real lap = compute_laplacian(i, j, k, n, q_bar,
                                  lo_periodic, hi_periodic, domlo, domhi);
@@ -191,14 +191,14 @@ Castro::make_fourth_in_place_n(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_DEVICE (int i, int j, int k)
   {
     tmp(i,j,k) = compute_laplacian(i, j, k, ncomp, q,
                                    lo_periodic, hi_periodic, domlo, domhi);
   });
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_DEVICE (int i, int j, int k)
   {
     q(i,j,k,ncomp) += (1.0_rt/24.0_rt) * tmp(i,j,k);
   });

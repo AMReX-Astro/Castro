@@ -32,9 +32,8 @@ Any line beginning with a "#" is ignored
 Commands begin with a "@":
 
    @namespace: sets the namespace that these will be under (see below)
-     it also gives the C++ class name.
 
-     e.g. @namespace castro Castro
+     e.g. @namespace castro
 
 Note: categories listed in the input file aren't used for code generation
 but are used for the documentation generation
@@ -88,7 +87,7 @@ class Param:
 
     def __init__(self, name, dtype, default,
                  cpp_var_name=None,
-                 namespace=None, cpp_class=None,
+                 namespace=None,
                  debug_default=None,
                  in_fortran=0,
                  ifdef=None):
@@ -99,7 +98,6 @@ class Param:
         self.cpp_var_name = cpp_var_name
 
         self.namespace = namespace
-        self.cpp_class = cpp_class
 
         self.debug_default = debug_default
         self.in_fortran = in_fortran
@@ -188,21 +186,6 @@ class Param:
             ostr += "    {} = {};\n".format(name, default)
 
         return ostr
-
-    def get_cuda_managed_string(self):
-        """this is the string that sets the variable as managed for CUDA"""
-        if self.dtype == "string":
-            return "\n"
-
-        cstr = ""
-        if self.ifdef is not None:
-            cstr += "#ifdef {}\n".format(self.ifdef)
-        cstr += "#ifdef AMREX_USE_GPU_PRAGMA\n"
-        cstr += "attributes(managed) :: {}\n".format(self.name)
-        cstr += "#endif\n"
-        if self.ifdef is not None:
-            cstr += "#endif\n"
-        return cstr
 
     def get_query_string(self, language):
         # this is the line that queries the ParmParse object to get
@@ -306,22 +289,9 @@ def write_meth_module(plist, meth_template, out_directory):
     for p in param_decls:
         decls += "  {}".format(p)
 
-    cuda_managed_decls = [p.get_cuda_managed_string() for p in plist if p.in_fortran == 1]
-
-    cuda_managed_string = ""
-    for p in cuda_managed_decls:
-        cuda_managed_string += "{}".format(p)
-
     for line in mt:
         if line.find("@@f90_declarations@@") > 0:
             mo.write(decls)
-
-            # Do the CUDA managed declarations
-
-            mo.write("\n")
-            mo.write("#if (defined(AMREX_USE_CUDA) && defined(AMREX_USE_GPU_PRAGMA))\n")
-            mo.write(cuda_managed_string)
-            mo.write("#endif\n")
 
             # Now do the OpenACC declarations
 
@@ -423,7 +393,6 @@ def parse_params(infile, meth_template, out_directory):
     params = []
 
     namespace = None
-    cpp_class = None
 
     try:
         f = open(infile)
@@ -444,7 +413,6 @@ def parse_params(infile, meth_template, out_directory):
             if cmd == "@namespace":
                 fields = value.split()
                 namespace = fields[0]
-                cpp_class = fields[1]
 
             else:
                 sys.exit("invalid command")
@@ -490,7 +458,6 @@ def parse_params(infile, meth_template, out_directory):
         params.append(Param(name, dtype, default,
                             cpp_var_name=cpp_var_name,
                             namespace=namespace,
-                            cpp_class=cpp_class,
                             debug_default=debug_default,
                             in_fortran=in_fortran,
                             ifdef=ifdef))

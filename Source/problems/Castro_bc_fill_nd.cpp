@@ -118,7 +118,7 @@ void ca_statefill(Box const& bx, FArrayBox& data,
     const auto geomdata = geom.data();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         problem_bc_fill(i, j, k, state, time, bcs, geomdata);
     });

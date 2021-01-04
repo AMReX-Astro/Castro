@@ -1,7 +1,3 @@
-interp_model        integer          0            y
-
-model_file          character        ""           y
-
 pert_frac           real             0.2_rt       y
 
 pert_delta          real             0.02_rt      y
