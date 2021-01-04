@@ -8,7 +8,7 @@ import detonation as dt
 if __name__ == "__main__":
 
     # get all the data
-    run_dirs = glob.glob("det_[st]*")
+    run_dirs = glob.glob("det_[rst]*")
     dets = []
     for run in tqdm.tqdm(run_dirs):
         dets.append(dt.Detonation(run))
