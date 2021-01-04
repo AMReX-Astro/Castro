@@ -359,7 +359,7 @@ sdc_newton_solve(const Real dt_m,
         IArray1D ipvt;
 
         // solve the linear system: Jac dU_react = -f
-        dgefa(Jac, ipvt, info);
+        dgefa<NumSpec+2>(Jac, ipvt, info);
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
@@ -369,7 +369,7 @@ sdc_newton_solve(const Real dt_m,
             f_rhs(n) = -f[n];
         }
 
-        dgesl(Jac, ipvt, f_rhs);
+        dgesl<NumSpec+2>(Jac, ipvt, f_rhs);
 
         for (int n = 0; n < NumSpec+2; ++n) {
             dU_react[n] = f_rhs(n+1);
