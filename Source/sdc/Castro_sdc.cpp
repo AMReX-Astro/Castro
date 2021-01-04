@@ -239,11 +239,11 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // an average in Sburn
             make_cell_center(bx1, Sburn.array(mfi), U_new_center_arr, domain_lo, domain_hi);
 
-            ca_sdc_update_centers_o4(BL_TO_FORTRAN_BOX(bx1), &dt_m,
-                                     BL_TO_FORTRAN_3D(U_center),
-                                     BL_TO_FORTRAN_3D(U_new_center),
-                                     BL_TO_FORTRAN_3D(C_center),
-                                     &sdc_iteration);
+            amrex::ParallelFor(bx1,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            {
+                sdc_update_centers_o4(i, j, k, U_center_arr, U_new_center_arr, C_center_arr, dt_m, sdc_iteration);
+            });
 
             // compute R_i and in 1 ghost cell and then convert to <R> in
             // place (only for the interior)
@@ -269,7 +269,7 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             // now do the conservative update using this <R> to get <U>
             // We'll also need to pass in <C>
             ca_sdc_conservative_update(bx, dt_m, k_new_m_start_arr, k_new_m_end_arr,
-                                       C_source_arr,R_new_arr);
+                                       C_source_arr, R_new_arr);
 
         }
 #else
