@@ -276,11 +276,6 @@ sdc_newton_solve(const Real dt_m,
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
 
-    // update the non-reacting species
-    for (int n = 0; n < NumSpec; ++n) {
-        U_new[UFS + n] = U_old[UFS+n] + dt_m * C[UFS + n];
-    }
-
     // now only save the subset that participates in the
     // nonlinear solve -- note: we include the old state in 
     // f_source
@@ -537,6 +532,7 @@ sdc_vode_solve(const Real dt_m,
     // dvode_state.MXSTEP = 25000;
 
     dvode_state.t = 0.0_rt;
+    dvode_state.tout = 0.0_rt;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
     GpuArray<Real, NumSpec+2> rtol;
