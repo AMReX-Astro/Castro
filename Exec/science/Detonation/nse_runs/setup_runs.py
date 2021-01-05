@@ -7,21 +7,21 @@ import shlex
 from multiprocessing import Pool
 
 # parameters for all methods
-CFL = [0.5, 0.1]
-NZONES = [256, 512, 1024] #, 1024, 2048] #, 8192]
-DTNUC_E = [1.e200, 1.0, 0.25] #, 0.1]
+CFL = [0.8, 0.4, 0.2]
+NZONES = [512, 1024, 2048] #, 1024, 2048] #, 8192]
+DTNUC_E = [1.0, 0.25] #, 0.1]
 
 # simplified SDC parameters
-SDC_ITERS = [2]
+SDC_ITERS = [2, 3]
 
 # true SDC parameters
 SDC_QUADRATURE = [0, 1]
 SDC_ORDER = [2] #, 4]
 
 # reference Strang run
-REFERENCE_NZONES = 4096
+REFERENCE_NZONES = 8192
 REFERENCE_CFL = 0.1
-REFERENCE_DTNUC_E = 0.25
+REFERENCE_DTNUC_E = 0.1
 
 # turn on or off the different integrator types
 DO_STRANG_RUNS = 1
