@@ -364,10 +364,12 @@ Castro::react_state(Real time, Real dt)
             }
 #endif
 #if NSE_THERMO
+            // load up the primitive variable reactive source
+
             for (int n = 0; n < NumAux; n++) {
-                burn_state.Iq_aux[n] = Iq(i,j,k,UFX+n);
+                burn_state.Iq_aux[n] = Iq(i,j,k,QFX+n);
             }
-            burn_state.Iq_rhoe = Iq(i,j,k,UEINT);
+            burn_state.Iq_rhoe = Iq(i,j,k,QREINT);
 #endif
             // we need an initial T guess for the EOS
             burn_state.T = U_old(i,j,k,UTEMP);
