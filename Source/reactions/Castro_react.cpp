@@ -372,6 +372,8 @@ Castro::react_state(Real time, Real dt)
             // we need an initial T guess for the EOS
             burn_state.T = U_old(i,j,k,UTEMP);
 
+            burn_state.rho = burn_state.y[SRHO];
+
             // Don't burn if we're outside of the relevant (rho, T) range.
 
             if (U_old(i,j,k,UTEMP) < castro::react_T_min || U_old(i,j,k,UTEMP) > castro::react_T_max ||
