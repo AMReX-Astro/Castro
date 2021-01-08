@@ -241,7 +241,7 @@ C++ code and headers at compile time.</p>
 controlled by a different set of runtime parameters. These parameters are defined
 in plain-text files <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> located in the different
 directories that hold the microphysics code. At compile time, a
-script in the AMReX bulid system, <code class="docutils literal notranslate"><span class="pre">findparams.py</span></code>, locates all
+a make function locates all
 of the <code class="docutils literal notranslate"><span class="pre">_parameters</span></code> files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
 parameters into a module named <code class="docutils literal notranslate"><span class="pre">extern_probin_module</span></code> (using the

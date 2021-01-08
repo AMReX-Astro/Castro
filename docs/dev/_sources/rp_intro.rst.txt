@@ -16,7 +16,7 @@ The behavior of the network, EOS, and other microphysics routines are
 controlled by a different set of runtime parameters. These parameters are defined
 in plain-text files ``_parameters`` located in the different
 directories that hold the microphysics code. At compile time, a
-script in the AMReX bulid system, ``findparams.py``, locates all
+a make function locates all
 of the ``_parameters`` files that are needed for the given choice
 of network, integrator, and EOS, and assembles all of the runtime
 parameters into a module named ``extern_probin_module`` (using the
