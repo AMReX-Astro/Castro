@@ -90,10 +90,9 @@ def write_meth_module(plist, meth_template, out_directory):
         sys.exit("invalid template file")
 
     try:
-        mo = open("{}/meth_params_nd.F90".format(out_directory), "w")
+        mo = open(f"{out_directory}/meth_params_nd.F90", "w")
     except IOError:
         sys.exit("unable to open meth_params_nd.F90 for writing")
-
 
     mo.write(FWARNING)
 
@@ -103,35 +102,11 @@ def write_meth_module(plist, meth_template, out_directory):
     decls = ""
 
     for p in param_decls:
-        decls += "  {}".format(p)
+        decls += f"  {p}"
 
     for line in mt:
         if line.find("@@f90_declarations@@") > 0:
             mo.write(decls)
-
-            # Now do the OpenACC declarations
-
-            mo.write("\n")
-            mo.write("  !$acc declare &\n")
-            for n, p in enumerate(params):
-                if p.dtype == "string":
-                    print("warning: string parameter {} will not be on the GPU".format(p.name),
-                          file=sys.stderr)
-                    continue
-
-                if p.ifdef is not None:
-                    mo.write("#ifdef {}\n".format(p.ifdef))
-                mo.write("  !$acc create({})".format(p.name))
-
-                if n != len(params)-1:
-                    mo.write(" &\n")
-                else:
-                    mo.write("\n")
-
-                if p.ifdef is not None:
-                    mo.write("#endif\n")
-
-
 
         elif line.find("@@set_castro_params@@") >= 0:
 
@@ -146,21 +121,21 @@ def write_meth_module(plist, meth_template, out_directory):
                         for p in [q for q in params_nm if q.ifdef is None]:
                             mo.write(p.get_f90_default_string())
                     else:
-                        mo.write("#ifdef {}\n".format(ifdef))
+                        mo.write(f"#ifdef {ifdef}\n")
                         for p in [q for q in params_nm if q.ifdef == ifdef]:
                             mo.write(p.get_f90_default_string())
                         mo.write("#endif\n")
 
                 mo.write("\n")
 
-                mo.write('    call amrex_parmparse_build(pp, "{}")\n'.format(nm))
+                mo.write(f'    call amrex_parmparse_build(pp, "{nm}")\n')
 
                 for ifdef in ifdefs:
                     if ifdef is None:
                         for p in [q for q in params_nm if q.ifdef is None]:
                             mo.write(p.get_query_string("F90"))
                     else:
-                        mo.write("#ifdef {}\n".format(ifdef))
+                        mo.write(f"#ifdef {ifdef}\n")
                         for p in [q for q in params_nm if q.ifdef == ifdef]:
                             mo.write(p.get_query_string("F90"))
                         mo.write("#endif\n")
@@ -169,29 +144,13 @@ def write_meth_module(plist, meth_template, out_directory):
 
                 mo.write("\n\n")
 
-            # Now do the OpenACC device updates
-
-            mo.write("\n")
-
-            for n, p in enumerate(params):
-                if p.dtype == "string":
-                    continue
-
-                if p.ifdef is not None:
-                    mo.write("#ifdef {}\n".format(p.ifdef))
-
-                mo.write("    !$acc update device({})\n".format(p.name))
-
-                if p.ifdef is not None:
-                    mo.write("#endif\n")
-
         elif line.find("@@free_castro_params@@") >= 0:
 
             params_free = [q for q in params if q.in_fortran == 1]
 
             for p in params_free:
-                mo.write("    if (allocated({})) then\n".format(p.name))
-                mo.write("        deallocate({})\n".format(p.name))
+                mo.write(f"    if (allocated({p.name})) then\n")
+                mo.write(f"        deallocate({p.name})\n")
                 mo.write("    end if\n")
 
             mo.write("\n\n")
@@ -213,8 +172,7 @@ def parse_params(infile, meth_template, out_directory):
     try:
         f = open(infile)
     except IOError:
-        sys.exit("error openning the input file")
-
+        sys.exit("error opening the input file")
 
     for line in f:
         if line[0] == "#":
@@ -293,20 +251,20 @@ def parse_params(infile, meth_template, out_directory):
 
         # write name_declares.H
         try:
-            cd = open("{}/{}_declares.H".format(out_directory, nm), "w")
+            cd = open(f"{out_directory}/{nm}_declares.H", "w")
         except IOError:
-            sys.exit("unable to open {}_declares.H for writing".format(nm))
+            sys.exit(f"unable to open {nm}_declares.H for writing")
 
         cd.write(CWARNING)
-        cd.write("#ifndef _{}_DECLARES_H_\n".format(nm.upper()))
-        cd.write("#define _{}_DECLARES_H_\n".format(nm.upper()))
+        cd.write(f"#ifndef _{nm.upper()}_DECLARES_H_\n")
+        cd.write(f"#define _{nm.upper()}_DECLARES_H_\n")
 
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
                     cd.write(p.get_declare_string())
             else:
-                cd.write("#ifdef {}\n".format(ifdef))
+                cd.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cd.write(p.get_declare_string())
                 cd.write("#endif\n")
@@ -316,23 +274,23 @@ def parse_params(infile, meth_template, out_directory):
 
         # write name_params.H
         try:
-            cp = open("{}/{}_params.H".format(out_directory, nm), "w")
+            cp = open(f"{out_directory}/{nm}_params.H", "w")
         except IOError:
-            sys.exit("unable to open {}_params.H for writing".format(nm))
+            sys.exit(f"unable to open {nm}_params.H for writing")
 
         cp.write(CWARNING)
-        cp.write("#ifndef _{}_PARAMS_H_\n".format(nm.upper()))
-        cp.write("#define _{}_PARAMS_H_\n".format(nm.upper()))
+        cp.write(f"#ifndef _{nm.upper()}_PARAMS_H_\n")
+        cp.write(f"#define _{nm.upper()}_PARAMS_H_\n")
 
         cp.write("\n")
-        cp.write("namespace {} {{\n".format(nm))
+        cp.write(f"namespace {nm} {{\n")
 
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
                     cp.write(p.get_decl_string())
             else:
-                cp.write("#ifdef {}\n".format(ifdef))
+                cp.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cp.write(p.get_decl_string())
                 cp.write("#endif\n")
@@ -342,9 +300,9 @@ def parse_params(infile, meth_template, out_directory):
 
         # write castro_queries.H
         try:
-            cq = open("{}/{}_queries.H".format(out_directory, nm), "w")
+            cq = open(f"{out_directory}/{nm}_queries.H", "w")
         except IOError:
-            sys.exit("unable to open {}_queries.H for writing".format(nm))
+            sys.exit(f"unable to open {nm}_queries.H for writing")
 
         cq.write(CWARNING)
 
@@ -355,7 +313,7 @@ def parse_params(infile, meth_template, out_directory):
                     cq.write(p.get_query_string("C++"))
                     cq.write("\n")
             else:
-                cq.write("#ifdef {}\n".format(ifdef))
+                cq.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     cq.write(p.get_default_string())
                     cq.write(p.get_query_string("C++"))
@@ -366,16 +324,16 @@ def parse_params(infile, meth_template, out_directory):
 
         # write the job info tests
         try:
-            jo = open("{}/{}_job_info_tests.H".format(out_directory, nm), "w")
+            jo = open(f"{out_directory}/{nm}_job_info_tests.H", "w")
         except IOError:
-            sys.exit("unable to open {}_job_info_tests.H".format(nm))
+            sys.exit(f"unable to open {nm}_job_info_tests.H")
 
         for ifdef in ifdefs:
             if ifdef is None:
                 for p in [q for q in params_nm if q.ifdef is None]:
                     jo.write(p.get_job_info_test())
             else:
-                jo.write("#ifdef {}\n".format(ifdef))
+                jo.write(f"#ifdef {ifdef}\n")
                 for p in [q for q in params_nm if q.ifdef == ifdef]:
                     jo.write(p.get_job_info_test())
                 jo.write("#endif\n")
