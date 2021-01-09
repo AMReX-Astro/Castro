@@ -461,7 +461,7 @@ rot_axis                     int           3                  y        ROTATION
 use_point_mass               int           0                  n        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                n        GRAVITY
+point_mass                   Real          0.0                y        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
