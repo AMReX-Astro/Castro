@@ -26,8 +26,6 @@ subroutine runtime_init(name, namlen)
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
 
-  character (len=:), allocatable :: dummy_string_param
-
   @@namelist@@
 
   @@allocations@@
