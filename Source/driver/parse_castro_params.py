@@ -149,9 +149,10 @@ def write_meth_module(plist, meth_template, out_directory):
             params_free = [q for q in params if q.in_fortran == 1]
 
             for p in params_free:
-                mo.write(f"    if (allocated({p.name})) then\n")
-                mo.write(f"        deallocate({p.name})\n")
-                mo.write("    end if\n")
+                if p.dtype != "string":
+                    mo.write(f"    if (allocated({p.name})) then\n")
+                    mo.write(f"        deallocate({p.name})\n")
+                    mo.write("    end if\n")
 
             mo.write("\n\n")
 
@@ -234,7 +235,6 @@ def parse_params(infile, meth_template, out_directory):
                                namespace=namespace,
                                debug_default=debug_default,
                                in_fortran=in_fortran,
-                               allocate_f90_chars=1,
                                ifdef=ifdef))
 
 

@@ -57,6 +57,8 @@ module meth_params_module
 
   ! End the declarations of the ParmParse parameters
 
+  character (len=:), allocatable :: dummy_string_param
+
   real(rt), save :: rot_vec(3)
 
 contains
