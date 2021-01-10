@@ -1,3 +1,12 @@
+# 21.02
+
+   * We can now set any of the Microphysics runtime parameters in the
+     inputs file instead of probin.  Each group of parameters has a
+     namesapce for the inputs file when set this way
+     (e.g. eos.use_coulomb = 1), and the C++ inputs value will take
+     precedence over the value set in probin if it is set in both
+     places. (#1527)
+
 # 21.01
 
    * The minimum C++ standard supported by Castro is now C++17. Most modern compilers
