@@ -16,7 +16,7 @@ CEXE_sources += extern_parameters.cpp
 FEXE_headers += extern_parameters_F.H
 CEXE_headers += extern_parameters.H
 
-EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
+EXTERN_TEMPLATE := $(MICROPHYSICS_HOME)/interfaces/extern_probin.template
 
 # these are for finding runtime parameters
 EXTERN_SEARCH += $(EXTERN_CORE)
