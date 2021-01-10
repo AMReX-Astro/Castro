@@ -33,7 +33,7 @@
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-
+#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;

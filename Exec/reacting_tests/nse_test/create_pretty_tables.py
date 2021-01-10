@@ -112,6 +112,7 @@ if __name__ == "__main__":
                  "rho_E": r"$\rho E$",
                  "rho_e": r"$\rho e$",
                  "Temp": r"$T$",
+                 "rho_H1": r"$\rho X(\isotm{H}{1})$",
                  "rho_He4": r"$\rho X(\isotm{He}{4})$",
                  "rho_C12": r"$\rho X(\isotm{C}{12})$",
                  "rho_O16": r"$\rho X(\isotm{O}{16})$",
