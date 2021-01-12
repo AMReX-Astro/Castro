@@ -532,7 +532,7 @@ sdc_vode_solve(const Real dt_m,
     // dvode_state.MXSTEP = 25000;
 
     dvode_state.t = 0.0_rt;
-    dvode_state.tout = 0.0_rt;
+    dvode_state.tout = dt_m;
     dvode_state.HMXI = 1.0_rt / ode_max_dt;
 
     GpuArray<Real, NumSpec+2> rtol;
