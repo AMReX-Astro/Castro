@@ -324,6 +324,8 @@ sdc_newton_solve(const Real dt_m,
         burn_state.e = U_new[UEINT];
     }
 
+    burn_state.self_heat = false; // NOTE: this is a guess
+
     // store the subset for the nonlinear solve
     // We use an initial guess if possible 
     U_react[0] = U_new[URHO];
@@ -354,7 +356,7 @@ sdc_newton_solve(const Real dt_m,
         IArray1D ipvt;
 
         // solve the linear system: Jac dU_react = -f
-        dgefa<NumSpec+2>(Jac, ipvt, info);
+        dgefa<VODE_NEQS>(Jac, ipvt, info);
         if (info != 0) {
             ierr = SINGULAR_MATRIX;
             return;
@@ -512,6 +514,8 @@ sdc_vode_solve(const Real dt_m,
 
     // we are always solving for rhoe with the VODE predict
     burn_state.e = U_new[UEDEN];
+
+    burn_state.self_heat = false; // NOTE: this is a guess
 
     // store the subset for the nonlinear solve. We only 
     // consider (rho e), not (rho E). This is because at 
@@ -738,13 +742,13 @@ f_sdc_jac(const Real dt_m,
     // construct the Jacobian -- we can get most of the
     // terms from the network itself, but we do not rely on
     // it having derivative wrt density
-    for (int n = 0; n < ldjac; ++n) {
-        for (int m = 0; m < VODE_NEQS; ++m) {
+    for (int n = 1; n <= ldjac; ++n) {
+        for (int m = 1; m <= VODE_NEQS; ++m) {
             Jac(n,m) = 0.0_rt;
         }
     }
 
-    for (int m = 0; m < NumSpec+1; ++m) {
+    for (int m = 1; m <= NumSpec+1; ++m) {
         Jac(m, m) = 1.0_rt;
     }
 
@@ -760,7 +764,7 @@ f_sdc_jac(const Real dt_m,
 
     for (int n = 0; n < ldjac; ++n) {
         for (int m = 0; m < VODE_NEQS; ++m) {
-            Jac(n,m) -= dt_m * dRdU(n,m);
+            Jac(n+1,m+1) -= dt_m * dRdU(n,m);
         }
     }
 }
