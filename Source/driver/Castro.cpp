@@ -598,9 +598,8 @@ Castro::Castro (Amr&            papa,
 
     buildMetrics();
 
-    // initialize the C++ values of the runtime parameters
     if (do_init_probparams == 0) {
-      init_prob_parameters();
+      // do some syncing between Fortran and C++
 
       do_init_probparams = 1;
 

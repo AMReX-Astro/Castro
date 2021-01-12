@@ -23,7 +23,6 @@ extern "C"
   void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
                        const amrex::Real& time, const amrex::Real& dt);
 
-  void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 
 #ifdef GRAVITY
 #if (BL_SPACEDIM > 1)
