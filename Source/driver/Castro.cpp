@@ -151,7 +151,7 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
-int          Castro::do_init_probparams = 0;
+int          Castro::do_cxx_prob_initialize = 0;
 
 
 // Castro::variableSetUp is in Castro_setup.cpp
@@ -598,11 +598,11 @@ Castro::Castro (Amr&            papa,
 
     buildMetrics();
 
-    if (do_init_probparams == 0) {
+    if (do_cxx_prob_initialize == 0) {
 
       // sync up some C++ values of the runtime parameters
 
-      do_init_probparams = 1;
+      do_cxx_prob_initialize = 1;
 
       // Copy ambient data from Fortran to C++. This should be done prior to
       // problem_initialize() in case the C++ initialization overwrites it.
