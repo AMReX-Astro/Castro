@@ -20,7 +20,7 @@ r_offset               real            0.0_rt         y
 
 offset_smooth_delta    real            1.0_rt         y
 
-X_0                    real            0.0_rt         n      (nspec, network)
+X_0                    real            0.0_rt         n      nspec
 
 center_x               real            0.0_rt         y
 

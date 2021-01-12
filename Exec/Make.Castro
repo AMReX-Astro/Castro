@@ -334,6 +334,9 @@ ifeq ($(USE_HYPRE), TRUE)
   LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
 
   LIBRARIES += -lHYPRE
+  ifeq ($(USE_CUDA),TRUE)
+    LIBRARIES += -lcusparse -lcurand
+  endif
 endif
 
 ifeq ($(USE_HDF5), TRUE)

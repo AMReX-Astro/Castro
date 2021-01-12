@@ -68,4 +68,8 @@ amr.plot_int        = 200
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.3d.sph.testsuite
+amr.probin_file = probin.3d.sph
+
+# EOS
+eos.eos_gamma = 1.4
+
