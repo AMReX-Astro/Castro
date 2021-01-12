@@ -78,4 +78,7 @@ amr.plot_int        = 1000
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.sph_in_cylcoords.testsuite
+amr.probin_file = probin.2d.sph_in_cylcoords
+
+# EOS
+eos.eos_gamma = 1.4

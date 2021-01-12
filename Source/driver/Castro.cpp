@@ -21,6 +21,7 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#include <extern_parameters_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -3784,11 +3785,17 @@ Castro::extern_init ()
     probin_file_name[i] = probin_file[i];
   }
 
-  // read them in in Fortran
+  // read them in in Fortran from the probin file
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
 
-  // grab them from Fortran to C++
+  // grab them from Fortran to C++; then read any C++ parameters directly
+  // from inputs (via ParmParse)
   init_extern_parameters();
+
+  // finally, update the Fortran side via ParmParse to override the
+  // values of any parameters that were set in inputs
+  update_fortran_extern_after_cxx();
+
 
 }
 
