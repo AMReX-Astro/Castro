@@ -598,9 +598,9 @@ Castro::Castro (Amr&            papa,
 
     buildMetrics();
 
-    // initialize the C++ values of the runtime parameters
     if (do_init_probparams == 0) {
-      init_prob_parameters();
+
+      // sync up some C++ values of the runtime parameters
 
       do_init_probparams = 1;
 
