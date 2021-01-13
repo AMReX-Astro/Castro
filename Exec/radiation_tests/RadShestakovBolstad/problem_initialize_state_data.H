@@ -15,7 +15,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real Tcgs = problem::T_0 * 1.e3_rt * C::ev2erg / C::k_B;
 
-    Real B0 = 8.0_rt M_PI * C::hplanck / std::pow(c_light, 3);
+    Real B0 = 8.0_rt * M_PI * C::hplanck / std::pow(C::c_light, 3);
     Real nu0 = C::k_B * Tcgs / C::hplanck;
     Real l0 = std::pow(nu0, 3) / problem::kappa_0;
     Real x0 = l0 / std::sqrt(3.0_rt);
@@ -46,7 +46,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UFX) = state(i,j,k,URHO);
 #endif
 
-    if (std::abs(xcen)/x0 < x_jump) {
+    if (std::abs(xcen)/x0 < problem::x_jump) {
         state(i,j,k,UEDEN) = rhoe_0;
         state(i,j,k,UEINT) = rhoe_0;
         state(i,j,k,UTEMP) = Tcgs;
