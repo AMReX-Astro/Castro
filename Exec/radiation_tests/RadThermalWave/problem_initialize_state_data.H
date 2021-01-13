@@ -99,10 +99,10 @@ void problem_initialize_state_data (int i, int j, int k,
         Real vol_pert = 0.0_rt;
         Real vol_ambient = 0.0_rt;
 
-        for (int kk = 0; kk < dg2 * nsub; kk++) {
+        for (int kk = 0; kk <= dg2 * (nsub-1); kk++) {
             Real zz = zcl + (static_cast<Real>(kk) + 0.5_rt) * dz_sub;
 
-            for (int jj = 0; jj < dg1 * nsub; jj++) {
+            for (int jj = 0; jj <= dg1 * (nsub-1); jj++) {
                 Real yy = ycl + (static_cast<Real>(jj) + 0.5_rt) * dy_sub;
 
                 for (int ii = 0; ii < nsub; ii++) {
