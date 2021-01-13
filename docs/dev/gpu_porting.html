@@ -310,7 +310,7 @@ function call contains <code class="docutils literal notranslate"><span class="p
 import within the function/subroutine, and put <code class="docutils literal notranslate"><span class="pre">!</span> <span class="pre">function</span></code> at the
 end of the line, e.g.</p></li>
 </ul>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">use </span><span class="n">my_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">my_func</span> <span class="c">! function</span>
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">use </span><span class="n">my_module</span><span class="p">,</span> <span class="k">only</span><span class="p">:</span> <span class="n">my_func</span> <span class="c">! function</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -336,10 +336,10 @@ subroutine <code class="docutils literal notranslate"><span class="pre">derangmo
                       <span class="n">lo</span><span class="p">,</span><span class="n">hi</span><span class="p">,</span><span class="n">domlo</span><span class="p">,</span><span class="n">domhi</span><span class="p">,</span> <span class="p">&amp;</span>
                       <span class="n">dx</span><span class="p">,</span><span class="n">xlo</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;derangmomx&quot;</span><span class="p">)</span>
 
-   <span class="k">use </span><span class="n">amrex_constants_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">HALF</span>
-   <span class="k">use </span><span class="n">math_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">cross_product</span> <span class="c">! function</span>
-   <span class="k">use </span><span class="n">amrex_fort_module</span><span class="p">,</span> <span class="n">only</span> <span class="p">:</span> <span class="n">rt</span> <span class="o">=&gt;</span> <span class="n">amrex_real</span>
-   <span class="k">use </span><span class="n">prob_params_module</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="n">center</span>
+   <span class="k">use </span><span class="n">amrex_constants_module</span><span class="p">,</span> <span class="k">only</span><span class="p">:</span> <span class="n">HALF</span>
+   <span class="k">use </span><span class="n">math_module</span><span class="p">,</span> <span class="k">only</span><span class="p">:</span> <span class="n">cross_product</span> <span class="c">! function</span>
+   <span class="k">use </span><span class="n">amrex_fort_module</span><span class="p">,</span> <span class="k">only</span> <span class="p">:</span> <span class="n">rt</span> <span class="o">=&gt;</span> <span class="n">amrex_real</span>
+   <span class="k">use </span><span class="n">prob_params_module</span><span class="p">,</span> <span class="k">only</span><span class="p">:</span> <span class="n">center</span>
 
    <span class="k">implicit none</span>
 
