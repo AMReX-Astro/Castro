@@ -15,7 +15,7 @@ CASTRO_HOME = ../../..
 # has the f90 routine ca_initgroups and group structure in probdata_module
 #HAS_INITGROUPS = TRUE
 
-EOS_DIR     := gamma_law_general
+EOS_DIR     := rad_power_law
 
 NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
