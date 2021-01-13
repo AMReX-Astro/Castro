@@ -44,23 +44,37 @@ void problem_initialize_state_data (int i, int j, int k,
     Real rhoe0 = rho * cv * problem::T0;
 
     Real dx_sub = dx[0] / static_cast<Real>(nsub);
-    Real dy_sub = dx[1] / static_cast<Real>(nsub);
-    Real dz_sub = dx[2] / static_cast<Real>(nsub);
-
-    Real zcl = problo[2] + dx[2] * static_cast<Real>(k);
-    Real zcr = zcl + dx[2];
-    Real zcmin = amrex::min(std::abs(zcl), std::abs(zcr));
-    Real zcmax = amrex::max(std::abs(zcl), std::abs(zcr));
-
-    Real ycl = problo[1] + dx[1] * static_cast<Real>(j);
-    Real ycr = ycl + dx[1];
-    Real ycmin = amrex::min(std::abs(ycl), std::abs(ycr));
-    Real ycmax = amrex::max(std::abs(ycl), std::abs(ycr));
-
     Real xcl = problo[0] + dx[0] * static_cast<Real>(i);
     Real xcr = xcl + dx[0];
     Real xcmin = amrex::min(std::abs(xcl), std::abs(xcr));
     Real xcmax = amrex::max(std::abs(xcl), std::abs(xcr));
+
+#if AMREX_SPACEDIM >= 2
+    Real dy_sub = dx[1] / static_cast<Real>(nsub);
+    Real ycl = problo[1] + dx[1] * static_cast<Real>(j);
+    Real ycr = ycl + dx[1];
+    Real ycmin = amrex::min(std::abs(ycl), std::abs(ycr));
+    Real ycmax = amrex::max(std::abs(ycl), std::abs(ycr));
+#else
+    Real dy_sub = 0.0_rt;
+    Real ycl = 0.0_rt;
+    Real ycmin = 0.0_rt;
+    Real ycmax = 0.0_rt;
+#endif
+
+#if AMREX_SPACEDIM == 3
+    Real dz_sub = dx[2] / static_cast<Real>(nsub);
+    Real zcl = problo[2] + dx[2] * static_cast<Real>(k);
+    Real zcr = zcl + dx[2];
+    Real zcmin = amrex::min(std::abs(zcl), std::abs(zcr));
+    Real zcmax = amrex::max(std::abs(zcl), std::abs(zcr));
+#else
+    Real dz_sub = 0.0_rt;
+    Real zcl = 0.0_rt;
+    Real zcmin = 0.0_rt;
+    Real zcmax = 0.0_rt;
+#endif
+
 
     Real rcmin = std::sqrt(xcmin * xcmin + ycmin * ycmin + zcmin * zcmin);
     Real rcmax = std::sqrt(xcmax * xcmax + ycmax * ycmax + zcmax * zcmax);
