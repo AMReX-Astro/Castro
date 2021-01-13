@@ -7,7 +7,7 @@
 
 &extern
 
-  eos_const_c_v = 2.065d8
+  eos_gamma = 1.6666666666d0
 
   const_kappa_p = 4.0d-8
   kappa_p_exp_m = 0.0d0
