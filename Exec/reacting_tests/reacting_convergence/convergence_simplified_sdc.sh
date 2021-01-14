@@ -3,7 +3,7 @@
 # echo the commands
 set -x
 
-DIM=1
+DIM=2
 SDC_ITERS=2
 EXEC=./Castro${DIM}d.gnu.MPI.SMPLSDC.ex
 

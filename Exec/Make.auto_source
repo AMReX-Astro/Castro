@@ -58,7 +58,7 @@ PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 # parameters file will always exist.
 $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(DEFAULT_PROB_PARAMETERS) $(wildcard $(PROB_PARAMETERS)) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(TOP)/Util/scripts/write_probdata.py \
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Util/scripts/write_probdata.py \
            -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 \
            -p "$(PROB_PARAMETERS)" \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
