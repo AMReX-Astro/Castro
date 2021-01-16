@@ -94,8 +94,11 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
 endif
 
+USE_MLMG = FALSE
+
 ifeq ($(USE_RAD), TRUE)
   USE_HYPRE := TRUE
+  USE_MLMG = TRUE
 endif
 
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
@@ -147,7 +150,6 @@ ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
-USE_MLMG = FALSE
 
 
 #------------------------------------------------------------------------------
