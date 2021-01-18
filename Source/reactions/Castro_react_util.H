@@ -5,6 +5,11 @@
 #include <burn_type.H>
 #include <numerical_jacobian.H>
 
+
+constexpr int iwrho = 0;
+constexpr int iwfs = 1;
+constexpr int iwT = NumSpec+1;
+
 // #include <actual_rhs.H>
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
@@ -79,7 +84,9 @@ single_zone_react_source(GpuArray<Real, NUM_STATE> const& state,
     // eos_get_small_temp(&small_temp);
     burn_state.T = amrex::min(MAX_TEMP, amrex::max(burn_state.T, small_temp));
 
+#ifdef STRANG
     burn_state.self_heat = false;
+#endif
 
     Array1D<Real, 1, neqs> ydot;
 
@@ -135,10 +142,6 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     Array1D<Real, 1, neqs> ydot;
     Array1D<Real, 1, neqs> ydot_pert;
     JacNetArray2D Jac;
-
-    constexpr int iwrho = 0;
-    constexpr int iwfs = 1;
-    constexpr int iwT = NumSpec+1;
 
     const auto eps = 1.e-8_rt;
 

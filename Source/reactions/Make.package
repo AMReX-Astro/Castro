@@ -5,4 +5,3 @@ CEXE_headers += Castro_react.H
 
 CEXE_sources += Castro_react.cpp
 CEXE_headers += Castro_react_util.H
-ca_F90EXE_sources += react_util.F90
