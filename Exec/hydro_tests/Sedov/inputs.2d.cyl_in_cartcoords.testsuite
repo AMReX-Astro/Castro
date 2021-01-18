@@ -67,4 +67,8 @@ amr.plot_int        = 20
 amr.derive_plot_vars=ALL
 
 # PROBIN FILENAME
-amr.probin_file = probin.2d.cyl_in_cartcoords.testsuite
+amr.probin_file = probin.2d.cyl_in_cartcoords
+
+# EOS
+eos.eos_gamma = 1.4
+

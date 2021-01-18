@@ -43,19 +43,13 @@ module meth_params_module
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1
 
-  !$acc declare &
-#ifdef RADIATION
-  !$acc create(fspace_type, do_inelastic_scattering, comoving) &
-#endif
-#ifdef GRAVITY
-  !$acc create(gravity_type_int) &
-#endif
-
   ! Begin the declarations of the ParmParse parameters
 
   @@f90_declarations@@
 
   ! End the declarations of the ParmParse parameters
+
+  character (len=:), allocatable :: dummy_string_param
 
   real(rt), save :: rot_vec(3)
 
@@ -95,10 +89,6 @@ contains
     else
        call castro_error("Unknown gravity type")
     end if
-#endif
-
-#ifdef GRAVITY
-    !$acc update device(gravity_type_int)
 #endif
 
   end subroutine ca_set_castro_method_params
@@ -149,12 +139,6 @@ contains
     else
        call castro_error("Wrong value for comoving")
     end if
-
-
-    !$acc update &
-    !$acc device(fspace_type) &
-    !$acc device(do_inelastic_scattering) &
-    !$acc device(comoving)
 
   end subroutine ca_init_radhydro_pars
 #endif

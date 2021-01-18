@@ -21,6 +21,7 @@
 #include <AMReX_TagBox.H>
 #include <AMReX_FillPatchUtil.H>
 #include <AMReX_ParmParse.H>
+#include <extern_parameters_F.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -1450,9 +1451,15 @@ Castro::initData ()
           auto geomdata = geom.data();
 
           GpuArray<Real, NGROUPS+1> xnu_pass = {0.0};
+          GpuArray<Real, NGROUPS> nugroup_pass = {0.0};
+          GpuArray<Real, NGROUPS> dnugroup_pass = {0.0};
 #if NGROUPS > 1
           for (int g = 0; g <= NGROUPS; g++) {
               xnu_pass[g] = radiation->xnu[g];
+          }
+          for (int g = 0; g < NGROUPS; g++) {
+              nugroup_pass[g] = radiation->nugroup[g];
+              dnugroup_pass[g] = radiation->dnugroup[g];
           }
 #endif
 
@@ -1462,7 +1469,7 @@ Castro::initData ()
               // C++ problem initialization; has no effect if not implemented
               // by a problem setup (defaults to an empty routine).
 
-              problem_initialize_rad_data(i, j, k, r, xnu_pass, geomdata);
+              problem_initialize_rad_data(i, j, k, r, xnu_pass, nugroup_pass, dnugroup_pass, geomdata);
 
           });
 
@@ -3784,11 +3791,17 @@ Castro::extern_init ()
     probin_file_name[i] = probin_file[i];
   }
 
-  // read them in in Fortran
+  // read them in in Fortran from the probin file
   ca_extern_init(probin_file_name.dataPtr(),&probin_file_length);
 
-  // grab them from Fortran to C++
+  // grab them from Fortran to C++; then read any C++ parameters directly
+  // from inputs (via ParmParse)
   init_extern_parameters();
+
+  // finally, update the Fortran side via ParmParse to override the
+  // values of any parameters that were set in inputs
+  update_fortran_extern_after_cxx();
+
 
 }
 

@@ -94,6 +94,13 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
 endif
 
+USE_MLMG = FALSE
+
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
+  USE_MLMG = TRUE
+endif
+
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
@@ -143,7 +150,6 @@ ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
-USE_MLMG = FALSE
 
 
 #------------------------------------------------------------------------------
@@ -213,11 +219,10 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
+  DEFINES += -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  DEFINES += -DTRUE_SDC
   Bdirs += Source/sdc
 endif
 
@@ -252,8 +257,6 @@ ifeq ($(USE_RAD), TRUE)
   Bdirs += Source/radiation Source/radiation/_interpbndry
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
-  USE_HYPRE := TRUE
-  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
@@ -329,13 +332,6 @@ Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 #------------------------------------------------------------------------------
 # external libraries
 #------------------------------------------------------------------------------
-
-ifeq ($(USE_HYPRE), TRUE)
-  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-
-  LIBRARIES += -lHYPRE
-endif
 
 ifeq ($(USE_HDF5), TRUE)
   INCLUDE_LOCATIONS += $(HDF5_DIR)/include
