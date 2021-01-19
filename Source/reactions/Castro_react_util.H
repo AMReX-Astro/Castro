@@ -198,8 +198,8 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 
     // now perturb density and call the RHS to compute the derivative wrt rho
     // species rates come back in terms of molar fractions
-    burn_t burn_state_pert;
-    // copy_burn_t(burn_state_pert, burn_state);
+    burn_t burn_state_pert = burn_state;
+
     burn_state_pert.rho = burn_state.rho * (1.0_rt + eps);
     burn_state_pert.T = burn_state.T;
     burn_state_pert.e = burn_state.e;

@@ -4,9 +4,9 @@
 #include <Castro.H>
 #ifdef REACTIONS
 #include <Castro_react_util.H>
-#endif
 #include <vode_dvode.H>
 #include <linpack.H>
+#endif
 
 // error codes
 constexpr int NEWTON_SUCCESS = 0;
@@ -530,6 +530,8 @@ sdc_vode_solve(const Real dt_m,
     dvode_t dvode_state;
 
     burn_t burn_state;
+
+    burn_state.success = true;
 
     for (int n = 0; n < NumSpec+1; n++) {
         burn_state.f_source[n] = C_react[n];

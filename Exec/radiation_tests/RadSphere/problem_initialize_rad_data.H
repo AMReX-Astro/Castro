@@ -15,8 +15,21 @@ void problem_initialize_rad_data (int i, int j, int k,
     const Real* dx = geomdata.CellSize();
     const Real* problo = geomdata.ProbLo();
 
-    for (int g = 0; g < NGROUPS; g++) {
-        rad(i,j,k,g) = 0.0_rt;
+    Real xcen = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
+
+    for (int igroup = 0; igroup < NGROUPS; igroup++) {
+
+        Real xx = C::hplanck * nugroup[igroup] / (C::k_B * problem::T_0);
+        if (xx > 708.e0_rt) {
+            // exp(708+eps) will give 1.e308 -- the limits of IEEE floating point,
+            // and generate an overflow exception
+            rad(i,j,k,igroup) = 0.0_rt;
+        } else {
+            rad(i,j,k,igroup) =
+                (8.0_rt * M_PI * C::hplanck * std::pow(nugroup[igroup], 3) / std::pow(C::c_light, 3) ) /
+                (std::exp(xx) - 1.0_rt) * dnugroup[igroup];
+        }
     }
 }
 #endif
+
