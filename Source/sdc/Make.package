@@ -1,5 +1,4 @@
 CEXE_headers += Castro_sdc.H
-FEXE_headers += Castro_sdc_F.H
 
 CEXE_sources += sdc_util.cpp
 
