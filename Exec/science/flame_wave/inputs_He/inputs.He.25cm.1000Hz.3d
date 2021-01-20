@@ -98,4 +98,4 @@ fab.format = NATIVE_32
 
 
 #PROBIN FILENAME
-amr.probin_file = probin.He.25cm.1000Hz
+amr.probin_file = probin.He.25cm

@@ -92,4 +92,4 @@ amr.small_plot_vars = density Temp enuc
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity
 
 #PROBIN FILENAME
-amr.probin_file = probin.He.1000Hz
+amr.probin_file = probin.He
