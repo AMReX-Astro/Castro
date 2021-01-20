@@ -254,7 +254,9 @@ namespace: ``castro``
 | ``sdc_solve_for_rhoe``                 | do we solve for (rho e) or (rho E) in the SDC nonlinear | 1             |
 |                                        | solve?                                                  |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
-| ``sdc_use_analytic_jac``               | do we use the analytic or numerical Jacobian?           | 1             |
+| ``sdc_use_analytic_jac``               | do we use the analytic or numerical Jacobian for the    | 1             |
+|                                        | Newton-Raphson solver? for the VODE solver, we use      |               |
+|                                        | integrator.jacobian instead                             |               |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
