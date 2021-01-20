@@ -285,7 +285,8 @@ sdc_solver_relax_factor      Real          1.0                y
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
 
-# do we use the analytic or numerical Jacobian?
+# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
+# for the VODE solver, we use integrator.jacobian instead
 sdc_use_analytic_jac         int           1                  y
 
 #-----------------------------------------------------------------------------
