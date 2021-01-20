@@ -125,8 +125,6 @@ void jac (burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
 #endif
     eos_state.e = U_full[UEINT] / U_full[URHO];  //(U_full(UEDEN) - HALF*sum(U_full(UMX:UMZ))/U_full(URHO))/U_full(URHO)
 
-    // I think that this is not needed because we call the EOS in
-    // single_zone_react_source
 
     eos(eos_input_re, eos_state);
 

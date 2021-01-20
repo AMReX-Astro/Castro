@@ -505,7 +505,7 @@ sdc_vode_solve(const Real dt_m,
     auto tol_ener = sdc_solver_tol_ener * relax_fac;
 
     // Update the momenta for this zone -- they don't react
-    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+    for (int n = 0; n < 3; ++n) {
         U_new[UMX+n] = U_old[UMX+n] + dt_m * C[UMX+n];
     }
 
@@ -533,7 +533,7 @@ sdc_vode_solve(const Real dt_m,
 
     burn_state.success = true;
 
-    for (int n = 0; n < NumSpec+1; n++) {
+    for (int n = 0; n < NumSpec+2; n++) {
         burn_state.f_source[n] = C_react[n];
     }
 
@@ -608,13 +608,13 @@ sdc_vode_solve(const Real dt_m,
     }
     U_new[UEINT] = dvode_state.y(NumSpec+2);
     auto v2 = 0.0_rt;
-    for (int n = 0; n < AMREX_SPACEDIM; ++n) {
+    for (int n = 0; n < 3; ++n) {
         v2 += U_new[UMX+n] * U_new[UMX+n];
     }
     U_new[UEDEN] = U_new[UEINT] + 0.5_rt * v2 / U_new[URHO];
 
     // keep our temperature guess
-    U_new[UTEMP] = burn_state.T;
+    U_new[UTEMP] = U_old[UTEMP];
 
 #endif
 }
