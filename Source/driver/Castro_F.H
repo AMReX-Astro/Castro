@@ -196,12 +196,6 @@ extern "C"
 #endif
 
 
-/* SDC */
-#ifdef TRUE_SDC
-#include <Castro_sdc_F.H>
-#endif
-
-
 /* SCF */
 #ifdef GRAVITY
 #include <scf_relax_F.H>
