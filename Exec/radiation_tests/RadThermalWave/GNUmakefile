@@ -19,8 +19,6 @@ NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := rad_power_law
 
-GPU_COMPATIBLE_PROBLEM = TRUE
-
 Bpack   := ./Make.package
 Blocs   := .
 
