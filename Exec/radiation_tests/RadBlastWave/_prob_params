@@ -1,0 +1,11 @@
+
+rho0     real      1.0e-12_rt             y
+
+T0       real      1.0e3_rt               y
+
+rho1     real      6.0e-4_rt              y
+
+T1       real      4.0e8_rt               y
+
+r1       real      0.02e0_rt              y
+
