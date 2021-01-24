@@ -1,0 +1,23 @@
+DEBUG      = FALSE
+
+DIM        = 3
+
+COMP       = gnu
+
+USE_MPI    = TRUE
+
+USE_RAD    = TRUE
+
+CASTRO_HOME = ../../..
+
+EOS_DIR     := gamma_law_general
+
+NETWORK_DIR := general_null
+NETWORK_INPUTS := gammalaw.net
+
+Opacity_dir := rad_power_law
+
+Bpack   := ./Make.package
+Blocs   := .
+
+include $(CASTRO_HOME)/Exec/Make.Castro
