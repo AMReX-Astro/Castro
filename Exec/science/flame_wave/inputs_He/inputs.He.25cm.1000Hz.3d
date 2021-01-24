@@ -90,10 +90,10 @@ amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
 amr.plot_files_output = 0
 
-#amr.small_plot_file        = flame_wave_1000Hz_25cm_3d_smallplt        # root name of plotfile
-#amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
-#amr.small_plot_vars = density Temp enuc
-#amr.derive_small_plot_vars = abar radvel circvel
+amr.small_plot_file        = flame_wave_1000Hz_25cm_3d_smallplt        # root name of plotfile
+amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
+amr.small_plot_vars = density Temp
+amr.derive_small_plot_vars = abar radvel enuc
 fab.format = NATIVE_32
 
 
