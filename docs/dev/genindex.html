@@ -784,6 +784,8 @@
 </li>
       <li><a href="runtime_parameters.html#index-0">castro.update_sources_after_reflux</a>
 </li>
+      <li><a href="runtime_parameters.html#index-1">castro.use_axisymmetric_geom_source</a>
+</li>
       <li><a href="runtime_parameters.html#index-1">castro.use_eos_in_riemann</a>
 </li>
       <li><a href="runtime_parameters.html#index-1">castro.use_flattening</a>
@@ -840,10 +842,10 @@
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro4AreaEi">Castro::Area (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro4AreaEv">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4AreaEi">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4AreaEv">[3]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="class/classCastro.html#_CPPv4N6Castro4areaE">Castro::area (C++ member)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro4areaE">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="class/classCastro.html#_CPPv4N6Castro7avgDownEi">Castro::avgDown (C++ function)</a>, <a href="class/classCastro.html#_CPPv4N6Castro7avgDownEv">[1]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7avgDownEi">[2]</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro7avgDownEv">[3]</a>
 </li>
       <li><a href="class/classCastro.html#_CPPv4N6Castro15build_fine_maskEv">Castro::build_fine_mask (C++ function)</a>, <a href="file/Castro_8H.html#_CPPv4N6Castro15build_fine_maskEv">[1]</a>
@@ -1252,6 +1254,8 @@
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv424construct_new_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_new_ext_source (C++ function)</a>
 </li>
+      <li><a href="file/Castro__sources_8H.html#_CPPv425construct_new_geom_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_new_geom_source (C++ function)</a>
+</li>
       <li><a href="file/Castro__gravity_8H.html#_CPPv421construct_new_gravityiiN5amrex4RealE">construct_new_gravity (C++ function)</a>
 </li>
       <li><a href="file/Castro__gravity_8H.html#_CPPv428construct_new_gravity_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_new_gravity_source (C++ function)</a>
@@ -1269,6 +1273,8 @@
       <li><a href="file/Castro__diffusion_8H.html#_CPPv425construct_old_diff_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_old_diff_source (C++ function)</a>
 </li>
       <li><a href="file/Castro__sources_8H.html#_CPPv424construct_old_ext_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_old_ext_source (C++ function)</a>
+</li>
+      <li><a href="file/Castro__sources_8H.html#_CPPv425construct_old_geom_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">construct_old_geom_source (C++ function)</a>
 </li>
       <li><a href="file/Castro__gravity_8H.html#_CPPv421construct_old_gravityiiN5amrex4RealE">construct_old_gravity (C++ function)</a>
 </li>
@@ -1424,6 +1430,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="file/Castro__sources_8H.html#_CPPv415fill_ext_sourceKN5amrex4RealEKN5amrex4RealERKN5amrex8MultiFabERKN5amrex8MultiFabERN5amrex8MultiFabE">fill_ext_source (C++ function)</a>
 </li>
+      <li><a href="file/Castro__sources_8H.html#_CPPv416fill_geom_sourceN5amrex4RealEN5amrex4RealERN5amrex8MultiFabERN5amrex8MultiFabE">fill_geom_source (C++ function)</a>
+</li>
       <li><a href="file/Castro__hydro_8H.html#_CPPv424fill_hybrid_hydro_sourceRN5amrex8MultiFabERN5amrex8MultiFabEKN5amrex4RealE">fill_hybrid_hydro_source (C++ function)</a>
 </li>
       <li><a href="file/Castro__rotation_8H.html#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">fill_rotation_field (C++ function)</a>
@@ -1434,10 +1442,10 @@
 </li>
       <li><a href="file/diffusion__util_8H.html#_CPPv414fill_temp_condRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">fill_temp_cond (C++ function)</a>
 </li>
-      <li><a href="file/diffusion__util_8H.html#_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">fill_temp_diff_coeff (C++ function)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="file/diffusion__util_8H.html#_CPPv420fill_temp_diff_coeffRKN5amrex3BoxERKN5amrex6Array4IKN5amrex4RealEEERKN5amrex6Array4IN5amrex4RealEEE">fill_temp_diff_coeff (C++ function)</a>
+</li>
       <li><a href="file/Castro__sources_8H.html#_CPPv418fill_thermo_sourceRN5amrex8MultiFabERN5amrex8MultiFabE">fill_thermo_source (C++ function)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv48FirstAdv">FirstAdv (C++ member)</a>
@@ -2583,6 +2591,8 @@
       <li><a href="file/Castro_8H.html#_CPPv4N7sources8diff_srcE">sources::diff_src (C++ enumerator)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv4N7sources7ext_srcE">sources::ext_src (C++ enumerator)</a>
+</li>
+      <li><a href="file/Castro_8H.html#_CPPv4N7sources8geom_srcE">sources::geom_src (C++ enumerator)</a>
 </li>
       <li><a href="file/Castro_8H.html#_CPPv4N7sources8grav_srcE">sources::grav_src (C++ enumerator)</a>
 </li>
