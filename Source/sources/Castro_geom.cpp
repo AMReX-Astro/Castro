@@ -3,16 +3,21 @@
 
 using namespace amrex;
 
+///
+/// this adds the geometric source term for axisymmetric
+/// coordinates as described in Bernand-Champmartin.  This only
+/// applies to axisymmetric geometry.
+///
 void
 Castro::construct_old_geom_source(MultiFab& source, MultiFab& state_in, Real time, Real dt)
 {
 
   if (geom.Coord() != 1) {
-    amrex::Abort("this is only defined for axisymmetric geometry");
+      return;
   }
 
   if (use_axisymmetric_geom_source == 0) {
-    return;
+      return;
   }
 
   const Real strt_time = ParallelDescriptor::second();
@@ -53,11 +58,11 @@ Castro::construct_new_geom_source(MultiFab& source, MultiFab& state_old, MultiFa
 {
 
   if (geom.Coord() != 1) {
-    amrex::Abort("this is only defined for axisymmetric geometry");
+      return;
   }
 
   if (use_axisymmetric_geom_source == 0) {
-    return;
+      return;
   }
 
   const Real strt_time = ParallelDescriptor::second();
