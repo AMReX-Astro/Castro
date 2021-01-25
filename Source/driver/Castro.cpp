@@ -397,7 +397,13 @@ Castro::read_params ()
         amrex::Error();
       }
 
-
+#ifdef ROTATION
+    if (dgeom.IsRZ() && state_in_rotating_frame == 0 && use_axisymmetric_geom_source)
+    {
+        std::cerr << "use_axisymmetric_geom_source is not compatible with state_in_rotating_frame=0\n";
+        amrex::Error();
+    }
+#endif
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) {
