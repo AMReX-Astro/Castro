@@ -252,11 +252,11 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
 
     // d( d(rho X_m)/dt)/dT
     for (int m = 1; m <= NumSpec; ++m) {
-       dRdw(m, iwT) = state[URHO] * Jac(m, net_itemp);
+       dRdw(m, iwT) = state[URHO] * Jac(m, net_ienuc);
     }
 
     // d( d(rho E)/dt)/dT
-    dRdw(NumSpec+1, iwT) = state[URHO] * Jac(net_ienuc, net_itemp);
+    dRdw(NumSpec+1, iwT) = state[URHO] * Jac(net_ienuc, net_ienuc);
 }
 
 #endif
