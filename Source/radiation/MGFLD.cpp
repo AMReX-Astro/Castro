@@ -280,7 +280,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       {
           Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = S_new_arr(i,j,k,URHO);
           eos_state.T   = temp_arr(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {
@@ -873,7 +873,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 {
                     Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                    eos_t eos_state;
+                    eos_re_t eos_state;
                     eos_state.rho = S_new_arr(i,j,k,URHO);
                     eos_state.T   = S_new_arr(i,j,k,UTEMP);
                     eos_state.e   = Tp_n(i,j,k) * rhoInv;
@@ -918,7 +918,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
                 Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = S_new_arr(i,j,k,URHO);
                 eos_state.T   = Tp_n(i,j,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -1578,7 +1578,7 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
       {
           Real rhoInv = 1.e0_rt / state(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = state(i,j,k,URHO);
           eos_state.T   =  temp(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {
