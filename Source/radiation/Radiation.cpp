@@ -1166,7 +1166,7 @@ void Radiation::state_update(MultiFab& state, MultiFab& frhoes)
             {
                 Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = state_arr(i,j,k,URHO);
                 eos_state.T   = state_arr(i,j,k,UTEMP);
                 eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
@@ -1388,7 +1388,7 @@ void Radiation::get_c_v(FArrayBox& c_v, FArrayBox& temp, FArrayBox& state,
     {
         Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_re_t eos_state;
         eos_state.rho = state_arr(i,j,k,URHO);
         eos_state.T   = temp_arr(i,j,k);
         for (int n = 0; n < NumSpec; ++n) {
@@ -1460,7 +1460,7 @@ void Radiation::get_planck_and_temp(MultiFab& fkp,
             {
                 Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = state_arr(i,j,k,URHO);
                 eos_state.T   = state_arr(i,j,k,UTEMP);
                 eos_state.e   = temp_arr(i,j,k) * rhoInv;
@@ -1571,7 +1571,7 @@ void Radiation::get_rosseland(MultiFab& kappa_r,
               {
                   Real rhoInv = 1.e0_rt / state_arr(i,j,k,URHO);
 
-                  eos_t eos_state;
+                  eos_re_t eos_state;
                   eos_state.rho = state_arr(i,j,k,URHO);
                   eos_state.T   = state_arr(i,j,k,UTEMP);
                   eos_state.e   = state_arr(i,j,k,UEINT) * rhoInv;
@@ -2524,7 +2524,7 @@ void Radiation::get_rosseland_v_dcf(MultiFab& kappa_r, MultiFab& v, MultiFab& dc
                 {
                     Real rhoInv = 1.e0_rt / S_arr(i,j,k,URHO);
 
-                    eos_t eos_state;
+                    eos_re_t eos_state;
                     eos_state.rho = S_arr(i,j,k,URHO);
                     eos_state.T   = S_arr(i,j,k,UTEMP);
                     eos_state.e   = S_arr(i,j,k,UEINT) * rhoInv;
