@@ -344,8 +344,6 @@ end subroutine ca_set_method_params
 
 
 subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-     Interior_in, Inflow_in, Outflow_in, &
-     Symmetry_in, SlipWall_in, NoSlipWall_in, &
      coord_type_in, &
      problo_in, probhi_in) &
      bind(C, name="ca_set_problem_params")
@@ -366,7 +364,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   integer,  intent(in) :: dm
   integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-  integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
@@ -383,23 +380,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   physbc_lo(1:dm) = physbc_lo_in(1:dm)
   physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
-  allocate(Interior)
-  allocate(Inflow)
-  allocate(Outflow)
-  allocate(Symmetry)
-  allocate(SlipWall)
-  allocate(NoSlipWall)
-
   allocate(coord_type)
   allocate(problo(3))
   allocate(probhi(3))
-
-  Interior   = Interior_in
-  Inflow     = Inflow_in
-  Outflow    = Outflow_in
-  Symmetry   = Symmetry_in
-  SlipWall   = SlipWall_in
-  NoSlipWall = NoSlipWall_in
 
   coord_type = coord_type_in
 
@@ -429,87 +412,12 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
 
   !$acc update device(physbc_lo, physbc_hi)
-  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
   !$acc update device(dim)
   !$acc update device(dg)
   !$acc update device(coord_type)
   !$acc update device(problo, probhi)
-  !$acc update device(domlo_level, domhi_level, dx_level)
-  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
 
 end subroutine ca_set_problem_params
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
-     ref_ratio_in, n_error_buf_in, blocking_factor_in) &
-     bind(C, name="ca_set_grid_info")
-     !
-     ! Sometimes this routine can get called multiple
-     ! times upon initialization; in this case, just to
-     ! be safe, we'll deallocate and start again.
-     !
-     ! Binds to C function `ca_set_grid_info`
-
-  use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in) :: max_level_in
-  real(rt), intent(in) :: dx_level_in(3*(max_level_in+1))
-  integer,  intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
-  integer,  intent(in) :: ref_ratio_in(3*(max_level_in+1))
-  integer,  intent(in) :: n_error_buf_in(0:max_level_in)
-  integer,  intent(in) :: blocking_factor_in(0:max_level_in)
-
-  integer :: lev, dir
-
-  if (allocated(dx_level)) then
-     deallocate(dx_level)
-  endif
-  if (allocated(domlo_level)) then
-     deallocate(domlo_level)
-  endif
-  if (allocated(domhi_level)) then
-     deallocate(domhi_level)
-  endif
-
-  if (allocated(ref_ratio)) then
-     deallocate(ref_ratio)
-  endif
-  if (allocated(n_error_buf)) then
-     deallocate(n_error_buf)
-  endif
-  if (allocated(blocking_factor)) then
-     deallocate(blocking_factor)
-  endif
-
-  max_level = max_level_in
-
-  allocate(dx_level(1:3, 0:max_level))
-  allocate(domlo_level(1:3, 0:max_level))
-  allocate(domhi_level(1:3, 0:max_level))
-  allocate(ref_ratio(1:3, 0:max_level))
-  allocate(n_error_buf(0:max_level))
-  allocate(blocking_factor(0:max_level))
-
-  do lev = 0, max_level
-     do dir = 1, 3
-        dx_level(dir,lev) = dx_level_in(3*lev + dir)
-        domlo_level(dir,lev) = domlo_in(3*lev + dir)
-        domhi_level(dir,lev) = domhi_in(3*lev + dir)
-        ref_ratio(dir,lev) = ref_ratio_in(3*lev + dir)
-     enddo
-     n_error_buf(lev) = n_error_buf_in(lev)
-     blocking_factor(lev) = blocking_factor_in(lev)
-  enddo
-
-end subroutine ca_set_grid_info
 
 
 ! :::

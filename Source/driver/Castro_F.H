@@ -46,17 +46,8 @@ extern "C"
   void ca_set_problem_params
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
-     const int& Interior_value, const int& Inflow_value,
-     const int& Outflow_value, const int& Symmetry_value,
-     const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_set_grid_info
-    (const int& max_level, const amrex::Real* dx_level,
-     const int* domlo_level, const int* domhi_level,
-     const int* ref_ratio, const int* n_error_buf,
-     const int* blocking_factor);
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE

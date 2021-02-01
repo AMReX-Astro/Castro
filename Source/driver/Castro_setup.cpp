@@ -315,7 +315,7 @@ Castro::variableSetUp ()
   const int coord_type = dgeom.Coord();
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+                        coord_type,
                         dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
