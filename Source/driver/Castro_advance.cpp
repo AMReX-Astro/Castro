@@ -261,10 +261,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
-
     // The option of whether to do a multilevel initialization is
     // controlled within the radiation class.  This step belongs
     // before the swap.
