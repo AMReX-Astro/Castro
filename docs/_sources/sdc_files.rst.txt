@@ -5,4 +5,6 @@ Sdc
    :maxdepth: 2
 
    file/Castro__sdc_8H
+   file/Castro__sdc__util_8H
+   file/vode__rhs__true__sdc_8H
    

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>File ppm.H &mdash; Castro  documentation</title>
+  <title>File Castro_react_util.H &mdash; Castro  documentation</title>
   
 
   
@@ -41,8 +41,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="File reconstruction.H" href="reconstruction_8H.html" />
-    <link rel="prev" title="File hybrid.H" href="hybrid_8H.html" /> 
+    <link rel="next" title="Rotation" href="../rotation_files.html" />
+    <link rel="prev" title="File Castro_react.H" href="Castro__react_8H.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -82,7 +82,7 @@
 
           
     <div class="branch">
-        Branch: <a href="../file/ppm_8H.html">main</a> | <a href="../dev/file/ppm_8H.html">development</a>
+        Branch: <a href="../file/Castro__react__util_8H.html">main</a> | <a href="../dev/file/Castro__react__util_8H.html">development</a>
     </div>
 
         </div>
@@ -141,23 +141,16 @@
 <li class="toctree-l2"><a class="reference internal" href="../diffusion_files.html">Diffusion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../driver_files.html">Driver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../gravity_files.html">Gravity</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../hydro_files.html">Hydro</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="Castro__hydro_8H.html">File Castro_hydro.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="advection__util_8H.html">File advection_util.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="fourth__center__average_8H.html">File fourth_center_average.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="hybrid_8H.html">File hybrid.H</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">File ppm.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="reconstruction_8H.html">File reconstruction.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann_8H.html">File riemann.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="riemann__solvers_8H.html">File riemann_solvers.H</a></li>
-<li class="toctree-l3"><a class="reference internal" href="slope_8H.html">File slope.H</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="../hydro_files.html">Hydro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../mhd_files.html">Mhd</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../particles_files.html">Particles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../problems_files.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../radiation_files.html">Radiation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reactions_files.html">Reactions</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../reactions_files.html">Reactions</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Castro__react_8H.html">File Castro_react.H</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">File Castro_react_util.H</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../rotation_files.html">Rotation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../scf_files.html">Scf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../sdc_files.html">Sdc</a></li>
@@ -219,15 +212,15 @@
         
           <li><a href="../filelist.html">File list</a> &raquo;</li>
         
-          <li><a href="../hydro_files.html">Hydro</a> &raquo;</li>
+          <li><a href="../reactions_files.html">Reactions</a> &raquo;</li>
         
-      <li>File ppm.H</li>
+      <li>File Castro_react_util.H</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/file/ppm_8H.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/file/Castro__react__util_8H.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -240,64 +233,57 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="file-ppm-h">
-<h1>File ppm.H<a class="headerlink" href="#file-ppm-h" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="file-castro-react-util-h">
+<h1>File Castro_react_util.H<a class="headerlink" href="#file-castro-react-util-h" title="Permalink to this headline">¶</a></h1>
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_reconstruct (const Real *s, const Real flatn, Real &amp;sm, Real &amp;sp)</code></dt>
-<dd><p>Compute the coefficients of a parabolic reconstruction of the data in a zone. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">s</span></code>: Real(\5) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: The flattening coefficient </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The value of the parabola on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The value of the parabola on the right edge of the zone </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<span class="target" id="Castro__react__util_8H_1a458ec34dabb00ba390245d09763a6932"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn (const int i, const int j, const int k, Array4&lt; const Real &gt; const &amp;state)</code></dt>
+<dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile (const Real sm, const Real sp, const Real sc, const Real u, const Real c, const Real dtdx, Real *Ip, Real *Im)</code></dt>
-<dd><p>Integrate under the parabola using from the left and right edges with the wave speeds u-c, u, u+c</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: The fluid velocity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>: The sound speed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the right zone edge </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the left zone edge </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<span class="target" id="Castro__react__util_8H_1a7e22b78a8e608c31e7ef1103448ac2ac"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state)</code></dt>
+<dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="ppm_8H_1a6094d2b8700886946e674aeaf1223dc6"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ppm_int_profile_single (const Real sm, const Real sp, const Real sc, const Real lam, const Real dtdx, Real &amp;Ip, Real &amp;Im)</code></dt>
-<dd><p>Integrate under the parabola from the left and right edges for a single wave speed</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lam</span></code>: The wave speed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: integral under the parabola from the right zone edge </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: integral under the parabola from the left zone edge </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<span class="target" id="Castro__react__util_8H_1a36e7270d04678a969973c81ab5f02478"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn_type (burn_t const &amp;state)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__react__util_8H_1a5e87a191264be4951dce809d8a3ef378"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_react_source (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state, GpuArray&lt; Real, NUM_STATE &gt; &amp;R, burn_t &amp;burn_state)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__react__util_8H_1aca6ce1788ffe0bdb554e4e103ffd62bc"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_react_source (const int i, const int j, const int k, Array4&lt; const Real &gt; const &amp;state, Array4&lt; Real &gt; const &amp;R, burn_t &amp;burn_state)</code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="Castro__react__util_8H_1acd3223227f4e176f71eb1521014fd5fa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_jac (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state, burn_t burn_state, Array2D&lt; Real, 0, NumSpec+1, 0, NumSpec+1 &gt; &amp;dRdw)</code></dt>
+<dd></dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Variables</p>
+<dl class="cpp var">
+<dt id="_CPPv45iwrho">
+<span id="_CPPv35iwrho"></span><span id="_CPPv25iwrho"></span><span id="iwrho__i"></span><span class="target" id="Castro__react__util_8H_1a761abb89722413b8d80e36b23f83faca"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwrho</code> = 0<a class="headerlink" href="#_CPPv45iwrho" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv44iwfs">
+<span id="_CPPv34iwfs"></span><span id="_CPPv24iwfs"></span><span id="iwfs__i"></span><span class="target" id="Castro__react__util_8H_1ad577bd3868d3e0e7b383ade04e69f646"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwfs</code> = 1<a class="headerlink" href="#_CPPv44iwfs" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt id="_CPPv43iwT">
+<span id="_CPPv33iwT"></span><span id="_CPPv23iwT"></span><span id="iwT__i"></span><span class="target" id="Castro__react__util_8H_1a9adcf77ffde3e3bf39d16d3f71a9fb22"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwT</code> = NumSpec + 1<a class="headerlink" href="#_CPPv43iwT" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 </div>
@@ -308,8 +294,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="reconstruction_8H.html" class="btn btn-neutral float-right" title="File reconstruction.H" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="hybrid_8H.html" class="btn btn-neutral float-left" title="File hybrid.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../rotation_files.html" class="btn btn-neutral float-right" title="Rotation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="Castro__react_8H.html" class="btn btn-neutral float-left" title="File Castro_react.H" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

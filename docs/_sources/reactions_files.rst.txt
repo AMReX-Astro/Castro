@@ -5,4 +5,5 @@ Reactions
    :maxdepth: 2
 
    file/Castro__react_8H
+   file/Castro__react__util_8H
    
