@@ -17,12 +17,6 @@ extern "C"
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 
-  void ca_amrinfo_init();
-  void ca_amrinfo_finalize();
-
-  void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
-                       const amrex::Real& time, const amrex::Real& dt);
-
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 
 #ifdef GRAVITY
