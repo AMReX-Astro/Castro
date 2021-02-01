@@ -211,7 +211,7 @@ Castro::variableCleanUp ()
 #ifdef SPONGE
     sponge_finalize();
 #endif
-    amrinfo_finalize();
+
 }
 
 void
@@ -934,8 +934,6 @@ Castro::initData ()
       }
 #endif
 
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
-
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Initializing the data at level " << level << std::endl;
     }
@@ -1564,8 +1562,6 @@ Castro::estTimeStep ()
       return fixed_dt;
     }
 
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
-
     Real estdt = max_dt;
 
     Real time = state[State_Type].curTime();
@@ -1970,10 +1966,6 @@ void
 Castro::post_timestep (int iteration_local)
 {
     BL_PROFILE("Castro::post_timestep()");
-
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, iteration_local, -1, -1.0, -1.0);
 
     //
     // Integration cycle on fine level grids is complete
@@ -2900,8 +2892,6 @@ Castro::reflux(int crse_level, int fine_level)
             Real dt_advance_local = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            ca_set_amr_info(lev, -1, -1, time, dt_advance_local);
-
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance_local, 0);
@@ -3237,8 +3227,6 @@ Castro::errorEst (TagBoxArray& tags,
                   int          /*ngrow*/)
 {
     BL_PROFILE("Castro::errorEst()");
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real ltime = time;
 
@@ -3678,18 +3666,6 @@ Castro::derive (const std::string& name,
     BL_PROFILE("Castro::derive()");
 
     AmrLevel::derive(name,time,mf,dcomp);
-}
-
-void
-Castro::amrinfo_init ()
-{
-   ca_amrinfo_init();
-}
-
-void
-Castro::amrinfo_finalize()
-{
-   ca_amrinfo_finalize();
 }
 
 void

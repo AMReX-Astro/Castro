@@ -66,12 +66,6 @@ USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
 
-# hack for now -- CUDA processing doesn't respect functions blocked by
-# ifdefs, so we need to define EXTRA_THERMO
-ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DEXTRA_THERMO
-endif
-
 # all Castro problems use a dimension-agnostic interface
 DIMENSION_AGNOSTIC = TRUE
 

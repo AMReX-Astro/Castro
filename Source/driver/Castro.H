@@ -1055,10 +1055,6 @@ public:
 
     static void extern_init ();
 
-    static void amrinfo_init();
-
-    static void amrinfo_finalize();
-
     static void read_params ();
 
 
