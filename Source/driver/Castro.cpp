@@ -121,21 +121,21 @@ std::string  Castro::probin_file = "probin";
 
 
 #if BL_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
 #else
 IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
@@ -354,7 +354,7 @@ Castro::read_params ()
     }
 
     // SDC does not support CUDA yet
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
     if (time_integration_method == SpectralDeferredCorrections) {
         amrex::Error("CUDA SDC is currently disabled.");
     }
@@ -463,7 +463,7 @@ Castro::read_params ()
    }
 #endif
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
    if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
    }
@@ -1049,7 +1049,7 @@ Castro::initData ()
 
 #endif //MHD
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 #ifdef GPU_COMPATIBLE_PROBLEM
@@ -1167,7 +1167,7 @@ Castro::initData ()
          amrex::Error("Error: initial data has T <~ small_temp");
        }
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
            S_new.prefetchToDevice(mfi);
@@ -1196,7 +1196,7 @@ Castro::initData ()
              spec_sum += S_arr(i,j,k,UFS+n);
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
              std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
                        << i << " " << j << " " << k << " " 
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
@@ -1220,7 +1220,7 @@ Castro::initData ()
          // For fourth-order, we need to convert to cell-averages now.
          // (to second-order, these are cell-averages, so we're done in that case).
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
          if (sdc_order == 4) {
            Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -2412,7 +2412,7 @@ Castro::post_init (Real /*stop_time*/)
 
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (do_scf_initial_model) {
         scf_relaxation();
     }

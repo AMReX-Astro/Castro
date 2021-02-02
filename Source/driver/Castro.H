@@ -470,7 +470,7 @@ public:
                                   int  amr_ncycle);
 
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,

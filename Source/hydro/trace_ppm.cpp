@@ -63,7 +63,7 @@ Castro::trace_ppm(const Box& bx,
   auto vhi = vbx.hiVect3d();
 
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 
   // if we're on the CPU, we preprocess the sources over the whole
   // tile up front -- we don't want to trace under a source that is
@@ -230,7 +230,7 @@ Castro::trace_ppm(const Box& bx,
     for (int n = 0; n < NQSRC; n++) {
 
       // do we even need to trace (non-zero source?)
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       int do_trace = do_source_trace[n];
 #else
       int do_trace = 0;
