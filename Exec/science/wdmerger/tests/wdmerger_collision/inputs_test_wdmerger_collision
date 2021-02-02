@@ -79,6 +79,9 @@ castro.small_dens = 1.e-5                          # Minimum allowable density (
 castro.dual_energy_eta1 = 1.0e-3                   # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
 
+eos.use_eos_coulomb = 1
+eos.eos_input_is_constant = 1
+
 ############################################################################################
 # Gravity
 ############################################################################################
