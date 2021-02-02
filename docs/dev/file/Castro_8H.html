@@ -1019,18 +1019,6 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv4N6Castro11setGridInfoEv">
-<span id="_CPPv3N6Castro11setGridInfoEv"></span><span id="_CPPv2N6Castro11setGridInfoEv"></span><span id="Castro::setGridInfo"></span><span class="target" id="classCastro_1a7f2e94c4c21d9b88bc1919fb4c2327e8"></span>void <code class="sig-name descname">setGridInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
-<dd><p>Passes some data about the grid to a Fortran module.</p>
-<p>Send refinement data to Fortran. We do it here because now the grids have been initialized and we need this data for setting up the problem.</p>
-<p><dl class="simple">
-<dt><strong>Note</strong></dt><dd><p>this routine will always get called on level 0, even if we are doing a restart, so it is safe to put this here. </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="cpp function">
 <dt id="_CPPv4N6Castro21do_energy_diagnosticsEv">
 <span id="_CPPv3N6Castro21do_energy_diagnosticsEv"></span><span id="_CPPv2N6Castro21do_energy_diagnosticsEv"></span><span id="Castro::do_energy_diagnostics"></span><span class="target" id="classCastro_1a27707c673946e5b5d00991bca9df8e45"></span>void <code class="sig-name descname">do_energy_diagnostics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Print information about energy budget. </p>
