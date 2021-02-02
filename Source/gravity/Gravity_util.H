@@ -100,36 +100,38 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
     Real rho_r_L, rho_r_U;
 
-    Real dQ;
-
     for (int n = nlo; n <= npts-1; ++n) {
 
         for (int l = 0; l <= gravity::lnum; ++l) {
 
             calcLegPolyL(l, legPolyL, legPolyL1, legPolyL2, cosTheta);
 
+            Real dQL0 = 0.0_rt;
+            Real dQU0 = 0.0_rt;
+
             if (index <= n) {
 
                 rho_r_L = rho * (std::pow(r, l));
 
-                dQ = legPolyL * rho_r_L * vol * multipole::volumeFactor;
+                dQL0 = legPolyL * rho_r_L * vol * multipole::volumeFactor;
                 if (parity) {
-                    dQ = dQ * multipole::parity_q0(l);
+                    dQL0 = dQL0 * multipole::parity_q0(l);
                 }
-                amrex::Gpu::deviceReduceSum(&qL0(l,0,n), dQ, handler);
 
             }
             else {
 
                 rho_r_U = rho * (std::pow(r, -l-1));
 
-                dQ = legPolyL * rho_r_U * vol * multipole::volumeFactor;
+                dQU0 = legPolyL * rho_r_U * vol * multipole::volumeFactor;
                 if (parity) {
-                    dQ = dQ * multipole::parity_q0(l);
+                    dQU0 = dQU0 * multipole::parity_q0(l);
                 }
-                amrex::Gpu::deviceReduceSum(&qU0(l,0,n), dQ, handler);
 
             }
+
+            amrex::Gpu::deviceReduceSum(&qL0(l,0,n), dQL0, handler);
+            amrex::Gpu::deviceReduceSum(&qU0(l,0,n), dQU0, handler);
 
         }
 
@@ -145,40 +147,47 @@ void multipole_add(Real cosTheta, Real phiAngle, Real r, Real rho, Real vol,
 
                 calcAssocLegPolyLM(l, m, assocLegPolyLM, assocLegPolyLM1, assocLegPolyLM2, cosTheta);
 
+                Real dQLC = 0.0_rt;
+                Real dQLS = 0.0_rt;
+
+                Real dQUC = 0.0_rt;
+                Real dQUS = 0.0_rt;
+
                 if (index <= n) {
 
                     rho_r_L = rho * (std::pow(r, l));
 
-                    dQ = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
+                    dQLC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQLC = dQLC * multipole::parity_qC_qS(l,m);
                     }
-                    amrex::Gpu::deviceReduceSum(&qLC(l,m,n), dQ, handler);
 
-                    dQ = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
+                    dQLS = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_L * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQLS = dQLS * multipole::parity_qC_qS(l,m);
                     }
-                    amrex::Gpu::deviceReduceSum(&qLS(l,m,n), dQ, handler);
 
                 }
                 else {
 
                     rho_r_U = rho * (std::pow(r, -l-1));
 
-                    dQ = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
+                    dQUC = assocLegPolyLM * std::cos(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQUC = dQUC * multipole::parity_qC_qS(l,m);
                     }
-                    amrex::Gpu::deviceReduceSum(&qUC(l,m,n), dQ, handler);
 
-                    dQ = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
+                    dQUS = assocLegPolyLM * std::sin(m * phiAngle) * rho_r_U * vol * multipole::factArray(l,m);
                     if (parity) {
-                        dQ = dQ * multipole::parity_qC_qS(l,m);
+                        dQUS = dQUS * multipole::parity_qC_qS(l,m);
                     }
-                    amrex::Gpu::deviceReduceSum(&qUS(l,m,n), dQ, handler);
 
                 }
+
+                amrex::Gpu::deviceReduceSum(&qLC(l,m,n), dQLC, handler);
+                amrex::Gpu::deviceReduceSum(&qLS(l,m,n), dQLS, handler);
+                amrex::Gpu::deviceReduceSum(&qUC(l,m,n), dQUC, handler);
+                amrex::Gpu::deviceReduceSum(&qUS(l,m,n), dQUS, handler);
 
             }
         }
