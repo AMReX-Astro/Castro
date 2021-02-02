@@ -156,7 +156,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       bool oversubscribed = false;
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
       if (Gpu::Device::freeMemAvailable() < 10000000) {
           oversubscribed = true;
       }

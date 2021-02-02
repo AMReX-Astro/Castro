@@ -192,7 +192,7 @@ Castro::cons_to_prim_fourth(const Real time)
 
 
     // check for NaNs
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     check_for_nan(q);
     check_for_nan(q_bar);
 #endif
@@ -297,7 +297,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
 
             if (castro::time_integration_method == 0) {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                 if (verbose == 1) {
 
                     if (courx > 1.0_rt) {
@@ -346,7 +346,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
                     courtmp += courz;
                 }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                 if (verbose == 1) {
 
                     // note: it might not be 1 for all RK integrators

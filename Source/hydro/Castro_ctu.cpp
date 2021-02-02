@@ -254,7 +254,7 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
 
 #ifdef RADIATION
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   amrex::Error("ppm_type <=0 is not supported in with radiation");
 #endif
 #endif
