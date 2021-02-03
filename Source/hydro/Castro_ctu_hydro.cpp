@@ -151,15 +151,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // all the data we will need, and then prefetching it out at the end. This at least
       // improves performance by mitigating the number of unified memory page faults.
 
-      // Unfortunately in CUDA there is no easy way to see actual current memory usage when
-      // using unified memory; querying CUDA for free memory usage will only tell us whether
-      // we've oversubscribed at any point, not whether we're currently oversubscribing, but
-      // this is still a good heuristic in most cases.
+      // An empirical threshold on NVIDIA GPUs is that we're probably oversubscribing if
+      // there are less than 10 MB left.
 
       bool oversubscribed = false;
 
-#ifdef AMREX_USE_CUDA
-      if (Gpu::Device::freeMemAvailable() < 0.005 * Gpu::Device::totalGlobalMem()) {
+#ifdef AMREX_USE_GPU
+      if (Gpu::Device::freeMemAvailable() < 10000000) {
           oversubscribed = true;
       }
 #endif

@@ -121,21 +121,21 @@ std::string  Castro::probin_file = "probin";
 
 
 #if BL_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
 #else
 IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
@@ -211,7 +211,7 @@ Castro::variableCleanUp ()
 #ifdef SPONGE
     sponge_finalize();
 #endif
-    amrinfo_finalize();
+
 }
 
 void
@@ -354,7 +354,7 @@ Castro::read_params ()
     }
 
     // SDC does not support CUDA yet
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
     if (time_integration_method == SpectralDeferredCorrections) {
         amrex::Error("CUDA SDC is currently disabled.");
     }
@@ -397,7 +397,13 @@ Castro::read_params ()
         amrex::Error();
       }
 
-
+#ifdef ROTATION
+    if (dgeom.IsRZ() && state_in_rotating_frame == 0 && use_axisymmetric_geom_source)
+    {
+        std::cerr << "use_axisymmetric_geom_source is not compatible with state_in_rotating_frame=0\n";
+        amrex::Error();
+    }
+#endif
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) {
@@ -457,7 +463,7 @@ Castro::read_params ()
    }
 #endif
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
    if (do_scf_initial_model) {
        amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
    }
@@ -597,32 +603,6 @@ Castro::Castro (Amr&            papa,
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
-
-    // initialize the C++ values of the runtime parameters
-    if (do_init_probparams == 0) {
-      init_prob_parameters();
-
-      do_init_probparams = 1;
-
-      // Copy ambient data from Fortran to C++. This should be done prior to
-      // problem_initialize() in case the C++ initialization overwrites it.
-
-      for (int n = 0; n < NUM_STATE; ++n) {
-          ambient::ambient_state[n] = 0.0_rt;
-      }
-
-      get_ambient_data(ambient::ambient_state);
-
-      // If we're doing C++ problem initialization, do it here. We have to make
-      // sure it's done after the above call to init_prob_parameters() in case
-      // any changes are made to the problem parameters.
-
-      problem_initialize();
-
-      // Sync Fortran back up with any changes we made to the problem parameters.
-      // If problem_initialize() didn't change them, this has no effect.
-      cxx_to_f90_prob_parameters();
-    }
 
     initMFs();
 
@@ -778,8 +758,6 @@ Castro::buildMetrics ()
     geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
 #endif
 
-    if (level == 0) setGridInfo();
-
     wall_time_start = 0.0;
 }
 
@@ -890,6 +868,31 @@ Castro::initMFs()
 
     lastDt = 1.e200;
 
+    // initialize the C++ values of the runtime parameters
+    if (do_init_probparams == 0) {
+        init_prob_parameters();
+
+        do_init_probparams = 1;
+
+        // Copy ambient data from Fortran to C++. This should be done prior to
+        // problem_initialize() in case the C++ initialization overwrites it.
+
+        for (int n = 0; n < NUM_STATE; ++n) {
+            ambient::ambient_state[n] = 0.0_rt;
+        }
+
+        get_ambient_data(ambient::ambient_state);
+
+        // If we're doing C++ problem initialization, do it here. We have to make
+        // sure it's done after the above call to init_prob_parameters() in case
+        // any changes are made to the problem parameters.
+
+        problem_initialize();
+
+        // Sync Fortran back up with any changes we made to the problem parameters.
+        // If problem_initialize() didn't change them, this has no effect.
+        cxx_to_f90_prob_parameters();
+    }
 }
 
 void
@@ -900,91 +903,6 @@ Castro::setTimeLevel (Real time,
     AmrLevel::setTimeLevel(time,dt_old,dt_new);
 }
 
-void
-Castro::setGridInfo ()
-{
-
-    // Send refinement data to Fortran. We do it here
-    // because now the grids have been initialized and
-    // we need this data for setting up the problem.
-    // Note that this routine will always get called
-    // on level 0, even if we are doing a restart,
-    // so it is safe to put this here.
-
-    if (level == 0) {
-
-      const int max_level = parent->maxLevel();
-      const int nlevs = max_level + 1;
-
-      Vector<Real> dx_level(3*nlevs);
-      Vector<int> domlo_level(3*nlevs);
-      Vector<int> domhi_level(3*nlevs);
-      Vector<int> ref_ratio_to_f(3*nlevs);
-      Vector<int> n_error_buf_to_f(nlevs);
-      Vector<int> blocking_factor_to_f(nlevs);
-
-      const Real* dx_coarse = geom.CellSize();
-
-      const int* domlo_coarse = geom.Domain().loVect();
-      const int* domhi_coarse = geom.Domain().hiVect();
-
-      for (int dir = 0; dir < 3; dir++) {
-          if (dir < BL_SPACEDIM) {
-              dx_level[dir] = dx_coarse[dir];
-
-              domlo_level[dir] = domlo_coarse[dir];
-              domhi_level[dir] = domhi_coarse[dir];
-          } else {
-              dx_level[dir] = 0.0;
-
-              domlo_level[dir] = 0;
-              domhi_level[dir] = 0;
-          }
-
-        // Refinement ratio and error buffer on finest level are meaningless,
-        // and we want them to be zero on the finest level because some
-        // of the algorithms depend on this feature.
-
-        ref_ratio_to_f[dir + 3 * (nlevs - 1)] = 0;
-        n_error_buf_to_f[nlevs-1] = 0;
-      }
-
-      for (int lev = 0; lev <= max_level; lev++) {
-        blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
-      }
-
-      for (int lev = 1; lev <= max_level; lev++) {
-        IntVect ref_ratio = parent->refRatio(lev-1);
-
-        // Note that we are explicitly calculating here what the
-        // data would be on refined levels rather than getting the
-        // data directly from those levels, because some potential
-        // refined levels may not exist at the beginning of the simulation.
-
-        for (int dir = 0; dir < 3; dir++) {
-          if (dir < BL_SPACEDIM) {
-            dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
-            int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
-            domlo_level[3 * lev + dir] = domlo_level[dir];
-            domhi_level[3 * lev + dir] = domlo_level[3 * lev + dir] + ncell - 1;
-            ref_ratio_to_f[3 * (lev - 1) + dir] = ref_ratio[dir];
-          } else {
-            dx_level[3 * lev + dir] = 0.0;
-            domlo_level[3 * lev + dir] = 0;
-            domhi_level[3 * lev + dir] = 0;
-            ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
-          }
-        }
-
-        n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
-      }
-
-      ca_set_grid_info(max_level, dx_level.data(), domlo_level.data(), domhi_level.data(),
-                       ref_ratio_to_f.data(), n_error_buf_to_f.data(), blocking_factor_to_f.data());
-
-    }
-
-}
 
 void
 Castro::initData ()
@@ -1015,8 +933,6 @@ Castro::initData ()
         amrex::Abort("We don't support dx != dy != dz");
       }
 #endif
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Initializing the data at level " << level << std::endl;
@@ -1133,7 +1049,7 @@ Castro::initData ()
 
 #endif //MHD
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 #ifdef GPU_COMPATIBLE_PROBLEM
@@ -1251,7 +1167,7 @@ Castro::initData ()
          amrex::Error("Error: initial data has T <~ small_temp");
        }
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
            S_new.prefetchToDevice(mfi);
@@ -1280,7 +1196,7 @@ Castro::initData ()
              spec_sum += S_arr(i,j,k,UFS+n);
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
              std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
                        << i << " " << j << " " << k << " " 
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
@@ -1304,7 +1220,7 @@ Castro::initData ()
          // For fourth-order, we need to convert to cell-averages now.
          // (to second-order, these are cell-averages, so we're done in that case).
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
          if (sdc_order == 4) {
            Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -1369,7 +1285,7 @@ Castro::initData ()
                Real v = S_arr(i,j,k,UMY) * rhoInv;
                Real w = S_arr(i,j,k,UMZ) * rhoInv;
 
-               eos_t eos_state;
+               eos_re_t eos_state;
                eos_state.rho = S_arr(i,j,k,URHO);
                eos_state.T = S_arr(i,j,k,UTEMP);
                eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
@@ -1645,8 +1561,6 @@ Castro::estTimeStep ()
     if (fixed_dt > 0.0) {
       return fixed_dt;
     }
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real estdt = max_dt;
 
@@ -2052,10 +1966,6 @@ void
 Castro::post_timestep (int iteration_local)
 {
     BL_PROFILE("Castro::post_timestep()");
-
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, iteration_local, -1, -1.0, -1.0);
 
     //
     // Integration cycle on fine level grids is complete
@@ -2502,7 +2412,7 @@ Castro::post_init (Real /*stop_time*/)
 
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (do_scf_initial_model) {
         scf_relaxation();
     }
@@ -2982,8 +2892,6 @@ Castro::reflux(int crse_level, int fine_level)
             Real dt_advance_local = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            ca_set_amr_info(lev, -1, -1, time, dt_advance_local);
-
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance_local, 0);
@@ -3319,8 +3227,6 @@ Castro::errorEst (TagBoxArray& tags,
                   int          /*ngrow*/)
 {
     BL_PROFILE("Castro::errorEst()");
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real ltime = time;
 
@@ -3763,18 +3669,6 @@ Castro::derive (const std::string& name,
 }
 
 void
-Castro::amrinfo_init ()
-{
-   ca_amrinfo_init();
-}
-
-void
-Castro::amrinfo_finalize()
-{
-   ca_amrinfo_finalize();
-}
-
-void
 Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
@@ -3824,7 +3718,7 @@ Castro::reset_internal_energy(const Box& bx,
         Real Wp = u(i,j,k,UMZ) * rhoInv;
         Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
 
-        eos_t eos_state;
+        eos_re_t eos_state;
 
         eos_state.rho = u(i,j,k,URHO);
         eos_state.T   = lsmall_temp;
@@ -4141,7 +4035,7 @@ Castro::computeTemp(
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
 
           eos_state.rho = u(i,j,k,URHO);
           eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS

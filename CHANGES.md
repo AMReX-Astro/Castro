@@ -1,4 +1,13 @@
+
 # 21.02
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
 
    * We can now set any of the Microphysics runtime parameters in the
      inputs file instead of probin.  Each group of parameters has a

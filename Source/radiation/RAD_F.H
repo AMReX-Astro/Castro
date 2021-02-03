@@ -70,17 +70,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
     BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
  
-BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
-   (const BL_FORT_FAB_ARG(Er),
-    BL_FORT_FAB_ARG(gPr));
-
-BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
-   (const BL_FORT_FAB_ARG(kap),
-    const BL_FORT_FAB_ARG(Er),
-    BL_FORT_FAB_ARG(gPr), 
-    const int lo[], const int hi[],
-    const amrex::Real* dx, const int* limiter, const int* comoving); 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

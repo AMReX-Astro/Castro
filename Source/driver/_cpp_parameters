@@ -285,8 +285,12 @@ sdc_solver_relax_factor      Real          1.0                y
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
 
-# do we use the analytic or numerical Jacobian?
+# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
+# for the VODE solver, we use integrator.jacobian instead
 sdc_use_analytic_jac         int           1                  y
+
+# for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
+use_axisymmetric_geom_source int           1
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -444,7 +448,7 @@ rotation_include_coriolis    int           1                  n        ROTATION
 # in that rotating frame. If this option is disabled by setting it to 0,
 # the state variables will be measured with respect to an observer fixed
 # in the inertial frame (but the frame will still rotate).
-state_in_rotating_frame      int           1                  n        ROTATION
+state_in_rotating_frame     int           1                  n        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations

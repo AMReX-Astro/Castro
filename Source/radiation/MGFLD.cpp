@@ -280,7 +280,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       {
           Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = S_new_arr(i,j,k,URHO);
           eos_state.T   = temp_arr(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {
@@ -873,7 +873,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 {
                     Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                    eos_t eos_state;
+                    eos_re_t eos_state;
                     eos_state.rho = S_new_arr(i,j,k,URHO);
                     eos_state.T   = S_new_arr(i,j,k,UTEMP);
                     eos_state.e   = Tp_n(i,j,k) * rhoInv;
@@ -918,7 +918,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
                 Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = S_new_arr(i,j,k,URHO);
                 eos_state.T   = Tp_n(i,j,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -998,29 +998,445 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
                                 FArrayBox& gPr, const Real*dx, const Box& box)
 {
-  if (limiter == 0) {
-    BL_FORT_PROC_CALL(CA_EST_GPR0, ca_est_gpr0)
-      (BL_TO_FORTRAN(Er),
-       BL_TO_FORTRAN(gPr));
-  }
-  else {
+    auto gPr_arr = gPr.array();
+    auto Er_arr = Er.array();
 
-    FArrayBox kappa_r(gPr.box(), nGroups);
+    if (limiter == 0) {
 
-    if (do_multigroup) {
-      MGFLD_compute_rosseland(kappa_r, state);
+        amrex::ParallelFor(box,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k)
+        {
+            gPr_arr(i,j,k) = 0.e0_rt;
+
+            for (int g = 0; g < NGROUPS; ++g) {
+                gPr_arr(i,j,k) = gPr_arr(i,j,k) + 4.e0_rt / 9.e0_rt * Er_arr(i,j,k,g);
+            }
+        });
+
+        Gpu::synchronize();
+
     }
     else {
-      SGFLD_compute_rosseland(kappa_r, state);
-    }
 
-    BL_FORT_PROC_CALL(CA_EST_GPR2, ca_est_gpr2)
-      (BL_TO_FORTRAN(kappa_r),
-       BL_TO_FORTRAN(Er),
-       BL_TO_FORTRAN(gPr), 
-       box.loVect(),box.hiVect(),
-       dx, &limiter, &comoving);
-  }
+        FArrayBox kappa_r(gPr.box(), nGroups);
+
+        auto kappa_r_arr = kappa_r.array();
+
+        if (do_multigroup) {
+            MGFLD_compute_rosseland(kappa_r, state);
+        }
+        else {
+            SGFLD_compute_rosseland(kappa_r, state);
+        }
+
+        int im = 1, ip = 1, jm = 1, jp = 1, km = 1, kp = 1;
+        Real xm = 2.0_rt, xp = 2.0_rt, ym = 2.0_rt, yp = 2.0_rt, zm = 2.0_rt, zp = 2.0_rt;
+
+        // Calculate offsets for the case where we don't have enough points
+        // to calculate a centered difference. In that case we'll do one-sided.
+
+        if (!(gPr.box().loVect()[0] - 1 >= box.loVect()[0])) {
+            im = 0;
+            xm = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[0] + 1 <= box.hiVect()[0])) {
+            ip = 0;
+            xp = 1.0_rt;
+        }
+
+#if AMREX_SPACEDIM >= 2
+        if (!(gPr.box().loVect()[1] - 1 >= box.hiVect()[1])) {
+            jm = 0;
+            ym = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[1] + 1 <= box.hiVect()[1])) {
+            jp = 0;
+            yp = 1.0_rt;
+        }
+#endif
+
+#if AMREX_SPACEDIM == 3
+        if (!(gPr.box().loVect()[2] - 1 >= box.hiVect()[2])) {
+            km = 0;
+            zm = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[2] + 1 <= box.hiVect()[2])) {
+            kp = 0;
+            zp = 1.0_rt;
+        }
+#endif
+
+        amrex::ParallelFor(box,
+        [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
+        AMREX_GPU_DEVICE (int i, int j, int k)
+        {
+            gPr_arr(i,j,k) = 0.0_rt;
+
+            // Determine whether we're strictly in the interior of the box
+            // or on one of the edges. In 2D we'll always have k_interior == true
+            // and in 1D we'll always have j_interior == k_interior == true.
+
+            bool i_interior = true, j_interior = true, k_interior = true;
+            bool i_lo = false, j_lo = false, k_lo = false;
+            bool i_hi = false, j_hi = false, k_hi = false;
+
+            if (i == lbound(gPr_arr).x) {
+                i_interior = false;
+                i_lo = true;
+            }
+            if (i == ubound(gPr_arr).x) {
+                i_interior = false;
+                i_hi = true;
+            }
+
+#if AMREX_SPACEDIM >= 2
+            if (j == lbound(gPr_arr).y) {
+                j_interior = false;
+                j_lo = true;
+            }
+            if (j == ubound(gPr_arr).y) {
+                j_interior = false;
+                j_hi = true;
+            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+            if (k == lbound(gPr_arr).z) {
+                k_interior = false;
+                k_lo = true;
+            }
+            if (k == ubound(gPr_arr).z) {
+                k_interior = false;
+                k_hi = true;
+            }
+#endif
+
+            for (int g = 0; g < NGROUPS; ++g) {
+
+                Real gE1 = 0.0_rt;
+                Real gE2 = 0.0_rt;
+                Real gE3 = 0.0_rt;
+
+                if (i_interior && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y lo-z
+                else if (i_lo && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x lo-y lo-z
+                else if (i_interior && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y lo-z
+                else if (i_hi && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x med-y lo-z
+                else if (i_lo && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x med-y lo-z
+                else if (i_interior && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x med-y lo-z
+                else if (i_hi && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y lo-z
+                else if (i_lo && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x hi-y lo-z
+                else if (i_interior && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y lo-z
+                else if (i_hi && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y med-z
+                else if (i_lo && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // med-x lo-y med-z
+                else if (i_interior && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y med-z
+                else if (i_hi && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x med-y med-z
+                else if (i_lo && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x med-y med-z
+                else if (i_hi && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y med-z
+                else if (i_lo && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // med-x hi-y med-z
+                else if (i_interior && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y med-z
+                else if (i_hi && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y hi-z
+                else if (i_lo && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x lo-y hi-z
+                else if (i_interior && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y hi-z
+                else if (i_hi && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // lo-x med-y hi-z
+                else if (i_lo && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x med-y hi-z
+                else if (i_interior && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x med-y hi-z
+                else if (i_hi && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y hi-z
+                else if (i_lo && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x hi-y hi-z
+                else if (i_interior && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y hi-z
+                else if (i_hi && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                Real gE = std::sqrt(gE1 * gE1 + gE2 * gE2 + gE3 * gE3);
+
+                Real r = gE / (kappa_r_arr(i,j,k,g) * amrex::max(Er_arr(i,j,k,g), 1.e-50_rt));
+                Real lam = FLDlambda(r, limiter);
+
+                Real gamr;
+                if (comoving == 1) {
+                    Real f = Edd_factor(lam, limiter, closure);
+                    gamr = (3.0_rt - f) / 2.0_rt;
+                }
+                else {
+                    gamr = lam + 1.0_rt;
+                }
+
+                gPr_arr(i,j,k) = gPr_arr(i,j,k) + lam * gamr * Er_arr(i,j,k,g);
+            }
+        });
+
+        Gpu::synchronize();
+
+    }
 }
 
 
@@ -1162,7 +1578,7 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
       {
           Real rhoInv = 1.e0_rt / state(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = state(i,j,k,URHO);
           eos_state.T   =  temp(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {

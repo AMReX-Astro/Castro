@@ -13,6 +13,14 @@
 #include <Rotation.H>
 #endif
 
+#ifdef REACTIONS
+#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
+#include <actual_rhs.H>
+#else
+#include <fortran_to_cxx_actual_rhs.H>
+#endif
+#endif
+
 using namespace amrex;
 
 Real
@@ -426,7 +434,7 @@ Castro::estdt_burning()
             eos(eos_input_rt, eos_state);
             eos_to_burn(eos_state, state);
 
-#ifndef SIMPLIFIED_SDC
+#ifdef STRANG
             state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;

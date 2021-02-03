@@ -53,7 +53,7 @@ Castro::ctoprim(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (uin(i,j,k,URHO) <= 0.0_rt) {
       std::cout << std::endl;
       std::cout << ">>> Error: advection_util_nd.F90::ctoprim " << i << " " << j << " " << k << std::endl;
@@ -272,7 +272,7 @@ Castro::shock(const Box& bx,
       div_u += 0.5_rt * (rp * rp * q_arr(i+1,j,k,QU) - rm * rm * q_arr(i-1,j,k,QU)) / (rc * rc * dx[0]);
 #endif
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 
     } else {
       amrex::Error("ERROR: invalid coord_type in shock");
@@ -1092,7 +1092,7 @@ Castro::do_enforce_minimum_density(const Box& bx,
 
     if (state_arr(i,j,k,URHO) < small_dens) {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       if (verbose > 0) {
         std::cout << " " << std::endl;
         if (state_arr(i,j,k,URHO) < 0.0_rt) {

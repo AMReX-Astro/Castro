@@ -296,6 +296,43 @@
     void fill_thermo_source(amrex::MultiFab& S_new, amrex::MultiFab& ext_src);
 
 
+///
+/// Construct axisymmetric geometry source at old timestep
+///
+/// @param source   MultiFab to save sources to
+/// @param state    Old state
+/// @param time     current time
+/// @param dt       timestep
+///
+    void construct_old_geom_source(amrex::MultiFab& source, amrex::MultiFab& state,
+                                   amrex::Real time, amrex::Real dt);
+
+
+///
+/// Construct axisymmetric geometry source at new timestep
+///
+/// @param source       MultiFab to save sources to
+/// @param state_old    Old state
+/// @param state_new    New state
+/// @param time         current time
+/// @param dt           timestep
+///
+    void construct_new_geom_source(amrex::MultiFab& source, amrex::MultiFab& state_old,
+                                   amrex::MultiFab& state_new, amrex::Real time, amrex::Real dt);
+
+
+///
+/// Fill ``ext_src`` with axisymmetric geometry sources
+///
+/// @param time     current time
+/// @param dt       timestep
+/// @param S        state
+/// @param ext_src  MultiFab to fill with sources
+///
+    void fill_geom_source(amrex::Real time, amrex::Real dt,
+                          amrex::MultiFab& S, amrex::MultiFab& ext_src);
+
+
 #ifdef REACTIONS
 ///
 /// Obtain the effective source term due to reactions on the primitive variables

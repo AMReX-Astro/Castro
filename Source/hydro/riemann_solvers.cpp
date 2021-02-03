@@ -27,13 +27,13 @@ Castro::riemanncg(const Box& bx,
 
   constexpr Real weakwv = 1.e-3_rt;
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   if (cg_maxiter > HISTORY_SIZE) {
     amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
   }
 #endif
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   if (cg_blend == 2 && cg_maxiter < 5) {
     amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
   }
@@ -91,7 +91,7 @@ Castro::riemanncg(const Box& bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     GpuArray<Real, HISTORY_SIZE> pstar_hist;
 #endif
 
@@ -140,7 +140,7 @@ Castro::riemanncg(const Box& bx,
     // note: reset both in either case, to remain thermo
     // consistent
     if (rel <= 0.0_rt || pl < lsmall_pres) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << rel << " " << pl << " " << lsmall_pres << std::endl;
 #endif
 
@@ -181,7 +181,7 @@ Castro::riemanncg(const Box& bx,
     Real v2r = qr(i,j,k,iv2);
 
     if (rer <= 0.0_rt || pr < lsmall_pres) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << rer << " " << pr << " " << lsmall_pres << std::endl;
 #endif
       eos_t eos_state;
@@ -323,7 +323,7 @@ Castro::riemanncg(const Box& bx,
         converged = true;
       }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       pstar_hist[iter] = pstar;
 #endif
 
@@ -340,7 +340,7 @@ Castro::riemanncg(const Box& bx,
 
       if (cg_blend == 0) {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         std::cout <<  "pstar history: " << std::endl;
         for (int iter_l=0; iter_l < cg_maxiter; iter_l++) {
           std::cout << iter_l << " " << pstar_hist[iter_l] << std::endl;
@@ -362,7 +362,7 @@ Castro::riemanncg(const Box& bx,
 
         // we don't store the history if we are in CUDA, so
         // we can't do this
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         // first try to find a reasonable bounds
         Real pstarl = 1.e200;
         Real pstaru = -1.e200;
@@ -405,7 +405,7 @@ Castro::riemanncg(const Box& bx,
 #endif
       } else {
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         amrex::Error("ERROR: unrecognized cg_blend option.");
 #endif
       }

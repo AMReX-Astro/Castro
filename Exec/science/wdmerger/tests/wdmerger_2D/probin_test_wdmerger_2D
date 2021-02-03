@@ -36,6 +36,5 @@
 /
 
 &extern
-  use_eos_coulomb = F
-  eos_input_is_constant = T
+
 /
