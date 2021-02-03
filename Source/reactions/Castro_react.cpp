@@ -313,6 +313,8 @@ Castro::react_state(Real time, Real dt)
         auto react_src = reactions.array(mfi);
         auto mask = interior_mask.array(mfi);
 
+        int lsdc_iteration = sdc_iteration;
+
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
@@ -389,7 +391,7 @@ Castro::react_state(Real time, Real dt)
              burn_state.j = j;
              burn_state.k = k;
 
-             burn_state.sdc_iter = sdc_iteration;
+             burn_state.sdc_iter = lsdc_iteration;
              burn_state.num_sdc_iters = sdc_iters;
 
              if (do_burn) {
