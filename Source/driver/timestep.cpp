@@ -419,7 +419,7 @@ Castro::estdt_burning()
 
             if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
                 state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
-                return {1.e200};
+                return {1.e200_rt};
             }
 
             Real e    = state.e;
@@ -462,7 +462,15 @@ Castro::estdt_burning()
                 }
             }
 
-            Real dt_tmp = dtnuc_e * e / dedt;
+            Real dt_tmp = 1.e200_rt;
+
+#ifdef NSE
+            if (!in_nse(state)) {
+#endif
+                dt_tmp = dtnuc_e * e / dedt;
+#ifdef NSE
+            }
+#endif
             for (int n = 0; n < NumSpec; ++n) {
                 dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
             }
