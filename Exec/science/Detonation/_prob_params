@@ -26,16 +26,18 @@ ic12                 integer       -1
 
 io16                 integer       -1
 
-xn                   real          0.0_rt         n     (nspec, network)
+xn                   real          0.0_rt         n     nspec
 
 ambient_dens         real         0.0_rt
 
-ambient_temp         real         0.0_rt
-
-ambient_comp         real         0.0_rt          n     (nspec, network)
+ambient_comp         real         0.0_rt          n     nspec
 
 ambient_e_l          real         0.0_rt
 
 ambient_e_r          real         0.0_rt
 
+use_early_stopping   integer      0               y
 
+ts_te_stop_cutoff    real         1.e200_rt       y
+
+T_stop_cutoff        real         1.e200_rt       y

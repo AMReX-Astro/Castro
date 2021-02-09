@@ -1,6 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_hydro_F.H>
+#include <Castro_util.H>
 
 #ifdef RADIATION
 #include <Radiation.H>
@@ -63,7 +63,7 @@ Castro::trace_ppm(const Box& bx,
   auto vhi = vbx.hiVect3d();
 
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 
   // if we're on the CPU, we preprocess the sources over the whole
   // tile up front -- we don't want to trace under a source that is
@@ -134,14 +134,9 @@ Castro::trace_ppm(const Box& bx,
   Real lsmall_dens = small_dens;
   Real lsmall_pres = small_pres;
 
-  GpuArray<int, npassive> qpass_map_p;
-  for (int n = 0; n < npassive; n++){
-    qpass_map_p[n] = qpass_map[n];
-  }
-
   // Trace to left and right edges using upwind PPM
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real cc = qaux_arr(i,j,k,QC);
@@ -235,7 +230,7 @@ Castro::trace_ppm(const Box& bx,
     for (int n = 0; n < NQSRC; n++) {
 
       // do we even need to trace (non-zero source?)
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
       int do_trace = do_source_trace[n];
 #else
       int do_trace = 0;
@@ -309,7 +304,7 @@ Castro::trace_ppm(const Box& bx,
   
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-      int n = qpass_map_p[ipassive];
+      int n = qpassmap(ipassive);
 
       // Plus state on face i
       if ((idir == 0 && i >= vlo[0]) ||

@@ -20,8 +20,6 @@ subroutine amrex_probinit(init, name, namlen, problo, probhi) bind(c)
 
   type (eos_t) :: eos_state
 
-  call probdata_init(name, namlen)
-
   r_old_s = r_old
 
   ! in 3-d we center the sphere at (center_x, center_y, center_z)
@@ -107,8 +105,6 @@ contains
     integer  :: i, j, k, ii, jj, kk, n
 
     type (eos_t) :: eos_state
-
-    !$gpu
 
 #if AMREX_SPACEDIM == 1
     volinv = ONE / dble(nsub)

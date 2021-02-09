@@ -1,10 +1,10 @@
-# name   type   default   need in Fortran?   ifdef    fortran name    fortran type
+# name   type   default   need in Fortran?   ifdef
 #
 # note, name can have two values, as (a, b).  a will be the name used
 # in the inputs file, b is the variable name in the C++ class.
 
 
-@namespace: castro Castro
+@namespace: castro
 
 #-----------------------------------------------------------------------------
 # category: AMR
@@ -39,7 +39,7 @@ apply_sources_consecutively  int           0
 #-----------------------------------------------------------------------------
 
 # the coefficient of the artificial viscosity
-difmag                       Real          0.1                y
+difmag                       Real          0.1
 
 # the small density cutoff.  Densities below this value will be reset
 small_dens                   Real         -1.e200             y
@@ -56,24 +56,24 @@ small_pres                   Real         -1.e200             y
 small_ener                   Real         -1.e200             y
 
 # permits hydro to be turned on and off for running pure rad problems
-do_hydro                     int          -1                  y
+do_hydro                     int          -1
 
 # how do we advance in time? 0 = CTU + Strang, 1 is not used, 2 = SDC, 3 = simplified-SDC
-time_integration_method      int           0                  y
+time_integration_method      int           0
 
 # do we use a limiter with the fourth-order accurate reconstruction?
-limit_fourth_order           int           1                  y
+limit_fourth_order           int           1
 
 # for fourth order, we usually assume that the initialization is done
 # to cell centers and we convert to cell-averages.  With this option,
 # we take the initialization as cell-averages (except for T, which we
 # compute to fourth-order through the EOS after initialization).
-initialization_is_cell_average  int        0                  n
+initialization_is_cell_average  int        0
 
 # should we use a reconstructed version of Gamma_1 in the Riemann
 # solver? or the default zone average (requires SDC
 # integration, since we do not trace)
-use_reconstructed_gamma1     int           0                  y
+use_reconstructed_gamma1     int           0
 
 # if true, define an additional source term
 add_ext_src                  int           0
@@ -81,113 +81,113 @@ add_ext_src                  int           0
 # whether to use the hybrid advection scheme that updates
 # z-angular momentum, cylindrical momentum, and azimuthal
 # momentum (3D only)
-hybrid_hydro                 int           0                  y
+hybrid_hydro                 int           0
 
 # reconstruction type:
 # 0: piecewise linear;
 # 1: classic Colella \& Woodward ppm;
 # 2: extrema-preserving ppm
-ppm_type                     int           1                  y
+ppm_type                     int           1
 
 # For MHD + PLM, do we limit on characteristic or primitive variables
 mhd_limit_characteristic     int           1
 
 # various methods of giving temperature a larger role in the
 # reconstruction---see Zingale \& Katz 2015
-ppm_temp_fix                 int           0                  y 
+ppm_temp_fix                 int           0
 
 # for piecewise linear, reconstruction order to use
 # 1 = piecewise constant, 2 = piecewise linear
-plm_iorder                   int           2                  y
+plm_iorder                   int           2
 
 # for piecewise linear, what limiter to use?
 # 1 = 2nd order MC, 2 = 4th order MC
-plm_limiter                  int           2                  y
+plm_limiter                  int           2
 
 # do we drop from our regular Riemann solver to HLL when we
 # are in shocks to avoid the odd-even decoupling instability?
-hybrid_riemann               int           0                  y
+hybrid_riemann               int           0
 
 # which Riemann solver do we use:
 # 0: Colella, Glaz, \& Ferguson (a two-shock solver);
 # 1: Colella \& Glaz (a two-shock solver)
 # 2: HLLC
-riemann_solver               int           0                  y
+riemann_solver               int           0
 
 # for the Colella \& Glaz Riemann solver, the maximum number
 # of iterations to take when solving for the star state
-cg_maxiter                   int          12                  y
+cg_maxiter                   int          12
 
 # for the Colella \& Glaz Riemann solver, the tolerance to
 # demand in finding the star state
-cg_tol                       Real          1.0e-5             y
+cg_tol                       Real          1.0e-5
 
 # for the Colella \& Glaz Riemann solver, what to do if
 # we do not converge to a solution for the star state.
 # 0 = do nothing; print iterations and exit
 # 1 = revert to the original guess for p-star
 # 2 = do a bisection search for another 2 * cg_maxiter iterations.
-cg_blend                     int           2                  y
+cg_blend                     int           2
 
 # should we use the EOS in the Riemann solver to ensure
 # thermodynamic consistency?
-use_eos_in_riemann           int           0                  y
+use_eos_in_riemann           int           0
 
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
-use_flattening               int           1                  y
+use_flattening               int           1
 
 # after we add the transverse correction to the interface states, replace
 # the predicted pressure with an EOS call (using :math:`e` and :math:`\rho`).
-transverse_use_eos           int           0                  y
+transverse_use_eos           int           0
 
 # if the transverse interface state correction, if the new density is
 # negative, then replace all of the interface quantities with their
 # values without the transverse correction.
-transverse_reset_density     int           1                  y
+transverse_reset_density     int           1
 
 # if the interface state for :math:`(\rho e)` is negative after we add the
 # transverse terms, then replace the interface value of :math:`(\rho e)`
 # with a value constructed from the :math:`(\rho e)` evolution equation
-transverse_reset_rhoe        int           0                  y
+transverse_reset_rhoe        int           0
 
 # Threshold value of (E - K) / E such that above eta1, the hydrodynamic
 # pressure is derived from E - K; otherwise, we use the internal energy
 # variable UEINT.
-dual_energy_eta1             Real          1.0e0              y
+dual_energy_eta1             Real          1.0e0
 
 # Threshold value of (E - K) / E such that above eta2, we update the
 # internal energy variable UEINT to match E - K. Below this, UEINT
 # remains unchanged.
-dual_energy_eta2             Real          1.0e-4             y
+dual_energy_eta2             Real          1.0e-4
 
 # for the piecewise linear reconstruction, do we subtract off :math:`(\rho g)`
 # from the pressure before limiting?  This is a well-balanced method that
 # does well with HSE
-use_pslope                   int           1                  y
+use_pslope                   int           1
 
 # if we are using pslope, below what density to we turn off the well-balanced
 # reconstruction?
-pslope_cutoff_density        Real          -1.e20             y
+pslope_cutoff_density        Real          -1.e20
 
 # Should we limit the density fluxes so that we do not create small densities?
-limit_fluxes_on_small_dens   int           0                  y
+limit_fluxes_on_small_dens   int           0
 
 # Should we limit the momentum fluxes so that we do not create large velocities?
-limit_fluxes_on_large_vel    int           0                  y
+limit_fluxes_on_large_vel    int           0
 
 # Enforce the magnitude of the velocity to be no larger than this number (and
 # optionally limit the fluxes as well). Only applies if it is greater than 0.
-speed_limit                  Real          0.0                y
+speed_limit                  Real          0.0
 
 # permits sponge to be turned on and off
-do_sponge                    int           0                  y
+do_sponge                    int           0
 
 # if we are using the sponge, whether to use the implicit solve for it
-sponge_implicit              int           1                  y
+sponge_implicit              int           1
 
 # if we are using user-defined source terms, are these solved implicitly?
-ext_src_implicit             int           0                  y
+ext_src_implicit             int           0
 
 # extrapolate the source terms (gravity and rotation) to :math:`n+1/2`
 # timelevel for use in the interface state prediction
@@ -195,53 +195,59 @@ source_term_predictor        int           0
 
 # set the flattening parameter to zero to force the reconstructed profiles
 # to be flat, resulting in a first-order method
-first_order_hydro            int           0                  y
+first_order_hydro            int           0
 
 # if we are doing an external -x boundary condition, who do we interpret it?
-xl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xl_ext_bc_type               int          -1
 
 # if we are doing an external +x boundary condition, who do we interpret it?
-xr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+xr_ext_bc_type               int          -1
 
 # if we are doing an external -y boundary condition, who do we interpret it?
-yl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yl_ext_bc_type               int          -1
 
 # if we are doing an external +y boundary condition, who do we interpret it?
-yr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+yr_ext_bc_type               int          -1
 
 # if we are doing an external -z boundary condition, who do we interpret it?
-zl_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zl_ext_bc_type               int          -1
 
 # if we are doing an external +z boundary condition, who do we interpret it?
-zr_ext_bc_type               string        "fillme"           y
+# 1 = HSE
+zr_ext_bc_type               int          -1
 
 # if we are doing HSE boundary conditions, do we zero the velocity?
-hse_zero_vels                int           0                  y
+hse_zero_vels                int           0
 
 # if we are doing HSE boundary conditions, should we get the temperature
 # via interpolation (using model_parser) or hold it constant?
-hse_interp_temp              int           0                  y
+hse_interp_temp              int           0
 
 # if we are doing HSE boundary conditions, how do we treat the velocity?
 # reflect? or outflow?
-hse_reflect_vels             int           0                  y
+hse_reflect_vels             int           0
 
 # fills physical domain boundaries with the ambient state
-fill_ambient_bc              int           0                  y
+fill_ambient_bc              int           0
 
 # which direction do we do ambient BCs?  -1 = all, 0 = x, 1 = y, 2 = z
-ambient_fill_dir             int           -1                 y
+ambient_fill_dir             int           -1
 
 # in the ambient region, do we do a basic outflow in the normal
 # direction of the velocity (with a min/max to ensure it is outgoing)
-ambient_outflow_vel          int           0                  y
+ambient_outflow_vel          int           0
 
 # clamps the ambient material to the ambient temperature
-clamp_ambient_temp           int           0                  y
+clamp_ambient_temp           int           0
 
 # specifies the upper limit, as a multiple of the ambient density, for
 # operations that are applied to ambient material, such as clamping T.
-ambient_safety_factor        Real          1.1e0              y
+ambient_safety_factor        Real          1.1e0
 
 # integration order for SDC integration
 # valid options are 2 and 4
@@ -250,7 +256,8 @@ sdc_order                    int           2                  y
 # which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
 sdc_quadrature               int           0                  y
 
-# number of extra SDC iterations to take beyond the order
+# number of extra SDC iterations to take beyond the order.  This only applies
+# for true SDC.
 sdc_extra                    int           0                  y
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
@@ -278,8 +285,12 @@ sdc_solver_relax_factor      Real          1.0                y
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
 sdc_solve_for_rhoe           int           1                  y
 
-# do we use the analytic or numerical Jacobian?
+# do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
+# for the VODE solver, we use integrator.jacobian instead
 sdc_use_analytic_jac         int           1                  y
+
+# for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
+use_axisymmetric_geom_source int           1
 
 #-----------------------------------------------------------------------------
 # category: timestep control
@@ -301,7 +312,7 @@ max_dt                       Real          1.e200
 
 # the effective Courant number to use---we will not allow the hydrodynamic
 # waves to cross more than this fraction of a zone over a single timestep
-cfl                          Real          0.8                y
+cfl                          Real          0.8
 
 # a factor by which to reduce the first timestep from that requested by
 # the timestep estimators
@@ -309,7 +320,7 @@ init_shrink                  Real          1.0
 
 # the maximum factor by which the timestep can increase or decrease from
 # one step to the next
-change_max                   Real          1.1                y
+change_max                   Real          1.1
 
 # enforce that the AMR plot interval must be hit exactly
 plot_per_is_exact            int           0
@@ -328,6 +339,10 @@ use_retry                    int           1
 # timestep by when trying again.
 retry_subcycle_factor        Real          0.5
 
+# Skip retries for small (or negative) density if the zone's density prior
+# to the update was below this threshold.
+retry_small_density_cutoff   Real         -1.e200
+
 # Regrid after every timestep.
 use_post_step_regrid         int           0
 
@@ -335,7 +350,7 @@ use_post_step_regrid         int           0
 # Set to a negative value to disable this criterion.
 max_subcycles                int           10
 
-# Number of iterations for the SDC advance.
+# Number of iterations for the simplified SDC advance.
 sdc_iters                    int           2
 
 #-----------------------------------------------------------------------------
@@ -345,25 +360,20 @@ sdc_iters                    int           2
 # Limit the timestep based on how much the burning can change the internal
 # energy of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(e / \dot{e})`.
-dtnuc_e                      Real          1.e200             y
-
-# Limit the timestep based on how much the burning can change the temperature
-# of a zone. The timestep is equal to
-# ``dtnuc``  :math:`\cdot\,(T / \dot{T})`.
-dtnuc_T                      Real          1.e200             y
+dtnuc_e                      Real          1.e200
 
 # Limit the timestep based on how much the burning can change the species
 # mass fractions of a zone. The timestep is equal to
 # ``dtnuc``  :math:`\cdot\,(X / \dot{X})`.
-dtnuc_X                      Real          1.e200             y
+dtnuc_X                      Real          1.e200
 
 # If we are using the timestep limiter based on changes in $X$, set a threshold
 # on the species abundance below which the limiter is not applied. This helps
 # prevent the timestep from becoming very small due to changes in trace species.
-dtnuc_X_threshold            Real          1.e-3              y
+dtnuc_X_threshold            Real          1.e-3
 
 # permits reactions to be turned on and off -- mostly for efficiency's sake
-do_react                     int          -1                  y
+do_react                     int          -1
 
 # minimum temperature for allowing reactions to occur in a zone
 react_T_min                  Real          0.0                y
@@ -378,7 +388,7 @@ react_rho_min                Real          0.0                y
 react_rho_max                Real          1.e200             y
 
 # disable burning inside hydrodynamic shock regions
-disable_shock_burning        int           0                  y
+disable_shock_burning        int           0
 
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
@@ -392,18 +402,18 @@ reactions_max_solve_level    int           100
 #-----------------------------------------------------------------------------
 
 # enable thermal diffusion
-diffuse_temp                 int           0                  y     DIFFUSION
+diffuse_temp                 int           0                  n     DIFFUSION
 
 # set a cutoff density for diffusion -- we zero the term out below this density
-diffuse_cutoff_density       Real          -1.e200            y     DIFFUSION
+diffuse_cutoff_density       Real          -1.e200            n     DIFFUSION
 
 # secondary cutoff density -- there will be a linear dropoff in the diffusion
 # coefficient between this and the primary cutoff density. This should be the
 # larger of the two
-diffuse_cutoff_density_hi    Real          -1.e200            y     DIFFUSION
+diffuse_cutoff_density_hi    Real          -1.e200            n     DIFFUSION
 
 # scaling factor for conductivity
-diffuse_cond_scale_fac       Real          1.0                y     DIFFUSION
+diffuse_cond_scale_fac       Real          1.0                n     DIFFUSION
 
 
 #-----------------------------------------------------------------------------
@@ -411,26 +421,26 @@ diffuse_cond_scale_fac       Real          1.0                y     DIFFUSION
 #-----------------------------------------------------------------------------
 
 # permits gravity calculation to be turned on and off
-do_grav                      int          -1                  y
+do_grav                      int          -1
 
 # to we recompute the center used for the multipole gravity solve each step?
 moving_center                int           0
 
 # determines how the gravitational source term is added to the momentum and
 # energy state variables.
-grav_source_type             int           4                  y
+grav_source_type             int           4
 
 # permits rotation calculation to be turned on and off
-do_rotation                  int          -1                  y
+do_rotation                  int          -1
 
 # the rotation period for the corotating frame
-rotational_period            Real         -1.e200             y        ROTATION        rot_period
+rotational_period            Real         -1.e200             y        ROTATION
 
 # permits the centrifugal terms in the rotation to be turned on and off
-rotation_include_centrifugal int           1                  y        ROTATION
+rotation_include_centrifugal int           1                  n        ROTATION
 
 # permits the Coriolis terms in the rotation to be turned on and off
-rotation_include_coriolis    int           1                  y        ROTATION
+rotation_include_coriolis    int           1                  n        ROTATION
 
 # Which reference frame to measure the state variables with respect to.
 # The standard in the literature when using a rotating reference frame
@@ -438,21 +448,21 @@ rotation_include_coriolis    int           1                  y        ROTATION
 # in that rotating frame. If this option is disabled by setting it to 0,
 # the state variables will be measured with respect to an observer fixed
 # in the inertial frame (but the frame will still rotate).
-state_in_rotating_frame      int           1                  y        ROTATION
+state_in_rotating_frame     int           1                  n        ROTATION
 
 # determines how the rotation source terms are added to the momentum and
 # energy equations
-rot_source_type              int           4                  y        ROTATION
+rot_source_type              int           4                  n        ROTATION
 
 # we can do a implicit solution of the rotation update to allow
 # for better coupling of the Coriolis terms
-implicit_rotation_update     int           1                  y        ROTATION
+implicit_rotation_update     int           1                  n        ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
 rot_axis                     int           3                  y        ROTATION
 
 # include a central point mass
-use_point_mass               int           0                  y        GRAVITY
+use_point_mass               int           0                  n        GRAVITY
 
 # mass of the point mass
 point_mass                   Real          0.0                y        GRAVITY
@@ -460,14 +470,20 @@ point_mass                   Real          0.0                y        GRAVITY
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
 # adding their mass to the point mass object
-point_mass_fix_solution      int           0                  y        GRAVITY
+point_mass_fix_solution      int           0                  n        GRAVITY
+
+# Distance (in kpc) used for calculation of the gravitational wave amplitude
+# (this wil be calculated along all three coordinate axes). Only relevant if
+# castro.sum_interval > 0 and if set to a positive number. A standard value
+# in the literature is 10.0 (kpc).
+gw_dist                      Real          0.0                n        GRAVITY
 
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------
 
 # determines whether we use accelerators for specific loops
-do_acc                       int          -1                  y
+do_acc                       int          -1
 
 bndry_func_thread_safe       int           1
 
@@ -573,7 +589,7 @@ reset_checkpoint_step        int           -1
 do_tracer_particles          int           0       n      AMREX_PARTICLES
 
 
-@namespace: particles Castro
+@namespace: particles
 
 # the level of verbosity for the tracer particle (0 or 1)
 (v, particle_verbose)                int            0
@@ -601,7 +617,7 @@ timestamp_temperature        int           0
 
 
 
-@namespace: gravity Gravity
+@namespace: gravity
 
 # what type
 gravity_type                 string        "fillme"           y
@@ -645,48 +661,48 @@ max_solve_level              int           MAX_LEV-1
 # For non-Poisson gravity, do we want to construct the gravitational
 # acceleration by taking the gradient of the potential, rather than
 # constructing it directly?
-get_g_from_phi              int            0                  y
+get_g_from_phi              int            0
 
 # how many FMG cycles?
-mlmg_max_fmg_iter            int           0                  n
+mlmg_max_fmg_iter            int           0
 
 # Do agglomeration?
-mlmg_agglomeration           int           1                  n
-mlmg_consolidation           int           1                  n
+mlmg_agglomeration           int           1
+mlmg_consolidation           int           1
 
 # Do N-Solve?
-mlmg_nsolve                  int           0                  n
+mlmg_nsolve                  int           0
 
-@namespace: diffusion Diffusion
+@namespace: diffusion
 
 # the level of verbosity for the diffusion solve (higher number means
 # more output)
 (v, verbose)                int            0
 
 # Use MLMG as the operator
-mlmg_maxorder                int           4                  n
+mlmg_maxorder                int           4
 
-@namespace: radsolve RadSolve
+@namespace: radsolve
 
 # the linear solver option to use
-level_solver_flag            int           1                  n
+level_solver_flag            int           1
 
-use_hypre_nonsymmetric_terms int           0                  n
+use_hypre_nonsymmetric_terms int           0
 
-reltol                       Real          1.e-10             n
+reltol                       Real          1.e-10
 
-abstol                       Real          1.e-10             n
+abstol                       Real          1.e-10
 
-maxiter                      int           40                 n
+maxiter                      int           40
 
-alpha                        Real          1.0                n
+alpha                        Real          1.0
 
-beta                         Real          1.0                n
+beta                         Real          1.0
 
-(v, verbose)                 int           0                  n
+(v, verbose)                 int           0
 
-@namespace: radiation Radiation
+@namespace: radiation
 
 prop_temp_floor              Real          0.0                y
 
-flatten_pp_threshold         Real          -1.0               y
+flatten_pp_threshold         Real          -1.0

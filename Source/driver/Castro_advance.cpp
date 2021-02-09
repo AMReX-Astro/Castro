@@ -55,7 +55,7 @@ Castro::advance (Real time,
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifndef MHD     
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -65,7 +65,7 @@ Castro::advance (Real time,
       }
 
 #endif // TRUE_SDC
-#endif // AMREX_USE_CUDA
+#endif // AMREX_USE_GPU
 #endif //MHD    
     }
 
@@ -124,6 +124,7 @@ Castro::advance (Real time,
 void
 Castro::initialize_do_advance(Real time)
 {
+
     BL_PROFILE("Castro::initialize_do_advance()");
 
     // Reset the CFL violation flag.
@@ -260,10 +261,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 
     }
 
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, amr_iteration, amr_ncycle, time, dt);
-
     // The option of whether to do a multilevel initialization is
     // controlled within the radiation class.  This step belongs
     // before the swap.
@@ -343,7 +340,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     q.define(grids, dmap, NQ, NUM_GROW);
     q.setVal(0.0);
     qaux.define(grids, dmap, NQAUX, NUM_GROW);
-#endif
 
 
     if (sdc_order == 4) {
@@ -354,8 +350,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
 #endif
     }
 
-
-#ifdef TRUE_SDC
     if (time_integration_method == SpectralDeferredCorrections) {
 
       MultiFab& S_old = get_old_data(State_Type);
@@ -443,7 +437,6 @@ Castro::finalize_advance()
 #ifdef TRUE_SDC
     q.clear();
     qaux.clear();
-#endif
 
     if (sdc_order == 4) {
       q_bar.clear();
@@ -452,6 +445,7 @@ Castro::finalize_advance()
       T_cc.clear();
 #endif
     }
+#endif
 
 #ifdef RADIATION
     Erborder.clear();

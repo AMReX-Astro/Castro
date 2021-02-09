@@ -5,92 +5,179 @@ import shutil
 import subprocess
 import shlex
 from multiprocessing import Pool
-import time
 
-CFL = [0.5, 0.25, 0.1]
+# parameters for all methods
+CFL = [0.8, 0.4, 0.2]
+NZONES = [512, 1024, 2048] #, 1024, 2048] #, 8192]
+DTNUC_E = [1.0, 0.25] #, 0.1]
+
+# simplified SDC parameters
 SDC_ITERS = [2, 3]
-DTNUC_E = [1.e200, 0.25, 0.1]
 
-NZONES = [256, 512, 1024, 2048] #, 8192]
+# true SDC parameters
+SDC_QUADRATURE = [0, 1]
+SDC_ORDER = [2] #, 4]
 
-job_list = []
+# reference Strang run
+REFERENCE_NZONES = 8192
+REFERENCE_CFL = 0.1
+REFERENCE_DTNUC_E = 0.1
 
-COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled", "nse19.tbl"]
-NEEDED_SDC_FILES = ["Castro1d.gnu.MPI.SMPLSDC.ex"] + COMMON_FILES
-NEEDED_STRANG_FILES = ["Castro1d.gnu.MPI.ex"] + COMMON_FILES
+# turn on or off the different integrator types
+DO_STRANG_RUNS = 1
+DO_SIMPLE_SDC_RUNS = 1
+DO_TRUE_SDC_RUNS = 0
+
+COMMON_FILES = ["helm_table.dat", "probin-det-x.nse_disabled"] #, "nse19.tbl"]
+
+STRANG_EXEC = "./Castro1d.gnu.ex"
+NEEDED_STRANG_FILES = [STRANG_EXEC] + COMMON_FILES
+
+SIMPLE_SDC_EXEC = "./Castro1d.gnu.SMPLSDC.ex"
+NEEDED_SIMPLE_SDC_FILES = [SIMPLE_SDC_EXEC] + COMMON_FILES
+
+TRUE_SDC_EXEC = "./Castro1d.gnu.TRUESDC.ex"
+NEEDED_TRUE_SDC_FILES = [TRUE_SDC_EXEC] + COMMON_FILES
 
 def setup_runs():
 
-    with open("inputs.template.sdc", "r") as tf:
-        sdc_template = tf.readlines()
+    with open("inputs.template.simple_sdc", "r") as tf:
+        simple_sdc_template = tf.readlines()
+
+    with open("inputs.template.true_sdc", "r") as tf:
+        true_sdc_template = tf.readlines()
 
     with open("inputs.template.strang", "r") as tf:
         strang_template = tf.readlines()
 
-    # setup the Strang runs
-    for nz in NZONES:
-        for dtn in DTNUC_E:
-            for c in CFL:
+    job_list = []
 
-                # don't do all the CFLs when using the nuc energy dt limiter
-                if dtn < 1.0 and c != CFL[0]:
-                    continue
+    # first the reference run -- this is supposed to be a high
+    # resolution Strang run that will be the "correct" answer
 
-                # make the output directory
-                odir = "det_strang_cfl{}_dtnuce{}_nzones{}".format(c, dtn, nz)
-                os.mkdir(odir)
+    odir = f"det_reference_cfl{REFERENCE_CFL}_dtnuce{REFERENCE_DTNUC_E}_nzones{REFERENCE_NZONES}"
+    os.mkdir(odir)
 
-                job_list.append(odir)
+    job_list.append(odir)
 
-                # dump the metdata file
-                with open("{}/run.meta".format(odir), "w") as meta:
-                    meta.write("cfl = {}\n".format(c))
-                    meta.write("nzones = {}\n".format(nz))
-                    meta.write("integrator = Strang\n")
-                    meta.write("dtnuc_e = {}\n".format(dtn))
+    # dump the metdata file
+    with open(f"{odir}/run.meta", "w") as meta:
+        meta.write(f"cfl = {REFERENCE_CFL}\n")
+        meta.write(f"nzones = {REFERENCE_NZONES}\n")
+        meta.write("integrator = reference\n")
+        meta.write(f"dtnuc_e = {REFERENCE_DTNUC_E}\n")
 
-                # write the inputs file
-                with open("{}/inputs".format(odir), "w") as inpf:
-                    for line in strang_template:
-                        inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@method@@", "0").replace("@@DTNUC_E@@", str(dtn)))
+    # write the inputs file
+    with open(f"{odir}/inputs", "w") as inpf:
+        for line in strang_template:
+            inpf.write(line.replace("@@CFL@@", str(REFERENCE_CFL)).replace("@@NZONES@@", str(REFERENCE_NZONES)).replace("@@method@@", "0").replace("@@DTNUC_E@@", str(REFERENCE_DTNUC_E)))
 
-                # copy the remaining files
-                for f in NEEDED_STRANG_FILES:
-                    shutil.copy(f, odir)
+    # copy the remaining files
+    for f in NEEDED_STRANG_FILES:
+        shutil.copy(f, odir)
 
 
-    # setup the simplified SDC runs
-    for nz in NZONES:
-        for dtn in DTNUC_E:
-            for c in CFL:
-                for niter in SDC_ITERS:
+    if DO_STRANG_RUNS:
+        # setup the Strang runs
+        for nz in NZONES:
+            for dtn in DTNUC_E:
+                for c in CFL:
 
                     # don't do all the CFLs when using the nuc energy dt limiter
                     if dtn < 1.0 and c != CFL[0]:
                         continue
 
                     # make the output directory
-                    odir = "det_sdc_iter{}_cfl{}_dtnuce{}_nzones{}".format(niter, c, dtn, nz)
+                    odir = f"det_strang_cfl{c}_dtnuce{dtn}_nzones{nz}"
                     os.mkdir(odir)
 
                     job_list.append(odir)
 
                     # dump the metdata file
-                    with open("{}/run.meta".format(odir), "w") as meta:
-                        meta.write("cfl = {}\n".format(c))
-                        meta.write("nzones = {}\n".format(nz))
-                        meta.write("integrator = SDC\n")
-                        meta.write("niters = {}\n".format(niter))
-                        meta.write("dtnuc_e = {}\n".format(dtn))
+                    with open(f"{odir}/run.meta", "w") as meta:
+                        meta.write(f"cfl = {c}\n")
+                        meta.write(f"nzones = {nz}\n")
+                        meta.write("integrator = Strang\n")
+                        meta.write(f"dtnuc_e = {dtn}\n")
 
                     # write the inputs file
-                    with open("{}/inputs".format(odir), "w") as inpf:
-                        for line in sdc_template:
-                            inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", str(niter)).replace("@@method@@", "3").replace("@@DTNUC_E@@", str(dtn)))
+                    with open(f"{odir}/inputs", "w") as inpf:
+                        for line in strang_template:
+                            inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@method@@", "0").replace("@@DTNUC_E@@", str(dtn)))
 
                     # copy the remaining files
-                    for f in NEEDED_SDC_FILES:
+                    for f in NEEDED_STRANG_FILES:
                         shutil.copy(f, odir)
+
+    if DO_SIMPLE_SDC_RUNS:
+        # setup the simplified SDC runs
+        for nz in NZONES:
+            for dtn in DTNUC_E:
+                for c in CFL:
+                    for niter in SDC_ITERS:
+
+                        # don't do all the CFLs when using the nuc energy dt limiter
+                        if dtn < 1.0 and c != CFL[0]:
+                            continue
+
+                        # make the output directory
+                        odir = f"det_simple_sdc_iter{niter}_cfl{c}_dtnuce{dtn}_nzones{nz}"
+                        os.mkdir(odir)
+
+                        job_list.append(odir)
+
+                        # dump the metdata file
+                        with open(f"{odir}/run.meta", "w") as meta:
+                            meta.write(f"cfl = {c}\n")
+                            meta.write(f"nzones = {nz}\n")
+                            meta.write("integrator = simplified-SDC\n")
+                            meta.write(f"niters = {niter}\n")
+                            meta.write(f"dtnuc_e = {dtn}\n")
+
+                        # write the inputs file
+                        with open(f"{odir}/inputs", "w") as inpf:
+                            for line in simple_sdc_template:
+                                inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ITERS@@", str(niter)).replace("@@method@@", "3").replace("@@DTNUC_E@@", str(dtn)))
+
+                        # copy the remaining files
+                        for f in NEEDED_SIMPLE_SDC_FILES:
+                            shutil.copy(f, odir)
+
+    if DO_TRUE_SDC_RUNS:
+        # setup the true SDC runs
+        for nz in NZONES:
+            for dtn in DTNUC_E:
+                for c in CFL:
+                    for quad in SDC_QUADRATURE:
+                        for order in SDC_ORDER:
+
+                            # don't do all the CFLs when using the nuc energy dt limiter
+                            if dtn < 1.0 and c != CFL[0]:
+                                continue
+
+                            # make the output directory
+                            odir = f"det_true_sdc_quad{quad}_order{order}_cfl{c}_dtnuce{dtn}_nzones{nz}"
+                            os.mkdir(odir)
+
+                            job_list.append(odir)
+
+                            # dump the metdata file
+                            with open(f"{odir}/run.meta", "w") as meta:
+                                meta.write(f"cfl = {c}\n")
+                                meta.write(f"nzones = {nz}\n")
+                                meta.write("integrator = true-SDC\n")
+                                meta.write(f"quadrature = {quad}\n")
+                                meta.write(f"order = {order}\n")
+                                meta.write(f"dtnuc_e = {dtn}\n")
+
+                            # write the inputs file
+                            with open(f"{odir}/inputs", "w") as inpf:
+                                for line in true_sdc_template:
+                                    inpf.write(line.replace("@@CFL@@", str(c)).replace("@@NZONES@@", str(nz)).replace("@@SDC_ORDER@@", str(order)).replace("@@SDC_QUADRATURE@@", str(quad)).replace("@@method@@", "2").replace("@@DTNUC_E@@", str(dtn)))
+
+                            # copy the remaining files
+                            for f in NEEDED_TRUE_SDC_FILES:
+                                shutil.copy(f, odir)
 
     return job_list
 
@@ -101,7 +188,7 @@ def run(string):
     prog = shlex.split(string)
     p0 = subprocess.Popen(prog, stdin=None, stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    stdout0, stderr0 = p0.communicate()
+    stdout0, _ = p0.communicate()
     rc = p0.returncode
     stdout = stdout0.decode('utf-8')
 
@@ -109,17 +196,19 @@ def run(string):
 
 
 def do_run(name):
-    print("running {}...".format(name))
+    print(f"running {name}...")
 
-    if "sdc" in name:
-        command = "./Castro1d.gnu.MPI.SMPLSDC.ex inputs"
+    if "simple_sdc" in name:
+        command = f"{SIMPLE_SDC_EXEC} inputs"
+    elif "true_sdc" in name:
+        command = f"{TRUE_SDC_EXEC} inputs"
     else:
-        command = "./Castro1d.gnu.MPI.ex inputs"
+        command = f"{STRANG_EXEC} inputs"
 
     cwd = os.getcwd()
     os.chdir(name)
 
-    stdout, rc = run(command)
+    stdout, _ = run(command)
 
     # add a file indicated the job is complete
     with open("job_status", "w") as jf:

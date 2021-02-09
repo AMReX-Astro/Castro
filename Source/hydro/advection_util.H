@@ -13,7 +13,6 @@ dflux(const GpuArray<Real, NUM_STATE>& u,
       const GpuArray<Real, NQ>& q,
       int dir, int coord,
       const GeometryData& geomdata,
-      const GpuArray<Real, 3>& center,
       const GpuArray<int, 3>& idx,
       GpuArray<Real, NUM_STATE>& flux)
 {
@@ -62,7 +61,7 @@ dflux(const GpuArray<Real, NUM_STATE>& u,
     qgdnv[GDW] = q[QW];
     qgdnv[GDPRES] = q[QPRES];
     bool cell_centered = true;
-    compute_hybrid_flux(qgdnv, geomdata, center, dir,
+    compute_hybrid_flux(qgdnv, geomdata, dir,
                         idx[0], idx[1], idx[2],
                         flux, cell_centered);
 #endif

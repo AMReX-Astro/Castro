@@ -10,10 +10,6 @@ module fluxlimiter_module
                          OneSixth=1.e0_rt/6.e0_rt, TwoNinths=2.e0_rt/9.e0_rt, &
                          FiveNinths=5.e0_rt/9.e0_rt
 
-#ifdef AMREX_USE_CUDA
-  attributes(managed) :: limiter, closure
-#endif
-
 contains
 
   subroutine init_fluxlimiter_module(limiter_in, closure_in)
@@ -77,8 +73,6 @@ contains
 
     real(rt), intent(in) :: lambda
     real(rt) :: f
-
-    !$gpu
 
     if (closure .eq. 0) then
        f = lambda

@@ -1,6 +1,5 @@
 #include <Castro.H>
 #include <Castro_F.H>
-#include <Castro_hydro_F.H>
 
 #include <riemann_solvers.H>
 
@@ -62,7 +61,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
          flx, qint,
          idir);
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   } else {
     amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
@@ -75,7 +74,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     auto coord = geom.Coord();
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
       int is_shock = 0;
@@ -160,7 +159,7 @@ Castro::riemann_state(const Box& bx,
   // Riemann problems
 
 #ifdef RADIATION
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   if (hybrid_riemann == 1) {
     amrex::Error("ERROR: hybrid Riemann not supported for radiation");
   }
@@ -172,7 +171,7 @@ Castro::riemann_state(const Box& bx,
 #endif
 
 #if AMREX_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   if (riemann_solver > 1) {
     amrex::Error("ERROR: HLLC not implemented for 1-d");
   }
@@ -190,7 +189,7 @@ Castro::riemann_state(const Box& bx,
     const Real lT_guess = T_guess;
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
      eos_t eos_state;
@@ -259,7 +258,7 @@ Castro::riemann_state(const Box& bx,
               idir);
 #endif
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   } else {
     amrex::Error("ERROR: invalid value of riemann_solver");
 #endif

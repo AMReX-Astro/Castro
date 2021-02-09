@@ -7,11 +7,15 @@ mass_P                          real                  1.0e0_rt                 y
 mass_S                          real                  1.0e0_rt                 y
 central_density_P               real                 -1.0e0_rt                 y
 central_density_S               real                 -1.0e0_rt                 y
+radius_P                        real                 -1.0e0_rt                 n
+radius_S                        real                 -1.0e0_rt                 n
 stellar_temp                    real                  1.0e7_rt                 y
-primary_envelope_mass           real                  0.0e0_rt                 n
-secondary_envelope_mass         real                  0.0e0_rt                 n
-primary_envelope_comp           real                  0.0e0_rt                 n                      (nspec, network)
-secondary_envelope_comp         real                  0.0e0_rt                 n                      (nspec, network)
+core_comp_P                     real                  0.0e0_rt                 n                      nspec
+core_comp_S                     real                  0.0e0_rt                 n                      nspec
+envelope_mass_P                 real                  0.0e0_rt                 n
+envelope_mass_S                 real                  0.0e0_rt                 n
+envelope_comp_P                 real                  0.0e0_rt                 n                      nspec
+envelope_comp_S                 real                  0.0e0_rt                 n                      nspec
 
 
 
@@ -57,7 +61,7 @@ init                            integer               1                        n
 
 # Are we doing a single star simulation?
 
-single_star                     logical               .false.                  n
+single_star                     integer               0                        n
 
 
 
@@ -72,25 +76,9 @@ smallu                          real                  0.e0_rt                  y
 # 6.25 km. No simulation we do is likely to have a resolution
 # higher than that inside the stars (it represents
 # three jumps by a factor of four compared to our 
-# normal coarse grid resolution). By using 4096
-# grid points, the size of the 1D domain will be 2.56e9 cm,
-# which is larger than any reasonable mass white dwarf.
+# normal coarse grid resolution).
 
 initial_model_dx                real                  6.25e5_rt                y
-initial_model_npts              integer               4096                     y
-
-# initial_model_mass_tol is tolerance used for getting the total WD mass 
-# equal to the desired mass. It can be reasonably small, since there
-# will always be a central density value that can give the desired
-# WD mass on the grid we use.
-
-initial_model_mass_tol          real                  1.e-6_rt                 y
-
-# hse_tol is the tolerance used when iterating over a zone to force
-# it into HSE by adjusting the current density (and possibly
-# temperature).  hse_tol should be very small (~ 1.e-10).
-
-initial_model_hse_tol           real                  1.e-10_rt                y
 
 # Composition properties of initial models.
 # We follow the prescription of Dan et al. 2012 for determining
@@ -193,10 +181,8 @@ tde_pericenter_radius           real                  0.0e0_rt                 n
 
 max_stellar_tagging_level       integer               20                       y
 max_temperature_tagging_level   integer               20                       y
-max_center_tagging_level        integer               20                       y
 stellar_density_threshold       real                  1.0e0_rt                 y
 temperature_tagging_threshold   real                  5.0e8_rt                 y
-center_tagging_radius           real                  0.0e0_rt                 y
 max_tagging_radius              real                  0.75e0_rt                y
 roche_tagging_factor            real                  2.0e0_rt                 y
 
@@ -232,13 +218,6 @@ initial_radial_velocity_factor  real                 -1.0e-3_rt                y
 
 
 
-# Distance (in kpc) used for calculation of the gravitational wave amplitude
-# (this wil be calculated along all three coordinate axes).
-
-gw_dist                         real                  10.0e0_rt                y
-
-
-
 # Current value of the dynamical timescale for each star
 
 t_ff_P                          real                  0.0e0_rt                 n
@@ -256,8 +235,7 @@ ts_te_global_max                real                  0.0e0_rt                 n
 
 # Stores whether we assert that the simulation has completed.
 
-jobIsDone                       logical               .false.                  n
-signalJobIsNotDone              logical               .false.                  n
+jobIsDone                       integer               0                        n
 
 
 

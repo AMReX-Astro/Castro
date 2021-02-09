@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
-#include <Castro_hydro_F.H>
 
 #include <mhd_util.H>
 
@@ -90,7 +89,7 @@ Castro::corner_couple(const Box& bx,
   int UMAGD3 = UMAGX + d3;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // first the conserved state
@@ -167,7 +166,7 @@ Castro::corner_couple(const Box& bx,
   ell[d1] -= 1;
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // conservative state
@@ -294,7 +293,7 @@ Castro::half_step(const Box& bx,
 
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // first the conservative state
@@ -383,7 +382,7 @@ Castro::half_step(const Box& bx,
 
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     // left interface (e.g., U_{i+1/2,j,k,L} or the "+" state in MM notation)

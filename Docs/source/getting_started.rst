@@ -14,7 +14,7 @@ Getting Started
 The compilation process is managed by AMReX and its build system.  The
 general requirements to build Castro are:
 
- * A C++ 11 (or later) compiler
+ * A C++17 (or later) compiler (e.g. gcc >= 7.0)
 
  * A Fortran 20xx compiler
 
@@ -26,7 +26,7 @@ GCC and the PGI compilers are the main compiler suites used by the
 developers.
 
 For running in parallel, an MPI library is required.  For running on GPUs,
-CUDA 10 or later is required.  More information on parallel builds
+CUDA 11 or later is required.  More information on parallel builds
 is given in section :ref:`ch:mpiplusx`.
 
 Downloading the Code

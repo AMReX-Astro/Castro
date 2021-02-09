@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
-#include <Castro_hydro_F.H>
 
 #ifdef DIFFUSION
 #include <diffusion_util.H>
@@ -45,9 +44,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   GpuArray<int, 3> domain_lo = geom.Domain().loVect3d();
   GpuArray<int, 3> domain_hi = geom.Domain().hiVect3d();
-
-  GpuArray<Real, 3> center;
-  ca_get_center(center.begin());
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -116,7 +112,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         if (first_order_hydro == 1) {
           amrex::ParallelFor(obx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
             flatn_arr(i,j,k) = 0.0;
           });
@@ -124,7 +120,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           uflatten(obx, q_arr, flatn_arr, QPRES);
         } else {
           amrex::ParallelFor(obx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
             flatn_arr(i,j,k) = 1.0;
           });
@@ -151,7 +147,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         }
         else {
           amrex::ParallelFor(obx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
             shk_arr(i,j,k) = 0.0;
           });
@@ -196,7 +192,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         auto avis_arr = avis.array();
         Elixir elix_avis = avis.elixir();
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         if (sdc_order == 4) {
 
           // -----------------------------------------------------------------
@@ -270,7 +266,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
             if (do_hydro == 0) {
               amrex::ParallelFor(nbx, NUM_STATE,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
               {
                 f_avg_arr(i,j,k,n) = 0.0;
               });
@@ -299,7 +295,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> const flux_arr = (flux[0]).array();
 
             amrex::ParallelFor(nbx, NUM_STATE,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
             {
               flux_arr(i,j,k,n) = f_avg_arr(i,j,k,n);
             });
@@ -319,7 +315,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             amrex::ParallelFor(nbx, NQ,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
             {
               bool test = (n == QGC) || (n == QTEMP);
 
@@ -340,7 +336,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             if (do_hydro == 0) {
 
               amrex::ParallelFor(nbx, NUM_STATE,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
               {
                 f_arr(i,j,k,n) = 0.0;
               });
@@ -364,7 +360,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             Array4<Real> const flux_arr = (flux[idir]).array();
 
             amrex::ParallelFor(nbx, NUM_STATE,
-            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n) noexcept
+            [=] AMREX_GPU_DEVICE (int i, int j, int k, int n)
             {
 
               Real lap = trans_laplacian(i, j, k, n, idir, f_avg_arr,
@@ -398,7 +394,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               Array4<Real const> const avis_arr = avis.array();
 
               amrex::ParallelFor(nbx, NUM_STATE,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
               {
                   if (n == UTEMP) {
                     flux_arr(i,j,k,n) = 0.0;
@@ -435,7 +431,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
         } else {
-#endif   // AMREX_USE_CUDA
+#endif   // AMREX_USE_GPU
 
           // -----------------------------------------------------------------
           // second order method
@@ -522,7 +518,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               Array4<Real const> const uin_arr = Sborder.array(mfi);
 
               amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                 flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -573,7 +569,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
           } // end idir loop
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         } // end of 4th vs 2nd order MOL update
 #endif
 
@@ -644,7 +640,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
           position(i, j, k, geomdata, loc);
 
           for (int dir = 0; dir < AMREX_SPACEDIM; ++dir)
-            loc[dir] -= center[dir];
+            loc[dir] -= problem::center[dir];
 
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;
@@ -688,7 +684,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 1
             if (!Geom().IsCartesian()) {
               amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                 pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
               });
@@ -698,7 +694,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #if AMREX_SPACEDIM == 2
             if (!mom_flux_has_p(0, 0, coord)) {
               amrex::ParallelFor(nbx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                 pradial_fab(i,j,k) = qex_fab(i,j,k,prescomp) * dt;
               });

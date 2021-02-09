@@ -15,11 +15,12 @@ yt.funcs.mylog.setLevel(50)
 if __name__ == "__main__":
 
     # get all the data
-    run_dirs = glob.glob("det_s*")
+    run_dirs = glob.glob("det_[st]*")
     runs = []
     for run in run_dirs:
         try:
             if not os.path.isfile(os.path.join(run, "Backtrace.0")):
+                print(run)
                 runs.append(dt.Detonation(run))
         except IndexError:
             # the run didn't produce output -- it might still be running?
@@ -33,10 +34,11 @@ if __name__ == "__main__":
     nzones = set([q.nzones for q in runs])
     for nz in nzones:
         strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz and q.dtnuce == False]
-        sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.nzones == nz]
-        sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.nzones == nz]
-        sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.nzones == nz]
-
+        sdc2 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 2 and q.nzones == nz]
+        print(sdc2)
+        sdc3 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 3 and q.nzones == nz]
+        sdc4 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 4 and q.nzones == nz]
+        truesdc_o2 = [q for q in runs if q.integrator == "true-SDC" and q.order == 2 and q.nzones == nz]
         fig = plt.figure(1)
         fig.clear()
 
@@ -68,9 +70,9 @@ if __name__ == "__main__":
         strang = [q for q in runs if q.integrator == "Strang" and q.cfl == cfl and q.dtnuce == False]
         # CFL doesn't matter for dtnuc_e
         strang_limit = [q for q in runs if q.integrator == "Strang" and q.dtnuce == True]
-        sdc2 = [q for q in runs if q.integrator == "SDC" and q.niters == 2 and q.cfl == cfl]
-        sdc3 = [q for q in runs if q.integrator == "SDC" and q.niters == 3 and q.cfl == cfl]
-        sdc4 = [q for q in runs if q.integrator == "SDC" and q.niters == 4 and q.cfl == cfl]
+        sdc2 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 2 and q.cfl == cfl]
+        sdc3 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 3 and q.cfl == cfl]
+        sdc4 = [q for q in runs if q.integrator == "simplified-SDC" and q.niters == 4 and q.cfl == cfl]
 
         fig = plt.figure(1)
         fig.clear()
@@ -79,9 +81,9 @@ if __name__ == "__main__":
 
         dsets = [(strang, "Strang"),
                  (strang_limit, r"Strang (with energy $\Delta t$ limit)"),
-                 (sdc2, "SDC (2 iters)"),
-                 (sdc3, "SDC (3 iters)"),
-                 (sdc4, "SDC (4 iters)")]
+                 (sdc2, "simplified-SDC (2 iters)"),
+                 (sdc3, "simplified-SDC (3 iters)"),
+                 (sdc4, "simplified-SDC (4 iters)")]
 
         for dset, label in dsets:
             if len(dset) == 0:
@@ -100,12 +102,15 @@ if __name__ == "__main__":
     # make a plot of T, enuc vs. x for different Strang / SDC CFL
     for nz in nzones:
         strang = [q for q in runs if q.integrator == "Strang" and q.nzones == nz]
-        sdc2 = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 2]
-        sdc3 = [q for q in runs if q.integrator == "SDC" and q.nzones == nz and q.niters == 3]
+        sdc2 = [q for q in runs if q.integrator == "simplified-SDC" and q.nzones == nz and q.niters == 2]
+        sdc3 = [q for q in runs if q.integrator == "simplified-SDC" and q.nzones == nz and q.niters == 3]
 
         for dset, title, fname in [(strang, "Strang", "strang"),
-                                   (sdc2, "SDC (niters = 2)", "sdc_niter2"),
-                                   (sdc3, "SDC (niters = 3)", "sdc_niter3")]:
+                                   (sdc2, "simplified-SDC (niters = 2)", "sdc_niter2"),
+                                   (sdc3, "simplified-SDC (niters = 3)", "sdc_niter3")]:
+
+            if not dset:
+                continue
 
             fig, axs = plt.subplots(2, 1, figsize=(7, 10), constrained_layout=True)
 

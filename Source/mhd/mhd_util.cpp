@@ -1,7 +1,6 @@
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_util.H>
-#include <Castro_hydro_F.H>
 
 #include <mhd_util.H>
 
@@ -34,7 +33,7 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
   using ReduceTuple = typename decltype(reduce_data)::Type;
 
   reduce_op.eval(bx, reduce_data,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
   {
 
     //sound speed for ideal mhd
@@ -142,7 +141,7 @@ Castro::consup_mhd(const Box& bx,
 #endif
 
   amrex::ParallelFor(bx, NUM_STATE,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
 
     if (n == UTEMP) {
@@ -174,7 +173,7 @@ Castro::PrimToCons(const Box& bx,
   // calculate the conserved variables from the primitive
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     u_arr(i,j,k,URHO) = q_arr(i,j,k,QRHO);
@@ -235,7 +234,7 @@ Castro::prim_half(const Box& bx,
   auto dx = geom.CellSizeArray();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real divF[NUM_STATE+3];

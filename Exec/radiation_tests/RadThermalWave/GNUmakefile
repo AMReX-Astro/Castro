@@ -9,7 +9,6 @@ PROFILE    = FALSE
 
 USE_RAD = TRUE
 
-USE_PROB_PARAMS = TRUE
 
 CASTRO_HOME = ../../..
 
@@ -19,8 +18,6 @@ NETWORK_DIR := general_null
 NETWORK_INPUTS := gammalaw.net
 
 Opacity_dir := rad_power_law
-
-GPU_COMPATIBLE_PROBLEM = TRUE
 
 Bpack   := ./Make.package
 Blocs   := .

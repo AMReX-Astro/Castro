@@ -1,4 +1,5 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2301848.svg)](https://doi.org/10.5281/zenodo.2301848)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02513/status.svg)](https://doi.org/10.21105/joss.02513)
 [![AMReX](https://amrex-codes.github.io/badges/powered%20by-AMReX-red.svg)](https://amrex-codes.github.io)
 [![github pages](https://github.com/AMReX-Astro/Castro/workflows/github%20pages/badge.svg)](https://github.com/AMReX-Astro/Castro/actions?query=workflow%3A%22github+pages%22)
 
@@ -92,7 +93,7 @@ People who make a number of substantive contributions will be named
 "core developers" of Castro.  The criteria for becoming a core
 developer are flexible, but generally involve one of the following:
 
-  * 10 non-merge commits to `Castro/Source/` or `Castro/sphinx_docs/`
+  * 10 non-merge commits to `Castro/Source/` or `Castro/Docs/`
     or one of the problems that is not your own science problem *or*
 
   * addition of a new algorithm / module  *or*

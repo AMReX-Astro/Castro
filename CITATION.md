@@ -6,7 +6,25 @@ describing the capabilities you used.
 
 ## General code use
 
-If you use Castro, we appreciate you citing the main code paper:
+If you use Castro, we appreciate you citing the most recent code paper:
+
+```
+@article{Almgren2020,
+  doi = {10.21105/joss.02513},
+  url = {https://doi.org/10.21105/joss.02513},
+  year = {2020},
+  publisher = {The Open Journal},
+  volume = {5},
+  number = {54},
+  pages = {2513},
+  author = {Ann Almgren and Maria Barrios Sazo and John Bell and Alice Harpole and Max Katz and Jean Sexton and Donald Willcox and Weiqun Zhang and Michael Zingale},
+  title = {CASTRO: A Massively Parallel Compressible Astrophysics Simulation Code},
+  journal = {Journal of Open Source Software}
+}
+```
+
+You are welcome to cite the original code paper as well (which
+provides some details on the algorithmic implementations):
 
 ```
     @ARTICLE{2010ApJ...715.1221A,

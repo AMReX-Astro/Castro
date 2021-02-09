@@ -1,5 +1,5 @@
 
-    void just_the_mhd(amrex::Real time, amrex::Real dt);
+    void construct_ctu_mhd_source(amrex::Real time, amrex::Real dt);
 
     void
     check_for_mhd_cfl_violation(const amrex::Box& bx, const amrex::Real dt,

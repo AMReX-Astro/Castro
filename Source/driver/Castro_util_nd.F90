@@ -6,141 +6,6 @@ module castro_util_module
 
 contains
 
-  function position(i, j, k, ccx, ccy, ccz)
-    ! Given 3D indices (i,j,k), return the cell-centered spatial position.
-    ! Optionally we can also be edge-centered in any of the directions.
-    !
-
-    use amrinfo_module, only: amr_level
-    use prob_params_module, only: problo, probhi, physbc_lo, physbc_hi, dx_level, &
-         domlo_level, domhi_level, Interior
-    use amrex_constants_module, only: ZERO, HALF
-    use amrex_fort_module, only: rt => amrex_real
-
-    ! Input arguments
-
-    integer :: i, j, k
-    logical, optional :: ccx, ccy, ccz
-
-    ! Local variables
-    real(rt) :: position(3), dx(3), offset(3)
-    integer  :: idx(3)
-    logical  :: cc(3)
-    integer  :: domlo(3), domhi(3)
-    integer  :: dir
-
-    !$gpu
-
-    idx = [ i, j, k ]
-
-    dx(:) = dx_level(:,amr_level)
-    domlo = domlo_level(:,amr_level)
-    domhi = domhi_level(:,amr_level)
-
-    offset(:) = problo(:)
-
-    cc(:) = .true.
-
-    if (present(ccx)) then
-       cc(1) = ccx
-    endif
-
-    if (present(ccy)) then
-       cc(2) = ccy
-    endif
-
-    if (present(ccz)) then
-       cc(3) = ccz
-    endif
-
-    do dir = 1, 3
-       if (cc(dir)) then
-          ! If we're cell-centered, we want to be in the middle of the zone.
-
-          offset(dir) = offset(dir) + HALF * dx(dir)
-       else
-          ! Take care of the fact that for edge-centered indexing,
-          ! we actually range from (domlo, domhi+1).
-
-          domhi(dir) = domhi(dir) + 1
-       endif
-    enddo
-
-    ! Be careful when using periodic boundary conditions. In that case,
-    ! we need to loop around to the other side of the domain.
-
-    do dir = 1, 3
-       if      (physbc_lo(dir) .eq. Interior .and. idx(dir) .lt. domlo(dir)) then
-          offset(dir) = offset(dir) + (probhi(dir) - problo(dir))
-       else if (physbc_hi(dir) .eq. Interior .and. idx(dir) .gt. domhi(dir)) then
-          offset(dir) = offset(dir) + (problo(dir) - probhi(dir))
-       endif
-    enddo
-
-    position(:) = offset(:) + dble(idx(:)) * dx(:)
-
-  end function position
-
-
-  AMREX_CUDA_FORT_DEVICE subroutine ca_clamp_temp(i, j, k, state, s_lo, s_hi) bind(C, name="ca_clamp_temp")
-
-    use meth_params_module, only: NVAR, URHO, UMX, UMZ, UEINT, UEDEN, UTEMP, ambient_safety_factor
-    use ambient_module, only: ambient_state
-    use amrex_constants_module, only: HALF, ONE
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    integer , intent(in   ), value :: i, j, k
-    integer,  intent(in   ) :: s_lo(3), s_hi(3)
-    real(rt), intent(inout) :: state(s_lo(1):s_hi(1),s_lo(2):s_hi(2),s_lo(3):s_hi(3),NVAR)
-
-    real(rt) :: rhoInv
-
-    rhoInv = ONE / state(i,j,k,URHO)
-
-    if (state(i,j,k,URHO) <= ambient_safety_factor * ambient_state(URHO)) then
-       state(i,j,k,UTEMP) = ambient_state(UTEMP)
-       state(i,j,k,UEINT) = ambient_state(UEINT) * (state(i,j,k,URHO) * rhoInv)
-       state(i,j,k,UEDEN) = state(i,j,k,UEINT) + HALF * rhoInv * sum(state(i,j,k,UMX:UMZ)**2)
-    end if
-
-  end subroutine ca_clamp_temp
-
-
-  subroutine ca_get_center(center_out) bind(C, name="ca_get_center")
-    ! Get the current center of the problem.  This may not be the
-    ! center of the domain, due to any problem symmetries.
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(inout) :: center_out(3)
-
-    center_out = center
-
-  end subroutine ca_get_center
-
-
-  subroutine ca_set_center(center_in) bind(C, name="ca_set_center")
-    !
-    ! .. note::
-    !    Binds to C function ``ca_set_center``
-
-    use prob_params_module, only: center
-    use amrex_fort_module, only: rt => amrex_real
-
-    implicit none
-
-    real(rt), intent(in) :: center_in(3)
-
-    center = center_in
-
-  end subroutine ca_set_center
-
-
   subroutine ca_find_center(data,new_center,icen,dx,problo) &
        bind(C, name="ca_find_center")
     !
@@ -223,7 +88,8 @@ contains
     !    Binds to C function ``ca_compute_avgstate``
 
     use meth_params_module, only: URHO, UMX, UMY, UMZ
-    use prob_params_module, only: center, dim
+    use prob_params_module, only: dim
+    use probdata_module, only: center
     use amrex_constants_module, only: HALF
 #ifndef AMREX_USE_CUDA
     use castro_error_module, only: castro_error

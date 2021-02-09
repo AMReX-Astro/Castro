@@ -61,6 +61,8 @@ class Detonation:
         self.nzones = None
         self.integrator = None
         self.niters = None
+        self.order = None
+        self.quadrature = None
         self.dtnuce = None
         self.has_started = False
         self.crashed = False
@@ -79,6 +81,10 @@ class Detonation:
                     self.niters = int(v)
                 elif k == "dtnuc_e":
                     self.dtnuce = float(v)
+                elif k == "order":
+                    self.order = int(v)
+                elif k == "quadrature":
+                    self.quadrature = int(v)
 
         cwd = os.getcwd()
         os.chdir(name)
@@ -122,20 +128,26 @@ class Detonation:
             # next sort on iterators
             if self.niters == other.niters:
 
-                # next sort on CFL
-                if self.cfl == other.cfl:
+                # next sort on order
+                if self.order == other.order:
 
-                    # next sort on dtnuce
-                    if self.dtnuce == other.dtnuce:
+                    # next sort on CFL
+                    if self.cfl == other.cfl:
 
-                        # finally sort on the number of zones
-                        return self.nzones < other.nzones
+                        # next sort on dtnuce
+                        if self.dtnuce == other.dtnuce:
+
+                            # finally sort on the number of zones
+                            return self.nzones < other.nzones
+
+                        else:
+                            return self.dtnuce < other.dtnuce
 
                     else:
-                        return self.dtnuce < other.dtnuce
+                        return self.cfl < other.cfl
 
                 else:
-                    return self.cfl < other.cfl
+                    return self.order < other.order
 
             else:
                 return self.niters < other.niters

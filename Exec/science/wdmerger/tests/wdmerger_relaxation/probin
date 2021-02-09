@@ -47,43 +47,4 @@
 
 &extern
 
-  ! Note that some of the parameters in this
-  ! namelist are specific to the default EOS,
-  ! network, and/or integrator used in the 
-  ! makefile. If you try a different set of 
-  ! microphysics routines be sure to check that
-  ! the parameters in here are consistent, as
-  ! Fortran does not like seeing unknown variables
-  ! in the namelist.
-
-  small_x = 1.d-12
-
-  use_eos_coulomb = T
-  eos_input_is_constant = T
-
-  do_constant_volume_burn = T
-  call_eos_in_rhs = T
-
-  rtol_spec = 1.d-6
-  atol_spec = 1.d-6
-
-  rtol_temp = 1.d-6
-  atol_temp = 1.d-6
-
-  rtol_enuc = 1.d-6
-  atol_enuc = 1.d-6
-
-  abort_on_failure = F
-  retry_burn = F
-
-  renormalize_abundances = T
-
-  MAX_TEMP = 1.d10
-
-  ! Note that not every network has tabular
-  ! rates enabled, so for some networks the
-  ! following option will have no effect.
-
-  use_tables = T
-
 /
