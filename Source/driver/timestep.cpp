@@ -462,13 +462,12 @@ Castro::estdt_burning()
                 }
             }
 
-#ifdef NSE
-            if (in_nse(state)) {
-                Real dt_tmp = 1.e200_rt;
+            Real dt_tmp = 1.e200_rt;
 
-            } else {
+#ifdef NSE
+            if (!in_nse(state)) {
 #endif
-                Real dt_tmp = dtnuc_e * e / dedt;
+                dt_tmp = dtnuc_e * e / dedt;
 #ifdef NSE
             }
 #endif
