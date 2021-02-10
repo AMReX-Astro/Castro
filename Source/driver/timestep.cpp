@@ -465,7 +465,7 @@ Castro::estdt_burning()
             Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
-            if (!in_nse(state)) {
+            if (!in_nse(eos_state)) {
 #endif
                 dt_tmp = dtnuc_e * e / dedt;
 #ifdef NSE
