@@ -158,13 +158,13 @@ void jac (burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
         xn_sum += eos_state.xn[n] * eos_xderivs.dedX[n];
     }
 
-    dwdU(iwT, 0) = denom * (xn_sum - eos_state.e);
+    dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
 
     for (int m = 0; m < NumSpec; m++) {
-        dwdU(iwT, m+1) = -denom * eos_xderivs.dedX[m];
+        dwdU(iwe, m+1) = -denom * eos_xderivs.dedX[m];
     }
 
-    dwdU(iwT, iwT) = denom;
+    dwdU(iwe, iwe) = denom;
 
     // construct the Jacobian -- note: the Jacobian is 1-based
 

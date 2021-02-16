@@ -8,7 +8,7 @@
 
 constexpr int iwrho = 0;
 constexpr int iwfs = 1;
-constexpr int iwT = NumSpec+1;
+constexpr int iwe = NumSpec+1;
 
 // #include <actual_rhs.H>
 
@@ -247,16 +247,16 @@ single_zone_jac(GpuArray<Real, NUM_STATE> const& state,
     }
 
     // now fill the column corresponding to derivatives with respect to
-    // temperature -- this column is iwT
-    dRdw(0, iwT) = 0.0_rt;
+    // energy -- this column is iwe
+    dRdw(0, iwe) = 0.0_rt;
 
-    // d( d(rho X_m)/dt)/dT
+    // d( d(rho X_m)/dt)/de
     for (int m = 1; m <= NumSpec; ++m) {
-       dRdw(m, iwT) = state[URHO] * Jac(m, net_ienuc);
+       dRdw(m, iwe) = state[URHO] * Jac(m, net_ienuc);
     }
 
-    // d( d(rho E)/dt)/dT
-    dRdw(NumSpec+1, iwT) = state[URHO] * Jac(net_ienuc, net_ienuc);
+    // d( d(rho E)/dt)/de
+    dRdw(NumSpec+1, iwe) = state[URHO] * Jac(net_ienuc, net_ienuc);
 }
 
 #endif

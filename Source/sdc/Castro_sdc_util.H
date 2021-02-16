@@ -163,21 +163,21 @@ f_sdc_jac(const Real dt_m,
     }
 
     if (sdc_solve_for_rhoe == 1) {
-        dwdU(iwT, 0) = denom * (xn_sum - eos_state.e);
+        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
     } else {
         auto u2_sum = 0.0_rt;
         for (auto n = 0; n < 3; ++n) {
             u2_sum += U_full[UMX+n] * U_full[UMX+n];
         }
-        dwdU(iwT, 0) = denom * (xn_sum - eos_state.e -
+        dwdU(iwe, 0) = denom * (xn_sum - eos_state.e -
                                0.5_rt * u2_sum / (eos_state.rho * eos_state.rho));
     }
 
     for (int m = 0; m < NumSpec; ++m) {
-        dwdU(iwT,m+1) = -denom * eos_xderivs.dedX[m];
+        dwdU(iwe,m+1) = -denom * eos_xderivs.dedX[m];
     }
 
-    dwdU(iwT, NumSpec+1) = denom;
+    dwdU(iwe, NumSpec+1) = denom;
 
     // construct the Jacobian -- we can get most of the
     // terms from the network itself, but we do not rely on
