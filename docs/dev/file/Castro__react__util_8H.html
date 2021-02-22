@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -239,32 +237,32 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1a458ec34dabb00ba390245d09763a6932"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn (const int i, const int j, const int k, Array4&lt; const Real &gt; const &amp;state)</code></dt>
+<span class="target" id="Castro__react__util_8H_1a458ec34dabb00ba390245d09763a6932"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">bool</span> <span class="pre">okay_to_burn</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1a7e22b78a8e608c31e7ef1103448ac2ac"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state)</code></dt>
+<span class="target" id="Castro__react__util_8H_1a7e22b78a8e608c31e7ef1103448ac2ac"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">bool</span> <span class="pre">okay_to_burn</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1a36e7270d04678a969973c81ab5f02478"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE bool okay_to_burn_type (burn_t const &amp;state)</code></dt>
+<span class="target" id="Castro__react__util_8H_1a36e7270d04678a969973c81ab5f02478"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">bool</span> <span class="pre">okay_to_burn_type</span> <span class="pre">(burn_t</span> <span class="pre">const</span> <span class="pre">&amp;state)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1a5e87a191264be4951dce809d8a3ef378"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_react_source (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state, GpuArray&lt; Real, NUM_STATE &gt; &amp;R, burn_t &amp;burn_state)</code></dt>
+<span class="target" id="Castro__react__util_8H_1a5e87a191264be4951dce809d8a3ef378"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_react_source</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;R,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1aca6ce1788ffe0bdb554e4e103ffd62bc"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_react_source (const int i, const int j, const int k, Array4&lt; const Real &gt; const &amp;state, Array4&lt; Real &gt; const &amp;R, burn_t &amp;burn_state)</code></dt>
+<span class="target" id="Castro__react__util_8H_1aca6ce1788ffe0bdb554e4e103ffd62bc"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_react_source</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">Array4&lt;</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;R,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__react__util_8H_1acd3223227f4e176f71eb1521014fd5fa"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void single_zone_jac (GpuArray&lt; Real, NUM_STATE &gt; const &amp;state, burn_t burn_state, Array2D&lt; Real, 0, NumSpec+1, 0, NumSpec+1 &gt; &amp;dRdw)</code></dt>
+<span class="target" id="Castro__react__util_8H_1acd3223227f4e176f71eb1521014fd5fa"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">single_zone_jac</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;state,</span> <span class="pre">burn_t</span> <span class="pre">burn_state,</span> <span class="pre">Array2D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NumSpec+1,</span> <span class="pre">0,</span> <span class="pre">NumSpec+1</span> <span class="pre">&gt;</span> <span class="pre">&amp;dRdw)</span></code></dt>
 <dd></dd></dl>
 
 </div>
@@ -272,17 +270,17 @@
 <p class="breathe-sectiondef-title rubric">Variables</p>
 <dl class="cpp var">
 <dt id="_CPPv45iwrho">
-<span id="_CPPv35iwrho"></span><span id="_CPPv25iwrho"></span><span id="iwrho__i"></span><span class="target" id="Castro__react__util_8H_1a761abb89722413b8d80e36b23f83faca"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwrho</code> = 0<a class="headerlink" href="#_CPPv45iwrho" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv35iwrho"></span><span id="_CPPv25iwrho"></span><span id="iwrho__i"></span><span class="target" id="Castro__react__util_8H_1a761abb89722413b8d80e36b23f83faca"></span><em class="property"><span class="pre">constexpr</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">iwrho</span></code> <span class="pre">=</span> <span class="pre">0</span><a class="headerlink" href="#_CPPv45iwrho" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv44iwfs">
-<span id="_CPPv34iwfs"></span><span id="_CPPv24iwfs"></span><span id="iwfs__i"></span><span class="target" id="Castro__react__util_8H_1ad577bd3868d3e0e7b383ade04e69f646"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwfs</code> = 1<a class="headerlink" href="#_CPPv44iwfs" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv34iwfs"></span><span id="_CPPv24iwfs"></span><span id="iwfs__i"></span><span class="target" id="Castro__react__util_8H_1ad577bd3868d3e0e7b383ade04e69f646"></span><em class="property"><span class="pre">constexpr</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">iwfs</span></code> <span class="pre">=</span> <span class="pre">1</span><a class="headerlink" href="#_CPPv44iwfs" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="cpp var">
 <dt id="_CPPv43iwe">
-<span id="_CPPv33iwe"></span><span id="_CPPv23iwe"></span><span id="iwe__i"></span><span class="target" id="Castro__react__util_8H_1a4f5296dc78baecb166d8d6312d23ab0c"></span><em class="property">constexpr</em> int <code class="sig-name descname">iwe</code> = NumSpec + 1<a class="headerlink" href="#_CPPv43iwe" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv33iwe"></span><span id="_CPPv23iwe"></span><span id="iwe__i"></span><span class="target" id="Castro__react__util_8H_1a4f5296dc78baecb166d8d6312d23ab0c"></span><em class="property"><span class="pre">constexpr</span></em> <span class="pre">int</span> <code class="sig-name descname"><span class="pre">iwe</span></code> <span class="pre">=</span> <span class="pre">NumSpec</span> <span class="pre">+</span> <span class="pre">1</span><a class="headerlink" href="#_CPPv43iwe" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>

@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -240,12 +238,12 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="vode__rhs__true__sdc_8H_1afae629ce78d54d7d5984668096537c2a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void rhs (const Real time, burn_t &amp;burn_state, dvode_t &amp;vode_state, RArray1D &amp;dUdt)</code></dt>
+<span class="target" id="vode__rhs__true__sdc_8H_1afae629ce78d54d7d5984668096537c2a"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">rhs</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">RArray1D</span> <span class="pre">&amp;dUdt)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="vode__rhs__true__sdc_8H_1a7ac4538540b25af7dc4db64d8d70d430"></span><code class="sig-name descname">template&lt;class MatrixType&gt; AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void jac (burn_t &amp;burn_state, dvode_t &amp;vode_state, MatrixType &amp;pd)</code></dt>
+<span class="target" id="vode__rhs__true__sdc_8H_1a7ac4538540b25af7dc4db64d8d70d430"></span><code class="sig-name descname"><span class="pre">template&lt;class</span> <span class="pre">MatrixType&gt;</span> <span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">jac</span> <span class="pre">(burn_t</span> <span class="pre">&amp;burn_state,</span> <span class="pre">dvode_t</span> <span class="pre">&amp;vode_state,</span> <span class="pre">MatrixType</span> <span class="pre">&amp;pd)</span></code></dt>
 <dd></dd></dl>
 
 </div>

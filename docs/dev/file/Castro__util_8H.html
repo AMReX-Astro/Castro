@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -246,28 +244,28 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int upassmap (int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a1673564ec05865e18469612ef2a1a213"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">upassmap</span> <span class="pre">(int</span> <span class="pre">ipassive)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int qpassmap (int ipassive)</code></dt>
+<span class="target" id="Castro__util_8H_1a4148a955e1fccdd5412e6517aba33736"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">qpassmap</span> <span class="pre">(int</span> <span class="pre">ipassive)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE bool mom_flux_has_p (const int mom_dir, const int flux_dir, const int coord)</code></dt>
+<span class="target" id="Castro__util_8H_1a072de8f6587067a1d220ec55f9f63f0a"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">bool</span> <span class="pre">mom_flux_has_p</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">mom_dir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">flux_dir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void position (int i, int j, int k, GeometryData const &amp;geomdata, GpuArray&lt; Real, 3 &gt; &amp;loc, bool ccx=true, bool ccy=true, bool ccz=true)</code></dt>
+<span class="target" id="Castro__util_8H_1abe4d9e5e2dbb87d46fee4e3f4387cce8"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">position</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">GeometryData</span> <span class="pre">const</span> <span class="pre">&amp;geomdata,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">bool</span> <span class="pre">ccx=true,</span> <span class="pre">bool</span> <span class="pre">ccy=true,</span> <span class="pre">bool</span> <span class="pre">ccz=true)</span></code></dt>
 <dd></dd></dl>
 
 </div>
 <dl class="cpp type">
 <dt id="_CPPv45amrex">
-<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><em class="property">namespace </em><code class="sig-name descname">amrex</code><a class="headerlink" href="#_CPPv45amrex" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv35amrex"></span><span id="_CPPv25amrex"></span><span id="amrex"></span><span class="target" id="namespaceamrex"></span><em class="property"><span class="pre">namespace</span> </em><code class="sig-name descname"><span class="pre">amrex</span></code><a class="headerlink" href="#_CPPv45amrex" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>

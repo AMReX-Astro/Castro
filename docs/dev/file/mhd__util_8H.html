@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -241,32 +239,32 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1ad3a12c84c10fcc9b02ec84ce5fcc4be5"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void eos_soundspeed_mhd (Real &amp;c, Real as, Real ca, Real bd)</code></dt>
+<span class="target" id="mhd__util_8H_1ad3a12c84c10fcc9b02ec84ce5fcc4be5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">eos_soundspeed_mhd</span> <span class="pre">(Real</span> <span class="pre">&amp;c,</span> <span class="pre">Real</span> <span class="pre">as,</span> <span class="pre">Real</span> <span class="pre">ca,</span> <span class="pre">Real</span> <span class="pre">bd)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1a855917c9a785e2d7554cc8496c9b1a66"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void qflux (Real *qflx, Real *flx, Real *q_zone)</code></dt>
+<span class="target" id="mhd__util_8H_1a855917c9a785e2d7554cc8496c9b1a66"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">qflux</span> <span class="pre">(Real</span> <span class="pre">*qflx,</span> <span class="pre">Real</span> <span class="pre">*flx,</span> <span class="pre">Real</span> <span class="pre">*q_zone)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1aa67b6dbd827b6ca7a39453f9f72d5ab5"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void electric (Real *q_zone, Real &amp;E_zone, const int comp)</code></dt>
+<span class="target" id="mhd__util_8H_1aa67b6dbd827b6ca7a39453f9f72d5ab5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">electric</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">&amp;E_zone,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">comp)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1ac0232da89d77b416fa1690fb9c662482"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void ConsToPrim (Real *q_zone, Real *U_zone)</code></dt>
+<span class="target" id="mhd__util_8H_1ac0232da89d77b416fa1690fb9c662482"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ConsToPrim</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">*U_zone)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1a3b05da58ba84c2861fb5b7db888361c4"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void PToC (Array1D&lt; Real, 0, NQ-1 &gt; &amp;q, Array1D&lt; Real, 0, NUM_STATE+2 &gt; &amp;U, Real &amp;gam1)</code></dt>
+<span class="target" id="mhd__util_8H_1a3b05da58ba84c2861fb5b7db888361c4"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">PToC</span> <span class="pre">(Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NQ-1</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NUM_STATE+2</span> <span class="pre">&gt;</span> <span class="pre">&amp;U,</span> <span class="pre">Real</span> <span class="pre">&amp;gam1)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="mhd__util_8H_1a281eca2175c8fa658d384d3bbeb40e54"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE int epsilon_ijk (const int i, const int j, const int k)</code></dt>
+<span class="target" id="mhd__util_8H_1a281eca2175c8fa658d384d3bbeb40e54"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">epsilon_ijk</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k)</span></code></dt>
 <dd></dd></dl>
 
 </div>
