@@ -20,6 +20,6 @@ RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=react_converge_128_plt00601 med
 
 mpiexec -n 16 ${EXEC} inputs.1024 ${RUNPARAMS} &> 1024.out
 
-RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=react_converge_256_plt01201 mediFile=react_converge_512_plt02401 fineFile=react_converge_1024_plt0481 > convergence.${DIM}d.vhi.strang.ppm.out
+RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=react_converge_256_plt01201 mediFile=react_converge_512_plt02401 fineFile=react_converge_1024_plt04801 > convergence.${DIM}d.vhi.strang.ppm.out
 
 
