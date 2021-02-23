@@ -15,13 +15,13 @@ void problem_initialize_mhd_data (int i, int j, int k,
     Real z = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt);
 
     if (ibdir == 0) {
-        B(i,j,k) = problem::B_x;
+        B(i,j,k) = problem::B_0;
 
     } else if (ibdir == 1) {
-        B(i,j,k) = problem::B_y;
+        B(i,j,k) = 0.0_rt;
 
     } else {
-        B(i,j,k) = 1.0e-5_rt * std::sin(2.0_rt * M_PI *(problem::k_x * x + problem::k_y * y));
+        B(i,j,k) = 0.0_rt;
     }
 }
 #endif

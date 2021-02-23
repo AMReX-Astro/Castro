@@ -25,9 +25,9 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real xcen = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 
-    state(i,j,k,URHO) = problem::dens;
-
     Real sigma = 1.0_rt / (1.0_rt + std::exp(-(c_T - xcen)/ width));
+
+    state(i,j,k,URHO) = problem::dens_l + (problem::dens_r - problem::dens_l) * (1.0_rt - sigma);
 
     state(i,j,k,UTEMP) = problem::T_l + (problem::T_r - problem::T_l) * (1.0_rt - sigma);
 
@@ -57,7 +57,7 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UMY) = 0.0_rt;
     state(i,j,k,UMZ) = 0.0_rt;
     state(i,j,k,UEINT) = state(i,j,k,URHO) * eos_state.e;
-    state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5_rt * state(i,j,k,URHO) * problem::vel * problem::vel;
+    state(i,j,k,UEDEN) = state(i,j,k,UEINT) + 0.5_rt * state(i,j,k,UMX) * state(i,j,k,UMX) / state(i,j,k,URHO);
 
 }
 

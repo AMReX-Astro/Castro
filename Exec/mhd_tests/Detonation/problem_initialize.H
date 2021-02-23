@@ -51,12 +51,14 @@ void problem_initialize ()
 
     // Set the ambient material
 
-    problem::ambient_dens = problem::dens;
+    problem::ambient_dens = problem::dens_l;
     for (int n = 0; n < NumSpec; n++) {
         problem::ambient_comp[n] = problem::xn[n];
     }
 
     eos_t eos_state;
+
+
     eos_state.rho = problem::ambient_dens;
     for (int n = 0; n < NumSpec; n++) {
         eos_state.xn[n]  = problem::ambient_comp[n];
