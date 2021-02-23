@@ -124,6 +124,12 @@ castro.small_temp = 1.e5
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-5
 
+# Use Coulomb corrections in Helmholtz EOS
+eos.use_eos_coulomb = 1
+
+# Keep EOS inputs constant after EOS evaluation
+eos.eos_input_is_constant = 1
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -156,6 +162,9 @@ castro.sum_interval = 1
 
 # Simulation time between computing and printing volume averaged diagnostic quantities
 castro.sum_per = -1.0
+
+# Gravitational wave strain observation distance
+castro.gw_dist = 10.0
 
 # Whether or not to output plotfiles
 amr.plot_files_output = 1
@@ -192,7 +201,7 @@ _
 amr.plot_vars = ALL
 
 # Derived variables to add to plot files
-amr.derive_plot_vars = ALL
+amr.derive_plot_vars = enuc rho_phiGrav angular_momentum_x angular_momentum_y angular_momentum_z
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out

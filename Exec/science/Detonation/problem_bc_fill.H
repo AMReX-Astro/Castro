@@ -16,16 +16,8 @@ void problem_fill_ambient(int i, int j, int k,
 
     state(i,j,k,URHO) = problem::ambient_dens;
 
-    // This should be problem::ambient_comp but we currently don't have
-    // arrays working in C++. This should be synced when we do.
-
-    Real ambient_xn[NumSpec] = { problem::smallx };
-    ambient_xn[problem::ic12-1] = amrex::max(problem::cfrac, problem::smallx);
-    ambient_xn[problem::io16-1] = amrex::max(problem::ofrac, problem::smallx);
-    ambient_xn[problem::ihe4-1] = 1.e0_rt - problem::cfrac - problem::ofrac - (NumSpec - 2) * problem::smallx;
-
     for (int n = 0; n < NumSpec; ++n) {
-        state(i,j,k,UFS+n) = problem::ambient_dens * ambient_xn[n];
+        state(i,j,k,UFS+n) = problem::ambient_dens * problem::ambient_comp[n];
     }
 
     if (x < c_T) {

@@ -1,3 +1,4 @@
 CEXE_headers += prob_util.H
+CEXE_headers += initial_model.H
 
 

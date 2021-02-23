@@ -11,6 +11,7 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 
+USE_CXX_MODEL_PARSER = TRUE
 
 CASTRO_HOME = ../../..
 

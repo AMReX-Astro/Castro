@@ -17,14 +17,13 @@ amr.n_cell           = 1024       128
 castro.lo_bc       =  3   1
 castro.hi_bc       =  2   2
 
-castro.yl_ext_bc_type = "hse"
+castro.yl_ext_bc_type = 1
 castro.hse_interp_temp = 1
 castro.hse_reflect_vels = 1
 
 castro.fill_ambient_bc = 1
 castro.ambient_fill_dir = 1
 castro.ambient_outflow_vel = 1
-
 
 # WHICH PHYSICS
 castro.do_hydro = 1
@@ -66,7 +65,7 @@ castro.use_retry      = 1
 castro.max_subcycles = 16
 
 # DIAGNOSTICS & VERBOSITY
-castro.sum_interval   = 1       # timesteps between computing mass
+castro.sum_interval   = 0       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
 amr.v                 = 1       # verbosity in Amr.cpp
 
@@ -89,8 +88,8 @@ amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_H_He_1000Hz_smallplt        # root name of plotfile
 amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
-amr.small_plot_vars = density Temp enuc
-amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(h1) X(he4)
+amr.small_plot_vars = density Temp
+amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(H1) X(He4) enuc
 
 #PROBIN FILENAME
-amr.probin_file = probin.H_He.1000Hz
+amr.probin_file = probin.H_He

@@ -10,6 +10,4 @@ pert_width        real           0.025_rt    y
 
 do_isentropic     integer        0           y
 
-boundary_type     integer        1           y
-
-frac              real           0.5         y
+dx_model          real           0.00390625  y

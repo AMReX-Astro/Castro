@@ -13,6 +13,14 @@
 #include <Rotation.H>
 #endif
 
+#ifdef REACTIONS
+#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
+#include <actual_rhs.H>
+#else
+#include <fortran_to_cxx_actual_rhs.H>
+#endif
+#endif
+
 using namespace amrex;
 
 Real
@@ -22,9 +30,6 @@ Castro::estdt_cfl(const Real time)
   // Courant-condition limited timestep
 
 #ifdef ROTATION
-  GpuArray<Real, 3> omega;
-  get_omega(omega.begin());
-
   GeometryData geomdata = geom.data();
 #endif
 
@@ -45,7 +50,7 @@ Castro::estdt_cfl(const Real time)
     auto u = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
@@ -73,13 +78,12 @@ Castro::estdt_cfl(const Real time)
 
 #ifdef ROTATION
       if (castro::do_rotation == 1 && castro::state_in_rotating_frame != 1) {
-        Real vel[3];
+        GpuArray<Real, 3> vel;
         vel[0] = ux;
         vel[1] = uy;
         vel[2] = uz;
 
-        inertial_to_rotational_velocity_c(i, j, k, geomdata,
-                                          omega.begin(), time, vel);
+        inertial_to_rotational_velocity(i, j, k, geomdata, time, vel);
 
         ux = vel[0];
         uy = vel[1];
@@ -166,7 +170,7 @@ Castro::estdt_mhd()
     auto bz_arr = bz.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
@@ -280,7 +284,7 @@ Castro::estdt_temp_diffusion(void)
     auto ustate = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
                    {
 
                      if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
@@ -345,7 +349,7 @@ Real
 Castro::estdt_burning()
 {
 
-    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt && castro::dtnuc_T > 1.e199_rt) return 1.e200_rt;
+    if (castro::dtnuc_e > 1.e199_rt && castro::dtnuc_X > 1.e199_rt) return 1.e200_rt;
 
     ReduceOps<ReduceOpMin> reduce_op;
     ReduceData<Real> reduce_data(reduce_op);
@@ -382,23 +386,20 @@ Castro::estdt_burning()
         //  nuclear burning, provided that our instantaneous estimate
         // of the energy release is representative of the full timestep.
         //
-        // We do the same thing for the temperature, using a timestep
-        // limiter dtnuc_T * (T / (dT/dt)).
-        //
         // We also do the same thing for the species, using a timestep
         // limiter dtnuc_X * (X_k / (dX_k/dt)). To prevent changes
         // due to trace isotopes that we probably are not interested in,
         // only apply the limiter to species with an abundance greater
         // than a user-specified threshold.
         //
-        // To estimate de/dt, dT/dt, and dX/dt, we are going to call the RHS of the
+        // To estimate de/dt and dX/dt, we are going to call the RHS of the
         // burner given the current state data. We need to do an EOS
         // call before we do the RHS call so that we have accurate
         // values for the thermodynamic data like abar, zbar, etc.
         // But we will call in (rho, T) mode, which is inexpensive.
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
@@ -418,7 +419,7 @@ Castro::estdt_burning()
 
             if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
                 state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
-                return {1.e200};
+                return {1.e200_rt};
             }
 
             Real e    = state.e;
@@ -433,14 +434,13 @@ Castro::estdt_burning()
             eos(eos_input_rt, eos_state);
             eos_to_burn(eos_state, state);
 
-#ifndef SIMPLIFIED_SDC
+#ifdef STRANG
             state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;
             actual_rhs(state, ydot);
 
             Real dedt = ydot(net_ienuc);
-            Real dTdt = ydot(net_itemp);
             Real dXdt[NumSpec];
             for (int n = 0; n < NumSpec; ++n) {
                 dXdt[n] = ydot(n+1) * aion[n];
@@ -453,7 +453,6 @@ Castro::estdt_burning()
             // ignored compared to other limiters.
 
             dedt = amrex::max(std::abs(dedt), derivative_floor);
-            dTdt = amrex::max(std::abs(dTdt), derivative_floor);
 
             for (int n = 0; n < NumSpec; ++n) {
                 if (X[n] >= castro::dtnuc_X_threshold) {
@@ -463,7 +462,15 @@ Castro::estdt_burning()
                 }
             }
 
-            Real dt_tmp = amrex::min(dtnuc_e * e / dedt, dtnuc_T * T / dTdt);
+            Real dt_tmp = 1.e200_rt;
+
+#ifdef NSE
+            if (!in_nse(eos_state)) {
+#endif
+                dt_tmp = dtnuc_e * e / dedt;
+#ifdef NSE
+            }
+#endif
             for (int n = 0; n < NumSpec; ++n) {
                 dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
             }

@@ -59,7 +59,7 @@ Castro::problem_post_timestep()
                 // Note that this stopping criterion only makes sense for the collision problem.
 
                 reduce_op.eval(bx, reduce_data,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
                 {
                     int stop = 0;
 

@@ -175,6 +175,12 @@ castro.dual_energy_eta1 = 1.0e-3
 # Threshold for when to use (E - K) in updating internal energy
 castro.dual_energy_eta2 = 1.0e-4
 
+# Use Coulomb corrections in Helmholtz EOS
+eos.use_eos_coulomb = 1
+
+# Keep EOS inputs constant after EOS evaluation
+eos.eos_input_is_constant = 1
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################
@@ -199,6 +205,38 @@ castro.react_rho_min = 1.0e0
 
 # Maximum density for allowing nuclear burning
 castro.react_rho_max = 1.0e12
+
+# Smallest allowable mass fraction
+network.small_x = 1.0e-12
+
+# Burn at constant volume
+integrator.do_constant_volume_burn = 1
+
+# Evaluate the RHS during the burn
+integrator.call_eos_in_rhs = 1
+
+# Integration tolerances
+integrator.rtol_spec = 1.0e-6
+integrator.atol_spec = 1.0e-6
+
+integrator.rtol_temp = 1.0e-6
+integrator.atol_temp = 1.0e-6
+
+integrator.rtol_enuc = 1.0e-6
+integrator.atol_enuc = 1.0e-6
+
+# Do not abort or retry on a failed burn (Castro will handle this)
+integrator.abort_on_failure = 0
+integrator.retry_burn = 0
+
+# Renormalize abundances during the burn
+integrator.renormalize_abundances = 1
+
+# Maximum temperature allowed in the burn
+integrator.MAX_TEMP = 1.0e10
+
+# Use tabular rate evaluation when availble
+network.use_tables = 1
 
 ############################################################################################
 # Diagnostics and I/O

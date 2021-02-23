@@ -16,13 +16,13 @@ CEXE_sources += extern_parameters.cpp
 FEXE_headers += extern_parameters_F.H
 CEXE_headers += extern_parameters.H
 
-EXTERN_TEMPLATE := $(TOP)/Source/driver/extern_probin.template
+EXTERN_TEMPLATE := $(MICROPHYSICS_HOME)/interfaces/extern_probin.template
 
 # these are for finding runtime parameters
-EXTERN_SEARCH += $(EXTERN_CORE) $(TOP)/constants $(TOP)/Util/model_parser $(TOP)/Util/conservative_interpolate
+EXTERN_SEARCH += $(EXTERN_CORE)
 EXTERN_SEARCH += $(MICROPHYSICS_HOME)/networks/
 
-EXTERN_PARAMETERS := $(shell $(MICROPHYSICS_HOME)/util/build_scripts/findparams.py $(EXTERN_SEARCH))
+EXTERN_PARAMETERS := $(foreach dir, $(EXTERN_SEARCH),$(realpath $(wildcard $(dir)/_parameters)))
 
 $(CASTRO_AUTO_SOURCE_DIR)/extern_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/extern.F90
 
@@ -47,18 +47,20 @@ CEXE_headers += prob_parameters.H
 $(CASTRO_AUTO_SOURCE_DIR)/prob_parameters.cpp: $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90
 
 PROB_PARAMS_TEMPLATE := $(TOP)/Util/scripts/prob_params.template
-PROB_PARAMETERS := $(PROBLEM_DIR)/_prob_params
-DEFAULT_PROB_PARAMETERS := $(TOP)/Source/problems/_default_prob_params
+# search Bdirs for _prob_params files
+PROB_PARAMETERS := $(foreach dir, $(Bdirs), $(wildcard $(TOP)/$(dir)/_prob_params))
+# the problem's own parameters always come at the end so they override
+# any others
+PROB_PARAMETERS += $(wildcard $(PROBLEM_DIR)/_prob_params)
 
 # Note that $(PROB_PARAMETERS) may not exist so we use wildcard to condition
 # on that; if it doesn't exist, it's ignored as a make target. The default
 # parameters file will always exist.
 $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90: $(DEFAULT_PROB_PARAMETERS) $(wildcard $(PROB_PARAMETERS)) $(PROB_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(TOP)/Util/scripts/write_probdata.py \
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Util/scripts/write_probdata.py \
            -t $(PROB_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR)/prob_params_auto.F90 \
-           -d $(DEFAULT_PROB_PARAMETERS) \
-           -p $(PROB_PARAMETERS) \
+           -p "$(PROB_PARAMETERS)" \
            --cxx_prefix $(CASTRO_AUTO_SOURCE_DIR)/prob \
 
 #------------------------------------------------------------------------------
@@ -72,7 +74,7 @@ METH_PARAMS_TEMPLATE := $(TOP)/Source/driver/meth_params.template
 
 $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90: $(CPP_PARAMETERS) $(METH_PARAMS_TEMPLATE)
 	@if [ ! -d $(CASTRO_AUTO_SOURCE_DIR) ]; then mkdir -p $(CASTRO_AUTO_SOURCE_DIR); fi
-	$(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
+	PYTHONPATH=$(MICROPHYSICS_HOME)/util/build_scripts $(TOP)/Source/driver/parse_castro_params.py -m $(METH_PARAMS_TEMPLATE) -o $(CASTRO_AUTO_SOURCE_DIR) $(CPP_PARAMETERS)
 
 # for debugging
 test_cxx_params: $(CASTRO_AUTO_SOURCE_DIR)/meth_params_nd.F90

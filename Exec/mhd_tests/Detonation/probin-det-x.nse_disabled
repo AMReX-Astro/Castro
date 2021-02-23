@@ -10,7 +10,7 @@
 
   idir = 1
 
-  w_T = 5.d-4
+  w_T = 2.e-3 
   center_T = 0.1
 /
 
@@ -45,5 +45,5 @@
 
    abort_on_failure = F
 
-   rho_nse = 1.e10
+   
 /

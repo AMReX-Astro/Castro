@@ -10,6 +10,7 @@ COMP	   = gnu
 USE_MPI    = TRUE
 USE_GRAV   = TRUE
 
+USE_CXX_MODEL_PARSER = TRUE
 
 # define the location of the CASTRO top directory
 CASTRO_HOME  := ../../..

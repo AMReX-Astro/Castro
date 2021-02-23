@@ -151,15 +151,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // all the data we will need, and then prefetching it out at the end. This at least
       // improves performance by mitigating the number of unified memory page faults.
 
-      // Unfortunately in CUDA there is no easy way to see actual current memory usage when
-      // using unified memory; querying CUDA for free memory usage will only tell us whether
-      // we've oversubscribed at any point, not whether we're currently oversubscribing, but
-      // this is still a good heuristic in most cases.
+      // An empirical threshold on NVIDIA GPUs is that we're probably oversubscribing if
+      // there are less than 10 MB left.
 
       bool oversubscribed = false;
 
-#ifdef AMREX_USE_CUDA
-      if (Gpu::Device::freeMemAvailable() < 0.005 * Gpu::Device::totalGlobalMem()) {
+#ifdef AMREX_USE_GPU
+      if (Gpu::Device::freeMemAvailable() < 10000000) {
           oversubscribed = true;
       }
 #endif
@@ -228,7 +226,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       if (first_order_hydro == 1) {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
           flatn_arr(i,j,k) = 0.0;
         });
@@ -242,7 +240,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Real flatten_pp_thresh = radiation::flatten_pp_threshold;
 
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
           flatn_arr(i,j,k) = flatn_arr(i,j,k) * flatg_arr(i,j,k);
 
@@ -260,7 +258,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       } else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
           flatn_arr(i,j,k) = 1.0;
         });
@@ -297,7 +295,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       }
       else {
         amrex::ParallelFor(obx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
           shk_arr(i,j,k) = 0.0;
         });
@@ -1168,7 +1166,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
           // Zero out shock and temp fluxes -- these are physically meaningless here
           amrex::ParallelFor(nbx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               flux_arr(i,j,k,UTEMP) = 0.e0;
 #ifdef SHOCK_VAR
@@ -1328,7 +1326,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             if (!mom_flux_has_p(0, 0, coord)) {
 #endif
                 amrex::ParallelFor(nbx,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     pradial_fab(i,j,k) = qex_arr(i,j,k,GDPRES) * dt;
                 });

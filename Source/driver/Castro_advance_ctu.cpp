@@ -74,7 +74,7 @@ Castro::do_advance_ctu(Real time,
         MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_old);
@@ -251,7 +251,7 @@ Castro::do_advance_ctu(Real time,
 #endif
                 S_new, cur_time, 0);
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_new);
@@ -347,7 +347,7 @@ Castro::do_advance_ctu(Real time,
 
             // Check for NaN's.
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
             check_for_nan(S_new);
 #endif
 

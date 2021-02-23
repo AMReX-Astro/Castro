@@ -1,7 +1,5 @@
 &fortin
 
-  boundary_type = 1
-
   pert_factor = 8.1d-3
   dens_base = 1.65d-3
   pres_base = 1.65d6

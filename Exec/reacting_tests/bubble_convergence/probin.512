@@ -7,7 +7,7 @@
 
   nx_model = 512
 
-  do_pert = T
+  do_pert = 1
 /
 
 
