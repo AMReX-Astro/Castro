@@ -22,6 +22,8 @@ ppm_reconstruct(const Real* s,
                 const Real flatn, Real& sm, Real& sp) {
 
 
+  // get sm -- state on left edge of cell
+
   // Compute van Leer slopes
 
   Real dsl = 2.0_rt * (s[im1] - s[im2]);
@@ -33,7 +35,7 @@ ppm_reconstruct(const Real* s,
     dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc),amrex::min(std::abs(dsl),std::abs(dsr)));
   }
 
-  dsl = 2.0_rt * (s[i0] - s[im1]);
+  dsl = dsr;    // 2.0_rt * (s[i0] - s[im1])
   dsr = 2.0_rt * (s[ip1] - s[i0]);
 
   Real dsvl_r = 0.0_rt;
@@ -52,18 +54,13 @@ ppm_reconstruct(const Real* s,
   sm = amrex::min(sm, amrex::max(s[i0], s[im1]));
 
 
+  // get sp -- state on right edge of cell
+
   // Compute van Leer slopes
 
-  dsl = 2.0_rt * (s[i0] - s[im1]);
-  dsr = 2.0_rt * (s[ip1] - s[i0]);
+  dsvl_l = dsvl_r;
 
-  dsvl_l = 0.0_rt;
-  if (dsl*dsr > 0.0_rt) {
-    Real dsc = 0.5_rt * (s[ip1] - s[im1]);
-    dsvl_l = std::copysign(1.0_rt, dsc) * amrex::min(std::abs(dsc), amrex::min(std::abs(dsl),std::abs(dsr)));
-  }
-
-  dsl = 2.0_rt * (s[ip1] - s[i0]);
+  dsl = dsr;   // 2.0_rt * (s[ip1] - s[i0]);
   dsr = 2.0_rt * (s[ip2] - s[ip1]);
 
   dsvl_r = 0.0_rt;
