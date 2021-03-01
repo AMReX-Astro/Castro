@@ -268,6 +268,12 @@ Castro::react_state(Real time, Real dt)
         amrex::Error("This react_state interface is only supported for simplified SDC.");
     }
 
+    // Sanity check: cannot use CUDA without a network with a C++ implementation.
+
+#if defined(AMREX_USE_GPU) && !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
+    static_assert(false, "Cannot compile for GPUs if using a network without a C++ implementation.");
+#endif
+
     const Real strt_time = ParallelDescriptor::second();
 
     if (verbose) {
@@ -277,10 +283,7 @@ Castro::react_state(Real time, Real dt)
     MultiFab& S_old = get_old_data(State_Type);
     MultiFab& S_new = get_new_data(State_Type);
 
-    // Build the burning mask, in case the state has ghost zones.
-
     const int ng = S_new.nGrow();
-    const iMultiFab& interior_mask = build_interior_boundary_mask(ng);
 
     // Create a MultiFab with all of the non-reacting source terms.
     // This is the term A = -div{F} + 0.5 * (old_source + new_source)
@@ -289,6 +292,12 @@ Castro::react_state(Real time, Real dt)
     sum_of_sources(A_src);
 
     MultiFab& reactions = get_new_data(Reactions_Type);
+
+#ifdef NSE_THERMO
+    // we need access to the reactive sources if we are doing NSE
+
+    MultiFab& SDC_react_new = get_new_data(Simplified_SDC_React_Type);
+#endif
 
     reactions.setVal(0.0, reactions.nGrow());
 
@@ -306,12 +315,15 @@ Castro::react_state(Real time, Real dt)
 
         const Box& bx = mfi.growntilebox(ng);
 
-
         auto U_old = S_old.array(mfi);
         auto U_new = S_new.array(mfi);
         auto asrc = A_src.array(mfi);
         auto react_src = reactions.array(mfi);
-        auto mask = interior_mask.array(mfi);
+#ifdef NSE_THERMO
+        auto Iq = SDC_react_new.array(mfi);
+#endif
+
+        int lsdc_iteration = sdc_iteration;
 
         reduce_op.eval(bx, reduce_data,
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
@@ -324,10 +336,6 @@ Castro::react_state(Real time, Real dt)
             bool do_burn = true;
             burn_state.success = true;
             Real burn_failed = 0.0_rt;
-
-            if (mask(i,j,k) != 1) {
-                do_burn = false;
-            }
 
             // Don't burn on zones inside shock regions, if the
             // relevant option is set.
@@ -354,9 +362,18 @@ Castro::react_state(Real time, Real dt)
                 burn_state.y[SFX+n] = U_old(i,j,k,UFX+n);
             }
 #endif
+#if NSE_THERMO
+            // load up the primitive variable reactive source
 
+            for (int n = 0; n < NumAux; n++) {
+                burn_state.Iq_aux[n] = Iq(i,j,k,QFX+n);
+            }
+            burn_state.Iq_rhoe = Iq(i,j,k,QREINT);
+#endif
             // we need an initial T guess for the EOS
             burn_state.T = U_old(i,j,k,UTEMP);
+
+            burn_state.rho = burn_state.y[SRHO];
 
             // Don't burn if we're outside of the relevant (rho, T) range.
 
@@ -389,7 +406,7 @@ Castro::react_state(Real time, Real dt)
              burn_state.j = j;
              burn_state.k = k;
 
-             burn_state.sdc_iter = sdc_iteration;
+             burn_state.sdc_iter = lsdc_iteration;
              burn_state.num_sdc_iters = sdc_iters;
 
              if (do_burn) {

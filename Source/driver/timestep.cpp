@@ -419,7 +419,7 @@ Castro::estdt_burning()
 
             if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
                 state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
-                return {1.e200};
+                return {1.e200_rt};
             }
 
             Real e    = state.e;
@@ -429,10 +429,7 @@ Castro::estdt_burning()
                 X[n] = amrex::max(state.xn[n], small_x);
             }
 
-            eos_t eos_state;
-            burn_to_eos(state, eos_state);
-            eos(eos_input_rt, eos_state);
-            eos_to_burn(eos_state, state);
+            eos(eos_input_rt, state);
 
 #ifdef STRANG
             state.self_heat = true;
@@ -462,7 +459,22 @@ Castro::estdt_burning()
                 }
             }
 
-            Real dt_tmp = dtnuc_e * e / dedt;
+            Real dt_tmp = 1.e200_rt;
+
+#ifdef NSE
+            // we need to use the eos_state interface here because for
+            // SDC, if we come in with a burn_t, it expects to
+            // evaluate the NSE criterion based on the conserved state.
+
+            eos_t eos_state;
+            burn_to_eos(state, eos_state);
+
+            if (!in_nse(eos_state)) {
+#endif
+                dt_tmp = dtnuc_e * e / dedt;
+#ifdef NSE
+            }
+#endif
             for (int n = 0; n < NumSpec; ++n) {
                 dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
             }

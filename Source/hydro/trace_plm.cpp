@@ -46,7 +46,7 @@ Castro::trace_plm(const Box& bx, const int idir,
   auto vlo = vbx.loVect3d();
   auto vhi = vbx.hiVect3d();
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
   if (ppm_type != 0) {
     std::cout << "Oops -- shouldnt be in tracexy with ppm_type != 0" << std::endl;
     amrex::Error("Error:: trace_3d.f90 :: tracexy");

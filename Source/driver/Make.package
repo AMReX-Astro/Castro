@@ -1,6 +1,5 @@
 # these are the files that should be needed for any Castro build
 
-ca_F90EXE_sources += amrinfo_nd.F90
 ca_F90EXE_sources += Castro_error_nd.F90
 
 CEXE_sources += Castro.cpp
