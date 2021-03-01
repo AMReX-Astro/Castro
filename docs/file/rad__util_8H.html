@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -249,32 +247,32 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1a3a30c366f8c966cd0f2a5e2bec5c6991"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void cell_center_metric (int i, int j, int k, const GeometryData &amp;geomdata, Real &amp;r, Real &amp;s)</code></dt>
+<span class="target" id="rad__util_8H_1a3a30c366f8c966cd0f2a5e2bec5c6991"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">cell_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1a0182c62696ccc9272093bf3a6be20201"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void edge_center_metric (int i, int j, int k, int idir, const GeometryData &amp;geomdata, Real &amp;r, Real &amp;s)</code></dt>
+<span class="target" id="rad__util_8H_1a0182c62696ccc9272093bf3a6be20201"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">edge_center_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">Real</span> <span class="pre">&amp;r,</span> <span class="pre">Real</span> <span class="pre">&amp;s)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1ae9179c6e0d726153216b62b10d067406"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void face_metric (int i, int j, int k, int lo, int hi, const GeometryData &amp;geomdata, int ori_dir, int ori_lo, Real &amp;r)</code></dt>
+<span class="target" id="rad__util_8H_1ae9179c6e0d726153216b62b10d067406"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">face_metric</span> <span class="pre">(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">int</span> <span class="pre">lo,</span> <span class="pre">int</span> <span class="pre">hi,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">ori_dir,</span> <span class="pre">int</span> <span class="pre">ori_lo,</span> <span class="pre">Real</span> <span class="pre">&amp;r)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1aedfe757fb930db4aadd2c253bc55bb4c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void compute_ptot_ctot (const Real *lam, const Real *q, int is_comoving, int limiter, int closure, Real cg, Real &amp;ptot, Real &amp;ctot, Real &amp;gamc_tot)</code></dt>
+<span class="target" id="rad__util_8H_1aedfe757fb930db4aadd2c253bc55bb4c"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_ptot_ctot</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*lam,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*q,</span> <span class="pre">int</span> <span class="pre">is_comoving,</span> <span class="pre">int</span> <span class="pre">limiter,</span> <span class="pre">int</span> <span class="pre">closure,</span> <span class="pre">Real</span> <span class="pre">cg,</span> <span class="pre">Real</span> <span class="pre">&amp;ptot,</span> <span class="pre">Real</span> <span class="pre">&amp;ctot,</span> <span class="pre">Real</span> <span class="pre">&amp;gamc_tot)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1ac49a57974b29178ce2a70be8f3e7bbb5"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real FLDlambda (Real r, int limiter)</code></dt>
+<span class="target" id="rad__util_8H_1ac49a57974b29178ce2a70be8f3e7bbb5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">Real</span> <span class="pre">FLDlambda</span> <span class="pre">(Real</span> <span class="pre">r,</span> <span class="pre">int</span> <span class="pre">limiter)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="rad__util_8H_1ad6eb5fea942b6112609ffd2cb391f1b6"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE amrex::Real kavg (Real a, Real b, Real d, int opt)</code></dt>
+<span class="target" id="rad__util_8H_1ad6eb5fea942b6112609ffd2cb391f1b6"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">amrex::Real</span> <span class="pre">kavg</span> <span class="pre">(Real</span> <span class="pre">a,</span> <span class="pre">Real</span> <span class="pre">b,</span> <span class="pre">Real</span> <span class="pre">d,</span> <span class="pre">int</span> <span class="pre">opt)</span></code></dt>
 <dd></dd></dl>
 
 </div>

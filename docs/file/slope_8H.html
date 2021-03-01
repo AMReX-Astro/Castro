@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -246,7 +244,7 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="slope_8H_1a80205a70538cafdf1ea53cca586df2eb"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE Real uslope (const Real *q, const Real flatn, bool bnd_lo_reflect, bool bnd_hi_reflect)</code></dt>
+<span class="target" id="slope_8H_1a80205a70538cafdf1ea53cca586df2eb"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">Real</span> <span class="pre">uslope</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*q,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">bool</span> <span class="pre">bnd_lo_reflect,</span> <span class="pre">bool</span> <span class="pre">bnd_hi_reflect)</span></code></dt>
 <dd><p>Construct the piecewise linear slopes for an input state q</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -262,7 +260,7 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="slope_8H_1aa982c81795a65a4e60721dd3e6ba8f8c"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE void pslope (const Real *rho, const Real *p, const Real *src, const Real flatn, bool lo_bc_test, bool hi_bc_test, const Real dx, Real &amp;dp)</code></dt>
+<span class="target" id="slope_8H_1aa982c81795a65a4e60721dd3e6ba8f8c"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">pslope</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*rho,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*p,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*src,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">bool</span> <span class="pre">lo_bc_test,</span> <span class="pre">bool</span> <span class="pre">hi_bc_test,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dx,</span> <span class="pre">Real</span> <span class="pre">&amp;dp)</span></code></dt>
 <dd><p>Compute the pressure slope using a well-balanced procedure where we subtract HSE off of the pressure before limiting</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">

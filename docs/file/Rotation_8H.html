@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -239,13 +237,13 @@
 <p class="breathe-sectiondef-title rubric">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1adf1110bec9d2661b049f05ac726741fb"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE GpuArray&lt; Real, 3 &gt; get_omega ()</code></dt>
+<span class="target" id="Rotation_8H_1adf1110bec9d2661b049f05ac726741fb"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">get_omega</span> <span class="pre">()</span></code></dt>
 <dd><p>Return the omega vector corresponding to the current rotational period </p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1aafc58d197209c615db086809ce6363c8"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_acceleration (GpuArray&lt; Real, 3 &gt; &amp;r, GpuArray&lt; Real, 3 &gt; &amp;v, const bool coriolis, Real *Sr)</code></dt>
+<span class="target" id="Rotation_8H_1aafc58d197209c615db086809ce6363c8"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">rotational_acceleration</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;r,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;v,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">coriolis,</span> <span class="pre">Real</span> <span class="pre">*Sr)</span></code></dt>
 <dd><p>Compute the rotational acceleration for a single zone (Coriolis and centrifugal)</p>
 <p><dl class="simple">
 <dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
@@ -261,22 +259,22 @@
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1a6dca741741ad20acbd85b88c4f8c050d"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE Real rotational_potential (GpuArray&lt; Real, 3 &gt; &amp;r)</code></dt>
+<span class="target" id="Rotation_8H_1a6dca741741ad20acbd85b88c4f8c050d"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">Real</span> <span class="pre">rotational_potential</span> <span class="pre">(GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;r)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1af585f6f037e10cc19763d95400148441"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void inertial_to_rotational_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
+<span class="target" id="Rotation_8H_1af585f6f037e10cc19763d95400148441"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">inertial_to_rotational_velocity</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;v)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1af3147d52469c4e9d0bbd4ae86feb7f62"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE void rotational_to_inertial_velocity (const int i, const int j, const int k, const GeometryData &amp;geomdata, const Real time, GpuArray&lt; Real, 3 &gt; &amp;v)</code></dt>
+<span class="target" id="Rotation_8H_1af3147d52469c4e9d0bbd4ae86feb7f62"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">rotational_to_inertial_velocity</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">time,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;v)</span></code></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
 <dt>
-<span class="target" id="Rotation_8H_1ab5aca3be37c64313b3c8e4b162565177"></span><code class="sig-name descname">AMREX_GPU_HOST_DEVICE AMREX_INLINE GpuArray&lt; Real, 3 &gt; inertial_rotation (const GpuArray&lt; Real, 3 &gt; &amp;vec, Real time)</code></dt>
+<span class="target" id="Rotation_8H_1ab5aca3be37c64313b3c8e4b162565177"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">inertial_rotation</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;vec,</span> <span class="pre">Real</span> <span class="pre">time)</span></code></dt>
 <dd></dd></dl>
 
 </div>
