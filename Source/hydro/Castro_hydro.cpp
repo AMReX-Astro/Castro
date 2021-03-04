@@ -130,8 +130,6 @@ Castro::cons_to_prim_fourth(const Real time)
 
     MultiFab& S_new = get_new_data(State_Type);
 
-    FArrayBox U_cc;
-
     // we don't support radiation here
 #ifdef RADIATION
     amrex::Abort("radiation not supported to fourth order");
@@ -139,57 +137,61 @@ Castro::cons_to_prim_fourth(const Real time)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
+    {
+        FArrayBox U_cc;
 
-      const Box& qbx = mfi.growntilebox(NUM_GROW);
-      const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
+        for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
-      // note: these conversions are using a growntilebox, so it
-      // will include ghost cells
+            const Box& qbx = mfi.growntilebox(NUM_GROW);
+            const Box& qbxm1 = mfi.growntilebox(NUM_GROW-1);
 
-      // convert U_avg to U_cc -- this will use a Laplacian
-      // operation and will result in U_cc defined only on
-      // NUM_GROW-1 ghost cells at the end.
-      U_cc.resize(qbx, NUM_STATE);
-      Elixir elix_u_cc = U_cc.elixir();
-      auto const U_cc_arr = U_cc.array();
+            // note: these conversions are using a growntilebox, so it
+            // will include ghost cells
 
-      make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
+            // convert U_avg to U_cc -- this will use a Laplacian
+            // operation and will result in U_cc defined only on
+            // NUM_GROW-1 ghost cells at the end.
 
-      // enforce the minimum density on the new cell-centered state
-      do_enforce_minimum_density(qbxm1, U_cc.array(), verbose);
+            U_cc.resize(qbx, NUM_STATE);
+            Elixir elix_u_cc = U_cc.elixir();
+            auto const U_cc_arr = U_cc.array();
 
-      // and ensure that the internal energy is positive
-      reset_internal_energy(qbxm1, U_cc.array());
+            make_cell_center(qbxm1, Sborder.array(mfi), U_cc_arr, domain_lo, domain_hi);
 
-      // convert U_avg to q_bar -- this will be done on all NUM_GROW
-      // ghost cells.
-      auto Sborder_arr = Sborder.array(mfi);
-      auto q_bar_arr = q_bar.array(mfi);
-      auto qaux_bar_arr = qaux_bar.array(mfi);
+            // enforce the minimum density on the new cell-centered state
+            do_enforce_minimum_density(qbxm1, U_cc.array(), verbose);
 
-      ctoprim(qbx,
-              time, 
-              Sborder_arr,
-              q_bar_arr,
-              qaux_bar_arr);
+            // and ensure that the internal energy is positive
+            reset_internal_energy(qbxm1, U_cc.array());
 
-      // this is what we should construct the flattening coefficient
-      // from
+            // convert U_avg to q_bar -- this will be done on all NUM_GROW
+            // ghost cells.
+            auto Sborder_arr = Sborder.array(mfi);
+            auto q_bar_arr = q_bar.array(mfi);
+            auto qaux_bar_arr = qaux_bar.array(mfi);
 
-      // convert U_cc to q_cc (we'll store this temporarily in q,
-      // qaux).  This will remain valid only on the NUM_GROW-1 ghost
-      // cells.
-      auto q_arr = q.array(mfi);
-      auto qaux_arr = qaux.array(mfi);
+            ctoprim(qbx,
+                    time, 
+                    Sborder_arr,
+                    q_bar_arr,
+                    qaux_bar_arr);
 
-      ctoprim(qbxm1,
-              time,
-              U_cc_arr,
-              q_arr,
-              qaux_arr);
+            // this is what we should construct the flattening coefficient
+            // from
+
+            // convert U_cc to q_cc (we'll store this temporarily in q,
+            // qaux).  This will remain valid only on the NUM_GROW-1 ghost
+            // cells.
+            auto q_arr = q.array(mfi);
+            auto qaux_arr = qaux.array(mfi);
+
+            ctoprim(qbxm1,
+                    time,
+                    U_cc_arr,
+                    q_arr,
+                    qaux_arr);
+        }
     }
-
 
     // check for NaNs
 #ifndef AMREX_USE_GPU
