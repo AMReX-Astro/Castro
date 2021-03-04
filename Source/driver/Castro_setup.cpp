@@ -2,7 +2,6 @@
 
 #include <AMReX_LevelBld.H>
 #include <AMReX_ParmParse.H>
-#include <eos.H>
 #include <Castro.H>
 #include <Castro_F.H>
 #include <Castro_bc_fill_nd_F.H>
@@ -18,6 +17,7 @@
 
 #include <AMReX_buildInfo.H>
 #include <microphysics_F.H>
+#include <eos.H>
 #include <prob_parameters_F.H>
 
 using std::string;
@@ -247,7 +247,7 @@ Castro::variableSetUp ()
   network_init();
 #endif
 
-  eos_init();
+  eos_init(castro::small_temp, castro::small_dens);
 
 #ifdef RADIATION
   opacity_init();
@@ -284,9 +284,6 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  // Initialize the amr info
-  amrinfo_init();
-
 
   const int dm = BL_SPACEDIM;
 
@@ -315,7 +312,7 @@ Castro::variableSetUp ()
   const int coord_type = dgeom.Coord();
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+                        coord_type,
                         dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
@@ -1161,9 +1158,6 @@ Castro::variableSetUp ()
     } else {
       amrex::Error("invalid value of sdc_order");
     }
-
-    node_weights.resize(SDC_NODES);
-    node_weights = {1.0/6.0, 4.0/6.0, 1.0/6.0};
 
   } else {
     amrex::Error("invalid value of sdc_quadrature");

@@ -63,7 +63,7 @@ class AuxVar {
 
  public:
 
-  AuxVar() : slave_flag(0) {
+  AuxVar() : secondary_flag(0) {
   }
 
 
@@ -89,14 +89,14 @@ class AuxVar {
 ///
 /// @param p
 ///
-  void push_slave(AuxVar* p) {
+  void push_secondary(AuxVar* p) {
 
 ///
-/// @param p->slave_flag
+/// @param p->secondary_flag
 ///
-    if (p->slave_flag == 0) { // don't count the same slave twice
+    if (p->secondary_flag == 0) { // don't count the same secondary twice
       a.push_back(Connex(p,1.0));
-      p->slave_flag = 1;
+      p->secondary_flag = 1;
     }
   }
 
@@ -104,8 +104,8 @@ class AuxVar {
     return a.empty();
   }
 
-  bool slave() {
-    return slave_flag;
+  bool secondary() {
+    return secondary_flag;
   }
 
   void collapse();
@@ -128,7 +128,7 @@ class AuxVar {
  protected:
 
   std::list<Connex> a;
-  int slave_flag;
+  int secondary_flag;
 };
 
 ///
@@ -189,9 +189,9 @@ class BndryAuxVarBase {
 
 ///
 /// Location type explanation ---
-///  INTERIOR: cells along insides of grid faces, overlaps marked "slave".
+///  INTERIOR: cells along insides of grid faces, overlaps marked "secondary".
 ///  EXTERIOR: cells along outsides of grid faces, overlaps (from other
-///            grids this time) marked "slave".
+///            grids this time) marked "secondary".
 ///  GHOST: cells along outsides of grid faces, overlaps not marked.
 ///  (Note that GHOST type is located at cell centers, but the overlap
 ///  behavior more logically resembles that of face-centered data.  It
@@ -378,7 +378,7 @@ class CrseBndryAuxVar : public BndryAuxVarBase {
 ///
 /// @param loc
 ///
-  void initialize_slaves(Location loc);
+  void initialize_secondaries(Location loc);
 
   amrex::BoxArray                    cgrids, fgrids;
   amrex::Vector< amrex::Vector<std::unique_ptr<AuxVarBox> > >  aux[2*BL_SPACEDIM];
@@ -544,6 +544,35 @@ class HypreMultiABec {
   const amrex::MultiFab& bCoefficients(int level, int dir) {
       return (*bcoefs[level])[dir];
   }
+
+  void hmac (const amrex::Box& bx,
+             amrex::Array4<amrex::GpuArray<amrex::Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+             amrex::Array4<amrex::Real const> const& a,
+             amrex::Real alpha);
+
+  void hmbc (const amrex::Box& bx,
+             amrex::Array4<amrex::GpuArray<amrex::Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+             amrex::Array4<amrex::Real const> const& b,
+             amrex::Real beta, const amrex::Real* dx, int n);
+
+  void hmmat (const amrex::Box& bx,
+              amrex::Array4<amrex::GpuArray<amrex::Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+              int cdir, int bct, int bho, amrex::Real bcl,
+              amrex::Array4<int const> const& mask,
+              amrex::Array4<amrex::Real const> const& b,
+              amrex::Real beta, const amrex::Real* dx);
+
+  void hmmat3 (const amrex::Box& bx,
+               int ori_lo, int idir,
+               amrex::Array4<amrex::GpuArray<amrex::Real, 2 * AMREX_SPACEDIM + 1>> const& mat,
+               int cdir, int bctype,
+               amrex::Array4<int const> const& tf,
+               int bho, amrex::Real bcl,
+               amrex::Array4<int const> const& mask,
+               amrex::Array4<amrex::Real const> const& b,
+               amrex::Real beta, const amrex::Real* dx,
+               const amrex::GeometryData& geomdata, amrex::Real c,
+               amrex::Array4<amrex::Real const> const& spa);
 
   virtual void loadMatrix(); ///< once all level coeffs and scalars have been set
   void finalizeMatrix(); ///< once matrix load completed in derived classes also

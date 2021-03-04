@@ -1,6 +1,6 @@
 &fortin
 
-  model_name =  "15m_500_sec.hse.6400"
+  model_name =  "15m_aprox19.6400"
 
 /
 
@@ -19,7 +19,7 @@
   max_tempgrad_lev   = -1
 
   dengrad            = 1.e18
-  denerr             = 0.5e9
+  denerr             = 0.5e5
 
   velgrad            = 1.e18
   velerr             = 1.e18

@@ -10,7 +10,7 @@ hse_p_top          real             0.0_rt
 
 hse_eint_top       real             0.0_rt
 
-hse_X_top          real             0.0_rt              n         (nspec, network)
+hse_X_top          real             0.0_rt              n         nspec
 
 heating_time       real             0.5_rt              y
 

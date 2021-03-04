@@ -41,7 +41,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
         if (ParallelDescriptor::IOProcessor()) {
-            std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+            std::cout << "Castro::construct_old_sponge_source() time = " << run_time << "\n" << "\n";
         }
 #ifdef BL_LAZY
         });
@@ -100,7 +100,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
         if (ParallelDescriptor::IOProcessor()) {
-            std::cout << "Castro::construct_new_thermo_source() time = " << run_time << "\n" << "\n";
+            std::cout << "Castro::construct_new_sponge_source() time = " << run_time << "\n" << "\n";
         }
 #ifdef BL_LAZY
         });
@@ -159,7 +159,7 @@ Castro::apply_sponge(const Box& bx,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real src[NSRC];

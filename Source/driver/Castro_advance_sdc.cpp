@@ -21,7 +21,7 @@ using std::string;
 using namespace amrex;
 
 #ifndef MHD
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 Real
 Castro::do_advance_sdc (Real time,
                         Real dt,
@@ -97,7 +97,7 @@ Castro::do_advance_sdc (Real time,
 #endif
 
       if (apply_sources()) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         if (sdc_order == 4) {
           // if we are 4th order, convert to cell-center Sborder -> Sborder_cc
           // we'll use Sburn for this memory buffer at the moment

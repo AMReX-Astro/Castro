@@ -24,7 +24,7 @@ void Castro::problem_post_init()
     // the density in the sphere so that it has the 'correct'
     // amount of total mass.
 
-    if (problem == 2) {
+    if (problem::problem == 2) {
 
         Real actual_mass = 0.0;
 
@@ -39,7 +39,7 @@ void Castro::problem_post_init()
         // The correct amount of mass is the mass of a sphere
         // with the given diameter and density.
 
-        Real target_mass = density * (1.0e0 / 6.0e0) * M_PI * std::pow(diameter, 3);
+        Real target_mass = problem::density * (1.0e0 / 6.0e0) * M_PI * std::pow(problem::diameter, 3);
 
         Real update_factor = target_mass / actual_mass;
 
@@ -49,12 +49,7 @@ void Castro::problem_post_init()
         amrex::Print() << "  Updating density by the factor " << update_factor << " to ensure total mass matches target mass.\n";
         amrex::Print() << "\n";
 
-        density = density * update_factor;
-
-        set_f90_density(&density);
-
-        GpuArray<Real, 3> center;
-        ca_get_center(center.begin());
+        problem::density = problem::density * update_factor;
 
         for (int lev = 0; lev <= parent->finestLevel(); lev++)
         {
@@ -76,25 +71,25 @@ void Castro::problem_post_init()
                 // mass on the domain is what we intend it to be.
 
                 amrex::ParallelFor(box,
-                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
-                    if (problem != 2) return;
+                    if (problem::problem != 2) return;
 
-                    Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+                    Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 
 #if AMREX_SPACEDIM >= 2
-                    Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+                    Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
                     Real yy = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-                    Real zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+                    Real zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
                     Real zz = 0.0_rt;
 #endif
 
-                    if (std::sqrt(xx * xx + yy * yy + zz * zz) < diameter / 2) {
+                    if (std::sqrt(xx * xx + yy * yy + zz * zz) < problem::diameter / 2) {
                         u(i,j,k,URHO) *= update_factor;
                         for (int n = 0; n < NumSpec; ++n) {
                             u(i,j,k,UFS+n) *= update_factor;
@@ -137,9 +132,6 @@ void Castro::problem_post_init()
         const auto dx = getLevel(lev).geom.CellSizeArray();
         const auto problo = getLevel(lev).geom.ProbLoArray();
 
-        GpuArray<Real, 3> center;
-        ca_get_center(center.begin());
-
         const Real time = getLevel(lev).state[State_Type].curTime();
 
         auto phiGrav = getLevel(lev).derive("phiGrav", time, 0);
@@ -164,21 +156,21 @@ void Castro::problem_post_init()
             // and the analytical solution.
 
             reduce_op.eval(box, reduce_data,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
             {
-                Real radius = 0.5_rt * diameter;
-                Real mass = (4.0_rt / 3.0_rt) * M_PI * radius * radius * radius * density;
+                Real radius = 0.5_rt * problem::diameter;
+                Real mass = (4.0_rt / 3.0_rt) * M_PI * radius * radius * radius * problem::density;
 
-                Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - center[0];
+                Real xx = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt) - problem::center[0];
 
 #if AMREX_SPACEDIM >= 2
-                Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - center[1];
+                Real yy = problo[1] + dx[1] * (static_cast<Real>(j) + 0.5_rt) - problem::center[1];
 #else
                 Real yy = 0.0_rt;
 #endif
 
 #if AMREX_SPACEDIM == 3
-                Real zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - center[2];
+                Real zz = problo[2] + dx[2] * (static_cast<Real>(k) + 0.5_rt) - problem::center[2];
 #else
                 Real zz = 0.0_rt;
 #endif
@@ -187,7 +179,7 @@ void Castro::problem_post_init()
 
                 Real phiExact = 0.0_rt;
 
-                if (problem == 1 || problem == 2) {
+                if (problem::problem == 1 || problem::problem == 2) {
 
                     if (rr <= radius) {
                         phiExact = -C::Gconst * mass * (3 * radius * radius - rr * rr) / (2 * radius * radius * radius);
@@ -196,7 +188,7 @@ void Castro::problem_post_init()
                     }
 
                 }
-                else if (problem == 3) {
+                else if (problem::problem == 3) {
 
                     Real x[2];
                     Real y[2];
@@ -225,29 +217,29 @@ void Castro::problem_post_init()
                                 if (r / radius > 1.e-6_rt) {
 
                                     if (std::abs(x[ii]) / radius > 1.e-6_rt && std::abs(y[jj]) / radius > 1.e-6_rt) {
-                                        phiExact -= C::Gconst * density * (x[ii] * y[jj] * std::atanh(z[kk] / r));
+                                        phiExact -= C::Gconst * problem::density * (x[ii] * y[jj] * std::atanh(z[kk] / r));
                                     }
 
                                     if (std::abs(y[jj]) / radius > 1.e-6_rt && std::abs(z[kk]) / radius > 1.e-6_rt) {
-                                        phiExact -= C::Gconst * density * (y[jj] * z[kk] * std::atanh(x[ii] / r));
+                                        phiExact -= C::Gconst * problem::density * (y[jj] * z[kk] * std::atanh(x[ii] / r));
                                     }
 
                                     if (std::abs(z[kk]) / radius > 1.e-6_rt && std::abs(x[ii]) / radius > 1.e-6_rt) {
-                                        phiExact -= C::Gconst * density * (z[kk] * x[ii] * std::atanh(y[jj] / r));
+                                        phiExact -= C::Gconst * problem::density * (z[kk] * x[ii] * std::atanh(y[jj] / r));
                                     }
 
                                     // Also, avoid a divide-by-zero for the atan terms.
 
                                     if (std::abs(x[ii]) / radius > 1.e-6_rt) {
-                                        phiExact += C::Gconst * density * (x[ii] * x[ii] / 2.0_rt * std::atan(y[jj] * z[kk] / (x[ii] * r)));
+                                        phiExact += C::Gconst * problem::density * (x[ii] * x[ii] / 2.0_rt * std::atan(y[jj] * z[kk] / (x[ii] * r)));
                                     }
 
                                     if (std::abs(y[jj]) / radius > 1.e-6_rt) {
-                                        phiExact += C::Gconst * density * (y[jj] * y[jj] / 2.0_rt * std::atan(z[kk] * x[ii] / (y[jj] * r)));
+                                        phiExact += C::Gconst * problem::density * (y[jj] * y[jj] / 2.0_rt * std::atan(z[kk] * x[ii] / (y[jj] * r)));
                                     }
 
                                     if (std::abs(z[kk]) / radius > 1.e-6_rt) {
-                                        phiExact += C::Gconst * density * (z[kk] * z[kk] / 2.0_rt * std::atan(x[ii] * y[jj] / (z[kk] * r)));
+                                        phiExact += C::Gconst * problem::density * (z[kk] * z[kk] / 2.0_rt * std::atan(x[ii] * y[jj] / (z[kk] * r)));
                                     }
 
                                 }

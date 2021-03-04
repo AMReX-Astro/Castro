@@ -1,3 +1,44 @@
+
+# 21.02
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
+
+   * We can now set any of the Microphysics runtime parameters in the
+     inputs file instead of probin.  Each group of parameters has a
+     namesapce for the inputs file when set this way
+     (e.g. eos.use_coulomb = 1), and the C++ inputs value will take
+     precedence over the value set in probin if it is set in both
+     places. (#1527)
+
+# 21.01
+
+   * The minimum C++ standard supported by Castro is now C++17. Most modern compilers
+     support C++17; the notable exception is RHEL 7 and its derivatives like CentOS 7,
+     where the default compiler is gcc 4.8. In that case a newer compiler must be loaded,
+     particularly a version of gcc >= 7.0, for example by installing devtoolset-7 or (if
+     running on an HPC cluster that provides modules) using a more recent gcc module. (#1506)
+
+   * There can now be multiple _prob_params files throughout the source
+     tree.  We read the problem's file last and that takes precedence over
+     any other _prob_params files found. (#1500)
+
+   * The timestep limiter dtnuc_T has been removed. dtnuc_e and dtnuc_X
+     are still available for controlling the burning timestep. (#1501)
+
+   * A bug was fixed in the 2nd order true SDC (with reactions) that
+     was giving the wrong solution and convergence (#1494).  A second
+     bug was fixed in defining the weights for the Radau quadrature
+     when using true SDC (#1493)
+
+   * Compiling with the PGI compiler is no longer a requirement for the CUDA build of Castro.
+     We recommend using COMP=gnu with a version of gcc that is C++17 compliant (gcc >= 7).
+
 # 20.12
 
    * An issue with incorrect application of HSE boundary conditions on derived quantities

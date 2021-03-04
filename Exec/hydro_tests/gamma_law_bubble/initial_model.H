@@ -40,7 +40,7 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
     Real dx = (xmax - xmin) / npts_model;
 
     for (int i = 0; i < npts_model; i++) {
-        model::r(i) = xmin + (static_cast<Real>(i) + 0.5_rt) * dx;
+        model::profile(0).r(i) = xmin + (static_cast<Real>(i) + 0.5_rt) * dx;
     }
 
     for (int i = 0; i < npts_model; i++) {
@@ -84,8 +84,8 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
             pressure = model_params.p_base;
 
         } else {
-            pressure = model::state(i-1, model::ipres) -
-                dx * 0.5_rt * (density + model::state(i-1, model::idens)) * std::abs(gravity::const_grav);
+            pressure = model::profile(0).state(i-1, model::ipres) -
+                dx * 0.5_rt * (density + model::profile(0).state(i-1, model::idens)) * std::abs(gravity::const_grav);
         }
 
         eos_t eos_state;
@@ -98,11 +98,11 @@ generate_initial_model(const int npts_model, const Real xmin, const Real xmax,
 
         eos(eos_input_rp, eos_state);
 
-        model::state(i, model::idens) = density;
-        model::state(i, model::ipres) = pressure;
-        model::state(i, model::itemp) = eos_state.T;
+        model::profile(0).state(i, model::idens) = density;
+        model::profile(0).state(i, model::ipres) = pressure;
+        model::profile(0).state(i, model::itemp) = eos_state.T;
         for (int n = 0; n < NumSpec; n++) {
-            model::state(i, model::ispec+n) = model_params.xn[n];
+            model::profile(0).state(i, model::ispec+n) = model_params.xn[n];
         }
 
     }

@@ -183,5 +183,3 @@ problems are:
 
    * ``particles_test``: a test of passive particles.
 
-   * ``reactions_driver_test``: a test that just calls the reaction terms on a cube of data.
-

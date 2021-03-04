@@ -48,28 +48,8 @@ ifeq ("$(wildcard $(AMREX_HOME)/Tools/GNUMake/Make.defs)","")
   $(error AMReX has not been downloaded. Please run "git submodule update --init" from the top level of the code)
 endif
 
-# Require C++14
-CXXSTD := c++14
-
-# Implement any machine-specific workarounds.
-
-include $(AMREX_HOME)/Tools/GNUMake/Make.machines
-
-# On Summit if we have the PGI module loaded then we cannot simultaneously
-# have the gcc module loaded, which means we are stuck with the system
-# default (gcc 4.8.5). Since CUDA builds use gcc as the host compiler,
-# we would be prevented from using C++14. To work around this, if we're
-# using CUDA, then we reset the C++ host compiler to a known good
-# version of gcc on the system.
-
-ifeq ($(which_computer),summit)
-  ifeq ($(USE_CUDA),TRUE)
-    SUMMIT_GCC_OVERRIDE_DIR := /sw/summit/gcc/7.4.0
-    NVCC_CCBIN := $(SUMMIT_GCC_OVERRIDE_DIR)/bin/g++
-    LIBRARY_LOCATIONS += $(SUMMIT_GCC_OVERRIDE_DIR)/lib64
-    LIBRARIES += -Wl,-rpath,$(SUMMIT_GCC_OVERRIDE_DIR)/lib64
-  endif
-endif
+# Require C++17
+CXXSTD := c++17
 
 # default integrator
 INTEGRATOR_DIR ?= VODE
@@ -85,12 +65,6 @@ NGROUPS ?= 1
 USE_ALL_CASTRO ?= TRUE
 
 USE_AMR_CORE ?= TRUE
-
-# hack for now -- CUDA processing doesn't respect functions blocked by
-# ifdefs, so we need to define EXTRA_THERMO
-ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DEXTRA_THERMO
-endif
 
 # all Castro problems use a dimension-agnostic interface
 DIMENSION_AGNOSTIC = TRUE
@@ -114,16 +88,18 @@ ifeq ($(USE_TRUE_SDC), TRUE)
   USERSuffix = .TRUESDC
 endif
 
+USE_MLMG = FALSE
+
+ifeq ($(USE_RAD), TRUE)
+  USE_HYPRE := TRUE
+  USE_MLMG = TRUE
+endif
+
 ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
 ifeq ($(USE_CUDA),TRUE)
-  ifeq ($(USE_RAD),TRUE)
-    USE_GPU_PRAGMA ?= TRUE
-  else
-    USE_GPU_PRAGMA ?= FALSE
-  endif
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
 
@@ -168,7 +144,6 @@ ifeq ($(USE_ACC), TRUE)
   DEFINES += -DACC
 endif
 
-USE_MLMG = FALSE
 
 
 #------------------------------------------------------------------------------
@@ -181,20 +156,11 @@ ifeq ($(USE_ALL_CASTRO), TRUE)
 endif
 
 MAX_NPTS_MODEL ?= 10000
+NUM_MODELS ?= 1
 
 ifeq ($(USE_CXX_MODEL_PARSER), TRUE)
   Bdirs += Util/model_parser_cxx
-  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL)
-else
-  Bdirs += Util/model_parser
-endif
-
-ifeq ($(USE_CONSERVATIVE_MAPPING),TRUE)
-  Bdirs += Util/conservative_interpolate
-endif
-
-ifeq ($(USE_INTERPOLATE),TRUE)
-  Bdirs += Util/interpolate
+  DEFINES += -DCXX_MODEL_PARSER -DNPTS_MODEL=$(MAX_NPTS_MODEL) -DNUM_MODELS=$(NUM_MODELS)
 endif
 
 # add / define any special physics we need
@@ -247,11 +213,10 @@ ifeq ($(USE_REACT_SPARSE_JACOBIAN), TRUE)
 endif
 
 ifeq ($(USE_SIMPLIFIED_SDC), TRUE)
-  DEFINES += -DSIMPLIFIED_SDC -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
+  DEFINES += -DPRIM_SPECIES_HAVE_SOURCES -DSDC_EVOLVE_ENERGY
 endif
 
 ifeq ($(USE_TRUE_SDC), TRUE)
-  DEFINES += -DTRUE_SDC
   Bdirs += Source/sdc
 endif
 
@@ -286,8 +251,6 @@ ifeq ($(USE_RAD), TRUE)
   Bdirs += Source/radiation Source/radiation/_interpbndry
   DEFINES += -DRADIATION
   DEFINES += -DRAD_INTERP
-  USE_HYPRE := TRUE
-  DEFINES += -DHYPRE
 
   DEFINES += -DNGROUPS=$(NGROUPS)
 
@@ -364,13 +327,6 @@ Blocs += $(foreach dir, $(EXTERN_CORE), $(dir))
 # external libraries
 #------------------------------------------------------------------------------
 
-ifeq ($(USE_HYPRE), TRUE)
-  INCLUDE_LOCATIONS += $(HYPRE_DIR)/include
-  LIBRARY_LOCATIONS += $(HYPRE_DIR)/lib
-
-  LIBRARIES += -lHYPRE
-endif
-
 ifeq ($(USE_HDF5), TRUE)
   INCLUDE_LOCATIONS += $(HDF5_DIR)/include
   INCLUDE_LOCATIONS += $(HDF5_INCL)
@@ -385,16 +341,8 @@ endif
 
 include $(Bpack)
 
-ifeq ($(MEGA_FORTRAN), TRUE)
-   F90EXE_sources += mega_f.F90
-   #$(depEXETempDir)/f90.depends: mega_f.F90
-else
-   f90EXE_sources += $(ca_f90EXE_sources)
-   F90EXE_sources += $(ca_F90EXE_sources)
-endif
-
-mega_f.F90: $(ca_F90EXE_sources) $(ca_f90EXE_sources)
-	$(AMREX_HOME)/Tools/F_scripts/f90cat.py $^
+f90EXE_sources += $(ca_f90EXE_sources)
+F90EXE_sources += $(ca_F90EXE_sources)
 
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)

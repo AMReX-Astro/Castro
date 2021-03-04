@@ -19,10 +19,6 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_AmrLevel.H>
 
-#ifdef HYPRE
-#include <_hypre_utilities.h>
-#endif
-
 #include <time.h>
 
 #include <Castro.H>
@@ -64,11 +60,6 @@ main (int   argc,
     if (!strchr(argv[1], '=')) {
         inputs_name = argv[1];
     }
-
-#ifdef HYPRE
-    // Initialize Hypre.
-    HYPRE_Init();
-#endif
 
     BL_PROFILE_VAR("main()", pmain);
 
@@ -192,10 +183,6 @@ main (int   argc,
                 << time_pointer->tm_year + 1900 << "-"
                 << std::setw(2) << time_pointer->tm_mon + 1 << "-"
                 << std::setw(2) << time_pointer->tm_mday << "." << std::endl;
-
-#ifdef HYPRE
-    HYPRE_Finalize();
-#endif
 
     delete amrptr;
     //

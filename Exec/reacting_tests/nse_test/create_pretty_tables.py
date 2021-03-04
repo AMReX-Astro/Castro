@@ -29,7 +29,7 @@ class Variable():
             name = self.name
 
         if simple:
-            _str = r" {:27}   {:23.10g}   {:5.3f}    {:23.10g}   {:5.3f}    {:23.10g}"
+            _str = r" {:27}   {:14.10g}   {:5.3f}    {:14.10g}   {:5.3f}    {:14.10g}"
             return _str.format(name, self.lo, round(self.o1, 3), self.med, round(self.o2, 3), self.hi)
 
         else:
@@ -112,9 +112,14 @@ if __name__ == "__main__":
                  "rho_E": r"$\rho E$",
                  "rho_e": r"$\rho e$",
                  "Temp": r"$T$",
+                 "rho_H1": r"$\rho X(\isotm{H}{1})$",
                  "rho_He4": r"$\rho X(\isotm{He}{4})$",
                  "rho_C12": r"$\rho X(\isotm{C}{12})$",
                  "rho_O16": r"$\rho X(\isotm{O}{16})$",
+                 "rho_Cr48": r"$\rho X(\isotm{Cr}{48})$",
+                 "rho_Fe52": r"$\rho X(\isotm{Fe}{52})$",
+                 "rho_Fe54": r"$\rho X(\isotm{Fe}{54})$",
+                 "rho_Ni56": r"$\rho X(\isotm{Ni}{56})$",
                  "rho_Fe56": r"$\rho X(\isotm{Fe}{56})$",
                  "rho_Ye": r"$\rho Y_e$",
                  "rho_abar": r"$\rho \bar{A}$",

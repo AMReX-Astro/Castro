@@ -2,7 +2,7 @@
 
  model_name =  "toy_xrb.hi_dens.hse.tanh.delta_12.000cm.dx_6.000cm.CNO"
 
- apply_vel_field = T
+ apply_vel_field = 1
  velpert_height_loc = 1475.0
  velpert_scale = 1.d2
  velpert_amplitude = 1.d5

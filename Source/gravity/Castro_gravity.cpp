@@ -261,7 +261,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
         Array4<Real> const source_arr = source.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             // Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -424,7 +424,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
             Array4<Real> const source_arr  = source.array(mfi);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 GpuArray<Real, NSRC> src{};
 

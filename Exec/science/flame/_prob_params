@@ -1,7 +1,3 @@
-interp_model        integer          0            y
-
-model_file          character        ""           y
-
 pert_frac           real             0.2_rt       y
 
 pert_delta          real             0.02_rt      y
@@ -14,7 +10,7 @@ e_fuel              real             0.0_rt
 
 p_fuel              real             0.0_rt
 
-xn_fuel             real             0.0_rt       n       (nspec, network)
+xn_fuel             real             0.0_rt       n       nspec
 
 rho_ash             real             -1.0_rt
 
@@ -22,7 +18,7 @@ T_ash               real             1.0_rt       y
 
 e_ash               real             0.0_rt
 
-xn_ash              real             0.0_rt       n       (nspec, network)
+xn_ash              real             0.0_rt       n       nspec
 
 fuel1_name          character        "helium-4"   y
 

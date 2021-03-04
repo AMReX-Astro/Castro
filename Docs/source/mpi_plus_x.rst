@@ -48,8 +48,6 @@ To enable GPU computing, compile with::
   USE_OMP = FALSE
   USE_CUDA = TRUE
 
-Currently, we support the PGI compilers.
-
 When using GPUs, almost all of the computing is done on the GPUs.  In
 the MFIter loops over boxes, the loops put a single zone on each GPU
 thread, to take advantage of the massive parallelism.  The Microphysics

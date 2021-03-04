@@ -17,13 +17,6 @@ extern "C"
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 
-  void ca_amrinfo_init();
-  void ca_amrinfo_finalize();
-
-  void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
-                       const amrex::Real& time, const amrex::Real& dt);
-
-  void runtime_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 
 #ifdef GRAVITY
@@ -47,17 +40,8 @@ extern "C"
   void ca_set_problem_params
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
-     const int& Interior_value, const int& Inflow_value,
-     const int& Outflow_value, const int& Symmetry_value,
-     const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_set_grid_info
-    (const int& max_level, const amrex::Real* dx_level,
-     const int* domlo_level, const int* domhi_level,
-     const int* ref_ratio, const int* n_error_buf,
-     const int* blocking_factor);
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
@@ -187,12 +171,6 @@ extern "C"
 
 
 
-/* reactions */
-#ifdef REACTIONS
-#include <Castro_react_F.H>
-#endif
-
-
 /* sources */
 #include <Castro_sources_F.H>
 
@@ -200,12 +178,6 @@ extern "C"
 /* gravity */
 #ifdef GRAVITY
 #include <Castro_gravity_F.H>
-#endif
-
-
-/* SDC */
-#ifdef TRUE_SDC
-#include <Castro_sdc_F.H>
 #endif
 
 

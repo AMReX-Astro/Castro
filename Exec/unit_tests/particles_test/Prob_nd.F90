@@ -1,35 +1,14 @@
 subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 
   use amrex_constants_module, only: ZERO, HALF
-  use castro_error_module
   use amrex_fort_module, only : rt => amrex_real
-
   use prob_params_module, only: center, coord_type
-  use probdata_module
 
   implicit none
 
   integer, intent(in) :: init, namlen
   integer, intent(in) :: name(namlen)
   real(rt), intent(in) :: problo(3), probhi(3)
-
-  integer untin, i
-
-  namelist /fortin/ vel_amp
-
-  ! Build "probin" filename -- the name of file containing fortin namelist.
-
-  integer, parameter :: maxlen = 256
-  character probin*(maxlen)
-
-  if (namlen > maxlen) call castro_error("probin file name too long")
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! Set namelist defaults
-  vel_amp = 1.0e0_rt
 
   ! set center, domain extrema
   if (coord_type == 0) then
@@ -44,12 +23,6 @@ subroutine amrex_probinit(init,name,namlen,problo,probhi) bind(c)
 #if AMREX_SPACEDIM == 3
   center(3) = HALF*(problo(3)+probhi(3))
 #endif
-
-  ! Read namelists
-  open(newunit=untin, file=probin(1:namlen), form='formatted', status='old')
-  read(untin, fortin)
-  close(unit=untin)
-
 
 end subroutine amrex_probinit
 
@@ -86,8 +59,8 @@ subroutine ca_initdata(level, time, lo, hi, nscal, &
   use meth_params_module, only : NVAR, URHO, UMX, UMY, UEDEN, UEINT, UFS, UTEMP
   use prob_params_module, only : problo, probhi
   use amrex_constants_module, only : ZERO, ONE, HALF
-
   use amrex_fort_module, only : rt => amrex_real
+
   implicit none
 
   integer, intent(in) :: level, nscal

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <wdmerger_F.H>
-
 AMREX_INLINE
 void problem_restart (std::string checkpoint_dir)
 {
@@ -92,7 +90,7 @@ void problem_restart (std::string checkpoint_dir)
     }
 
     if (problem::relaxation_is_done == 1) {
-        set_relaxation_damping_factor(-1.0_rt);
+        problem::relaxation_damping_factor = -1.0_rt;
     }
 
 

@@ -6,6 +6,7 @@ FEXE_headers += Castro_sources_F.H
 CEXE_sources += Castro_sources.cpp
 CEXE_sources += Castro_sponge.cpp
 CEXE_sources += Castro_thermo.cpp
+CEXE_sources += Castro_geom.cpp
 
 ca_f90EXE_sources += update_sponge_params.f90
 ca_F90EXE_sources += sponge_nd.F90
