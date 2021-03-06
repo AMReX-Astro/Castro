@@ -183,6 +183,8 @@ Castro::do_sdc_update(int m_start, int m_end, Real dt)
             [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
             {
                 sdc_update_o2(i, j, k, k_m, k_n, A_m, A_n, C_arr, dt_m, sdc_iteration, m_start);
+
+                normalize_species_sdc(i, j, k, k_n);
             });
         }
         else
