@@ -220,9 +220,6 @@ Castro::do_advance_sdc (Real time,
 
       do_sdc_update(m, m+1, dt); //(dt_sdc[m+1] - dt_sdc[m])*dt);
 
-      // we now have a new value of k_new[m+1], do a clean_state on it
-      clean_state(S_new, cur_time, 0);
-
     }
 
 
