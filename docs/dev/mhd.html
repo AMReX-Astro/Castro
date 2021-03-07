@@ -223,7 +223,7 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Castro implements a constrained transport (CT) corner transport upwind
 (CTU) ideal MHD scheme based on the work of Miniati &amp; Martin
-<span id="id1">[<a class="reference internal" href="zreferences.html#id50"><span>5</span></a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
+<span id="id1">[<a class="reference internal" href="zreferences.html#id50">5</a>]</span>.  MHD is enabled by compiling with <code class="docutils literal notranslate"><span class="pre">USE_MHD</span> <span class="pre">=</span>
 <span class="pre">TRUE</span></code>.  This replaces the pure hydrodynamics solver, but uses the
 same driver as the CTU hydrodynamics solver.  This means that all of
 the source terms supported by the hydrodynamics solver are also
@@ -312,7 +312,7 @@ characteristic variables (the default) or the primitive variables.</p>
 <h2>Electric Update<a class="headerlink" href="#electric-update" title="Permalink to this headline">¶</a></h2>
 <p>Coupled to the hydrodynamics update is the electric field update.
 Here we update the components of E using the contact upwind scheme
-first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51"><span>33</span></a>]</span>.  The updated electric field then
+first proposed in <span id="id2">[<a class="reference internal" href="zreferences.html#id51">33</a>]</span>.  The updated electric field then
 gives the magnetic field via Faraday’s law and the discretization ensures
 that <span class="math notranslate nohighlight">\(\nabla \cdot {\bf B} = 0\)</span>.</p>
 </div>
