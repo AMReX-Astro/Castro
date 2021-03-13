@@ -71,6 +71,27 @@ void problem_initialize ()
   problem::hse_eint_top = eos_state.e;
   problem::hse_p_top = eos_state.p;
 
+  problem::ifuel = network_spec_index("helium-4");
+
+  // make sure we have the minimum nuclei needed to understand the
+  // different initial models depending on the prob_type
+
+  if (problem::prob_type == 1) {
+      if (network_spec_index("carbon-12") < 0 ||
+          network_spec_index("oxygen-16") < 0 ||
+          network_spec_index("magnesium-24") < 0) {
+          amrex::Error("invalid network -- required nuclei not preset");
+      }
+
+  } else if (problem::prob_type == 3) {
+      if (network_spec_index("helium-4") < 0 ||
+          network_spec_index("carbon-12") < 0 ||
+          network_spec_index("oxygen-16") < 0 ||
+          network_spec_index("iron-56") < 0) {
+          amrex::Error("invalid network -- required nuclei not preset");
+      }
+  }
+
 }
 
 #endif
