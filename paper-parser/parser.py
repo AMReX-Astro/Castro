@@ -226,7 +226,7 @@ def parse_urlfile(url_file):
 
     with open(url_file) as f:
 
-        parser = BibTexParser()
+        parser = BibTexParser(common_strings=True)
         parser.customization = customizations
 
         for line in f:
@@ -291,7 +291,7 @@ def parse_urlfile(url_file):
 def parse_bibfile(bibfile):
 
     with open(bibfile) as bibtex_file:
-        parser = BibTexParser()
+        parser = BibTexParser(common_strings=True)
         parser.customization = customizations
         bib_database = bibtexparser.load(bibtex_file, parser=parser)
 
