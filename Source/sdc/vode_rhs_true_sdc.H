@@ -170,7 +170,7 @@ void jac (burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
 
     for (int n = 0; n <= NumSpec+1; ++n) {
         for (int m = 0; m <= NumSpec+1; ++m) {
-            pd(n, m) = 0.0_rt;
+            pd(n+1, m+1) = 0.0_rt;
             for (int l = 0; l <= NumSpec+1; ++l) {
                 pd(n+1, m+1) = dRdw(n,l) * dwdU(l,m);
             }
