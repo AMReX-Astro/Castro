@@ -66,17 +66,6 @@ extern "C"
 
   void get_ambient_data(Real* ambient_state);
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-  void ca_compute_avgstate
-    (const int* lo, const int* hi,
-     const amrex::Real* dx, const amrex::Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG_3D(S  ),  amrex::Real* avgden,
-     const BL_FORT_FAB_ARG_3D(Vol),  amrex::Real* avgvol,
-     const amrex::Real* problo, const int* numpts_1d);
-#endif
-#endif
-
 #ifdef GPU_COMPATIBLE_PROBLEM
   void ca_initdata(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(state),
