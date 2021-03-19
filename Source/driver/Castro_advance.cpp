@@ -55,7 +55,7 @@ Castro::advance (Real time,
         dt_new = std::min(dt_new, subcycle_advance_ctu(time, dt, amr_iteration, amr_ncycle));
 
 #ifndef MHD     
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 #ifdef TRUE_SDC
     } else if (time_integration_method == SpectralDeferredCorrections) {
 
@@ -65,7 +65,7 @@ Castro::advance (Real time,
       }
 
 #endif // TRUE_SDC
-#endif // AMREX_USE_CUDA
+#endif // AMREX_USE_GPU
 #endif //MHD    
     }
 

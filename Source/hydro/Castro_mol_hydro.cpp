@@ -192,7 +192,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
         auto avis_arr = avis.array();
         Elixir elix_avis = avis.elixir();
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         if (sdc_order == 4) {
 
           // -----------------------------------------------------------------
@@ -431,7 +431,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
 
         } else {
-#endif   // AMREX_USE_CUDA
+#endif   // AMREX_USE_GPU
 
           // -----------------------------------------------------------------
           // second order method
@@ -569,7 +569,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
           } // end idir loop
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
         } // end of 4th vs 2nd order MOL update
 #endif
 

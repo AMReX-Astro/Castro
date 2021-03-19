@@ -94,21 +94,19 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, defining ``BACKTRACE=TRUE`` enables you
-   to get more information than the backtrace of the call stack info by
-   instrumenting the code. (This is in C code only). Here is an
+   For further capabilities, you can get 
+   more information than the backtrace of the call stack info by
+   instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
    causing a segfault. You could add a print statement before that.
    But it might print out thousands (or even millions) of line before
-   it hits the segfault. With ``BACKTRACE``, you could do
+   it hits the segfault. Instead, you could
 
-   ::
+   .. code:: c++
 
-             #ifdef AMREX_BACKTRACING
-                std::ostringstream ss;
-                ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
-                BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
-             #endif
+             std::ostringstream ss;
+             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 

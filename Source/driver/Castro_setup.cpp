@@ -312,7 +312,7 @@ Castro::variableSetUp ()
   const int coord_type = dgeom.Coord();
 
   ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
+                        coord_type,
                         dgeom.ProbLo(),dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
@@ -1019,6 +1019,11 @@ Castro::variableSetUp ()
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
+#endif
+
+#ifdef NSE
+  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
+  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //

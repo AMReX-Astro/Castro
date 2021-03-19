@@ -470,7 +470,7 @@ public:
                                   int  amr_ncycle);
 
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     amrex::Real do_advance_sdc (amrex::Real time,
                                 amrex::Real dt,
                                 int  amr_iteration,
@@ -649,18 +649,6 @@ public:
 ///
     void removeOldData () override;
 
-///
-/// Passes some data about the grid to a Fortran module.
-///
-/// Send refinement data to Fortran. We do it here
-/// because now the grids have been initialized and
-/// we need this data for setting up the problem.
-///
-/// @note this routine will always get called
-/// on level 0, even if we are doing a restart,
-/// so it is safe to put this here.
-///
-    void setGridInfo();
 
 ///
 /// Print information about energy budget.

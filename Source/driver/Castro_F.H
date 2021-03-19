@@ -40,17 +40,8 @@ extern "C"
   void ca_set_problem_params
     (const int& dm,
      const int* physbc_lo, const int* physbc_hi,
-     const int& Interior_value, const int& Inflow_value,
-     const int& Outflow_value, const int& Symmetry_value,
-     const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_set_grid_info
-    (const int& max_level, const amrex::Real* dx_level,
-     const int* domlo_level, const int* domhi_level,
-     const int* ref_ratio, const int* n_error_buf,
-     const int* blocking_factor);
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
@@ -74,17 +65,6 @@ extern "C"
   void ca_get_ambient_params(const int* name, const int* namlen);
 
   void get_ambient_data(Real* ambient_state);
-
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-  void ca_compute_avgstate
-    (const int* lo, const int* hi,
-     const amrex::Real* dx, const amrex::Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG_3D(S  ),  amrex::Real* avgden,
-     const BL_FORT_FAB_ARG_3D(Vol),  amrex::Real* avgvol,
-     const amrex::Real* problo, const int* numpts_1d);
-#endif
-#endif
 
 #ifdef GPU_COMPATIBLE_PROBLEM
   void ca_initdata(const int* lo, const int* hi,

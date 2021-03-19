@@ -150,27 +150,27 @@ void jac (burn_t& burn_state, dvode_t& vode_state, MatrixType& pd)
 
     auto eos_xderivs = composition_derivatives(eos_state);
 
-    // now the T row -- this depends on whether we are evolving (rho E) or (rho e)
+    // now the e row -- this depends on whether we are evolving (rho E) or (rho e)
 
-    Real denom = 1.0_rt / (eos_state.rho * eos_state.dedT);
+    Real denom = 1.0_rt / eos_state.rho;
     Real xn_sum = 0.0_rt;
     for (int n = 0; n < NumSpec; ++n) {
         xn_sum += eos_state.xn[n] * eos_xderivs.dedX[n];
     }
 
-    dwdU(iwT, 0) = denom * (xn_sum - eos_state.rho * eos_state.dedr - eos_state.e);
+    dwdU(iwe, 0) = denom * (xn_sum - eos_state.e);
 
     for (int m = 0; m < NumSpec; m++) {
-        dwdU(iwT, m+1) = -denom * eos_xderivs.dedX[m];
+        dwdU(iwe, m+1) = -denom * eos_xderivs.dedX[m];
     }
 
-    dwdU(iwT, iwT) = denom;
+    dwdU(iwe, iwe) = denom;
 
     // construct the Jacobian -- note: the Jacobian is 1-based
 
     for (int n = 0; n <= NumSpec+1; ++n) {
         for (int m = 0; m <= NumSpec+1; ++m) {
-            pd(n, m) = 0.0_rt;
+            pd(n+1, m+1) = 0.0_rt;
             for (int l = 0; l <= NumSpec+1; ++l) {
                 pd(n+1, m+1) = dRdw(n,l) * dwdU(l,m);
             }
