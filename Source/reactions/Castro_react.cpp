@@ -207,10 +207,10 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
     if (print_update_diagnostics) {
 
-        Real e_added = r.sum(NumSpec + 1);
+        Real e_added = r.sum(NumSpec+NumAux);
 
         if (e_added != 0.0) {
-            amrex::Print() << "... (rho e) added from burning: " << e_added << std::endl << std::endl;
+            amrex::Print() << "... (rho e) added from burning: " << e_added * dt << std::endl << std::endl;
         }
 
     }
@@ -469,10 +469,10 @@ Castro::react_state(Real time, Real dt)
 
     if (print_update_diagnostics) {
 
-        Real e_added = reactions.sum(NumSpec + 1);
+        Real e_added = reactions.sum(NumSpec + NumAux);
 
         if (e_added != 0.0)
-            amrex::Print() << "... (rho e) added from burning: " << e_added << std::endl << std::endl;
+            amrex::Print() << "... (rho e) added from burning: " << e_added * dt << std::endl << std::endl;
 
     }
 
