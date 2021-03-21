@@ -323,7 +323,7 @@ Castro::trace_ppm(const Box& bx,
         qp(i,j,k,n) = Im[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
         if (q_arr(i,j,k,QUN) < 0) {
-            qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
+            qp(i,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
       }
@@ -333,7 +333,7 @@ Castro::trace_ppm(const Box& bx,
         qm(i+1,j,k,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
         if (q_arr(i,j,k,QUN) > 0) {
-            qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
+            qm(i+1,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
 
@@ -341,7 +341,7 @@ Castro::trace_ppm(const Box& bx,
         qm(i,j+1,k,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
         if (q_arr(i,j,k,QUN) > 0) {
-            qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
+            qm(i,j+1,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
 
@@ -349,7 +349,7 @@ Castro::trace_ppm(const Box& bx,
         qm(i,j,k+1,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
         if (q_arr(i,j,k,QUN) > 0) {
-            qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
+            qm(i,j,k+1,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
       }
