@@ -435,16 +435,26 @@ Castro::react_state(Real time, Real dt)
 #endif
 
                  if (react_src.contains(i,j,k)) {
+                     // store the reaction data for the plotfile.
+                     // Note, we want to just capture the reaction
+                     // portion here, so we subtract off the advective
+                     // part.
+
+                     // rho omegadot_k
                      for (int n = 0; n < NumSpec; ++n) {
-                         react_src(i,j,k,n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt;
+                         react_src(i,j,k,n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
                      }
 #if NAUX_NET > 0
+                     // rho auxdot_k
                      for (int n = 0; n < NumAux; ++n) {
-                         react_src(i,j,k,n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt;
+                         react_src(i,j,k,n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
                      }
 #endif
 
-                     react_src(i,j,k,NumSpec+NumAux) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt;
+                     // rho enuc
+                     react_src(i,j,k,NumSpec+NumAux) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
+
+                     // burn weights
                      react_src(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                  }
 
