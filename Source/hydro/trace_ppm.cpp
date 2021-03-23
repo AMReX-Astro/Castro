@@ -326,6 +326,7 @@ Castro::trace_ppm(const Box& bx,
             qp(i,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
+        qp(i,j,k,n) = amrex::max(0.0_rt, amrex::min(qp(i,j,k,n), 1.0_rt));
       }
 
       // left state on face i+1/2
@@ -336,6 +337,7 @@ Castro::trace_ppm(const Box& bx,
             qm(i+1,j,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
+        qm(i+1,j,k,n) = amrex::max(0.0_rt, amrex::min(qm(i+1,j,k,n), 1.0_rt));
 
       } else if (idir == 1 && j <= vhi[1]) {
         qm(i,j+1,k,n) = Ip[n][1];
@@ -344,6 +346,7 @@ Castro::trace_ppm(const Box& bx,
             qm(i,j+1,k,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
+        qm(i,j+1,k,n) = amrex::max(0.0_rt, amrex::min(qm(i,j+1,k,n), 1.0_rt));
 
       } else if (idir == 2 && k <= vhi[2]) {
         qm(i,j,k+1,n) = Ip[n][1];
@@ -352,6 +355,8 @@ Castro::trace_ppm(const Box& bx,
             qm(i,j,k+1,n) += 0.5_rt * dt * srcQ(i,j,k,n);
         }
 #endif
+        qm(i,j,k+1,n) = amrex::max(0.0_rt, amrex::min(qm(i,j,k+1,n), 1.0_rt));
+
       }
     }
 
