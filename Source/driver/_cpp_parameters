@@ -581,9 +581,7 @@ reset_checkpoint_step        int           -1
 output_summary_file          bool          true 
 
 # name of the summary file 
-summary_name                string         summary_info
-
-
+summary_name                 string        "summary_info"
 
 
 

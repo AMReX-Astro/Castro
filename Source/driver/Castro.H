@@ -289,8 +289,8 @@ public:
 /// @param runtime_timestep runtime minus initialization
 /// @param fom       figure of merit, the average number of zones advanced per microsecond
 ///
-    writeSummaryInfo (const std::string& dir, const Real runtime_total, 
-                      const Real runtime_timestep, const Real fom);
+    static void writeSummaryInfo (const std::string& dir, const amrex::Real runtime_total, 
+                                  const amrex::Real runtime_timestep, const amrex::Real fom);
 
 
 ///

@@ -815,11 +815,11 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   jobInfoFile.close();
 
   // now the external parameters
-  const int jobinfo_file_length = FullPathSummaryInfoFile.length();
+  const int jobinfo_file_length = FullPathJobInfoFile.length();
   Vector<int> jobinfo_file_name(jobinfo_file_length);
 
   for (int i = 0; i < jobinfo_file_length; i++) {
-    jobinfo_file_name[i] = FullPathSummaryInfoFile[i];
+    jobinfo_file_name[i] = FullPathJobInfoFile[i];
   }
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
@@ -907,7 +907,7 @@ Castro::writeSummaryInfo (const std::string& dir,
   // summary_info file with details about the run
   std::ofstream summaryInfoFile;
   std::string FullPathSummaryInfoFile = dir;
-  FullPathSummaryInfoFile += "/summary_info";
+  // FullPathSummaryInfoFile += "/summary_info";
   summaryInfoFile.open(FullPathSummaryInfoFile.c_str(), std::ios::out);
 
   std::string PrettyLine = std::string(78, '=') + "\n";
@@ -919,24 +919,23 @@ Castro::writeSummaryInfo (const std::string& dir,
   summaryInfoFile << " Castro Summary Information\n";
   summaryInfoFile << PrettyLine;
 
-  summaryInfoFile << "job name: " << job_name << "\n\n";
+  summaryInfoFile << "job name: " << castro::job_name << "\n\n";
   summaryInfoFile << "inputs file: " << inputs_name << "\n\n";
 
-  summaryInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << "\n";
+  summaryInfoFile << "number of MPI processes: " << ParallelDescriptor::NProcs() << std::endl;
 #ifdef _OPENMP
-  summaryInfoFile << "number of threads:       " << omp_get_max_threads() << "\n";
+  summaryInfoFile << "number of threads:       " << omp_get_max_threads() << std::endl;
 #endif
   summaryInfoFile << "\n";
-  summaryInfoFile << "hydro tile size:         " << hydro_tile_size << "\n";
+  summaryInfoFile << "hydro tile size:         " << hydro_tile_size << std::endl;
 
   summaryInfoFile << "\n";
-  summaryInfoFile << "CPU time used since start of simulation (CPU-hours): " <<
-    getCPUTime()/3600.0;
+  summaryInfoFile << "Total CPU time (CPU-hours): " <<
+    getCPUTime()/3600.0 << std::endl;
 
-  summaryInfoFile << "Run time = " << runtime_total << std::endl;
-  summaryInfoFile << "Run time without initialization = " << runtime_timestep << std::endl;
-
-  fom = fom / runtime_timestep / 1.e6;
+  summaryInfoFile << "\n";
+  summaryInfoFile << "Run time (hours): " << runtime_total/3600.0 << std::endl;
+  summaryInfoFile << "Run time without initialization (hours): " << runtime_timestep/3600.0 << std::endl;
 
   summaryInfoFile << "\n";
   summaryInfoFile << "Average number of zones advanced per microsecond: " << std::fixed << std::setprecision(3) << fom << std::endl;
@@ -1015,157 +1014,7 @@ Castro::writeSummaryInfo (const std::string& dir,
     summaryInfoFile << buildgitname << " git describe: " << buildgithash << "\n";
   }
 
-  summaryInfoFile << "\n\n";
-
-
-  // grid information
-  summaryInfoFile << PrettyLine;
-  summaryInfoFile << " Grid Information\n";
-  summaryInfoFile << PrettyLine;
-
-  int f_lev = parent->finestLevel();
-
-  for (int i = 0; i <= f_lev; i++)
-    {
-      summaryInfoFile << " level: " << i << "\n";
-      summaryInfoFile << "   number of boxes = " << parent->numGrids(i) << "\n";
-      summaryInfoFile << "   maximum zones   = ";
-      for (int n = 0; n < BL_SPACEDIM; n++)
-        {
-          summaryInfoFile << parent->Geom(i).Domain().length(n) << " ";
-          //summaryInfoFile << parent->Geom(i).ProbHi(n) << " ";
-        }
-      summaryInfoFile << "\n\n";
-    }
-
-  summaryInfoFile << " Boundary conditions\n";
-  Vector<int> lo_bc_out(BL_SPACEDIM), hi_bc_out(BL_SPACEDIM);
-  ParmParse pp("castro");
-  pp.getarr("lo_bc",lo_bc_out,0,BL_SPACEDIM);
-  pp.getarr("hi_bc",hi_bc_out,0,BL_SPACEDIM);
-
-
-  // these names correspond to the integer flags setup in the
-  // Castro_setup.cpp
-  const char* names_bc[] =
-    { "interior", "inflow", "outflow",
-      "symmetry", "slipwall", "noslipwall" };
-
-
-  summaryInfoFile << "   -x: " << names_bc[lo_bc_out[0]] << "\n";
-  summaryInfoFile << "   +x: " << names_bc[hi_bc_out[0]] << "\n";
-  if (BL_SPACEDIM >= 2) {
-    summaryInfoFile << "   -y: " << names_bc[lo_bc_out[1]] << "\n";
-    summaryInfoFile << "   +y: " << names_bc[hi_bc_out[1]] << "\n";
-  }
-  if (BL_SPACEDIM == 3) {
-    summaryInfoFile << "   -z: " << names_bc[lo_bc_out[2]] << "\n";
-    summaryInfoFile << "   +z: " << names_bc[hi_bc_out[2]] << "\n";
-  }
-
-  summaryInfoFile << "\n\n";
-
-  summaryInfoFile << " Domain geometry info\n";
-
-  summaryInfoFile << "     center: " << problem::center[0] << " , " << problem::center[1] << " , " << problem::center[2] << "\n";
-  summaryInfoFile << "\n";
-
-  summaryInfoFile << "     geometry.is_periodic: ";
-  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    summaryInfoFile << geom.isPeriodic(idir) << " ";
-  }
-  summaryInfoFile << "\n";
-
-  summaryInfoFile << "     geometry.coord_sys:   " << geom.Coord() << "\n";
-
-  summaryInfoFile << "     geometry.prob_lo:     ";
-  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    summaryInfoFile << geom.ProbLo(idir) << " ";
-  }
-  summaryInfoFile << "\n";
-
-  summaryInfoFile << "     geometry.prob_hi:     ";
-  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    summaryInfoFile << geom.ProbHi(idir) << " ";
-  }
-  summaryInfoFile << "\n";
-
-  summaryInfoFile << "     amr.n_cell:           ";
-  const int*  domain_lo = geom.Domain().loVect();
-  const int*  domain_hi = geom.Domain().hiVect();
-  for (int idir = 0; idir < AMREX_SPACEDIM; idir++) {
-    summaryInfoFile << domain_hi[idir] - domain_lo[idir] + 1 << " ";
-  }
-  summaryInfoFile << "\n";
-
-  int max_level = parent->maxLevel();
-  summaryInfoFile << "     amr.max_level:        " << max_level << "\n";
-
-  summaryInfoFile << "     amr.ref_ratio:        ";
-  for (int lev = 1; lev <= max_level; lev++) {
-    IntVect ref_ratio = parent->refRatio(lev-1);
-    summaryInfoFile << ref_ratio[0] << " ";
-  }
-  summaryInfoFile << "\n";
-
-  summaryInfoFile << "\n\n";
-
-
-  // species info
-  int mlen = 20;
-
-  summaryInfoFile << PrettyLine;
-  summaryInfoFile << " Species Information\n";
-  summaryInfoFile << PrettyLine;
-
-  summaryInfoFile <<
-    std::setw(6) << "index" << SkipSpace <<
-    std::setw(mlen+1) << "name" << SkipSpace <<
-    std::setw(7) << "A" << SkipSpace <<
-    std::setw(7) << "Z" << "\n";
-  summaryInfoFile << OtherLine;
-
-  for (int i = 0; i < NumSpec; i++)
-    {
-      summaryInfoFile <<
-        std::setw(6) << i << SkipSpace <<
-        std::setw(mlen+1) << std::setfill(' ') << short_spec_names_cxx[i] << SkipSpace <<
-        std::setw(7) << aion[i] << SkipSpace <<
-        std::setw(7) << zion[i] << "\n";
-    }
-  summaryInfoFile << "\n\n";
-
-
-  // runtime parameters
-  summaryInfoFile << PrettyLine;
-  summaryInfoFile << " Inputs File Parameters\n";
-  summaryInfoFile << PrettyLine;
-
-#include <castro_job_info_tests.H>
-#ifdef AMREX_PARTICLES
-#include <particles_job_info_tests.H>
-#endif
-
-#ifdef GRAVITY
-  gravity->output_job_info_params(summaryInfoFile);
-#endif
-#ifdef DIFFUSION
-  diffusion->output_job_info_params(summaryInfoFile);
-#endif
-
   summaryInfoFile.close();
-
-  // now the external parameters
-  const int summaryInfo_file_length = FullPathSummaryInfoFile.length();
-  Vector<int> summaryInfo_file_name(summaryInfo_file_length);
-
-  for (int i = 0; i < summaryinfo_file_length; i++) {
-    summaryinfo_file_name[i] = FullPathSummaryInfoFile[i];
-  }
-
-  runtime_pretty_print(summaryinfo_file_name.dataPtr(), &summaryinfo_file_length);
-
-  prob_params_pretty_print(summaryinfo_file_name.dataPtr(), &summaryinfo_file_length);
 }
 
 
