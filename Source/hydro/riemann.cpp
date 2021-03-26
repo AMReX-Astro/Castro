@@ -273,12 +273,12 @@ Castro::riemann_state(const Box& bx,
 
       Real sum_X = 0.0;
       for (int n = 0; n < NumSpec; n++) {
-          qint(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qint(i,j,k,n)));
-          sum_X += qint(i,j,k,n);
+          qint(i,j,k,QFS+n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qint(i,j,k,QFS+n)));
+          sum_X += qint(i,j,k,QFS+n);
       }
 
       for (int n = 0; n < NumSpec; n++) {
-          qint(i,j,k,n) /= sum_X;
+          qint(i,j,k,QFS+n) /= sum_X;
       }
   });
 
