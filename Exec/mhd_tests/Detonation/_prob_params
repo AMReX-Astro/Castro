@@ -41,3 +41,5 @@ ambient_e_l          real         0.0_rt
 ambient_e_r          real         0.0_rt
 
 B_0            real      0.0_rt        y 
+
+pert_amplitude       real         1.005_rt         y  

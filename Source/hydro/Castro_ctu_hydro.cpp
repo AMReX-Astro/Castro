@@ -75,8 +75,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
     // Declare local storage now. This should be done outside the MFIter loop,
-    // and then we will resize the Fabs in each MFIter loop iteration. The data
-    // is stored in The_Async_Arena() to ensure it is saved until it is no
+    // and then we will resize the Fabs in each MFIter loop iteration. Then,
+    // we apply an Elixir to ensure that their memory is saved until it is no
     // longer needed (only relevant for the asynchronous case, usually on GPUs).
 
     FArrayBox flatn;
@@ -136,11 +136,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       const Box& obx = amrex::grow(bx, 1);
 
-      flatn.resize(obx, 1, The_Async_Arena());
+      flatn.resize(obx, 1);
+      Elixir elix_flatn = flatn.elixir();
       fab_size += flatn.nBytes();
 
 #ifdef RADIATION
-      flatg.resize(obx, 1, The_Async_Arena());
+      flatg.resize(obx, 1);
+      Elixir elix_flatg = flatg.elixir();
       fab_size += flatg.nBytes();
 #endif
 
@@ -183,11 +185,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       const Box& qbx = amrex::grow(bx, NUM_GROW);
 
-      q.resize(qbx, NQ, The_Async_Arena());
+      q.resize(qbx, NQ);
+      Elixir elix_q = q.elixir();
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
 
-      qaux.resize(qbx, NQ, The_Async_Arena());
+      qaux.resize(qbx, NQ);
+      Elixir elix_qaux = qaux.elixir();
       fab_size += qaux.nBytes();
       Array4<Real> const qaux_arr = qaux.array();
 
@@ -271,7 +275,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       const Box& gzbx = amrex::grow(zbx, 1);
 #endif
 
-      shk.resize(obx, 1, The_Async_Arena());
+      shk.resize(obx, 1);
+      Elixir elix_shk = shk.elixir();
       fab_size += shk.nBytes();
 
       Array4<Real> const shk_arr = shk.array();
@@ -298,7 +303,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx, NQSRC, The_Async_Arena());
+      src_q.resize(qbx, NQSRC);
+      Elixir elix_src_q = src_q.elixir();
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
@@ -326,20 +332,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // work on the interface states
 
-      qxm.resize(obx, NQ, The_Async_Arena());
+      qxm.resize(obx, NQ);
+      Elixir elix_qxm = qxm.elixir();
       fab_size += shk.nBytes();
 
-      qxp.resize(obx, NQ, The_Async_Arena());
+      qxp.resize(obx, NQ);
+      Elixir elix_qxp = qxp.elixir();
       fab_size += qxp.nBytes();
 
       Array4<Real> const qxm_arr = qxm.array();
       Array4<Real> const qxp_arr = qxp.array();
 
 #if AMREX_SPACEDIM >= 2
-      qym.resize(obx, NQ, The_Async_Arena());
+      qym.resize(obx, NQ);
+      Elixir elix_qym = qym.elixir();
       fab_size += qym.nBytes();
 
-      qyp.resize(obx, NQ, The_Async_Arena());
+      qyp.resize(obx, NQ);
+      Elixir elix_qyp = qyp.elixir();
       fab_size += qyp.nBytes();
 
       Array4<Real> const qym_arr = qym.array();
@@ -348,10 +358,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 3
-      qzm.resize(obx, NQ, The_Async_Arena());
+      qzm.resize(obx, NQ);
+      Elixir elix_qzm = qzm.elixir();
       fab_size += qzm.nBytes();
 
-      qzp.resize(obx, NQ, The_Async_Arena());
+      qzp.resize(obx, NQ);
+      Elixir elix_qzp = qzp.elixir();
       fab_size += qzp.nBytes();
 
       Array4<Real> const qzm_arr = qzm.array();
@@ -413,64 +425,76 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       }
 
-      div.resize(obx, 1, The_Async_Arena());
+      div.resize(obx, 1);
+      Elixir elix_div = div.elixir();
       fab_size += div.nBytes();
       auto div_arr = div.array();
 
       // compute divu -- we'll use this later when doing the artifical viscosity
       divu(obx, q_arr, div_arr);
 
-      q_int.resize(obx, NQ, The_Async_Arena());
+      q_int.resize(obx, NQ);
+      Elixir elix_q_int = q_int.elixir();
       fab_size += q_int.nBytes();
       Array4<Real> const q_int_arr = q_int.array();
 
 #ifdef RADIATION
-      lambda_int.resize(obx, Radiation::nGroups, The_Async_Arena());
+      lambda_int.resize(obx, Radiation::nGroups);
+      Elixir elix_lambda_int = lambda_int.elixir();
       fab_size += lambda_int.nBytes();
       Array4<Real> const lambda_int_arr = lambda_int.array();
 #endif
 
-      flux[0].resize(gxbx, NUM_STATE, The_Async_Arena());
+      flux[0].resize(gxbx, NUM_STATE);
+      Elixir elix_flux_x = flux[0].elixir();
       fab_size += flux[0].nBytes();
       Array4<Real> const flux0_arr = (flux[0]).array();
 
-      qe[0].resize(gxbx, NGDNV, The_Async_Arena());
+      qe[0].resize(gxbx, NGDNV);
+      Elixir elix_qe_x = qe[0].elixir();
       auto qex_arr = qe[0].array();
       fab_size += qe[0].nBytes();
 
 #ifdef RADIATION
-      rad_flux[0].resize(gxbx, Radiation::nGroups, The_Async_Arena());
+      rad_flux[0].resize(gxbx, Radiation::nGroups);
+      Elixir elix_rad_flux_x = rad_flux[0].elixir();
       fab_size += rad_flux[0].nBytes();
       auto rad_flux0_arr = (rad_flux[0]).array();
 #endif
 
 #if AMREX_SPACEDIM >= 2
-      flux[1].resize(gybx, NUM_STATE, The_Async_Arena());
+      flux[1].resize(gybx, NUM_STATE);
+      Elixir elix_flux_y = flux[1].elixir();
       fab_size += flux[1].nBytes();
       Array4<Real> const flux1_arr = (flux[1]).array();
 
-      qe[1].resize(gybx, NGDNV, The_Async_Arena());
+      qe[1].resize(gybx, NGDNV);
+      Elixir elix_qe_y = qe[1].elixir();
       auto qey_arr = qe[1].array();
       fab_size += qe[1].nBytes();
 
 #ifdef RADIATION
-      rad_flux[1].resize(gybx, Radiation::nGroups, The_Async_Arena());
+      rad_flux[1].resize(gybx, Radiation::nGroups);
+      Elixir elix_rad_flux_y = rad_flux[1].elixir();
       fab_size += rad_flux[1].nBytes();
       auto const rad_flux1_arr = (rad_flux[1]).array();
 #endif
 #endif
 
 #if AMREX_SPACEDIM == 3
-      flux[2].resize(gzbx, NUM_STATE, The_Async_Arena());
+      flux[2].resize(gzbx, NUM_STATE);
+      Elixir elix_flux_z = flux[2].elixir();
       fab_size += flux[2].nBytes();
       Array4<Real> const flux2_arr = (flux[2]).array();
 
-      qe[2].resize(gzbx, NGDNV, The_Async_Arena());
+      qe[2].resize(gzbx, NGDNV);
+      Elixir elix_qe_z = qe[2].elixir();
       auto qez_arr = qe[2].array();
       fab_size += qe[2].nBytes();
 
 #ifdef RADIATION
-      rad_flux[2].resize(gzbx, Radiation::nGroups, The_Async_Arena());
+      rad_flux[2].resize(gzbx, Radiation::nGroups);
+      Elixir elix_rad_flux_z = rad_flux[2].elixir();
       fab_size += rad_flux[2].nBytes();
       auto const rad_flux2_arr = (rad_flux[2]).array();
 #endif
@@ -478,8 +502,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 #if AMREX_SPACEDIM <= 2
       if (!Geom().IsCartesian()) {
-          pradial.resize(xbx, 1, The_Async_Arena());
+          pradial.resize(xbx, 1);
       }
+      Elixir elix_pradial = pradial.elixir();
       fab_size += pradial.nBytes();
 #endif
 
@@ -500,39 +525,47 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
 #if AMREX_SPACEDIM >= 2
-      ftmp1.resize(obx, NUM_STATE, The_Async_Arena());
+      ftmp1.resize(obx, NUM_STATE);
+      Elixir elix_ftmp1 = ftmp1.elixir();
       auto ftmp1_arr = ftmp1.array();
       fab_size += ftmp1.nBytes();
 
-      ftmp2.resize(obx, NUM_STATE, The_Async_Arena());
+      ftmp2.resize(obx, NUM_STATE);
+      Elixir elix_ftmp2 = ftmp2.elixir();
       auto ftmp2_arr = ftmp2.array();
       fab_size += ftmp2.nBytes();
 
 #ifdef RADIATION
-      rftmp1.resize(obx, Radiation::nGroups, The_Async_Arena());
+      rftmp1.resize(obx, Radiation::nGroups);
+      Elixir elix_rftmp1 = rftmp1.elixir();
       auto rftmp1_arr = rftmp1.array();
       fab_size += rftmp1.nBytes();
 
-      rftmp2.resize(obx, Radiation::nGroups, The_Async_Arena());
+      rftmp2.resize(obx, Radiation::nGroups);
+      Elixir elix_rftmp2 = rftmp2.elixir();
       auto rftmp2_arr = rftmp2.array();
       fab_size += rftmp2.nBytes();
 #endif
 
-      qgdnvtmp1.resize(obx, NGDNV, The_Async_Arena());
+      qgdnvtmp1.resize(obx, NGDNV);
+      Elixir elix_qgdnvtmp1 = qgdnvtmp1.elixir();
       auto qgdnvtmp1_arr = qgdnvtmp1.array();
       fab_size += qgdnvtmp1.nBytes();
 
 #if AMREX_SPACEDIM == 3
-      qgdnvtmp2.resize(obx, NGDNV, The_Async_Arena());
+      qgdnvtmp2.resize(obx, NGDNV);
+      Elixir elix_qgdnvtmp2 = qgdnvtmp2.elixir();
       auto qgdnvtmp2_arr = qgdnvtmp2.array();
       fab_size += qgdnvtmp2.nBytes();
 #endif
 
-      ql.resize(obx, NQ, The_Async_Arena());
+      ql.resize(obx, NQ);
+      Elixir elix_ql = ql.elixir();
       auto ql_arr = ql.array();
       fab_size += ql.nBytes();
 
-      qr.resize(obx, NQ, The_Async_Arena());
+      qr.resize(obx, NQ);
+      Elixir elix_qr = qr.elixir();
       auto qr_arr = qr.array();
       fab_size += qr.nBytes();
 #endif
@@ -684,11 +717,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 
-      qmyx.resize(tyxbx, NQ, The_Async_Arena());
+      qmyx.resize(tyxbx, NQ);
+      Elixir elix_qmyx = qmyx.elixir();
       auto qmyx_arr = qmyx.array();
       fab_size += qmyx.nBytes();
 
-      qpyx.resize(tyxbx, NQ, The_Async_Arena());
+      qpyx.resize(tyxbx, NQ);
+      Elixir elix_qpyx = qpyx.elixir();
       auto qpyx_arr = qpyx.array();
       fab_size += qpyx.nBytes();
 
@@ -713,11 +748,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2)-1, lo(3)], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tzxbx = amrex::grow(zbx, IntVect(AMREX_D_DECL(0,1,0)));
 
-      qmzx.resize(tzxbx, NQ, The_Async_Arena());
+      qmzx.resize(tzxbx, NQ);
+      Elixir elix_qmzx = qmzx.elixir();
       auto qmzx_arr = qmzx.array();
       fab_size += qmzx.nBytes();
 
-      qpzx.resize(tzxbx, NQ, The_Async_Arena());
+      qpzx.resize(tzxbx, NQ);
+      Elixir elix_qpzx = qpzx.elixir();
       auto qpzx_arr = qpzx.array();
       fab_size += qpzx.nBytes();
 
@@ -756,11 +793,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
 
-      qmxy.resize(txybx, NQ, The_Async_Arena());
+      qmxy.resize(txybx, NQ);
+      Elixir elix_qmxy = qmxy.elixir();
       auto qmxy_arr = qmxy.array();
       fab_size += qmxy.nBytes();
 
-      qpxy.resize(txybx, NQ, The_Async_Arena());
+      qpxy.resize(txybx, NQ);
+      Elixir elix_qpxy = qpxy.elixir();
       auto qpxy_arr = qpxy.array();
       fab_size += qpxy.nBytes();
 
@@ -785,11 +824,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), lo(3)+1]
       const Box& tzybx = amrex::grow(zbx, IntVect(AMREX_D_DECL(1,0,0)));
 
-      qmzy.resize(tzybx, NQ, The_Async_Arena());
+      qmzy.resize(tzybx, NQ);
+      Elixir elix_qmzy = qmzy.elixir();
       auto qmzy_arr = qmzy.array();
       fab_size += qmzy.nBytes();
 
-      qpzy.resize(tzybx, NQ, The_Async_Arena());
+      qpzy.resize(tzybx, NQ);
+      Elixir elix_qpzy = qpzy.elixir();
       auto qpzy_arr = qpzy.array();
       fab_size += qpzy.nBytes();
 
@@ -831,11 +872,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
 
-      qmxz.resize(txzbx, NQ, The_Async_Arena());
+      qmxz.resize(txzbx, NQ);
+      Elixir elix_qmxz = qmxz.elixir();
       auto qmxz_arr = qmxz.array();
       fab_size += qmxz.nBytes();
 
-      qpxz.resize(txzbx, NQ, The_Async_Arena());
+      qpxz.resize(txzbx, NQ);
+      Elixir elix_qpxz = qpxz.elixir();
       auto qpxz_arr = qpxz.array();
       fab_size += qpxz.nBytes();
 
@@ -860,11 +903,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& tyzbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(1,0,0)));
 
-      qmyz.resize(tyzbx, NQ, The_Async_Arena());
+      qmyz.resize(tyzbx, NQ);
+      Elixir elix_qmyz = qmyz.elixir();
       auto qmyz_arr = qmyz.array();
       fab_size += qmyz.nBytes();
 
-      qpyz.resize(tyzbx, NQ, The_Async_Arena());
+      qpyz.resize(tyzbx, NQ);
+      Elixir elix_qpyz = qpyz.elixir();
       auto qpyz_arr = qpyz.array();
       fab_size += qpyz.nBytes();
 

@@ -429,10 +429,7 @@ Castro::estdt_burning()
                 X[n] = amrex::max(state.xn[n], small_x);
             }
 
-            eos_t eos_state;
-            burn_to_eos(state, eos_state);
-            eos(eos_input_rt, eos_state);
-            eos_to_burn(eos_state, state);
+            eos(eos_input_rt, state);
 
 #ifdef STRANG
             state.self_heat = true;
@@ -465,6 +462,13 @@ Castro::estdt_burning()
             Real dt_tmp = 1.e200_rt;
 
 #ifdef NSE
+            // we need to use the eos_state interface here because for
+            // SDC, if we come in with a burn_t, it expects to
+            // evaluate the NSE criterion based on the conserved state.
+
+            eos_t eos_state;
+            burn_to_eos(state, eos_state);
+
             if (!in_nse(eos_state)) {
 #endif
                 dt_tmp = dtnuc_e * e / dedt;

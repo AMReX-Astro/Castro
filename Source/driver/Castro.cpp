@@ -3024,8 +3024,20 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rhoX_sum = 0.0_rt;
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
             for (int n = 0; n < NumSpec; ++n) {
+#ifndef AMREX_USE_GPU
+                const Real X_failure_tolerance = 1.e-2_rt;
+
+                // Abort if X is unphysically large.
+                Real X = u(i,j,k,UFS+n) * rhoInv;
+
+                if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << std::endl;
+                    amrex::Error("Invalid mass fraction in Castro::normalize_species()");
+                }
+#endif
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
                 rhoX_sum += u(i,j,k,UFS+n);
             }
@@ -4269,98 +4281,118 @@ Castro::make_radial_data(int is_new)
 
    BL_PROFILE("Castro::make_radial_data()");
 
- // We only call this for level = 0
+   // We only call this for level = 0
    BL_ASSERT(level == 0);
 
    int numpts_1d = get_numpts();
 
-   Vector<Real> radial_vol(numpts_1d,0);
-
-   const Real* dx = geom.CellSize();
+   auto dx = geom.CellSizeArray();
    Real  dr = dx[0];
 
-   if (is_new == 1) {
-      MultiFab& S = get_new_data(State_Type);
-      const int nc = S.nComp();
-      Vector<Real> radial_state(numpts_1d*nc,0);
-      for (MFIter mfi(S); mfi.isValid(); ++mfi)
-      {
-         Box bx(mfi.validbox());
-         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-                             BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
-                             BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
-                             ZFILL(geom.ProbLo()),&numpts_1d);
-      }
+   auto problo = geom.ProbLoArray();
+   auto probhi = geom.ProbHiArray();
 
-      ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
-      ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(),numpts_1d*nc);
+   MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+   const int nc = S.nComp();
 
-      int first = 0;
-      int np_max = 0;
-      for (int i = 0; i < numpts_1d; i++) {
-         if (radial_vol[i] > 0.)
-         {
-            for (int j = 0; j < nc; j++) {
-              radial_state[nc*i+j] /= radial_vol[i];
-            }
-         } else if (first == 0) {
-            np_max = i;
-            first  = 1;
-         }
-      }
+   Gpu::ManagedVector<Real> radial_vol(numpts_1d, 0.0_rt);
+   Real* const radial_vol_ptr = radial_vol.dataPtr();
 
-      Vector<Real> radial_state_short(np_max*nc,0);
+   Gpu::ManagedVector<Real> radial_state(numpts_1d * nc, 0.0_rt);
+   Real* const radial_state_ptr = radial_state.dataPtr();
 
-      for (int i = 0; i < np_max; i++) {
-         for (int j = 0; j < nc; j++) {
-           radial_state_short[nc*i+j] = radial_state[nc*i+j];
-         }
-      }
-
-      const Real new_time = state[State_Type].curTime();
-      set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
-   }
-   else
+   for (MFIter mfi(S); mfi.isValid(); ++mfi)
    {
-      MultiFab& S = get_old_data(State_Type);
-      const int nc = S.nComp();
-      Vector<Real> radial_state(numpts_1d*nc,0);
-      for (MFIter mfi(S); mfi.isValid(); ++mfi)
-      {
-         Box bx(mfi.validbox());
-         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-                             BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
-                             BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
-                             ZFILL(geom.ProbLo()),&numpts_1d);
-      }
+       Box bx(mfi.validbox());
 
-      ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
-      ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(),numpts_1d*nc);
+       auto state_arr = S[mfi].array();
+       auto vol_arr   = volume[mfi].array();
 
-      int first = 0;
-      int np_max = 0;
-      for (int i = 0; i < numpts_1d; i++) {
-         if (radial_vol[i] > 0.)
-         {
-            for (int j = 0; j < nc; j++) {
-              radial_state[nc*i+j] /= radial_vol[i];
-            }
-         } else if (first == 0) {
-            np_max = i;
-            first  = 1;
-         }
-      }
+       amrex::ParallelFor(bx,
+       [=] AMREX_GPU_DEVICE(int i, int j, int k)
+       {
+           Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 
-      Vector<Real> radial_state_short(np_max*nc,0);
+           Real y = 0.0_rt;
+#if AMREX_SPACEDIM >= 2
+           y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
 
-      for (int i = 0; i < np_max; i++) {
-         for (int j = 0; j < nc; j++) {
+           Real z = 0.0_rt;
+#if AMREX_SPACEDIM == 3
+           z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
+
+           Real r = std::sqrt(x * x + y * y + z * z);
+
+           int index = int(r / dr);
+
+#ifndef AMREX_USE_CUDA
+           if (index > numpts_1d-1) {
+               std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
+               std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
+               std::cout << "R / DR " << r << " " << dr << "\n";
+               amrex::Error("Error:: Castro_util.H :: compute_avgstate");
+           }
+#endif
+
+           Gpu::Atomic::Add(&radial_state_ptr[URHO + index * nc],
+                            vol_arr(i,j,k) * state_arr(i,j,k,URHO));
+
+           // Store the radial component of the momentum in the
+           // UMX, UMY and UMZ components for now.
+
+           Real x_mom = state_arr(i,j,k,UMX);
+           Real y_mom = state_arr(i,j,k,UMY);
+           Real z_mom = state_arr(i,j,k,UMZ);
+           Real radial_mom = x_mom * (x / r) + y_mom * (y / r) + z_mom * (z / r);
+
+           Gpu::Atomic::Add(&radial_state_ptr[UMX + index * nc], vol_arr(i,j,k) * radial_mom);
+           Gpu::Atomic::Add(&radial_state_ptr[UMY + index * nc], vol_arr(i,j,k) * radial_mom);
+           Gpu::Atomic::Add(&radial_state_ptr[UMZ + index * nc], vol_arr(i,j,k) * radial_mom);
+
+           for (int n = UMZ + 1; n <= nc; ++n) {
+               Gpu::Atomic::Add(&radial_state_ptr[n + index * nc],
+                                vol_arr(i,j,k) * state_arr(i,j,k,n));
+           }
+
+           Gpu::Atomic::Add(&radial_vol_ptr[index], vol_arr(i,j,k));
+       });
+   }
+
+   ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
+   ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
+
+   int first = 0;
+   int np_max = 0;
+   for (int i = 0; i < numpts_1d; i++) {
+       if (radial_vol[i] > 0.)
+       {
+           for (int j = 0; j < nc; j++) {
+               radial_state[nc*i+j] /= radial_vol[i];
+           }
+       }
+       else if (first == 0) {
+           np_max = i;
+           first  = 1;
+       }
+   }
+
+   Vector<Real> radial_state_short(np_max * nc, 0.0_rt);
+
+   for (int i = 0; i < np_max; i++) {
+       for (int j = 0; j < nc; j++) {
            radial_state_short[nc*i+j] = radial_state[nc*i+j];
-         }
-      }
+       }
+   }
 
-      const Real old_time = state[State_Type].prevTime();
-      set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
+   if (is_new == 1) {
+       const Real new_time = state[State_Type].curTime();
+       set_new_outflow_data(radial_state_short.dataPtr(), &new_time, &np_max, &nc);
+   }
+   else {
+       const Real old_time = state[State_Type].prevTime();
+       set_old_outflow_data(radial_state_short.dataPtr(), &old_time, &np_max, &nc);
    }
 
 #endif
