@@ -244,12 +244,14 @@ Castro::do_advance_ctu(Real time,
     }
 
 
+#ifndef SIMPLIFIED_SDC
     // Sync up state after old sources and hydro source.
     clean_state(
 #ifdef MHD
                 Bx_new, By_new, Bz_new,
 #endif
                 S_new, cur_time, 0);
+#endif
 
 #ifndef AMREX_USE_GPU
     // Check for NaN's.
