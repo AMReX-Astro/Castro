@@ -82,18 +82,18 @@ amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 # CHECKPOINT FILES
 amr.check_file      = flame_wave_1000Hz_25cm_3d_chk        # root name of checkpoint file
 amr.check_int       = -1        # number of timesteps between checkpoints
-amr.checkpoint_files_output = 0                                                 
+amr.checkpoint_files_output = 1
 
 # PLOTFILES
 amr.plot_file        = flame_wave_1000Hz_25cm_3d_plt        # root name of plotfile
 amr.plot_per         = 5.e-3      # number of seconds between plotfiles
 amr.derive_plot_vars = ALL
-amr.plot_files_output = 0
+amr.plot_files_output = 1
 
 amr.small_plot_file        = flame_wave_1000Hz_25cm_3d_smallplt        # root name of plotfile
-amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
+amr.small_plot_per         = 5.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
-amr.derive_small_plot_vars = abar radvel enuc
+amr.derive_small_plot_vars = abar magvel enuc
 fab.format = NATIVE_32
 
 
