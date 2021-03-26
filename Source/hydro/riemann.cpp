@@ -263,4 +263,23 @@ Castro::riemann_state(const Box& bx,
     amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
   }
+
+  // normalize the mass fractions on the interface
+  // this is the CMA algorithm
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  {
+
+      Real sum_X = 0.0;
+      for (int n = 0; n < NumSpec; n++) {
+          qint(i,j,k,n) = amrex::max(0.0_rt, amrex::min(1.0_rt, qint(i,j,k,n)));
+          sum_X += qint(i,j,k,n);
+      }
+
+      for (int n = 0; n < NumSpec; n++) {
+          qint(i,j,k,n) /= sum_X;
+      }
+  });
+
 }
