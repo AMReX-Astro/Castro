@@ -62,8 +62,6 @@ void problem_source (int i, int j, int k,
 
         // sub-chandra heating -- modulate by He
 
-        const auto ihe4 = network_spec_index("helium-4");
-
         auto x = prob_lo[0] + (Real(i) + 0.5_rt)*dx[0] - center[0];
 #if AMREX_SPACEDIM == 1
         auto y = 0.0_rt;
@@ -79,7 +77,7 @@ void problem_source (int i, int j, int k,
         auto dist = std::sqrt(x*x + y*y + z*z);
 
         auto Hext = H_0 * std::exp(-((dist - r_0)*(dist - r_0))/(W_0*W_0)) * 
-            state(i,j,k,UFS+ihe4) / state(i,j,k,URHO);
+            state(i,j,k,UFS+problem::ifuel) / state(i,j,k,URHO);
 
         src(i,j,k,UEINT) = state(i,j,k,URHO) * Hext;
         src(i,j,k,UEDEN) = state(i,j,k,URHO) * Hext;

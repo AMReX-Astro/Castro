@@ -1,6 +1,6 @@
 &fortin
 
-  dtemp = 1.2e9
+  dtemp = 1.1e9
   x_half_max = 4.096d4
   x_half_width = 2048.d0
 
@@ -8,8 +8,8 @@
 
   dens_base = 3.43e6
 
-  T_star = 1.d8
-  T_hi = 2.d8
+  T_star = 3.d8
+  T_hi = 3.d8
   T_lo   = 8.d6
 
   H_star = 2000.d0

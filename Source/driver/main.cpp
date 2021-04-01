@@ -28,6 +28,8 @@ using namespace amrex;
 
 std::string inputs_name = "";
 
+amrex::LevelBld* getLevelBld ();
+
 int
 main (int   argc,
       char* argv[])
@@ -113,7 +115,7 @@ main (int   argc,
     // Initialize random seed after we're running in parallel.
     //
 
-    Amr* amrptr = new Amr;
+    Amr* amrptr = new Amr(getLevelBld());
 
     amrptr->init(strt_time,stop_time);
 
