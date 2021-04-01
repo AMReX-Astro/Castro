@@ -240,7 +240,7 @@ state for <span class="math notranslate nohighlight">\(\Delta t/2\)</span>, then
 burned state, and then does the final <span class="math notranslate nohighlight">\(\Delta t/2\)</span> burning. No
 explicit coupling of the burning and hydro is done.  This code
 path uses the corner-transport upwind (CTU) method (the unsplit,
-characteristic tracing method of <span id="id1">[<a class="reference internal" href="zreferences.html#id12"><span>20</span></a>]</span>).  This is the default method.</p>
+characteristic tracing method of <span id="id1">[<a class="reference internal" href="zreferences.html#id12">20</a>]</span>).  This is the default method.</p>
 <p>The MHD solver uses this same driver.</p>
 </li>
 <li><p>SDC: a class of iterative methods that couples the advection and reactions
@@ -258,7 +258,7 @@ to either 2nd or 4th order.  This approximates the integral in
 time using a simple quadrature rule, and integrates the hydro
 explicitly and reactions implicitly to the next time node.
 Iterations allow each process to see one another and achieve
-high-order in time convergence.  This is described in <span id="id2">[<a class="reference internal" href="zreferences.html#id49"><span>66</span></a>]</span>.</p></li>
+high-order in time convergence.  This is described in <span id="id2">[<a class="reference internal" href="zreferences.html#id49">66</a>]</span>.</p></li>
 </ul>
 </li>
 </ul>
@@ -267,7 +267,7 @@ high-order in time convergence.  This is described in <span id="id2">[<a class="
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">0</span></code>: this is the original Castro method,
-described in <span id="id3">[<a class="reference internal" href="zreferences.html#id4"><span>12</span></a>]</span>.  This uses Strang splitting and the CTU
+described in <span id="id3">[<a class="reference internal" href="zreferences.html#id4">12</a>]</span>.  This uses Strang splitting and the CTU
 hydrodynamics scheme.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">time_integration_method</span> <span class="pre">=</span> <span class="pre">1</span></code>: unused (in Castro 19.08 and
 earlier, this was a method-of-lines integration method with Strang
@@ -539,7 +539,7 @@ StateData <code class="docutils literal notranslate"><span class="pre">Source_Ty
 <li><p>sponge : the sponge is a damping term added to
 the momentum equation that is designed to drive the velocities to
 zero over some timescale. Our implementation of the sponge
-follows that of Maestro <span id="id4">[<a class="reference internal" href="zreferences.html#id9"><span>13</span></a>]</span></p></li>
+follows that of Maestro <span id="id4">[<a class="reference internal" href="zreferences.html#id9">13</a>]</span></p></li>
 <li><p>external sources : users can define problem-specific sources
 in the <code class="docutils literal notranslate"><span class="pre">ext_src_?d.f90</span></code> file. Sources for the different
 equations in the conservative state vector, <span class="math notranslate nohighlight">\(\Ub\)</span>, are indexed
@@ -782,7 +782,7 @@ simulation.</p>
 <p>The code must be compiled with <code class="docutils literal notranslate"><span class="pre">USE_TRUE_SDC</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> to use this
 evolution type.</p>
 </div>
-<p>The SDC solver follows the algorithm detailed in <span id="id6">[<span>castro_sdc</span>]</span>.
+<p>The SDC solver follows the algorithm detailed in <span id="id6">[]</span>.
 We write our evolution equation as:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Ub}{\partial t} = {\bf A}(\Ub) + {\bf R}(\Ub)\]</div>

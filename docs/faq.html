@@ -295,18 +295,16 @@ DEBUG=TRUE.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_zero</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_overflow</span></code></p></li>
 </ul>
-<p>For further capabilities, defining <code class="docutils literal notranslate"><span class="pre">BACKTRACE=TRUE</span></code> enables you
-to get more information than the backtrace of the call stack info by
-instrumenting the code. (This is in C code only). Here is an
+<p>For further capabilities, you can get
+more information than the backtrace of the call stack info by
+instrumenting the code.  Here is an
 example. You know the line <code class="docutils literal notranslate"><span class="pre">Real</span> <span class="pre">rho</span> <span class="pre">=</span> <span class="pre">state(cell,0);</span></code> is
 causing a segfault. You could add a print statement before that.
 But it might print out thousands (or even millions) of line before
-it hits the segfault. With <code class="docutils literal notranslate"><span class="pre">BACKTRACE</span></code>, you could do</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#ifdef AMREX_BACKTRACING
-   std::ostringstream ss;
-   ss &lt;&lt; ``state.box() = `` &lt;&lt; state.box() &lt;&lt; `` cell = `` &lt;&lt; cell;
-   BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
-#endif
+it hits the segfault. Instead, you could</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span>std::ostringstream ss;
+ss &lt;&lt; ``state.box() = `` &lt;&lt; state.box() &lt;&lt; `` cell = `` &lt;&lt; cell;
+BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
 Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 </pre></div>
