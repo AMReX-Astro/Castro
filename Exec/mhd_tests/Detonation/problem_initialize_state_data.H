@@ -24,7 +24,7 @@ void problem_initialize_state_data (int i, int j, int k,
 
     Real height = probhi[1] - problo[1];
 
-    Real c_T = problo[0] + problem::center_T * (probhi[0] - problo[0]) * (1.0_rt + problem::pert_amplitude * std::sin(2.0_rt * dx[1] * (static_cast<Real>(j) + 0.5_rt) / height));
+    Real c_T = problo[0] + problem::center_T * (probhi[0] - problo[0]) * (1.0_rt + problem::pert_amplitude * std::sin(2.0_rt * M_PI * 2.0_rt * dx[1] * (static_cast<Real>(j) + 0.5_rt) / height));
 
     Real xcen = problo[0] + dx[0] * (static_cast<Real>(i) + 0.5_rt);
 

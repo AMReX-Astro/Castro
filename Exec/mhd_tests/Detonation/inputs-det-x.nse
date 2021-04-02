@@ -1,6 +1,6 @@
 # ------------------  INPUTS TO MAIN PROGRAM  -------------------
 max_step = 100000
-stop_time =  12.e-5
+stop_time =  5e-5
 
 # PROBLEM SIZE & GEOMETRY
 geometry.is_periodic = 0 0 0
@@ -52,7 +52,7 @@ amr.v                 = 1       # verbosity in Amr.cpp
 #amr.grid_log        = grdlog  # name of grid logging file
 
 # REFINEMENT / REGRIDDING 
-amr.max_level       = 2       # maximum level number allowed
+amr.max_level       = 3       # maximum level number allowed
 amr.ref_ratio       = 2 2 2 2 # refinement ratio
 amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
