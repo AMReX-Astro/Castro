@@ -3034,7 +3034,7 @@ Castro::normalize_species (MultiFab& S_new, int ng)
                 Real X = u(i,j,k,UFS+n) * rhoInv;
 
                 if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
-                    std::cout << i << " " << j << " " << k << " " << X << std::endl;
+                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << std::endl;
                     amrex::Error("Invalid mass fraction in Castro::normalize_species()");
                 }
 #endif

@@ -1,3 +1,8 @@
+# 21.04
+
+   * For simplified-SDC, we now correctly store only the reactive
+     part of the update for rho_enuc, enuc, and rho_omegadot
+     plotfile variables (#1602)
 
 # 21.02
 
