@@ -306,7 +306,8 @@ Castro::trace_ppm(const Box& bx,
 
       int n = qpassmap(ipassive);
 
-      // Plus state on face i
+      // right state on face i - 1/2
+
       if ((idir == 0 && i >= vlo[0]) ||
           (idir == 1 && j >= vlo[1]) ||
           (idir == 2 && k >= vlo[2])) {
@@ -322,32 +323,41 @@ Castro::trace_ppm(const Box& bx,
 
         qp(i,j,k,n) = Im[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
+        if (un < 0) {
+            qp(i,j,k,n) += 0.5_rt * dt * Im_src[n][1];
+        }
 #endif
       }
 
-      // Minus state on face i+1
+      // left state on face i + 1/2
+
       if (idir == 0 && i <= vhi[0]) {
         qm(i+1,j,k,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
+        if (un > 0) {
+            qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src[n][1];
+        }
 #endif
 
       } else if (idir == 1 && j <= vhi[1]) {
         qm(i,j+1,k,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
+        if (un > 0) {
+            qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src[n][1];
+        }
 #endif
 
       } else if (idir == 2 && k <= vhi[2]) {
         qm(i,j,k+1,n) = Ip[n][1];
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
+        if (un > 0) {
+            qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src[n][1];
+        }
 #endif
       }
     }
 
-    // plus state on face i
+    // plus state on face i - 1/2
 
     if ((idir == 0 && i >= vlo[0]) ||
         (idir == 1 && j >= vlo[1]) ||
@@ -430,7 +440,7 @@ Castro::trace_ppm(const Box& bx,
 
     }
 
-    // minus state on face i + 1
+    // minus state on face i + 1/2
 
     if ((idir == 0 && i <= vhi[0]) ||
         (idir == 1 && j <= vhi[1]) ||
