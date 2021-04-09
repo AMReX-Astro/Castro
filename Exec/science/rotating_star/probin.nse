@@ -52,7 +52,7 @@
 
   jacobian = 1
 
-  rho_nse = 3.e8
+  rho_nse = 2.e6
   T_nse = 3.e9
 
 /
