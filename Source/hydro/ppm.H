@@ -7,6 +7,72 @@
 
 using namespace amrex;
 
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+void
+load_ppm_stencil(Array4<Real const> const& q_arr, const int idir,
+                 const int i, const int j, const int k, const int ncomp,
+                 Real* s) {
+
+    if (idir == 0) {
+        s[im2] = q_arr(i-2,j,k,ncomp);
+        s[im1] = q_arr(i-1,j,k,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i+1,j,k,ncomp);
+        s[ip2] = q_arr(i+2,j,k,ncomp);
+
+      } else if (idir == 1) {
+        s[im2] = q_arr(i,j-2,k,ncomp);
+        s[im1] = q_arr(i,j-1,k,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i,j+1,k,ncomp);
+        s[ip2] = q_arr(i,j+2,k,ncomp);
+
+      } else {
+        s[im2] = q_arr(i,j,k-2,ncomp);
+        s[im1] = q_arr(i,j,k-1,ncomp);
+        s[i0]  = q_arr(i,j,k,ncomp);
+        s[ip1] = q_arr(i,j,k+1,ncomp);
+        s[ip2] = q_arr(i,j,k+2,ncomp);
+
+      }
+
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
+int
+check_trace_source(Array4<Real const> const& srcQ, const int idir,
+                   const int i, const int j, const int k, const int ncomp) {
+
+    int do_trace = 0;
+    if (idir == 0) {
+        for (int b = i-2; b <= i+2; b++) {
+            if (std::abs(srcQ(b,j,k,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    } else if (idir == 1) {
+        for (int b = j-2; b <= j+2; b++) {
+            if (std::abs(srcQ(i,b,k,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    } else {
+        for (int b = k-2; b <= k+2; b++) {
+            if (std::abs(srcQ(i,j,b,ncomp)) > 0.0_rt) {
+                do_trace = 1;
+                break;
+            }
+        }
+    }
+
+    return do_trace;
+}
+
+
+
 ///
 /// Compute the coefficients of a parabolic reconstruction of the data in a zone.
 /// This uses the standard PPM limiters described in Colella & Woodward (1984)
