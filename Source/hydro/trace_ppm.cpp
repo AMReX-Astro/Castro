@@ -158,7 +158,8 @@ Castro::trace_ppm(const Box& bx,
 
     // reconstruct density
 
-    Real Ip_rho[3], Im_rho[3];
+    Real Ip_rho[3];
+    Real Im_rho[3];
 
     load_ppm_stencil(q_arr, idir, i, j, k, QRHO, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -166,8 +167,10 @@ Castro::trace_ppm(const Box& bx,
 
     // reconstruct normal velocity
 
-    Real Ip_un_0, Im_un_0;
-    Real Ip_un_2, Im_un_2;
+    Real Ip_un_0;
+    Real Im_un_0;
+    Real Ip_un_2;
+    Real Im_un_2;
 
     load_ppm_stencil(q_arr, idir, i, j, k, QUN, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -176,7 +179,8 @@ Castro::trace_ppm(const Box& bx,
 
     // reconstruct pressure
 
-    Real Ip_p[3], Im_p[3];
+    Real Ip_p[3];
+    Real Im_p[3];
 
     load_ppm_stencil(q_arr, idir, i, j, k, QPRES, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -184,7 +188,8 @@ Castro::trace_ppm(const Box& bx,
 
     // reconstruct rho e
 
-    Real Ip_rhoe[3], Im_rhoe[3];
+    Real Ip_rhoe[3];
+    Real Im_rhoe[3];
 
     load_ppm_stencil(q_arr, idir, i, j, k, QREINT, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -192,8 +197,10 @@ Castro::trace_ppm(const Box& bx,
 
     // reconstruct transverse velocities
 
-    Real Ip_ut_1, Im_ut_1;
-    Real Ip_utt_1, Im_utt_1;
+    Real Ip_ut_1;
+    Real Im_ut_1;
+    Real Ip_utt_1;
+    Real Im_utt_1;
 
     load_ppm_stencil(q_arr, idir, i, j, k, QUT, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -205,8 +212,10 @@ Castro::trace_ppm(const Box& bx,
 
     // gamma_c
 
-    Real Ip_gc_0, Im_gc_0;
-    Real Ip_gc_2, Im_gc_2;
+    Real Ip_gc_0;
+    Real Im_gc_0;
+    Real Ip_gc_2;
+    Real Im_gc_2;
 
     load_ppm_stencil(qaux_arr, idir, i, j, k, QGAMC, s);
     ppm_reconstruct(s, flat, sm, sp);
@@ -219,7 +228,8 @@ Castro::trace_ppm(const Box& bx,
 
     // density
 
-    Real Ip_src_rho_1 = 0.0_rt, Im_src_rho_1 = 0.0_rt;
+    Real Ip_src_rho_1 = 0.0_rt;
+    Real Im_src_rho_1 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QRHO];
@@ -235,8 +245,10 @@ Castro::trace_ppm(const Box& bx,
 
     // normal velcoity
 
-    Real Ip_src_un_0 = 0.0_rt, Im_src_un_0 = 0.0_rt;
-    Real Ip_src_un_2 = 0.0_rt, Im_src_un_2 = 0.0_rt;
+    Real Ip_src_un_0 = 0.0_rt;
+    Real Im_src_un_0 = 0.0_rt;
+    Real Ip_src_un_2 = 0.0_rt;
+    Real Im_src_un_2 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QUN];
@@ -253,7 +265,8 @@ Castro::trace_ppm(const Box& bx,
 
     // pressure
 
-    Real Ip_src_p[3] = {0.0_rt}, Im_src_p[3] = {0.0_rt};
+    Real Ip_src_p[3] = {0.0_rt};
+    Real Im_src_p[3] = {0.0_rt};
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QPRES];
@@ -269,7 +282,8 @@ Castro::trace_ppm(const Box& bx,
 
     // rho e
 
-    Real Ip_src_rhoe_1 = 0.0_rt, Im_src_rhoe_1 = 0.0_rt;
+    Real Ip_src_rhoe_1 = 0.0_rt;
+    Real Im_src_rhoe_1 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QREINT];
@@ -285,7 +299,8 @@ Castro::trace_ppm(const Box& bx,
 
     // transverse velocities
 
-    Real Ip_src_ut_1 = 0.0_rt, Im_src_ut_1 = 0.0_rt;
+    Real Ip_src_ut_1 = 0.0_rt;
+    Real Im_src_ut_1 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QUT];
@@ -299,7 +314,8 @@ Castro::trace_ppm(const Box& bx,
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_ut_1, Im_src_ut_1);
     }
 
-    Real Ip_src_utt_1 = 0.0_rt, Im_src_utt_1 = 0.0_rt;
+    Real Ip_src_utt_1 = 0.0_rt;
+    Real Im_src_utt_1 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QUTT];
@@ -318,9 +334,11 @@ Castro::trace_ppm(const Box& bx,
 
     // the passive stuff is the same regardless of the tracing
 
-    Real Ip_passive, Im_passive;
+    Real Ip_passive;
+    Real Im_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-    Real Ip_src_passive, Im_src_passive;
+    Real Ip_src_passive;
+    Real Im_src_passive;
 #endif
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
