@@ -325,61 +325,60 @@ Castro::trace_ppm(const Box& bx,
 
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
 
-      int n = qpassmap(ipassive);
+        int n = qpassmap(ipassive);
 
 
-      load_ppm_stencil(q_arr, idir, i, j, k, n, s);
-      ppm_reconstruct(s, flat, sm, sp);
-      ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
+        load_ppm_stencil(q_arr, idir, i, j, k, n, s);
+        ppm_reconstruct(s, flat, sm, sp);
+        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
 
 #ifdef PRIM_SPECIES_HAVE_SOURCE
-      // if we turned this on, don't bother to check if it source is non-zero -- just trace
-      load_ppm_stencil(srcQ, idir, i, j, k, n, s);
-      ppm_reconstruct(s, flat, sm, sp);
-      ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_passive, Im_src_passive);
+        // if we turned this on, don't bother to check if it source is non-zero -- just trace
+        load_ppm_stencil(srcQ, idir, i, j, k, n, s);
+        ppm_reconstruct(s, flat, sm, sp);
+        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_passive, Im_src_passive);
 #endif
 
-      // Plus state on face i
+        // Plus state on face i
 
-      if ((idir == 0 && i >= vlo[0]) ||
-          (idir == 1 && j >= vlo[1]) ||
-          (idir == 2 && k >= vlo[2])) {
+        if ((idir == 0 && i >= vlo[0]) ||
+            (idir == 1 && j >= vlo[1]) ||
+            (idir == 2 && k >= vlo[2])) {
 
-        // We have
-        //
-        // q_l = q_ref - Proj{(q_ref - I)}
-        //
-        // and Proj{} represents the characteristic projection.
-        // But for these, there is only 1-wave that matters, the u
-        // wave, so no projection is needed.  Since we are not
-        // projecting, the reference state doesn't matter
+            // We have
+            //
+            // q_l = q_ref - Proj{(q_ref - I)}
+            //
+            // and Proj{} represents the characteristic projection.
+            // But for these, there is only 1-wave that matters, the u
+            // wave, so no projection is needed.  Since we are not
+            // projecting, the reference state doesn't matter
 
-        qp(i,j,k,n) = Im_passive;
+            qp(i,j,k,n) = Im_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qp(i,j,k,n) += 0.5_rt * dt * Im_src_passive;
+            qp(i,j,k,n) += 0.5_rt * dt * Im_src_passive;
         }
 #endif
-      }
 
-      // Minus state on face i+1
-      if (idir == 0 && i <= vhi[0]) {
-        qm(i+1,j,k,n) = Ip_passive;
+        // Minus state on face i+1
+        if (idir == 0 && i <= vhi[0]) {
+            qm(i+1,j,k,n) = Ip_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src_passive;
+            qm(i+1,j,k,n) += 0.5_rt * dt * Ip_src_passive;
 #endif
 
-      } else if (idir == 1 && j <= vhi[1]) {
-        qm(i,j+1,k,n) = Ip_passive;
+        } else if (idir == 1 && j <= vhi[1]) {
+            qm(i,j+1,k,n) = Ip_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src_passive;
+            qm(i,j+1,k,n) += 0.5_rt * dt * Ip_src_passive;
 #endif
 
-      } else if (idir == 2 && k <= vhi[2]) {
-        qm(i,j,k+1,n) = Ip_passive;
+        } else if (idir == 2 && k <= vhi[2]) {
+            qm(i,j,k+1,n) = Ip_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
-        qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src_passive;
+            qm(i,j,k+1,n) += 0.5_rt * dt * Ip_src_passive;
 #endif
-      }
+        }
     }
 
     // plus state on face i
