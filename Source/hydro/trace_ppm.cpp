@@ -350,7 +350,7 @@ Castro::trace_ppm(const Box& bx,
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
 
-#ifdef PRIM_SPECIES_HAVE_SOURCE
+#ifdef PRIM_SPECIES_HAVE_SOURCES
         // if we turned this on, don't bother to check if it source is non-zero -- just trace
         load_ppm_stencil(srcQ, idir, i, j, k, n, s);
         ppm_reconstruct(s, flat, sm, sp);
@@ -375,8 +375,8 @@ Castro::trace_ppm(const Box& bx,
             qp(i,j,k,n) = Im_passive;
 #ifdef PRIM_SPECIES_HAVE_SOURCES
             qp(i,j,k,n) += 0.5_rt * dt * Im_src_passive;
-        }
 #endif
+        }
 
         // Minus state on face i+1
         if (idir == 0 && i <= vhi[0]) {
@@ -398,6 +398,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
         }
     }
+
 
     // plus state on face i
 
