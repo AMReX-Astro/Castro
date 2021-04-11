@@ -61,7 +61,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
                   Array4<Real const> const& qright_arr,
                   Array4<Real const> const& qaux_arr,
                   const int compute_gammas,
-                  RiemannState ql, RiemannState& qr, RiemannAux& raux) {
+                  RiemannState& ql, RiemannState& qr, RiemannAux& raux) {
 
     // fill the states directly from inputs
 

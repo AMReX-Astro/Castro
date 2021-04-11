@@ -156,8 +156,8 @@ Castro::riemanncg(const Box& bx,
 
     // get the shock speeds -- this computes W_s from CG Eq. 34
     Real gamstar = 0.0;
-    Real wlsq = 0.0;
 
+    Real wlsq = 0.0;
     wsqge(ql.p, taul, gamel, gdot, gamstar,
           gmin, gmax, clsql, pstar, wlsq);
 
@@ -256,9 +256,9 @@ Castro::riemanncg(const Box& bx,
         }
 
         std::cout << std::endl;
-        std::cout << "left state: " << ql << std::endl;
-        std::cout << "right state: " << qr << std::endl;
-        std::cout << "aux information: " << raux << std::endl;
+        std::cout << "left state: " << std::endl << ql << std::endl;
+        std::cout << "right state: " << std::endl << qr << std::endl;
+        std::cout << "aux information: " << std::endl << raux << std::endl;
 
         amrex::Error("ERROR: non-convergence in the Riemann solver");
 #endif
@@ -304,9 +304,9 @@ Castro::riemanncg(const Box& bx,
           }
 
           std::cout << std::endl;
-          std::cout << "left state: " << ql << std::endl;
-          std::cout << "right state: " << qr << std::endl;
-          std::cout << "aux information: " << raux << std::endl;
+          std::cout << "left state: " << std::endl << ql << std::endl;
+          std::cout << "right state: " << std::endl << qr << std::endl;
+          std::cout << "aux information: " << std::endl << raux << std::endl;
 
           amrex::Error("ERROR: non-convergence in the Riemann solver");
         }
