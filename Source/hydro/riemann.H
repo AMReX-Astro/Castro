@@ -164,8 +164,8 @@ load_input_states(const int i, const int j, const int k, const int idir,
 
 #ifdef TRUE_SDC
     } else if (use_reconstructed_gamma1 == 1) {
-        ql.gamc = ql(i,j,k,QGC);
-        qr.gamc = qr(i,j,k,QGC);
+        ql.gamc = qleft_arr(i,j,k,QGC);
+        qr.gamc = qright_arr(i,j,k,QGC);
 #endif
     }
 
