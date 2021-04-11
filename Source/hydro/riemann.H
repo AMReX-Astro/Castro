@@ -30,12 +30,37 @@ struct RiemannAux
 };
 
 
+AMREX_INLINE
+std::ostream& operator<< (std::ostream& o, RiemannState const& rs)
+{
+    o << "rho  = " << rs.rho << std::endl;
+    o << "p    = " << rs.p << std::endl;
+    o << "rhoe = " << rs.rhoe << std::endl;
+    o << "gamc = " << rs.gamc << std::endl;
+    o << "un   = " << rs.un << std::endl;
+    o << "ut   = " << rs.ut << std::endl;
+    o << "utt  = " << rs.utt << std::endl;
+    return o;
+}
+
+
+AMREX_INLINE
+std::ostream& operator<< (std::ostream& o, RiemannAux const& ra)
+{
+    o << "csmall  = " << ra.csmall << std::endl;
+    o << "cavg    = " << ra.cavg << std::endl;
+    o << "bnd_fac = " << ra.bnd_fac << std::endl;
+    return o;
+}
+
+
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 void
 load_input_states(const int i, const int j, const int k, const int idir,
                   Array4<Real const> const& qleft_arr,
                   Array4<Real const> const& qright_arr,
                   Array4<Real const> const& qaux_arr,
+                  const int compute_gammas,
                   RiemannState ql, RiemannState& qr, RiemannAux& raux) {
 
     // fill the states directly from inputs
@@ -89,7 +114,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
         raux.cavg = 0.5_rt * (qaux_arr(i,j,k,QC) + qaux_arr(i,j,k-1,QC));
 
         ql.gamc = qaux_arr(i,j,k-1,QGAMC);
-        qr.gamcr = qaux_arr(i,j,k,QGAMC);
+        qr.gamc = qaux_arr(i,j,k,QGAMC);
 
     }
 
@@ -147,9 +172,9 @@ load_input_states(const int i, const int j, const int k, const int idir,
     // sometime we come in here with negative energy or pressure
     // note: reset both in either case, to remain thermo
     // consistent
-    if (ql.rhoe <= 0.0_rt || ql.p < lsmall_pres) {
+    if (ql.rhoe <= 0.0_rt || ql.p < small_pres) {
 #ifndef AMREX_USE_GPU
-        std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << rel << " " << pl << " " << lsmall_pres << std::endl;
+        std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << ql.rhoe << " " << ql.p << " " << small_pres << std::endl;
 #endif
 
         eos_t eos_state;
@@ -171,9 +196,9 @@ load_input_states(const int i, const int j, const int k, const int idir,
         ql.gamc = eos_state.gam1;
     }
 
-    if (qr.rhoe <= 0.0_rt || qr.p < lsmall_pres) {
+    if (qr.rhoe <= 0.0_rt || qr.p < small_pres) {
 #ifndef AMREX_USE_GPU
-        std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << rer << " " << pr << " " << lsmall_pres << std::endl;
+        std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << qr.rhoe << " " << qr.p << " " << small_pres << std::endl;
 #endif
 
         eos_t eos_state;
