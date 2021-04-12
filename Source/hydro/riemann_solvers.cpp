@@ -70,11 +70,6 @@ Castro::riemanncg(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const Real lsmall_dens = small_dens;
-  const Real lsmall_pres = small_pres;
-  const Real lsmall_temp = small_temp;
-  const Real lsmall = riemann_constants::small;
-
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -152,7 +147,7 @@ Castro::riemanncg(const Box& bx,
     // approximation
     //pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))/(wl + wr)
     Real pstar = ql.p + ( (qr.p - ql.p) - wr*(qr.un - ql.un) ) * wl / (wl + wr);
-    pstar = amrex::max(pstar, lsmall_pres);
+    pstar = amrex::max(pstar, small_pres);
 
     // get the shock speeds -- this computes W_s from CG Eq. 34
     Real gamstar = 0.0;
@@ -280,8 +275,8 @@ Castro::riemanncg(const Box& bx,
           pstaru = amrex::max(pstaru, pstar_hist[n]);
         }
 
-        pstarl = amrex::max(pstarl, lsmall_pres);
-        pstaru = amrex::max(pstaru, lsmall_pres);
+        pstarl = amrex::max(pstarl, small_pres);
+        pstaru = amrex::max(pstaru, small_pres);
 
         GpuArray<Real, PSTAR_BISECT_FACTOR*HISTORY_SIZE> pstar_hist_extra;
 
@@ -476,8 +471,8 @@ Castro::riemanncg(const Box& bx,
 
 void
 Castro::riemannus(const Box& bx,
-                  Array4<Real> const& ql,
-                  Array4<Real> const& qr,
+                  Array4<Real> const& qleft_arr,
+                  Array4<Real> const& qright_arr,
                   Array4<Real const> const& qaux_arr,
                   Array4<Real> const& qint,
 #ifdef RADIATION
@@ -527,13 +522,6 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const int luse_eos_in_riemann = use_eos_in_riemann;
-
-  const Real lsmall = riemann_constants::small;
-  const Real lsmall_dens = small_dens;
-  const Real lsmall_pres = small_pres;
-  const Real lT_guess = T_guess;
-
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
@@ -565,166 +553,39 @@ Castro::riemannus(const Box& bx,
 #ifdef RADIATION
     Real laml[NGROUPS];
     Real lamr[NGROUPS];
-
-    for (int g = 0; g < NGROUPS; g++) {
-      if (idir == 0) {
-        laml[g] = qaux_arr(i-1,j,k,QLAMS+g);
-      } else if (idir == 1) {
-        laml[g] = qaux_arr(i,j-1,k,QLAMS+g);
-      } else {
-        laml[g] = qaux_arr(i,j,k-1,QLAMS+g);
-      }
-      lamr[g] = qaux_arr(i,j,k,QLAMS+g);
-    }
 #endif
 
-    Real rl = amrex::max(ql(i,j,k,QRHO), lsmall_dens);
+    RiemannState ql;
+    RiemannState qr;
+    RiemannAux raux;
 
-    // pick left velocities based on direction
-    Real ul  = ql(i,j,k,iu);
-    Real v1l = ql(i,j,k,iv1);
-    Real v2l = ql(i,j,k,iv2);
+    load_input_states(i, j, k, idir,
+                      qleft_arr, qright_arr, qaux_arr,
+                      compute_gammas,
+                      ql, qr, raux);
 
-#ifdef RADIATION
-    Real pl = ql(i,j,k,QPTOT);
-    Real rel = ql(i,j,k,QREITOT);
-    Real erl[NGROUPS];
-    for (int g = 0; g < NGROUPS; g++) {
-      erl[g] = ql(i,j,k,QRAD+g);
-    }
-    Real pl_g = ql(i,j,k,QPRES);
-    Real rel_g = ql(i,j,k,QREINT);
-#else
-    Real pl = amrex::max(ql(i,j,k,QPRES), lsmall_pres);
-    Real rel = ql(i,j,k,QREINT);
-#endif
 
-    Real rr = amrex::max(qr(i,j,k,QRHO), lsmall_dens);
-
-    // pick right velocities based on direction
-    Real ur  = qr(i,j,k,iu);
-    Real v1r = qr(i,j,k,iv1);
-    Real v2r = qr(i,j,k,iv2);
-
-#ifdef RADIATION
-    Real pr = qr(i,j,k,QPTOT);
-    Real rer = qr(i,j,k,QREITOT);
-    Real err[NGROUPS];
-    for (int g = 0; g < NGROUPS; g++) {
-      err[g] = qr(i,j,k,QRAD+g);
-    }
-    Real pr_g = qr(i,j,k,QPRES);
-    Real rer_g = qr(i,j,k,QREINT);
-#else
-    Real pr = amrex::max(qr(i,j,k,QPRES), lsmall_pres);
-    Real rer = qr(i,j,k,QREINT);
-#endif
 
     // estimate the star state: pstar, ustar
 
-    Real csmall;
-    Real cavg;
-    Real gamcl;
-    Real gamcr;
-#ifdef RADIATION
-    Real gamcgl;
-    Real gamcgr;
-#endif
-
-    if (idir == 0) {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i-1,j,k,QC)));
-      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i-1,j,k,QC));
-      gamcl = qaux_arr(i-1,j,k,QGAMC);
-      gamcr = qaux_arr(i,j,k,QGAMC);
-#ifdef RADIATION
-      gamcgl = qaux_arr(i-1,j,k,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-#endif
-
-    } else if (idir == 1) {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j-1,k,QC)));
-      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i,j-1,k,QC));
-      gamcl = qaux_arr(i,j-1,k,QGAMC);
-      gamcr = qaux_arr(i,j,k,QGAMC);
-#ifdef RADIATION
-      gamcgl = qaux_arr(i,j-1,k,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-#endif
-
-    } else {
-      csmall = amrex::max(lsmall, lsmall * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC)));
-      cavg = 0.5_rt*(qaux_arr(i,j,k,QC) + qaux_arr(i,j,k-1,QC));
-      gamcl = qaux_arr(i,j,k-1,QGAMC);
-      gamcr = qaux_arr(i,j,k,QGAMC);
-#ifdef RADIATION
-      gamcgl = qaux_arr(i,j,k-1,QGAMCG);
-      gamcgr = qaux_arr(i,j,k,QGAMCG);
-#endif
-    }
-
-#ifndef RADIATION
-    if (compute_gammas == 1) {
-
-      // we come in with a good p, rho, and X on the interfaces
-      // -- use this to find the gamma used in the sound speed
-      eos_t eos_state;
-      eos_state.p = pl;
-      eos_state.rho = rl;
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = ql(i,j,k,QFS+n);
-      }
-      eos_state.T = lT_guess; // initial guess
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = ql(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      gamcl = eos_state.gam1;
-
-      eos_state.p = pr;
-      eos_state.rho = rr;
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qr(i,j,k,QFS+n);
-      }
-      eos_state.T = lT_guess; // initial guess
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qr(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      gamcr = eos_state.gam1;
-
-#ifdef TRUE_SDC
-    } else if (use_reconstructed_gamma1 == 1) {
-      gamcl = ql(i,j,k,QGC);
-      gamcr = qr(i,j,k,QGC);
-#endif
-
-    }
-#endif
-
-    Real wsmall = lsmall_dens*csmall;
+    Real wsmall = small_dens * raux.csmall;
 
     // this is Castro I: Eq. 33
-    Real wl = amrex::max(wsmall, std::sqrt(std::abs(gamcl*pl*rl)));
-    Real wr = amrex::max(wsmall, std::sqrt(std::abs(gamcr*pr*rr)));
+
+    Real wl = amrex::max(wsmall, std::sqrt(std::abs(ql.gamc * ql.p * ql.rho)));
+    Real wr = amrex::max(wsmall, std::sqrt(std::abs(qr.gamc * qr.p * qr.rho)));
 
     Real wwinv = 1.0_rt/(wl + wr);
-    Real pstar = ((wr*pl + wl*pr) + wl*wr*(ul - ur))*wwinv;
-    Real ustar = ((wl*ul + wr*ur) + (pl - pr))*wwinv;
+    Real pstar = ((wr * ql.p + wl * qr.p) + wl * wr * (ql.un - qr.un)) * wwinv;
+    Real ustar = ((wl * ql.un + wr * qr.un) + (ql.p - qr.p)) * wwinv;
 
-    pstar = amrex::max(pstar, lsmall_pres);
+    pstar = amrex::max(pstar, small_pres);
 
     // for symmetry preservation, if ustar is really small, then we
     // set it to zero
-    if (std::abs(ustar) < riemann_constants::smallu*0.5_rt*(std::abs(ul) + std::abs(ur))) {
-      ustar = 0.0_rt;
+
+    if (std::abs(ustar) < riemann_constants::smallu * 0.5_rt * (std::abs(ql.un) + std::abs(qr.un))) {
+        ustar = 0.0_rt;
     }
 
     // look at the contact to determine which region we are in
@@ -740,53 +601,54 @@ Castro::riemannus(const Box& bx,
     Real fp = 0.5_rt*(1.0_rt + sgnm);
     Real fm = 0.5_rt*(1.0_rt - sgnm);
 
-    Real ro = fp*rl + fm*rr;
-    Real uo = fp*ul + fm*ur;
-    Real po = fp*pl + fm*pr;
-    Real reo = fp*rel + fm*rer;
-    Real gamco = fp*gamcl + fm*gamcr;
+    Real ro = fp * ql.rho + fm * qr.rho;
+    Real uo = fp * ql.un + fm * qr.un;
+    Real po = fp * ql.p + fm * qr.p;
+    Real reo = fp * ql.rhoe + fm * qr.rhoe;
+    Real gamco = fp * ql.gamc + fm * qr.gamc;
 #ifdef RADIATION
     Real lambda[NGROUPS];
     for (int g = 0; g < NGROUPS; g++) {
-      lambda[g] = fp*laml[g] + fm*lamr[g];
+        lambda[g] = fp * ql.lam[g] + fm * qr.lam[g];
     }
 
     if (ustar == 0) {
-      // harmonic average
-      for (int g = 0; g < NGROUPS; g++) {
-        lambda[g] = 2.0_rt*(laml[g]*lamr[g])/(laml[g] + lamr[g] + 1.e-50_rt);
-      }
+        // harmonic average
+        for (int g = 0; g < NGROUPS; g++) {
+            lambda[g] = 2.0_rt * (ql.lam[g] * qr.lam[g]) / (ql.lam[g] + qr.lam[g] + 1.e-50_rt);
+        }
     }
 
-    Real po_g = fp*pl_g + fm*pr_g;
+    Real po_g = fp * ql.p_g + fm * qr.p_g;
     Real reo_r[NGROUPS];
     Real po_r[NGROUPS];
     for (int g = 0; g < NGROUPS; g++) {
-      reo_r[g] = fp*erl[g] + fm*err[g];
-      po_r[g] = lambda[g]*reo_r[g];
+        reo_r[g] = fp * ql.er[g] + fm * qr.er[g];
+        po_r[g] = lambda[g] * reo_r[g];
     }
-    Real reo_g = fp*rel_g + fm*rer_g;
-    Real gamco_g = fp*gamcgl + fm*gamcgr;
+    Real reo_g = fp * ql.rhoe_g + fm * qr.rhoe_g;
+    Real gamco_g = fp * ql.gamcg + fm * qr.gamcg;
 #endif
 
-    ro = amrex::max(lsmall_dens, ro);
+    ro = amrex::max(small_dens, ro);
 
-    Real roinv = 1.0_rt/ro;
+    Real roinv = 1.0_rt / ro;
 
-    Real co = std::sqrt(std::abs(gamco*po*roinv));
-    co = amrex::max(csmall, co);
-    Real co2inv = 1.0_rt/(co*co);
+    Real co = std::sqrt(std::abs(gamco * po * roinv));
+    co = amrex::max(raux.csmall, co);
+    Real co2inv = 1.0_rt / (co*co);
 
     // we can already deal with the transverse velocities -- they
     // only jump across the contact
-    qint(i,j,k,iv1) = fp*v1l + fm*v1r;
-    qint(i,j,k,iv2) = fp*v2l + fm*v2r;
+
+    qint(i,j,k,iv1) = fp * ql.ut + fm * qr.ut;
+    qint(i,j,k,iv2) = fp * ql.utt + fm * qr.utt;
 
     // compute the rest of the star state
 
     Real drho = (pstar - po)*co2inv;
     Real rstar = ro + drho;
-    rstar = amrex::max(lsmall_dens, rstar);
+    rstar = amrex::max(small_dens, rstar);
 
 #ifdef RADIATION
     Real estar_g = reo_g + drho*(reo_g + po_g)*roinv;
@@ -795,7 +657,7 @@ Castro::riemannus(const Box& bx,
     co_g = amrex::max(csmall, co_g);
 
     Real pstar_g = po_g + drho*co_g*co_g;
-    pstar_g = amrex::max(pstar_g, lsmall_pres);
+    pstar_g = amrex::max(pstar_g, small_pres);
 
     Real estar_r[NGROUPS];
     for (int g = 0; g < NGROUPS; g++) {
@@ -807,7 +669,7 @@ Castro::riemannus(const Box& bx,
 #endif
 
     Real cstar = std::sqrt(std::abs(gamco*pstar/rstar));
-    cstar = amrex::max(cstar, csmall);
+    cstar = amrex::max(cstar, raux.csmall);
 
     // finish sampling the solution
 
@@ -822,13 +684,13 @@ Castro::riemannus(const Box& bx,
     Real ushock = 0.5_rt*(spin + spout);
 
     if (pstar-po > 0.0_rt) {
-      spin = ushock;
-      spout = ushock;
+        spin = ushock;
+        spout = ushock;
     }
 
     Real scr = spout - spin;
     if (spout-spin == 0.0_rt) {
-      scr = lsmall*cavg;
+        scr = riemann_constants::small * raux.cavg;
     }
 
     // interpolate for the case that we are in a rarefaction
@@ -910,13 +772,13 @@ Castro::riemannus(const Box& bx,
     }
 
 #else
-    qint(i,j,k,QPRES) = amrex::max(qint(i,j,k,QPRES), lsmall_pres);
+    qint(i,j,k,QPRES) = amrex::max(qint(i,j,k,QPRES), small_pres);
     qint(i,j,k,QREINT) = regdnv;
 #endif
 
     // we are potentially thermodynamically inconsistent, fix that
     // here
-    if (luse_eos_in_riemann == 1) {
+    if (use_eos_in_riemann == 1) {
       // we need to know the species -- they only jump across
       // the contact
       eos_t eos_state;
@@ -925,14 +787,14 @@ Castro::riemannus(const Box& bx,
       eos_state.p = qint(i,j,k,QPRES);
 
       for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = fp*ql(i,j,k,QFS+n) + fm*qr(i,j,k,QFS+n);
+        eos_state.xn[n] = fp*qleft_arr(i,j,k,QFS+n) + fm*qright_arr(i,j,k,QFS+n);
       }
 
-      eos_state.T = lT_guess;
+      eos_state.T = T_guess;
 
 #if NAUX_NET > 0
       for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = fp*ql(i,j,k,QFX+n) + fm*qr(i,j,k,QFX+n);
+        eos_state.aux[n] = fp*qleft_arr(i,j,k,QFX+n) + fm*qright_arr(i,j,k,QFX+n);
       }
 #endif
 
@@ -947,7 +809,7 @@ Castro::riemannus(const Box& bx,
     // passively advected quantities
     for (int ipassive = 0; ipassive < npassive; ipassive++) {
       int nqp = qpassmap(ipassive);
-      qint(i,j,k,nqp) = fp*ql(i,j,k,nqp) + fm*qr(i,j,k,nqp);
+      qint(i,j,k,nqp) = fp*qleft_arr(i,j,k,nqp) + fm*qright_arr(i,j,k,nqp);
     }
 
   });
