@@ -654,7 +654,7 @@ Castro::riemannus(const Box& bx,
     Real estar_g = reo_g + drho*(reo_g + po_g)*roinv;
 
     Real co_g = std::sqrt(std::abs(gamco_g*po_g*roinv));
-    co_g = amrex::max(csmall, co_g);
+    co_g = amrex::max(raux.csmall, co_g);
 
     Real pstar_g = po_g + drho*co_g*co_g;
     pstar_g = amrex::max(pstar_g, small_pres);
