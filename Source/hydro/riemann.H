@@ -72,6 +72,8 @@ load_input_states(const int i, const int j, const int k, const int idir,
                   const int compute_gammas,
                   RiemannState& ql, RiemannState& qr, RiemannAux& raux) {
 
+    const Real small = 1.e-8_rt;
+
     // fill the states directly from inputs
 
     ql.rho = amrex::max(qleft_arr(i,j,k,QRHO), small_dens);
@@ -86,8 +88,8 @@ load_input_states(const int i, const int j, const int k, const int idir,
         qr.ut = qright_arr(i,j,k,QV);
         qr.utt = qright_arr(i,j,k,QW);
 
-        raux.csmall = amrex::max(riemann_constants::small,
-                                 riemann_constants::small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i-1,j,k,QC)));
+        raux.csmall = amrex::max(small,
+                                 small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i-1,j,k,QC)));
         raux.cavg = 0.5_rt * (qaux_arr(i,j,k,QC) + qaux_arr(i-1,j,k,QC));
 
         ql.gamc = qaux_arr(i-1,j,k,QGAMC);
@@ -112,8 +114,8 @@ load_input_states(const int i, const int j, const int k, const int idir,
         qr.ut = qright_arr(i,j,k,QU);
         qr.utt = qright_arr(i,j,k,QW);
 
-        raux.csmall = amrex::max(riemann_constants::small,
-                                 riemann_constants::small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j-1,k,QC)));
+        raux.csmall = amrex::max(small,
+                                 small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j-1,k,QC)));
         raux.cavg = 0.5_rt * (qaux_arr(i,j,k,QC) + qaux_arr(i,j-1,k,QC));
 
         ql.gamc = qaux_arr(i,j-1,k,QGAMC);
@@ -138,8 +140,8 @@ load_input_states(const int i, const int j, const int k, const int idir,
         qr.ut = qright_arr(i,j,k,QU);
         qr.utt = qright_arr(i,j,k,QV);
 
-        raux.csmall = amrex::max(riemann_constants::small,
-                                 riemann_constants::small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC)));
+        raux.csmall = amrex::max(small,
+                                 small * amrex::max(qaux_arr(i,j,k,QC), qaux_arr(i,j,k-1,QC)));
         raux.cavg = 0.5_rt * (qaux_arr(i,j,k,QC) + qaux_arr(i,j,k-1,QC));
 
         ql.gamc = qaux_arr(i,j,k-1,QGAMC);
