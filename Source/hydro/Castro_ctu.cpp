@@ -477,15 +477,17 @@ Castro::src_to_prim(const Box& bx,
 
       eos(eos_input_re, eos_state);
 
+      Real dpde = eos_state.dpdT * (1.0_rt / eos_state.dedT);
+      Real dpdr_e = eos_state.dpdr - eos_state.dpdT * eos_state.dedr * (1.0_rt / eos_state.dedT);
 
       srcQ(i,j,k,QRHO) = src(i,j,k,URHO);
       srcQ(i,j,k,QU) = (src(i,j,k,UMX) - q_arr(i,j,k,QU) * srcQ(i,j,k,QRHO)) * rhoinv;
       srcQ(i,j,k,QV) = (src(i,j,k,UMY) - q_arr(i,j,k,QV) * srcQ(i,j,k,QRHO)) * rhoinv;
       srcQ(i,j,k,QW) = (src(i,j,k,UMZ) - q_arr(i,j,k,QW) * srcQ(i,j,k,QRHO)) * rhoinv;
       srcQ(i,j,k,QREINT) = src(i,j,k,UEINT);
-      srcQ(i,j,k,QPRES ) = eos_state.dpde *
+      srcQ(i,j,k,QPRES ) = dpde *
         (srcQ(i,j,k,QREINT) - q_arr(i,j,k,QREINT) * srcQ(i,j,k,QRHO)*rhoinv) *
-        rhoinv + eos_state.dpdr_e * srcQ(i,j,k,QRHO);
+        rhoinv + dpdr_e * srcQ(i,j,k,QRHO);
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
       for (int ipassive = 0; ipassive < npassive; ++ipassive) {

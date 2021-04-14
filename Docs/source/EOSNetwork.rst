@@ -134,12 +134,6 @@ Additionally the ``eos_input_re`` mode also needs to supply:
 
 -  ``eos_state % cs``: the adiabatic sound speed
 
--  ``eos_state % dpdr_e``: the derivative, :math:`\partial p/\partial \rho |_e`
-   — note that the specific internal energy, :math:`e`
-   is held constant here.
-
--  ``eos_state % dpde``: the derivative, :math:`\partial p / \partial e |_\rho`
-
 For radiation hydro, the ``eos_input_rt`` model needs to supply:
 
 -  ``eos_state % cv``: the specific heat capacity.
