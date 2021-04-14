@@ -838,7 +838,7 @@
                    amrex::Array4<amrex::Real const> const& lambda,
                    amrex::Array4<amrex::Real> const& rF,
 #endif
-                   const int idir, const int enforce_eos);
+                   const int idir);
 
     void
     store_godunov_state(const amrex::Box& bx,
