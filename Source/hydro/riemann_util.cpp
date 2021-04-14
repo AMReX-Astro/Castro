@@ -11,8 +11,6 @@
 #include <hybrid.H>
 #endif
 
-#include <eos.H>
-
 #include <cmath>
 
 using namespace amrex;
@@ -27,7 +25,7 @@ Castro::compute_flux_q(const Box& bx,
                        Array4<Real const> const& lambda,
                        Array4<Real> const& rF,
 #endif
-                       const int idir, const int enforce_eos) {
+                       const int idir) {
 
   // given a primitive state, compute the flux in direction idir
   //
@@ -82,27 +80,6 @@ Castro::compute_flux_q(const Box& bx,
 
     Real u_adv = qint(i,j,k,iu);
     Real rhoeint = qint(i,j,k,QREINT);
-
-    // if we are enforcing the EOS, then take rho, p, and X, and
-    // compute rhoe
-    if (enforce_eos == 1) {
-      eos_t eos_state;
-      eos_state.rho = qint(i,j,k,QRHO);
-      eos_state.p = qint(i,j,k,QPRES);
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = qint(i,j,k,QFS+n);
-      }
-      eos_state.T = lT_guess;  // initial guess
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = qint(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      rhoeint = qint(i,j,k,QRHO) * eos_state.e;
-    }
 
     // Compute fluxes, order as conserved state (not q)
     F(i,j,k,URHO) = qint(i,j,k,QRHO)*u_adv;
