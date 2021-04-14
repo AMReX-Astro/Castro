@@ -617,8 +617,6 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const int luse_eos_in_riemann = use_eos_in_riemann;
-
   const Real lsmall = riemann_constants::small;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
