@@ -51,7 +51,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 #ifdef RADIATION
                    lambda_int, rflx,
 #endif
-                   idir, 0);
+                   idir);
 
   } else if (riemann_solver == 2) {
     // HLLC
