@@ -261,7 +261,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                           qaux_arr,
                           idir, 0);
 
-            compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir, 0);
+            compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir);
 
 
             if (do_hydro == 0) {
@@ -331,7 +331,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // compute the face-center fluxes F(q_fc)
             Array4<Real> const f_arr = (flux[idir]).array();
 
-            compute_flux_q(nbx, q_fc_arr, f_arr, idir, 0);
+            compute_flux_q(nbx, q_fc_arr, f_arr, idir);
 
             if (do_hydro == 0) {
 
