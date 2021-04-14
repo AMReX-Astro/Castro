@@ -35,7 +35,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -122,7 +122,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -157,7 +157,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -192,7 +192,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -228,7 +228,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -263,7 +263,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -468,7 +468,7 @@ extern "C"
           Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
           // calculate the sound speed
-          eos_t eos_state;
+          eos_rep_t eos_state;
           eos_state.rho  = dat(i,j,k,URHO);
           eos_state.T = dat(i,j,k,UTEMP);
           eos_state.e = dat(i,j,k,UEINT) * rhoInv;
