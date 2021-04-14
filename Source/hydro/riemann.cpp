@@ -263,4 +263,27 @@ Castro::riemann_state(const Box& bx,
     amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
   }
+
+  // the passives are always just upwinded, so we do that here
+  // regardless of the solver
+
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  {
+
+      Real sgnm = std::copysign(1.0_rt, qint(i,j,k,QU+idir));
+      if (qint(i,j,k,QU+idir) == 0.0_rt) {
+          sgnm = 0.0_rt;
+      }
+
+      Real fp = 0.5_rt*(1.0_rt + sgnm);
+      Real fm = 0.5_rt*(1.0_rt - sgnm);
+
+      for (int ipassive = 0; ipassive < npassive; ipassive++) {
+          int nqp = qpassmap(ipassive);
+          qint(i,j,k,nqp) = fp * qleft_arr(i,j,k,nqp) + fm * qright_arr(i,j,k,nqp);
+      }
+
+  });
+
 }
