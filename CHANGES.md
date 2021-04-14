@@ -1,3 +1,8 @@
+# 21.05
+
+   * The parameter use_eos_in_riemann was removed -- we found no
+     instances of it being used (#1623)
+
 # 21.04
 
    * For simplified-SDC, we now correctly store only the reactive

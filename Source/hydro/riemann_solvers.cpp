@@ -732,33 +732,6 @@ Castro::riemannus(const int i, const int j, const int k,
   qint(i,j,k,QREINT) = regdnv;
 #endif
 
-  // we are potentially thermodynamically inconsistent, fix that
-  // here
-  if (use_eos_in_riemann == 1) {
-      // we need to know the species -- they only jump across
-      // the contact
-      eos_t eos_state;
-
-      eos_state.rho = qint(i,j,k,QRHO);
-      eos_state.p = qint(i,j,k,QPRES);
-
-      for (int n = 0; n < NumSpec; n++) {
-          eos_state.xn[n] = fp*qleft_arr(i,j,k,QFS+n) + fm*qright_arr(i,j,k,QFS+n);
-      }
-
-      eos_state.T = T_guess;
-
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-          eos_state.aux[n] = fp*qleft_arr(i,j,k,QFX+n) + fm*qright_arr(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      qint(i,j,k,QREINT) = eos_state.rho * eos_state.e;
-  }
-
   // Enforce that fluxes through a symmetry plane or wall are hard zero.
   qint(i,j,k,iu) = qint(i,j,k,iu) * bnd_fac;
 
