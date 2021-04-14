@@ -245,7 +245,6 @@ Castro::riemann_state(const Box& bx,
       if (riemann_solver == 0) {
           // Colella, Glaz, & Ferguson solver
 
-
           riemannus(i, j, k,
                     ql, qr, raux,
                     qint,
@@ -254,28 +253,24 @@ Castro::riemann_state(const Box& bx,
 #endif
                     idir);
 
-  } else if (riemann_solver == 1) {
-    // Colella & Glaz solver
+      } else if (riemann_solver == 1) {
+          // Colella & Glaz solver
 
 #ifndef RADIATION
-    riemanncg(bx,
-              qm, qp,
-              qaux_arr, qint,
-              idir);
+          riemanncg(i, j, k,
+                    ql, qr, raux,
+                    qint,
+                    idir);
 #endif
 
 #ifndef AMREX_USE_GPU
-  } else {
-    amrex::Error("ERROR: invalid value of riemann_solver");
+      } else {
+          amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
-  }
+      }
 
-  // the passives are always just upwinded, so we do that here
-  // regardless of the solver
-
-  amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-  {
+      // the passives are always just upwinded, so we do that here
+      // regardless of the solver
 
       Real sgnm = std::copysign(1.0_rt, qint(i,j,k,QU+idir));
       if (qint(i,j,k,QU+idir) == 0.0_rt) {
