@@ -239,87 +239,87 @@
 <dt id="_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv329construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_old_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a47cc1e70495745d2a5a3ed83590477bb"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">construct_old_rotation_source</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_old_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct rotation source terms at old time</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Old state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> – MultiFab to save source terms to </p></li>
+<li><p><strong>state</strong> – Old state </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv329construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv229construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE"></span><span id="construct_new_rotation_source__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a35ddccae23393f527f14f985ffaee436"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">construct_new_rotation_source</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state_old</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state_new</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429construct_new_rotation_sourceRN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Construct rotation source terms at new time.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: MultiFab to save source terms to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state_old</span></code>: Old State </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state_new</span></code>: New State </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> – MultiFab to save source terms to </p></li>
+<li><p><strong>state_old</strong> – Old State </p></li>
+<li><p><strong>state_new</strong> – New State </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv319fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv219fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE"></span><span id="fill_rotation_field__amrex::MultiFabR.amrex::MultiFabR.amrex::Real"></span><span class="target" id="Castro__rotation_8H_1a4c054948c6730b382771fdf342d02d0f"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">fill_rotation_field</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">phi</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419fill_rotation_fieldRN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Fill rotational potential and acceleration</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">phi</span></code>: Rotational potential </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">rot</span></code>: Rotational acceleration </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: Current state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phi</strong> – Rotational potential </p></li>
+<li><p><strong>rot</strong> – Rotational acceleration </p></li>
+<li><p><strong>state</strong> – Current state </p></li>
+<li><p><strong>time</strong> – current time </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real">
 <span id="_CPPv34rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="_CPPv24rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real"></span><span id="rsrc__BoxCR.Array4:RealC:CR.Array4:Real:CR.RealC"></span><span class="target" id="Castro__rotation_8H_1ab09ecd463e1840f10b7ba6967b98f2e7"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">rsrc</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">Box</span> <span class="pre">&amp;</span><em><span class="pre">bx</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">uold</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv44rsrcRK3BoxRK6Array4IK4RealERK6Array4I4RealEK4Real" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Add the rotation source for input state uold to the full hydrodynamic source term source</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: the full hydrodynamical source term </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>source</strong> – the full hydrodynamical source term </p></li>
+<li><p><strong>dt</strong> – current timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE">
 <span id="_CPPv38corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="_CPPv28corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE"></span><span id="corrrsrc__BoxCR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:Real:CR.Array4:RealC:CR.Array4:RealC:CR.Array4:RealC:CR.RealC.Array4:RealC:CR"></span><span class="target" id="Castro__rotation_8H_1ae33e4cf3f7de7d7b12d3c5faeb5c09c5"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">corrrsrc</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">Box</span> <span class="pre">&amp;</span><em><span class="pre">bx</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">phi_old</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">phi_new</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">uold</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">unew</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">flux0</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">flux1</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">flux2</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">Array4</span><span class="pre">&lt;</span><span class="pre">Real</span> <em class="property"><span class="pre">const</span></em><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <span class="pre">&amp;</span><em><span class="pre">vol</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv48corrrsrcRK3BoxRK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4I4RealERK6Array4IK4RealERK6Array4IK4RealERK6Array4IK4RealEK4RealRK6Array4IK4RealE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the correction source term for rotation</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: the box to operate over </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi_old</span></code>: rotational potential at old time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">phi_new</span></code>: rotational potential at new time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">uold</span></code>: old time state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unew</span></code>: new time state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: full hydrodynamic state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">flux0</span></code>: mass flux in x coord dir </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">flux1</span></code>: mass flux in y coord dir </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">flux2</span></code>: mass flux in z coord dir </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: current timestep </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">vol</span></code>: cell volume </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>phi_old</strong> – rotational potential at old time </p></li>
+<li><p><strong>phi_new</strong> – rotational potential at new time </p></li>
+<li><p><strong>uold</strong> – old time state </p></li>
+<li><p><strong>unew</strong> – new time state </p></li>
+<li><p><strong>source</strong> – full hydrodynamic state </p></li>
+<li><p><strong>flux0</strong> – mass flux in x coord dir </p></li>
+<li><p><strong>flux1</strong> – mass flux in y coord dir </p></li>
+<li><p><strong>flux2</strong> – mass flux in z coord dir </p></li>
+<li><p><strong>dt</strong> – current timestep </p></li>
+<li><p><strong>vol</strong> – cell volume </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">

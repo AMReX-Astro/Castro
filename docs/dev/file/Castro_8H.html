@@ -500,18 +500,18 @@
 <dt id="_CPPv4N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE">
 <span id="_CPPv3N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE"></span><span id="_CPPv2N6Castro6CastroERN5amrex3AmrEiRKN5amrex8GeometryERKN5amrex8BoxArrayERKN5amrex19DistributionMappingEN5amrex4RealE"></span><span id="Castro::Castro__amrex::AmrR.i.amrex::GeometryCR.amrex::BoxArrayCR.amrex::DistributionMappingCR.amrex::Real"></span><span class="target" id="classCastro_1a0ddfa390331ac71027a24b4c2ae6c355"></span><code class="sig-name descname"><span class="pre">Castro</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Amr</span> <span class="pre">&amp;</span><em><span class="pre">papa</span></em>, <span class="pre">int</span> <em><span class="pre">lev</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Geometry</span> <span class="pre">&amp;</span><em><span class="pre">level_geom</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">BoxArray</span> <span class="pre">&amp;</span><em><span class="pre">bl</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">DistributionMapping</span> <span class="pre">&amp;</span><em><span class="pre">dm</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>The basic constructor.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lev</span></code>: which level are we on </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">level_geom</span></code>: level geometry </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bl</span></code>: <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code> object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dm</span></code>: the mapping </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>papa</strong> – parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </p></li>
+<li><p><strong>lev</strong> – which level are we on </p></li>
+<li><p><strong>level_geom</strong> – level geometry </p></li>
+<li><p><strong>bl</strong> – <code class="docutils literal notranslate"><span class="pre">BoxArray</span></code> object </p></li>
+<li><p><strong>dm</strong> – the mapping </p></li>
+<li><p><strong>time</strong> – current time </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -524,44 +524,42 @@
 <dt id="_CPPv4N6Castro7restartERN5amrex3AmrER7istreamb">
 <span id="_CPPv3N6Castro7restartERN5amrex3AmrER7istreamb"></span><span id="_CPPv2N6Castro7restartERN5amrex3AmrER7istreamb"></span><span id="Castro::restart__amrex::AmrR.istreamR.b"></span><span class="target" id="classCastro_1afde904ee263a01f9002f6e84c63c1ed9"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">restart</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Amr</span> <span class="pre">&amp;</span><em><span class="pre">papa</span></em>, <span class="pre">istream</span> <span class="pre">&amp;</span><em><span class="pre">is</span></em>, <span class="pre">bool</span> <em><span class="pre">bReadSpecial</span></em> <span class="pre">=</span> <span class="pre">false</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Restart from a checkpoint file.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">papa</span></code>: parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">bReadSpecial</span></code>: </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>papa</strong> – parent <code class="docutils literal notranslate"><span class="pre">amrex::Amr</span></code> object </p></li>
+<li><p><strong>is</strong> – </p></li>
+<li><p><strong>bReadSpecial</strong> – </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE">
 <span id="_CPPv3N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE"></span><span id="_CPPv2N6Castro23set_state_in_checkpointERN5amrex6VectorIiEE"></span><span id="Castro::set_state_in_checkpoint__amrex::Vector:i:R"></span><span class="target" id="classCastro_1a8db63ed0233c1af47be942416ecfe088"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_state_in_checkpoint</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">state_in_checkpoint</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>This is called only when we restart from an old checkpoint. Sets the Vector <code class="docutils literal notranslate"><span class="pre">state_in_checkpoint</span></code> depending on the input version and type.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state_in_checkpoint</span></code>: Vector of integer flags describing the state </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_in_checkpoint</strong> – Vector of integer flags describing the state </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb">
 <span id="_CPPv3N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb"></span><span id="_CPPv2N6Castro10checkPointERKNSt6stringERNSt7ostreamEN5amrex5VisMF3HowEb"></span><span id="Castro::checkPoint__ssCR.osR.amrex::VisMF::How.b"></span><span class="target" id="classCastro_1a6bc36cdc28c5258ed83719bd7efcf6b5"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">checkPoint</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em>, <span class="pre">std</span><span class="pre">::</span><span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">os</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">VisMF</span><span class="pre">::</span><span class="pre">How</span> <em><span class="pre">how</span></em>, <span class="pre">bool</span> <em><span class="pre">dump_old</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Call <code class="docutils literal notranslate"><span class="pre">amrex::AmrLevel::checkPoint</span></code> and then add radiation info</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: Directory to store checkpoint in </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">os</span></code>: <code class="docutils literal notranslate"><span class="pre">std::ostream</span></code> object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">V</span></code>isMF::How`` object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dump_old</span></code>: boolean </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – Directory to store checkpoint in </p></li>
+<li><p><strong>os</strong> – <code class="docutils literal notranslate"><span class="pre">std::ostream</span></code> object </p></li>
+<li><p><strong>how</strong> – <code class="docutils literal notranslate"><span class="pre">V</span></code>isMF::How`` object </p></li>
+<li><p><strong>dump_old</strong> – boolean </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -579,58 +577,58 @@
 <dt id="_CPPv4N6Castro13writePlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE">
 <span id="_CPPv3N6Castro13writePlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE"></span><span id="_CPPv2N6Castro13writePlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE"></span><span id="Castro::writePlotFile__ssCR.ostreamR.amrex::VisMF::How"></span><span class="target" id="classCastro_1aa7b2a3c525a91df0f291ffcfc8f93187"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">writePlotFile</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em>, <span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">os</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">VisMF</span><span class="pre">::</span><span class="pre">How</span> <em><span class="pre">how</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Write a plotfile to specified directory.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to write to </p></li>
+<li><p><strong>os</strong> – output stream </p></li>
+<li><p><strong>how</strong> – <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18writeSmallPlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE">
 <span id="_CPPv3N6Castro18writeSmallPlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE"></span><span id="_CPPv2N6Castro18writeSmallPlotFileERKNSt6stringER7ostreamN5amrex5VisMF3HowE"></span><span id="Castro::writeSmallPlotFile__ssCR.ostreamR.amrex::VisMF::How"></span><span class="target" id="classCastro_1aae697270707d93cd5969f278fc25ef64"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">writeSmallPlotFile</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em>, <span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">os</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">VisMF</span><span class="pre">::</span><span class="pre">How</span> <em><span class="pre">how</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to write to </p></li>
+<li><p><strong>os</strong> – output stream </p></li>
+<li><p><strong>how</strong> – <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro14plotFileOutputERKNSt6stringER7ostreamN5amrex5VisMF3HowEKi">
 <span id="_CPPv3N6Castro14plotFileOutputERKNSt6stringER7ostreamN5amrex5VisMF3HowEKi"></span><span id="_CPPv2N6Castro14plotFileOutputERKNSt6stringER7ostreamN5amrex5VisMF3HowEKi"></span><span id="Castro::plotFileOutput__ssCR.ostreamR.amrex::VisMF::How.iC"></span><span class="target" id="classCastro_1a0c7bc93d065c0ffd095a044b81db3cc3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">plotFileOutput</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em>, <span class="pre">ostream</span> <span class="pre">&amp;</span><em><span class="pre">os</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">VisMF</span><span class="pre">::</span><span class="pre">How</span> <em><span class="pre">how</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">int</span> <em><span class="pre">is_small</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">os</span></code>: output stream </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">how</span></code>: <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_small</span></code>: integer </p></li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to write to </p></li>
+<li><p><strong>os</strong> – output stream </p></li>
+<li><p><strong>how</strong> – <code class="docutils literal notranslate"><span class="pre">VisMF::How</span></code> object </p></li>
+<li><p><strong>is_small</strong> – integer </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro12writeJobInfoERKNSt6stringEKN5amrex4RealE">
 <span id="_CPPv3N6Castro12writeJobInfoERKNSt6stringEKN5amrex4RealE"></span><span id="_CPPv2N6Castro12writeJobInfoERKNSt6stringEKN5amrex4RealE"></span><span id="Castro::writeJobInfo__ssCR.amrex::RealC"></span><span class="target" id="classCastro_1aed4b6196e9088051822157ddfc93b9df"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">writeJobInfo</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">io_time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Write job info to file</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory to write to </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">io_time</span></code>: how long it took to generate the plotfile/checkpoint </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> – directory to write to </p></li>
+<li><p><strong>io_time</strong> – how long it took to generate the plotfile/checkpoint </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -649,82 +647,74 @@
 <dt id="_CPPv4N6Castro18ParticleCheckPointERKNSt6stringE">
 <span id="_CPPv3N6Castro18ParticleCheckPointERKNSt6stringE"></span><span id="_CPPv2N6Castro18ParticleCheckPointERKNSt6stringE"></span><span id="Castro::ParticleCheckPoint__ssCR"></span><span class="target" id="classCastro_1a9a7c8ff9c5272577babefae593a88ed1"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ParticleCheckPoint</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Write particles in checkpoint directories</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory containing checkpoint </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir</strong> – directory containing checkpoint </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro16ParticlePlotFileERKNSt6stringE">
 <span id="_CPPv3N6Castro16ParticlePlotFileERKNSt6stringE"></span><span id="_CPPv2N6Castro16ParticlePlotFileERKNSt6stringE"></span><span id="Castro::ParticlePlotFile__ssCR"></span><span class="target" id="classCastro_1ac32db039fb8fb1e7ceff249976151b08"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ParticlePlotFile</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">dir</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Write particles in plotfile directories</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: directory containing plotfile </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir</strong> – directory containing plotfile </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro19ParticlePostRestartERKNSt6stringE">
 <span id="_CPPv3N6Castro19ParticlePostRestartERKNSt6stringE"></span><span id="_CPPv2N6Castro19ParticlePostRestartERKNSt6stringE"></span><span id="Castro::ParticlePostRestart__ssCR"></span><span class="target" id="classCastro_1a3eca1a0a43c47cfe4074b0d6661a085b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ParticlePostRestart</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">restart_file</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>How to initialize at restart</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">restart_file</span></code>: path to restart file </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>restart_file</strong> – path to restart file </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro14ParticleDeriveERKNSt6stringEN5amrex4RealEi">
 <span id="_CPPv3N6Castro14ParticleDeriveERKNSt6stringEN5amrex4RealEi"></span><span id="_CPPv2N6Castro14ParticleDeriveERKNSt6stringEN5amrex4RealEi"></span><span id="Castro::ParticleDerive__ssCR.amrex::Real.i"></span><span class="target" id="classCastro_1ae39687b33df2e9f5bda4699f40048f45"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">ParticleDerive</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">ngrow</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Derived quantities associated with particles</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: name of particle variable to derive </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of particle variable to derive </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>ngrow</strong> – Number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18TimestampParticlesEi">
 <span id="_CPPv3N6Castro18TimestampParticlesEi"></span><span id="_CPPv2N6Castro18TimestampParticlesEi"></span><span id="Castro::TimestampParticles__i"></span><span class="target" id="classCastro_1a2a9ffc3d36d599a6379dcaca83faf5ef"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">TimestampParticles</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">ngrow</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Timestamp particles</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ngrow</strong> – </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro17advance_particlesEiN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv3N6Castro17advance_particlesEiN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro17advance_particlesEiN5amrex4RealEN5amrex4RealE"></span><span id="Castro::advance_particles__i.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1adfc90d281594ed7c1c24526140f8eb12"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">advance_particles</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">iteration</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Advance the particles by dt</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: where we are in the current AMR subcycle </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iteration</strong> – where we are in the current AMR subcycle </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -741,13 +731,11 @@
 <dt id="_CPPv4N6Castro4AreaEi">
 <span id="_CPPv3N6Castro4AreaEi"></span><span id="_CPPv2N6Castro4AreaEi"></span><span id="Castro::Area__i"></span><span class="target" id="classCastro_1a5ab47bf7d9f329128e716eb7cbc50fb5"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">Area</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">dir</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Area of the multifab with surface normal along <code class="docutils literal notranslate"><span class="pre">dir</span></code></p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: direction of normal </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir</strong> – direction of normal </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -760,41 +748,37 @@
 <dt id="_CPPv4N6Castro6FluxesEi">
 <span id="_CPPv3N6Castro6FluxesEi"></span><span id="_CPPv2N6Castro6FluxesEi"></span><span id="Castro::Fluxes__i"></span><span class="target" id="classCastro_1a0e702f475aeeb3668f7acafbd79ca5c7"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">Fluxes</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">dir</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Return the n’th fluxes MultiFab.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dir</span></code>: direction in which to find the fluxes along </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir</strong> – direction in which to find the fluxes along </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro12setTimeLevelEN5amrex4RealEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv3N6Castro12setTimeLevelEN5amrex4RealEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro12setTimeLevelEN5amrex4RealEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::setTimeLevel__amrex::Real.amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a22a2bf2629a724dc536ef0a2c5ecfdeb"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">setTimeLevel</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt_old</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt_new</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Set time levels of state data.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_old</span></code>: old timestep </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_new</span></code>: new timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt_old</strong> – old timestep </p></li>
+<li><p><strong>dt_new</strong> – new timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro4initERN5amrex8AmrLevelE">
 <span id="_CPPv3N6Castro4initERN5amrex8AmrLevelE"></span><span id="_CPPv2N6Castro4initERN5amrex8AmrLevelE"></span><span id="Castro::init__amrex::AmrLevelR"></span><span class="target" id="classCastro_1a60cb24df0146cec7063d3bc24279bec4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">init</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">AmrLevel</span> <span class="pre">&amp;</span><em><span class="pre">old</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Initialize data on this level from another <a class="reference internal" href="#classCastro"><span class="std std-ref">Castro</span></a> (during regrid).</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">old</span></code>: amrex::AmrLevel object to use to initialize data </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>old</strong> – amrex::AmrLevel object to use to initialize data </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -814,32 +798,32 @@
 <span id="_CPPv3N6Castro7advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro7advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a42222c0181eff340288ad9d395604fea"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">advance</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">int</span> <em><span class="pre">iteration</span></em>, <span class="pre">int</span> <em><span class="pre">ncycle</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Advance grids at this level in time.</p>
 <p>The main driver for a single level. This will do either the SDC algorithm or the Strang-split reactions algorithm.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ncycle</span></code>: the number of subcycles at this level </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><strong>iteration</strong> – where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><strong>ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro14do_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::do_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a0474502cda51d5050707315365243901"></span><a class="reference internal" href="#_CPPv414advance_status" title="advance_status"><span class="pre">advance_status</span></a> <code class="sig-name descname"><span class="pre">do_advance_ctu</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">int</span> <em><span class="pre">amr_iteration</span></em>, <span class="pre">int</span> <em><span class="pre">amr_ncycle</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This routine will advance the old state data (called <code class="docutils literal notranslate"><span class="pre">S_old</span></code> here) to the new time, for a single level. The new data is called <code class="docutils literal notranslate"><span class="pre">S_new</span></code> here. The update includes reactions (if we are not doing SDC), hydro, and the source terms. The advance is doing using the CTU (corner transport upwind) approach. We also use this interface for the simplified SDC update.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><strong>amr_iteration</strong> – where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><strong>amr_ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -851,46 +835,46 @@
 <dt id="_CPPv4N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status">
 <span id="_CPPv3N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status"></span><span id="_CPPv2N6Castro17retry_advance_ctuEN5amrex4RealE14advance_status"></span><span id="Castro::retry_advance_ctu__amrex::Real.advance_status"></span><span class="target" id="classCastro_1a110f286221cf998dd4ad1ce8a3f8dfa2"></span><span class="pre">bool</span> <code class="sig-name descname"><span class="pre">retry_advance_ctu</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <a class="reference internal" href="#_CPPv414advance_status" title="advance_status"><span class="pre">advance_status</span></a> <em><span class="pre">status</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Should we retry advancing the simulation? By default, we don’t do a retry unless the criteria are violated. This is used only for the CTU advance.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><a class="reference internal" href="#structadvance__status"><span class="std std-ref"><span class="pre">advance_status</span></span></a></code>: was the advance successful? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><strong>advance_status</strong> – was the advance successful? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro20subcycle_advance_ctuEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::subcycle_advance_ctu__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a6877c202696435c2a51d99b9ff40f759"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">subcycle_advance_ctu</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">int</span> <em><span class="pre">amr_iteration</span></em>, <span class="pre">int</span> <em><span class="pre">amr_ncycle</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Subcyles until we’ve reached the target time, <code class="docutils literal notranslate"><span class="pre">time</span></code> + <code class="docutils literal notranslate"><span class="pre">dt</span></code>. The last timestep will be shortened if needed so that it does not overshoot the ending time. This is used only for the CTU advance.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><strong>amr_iteration</strong> – where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><strong>amr_ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii">
 <span id="_CPPv3N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="_CPPv2N6Castro18initialize_advanceEN5amrex4RealEN5amrex4RealEii"></span><span id="Castro::initialize_advance__amrex::Real.amrex::Real.i.i"></span><span class="target" id="classCastro_1a57915e33d4e6efb96fe1800cb64d6cd8"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">initialize_advance</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">int</span> <em><span class="pre">amr_iteration</span></em>, <span class="pre">int</span> <em><span class="pre">amr_ncycle</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This is run at the start of an ::advance on a single level. It sets up all the necessary arrays and data containers, ensures the data is valid and makes copies of the MultiFabs in the old and new state in case a retry is performed.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: the timestep to advance (e.g., go from time to time + dt) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_iteration</span></code>: where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_ncycle</span></code>: the number of subcycles at this level </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – the current simulation time </p></li>
+<li><p><strong>dt</strong> – the timestep to advance (e.g., go from time to time + dt) </p></li>
+<li><p><strong>amr_iteration</strong> – where we are in the current AMR subcycle. Each level will take a number of steps to reach the final time of the coarser level below it. This counter starts at 1 </p></li>
+<li><p><strong>amr_ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -903,13 +887,11 @@
 <dt id="_CPPv4N6Castro21initialize_do_advanceEN5amrex4RealE">
 <span id="_CPPv3N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="_CPPv2N6Castro21initialize_do_advanceEN5amrex4RealE"></span><span id="Castro::initialize_do_advance__amrex::Real"></span><span class="target" id="classCastro_1af5557df72b1ea7e96b9e13bd6a1e8d44"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">initialize_do_advance</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Performed at the start of ::do_advance, resets flags and ensures required ghost zones are filled.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the current simulation time </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time</strong> – the current simulation time </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -922,14 +904,14 @@
 <dt id="_CPPv4N6Castro13check_for_nanERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro13check_for_nanERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro13check_for_nanERN5amrex8MultiFabEi"></span><span id="Castro::check_for_nan__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1aeb08a314524e391e9d9094ef32a0fd06"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">check_for_nan</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <span class="pre">int</span> <em><span class="pre">check_ghost</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Check for NaNs in the given MultiFab</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: MultiFab to check </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">check_ghost</span></code>: do we check the ghost cells? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – MultiFab to check </p></li>
+<li><p><strong>check_ghost</strong> – do we check the ghost cells? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -972,38 +954,38 @@
 <dt id="_CPPv4N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE">
 <span id="_CPPv3N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="_CPPv2N6Castro16computeInitialDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealE"></span><span id="Castro::computeInitialDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Real"></span><span class="target" id="classCastro_1a77f71b20dd1bf977a183ae8d203c851c"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">computeInitialDt</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">finest_level</span></em>, <span class="pre">int</span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">n_cycle</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">IntVect</span><span class="pre">&gt;</span><span class="pre">&amp;</span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">dt_level</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">stop_time</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Compute initial <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">subcycle</span></code>: unused </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: unused </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: Real Vector, will contain initial timestep at each level. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>finest_level</strong> – Index of finest level </p></li>
+<li><p><strong>subcycle</strong> – unused </p></li>
+<li><p><strong>n_cycle</strong> – the number of subcycles at this level </p></li>
+<li><p><strong>ref_ratio</strong> – unused </p></li>
+<li><p><strong>dt_level</strong> – Real Vector, will contain initial timestep at each level. </p></li>
+<li><p><strong>stop_time</strong> – End time of simulation </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi">
 <span id="_CPPv3N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="_CPPv2N6Castro12computeNewDtEiiRN5amrex6VectorIiEERKN5amrex6VectorIN5amrex7IntVectEEERN5amrex6VectorIN5amrex4RealEEERN5amrex6VectorIN5amrex4RealEEEN5amrex4RealEi"></span><span id="Castro::computeNewDt__i.i.amrex::Vector:i:R.amrex::Vector:amrex::IntVect:CR.amrex::Vector:amrex::Real:R.amrex::Vector:amrex::Real:R.amrex::Real.i"></span><span class="target" id="classCastro_1a5176cd062384c8a87edbc8e9c13d2402"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">computeNewDt</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">finest_level</span></em>, <span class="pre">int</span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><span class="pre">int</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">n_cycle</span></em>, <em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">IntVect</span><span class="pre">&gt;</span><span class="pre">&amp;</span>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">dt_min</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">dt_level</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">stop_time</span></em>, <span class="pre">int</span> <em><span class="pre">post_regrid_flag</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Compute new <code class="docutils literal notranslate"><span class="pre">dt</span></code>.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">finest_level</span></code>: Index of finest level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">subcycle</span></code>: unused </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">n_cycle</span></code>: the number of subcycles at this level </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ref_ratio</span></code>: unused </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_min</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt_level</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">post_regrid_flag</span></code>: Have we done regridding yet? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>finest_level</strong> – Index of finest level </p></li>
+<li><p><strong>subcycle</strong> – unused </p></li>
+<li><p><strong>n_cycle</strong> – the number of subcycles at this level </p></li>
+<li><p><strong>ref_ratio</strong> – unused </p></li>
+<li><p><strong>dt_min</strong> – </p></li>
+<li><p><strong>dt_level</strong> – </p></li>
+<li><p><strong>stop_time</strong> – End time of simulation </p></li>
+<li><p><strong>post_regrid_flag</strong> – Have we done regridding yet? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1028,40 +1010,36 @@
 <dt id="_CPPv4N6Castro13post_timestepEi">
 <span id="_CPPv3N6Castro13post_timestepEi"></span><span id="_CPPv2N6Castro13post_timestepEi"></span><span id="Castro::post_timestep__i"></span><span class="target" id="classCastro_1ab6e57e80f78797b8322bbf86f65ed91d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">post_timestep</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">iteration</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Do work after timestep().</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: where we are in the current AMR subcycle </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>iteration</strong> – where we are in the current AMR subcycle </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18postCoarseTimeStepEN5amrex4RealE">
 <span id="_CPPv3N6Castro18postCoarseTimeStepEN5amrex4RealE"></span><span id="_CPPv2N6Castro18postCoarseTimeStepEN5amrex4RealE"></span><span id="Castro::postCoarseTimeStep__amrex::Real"></span><span class="target" id="classCastro_1a508c30494a96b6d53370dba3833972d3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">postCoarseTimeStep</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">cumtime</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Contains operations to be done only after a full coarse timestep.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">cumtime</span></code>: </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cumtime</strong> – </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro11post_regridEii">
 <span id="_CPPv3N6Castro11post_regridEii"></span><span id="_CPPv2N6Castro11post_regridEii"></span><span id="Castro::post_regrid__i.i"></span><span class="target" id="classCastro_1a350c686834180f657c25ff1cb4a7f686"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">post_regrid</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">lbase</span></em>, <span class="pre">int</span> <em><span class="pre">new_finest</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Do work after regrid().</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">lbase</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">new_finest</span></code>: </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lbase</strong> – </p></li>
+<li><p><strong>new_finest</strong> – </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1074,13 +1052,11 @@
 <dt id="_CPPv4N6Castro9post_initEN5amrex4RealE">
 <span id="_CPPv3N6Castro9post_initEN5amrex4RealE"></span><span id="_CPPv2N6Castro9post_initEN5amrex4RealE"></span><span id="Castro::post_init__amrex::Real"></span><span class="target" id="classCastro_1a6de18362ba8f63dcd4e689c69fbfd02a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">post_init</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">stop_time</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Do work after <a class="reference internal" href="#classCastro_1ac1ab7c06893489b1997870fb256c84db"><span class="std std-ref">init()</span></a>.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">stop_time</span></code>: End time of simulation </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stop_time</strong> – End time of simulation </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1105,179 +1081,181 @@
 <dt id="_CPPv4N6Castro8errorEstERN5amrex11TagBoxArrayEiiN5amrex4RealEii">
 <span id="_CPPv3N6Castro8errorEstERN5amrex11TagBoxArrayEiiN5amrex4RealEii"></span><span id="_CPPv2N6Castro8errorEstERN5amrex11TagBoxArrayEiiN5amrex4RealEii"></span><span id="Castro::errorEst__amrex::TagBoxArrayR.i.i.amrex::Real.i.i"></span><span class="target" id="classCastro_1a6fb35043d0ca193172d74aa5b17a2e33"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">errorEst</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">TagBoxArray</span> <span class="pre">&amp;</span><em><span class="pre">tb</span></em>, <span class="pre">int</span> <em><span class="pre">clearval</span></em>, <span class="pre">int</span> <em><span class="pre">tagval</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">n_error_buf</span></em> <span class="pre">=</span> <span class="pre">0</span>, <span class="pre">int</span> <em><span class="pre">ngrow</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Error estimation for regridding.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">tb</span></code>: TagBoxArray of tags </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">clearval</span></code>: integer </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tagval</span></code>: integer </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">n_error_buf</span></code>: integer </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tb</strong> – TagBoxArray of tags </p></li>
+<li><p><strong>clearval</strong> – integer </p></li>
+<li><p><strong>tagval</strong> – integer </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>n_error_buf</strong> – integer </p></li>
+<li><p><strong>ngrow</strong> – Number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE">
 <span id="_CPPv3N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="_CPPv2N6Castro18apply_problem_tagsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="Castro::apply_problem_tags__amrex::TagBoxArrayR.amrex::Real"></span><span class="target" id="classCastro_1a356447819fc378cf4d19d7e30e6b7fc8"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">apply_problem_tags</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">TagBoxArray</span> <span class="pre">&amp;</span><em><span class="pre">tags</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Apply the ::set_problem_tags routine.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> – TagBoxArray of tags </p></li>
+<li><p><strong>time</strong> – current time </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro26apply_tagging_restrictionsERN5amrex11TagBoxArrayEN5amrex4RealE">
 <span id="_CPPv3N6Castro26apply_tagging_restrictionsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="_CPPv2N6Castro26apply_tagging_restrictionsERN5amrex11TagBoxArrayEN5amrex4RealE"></span><span id="Castro::apply_tagging_restrictions__amrex::TagBoxArrayR.amrex::Real"></span><span class="target" id="classCastro_1a837d26bd4bfc315fe986f54f621b468d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">apply_tagging_restrictions</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">TagBoxArray</span> <span class="pre">&amp;</span><em><span class="pre">tags</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Apply any tagging restrictions that must be satisfied by all problems.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> – TagBoxArray of tags </p></li>
+<li><p><strong>time</strong> – current time </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi">
 <span id="_CPPv3N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi"></span><span id="_CPPv2N6Castro18apply_tagging_funcERN5amrex11TagBoxArrayEN5amrex4RealEi"></span><span id="Castro::apply_tagging_func__amrex::TagBoxArrayR.amrex::Real.i"></span><span class="target" id="classCastro_1a4f0731997c8cc6b3cc8967fe37fe61eb"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">apply_tagging_func</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">TagBoxArray</span> <span class="pre">&amp;</span><em><span class="pre">tags</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">j</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Apply a given tagging function.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">tags</span></code>: TagBoxArray of tags </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">j</span></code>: integer </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tags</strong> – TagBoxArray of tags </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>j</strong> – integer </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealEi">
 <span id="_CPPv3N6Castro6deriveERKNSt6stringEN5amrex4RealEi"></span><span id="_CPPv2N6Castro6deriveERKNSt6stringEN5amrex4RealEi"></span><span id="Castro::derive__ssCR.amrex::Real.i"></span><span class="target" id="classCastro_1a9f538520c61365ace1e1489da9916e38"></span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span><span class="pre">&gt;</span> <code class="sig-name descname"><span class="pre">derive</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">ngrow</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>Returns a MultiFab containing the derived data for this level. If ngrow&gt;0 the MultiFab is built on the appropriately grown BoxArray.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of derived data </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: Current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ngrow</span></code>: Number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of derived data </p></li>
+<li><p><strong>time</strong> – Current time </p></li>
+<li><p><strong>ngrow</strong> – Number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro6deriveERKNSt6stringEN5amrex4RealERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro6deriveERKNSt6stringEN5amrex4RealERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro6deriveERKNSt6stringEN5amrex4RealERN5amrex8MultiFabEi"></span><span id="Castro::derive__ssCR.amrex::Real.amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a17e4f55770a6badc6ec067b396fb6b74"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">derive</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">mf</span></em>, <span class="pre">int</span> <em><span class="pre">dcomp</span></em><span class="sig-paren">)</span> <em class="property"><span class="pre">override</span></em><br /></dt>
 <dd><p>This version of <a class="reference internal" href="#classCastro_1a9f538520c61365ace1e1489da9916e38"><span class="std std-ref">derive()</span></a> fills the dcomp’th component of mf with the derived quantity.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity to derive </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mf</span></code>: MultiFab to store derived quantity in </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dcomp</span></code>: index of component of <code class="docutils literal notranslate"><span class="pre">mf</span></code> to fill with derived quantity </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of quantity to derive </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>mf</strong> – MultiFab to store derived quantity in </p></li>
+<li><p><strong>dcomp</strong> – index of component of <code class="docutils literal notranslate"><span class="pre">mf</span></code> to fill with derived quantity </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro20final_radiation_callERN5amrex8MultiFabEii">
 <span id="_CPPv3N6Castro20final_radiation_callERN5amrex8MultiFabEii"></span><span id="_CPPv2N6Castro20final_radiation_callERN5amrex8MultiFabEii"></span><span id="Castro::final_radiation_call__amrex::MultiFabR.i.i"></span><span class="target" id="classCastro_1a2d45e9419ba0eb07ec75ddee0285bb6e"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">final_radiation_call</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">S_new</span></em>, <span class="pre">int</span> <em><span class="pre">iteration</span></em>, <span class="pre">int</span> <em><span class="pre">ncycle</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">iteration</span></code>: where we are in the current AMR subcycle </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ncycle</span></code>: the number of subcycles at this level </p></li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>S_new</strong> – </p></li>
+<li><p><strong>iteration</strong> – where we are in the current AMR subcycle </p></li>
+<li><p><strong>ncycle</strong> – the number of subcycles at this level </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro21reset_internal_energyERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEi"></span><span id="Castro::reset_internal_energy__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.i"></span><span class="target" id="classCastro_1abfed1ea86ec3db402a2a89ec2dcb1d24"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">reset_internal_energy</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">State</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Reset the internal energy</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">State</span></code>: Current state (MultiFab) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>State</strong> – Current state (MultiFab) </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE">
 <span id="_CPPv3N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE"></span><span id="_CPPv2N6Castro21reset_internal_energyERKN5amrex3BoxEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEEKN5amrex6Array4IN5amrex4RealEEE"></span><span id="Castro::reset_internal_energy__amrex::BoxCR.amrex::Array4:amrex::Real:C.amrex::Array4:amrex::Real:C.amrex::Array4:amrex::Real:C.amrex::Array4:amrex::Real:C"></span><span class="target" id="classCastro_1aa3e8fbd5ed6aa4ed3c0dfbc7a6d26d9d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">reset_internal_energy</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Box</span> <span class="pre">&amp;</span><em><span class="pre">bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Array4</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Array4</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Array4</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Array4</span><span class="pre">&lt;</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span><span class="pre">&gt;</span> <em class="property"><span class="pre">const</span></em> <em><span class="pre">u</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Reset the internal energy</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">bx</span></code>: Box to update </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: Current state (Fab) </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – Box to update </p></li>
+<li><p><strong>u</strong> – Current state (Fab) </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv3N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro14add_magnetic_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::add_magnetic_e__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a2e950ea131bbe11045b67f35926d3935"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">add_magnetic_e</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Add magnetic contribution to energy density <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Bx</span></code>: magnetic field in x </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">By</span></code>: magnetic field in y </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Bz</span></code>: magnetic field in z </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </p></li>
+<dd><p>Add magnetic contribution to energy density </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Bx</strong> – magnetic field in x </p></li>
+<li><p><strong>By</strong> – magnetic field in y </p></li>
+<li><p><strong>Bz</strong> – magnetic field in z </p></li>
+<li><p><strong>state</strong> – the state to operate on </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv3N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro11check_div_BERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::check_div_B__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a5bf793c2b91ad3a30e0deb6b91348a2a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">check_div_B</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p>Check if divergence of B is zero at initialization <dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">Bx</span></code>: magnetic field in x </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">By</span></code>: magnetic field in y </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Bz</span></code>: magnetic field in z </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </p></li>
+<dd><p>Check if divergence of B is zero at initialization </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Bx</strong> – magnetic field in x </p></li>
+<li><p><strong>By</strong> – magnetic field in y </p></li>
+<li><p><strong>Bz</strong> – magnetic field in z </p></li>
+<li><p><strong>state</strong> – the state to operate on </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11computeTempERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::computeTemp__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a31f5bb8b118a05389782d77766c9b1b1"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">computeTemp</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Compute the current temperature</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: the state to operate on </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – the state to operate on </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1290,112 +1268,110 @@
 <dt id="_CPPv4N6Castro22swap_state_time_levelsEKN5amrex4RealE">
 <span id="_CPPv3N6Castro22swap_state_time_levelsEKN5amrex4RealE"></span><span id="_CPPv2N6Castro22swap_state_time_levelsEKN5amrex4RealE"></span><span id="Castro::swap_state_time_levels__amrex::RealC"></span><span class="target" id="classCastro_1aef8e45ccb243d726effd82dddc824cb4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">swap_state_time_levels</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This is a hack to make sure that we only ever have new data for certain state types that only ever need new time data; by doing a swap now, we’ll guarantee that <a class="reference internal" href="#classCastro_1a8ef4ee7c4347ce493def85f9f329e535"><span class="std std-ref">allocOldData()</span></a> does nothing. We do this because we never need the old data, so we don’t want to allocate memory for it.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dt</strong> – timestep </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb">
 <span id="_CPPv3N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb"></span><span id="_CPPv2N6Castro9volWgtSumERKNSt6stringEN5amrex4RealEbb"></span><span id="Castro::volWgtSum__ssCR.amrex::Real.b.b"></span><span class="target" id="classCastro_1a3e457aa8e25326d7b86b051b46fa4b46"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">volWgtSum</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em> <span class="pre">=</span> <span class="pre">false</span>, <span class="pre">bool</span> <em><span class="pre">finemask</span></em> <span class="pre">=</span> <span class="pre">true</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Volume weighted sum of given quantity</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">finemask</span></code>: boolean, should we build a mask to exclude finer levels? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of quantity </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<li><p><strong>finemask</strong> – boolean, should we build a mask to exclude finer levels? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb">
 <span id="_CPPv3N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb"></span><span id="_CPPv2N6Castro16volWgtSquaredSumERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volWgtSquaredSum__ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a63511f083e6de17c619f47696396e51c"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">volWgtSquaredSum</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em> <span class="pre">=</span> <span class="pre">false</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Volume weight sum of (given quantity) squared</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of quantity </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib">
 <span id="_CPPv3N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib"></span><span id="_CPPv2N6Castro9locWgtSumERKNSt6stringEN5amrex4RealEib"></span><span id="Castro::locWgtSum__ssCR.amrex::Real.i.b"></span><span class="target" id="classCastro_1a1206793cf51bf8bfe37b5772c6b82b4c"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">locWgtSum</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">idir</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em> <span class="pre">=</span> <span class="pre">false</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Sum weighted by volume multiplied by distance from center in given direction</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: Axis along which to compute distance from center </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of quantity </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>idir</strong> – Axis along which to compute distance from center </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb">
 <span id="_CPPv3N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb"></span><span id="_CPPv2N6Castro13volProductSumERKNSt6stringERKNSt6stringEN5amrex4RealEb"></span><span id="Castro::volProductSum__ssCR.ssCR.amrex::Real.b"></span><span class="target" id="classCastro_1a0227ba60b8077c4472fe94a4ddd607b7"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">volProductSum</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name1</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name2</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em> <span class="pre">=</span> <span class="pre">false</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Volume weighted sum of the product of two quantities</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name1</span></code>: Name of first quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">name2</span></code>: Name of second quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name1</strong> – Name of first quantity </p></li>
+<li><p><strong>name2</strong> – Name of second quantity </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib">
 <span id="_CPPv3N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib"></span><span id="_CPPv2N6Castro13locSquaredSumERKNSt6stringEN5amrex4RealEib"></span><span id="Castro::locSquaredSum__ssCR.amrex::Real.i.b"></span><span class="target" id="classCastro_1a72ba784d23422fe8bc550abec2a53c47"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <code class="sig-name descname"><span class="pre">locSquaredSum</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">std</span><span class="pre">::</span><span class="pre">string</span> <span class="pre">&amp;</span><em><span class="pre">name</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">idir</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em> <span class="pre">=</span> <span class="pre">false</span><span class="sig-paren">)</span><br /></dt>
 <dd><p>Location weighted sum of (quantity) squared</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Name of quantity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: Direction along which to weight </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Name of quantity </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>idir</strong> – Direction along which to weight </p></li>
+<li><p><strong>local</strong> – boolean, is sum local (over each patch) or over entire MultiFab? </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro8gwstrainE4RealR4RealR4RealR4RealR4RealR4RealR4Realb">
 <span id="_CPPv3N6Castro8gwstrainE4RealR4RealR4RealR4RealR4RealR4RealR4Realb"></span><span id="_CPPv2N6Castro8gwstrainE4RealR4RealR4RealR4RealR4RealR4RealR4Realb"></span><span id="Castro::gwstrain__Real.RealR.RealR.RealR.RealR.RealR.RealR.b"></span><span class="target" id="classCastro_1ac2d7bd84807577fc95bb5f533f73cac9"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">gwstrain</span></code><span class="sig-paren">(</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_plus_1</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_cross_1</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_plus_2</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_cross_2</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_plus_3</span></em>, <span class="pre">Real</span> <span class="pre">&amp;</span><em><span class="pre">h_cross_3</span></em>, <span class="pre">bool</span> <em><span class="pre">local</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Calculate the gravitational wave signal</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_plus_1</span></code>: gravitational wave signal in x-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_cross_1</span></code>: gravitational wave signal in x-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_plus_2</span></code>: gravitational wave signal in y-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_cross_2</span></code>: gravitational wave signal in y-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_plus_3</span></code>: gravitational wave signal in z-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">h_cross_3</span></code>: gravitational wave signal in z-direction </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">local</span></code>: is sum local </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>h_plus_1</strong> – gravitational wave signal in x-direction </p></li>
+<li><p><strong>h_cross_1</strong> – gravitational wave signal in x-direction </p></li>
+<li><p><strong>h_plus_2</strong> – gravitational wave signal in y-direction </p></li>
+<li><p><strong>h_cross_2</strong> – gravitational wave signal in y-direction </p></li>
+<li><p><strong>h_plus_3</strong> – gravitational wave signal in z-direction </p></li>
+<li><p><strong>h_cross_3</strong> – gravitational wave signal in z-direction </p></li>
+<li><p><strong>local</strong> – is sum local </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1414,70 +1390,66 @@
 <dt id="_CPPv4N6Castro21apply_source_to_stateERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro21apply_source_to_stateERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro21apply_source_to_stateERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::apply_source_to_state__amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a4f5a306d7edf9e02521c714fdb5d7f40"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">apply_source_to_state</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Add source terms to <code class="docutils literal notranslate"><span class="pre">state</span></code></p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: State </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code>: Source terms </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – State </p></li>
+<li><p><strong>source</strong> – Source terms </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro12expand_stateERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::expand_state__amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a7252c7c657f96170a61a4fd2d86ea006"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">expand_state</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">S</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Fill a version of the state with <code class="docutils literal notranslate"><span class="pre">ng</span></code> ghost zones from the state data. After we do the fill, optionally clean the data using the iclean parameter.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">S</span></code>: MultiFab to be filled </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>S</strong> – MultiFab to be filled </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro16make_radial_dataEi">
 <span id="_CPPv3N6Castro16make_radial_dataEi"></span><span id="_CPPv2N6Castro16make_radial_dataEi"></span><span id="Castro::make_radial_data__i"></span><span class="target" id="classCastro_1a4f987481e70256c002555ecd54b359c1"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">make_radial_data</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">is_new</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Calculate state in radial direction by averaging</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">is_new</span></code>: do we use new (0) or old (1) data? </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_new</strong> – do we use new (0) or old (1) data? </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro11advance_auxEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv3N6Castro11advance_auxEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro11advance_auxEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::advance_aux__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a94117debf4fe592344890e221efd879a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">advance_aux</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Calculate auxiliary variables at new timestep</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro8getLevelEi">
 <span id="_CPPv3N6Castro8getLevelEi"></span><span id="_CPPv2N6Castro8getLevelEi"></span><span id="Castro::getLevel__i"></span><span class="target" id="classCastro_1a817d0ad40f1d77c97a5ab3f5ff1fe28e"></span><a class="reference internal" href="../class/classCastro.html#_CPPv46Castro" title="Castro"><span class="pre">Castro</span></a> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">getLevel</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">lev</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">lev</span></code>: </p></li>
-</ul>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>lev</strong> – </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1494,84 +1466,82 @@
 <dt id="_CPPv4N6Castro6refluxEii">
 <span id="_CPPv3N6Castro6refluxEii"></span><span id="_CPPv2N6Castro6refluxEii"></span><span id="Castro::reflux__i.i"></span><span class="target" id="classCastro_1a2926ab6d2efafafe4604859bdf918451"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">reflux</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">crse_level</span></em>, <span class="pre">int</span> <em><span class="pre">fine_level</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Do refluxing</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">crse_level</span></code>: </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fine_level</span></code>: </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crse_level</strong> – </p></li>
+<li><p><strong>fine_level</strong> – </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro17normalize_speciesERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro17normalize_speciesERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro17normalize_speciesERN5amrex8MultiFabEi"></span><span id="Castro::normalize_species__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1aef491536973549d00a86e8b24a20dd95"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">normalize_species</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">S_new</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Normalize species fractions so they sum to 1</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">S_new</span></code>: State </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>S_new</strong> – State </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE">
 <span id="_CPPv3N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="_CPPv2N6Castro20enforce_consistent_eERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabE"></span><span id="Castro::enforce_consistent_e__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR"></span><span class="target" id="classCastro_1a982af13433c9fafdcdb3beaaf56fe865"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">enforce_consistent_e</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">S</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Enforces (\  E =  e + {1}{2}  (u^2 + v^2 + w^2) )</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">S</span></code>: State </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>S</strong> – State </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro19enforce_min_densityERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_min_densityERN5amrex8MultiFabEi"></span><span id="Castro::enforce_min_density__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1ada94cae9a4f263ae1f0f6695d8578a4b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">enforce_min_density</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>This routine sets the density in <code class="docutils literal notranslate"><span class="pre">state</span></code> to be larger than the density floor. Note that it will operate everywhere on <code class="docutils literal notranslate"><span class="pre">state</span></code>, including ghost zones.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – state </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro19enforce_speed_limitERN5amrex8MultiFabEi">
 <span id="_CPPv3N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="_CPPv2N6Castro19enforce_speed_limitERN5amrex8MultiFabEi"></span><span id="Castro::enforce_speed_limit__amrex::MultiFabR.i"></span><span class="target" id="classCastro_1a5a5adfaec71edd224afe9923cdf603e4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">enforce_speed_limit</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Ensure the magnitude of the velocity is not larger than <code class="docutils literal notranslate"><span class="pre">castro.speed_limit</span></code> in any zone.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – state </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi">
 <span id="_CPPv3N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="_CPPv2N6Castro11clean_stateERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabERN5amrex8MultiFabEN5amrex4RealEi"></span><span id="Castro::clean_state__amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::MultiFabR.amrex::Real.i"></span><span class="target" id="classCastro_1a64f583ffe103a22b5116b026f6d46ff3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">clean_state</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bx</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">By</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">Bz</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">state</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Given <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> state data, perform a number of cleaning steps to make sure the data is sensible.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: State data </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – State data </p></li>
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>ng</strong> – number of ghost cells </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1584,13 +1554,11 @@
 <dt id="_CPPv4N6Castro7avgDownEi">
 <span id="_CPPv3N6Castro7avgDownEi"></span><span id="_CPPv2N6Castro7avgDownEi"></span><span id="Castro::avgDown__i"></span><span class="target" id="classCastro_1ac0548c704ca716e59d594fa60895985b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">avgDown</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">state_indx</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Average given component of new state from <code class="docutils literal notranslate"><span class="pre">level+1</span></code> down to <code class="docutils literal notranslate"><span class="pre">level</span></code></p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">state_indx</span></code>: Index of state to average down </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_indx</strong> – Index of state to average down </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1625,14 +1593,14 @@
 <dt id="_CPPv4N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE">
 <span id="_CPPv3N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE"></span><span id="_CPPv2N6Castro17define_new_centerERN5amrex8MultiFabEN5amrex4RealE"></span><span id="Castro::define_new_center__amrex::MultiFabR.amrex::Real"></span><span class="target" id="classCastro_1ae520ed0fee93d76241e0c07d5ccc72d3"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">define_new_center</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">S</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Find the position of the “center” by interpolating from data at cell centers</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">S</span></code>: Current state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>S</strong> – Current state </p></li>
+<li><p><strong>time</strong> – current time </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1643,14 +1611,14 @@
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro16pointmass_updateEN5amrex4RealEN5amrex4RealE">
 <span id="_CPPv3N6Castro16pointmass_updateEN5amrex4RealEN5amrex4RealE"></span><span id="_CPPv2N6Castro16pointmass_updateEN5amrex4RealEN5amrex4RealE"></span><span id="Castro::pointmass_update__amrex::Real.amrex::Real"></span><span class="target" id="classCastro_1a16f1c076f533b8b16eb69a1d7a363a35"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">pointmass_update</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">time</span></em>, <a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: current time </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dt</span></code>: timestep </p></li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – current time </p></li>
+<li><p><strong>dt</strong> – timestep </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1717,13 +1685,11 @@
 <dt id="_CPPv4N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE">
 <span id="_CPPv3N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="_CPPv2N6Castro23problem_post_simulationERN5amrex6VectorINSt10unique_ptrI8AmrLevelEEEE"></span><span id="Castro::problem_post_simulation__amrex::Vector:std::unique_ptr:AmrLevel::R"></span><span class="target" id="classCastro_1a844ccb0a8d774190e1d247f53266ab68"></span><em class="property"><span class="pre">static</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">problem_post_simulation</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">Vector</span><span class="pre">&lt;</span><span class="pre">std</span><span class="pre">::</span><span class="pre">unique_ptr</span><span class="pre">&lt;</span><span class="pre">AmrLevel</span><span class="pre">&gt;</span><span class="pre">&gt;</span> <span class="pre">&amp;</span><em><span class="pre">amr_level</span></em><span class="sig-paren">)</span><br /></dt>
 <dd><p>Do work at the end of the simulation - before the last outputs</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">amr_level</span></code>: </p></li>
-</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>amr_level</strong> – </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
@@ -1789,13 +1755,11 @@
 <dl class="cpp function">
 <dt id="_CPPv4N6Castro28build_interior_boundary_maskEi">
 <span id="_CPPv3N6Castro28build_interior_boundary_maskEi"></span><span id="_CPPv2N6Castro28build_interior_boundary_maskEi"></span><span id="Castro::build_interior_boundary_mask__i"></span><span class="target" id="classCastro_1a58b219ed9ca0b406f8387bf4e1b8f112"></span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">iMultiFab</span> <span class="pre">&amp;</span><code class="sig-name descname"><span class="pre">build_interior_boundary_mask</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">ng</span></em><span class="sig-paren">)</span><br /></dt>
-<dd><p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code>: number of ghost cells </p></li>
-</ul>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ng</strong> – number of ghost cells </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">

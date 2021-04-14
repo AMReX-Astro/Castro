@@ -246,55 +246,55 @@
 <dt>
 <span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*s,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">Real</span> <span class="pre">&amp;sm,</span> <span class="pre">Real</span> <span class="pre">&amp;sp)</span></code></dt>
 <dd><p>Compute the coefficients of a parabolic reconstruction of the data in a zone. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">s</span></code>: Real(\5) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">flatn</span></code>: The flattening coefficient </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The value of the parabola on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The value of the parabola on the right edge of the zone </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> – Real(\5) the state to be reconstructed in zones i-2, i-1, i, i+1, i+2 </p></li>
+<li><p><strong>flatn</strong> – The flattening coefficient </p></li>
+<li><p><strong>sm</strong> – The value of the parabola on the left edge of the zone </p></li>
+<li><p><strong>sp</strong> – The value of the parabola on the right edge of the zone </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt>
 <span class="target" id="ppm_8H_1afc8cca768e5a11c603a7980fc8e112be"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_int_profile</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">sm,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sp,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sc,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">u,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">c,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dtdx,</span> <span class="pre">Real</span> <span class="pre">*Ip,</span> <span class="pre">Real</span> <span class="pre">*Im)</span></code></dt>
 <dd><p>Integrate under the parabola using from the left and right edges with the wave speeds u-c, u, u+c</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">u</span></code>: The fluid velocity </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">c</span></code>: The sound speed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the right zone edge </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: Real(\3), the integrals under the parabola over the 3 waves from the left zone edge </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sm</strong> – The parabola value on the left edge of the zone </p></li>
+<li><p><strong>sp</strong> – The parabola value on the right edge of the zone </p></li>
+<li><p><strong>sc</strong> – The state value at the zone center </p></li>
+<li><p><strong>u</strong> – The fluid velocity </p></li>
+<li><p><strong>c</strong> – The sound speed </p></li>
+<li><p><strong>dtdx</strong> – dt/dx (timestep / cell width) </p></li>
+<li><p><strong>Ip</strong> – Real(\3), the integrals under the parabola over the 3 waves from the right zone edge </p></li>
+<li><p><strong>Im</strong> – Real(\3), the integrals under the parabola over the 3 waves from the left zone edge </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="cpp function">
 <dt>
 <span class="target" id="ppm_8H_1a6094d2b8700886946e674aeaf1223dc6"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_int_profile_single</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">sm,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sp,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">sc,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">lam,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">dtdx,</span> <span class="pre">Real</span> <span class="pre">&amp;Ip,</span> <span class="pre">Real</span> <span class="pre">&amp;Im)</span></code></dt>
 <dd><p>Integrate under the parabola from the left and right edges for a single wave speed</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sm</span></code>: The parabola value on the left edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sp</span></code>: The parabola value on the right edge of the zone </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sc</span></code>: The state value at the zone center </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lam</span></code>: The wave speed </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dtdx</span></code>: dt/dx (timestep / cell width) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Ip</span></code>: integral under the parabola from the right zone edge </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Im</span></code>: integral under the parabola from the left zone edge </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sm</strong> – The parabola value on the left edge of the zone </p></li>
+<li><p><strong>sp</strong> – The parabola value on the right edge of the zone </p></li>
+<li><p><strong>sc</strong> – The state value at the zone center </p></li>
+<li><p><strong>lam</strong> – The wave speed </p></li>
+<li><p><strong>dtdx</strong> – dt/dx (timestep / cell width) </p></li>
+<li><p><strong>Ip</strong> – integral under the parabola from the right zone edge </p></li>
+<li><p><strong>Im</strong> – integral under the parabola from the left zone edge </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>

@@ -246,19 +246,19 @@
 <dt>
 <span class="target" id="riemann__solvers_8H_1a9f4099280b0a984034e0a3a9a14cf881"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">void</span> <span class="pre">HLL</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*ql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cr,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">Real</span> <span class="pre">*flux_hll)</span></code></dt>
 <dd><p>A simple HLL Riemann solver for pure hydrodynamics. This takes just a single interface’s data and returns the HLL flux</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ql</span></code>: the left interface state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qr</span></code>: the right interface state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cl</span></code>: sound speed on the left interface </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cr</span></code>: sound speed on the right interface </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">coord</span></code>: geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">f</span></code>: the HLL fluxes </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>cl</strong> – sound speed on the left interface </p></li>
+<li><p><strong>cr</strong> – sound speed on the right interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+<li><p><strong>coord</strong> – geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
+<li><p><strong>f</strong> – the HLL fluxes </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>
