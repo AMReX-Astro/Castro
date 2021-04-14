@@ -178,75 +178,81 @@ Castro::riemann_state(const Box& bx,
 #endif
 #endif
 
-  if (ppm_temp_fix == 2) {
-    // recompute the thermodynamics on the interface to make it
-    // all consistent
 
-    // we want to take the edge states of rho, e, and X, and get
-    // new values for p on the edges that are
-    // thermodynamically consistent.
+  amrex::ParallelFor(bx,
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+  {
 
-    const Real lT_guess = T_guess;
+      if (ppm_temp_fix == 2) {
+          // recompute the thermodynamics on the interface to make it
+          // all consistent
 
-    amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-    {
+          // we want to take the edge states of rho, e, and X, and get
+          // new values for p on the edges that are
+          // thermodynamically consistent.
 
-     eos_t eos_state;
+          eos_t eos_state;
 
-     // this is an initial guess for iterations, since we
-     // can't be certain what temp is on interfaces
-     eos_state.T = lT_guess;
+          // this is an initial guess for iterations, since we
+          // can't be certain what temp is on interfaces
+          eos_state.T = T_guess;
 
-     // minus state
-     eos_state.rho = qm(i,j,k,QRHO);
-     eos_state.p = qm(i,j,k,QPRES);
-     eos_state.e = qm(i,j,k,QREINT)/qm(i,j,k,QRHO);
-     for (int n = 0; n < NumSpec; n++) {
-       eos_state.xn[n] = qm(i,j,k,QFS+n);
-     }
+          // minus state
+          eos_state.rho = qm(i,j,k,QRHO);
+          eos_state.e = qm(i,j,k,QREINT)/qm(i,j,k,QRHO);
+          for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qm(i,j,k,QFS+n);
+          }
 #if NAUX_NET > 0
-     for (int n = 0; n < NumAux; n++) {
-       eos_state.aux[n] = qm(i,j,k,QFX+n);
-     }
+          for (int n = 0; n < NumAux; n++) {
+              eos_state.aux[n] = qm(i,j,k,QFX+n);
+          }
 #endif
 
-     eos(eos_input_re, eos_state);
+          eos(eos_input_re, eos_state);
 
-     qm(i,j,k,QREINT) = eos_state.e * eos_state.rho;
-     qm(i,j,k,QPRES) = eos_state.p;
+          qm(i,j,k,QREINT) = eos_state.e * eos_state.rho;
+          qm(i,j,k,QPRES) = eos_state.p;
 
-     // plus state
-     eos_state.rho = qp(i,j,k,QRHO);
-     eos_state.p = qp(i,j,k,QPRES);
-     eos_state.e = qp(i,j,k,QREINT)/qp(i,j,k,QRHO);
-     for (int n = 0; n < NumSpec; n++) {
-       eos_state.xn[n] = qp(i,j,k,QFS+n);
-     }
+          // plus state
+          eos_state.rho = qp(i,j,k,QRHO);
+          eos_state.e = qp(i,j,k,QREINT)/qp(i,j,k,QRHO);
+          for (int n = 0; n < NumSpec; n++) {
+              eos_state.xn[n] = qp(i,j,k,QFS+n);
+          }
 #if NAUX_NET > 0
-     for (int n = 0; n < NumAux; n++) {
-       eos_state.aux[n] = qp(i,j,k,QFX+n);
-     }
+          for (int n = 0; n < NumAux; n++) {
+              eos_state.aux[n] = qp(i,j,k,QFX+n);
+          }
 #endif
 
-     eos(eos_input_re, eos_state);
+          eos(eos_input_re, eos_state);
 
-     qp(i,j,k,QREINT) = eos_state.e * eos_state.rho;
-     qp(i,j,k,QPRES) = eos_state.p;
-    });
-  }
+          qp(i,j,k,QREINT) = eos_state.e * eos_state.rho;
+          qp(i,j,k,QPRES) = eos_state.p;
+      }
 
-  // Solve Riemann problem
-  if (riemann_solver == 0) {
-    // Colella, Glaz, & Ferguson solver
+      RiemannState ql;
+      RiemannState qr;
+      RiemannAux raux;
 
-    riemannus(bx,
-              qm, qp,
-              qaux_arr, qint,
+      load_input_states(i, j, k, idir,
+                        qm, qp, qaux_arr,
+                        compute_gammas,
+                        ql, qr, raux);
+
+      // Solve Riemann problem
+      if (riemann_solver == 0) {
+          // Colella, Glaz, & Ferguson solver
+
+
+          riemannus(i, j, k,
+                    ql, qr, raux,
+                    qint,
 #ifdef RADIATION
-              lambda_int,
+                    lambda_int,
 #endif
-              idir, compute_gammas);
+                    idir);
 
   } else if (riemann_solver == 1) {
     // Colella & Glaz solver
