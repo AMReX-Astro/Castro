@@ -617,8 +617,6 @@ Castro::riemannus(const Box& bx,
                                hi_bc[idir] == SlipWall ||
                                hi_bc[idir] == NoSlipWall);
 
-  const int luse_eos_in_riemann = use_eos_in_riemann;
-
   const Real lsmall = riemann_constants::small;
   const Real lsmall_dens = small_dens;
   const Real lsmall_pres = small_pres;
@@ -1003,33 +1001,6 @@ Castro::riemannus(const Box& bx,
     qint(i,j,k,QPRES) = amrex::max(qint(i,j,k,QPRES), lsmall_pres);
     qint(i,j,k,QREINT) = regdnv;
 #endif
-
-    // we are potentially thermodynamically inconsistent, fix that
-    // here
-    if (luse_eos_in_riemann == 1) {
-      // we need to know the species -- they only jump across
-      // the contact
-      eos_t eos_state;
-
-      eos_state.rho = qint(i,j,k,QRHO);
-      eos_state.p = qint(i,j,k,QPRES);
-
-      for (int n = 0; n < NumSpec; n++) {
-        eos_state.xn[n] = fp*ql(i,j,k,QFS+n) + fm*qr(i,j,k,QFS+n);
-      }
-
-      eos_state.T = lT_guess;
-
-#if NAUX_NET > 0
-      for (int n = 0; n < NumAux; n++) {
-        eos_state.aux[n] = fp*ql(i,j,k,QFX+n) + fm*qr(i,j,k,QFX+n);
-      }
-#endif
-
-      eos(eos_input_rp, eos_state);
-
-      qint(i,j,k,QREINT) = eos_state.rho * eos_state.e;
-    }
 
     // Enforce that fluxes through a symmetry plane or wall are hard zero.
     qint(i,j,k,iu) = qint(i,j,k,iu) * bnd_fac;

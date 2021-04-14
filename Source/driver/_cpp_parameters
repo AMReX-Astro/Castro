@@ -129,10 +129,6 @@ cg_tol                       Real          1.0e-5
 # 2 = do a bisection search for another 2 * cg_maxiter iterations.
 cg_blend                     int           2
 
-# should we use the EOS in the Riemann solver to ensure
-# thermodynamic consistency?
-use_eos_in_riemann           int           0
-
 # flatten the reconstructed profiles around shocks to prevent them
 # from becoming too thin
 use_flattening               int           1
