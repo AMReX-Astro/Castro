@@ -281,7 +281,7 @@ Castro::riemann_state(const Box& bx,
 
       for (int ipassive = 0; ipassive < npassive; ipassive++) {
           int nqp = qpassmap(ipassive);
-          qint(i,j,k,nqp) = fp * qleft_arr(i,j,k,nqp) + fm * qright_arr(i,j,k,nqp);
+          qint(i,j,k,nqp) = fp * qm(i,j,k,nqp) + fm * qp(i,j,k,nqp);
       }
 
   });
