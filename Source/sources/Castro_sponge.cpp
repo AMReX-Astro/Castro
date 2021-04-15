@@ -245,7 +245,7 @@ Castro::apply_sponge(const Box& bx,
 
     if (lsponge_upper_pressure > 0.0_rt && lsponge_lower_pressure >= 0.0_rt) {
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
 
       eos_state.rho = state_in(i,j,k,URHO);
       eos_state.T = state_in(i,j,k,UTEMP);
