@@ -244,6 +244,16 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt>
+<span class="target" id="ppm_8H_1a03058754c9d9d98c5b33f02547921740"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">load_ppm_stencil</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;q_arr,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">ncomp,</span> <span class="pre">Real</span> <span class="pre">*s)</span></code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="ppm_8H_1abdc5109e4e7de94d385e8238ef9df420"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">check_trace_source</span> <span class="pre">(Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;srcQ,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">ncomp)</span></code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
 <span class="target" id="ppm_8H_1ab2744414224e68948ef3bdeeb2b6ccaa"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ppm_reconstruct</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*s,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">flatn,</span> <span class="pre">Real</span> <span class="pre">&amp;sm,</span> <span class="pre">Real</span> <span class="pre">&amp;sp)</span></code></dt>
 <dd><p>Compute the coefficients of a parabolic reconstruction of the data in a zone. This uses the standard PPM limiters described in Colella &amp; Woodward (1984)</p>
 <dl class="field-list simple">
