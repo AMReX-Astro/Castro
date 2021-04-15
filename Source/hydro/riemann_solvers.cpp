@@ -452,18 +452,7 @@ Castro::riemanncg(const Box& bx,
     // compute the total energy from the internal, p/(gamma - 1), and the kinetic
     qint(i,j,k,QREINT) = qint(i,j,k,QPRES)/(game_int - 1.0_rt);
 
-    // advected quantities -- only the contact matters
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpassmap(ipassive);
-
-      if (ustar > 0.0_rt) {
-        qint(i,j,k,nqp) = qleft_arr(i,j,k,nqp);
-      } else if (ustar < 0.0_rt) {
-        qint(i,j,k,nqp) = qright_arr(i,j,k,nqp);
-      } else {
-        qint(i,j,k,nqp) = 0.5_rt * (qleft_arr(i,j,k,nqp) + qright_arr(i,j,k,nqp));
-      }
-    }
+    // we'll do the passive scalars separately
 
   });
 
@@ -779,11 +768,9 @@ Castro::riemannus(const Box& bx,
     // Enforce that fluxes through a symmetry plane or wall are hard zero.
     qint(i,j,k,iu) = qint(i,j,k,iu) * bnd_fac;
 
-    // passively advected quantities
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpassmap(ipassive);
-      qint(i,j,k,nqp) = fp*qleft_arr(i,j,k,nqp) + fm*qright_arr(i,j,k,nqp);
-    }
+
+    // we'll do the passive scalars separately
+
 
   });
 }
