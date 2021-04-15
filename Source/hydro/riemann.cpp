@@ -158,8 +158,9 @@ Castro::riemann_state(const Box& bx,
   // the caller to specify the interfaces over which to solve the
   // Riemann problems
 
-#ifdef RADIATION
 #ifndef AMREX_USE_GPU
+
+#ifdef RADIATION
   if (hybrid_riemann == 1) {
     amrex::Error("ERROR: hybrid Riemann not supported for radiation");
   }
@@ -168,20 +169,43 @@ Castro::riemann_state(const Box& bx,
     amrex::Error("ERROR: only the CGF Riemann solver is supported for radiation");
   }
 #endif
-#endif
 
 #if AMREX_SPACEDIM == 1
-#ifndef AMREX_USE_GPU
   if (riemann_solver > 1) {
     amrex::Error("ERROR: HLLC not implemented for 1-d");
   }
 #endif
+
+  if (riemann_solver == 1) {
+      if (cg_maxiter > HISTORY_SIZE) {
+          amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+      }
+
+      if (cg_blend == 2 && cg_maxiter < 5) {
+          amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+      }
+  }
 #endif
 
+
+  const auto domlo = geom.Domain().loVect3d();
+  const auto domhi = geom.Domain().hiVect3d();
+
+  const int* lo_bc = phys_bc.lo();
+  const int* hi_bc = phys_bc.hi();
+
+  // do we want to force the flux to zero at the boundary?
+  const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
+                               lo_bc[idir] == SlipWall ||
+                               lo_bc[idir] == NoSlipWall);
+  const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
+                               hi_bc[idir] == SlipWall ||
+                               hi_bc[idir] == NoSlipWall);
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
+
 
       if (ppm_temp_fix == 2) {
           // recompute the thermodynamics on the interface to make it
@@ -240,6 +264,28 @@ Castro::riemann_state(const Box& bx,
                         qm, qp, qaux_arr,
                         compute_gammas,
                         ql, qr, raux);
+
+      // deal with hard walls
+      raux.bnd_fac = 1.0_rt;
+
+      if (idir == 0) {
+          if ((i == domlo[0] && special_bnd_lo) ||
+              (i == domhi[0]+1 && special_bnd_hi)) {
+              raux.bnd_fac = 0.0_rt;
+          }
+
+      } else if (idir == 1) {
+          if ((j == domlo[1] && special_bnd_lo) ||
+              (j == domhi[1]+1 && special_bnd_hi)) {
+              raux.bnd_fac = 0.0_rt;
+          }
+      } else {
+          if ((k == domlo[2] && special_bnd_lo) ||
+              (k == domhi[2]+1 && special_bnd_hi)) {
+              raux.bnd_fac = 0.0_rt;
+          }
+      }
+
 
       // Solve Riemann problem
       if (riemann_solver == 0) {
