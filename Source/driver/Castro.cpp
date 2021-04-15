@@ -385,6 +385,35 @@ Castro::read_params ()
     }
 #endif
 
+#ifndef AMREX_USE_GPU
+
+#ifdef RADIATION
+    if (hybrid_riemann == 1) {
+        amrex::Error("ERROR: hybrid Riemann not supported for radiation");
+    }
+
+    if (riemann_solver > 0) {
+        amrex::Error("ERROR: only the CGF Riemann solver is supported for radiation");
+    }
+#endif
+
+#if AMREX_SPACEDIM == 1
+    if (riemann_solver > 1) {
+        amrex::Error("ERROR: HLLC not implemented for 1-d");
+    }
+#endif
+
+    if (riemann_solver == 1) {
+        if (cg_maxiter > HISTORY_SIZE) {
+            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        }
+
+        if (cg_blend == 2 && cg_maxiter < 5) {
+            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        }
+    }
+#endif
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
