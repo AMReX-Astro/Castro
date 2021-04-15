@@ -55,7 +55,7 @@ Castro::estdt_cfl(const Real time)
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u(i,j,k,URHO);
       eos_state.T = u(i,j,k,UTEMP);
       eos_state.e = u(i,j,k,UEINT) * rhoInv;
@@ -182,7 +182,7 @@ Castro::estdt_mhd()
       Real uy = u_arr(i,j,k,UMY) * rhoInv;
       Real uz = u_arr(i,j,k,UMZ) * rhoInv;
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u_arr(i,j,k,URHO);
       eos_state.e = u_arr(i,j,k,UEINT) * rhoInv;
       eos_state.T = u_arr(i,j,k,UTEMP);
@@ -293,6 +293,7 @@ Castro::estdt_temp_diffusion(void)
 
                        // we need cv
                        eos_t eos_state;
+
                        eos_state.rho = ustate(i,j,k,URHO);
                        eos_state.T = ustate(i,j,k,UTEMP);
                        eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
