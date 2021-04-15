@@ -139,7 +139,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       load_stencil(q_arr, idir, i, j, k, QPRES, s);
       load_stencil(q_arr, idir, i, j, k, QRHO, trho);
-      load_stencil(srcQ, idir, i, j, k, QUN);
+      load_stencil(srcQ, idir, i, j, k, QUN, src);
 
       Real dp = dq[IEIGN_P];
       pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
