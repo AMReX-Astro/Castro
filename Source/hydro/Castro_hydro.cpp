@@ -275,7 +275,7 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
             Real v = U(i,j,k,UMY) * rhoInv;
             Real w = U(i,j,k,UMZ) * rhoInv;
 
-            eos_t eos_state;
+            eos_rep_t eos_state;
 
             eos_state.rho = U(i,j,k,URHO);
             eos_state.T = U(i,j,k,UTEMP);

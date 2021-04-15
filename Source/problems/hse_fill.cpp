@@ -71,7 +71,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -261,7 +261,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -451,7 +451,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
@@ -639,7 +639,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial below zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_below;
                 eos_state.T = temp_below;
                 for (int n = 0; n < NumSpec; n++) {
@@ -828,7 +828,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                 // get pressure in this zone (the initial above zone)
 
-                eos_t eos_state;
+                eos_rep_t eos_state;
                 eos_state.rho = dens_above;
                 eos_state.T = temp_above;
                 for (int n = 0; n < NumSpec; n++) {
