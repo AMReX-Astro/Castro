@@ -161,7 +161,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_rho[3];
     Real Im_rho[3];
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QRHO, s);
+    load_stencil(q_arr, idir, i, j, k, QRHO, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_rho, Im_rho);
 
@@ -172,7 +172,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_un_2;
     Real Im_un_2;
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QUN, s);
+    load_stencil(q_arr, idir, i, j, k, QUN, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdx, Ip_un_0, Im_un_0);
     ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdx, Ip_un_2, Im_un_2);
@@ -182,7 +182,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_p[3];
     Real Im_p[3];
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QPRES, s);
+    load_stencil(q_arr, idir, i, j, k, QPRES, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_p, Im_p);
 
@@ -191,7 +191,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_rhoe[3];
     Real Im_rhoe[3];
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QREINT, s);
+    load_stencil(q_arr, idir, i, j, k, QREINT, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_rhoe, Im_rhoe);
 
@@ -202,11 +202,11 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_utt_1;
     Real Im_utt_1;
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QUT, s);
+    load_stencil(q_arr, idir, i, j, k, QUT, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_ut_1, Im_ut_1);
 
-    load_ppm_stencil(q_arr, idir, i, j, k, QUTT, s);
+    load_stencil(q_arr, idir, i, j, k, QUTT, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_utt_1, Im_utt_1);
 
@@ -217,7 +217,7 @@ Castro::trace_ppm(const Box& bx,
     Real Ip_gc_2;
     Real Im_gc_2;
 
-    load_ppm_stencil(qaux_arr, idir, i, j, k, QGAMC, s);
+    load_stencil(qaux_arr, idir, i, j, k, QGAMC, s);
     ppm_reconstruct(s, flat, sm, sp);
     ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdx, Ip_gc_0, Im_gc_0);
     ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdx, Ip_gc_2, Im_gc_2);
@@ -238,7 +238,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QRHO, s);
+        load_stencil(srcQ, idir, i, j, k, QRHO, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_rho_1, Im_src_rho_1);
     }
@@ -257,7 +257,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QUN, s);
+        load_stencil(srcQ, idir, i, j, k, QUN, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdx, Ip_src_un_0, Im_src_un_0);
         ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdx, Ip_src_un_2, Im_src_un_2);
@@ -275,7 +275,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QPRES, s);
+        load_stencil(srcQ, idir, i, j, k, QPRES, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile(sm, sp, s[i0], un, cc, dtdx, Ip_src_p, Im_src_p);
     }
@@ -292,7 +292,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QREINT, s);
+        load_stencil(srcQ, idir, i, j, k, QREINT, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_rhoe_1, Im_src_rhoe_1);
     }
@@ -309,7 +309,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QUT, s);
+        load_stencil(srcQ, idir, i, j, k, QUT, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_ut_1, Im_src_ut_1);
     }
@@ -324,7 +324,7 @@ Castro::trace_ppm(const Box& bx,
 #endif
 
     if (do_trace) {
-        load_ppm_stencil(srcQ, idir, i, j, k, QUTT, s);
+        load_stencil(srcQ, idir, i, j, k, QUTT, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_utt_1, Im_src_utt_1);
     }
@@ -346,13 +346,13 @@ Castro::trace_ppm(const Box& bx,
         int n = qpassmap(ipassive);
 
 
-        load_ppm_stencil(q_arr, idir, i, j, k, n, s);
+        load_stencil(q_arr, idir, i, j, k, n, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_passive, Im_passive);
 
 #ifdef PRIM_SPECIES_HAVE_SOURCES
         // if we turned this on, don't bother to check if it source is non-zero -- just trace
-        load_ppm_stencil(srcQ, idir, i, j, k, n, s);
+        load_stencil(srcQ, idir, i, j, k, n, s);
         ppm_reconstruct(s, flat, sm, sp);
         ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_passive, Im_src_passive);
 #endif
