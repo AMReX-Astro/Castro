@@ -29,13 +29,13 @@ void problem_initialize_state_data (int i, int j, int k,
 
     if (r[AMREX_SPACEDIM-1] < problem::split[AMREX_SPACEDIM-1]) {
         Real pres = problem::p0_base - problem::rho_1 * r[AMREX_SPACEDIM-1];
-        state(i,j,k,UEDEN) = pres / (gamma_const - 1.0_rt);
-        state(i,j,k,UEINT) = pres / (gamma_const - 1.0_rt);
+        state(i,j,k,UEDEN) = pres / (eos_gamma - 1.0_rt);
+        state(i,j,k,UEINT) = pres / (eos_gamma - 1.0_rt);
     } else {
         Real pres = presmid - problem::rho_2 *
             (r[AMREX_SPACEDIM-1] - problem::split[AMREX_SPACEDIM-1]);
-        state(i,j,k,UEDEN) = pres / (gamma_const - 1.0_rt);
-        state(i,j,k,UEINT) = pres / (gamma_const - 1.0_rt);
+        state(i,j,k,UEDEN) = pres / (eos_gamma - 1.0_rt);
+        state(i,j,k,UEINT) = pres / (eos_gamma - 1.0_rt);
     }
 
     Real pertheight;
