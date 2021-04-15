@@ -745,26 +745,6 @@
                              const int idir, const bool store_full_state);
 
 
-///
-/// A HLLC Riemann solver for pure hydrodynamics
-///
-/// @param bx          the box to operate over
-/// @param ql          the left interface state
-/// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
-/// @param uflx        the flux through the interface
-/// @param qint        an approximate Godunov state on the interface
-/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
-///
-    void HLLC(const amrex::Box& bx,
-              amrex::Array4<amrex::Real const> const& ql,
-              amrex::Array4<amrex::Real const> const& qr,
-              amrex::Array4<amrex::Real const> const& qaux_arr,
-              amrex::Array4<amrex::Real> const& uflx,
-              amrex::Array4<amrex::Real> const& qint,
-              const int idir);
-
-
     void
     store_godunov_state(const amrex::Box& bx,
                         amrex::Array4<amrex::Real const> const& qint,

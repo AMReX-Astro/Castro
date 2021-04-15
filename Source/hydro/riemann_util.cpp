@@ -17,6 +17,8 @@ using namespace amrex;
 
 #include <riemann.H>
 
+#if 0
+
 void
 Castro::compute_flux_q(const Box& bx,
                        Array4<Real const> const& qint,
@@ -152,7 +154,7 @@ Castro::compute_flux_q(const Box& bx,
 #endif
   });
 }
-
+#endif
 
 void
 Castro::store_godunov_state(const Box& bx,

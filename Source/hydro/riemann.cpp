@@ -90,12 +90,13 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         } else if (riemann_solver == 2) {
             // HLLC
-            HLLC(bx,
+            HLLC(i, j, k, idir,
                  qm, qp,
                  qaux_arr,
                  flx,
                  qgdnv, store_full_state,
-                 idir);
+                 geomdata,
+                 lo_bc, hi_bc);
 
 #ifndef AMREX_USE_GPU
         } else {
