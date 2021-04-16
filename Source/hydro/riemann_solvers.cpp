@@ -83,11 +83,8 @@ Castro::riemanncg(const Box& bx,
     RiemannState qr;
     RiemannAux raux;
 
-    int compute_gammas = 0;
-
     load_input_states(i, j, k, idir,
                       qleft_arr, qright_arr, qaux_arr,
-                      compute_gammas,
                       ql, qr, raux);
 
     // deal with hard walls
@@ -467,7 +464,7 @@ Castro::riemannus(const Box& bx,
 #ifdef RADIATION
                   Array4<Real> const& lambda_int,
 #endif
-                  const int idir, const int compute_gammas) {
+                  const int idir) {
 
   // Colella, Glaz, and Ferguson solver
   //
@@ -550,7 +547,6 @@ Castro::riemannus(const Box& bx,
 
     load_input_states(i, j, k, idir,
                       qleft_arr, qright_arr, qaux_arr,
-                      compute_gammas,
                       ql, qr, raux);
 
 

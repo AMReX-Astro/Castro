@@ -44,7 +44,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                   lambda_int,
 #endif
                   qaux_arr,
-                  idir, 0);
+                  idir);
 
     compute_flux_q(bx,
                    qint, flx,
@@ -148,7 +148,7 @@ Castro::riemann_state(const Box& bx,
                       Array4<Real> const& lambda_int,
 #endif
                       Array4<Real const> const& qaux_arr,
-                      const int idir, const int compute_gammas) {
+                      const int idir) {
 
   // just compute the hydrodynamic state on the interfaces
   // don't compute the fluxes
@@ -246,7 +246,7 @@ Castro::riemann_state(const Box& bx,
 #ifdef RADIATION
               lambda_int,
 #endif
-              idir, compute_gammas);
+              idir);
 
   } else if (riemann_solver == 1) {
     // Colella & Glaz solver

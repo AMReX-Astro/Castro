@@ -259,7 +259,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                           qm_arr, qp_arr,
                           q_avg_arr,
                           qaux_arr,
-                          idir, 0);
+                          idir);
 
             compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir);
 
