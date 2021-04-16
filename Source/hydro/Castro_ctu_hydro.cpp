@@ -698,6 +698,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                           qaux_arr, shk_arr,
                           0, false);
 
+
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
 

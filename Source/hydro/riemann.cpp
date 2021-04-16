@@ -50,9 +50,20 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     const int* lo_bc = phys_bc.lo();
     const int* hi_bc = phys_bc.hi();
 
+    // do we want to force the flux to zero at the boundary?
+    const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
+                                 lo_bc[idir] == SlipWall ||
+                                 lo_bc[idir] == NoSlipWall);
+    const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
+                                 hi_bc[idir] == SlipWall ||
+                                 hi_bc[idir] == NoSlipWall);
+
     auto coord = geom.Coord();
 
     GeometryData geomdata = geom.data();
+
+    const auto domlo = geom.Domain().loVect3d();
+    const auto domhi = geom.Domain().hiVect3d();
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -75,7 +86,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                           lambda_int_local,
 #endif
                           geomdata,
-                          lo_bc, hi_bc);
+                          special_bnd_lo, special_bnd_hi,
+                          domlo, domhi);
 
             // now use the interface state to compute and store the flux
 
@@ -96,7 +108,8 @@ Castro::cmpflx_plus_godunov(const Box& bx,
                  flx,
                  qgdnv, store_full_state,
                  geomdata,
-                 lo_bc, hi_bc);
+                 special_bnd_lo, special_bnd_hi,
+                 domlo, domhi);
 
 #ifndef AMREX_USE_GPU
         } else {

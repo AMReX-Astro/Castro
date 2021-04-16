@@ -7,7 +7,7 @@
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 compute_flux_q(const int i, const int j, const int k, const int idir,
-               GeometryData geomdata,
+               const GeometryData& geomdata,
                GpuArray<Real, NQ> const& qint,
                Array4<Real> const& F,
 #ifdef RADIATION
@@ -172,8 +172,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemanncg(const int i, const int j, const int k,
-          const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemanncg(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
           GpuArray<Real, NQ>& qint,
           const int idir) {
 
@@ -563,8 +562,7 @@ riemanncg(const int i, const int j, const int k,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemannus(const int i, const int j, const int k,
-          const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemannus(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
           GpuArray<Real, NQ>& qint,
 #ifdef RADIATION
           GpuArray<Real, NGROUPS>& lambda_int,
@@ -988,8 +986,9 @@ HLLC(const int i, const int j, const int k, const int idir,
      Array4<Real const> const& qaux_arr,
      Array4<Real> const& uflx,
      Array4<Real> const& qgdnv, const bool store_full_state,
-     const GeometryData geom,
-     const int* lo_bc, const int* hi_bc) {
+     const GeometryData& geom,
+     const bool special_bnd_lo, const bool special_bnd_hi,
+     GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
     // this is an implementation of the HLLC solver described in Toro's
     // book.  it uses the simplest estimate of the wave speeds, since
@@ -999,9 +998,6 @@ HLLC(const int i, const int j, const int k, const int idir,
     // pdV term in the internal energy update.
 
     const Real small = 1.e-8_rt;
-
-    const auto domlo = geom.Domain().loVect3d();
-    const auto domhi = geom.Domain().hiVect3d();
 
     int iu;
     int sx, sy, sz;
@@ -1026,13 +1022,6 @@ HLLC(const int i, const int j, const int k, const int idir,
 
     }
 
-    // do we want to force the flux to zero at the boundary?
-    const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                                 lo_bc[idir] == SlipWall ||
-                                 lo_bc[idir] == NoSlipWall);
-    const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                                 hi_bc[idir] == SlipWall ||
-                                 hi_bc[idir] == NoSlipWall);
 
     int coord = geom.Coord();
 
@@ -1272,10 +1261,11 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real const> const& qaux_arr,
               GpuArray<Real, NQ>& qint,
 #ifdef RADIATION
-              GpuArray<Real, NGROUPS> lambda_int,
+              GpuArray<Real, NGROUPS>& lambda_int,
 #endif
-              const GeometryData geom,
-              const int* lo_bc, const int* hi_bc) {
+              const GeometryData& geom,
+              const bool special_bnd_lo, const bool special_bnd_hi,
+              GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
 
   // just compute the hydrodynamic state on the interfaces
   // don't compute the fluxes
@@ -1284,17 +1274,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
   // cells) domain, but could be hi+1 in some dimensions.  We rely on
   // the caller to specify the interfaces over which to solve the
   // Riemann problems
-
-  const auto domlo = geom.Domain().loVect3d();
-  const auto domhi = geom.Domain().hiVect3d();
-
-  // do we want to force the flux to zero at the boundary?
-  const bool special_bnd_lo = (lo_bc[idir] == Symmetry ||
-                               lo_bc[idir] == SlipWall ||
-                               lo_bc[idir] == NoSlipWall);
-  const bool special_bnd_hi = (hi_bc[idir] == Symmetry ||
-                               hi_bc[idir] == SlipWall ||
-                               hi_bc[idir] == NoSlipWall);
 
 
   if (ppm_temp_fix == 2) {
@@ -1346,9 +1325,11 @@ riemann_state(const int i, const int j, const int k, const int idir,
       qp(i,j,k,QPRES) = eos_state.p;
   }
 
+
   RiemannState ql;
   RiemannState qr;
   RiemannAux raux;
+
 
   load_input_states(i, j, k, idir,
                     qm, qp, qaux_arr,
@@ -1381,8 +1362,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
   if (riemann_solver == 0) {
       // Colella, Glaz, & Ferguson solver
 
-      riemannus(i, j, k,
-                ql, qr, raux,
+      riemannus(ql, qr, raux,
                 qint,
 #ifdef RADIATION
                 lambda_int,
@@ -1393,8 +1373,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
       // Colella & Glaz solver
 
 #ifndef RADIATION
-      riemanncg(i, j, k,
-                ql, qr, raux,
+      riemanncg(ql, qr, raux,
                 qint,
                 idir);
 #endif
@@ -1404,6 +1383,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
       amrex::Error("ERROR: invalid value of riemann_solver");
 #endif
   }
+
 
   // the passives are always just upwinded, so we do that here
   // regardless of the solver
