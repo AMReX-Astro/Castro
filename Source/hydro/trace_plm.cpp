@@ -8,8 +8,8 @@
 
 #include <cmath>
 
-#include <ppm.H>
 #include <slope.H>
+#include <reconstruction.H>
 
 using namespace amrex;
 
@@ -125,27 +125,7 @@ Castro::trace_plm(const Box& bx, const int idir,
     for (int n = 0; n < NEIGN; n++) {
       int v = cvars[n];
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,v);
-        s[im1] = q_arr(i-1,j,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i+1,j,k,v);
-        s[ip2] = q_arr(i+2,j,k,v);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,v);
-        s[im1] = q_arr(i,j-1,k,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j+1,k,v);
-        s[ip2] = q_arr(i,j+2,k,v);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,v);
-        s[im1] = q_arr(i,j,k-1,v);
-        s[i0]  = q_arr(i,j,k,v);
-        s[ip1] = q_arr(i,j,k+1,v);
-        s[ip2] = q_arr(i,j,k+2,v);
-      }
+      load_stencil(q_arr, idir, i, j, k, v, s);
 
       bool vtest = v == QUN;
       dq[n] = uslope(s, flat, lo_bc_test && vtest, hi_bc_test && vtest);
@@ -157,63 +137,9 @@ Castro::trace_plm(const Box& bx, const int idir,
       Real trho[5];
       Real src[5];
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,QPRES);
-        s[im1] = q_arr(i-1,j,k,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i+1,j,k,QPRES);
-        s[ip2] = q_arr(i+2,j,k,QPRES);
-
-        trho[im2] = q_arr(i-2,j,k,QRHO);
-        trho[im1] = q_arr(i-1,j,k,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i+1,j,k,QRHO);
-        trho[ip2] = q_arr(i+2,j,k,QRHO);
-
-        src[im2] = srcQ(i-2,j,k,QUN);
-        src[im1] = srcQ(i-1,j,k,QUN);
-        src[i0]  = srcQ(i,j,k,QUN);
-        src[ip1] = srcQ(i+1,j,k,QUN);
-        src[ip2] = srcQ(i+2,j,k,QUN);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,QPRES);
-        s[im1] = q_arr(i,j-1,k,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i,j+1,k,QPRES);
-        s[ip2] = q_arr(i,j+2,k,QPRES);
-
-        trho[im2] = q_arr(i,j-2,k,QRHO);
-        trho[im1] = q_arr(i,j-1,k,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i,j+1,k,QRHO);
-        trho[ip2] = q_arr(i,j+2,k,QRHO);
-
-        src[im2] = srcQ(i,j-2,k,QUN);
-        src[im1] = srcQ(i,j-1,k,QUN);
-        src[i0]  = srcQ(i,j,k,QUN);
-        src[ip1] = srcQ(i,j+1,k,QUN);
-        src[ip2] = srcQ(i,j+2,k,QUN);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,QPRES);
-        s[im1] = q_arr(i,j,k-1,QPRES);
-        s[i0]  = q_arr(i,j,k,QPRES);
-        s[ip1] = q_arr(i,j,k+1,QPRES);
-        s[ip2] = q_arr(i,j,k+2,QPRES);
-
-        trho[im2] = q_arr(i,j,k-2,QRHO);
-        trho[im1] = q_arr(i,j,k-1,QRHO);
-        trho[i0]  = q_arr(i,j,k,QRHO);
-        trho[ip1] = q_arr(i,j,k+1,QRHO);
-        trho[ip2] = q_arr(i,j,k+2,QRHO);
-
-        src[im2] = srcQ(i,j,k-2,QUN);
-        src[im1] = srcQ(i,j,k-1,QUN);
-        src[i0]  = srcQ(i,j,k,QUN);
-        src[ip1] = srcQ(i,j,k+1,QUN);
-        src[ip2] = srcQ(i,j,k+2,QUN);
-      }
+      load_stencil(q_arr, idir, i, j, k, QPRES, s);
+      load_stencil(q_arr, idir, i, j, k, QRHO, trho);
+      load_stencil(srcQ, idir, i, j, k, QUN, src);
 
       Real dp = dq[IEIGN_P];
       pslope(trho, s, src, flat, lo_bc_test, hi_bc_test, dx[idir], dp);
@@ -381,28 +307,7 @@ Castro::trace_plm(const Box& bx, const int idir,
 
       // get the slope
 
-      if (idir == 0) {
-        s[im2] = q_arr(i-2,j,k,n);
-        s[im1] = q_arr(i-1,j,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i+1,j,k,n);
-        s[ip2] = q_arr(i+2,j,k,n);
-
-      } else if (idir == 1) {
-        s[im2] = q_arr(i,j-2,k,n);
-        s[im1] = q_arr(i,j-1,k,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j+1,k,n);
-        s[ip2] = q_arr(i,j+2,k,n);
-
-      } else {
-        s[im2] = q_arr(i,j,k-2,n);
-        s[im1] = q_arr(i,j,k-1,n);
-        s[i0]  = q_arr(i,j,k,n);
-        s[ip1] = q_arr(i,j,k+1,n);
-        s[ip2] = q_arr(i,j,k+2,n);
-      }
-
+      load_stencil(q_arr, idir, i, j, k, n, s);
       Real dX = uslope(s, flat, false, false);
 
       // Right state
