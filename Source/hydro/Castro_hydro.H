@@ -744,6 +744,11 @@
                              amrex::Array4<amrex::Real const> const& shk,
                              const int idir, const bool store_full_state);
 
+    void
+    compute_flux_from_q(const amrex::Box& bx,
+                        amrex::Array4<amrex::Real const> const& qint,
+                        amrex::Array4<amrex::Real> const& F,
+                        const int idir);
 
     void
     store_godunov_state(const amrex::Box& bx,
