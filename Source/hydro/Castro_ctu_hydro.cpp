@@ -1349,9 +1349,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
             Array4<Real> const flux_fab = (flux[idir]).array();
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-            const int numcomp = NUM_STATE;
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+            amrex::ParallelFor(mfi.nodaltilebox(idir), NUM_STATE,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
@@ -1359,13 +1359,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
             Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
             Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-            const int radcomp = Radiation::nGroups;
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+            amrex::ParallelFor(mfi.nodaltilebox(idir), Radiation::nGroups,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
-
 #endif
 
 #if AMREX_SPACEDIM <= 2
@@ -1378,7 +1377,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                 Array4<Real> pradial_fab = pradial.array();
                 Array4<Real> P_radial_fab = P_radial.array(mfi);
 
-                AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+                amrex::ParallelFor(mfi.nodaltilebox(0),
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
@@ -1391,7 +1391,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Array4<Real> const flux_fab = (flux[idir]).array();
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+        amrex::ParallelFor(mfi.nodaltilebox(idir),
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             // This is a copy, not an add, since we need mass_fluxes to be
             // only this subcycle's data when we evaluate the gravitational
