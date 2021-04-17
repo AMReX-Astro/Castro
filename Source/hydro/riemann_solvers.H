@@ -3,6 +3,9 @@
 
 #include <Castro_util.H>
 #include <riemann.H>
+#ifdef HYBRID_MOMENTUM
+#include <hybrid.H>
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
