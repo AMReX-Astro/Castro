@@ -3,6 +3,9 @@
 
 #include <Castro_util.H>
 #include <riemann.H>
+#ifdef HYBRID_MOMENTUM
+#include <hybrid.H>
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
@@ -172,7 +175,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemanncg(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           GpuArray<Real, NQ>& qint,
           const int idir) {
 
@@ -562,7 +565,7 @@ riemanncg(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemannus(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           GpuArray<Real, NQ>& qint,
 #ifdef RADIATION
           GpuArray<Real, NGROUPS>& lambda_int,
