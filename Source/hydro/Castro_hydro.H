@@ -758,7 +758,6 @@
 /// @param lambda_int      radiation flux limiter on the interface
 /// @param qaux            auxillary state
 /// @param idir            coordinate direction of the solve (0 = x, 1 = y, 2 = z)
-/// @param compute_gammas  do we call the EOS using the interface states to get Gamma_1 on interfaces
 ///
     void riemann_state(const amrex::Box& bx,
                        amrex::Array4<amrex::Real> const& qm,
@@ -768,7 +767,7 @@
                        amrex::Array4<amrex::Real> const& lambda_int,
 #endif
                        amrex::Array4<amrex::Real const> const& qaux,
-                       const int idir, const int compute_gammas);
+                       const int idir);
 
 ///
 /// The Colella-Glaz Riemann solver for pure hydrodynamics.  This is a
@@ -809,7 +808,7 @@
 #ifdef RADIATION
                    amrex::Array4<amrex::Real> const& lambda_int,
 #endif
-                   const int idir, const int compute_gammas);
+                   const int idir);
 
 ///
 /// A HLLC Riemann solver for pure hydrodynamics
