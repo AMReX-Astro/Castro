@@ -13,7 +13,6 @@
 
 using namespace amrex;
 
-
 void
 Castro::HLLC(const Box& bx,
              Array4<Real const> const& ql,

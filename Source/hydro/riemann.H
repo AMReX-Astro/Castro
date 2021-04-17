@@ -69,7 +69,6 @@ load_input_states(const int i, const int j, const int k, const int idir,
                   Array4<Real const> const& qleft_arr,
                   Array4<Real const> const& qright_arr,
                   Array4<Real const> const& qaux_arr,
-                  const int compute_gammas,
                   RiemannState& ql, RiemannState& qr, RiemannAux& raux) {
 
     const Real small = 1.e-8_rt;
@@ -186,48 +185,10 @@ load_input_states(const int i, const int j, const int k, const int idir,
 
     // cleaning
 
-#ifndef RADIATION
-    if (compute_gammas == 1) {
-
-        // we come in with a good p, rho, and X on the interfaces
-        // -- use this to find the gamma used in the sound speed
-        eos_t eos_state;
-
-        eos_state.p = ql.p;
-        eos_state.rho = ql.rho;
-        for (int n = 0; n < NumSpec; n++) {
-            eos_state.xn[n] = qleft_arr(i,j,k,QFS+n);
-        }
-        eos_state.T = T_guess; // initial guess
-#if NAUX_NET > 0
-        for (int n = 0; n < NumAux; n++) {
-            eos_state.aux[n] = qleft_arr(i,j,k,QFX+n);
-        }
-#endif
-
-        eos(eos_input_rp, eos_state);
-        ql.gamc = eos_state.gam1;
-
-        eos_state.p = qr.p;
-        eos_state.rho = qr.rho;
-        for (int n = 0; n < NumSpec; n++) {
-            eos_state.xn[n] = qright_arr(i,j,k,QFS+n);
-        }
-        eos_state.T = T_guess; // initial guess
-#if NAUX_NET > 0
-        for (int n = 0; n < NumAux; n++) {
-            eos_state.aux[n] = qright_arr(i,j,k,QFX+n);
-        }
-#endif
-
-        eos(eos_input_rp, eos_state);
-        qr.gamc = eos_state.gam1;
-
 #ifdef TRUE_SDC
-    } else if (use_reconstructed_gamma1 == 1) {
+    if (use_reconstructed_gamma1 == 1) {
         ql.gamc = qleft_arr(i,j,k,QGC);
         qr.gamc = qright_arr(i,j,k,QGC);
-#endif
     }
 #endif
 
@@ -239,7 +200,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
         std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << ql.rhoe << " " << ql.p << " " << small_pres << std::endl;
 #endif
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.T = small_temp;
         eos_state.rho = ql.rho;
         for (int n = 0; n < NumSpec; n++) {
@@ -263,7 +224,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
         std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << qr.rhoe << " " << qr.p << " " << small_pres << std::endl;
 #endif
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.T = small_temp;
         eos_state.rho = qr.rho;
         for (int n = 0; n < NumSpec; n++) {
