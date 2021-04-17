@@ -8,10 +8,9 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 compute_flux_q(const int i, const int j, const int k, const int idir,
                const GeometryData& geomdata,
-               GpuArray<Real, NQ> const& qint,
+               const RiemannState qint,
                Array4<Real> const& F,
 #ifdef RADIATION
-               GpuArray<Real, NGROUPS> const& lambda,
                Array4<Real> const& rF,
 #endif
                Array4<Real> const& qgdnv, const bool store_full_state) {
@@ -19,32 +18,22 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     // given a primitive state, compute the flux in direction idir
     //
 
-    int iu, iv1, iv2;
     int im1, im2, im3;
 
     auto coord = geomdata.Coord();
     auto mom_check = mom_flux_has_p(idir, idir, coord);
 
     if (idir == 0) {
-        iu = QU;
-        iv1 = QV;
-        iv2 = QW;
         im1 = UMX;
         im2 = UMY;
         im3 = UMZ;
 
     } else if (idir == 1) {
-        iu = QV;
-        iv1 = QU;
-        iv2 = QW;
         im1 = UMY;
         im2 = UMX;
         im3 = UMZ;
 
     } else {
-        iu = QW;
-        iv1 = QU;
-        iv2 = QV;
         im1 = UMZ;
         im2 = UMX;
         im3 = UMY;
@@ -57,26 +46,23 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     int closure = Radiation::closure;
 #endif
 
-    Real u_adv = qint[iu];
-    Real rhoeint = qint[QREINT];
-
     // Compute fluxes, order as conserved state (not q)
-    F(i,j,k,URHO) = qint[QRHO] * u_adv;
+    F(i,j,k,URHO) = qint.rho * qint.un;
 
-    F(i,j,k,im1) = F(i,j,k,URHO) * qint[iu];
+    F(i,j,k,im1) = F(i,j,k,URHO) * qint.un;
     if (mom_check) {
-      F(i,j,k,im1) += qint[QPRES];
+      F(i,j,k,im1) += qint.p;
     }
-    F(i,j,k,im2) = F(i,j,k,URHO) * qint[iv1];
-    F(i,j,k,im3) = F(i,j,k,URHO) * qint[iv2];
+    F(i,j,k,im2) = F(i,j,k,URHO) * qint.ut;
+    F(i,j,k,im3) = F(i,j,k,URHO) * qint.utt;
 
-    Real rhoetot = rhoeint + 0.5_rt * qint[QRHO] *
-        (qint[iu] * qint[iu] +
-         qint[iv1] * qint[iv1] +
-         qint[iv2] * qint[iv2]);
+    Real rhoetot = qint.rhoe + 0.5_rt * qint.rho *
+        (qint.un * qint.un +
+         qint.ut * qint.ut +
+         qint.utt * qint.utt);
 
-    F(i,j,k,UEDEN) = u_adv * (rhoetot + qint[QPRES]);
-    F(i,j,k,UEINT) = u_adv * rhoeint;
+    F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p);
+    F(i,j,k,UEINT) = qint.un * rhoeint;
 
     F(i,j,k,UTEMP) = 0.0;
 #ifdef SHOCK_VAR
@@ -86,14 +72,14 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #ifdef RADIATION
     if (fspace_t == 1) {
         for (int g = 0; g < NGROUPS; g++) {
-            Real eddf = Edd_factor(lambda[g], limiter, closure);
+            Real eddf = Edd_factor(qint.lam[g], limiter, closure);
             Real f1 = 0.5e0_rt*(1.0_rt-eddf);
-            rF(i,j,k,g) = (1.0_rt + f1) * qint[QRAD+g] * u_adv;
+            rF(i,j,k,g) = (1.0_rt + f1) * qint.er[g] * qint.un;
         }
     } else {
         // type 2
         for (int g = 0; g < NGROUPS; g++) {
-            rF(i,j,k,g) = qint[QRAD+g] * u_adv;
+            rF(i,j,k,g) = qint.er[g] * qint.un;
         }
     }
 #endif
@@ -109,15 +95,25 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #ifdef HYBRID_MOMENTUM
     // the hybrid routine uses the Godunov indices, not the full NQ state
     GpuArray<Real, NGDNV> qgdnv_zone;
-    qgdnv_zone[GDRHO] = qint[QRHO];
-    qgdnv_zone[GDU] = qint[QU];
-    qgdnv_zone[GDV] = qint[QV];
-    qgdnv_zone[GDW] = qint[QW];
-    qgdnv_zone[GDPRES] = qint[QPRES];
+    qgdnv_zone[GDRHO] = qint.rho;
+    if (idir == 0) {
+        qgdnv_zone[GDU] = qint.un;
+        qgdnv_zone[GDV] = qint.ut;
+        qgdnv_zone[GDW] = qint.utt;
+    } else if (idir == 1) {
+        qgdnv_zone[GDV] = qint.un;
+        qgdnv_zone[GDU] = qint.uy;
+        qgdnv_zone[GDW] = qint.utt;
+    } else {
+        qgdnv_zone[GDW] = qint.un;
+        qgdnv_zone[GDU] = qint.ut;
+        qgdnv_zone[GDV] = qint.utt;
+    }
+    qgdnv_zone[GDPRES] = qint.p;
 #ifdef RADIATION
     for (int g = 0; g < NGROUPS; g++) {
-        qgdnv_zone[GDLAMS+g] = lambda[g];
-        qgdnv_zone[GDERADS+g] = qint[QRAD+g];
+        qgdnv_zone[GDLAMS+g] = qint.lam[g];
+        qgdnv_zone[GDERADS+g] = qint.er[g];
     }
 #endif
     GpuArray<Real, NUM_STATE> F_zone;
@@ -134,6 +130,8 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     // either store just the NGDNV subset or the whole NQ hydro state,
     // depending on the value of store_full_state
 
+    // note: we don't handle the passives here
+
     if (store_full_state) {
 
         for (int n = 0; n < NQ; n++) {
@@ -142,15 +140,25 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 
     } else {
 
-        qgdnv(i,j,k,GDRHO) = qint[QRHO];
-        qgdnv(i,j,k,GDU) = qint[QU];
-        qgdnv(i,j,k,GDV) = qint[QV];
-        qgdnv(i,j,k,GDW) = qint[QW];
-        qgdnv(i,j,k,GDPRES) = qint[QPRES];
+        qgdnv(i,j,k,GDRHO) = qint.rho;
+        if (idir == 0) {
+            qgdnv(i,j,k,GDU) = qint.un;
+            qgdnv(i,j,k,GDV) = qint.ut;
+            qgdnv(i,j,k,GDW) = qint.utt;
+        } else if (idir == 1) {
+            qgdnv(i,j,k,GDV) = qint.un;
+            qgdnv(i,j,k,GDU) = qint.ut;
+            qgdnv(i,j,k,GDW) = qint.utt;
+        } else {
+            qgdnv(i,j,k,GDW) = qint.un;
+            qgdnv(i,j,k,GDU) = qint.ut;
+            qgdnv(i,j,k,GDV) = qint.utt;
+        }
+        qgdnv(i,j,k,GDPRES) = qint.p;
 #ifdef RADIATION
         for (int g = 0; g < NGROUPS; g++) {
-            qgdnv(i,j,k,GDLAMS+g) = lambda[g];
-            qgdnv(i,j,k,GDERADS+g) = qint[QRAD+g];
+            qgdnv(i,j,k,GDLAMS+g) = qint.lam[g];
+            qgdnv(i,j,k,GDERADS+g) = qint.er[g];
         }
 #endif
 

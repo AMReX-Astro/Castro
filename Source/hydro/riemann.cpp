@@ -69,10 +69,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
-        GpuArray<Real, NQ> qint_local;
-#ifdef RADIATION
-        GpuArrau<Real, NGROUPS> lambda_int_local;
-#endif
+        RiemannState qint;
 
         if (riemann_solver == 0 || riemann_solver == 1) {
             // approximate state Riemann solvers
@@ -81,10 +78,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             riemann_state(i, j, k, idir,
                           qm, qp, qaux_arr,
-                          qint_local,
-#ifdef RADIATION
-                          lambda_int_local,
-#endif
+                          qint,
                           geomdata,
                           special_bnd_lo, special_bnd_hi,
                           domlo, domhi);
@@ -93,9 +87,9 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             compute_flux_q(i, j, k, idir,
                            geomdata,
-                           qint_local, flx,
+                           qint, flx,
 #ifdef RADIATION
-                           lambda_int_local, rflx,
+                           rflx,
 #endif
                            qgdnv, store_full_state);
 
