@@ -72,7 +72,6 @@ castro.use_pslope = 0
 
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-castro.apply_sources_consecutively = 1
 
 castro.ppm_temp_fix = 0                            # Use the EOS in calculation of the edge states going into the Riemann solver
 castro.grav_source_type = 1 #4                        # How to include the gravity source term in the hydro equations

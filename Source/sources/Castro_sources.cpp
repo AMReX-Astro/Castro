@@ -119,56 +119,24 @@ Castro::do_old_sources(
 
     source.setVal(0.0, source.nGrow());
 
-    MultiFab temp_source;
-
-    if (apply_sources_consecutively && apply_to_state) {
-        temp_source.define(grids, dmap, NSRC, NUM_GROW);
-        temp_source.setVal(0.0, NUM_GROW);
-    }
-
     for (int n = 0; n < num_src; ++n) {
         construct_old_source(n, source, state_old, time, dt);
 
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
 
-        if (apply_sources_consecutively && apply_to_state) {
-
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
-#ifdef MHD
-                            Bx, By, Bz,
-#endif
-                            state_new, time + dt, 0);
-
-            // Zero out the source MultiFab for the next source term.
-            // Also, log the sum of all source terms since we need
-            // to save that after we're done.
-
-            MultiFab::Add(temp_source, source, 0, 0, NSRC, NUM_GROW);
-
-            if (n < num_src - 1) {
-                source.setVal(0.0, NUM_GROW);
-            }
-
-        }
-
     }
 
     if (apply_to_state) {
 
-        if (apply_sources_consecutively) {
-            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-        } else {
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
+        apply_source_to_state(state_new, source, dt, 0);
+        clean_state(
 #ifdef MHD
-                            Bx, By, Bz,
+                     Bx, By, Bz,
 #endif
-                            state_new, time, 0);
-        }
-
+                     state_new, time, 0);
     }
+
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.
@@ -211,13 +179,6 @@ Castro::do_new_sources(
 
     source.setVal(0.0, NUM_GROW);
 
-    MultiFab temp_source;
-
-    if (apply_sources_consecutively && apply_to_state) {
-        temp_source.define(grids, dmap, NSRC, NUM_GROW);
-        temp_source.setVal(0.0, NUM_GROW);
-    }
-
     // Construct the new-time source terms.
 
     for (int n = 0; n < num_src; ++n) {
@@ -226,48 +187,18 @@ Castro::do_new_sources(
         // We can either apply the sources to the state one by one, or we can
         // group them all together at the end.
 
-        if (apply_sources_consecutively && apply_to_state) {
-
-            // The individual source terms only calculate the source on the valid domain.
-            // FillPatch to get valid data in the ghost zones.
-
-            AmrLevel::FillPatch(*this, source, NUM_GROW, time, Source_Type, 0, source.nComp());
-
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
-#ifdef MHD
-                            Bx, By, Bz,
-#endif
-                            state_new, time, 0);
-
-            // Zero out the source MultiFab for the next source term.
-            // Also, log the sum of all source terms since we need
-            // to save that after we're done.
-
-            MultiFab::Add(temp_source, source, 0, 0, NSRC, NUM_GROW);
-
-            if (n < num_src - 1) {
-                source.setVal(0.0, NUM_GROW);
-            }
-
-        }
-
     }
 
     if (apply_to_state) {
 
-        if (apply_sources_consecutively) {
-            MultiFab::Copy(source, temp_source, 0, 0, NSRC, NUM_GROW);
-        } else {
-            apply_source_to_state(state_new, source, dt, 0);
-            clean_state(
+        apply_source_to_state(state_new, source, dt, 0);
+        clean_state(
 #ifdef MHD
-                            Bx, By, Bz,
+                     Bx, By, Bz,
 #endif
-                            state_new, time, 0);
-        }
-
+                     state_new, time, 0);
     }
+
 
     // Optionally print out diagnostic information about how much
     // these source terms changed the state.

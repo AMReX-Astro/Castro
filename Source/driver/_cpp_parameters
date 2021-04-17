@@ -31,8 +31,6 @@ do_reflux                    int           1
 # drivers
 update_sources_after_reflux  int           1
 
-# should we apply the sources one by one or all at once?
-apply_sources_consecutively  int           0
 
 #-----------------------------------------------------------------------------
 # category: hydrodynamics
