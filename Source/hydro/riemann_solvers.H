@@ -18,7 +18,7 @@
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemanncg(const int i, const int j, const int k,
-          const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+          const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           Array4<Real> const& qint,
           const int idir) {
 
@@ -409,7 +409,7 @@ riemanncg(const int i, const int j, const int k,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemannus(const int i, const int j, const int k,
-          const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+          const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           Array4<Real> const& qint,
 #ifdef RADIATION
           Array4<Real> const& lambda_int,
