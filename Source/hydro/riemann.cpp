@@ -37,6 +37,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     // qgdnv.  if store_full_state is False, we only store the NGDNV
     // needed elsewhere in the algorithm.
 
+
     // Note: because the NQ variables do not include lambda and the
     // NGDNV do, we only support store_full_state = false for
     // Radiation

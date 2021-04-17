@@ -200,7 +200,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
         std::cout <<  "WARNING: (rho e)_l < 0 or pl < small_pres in Riemann: " << ql.rhoe << " " << ql.p << " " << small_pres << std::endl;
 #endif
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.T = small_temp;
         eos_state.rho = ql.rho;
         for (int n = 0; n < NumSpec; n++) {
@@ -224,7 +224,7 @@ load_input_states(const int i, const int j, const int k, const int idir,
         std::cout << "WARNING: (rho e)_r < 0 or pr < small_pres in Riemann: " << qr.rhoe << " " << qr.p << " " << small_pres << std::endl;
 #endif
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.T = small_temp;
         eos_state.rho = qr.rho;
         for (int n = 0; n < NumSpec; n++) {
