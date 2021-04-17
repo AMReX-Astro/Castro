@@ -235,6 +235,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             f_avg.resize(ibx[idir], NUM_STATE);
             Elixir elix_favg = f_avg.elixir();
             auto f_avg_arr = f_avg.array();
+            auto qe_arr = (qe[idir]).array();
 
             for (int n = 0; n < NQ; n++) {
 
@@ -255,13 +256,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // get the face-averaged state and flux, <q> and F(<q>),
             // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
-            riemann_state(ibx[idir],
-                          qm_arr, qp_arr,
-                          q_avg_arr,
-                          qaux_arr,
-                          idir, 0);
-
-            compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir);
+            cmpflx_plus_godunov(ibx[idir],
+                                 qm_arr, qp_arr,
+                                 f_avg_arr, q_avg_arr,
+                                 qe_arr,
+                                 qaux_arr,
+                                 shk_arr,
+                                 idir);
 
 
             if (do_hydro == 0) {
@@ -329,7 +330,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             });
 
             // compute the face-center fluxes F(q_fc)
-            Array4<Real> const f_arr = (flux[idir]).array();
+            auto f_arr = (flux[idir]).array();
 
             compute_flux_q(nbx, q_fc_arr, f_arr, idir);
 
@@ -424,7 +425,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             }
 
             // store the Godunov state
-            auto qe_arr = (qe[idir]).array();
             store_godunov_state(nbx, q_avg_arr, qe_arr);
 
           }
