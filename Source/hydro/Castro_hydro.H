@@ -770,47 +770,6 @@
                        const int idir);
 
 ///
-/// The Colella-Glaz Riemann solver for pure hydrodynamics.  This is a
-/// two shock approximate state Riemann solver.
-///
-/// @param bx         the box to operate over
-/// @param ql         the left interface state
-/// @param qr         the right interface state
-/// @param qaux_arr   the auxillary state
-/// @param qint       the full Godunov state on the interface
-/// @param idir       coordinate direction for the solve (0 = x, 1 = y, 2 = z)
-///
-    void riemanncg(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const& ql,
-                   amrex::Array4<amrex::Real> const& qr,
-                   amrex::Array4<amrex::Real const> const& qaux_arr,
-                   amrex::Array4<amrex::Real> const& qint,
-                   const int idir);
-
-///
-/// The Colella-Glaz-Ferguson Riemann solver for hydrodynamics and
-/// radiation hydrodynamics.  This is a two shock approximate state
-/// Riemann solver.
-///
-/// @param bx          the box to operate over
-/// @param ql          the left interface state
-/// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
-/// @param qint        the full Godunov state on the interface
-/// @param lambda_int  the radiation flux limiter on the interface
-/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
-///
-    void riemannus(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real> const& ql,
-                   amrex::Array4<amrex::Real> const& qr,
-                   amrex::Array4<amrex::Real const> const& qaux_arr,
-                   amrex::Array4<amrex::Real> const& qint,
-#ifdef RADIATION
-                   amrex::Array4<amrex::Real> const& lambda_int,
-#endif
-                   const int idir);
-
-///
 /// A HLLC Riemann solver for pure hydrodynamics
 ///
 /// @param bx          the box to operate over
