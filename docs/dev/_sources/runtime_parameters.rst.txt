@@ -3,7 +3,7 @@ namespace: ``castro``
 
 **AMR**
 
-.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux, castro.apply_sources_consecutively
+.. index:: castro.state_interp_order, castro.lin_limit_state_interp, castro.state_nghost, castro.do_reflux, castro.update_sources_after_reflux
 
 
 +----------------------------------------+---------------------------------------------------------+---------------+
@@ -26,8 +26,6 @@ namespace: ``castro``
 | ``update_sources_after_reflux``        | whether to re-compute new-time source terms after a     | 1             |
 |                                        | reflux Note: this only works for the CTU and simple-SDC |               |
 |                                        | time_integration_method drivers                         |               |
-+----------------------------------------+---------------------------------------------------------+---------------+
-| ``apply_sources_consecutively``        | should we apply the sources one by one or all at once?  | 0             |
 +----------------------------------------+---------------------------------------------------------+---------------+
 
 
