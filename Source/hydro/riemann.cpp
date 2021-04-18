@@ -72,7 +72,7 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
         GpuArray<Real, NQ> qint_local;
 #ifdef RADIATION
-        GpuArrau<Real, NGROUPS> lambda_int_local;
+        GpuArray<Real, NGROUPS> lambda_int_local;
 #endif
 
         if (riemann_solver == 0 || riemann_solver == 1) {
