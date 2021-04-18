@@ -255,13 +255,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // get the face-averaged state and flux, <q> and F(<q>),
             // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
+
             cmpflx_plus_godunov(ibx[idir],
                                 qm_arr, qp_arr,
                                 f_avg_arr, q_avg_arr,
                                 qaux_arr,
                                 shk_arr,
                                 idir, true);
-
 
             if (do_hydro == 0) {
               amrex::ParallelFor(nbx, NUM_STATE,

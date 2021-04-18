@@ -3,6 +3,13 @@
 
 #include <Castro_util.H>
 #include <riemann.H>
+#ifdef HYBRID_MOMENTUM
+#include <hybrid.H>
+#endif
+#ifdef RADIATION
+#include <Radiation.H>
+#include <rad_util.H>
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
@@ -180,7 +187,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemanncg(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           GpuArray<Real, NQ>& qint,
           const int idir) {
 
@@ -570,7 +577,7 @@ riemanncg(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
 ///
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
-riemannus(const RiemannState ql, const RiemannState qr, const RiemannAux raux,
+riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           GpuArray<Real, NQ>& qint,
 #ifdef RADIATION
           GpuArray<Real, NGROUPS>& lambda_int,
@@ -1247,12 +1254,6 @@ HLLC(const int i, const int j, const int k, const int idir,
         qgdnv(i,j,k,GDV) = qint[QV];
         qgdnv(i,j,k,GDW) = qint[QW];
         qgdnv(i,j,k,GDPRES) = qint[QPRES];
-#ifdef RADIATION
-        for (int g = 0; g < NGROUPS; g++) {
-            qgdnv(i,j,k,GDLAMS+g) = lambda[g];
-            qgdnv(i,j,k,GDERADS+g) = qint[QRAD+g];
-        }
-#endif
 
     }
 
@@ -1292,7 +1293,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
       // new values for p on the edges that are
       // thermodynamically consistent.
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
 
       // this is an initial guess for iterations, since we
       // can't be certain what temp is on interfaces
