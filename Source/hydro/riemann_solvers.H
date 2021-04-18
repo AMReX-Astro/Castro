@@ -69,7 +69,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
          qint.utt * qint.utt);
 
     F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p);
-    F(i,j,k,UEINT) = qint.un * rhoeint;
+    F(i,j,k,UEINT) = qint.un * qint.rhoe;
 
     F(i,j,k,UTEMP) = 0.0;
 #ifdef SHOCK_VAR
@@ -141,9 +141,30 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 
     if (store_full_state) {
 
-        for (int n = 0; n < NQ; n++) {
-            qgdnv(i,j,k,n) = qint[n];
+        qgdnv(i,j,k,QRHO) = qint.rho;
+        if (idir == 0) {
+            qgdnv(i,j,k,QU) = qint.un;
+            qgdnv(i,j,k,QV) = qint.ut;
+            qgdnv(i,j,k,QW) = qint.utt;
+        } else if (idir == 1) {
+            qgdnv(i,j,k,QV) = qint.un;
+            qgdnv(i,j,k,QU) = qint.ut;
+            qgdnv(i,j,k,QW) = qint.utt;
+        } else {
+            qgdnv(i,j,k,QW) = qint.un;
+            qgdnv(i,j,k,QU) = qint.ut;
+            qgdnv(i,j,k,QV) = qint.utt;
         }
+
+        qgdnv(i,j,k,QPRES) = qint.p;
+        qgdnv(i,j,k,QREINT) = qint.rhoe;
+        qgdnv(i,j,k,QTEMP) = 0.0_rt;
+
+#ifdef RADIATION
+        qgdnv(i,j,k,QPTOT) = 
+        qgdnv(i,j,k,QREITOT) = 
+        qgdnv(i,j,k,QRAD) = 
+#endif
 
     } else {
 
