@@ -27,7 +27,6 @@ castro.ppm_type      = 1
 # MHD
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-#castro.castro.apply_sources_consecutively = 1
 
 castro.do_grav       = 1
 gravity.gravity_type = MonopoleGrav

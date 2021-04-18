@@ -27,7 +27,6 @@ castro.do_grav = 1
 
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-#castro.apply_sources_consecutively = 1
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.0
