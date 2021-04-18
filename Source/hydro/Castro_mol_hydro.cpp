@@ -255,14 +255,13 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // get the face-averaged state and flux, <q> and F(<q>),
             // in the idir direction by solving the Riemann problem
             // operate on ibx[idir]
-            riemann_state(ibx[idir],
-                          qm_arr, qp_arr,
-                          q_avg_arr,
-                          qaux_arr,
-                          idir);
 
-            compute_flux_q(ibx[idir], q_avg_arr, f_avg_arr, idir);
-
+            cmpflx_plus_godunov(ibx[idir],
+                                qm_arr, qp_arr,
+                                f_avg_arr, q_avg_arr,
+                                qaux_arr,
+                                shk_arr,
+                                idir, true);
 
             if (do_hydro == 0) {
               amrex::ParallelFor(nbx, NUM_STATE,
@@ -331,7 +330,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
             // compute the face-center fluxes F(q_fc)
             Array4<Real> const f_arr = (flux[idir]).array();
 
-            compute_flux_q(nbx, q_fc_arr, f_arr, idir);
+            compute_flux_from_q(nbx, q_fc_arr, f_arr, idir);
 
             if (do_hydro == 0) {
 
@@ -459,10 +458,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
           // compute the fluxes and add artificial viscosity
 
-          q_int.resize(obx, NQ);
-          Elixir elix_q_int = q_int.elixir();
-          auto q_int_arr = q_int.array();
-
           for (int idir = 0; idir < AMREX_SPACEDIM; ++idir) {
 
             if (do_hydro) {
@@ -509,10 +504,9 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
               cmpflx_plus_godunov
                 (nbx,
                  qm_arr, qp_arr,
-                 flux_arr, q_int_arr,
-                 qe_arr,
+                 flux_arr, qe_arr,
                  qaux_arr, shk_arr,
-                 idir);
+                 idir, false);
 
               // set UTEMP and USHK fluxes to zero
               Array4<Real const> const uin_arr = Sborder.array(mfi);

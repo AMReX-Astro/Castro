@@ -725,78 +725,30 @@
 /// @param qm          left state on the interface
 /// @param qp          right state on the interface
 /// @param flx         flux through the interface
-/// @param qint        tempoary storage of the full interface state
 /// @param rflux       radiation fluxes through the interface
-/// @param lambda_int  radiation flux limiter on the interface
-/// @param qgdnv       Godunov state on the interface
+/// @param qgdnv       Godunov state on the interface [either NQ or NGDNV]
 /// @param qaux        auxillary state
 /// @param shk         shock flag
 /// @param idir        coordinate direction of the solve (0 = x, 1 = y, 2 = z)
+/// @param store_full_state do we store all NQ or just the NGDNV subset in qgdnv
 ///
     void cmpflx_plus_godunov(const amrex::Box& bx,
                              amrex::Array4<amrex::Real> const& qm,
                              amrex::Array4<amrex::Real> const& qp,
                              amrex::Array4<amrex::Real> const& flx,
-                             amrex::Array4<amrex::Real> const& qint,
 #ifdef RADIATION
                              amrex::Array4<amrex::Real> const& rflx,
-                             amrex::Array4<amrex::Real> const& lambda_int,
 #endif
                              amrex::Array4<amrex::Real> const& qgdnv,
                              amrex::Array4<amrex::Real const> const& qaux,
                              amrex::Array4<amrex::Real const> const& shk,
-                             const int idir);
-
-///
-/// Call the hydrodynamic Riemann solvers and return the interface state, without
-/// computing the fluxes
-///
-/// @param bx              the box to operate over
-/// @param qm              left state on the interface
-/// @param qp              right state on the interface
-/// @param qint            the full hydrodynamic interface state
-/// @param lambda_int      radiation flux limiter on the interface
-/// @param qaux            auxillary state
-/// @param idir            coordinate direction of the solve (0 = x, 1 = y, 2 = z)
-///
-    void riemann_state(const amrex::Box& bx,
-                       amrex::Array4<amrex::Real> const& qm,
-                       amrex::Array4<amrex::Real> const& qp,
-                       amrex::Array4<amrex::Real> const& qint,
-#ifdef RADIATION
-                       amrex::Array4<amrex::Real> const& lambda_int,
-#endif
-                       amrex::Array4<amrex::Real const> const& qaux,
-                       const int idir);
-
-///
-/// A HLLC Riemann solver for pure hydrodynamics
-///
-/// @param bx          the box to operate over
-/// @param ql          the left interface state
-/// @param qr          the right interface state
-/// @param qaux_arr    the auxillary state
-/// @param uflx        the flux through the interface
-/// @param qint        an approximate Godunov state on the interface
-/// @param idir        coordinate direction for the solve (0 = x, 1 = y, 2 = z)
-///
-    void HLLC(const amrex::Box& bx,
-              amrex::Array4<amrex::Real const> const& ql,
-              amrex::Array4<amrex::Real const> const& qr,
-              amrex::Array4<amrex::Real const> const& qaux_arr,
-              amrex::Array4<amrex::Real> const& uflx,
-              amrex::Array4<amrex::Real> const& qint,
-              const int idir);
+                             const int idir, const bool store_full_state);
 
     void
-    compute_flux_q(const amrex::Box& bx,
-                   amrex::Array4<amrex::Real const> const& qint,
-                   amrex::Array4<amrex::Real> const& F,
-#ifdef RADIATION
-                   amrex::Array4<amrex::Real const> const& lambda,
-                   amrex::Array4<amrex::Real> const& rF,
-#endif
-                   const int idir);
+    compute_flux_from_q(const amrex::Box& bx,
+                        amrex::Array4<amrex::Real const> const& qint,
+                        amrex::Array4<amrex::Real> const& F,
+                        const int idir);
 
     void
     store_godunov_state(const amrex::Box& bx,
