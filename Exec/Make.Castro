@@ -99,6 +99,13 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
+ifeq ($(USE_MPI), TRUE)
+  # Use thread support in MPI to support asynchronous I/O
+  MPI_THREAD_MULTIPLE := TRUE
+  # But keep the suffix MPI, not MTMPI, for simplicity
+  MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
+endif
+
 ifeq ($(USE_CUDA),TRUE)
   DEFINES += -DCUDA
   CUDA_VERBOSE = FALSE
