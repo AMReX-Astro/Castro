@@ -1285,7 +1285,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
       // new values for p on the edges that are
       // thermodynamically consistent.
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
 
       // this is an initial guess for iterations, since we
       // can't be certain what temp is on interfaces
