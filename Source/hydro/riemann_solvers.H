@@ -15,10 +15,9 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 compute_flux_q(const int i, const int j, const int k, const int idir,
                const GeometryData& geomdata,
-               GpuArray<Real, NQ> const& qint,
+               const RiemannState& qint,
                Array4<Real> const& F,
 #ifdef RADIATION
-               GpuArray<Real, NGROUPS> const& lambda,
                Array4<Real> const& rF,
 #endif
                Array4<Real> const& qgdnv, const bool store_full_state) {
@@ -26,32 +25,22 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     // given a primitive state, compute the flux in direction idir
     //
 
-    int iu, iv1, iv2;
     int im1, im2, im3;
 
     auto coord = geomdata.Coord();
     auto mom_check = mom_flux_has_p(idir, idir, coord);
 
     if (idir == 0) {
-        iu = QU;
-        iv1 = QV;
-        iv2 = QW;
         im1 = UMX;
         im2 = UMY;
         im3 = UMZ;
 
     } else if (idir == 1) {
-        iu = QV;
-        iv1 = QU;
-        iv2 = QW;
         im1 = UMY;
         im2 = UMX;
         im3 = UMZ;
 
     } else {
-        iu = QW;
-        iv1 = QU;
-        iv2 = QV;
         im1 = UMZ;
         im2 = UMX;
         im3 = UMY;
@@ -64,26 +53,38 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     int closure = Radiation::closure;
 #endif
 
-    Real u_adv = qint[iu];
-    Real rhoeint = qint[QREINT];
-
     // Compute fluxes, order as conserved state (not q)
-    F(i,j,k,URHO) = qint[QRHO] * u_adv;
+    F(i,j,k,URHO) = qint.rho * qint.un;
 
-    F(i,j,k,im1) = F(i,j,k,URHO) * qint[iu];
+    F(i,j,k,im1) = F(i,j,k,URHO) * qint.un;
+    F(i,j,k,im2) = F(i,j,k,URHO) * qint.ut;
+    F(i,j,k,im3) = F(i,j,k,URHO) * qint.utt;
+
+#ifndef RADIATION
     if (mom_check) {
-      F(i,j,k,im1) += qint[QPRES];
+      F(i,j,k,im1) += qint.p;
     }
-    F(i,j,k,im2) = F(i,j,k,URHO) * qint[iv1];
-    F(i,j,k,im3) = F(i,j,k,URHO) * qint[iv2];
 
-    Real rhoetot = rhoeint + 0.5_rt * qint[QRHO] *
-        (qint[iu] * qint[iu] +
-         qint[iv1] * qint[iv1] +
-         qint[iv2] * qint[iv2]);
+    Real rhoetot = qint.rhoe + 0.5_rt * qint.rho *
+        (qint.un * qint.un +
+         qint.ut * qint.ut +
+         qint.utt * qint.utt);
 
-    F(i,j,k,UEDEN) = u_adv * (rhoetot + qint[QPRES]);
-    F(i,j,k,UEINT) = u_adv * rhoeint;
+    F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p);
+    F(i,j,k,UEINT) = qint.un * qint.rhoe;
+#else
+    if (mom_check) {
+      F(i,j,k,im1) += qint.p_g;
+    }
+
+    Real rhoetot = qint.rhoe_g + 0.5_rt * qint.rho *
+        (qint.un * qint.un +
+         qint.ut * qint.ut +
+         qint.utt * qint.utt);
+
+    F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p_g);
+    F(i,j,k,UEINT) = qint.un * qint.rhoe_g;
+#endif
 
     F(i,j,k,UTEMP) = 0.0;
 #ifdef SHOCK_VAR
@@ -93,38 +94,40 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 #ifdef RADIATION
     if (fspace_t == 1) {
         for (int g = 0; g < NGROUPS; g++) {
-            Real eddf = Edd_factor(lambda[g], limiter, closure);
+            Real eddf = Edd_factor(qint.lam[g], limiter, closure);
             Real f1 = 0.5e0_rt*(1.0_rt-eddf);
-            rF(i,j,k,g) = (1.0_rt + f1) * qint[QRAD+g] * u_adv;
+            rF(i,j,k,g) = (1.0_rt + f1) * qint.er[g] * qint.un;
         }
     } else {
         // type 2
         for (int g = 0; g < NGROUPS; g++) {
-            rF(i,j,k,g) = qint[QRAD+g] * u_adv;
+            rF(i,j,k,g) = qint.er[g] * qint.un;
         }
     }
 #endif
 
-    // passively advected quantities
-    for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int n  = upassmap(ipassive);
-      int nqp = qpassmap(ipassive);
-
-      F(i,j,k,n) = F(i,j,k,URHO) * qint[nqp];
-    }
-
 #ifdef HYBRID_MOMENTUM
     // the hybrid routine uses the Godunov indices, not the full NQ state
     GpuArray<Real, NGDNV> qgdnv_zone;
-    qgdnv_zone[GDRHO] = qint[QRHO];
-    qgdnv_zone[GDU] = qint[QU];
-    qgdnv_zone[GDV] = qint[QV];
-    qgdnv_zone[GDW] = qint[QW];
-    qgdnv_zone[GDPRES] = qint[QPRES];
+    qgdnv_zone[GDRHO] = qint.rho;
+    if (idir == 0) {
+        qgdnv_zone[GDU] = qint.un;
+        qgdnv_zone[GDV] = qint.ut;
+        qgdnv_zone[GDW] = qint.utt;
+    } else if (idir == 1) {
+        qgdnv_zone[GDV] = qint.un;
+        qgdnv_zone[GDU] = qint.ut;
+        qgdnv_zone[GDW] = qint.utt;
+    } else {
+        qgdnv_zone[GDW] = qint.un;
+        qgdnv_zone[GDU] = qint.ut;
+        qgdnv_zone[GDV] = qint.utt;
+    }
+    qgdnv_zone[GDPRES] = qint.p;
 #ifdef RADIATION
     for (int g = 0; g < NGROUPS; g++) {
-        qgdnv_zone[GDLAMS+g] = lambda[g];
-        qgdnv_zone[GDERADS+g] = qint[QRAD+g];
+        qgdnv_zone[GDLAMS+g] = qint.lam[g];
+        qgdnv_zone[GDERADS+g] = qint.er[g];
     }
 #endif
     GpuArray<Real, NUM_STATE> F_zone;
@@ -141,23 +144,68 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     // either store just the NGDNV subset or the whole NQ hydro state,
     // depending on the value of store_full_state
 
+    // note: we don't handle the passives here
+
     if (store_full_state) {
 
-        for (int n = 0; n < NQ; n++) {
-            qgdnv(i,j,k,n) = qint[n];
+        // this is the primitive variable state on the interface
+
+        qgdnv(i,j,k,QRHO) = qint.rho;
+        if (idir == 0) {
+            qgdnv(i,j,k,QU) = qint.un;
+            qgdnv(i,j,k,QV) = qint.ut;
+            qgdnv(i,j,k,QW) = qint.utt;
+        } else if (idir == 1) {
+            qgdnv(i,j,k,QV) = qint.un;
+            qgdnv(i,j,k,QU) = qint.ut;
+            qgdnv(i,j,k,QW) = qint.utt;
+        } else {
+            qgdnv(i,j,k,QW) = qint.un;
+            qgdnv(i,j,k,QU) = qint.ut;
+            qgdnv(i,j,k,QV) = qint.utt;
         }
+
+        qgdnv(i,j,k,QTEMP) = 0.0_rt;
+
+#ifdef RADIATION
+        qgdnv(i,j,k,QPRES) = qint.p_g;
+        qgdnv(i,j,k,QREINT) = qint.rhoe_g;
+        qgdnv(i,j,k,QPTOT) = qint.p;
+        qgdnv(i,j,k,QREITOT) = qint.rhoe;
+        for (int g = 0; g < NGROUPS; g++) {
+            qgdnv(i,j,k,QRAD) = qint.er[g];
+        }
+#else
+        qgdnv(i,j,k,QPRES) = qint.p;
+        qgdnv(i,j,k,QREINT) = qint.rhoe;
+#endif
 
     } else {
 
-        qgdnv(i,j,k,GDRHO) = qint[QRHO];
-        qgdnv(i,j,k,GDU) = qint[QU];
-        qgdnv(i,j,k,GDV) = qint[QV];
-        qgdnv(i,j,k,GDW) = qint[QW];
-        qgdnv(i,j,k,GDPRES) = qint[QPRES];
-#ifdef RADIATION
+        // this is the reduced "Godunov" state on the interface,
+        // with NGDNV components
+
+        qgdnv(i,j,k,GDRHO) = qint.rho;
+        if (idir == 0) {
+            qgdnv(i,j,k,GDU) = qint.un;
+            qgdnv(i,j,k,GDV) = qint.ut;
+            qgdnv(i,j,k,GDW) = qint.utt;
+        } else if (idir == 1) {
+            qgdnv(i,j,k,GDV) = qint.un;
+            qgdnv(i,j,k,GDU) = qint.ut;
+            qgdnv(i,j,k,GDW) = qint.utt;
+        } else {
+            qgdnv(i,j,k,GDW) = qint.un;
+            qgdnv(i,j,k,GDU) = qint.ut;
+            qgdnv(i,j,k,GDV) = qint.utt;
+        }
+#ifndef RADIATION
+        qgdnv(i,j,k,GDPRES) = qint.p;
+#else
+        qgdnv(i,j,k,GDPRES) = qint.p_g;
         for (int g = 0; g < NGROUPS; g++) {
-            qgdnv(i,j,k,GDLAMS+g) = lambda[g];
-            qgdnv(i,j,k,GDERADS+g) = qint[QRAD+g];
+            qgdnv(i,j,k,GDLAMS+g) = qint.lam[g];
+            qgdnv(i,j,k,GDERADS+g) = qint.er[g];
         }
 #endif
 
@@ -180,7 +228,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          GpuArray<Real, NQ>& qint,
+          RiemannState& qint,
           const int idir) {
 
   // this implements the approximate Riemann solver of Colella & Glaz
@@ -188,24 +236,6 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   //
 
   constexpr Real weakwv = 1.e-3_rt;
-
-  int iu, iv1, iv2;
-
-  if (idir == 0) {
-    iu = QU;
-    iv1 = QV;
-    iv2 = QW;
-  } else if (idir == 1) {
-    iu = QV;
-    iv1 = QU;
-    iv2 = QW;
-  } else {
-    iu = QW;
-    iv1 = QU;
-    iv2 = QV;
-  }
-
-
 
 #ifndef AMREX_USE_GPU
   GpuArray<Real, HISTORY_SIZE> pstar_hist;
@@ -509,45 +539,45 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   // the transverse velocity states only depend on the
   // direction that the contact moves
   if (ustar > 0.0_rt) {
-      qint[iv1] = ql.ut;
-      qint[iv2] = ql.utt;
+      qint.ut = ql.ut;
+      qint.utt = ql.utt;
   } else if (ustar < 0.0_rt) {
-      qint[iv1] = qr.ut;
-      qint[iv2] = qr.utt;
+      qint.ut = qr.ut;
+      qint.utt = qr.utt;
   } else {
-      qint[iv1] = 0.5_rt * (ql.ut + qr.ut);
-      qint[iv2] = 0.5_rt * (ql.utt + qr.utt);
+      qint.ut = 0.5_rt * (ql.ut + qr.ut);
+      qint.utt = 0.5_rt * (ql.utt + qr.utt);
   }
 
   // linearly interpolate between the star and normal state -- this covers the
   // case where we are inside the rarefaction fan.
-  qint[QRHO] = frac*rstar + (1.0_rt - frac)*ro;
-  qint[iu] = frac*ustar + (1.0_rt - frac)*uo;
-  qint[QPRES] = frac*pstar + (1.0_rt - frac)*po;
+  qint.rho = frac*rstar + (1.0_rt - frac)*ro;
+  qint.un = frac*ustar + (1.0_rt - frac)*uo;
+  qint.p = frac*pstar + (1.0_rt - frac)*po;
   Real game_int = frac*gamstar + (1.0_rt-frac)*gameo;
 
   // now handle the cases where instead we are fully in the
   // star or fully in the original (l/r) state
   if (spout < 0.0_rt) {
-      qint[QRHO] = ro;
-      qint[iu] = uo;
-      qint[QPRES] = po;
+      qint.rho = ro;
+      qint.un = uo;
+      qint.p = po;
       game_int = gameo;
   }
 
   if (spin >= 0.0_rt) {
-      qint[QRHO] = rstar;
-      qint[iu] = ustar;
-      qint[QPRES] = pstar;
+      qint.rho = rstar;
+      qint.un = ustar;
+      qint.p = pstar;
       game_int = gamstar;
   }
 
-  qint[QPRES] = amrex::max(qint[QPRES], small_pres);
+  qint.p = amrex::max(qint.p, small_pres);
 
-  qint[iu] = qint[iu] * raux.bnd_fac;
+  qint.un = qint.un * raux.bnd_fac;
 
   // compute the total energy from the internal, p/(gamma - 1), and the kinetic
-  qint[QREINT] = qint[QPRES] / (game_int - 1.0_rt);
+  qint.rhoe = qint.p / (game_int - 1.0_rt);
 
   // we'll do the passive scalars separately
 
@@ -570,10 +600,7 @@ riemanncg(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
-          GpuArray<Real, NQ>& qint,
-#ifdef RADIATION
-          GpuArray<Real, NGROUPS>& lambda_int,
-#endif
+          RiemannState& qint,
           const int idir) {
 
   // Colella, Glaz, and Ferguson solver
@@ -582,27 +609,6 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   // star state, and carries an auxiliary jump condition for (rho e) to
   // deal with a real gas
 
-  // set integer pointers for the normal and transverse velocity and
-  // momentum
-
-  int iu, iv1, iv2;
-
-  if (idir == 0) {
-    iu = QU;
-    iv1 = QV;
-    iv2 = QW;
-
-  } else if (idir == 1) {
-    iu = QV;
-    iv1 = QU;
-    iv2 = QW;
-
-  } else {
-    iu = QW;
-    iv1 = QU;
-    iv2 = QV;
-
-  }
 
   // estimate the star state: pstar, ustar
 
@@ -646,13 +652,13 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real gamco = fp * ql.gamc + fm * qr.gamc;
 #ifdef RADIATION
   for (int g = 0; g < NGROUPS; g++) {
-      lambda_int[g] = fp * ql.lam[g] + fm * qr.lam[g];
+      qint.lam[g] = fp * ql.lam[g] + fm * qr.lam[g];
   }
 
   if (ustar == 0) {
       // harmonic average
       for (int g = 0; g < NGROUPS; g++) {
-          lambda_int[g] = 2.0_rt * (ql.lam[g] * qr.lam[g]) / (ql.lam[g] + qr.lam[g] + 1.e-50_rt);
+          qint.lam[g] = 2.0_rt * (ql.lam[g] * qr.lam[g]) / (ql.lam[g] + qr.lam[g] + 1.e-50_rt);
       }
   }
 
@@ -661,7 +667,7 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real po_r[NGROUPS];
   for (int g = 0; g < NGROUPS; g++) {
       reo_r[g] = fp * ql.er[g] + fm * qr.er[g];
-      po_r[g] = lambda_int[g] * reo_r[g];
+      po_r[g] = qint.lam[g] * reo_r[g];
   }
   Real reo_g = fp * ql.rhoe_g + fm * qr.rhoe_g;
   Real gamco_g = fp * ql.gamcg + fm * qr.gamcg;
@@ -678,8 +684,8 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   // we can already deal with the transverse velocities -- they
   // only jump across the contact
 
-  qint[iv1] = fp * ql.ut + fm * qr.ut;
-  qint[iv2] = fp * ql.utt + fm * qr.utt;
+  qint.ut = fp * ql.ut + fm * qr.ut;
+  qint.utt = fp * ql.utt + fm * qr.utt;
 
   // compute the rest of the star state
 
@@ -734,8 +740,8 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real frac = (1.0_rt + (spout + spin)/scr)*0.5_rt;
   frac = amrex::max(0.0_rt, amrex::min(1.0_rt, frac));
 
-  qint[QRHO] = frac*rstar + (1.0_rt - frac)*ro;
-  qint[iu] = frac*ustar + (1.0_rt - frac)*uo;
+  qint.rho = frac*rstar + (1.0_rt - frac)*ro;
+  qint.un = frac*ustar + (1.0_rt - frac)*uo;
 
 #ifdef RADIATION
   Real pgdnv_t = frac*pstar + (1.0_rt - frac)*po;
@@ -746,7 +752,7 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
       regdnv_r[g] = frac*estar_r[g] + (1.0_rt - frac)*reo_r[g];
   }
 #else
-  qint[QPRES] = frac*pstar + (1.0_rt - frac)*po;
+  qint.p = frac*pstar + (1.0_rt - frac)*po;
   Real regdnv = frac*estar + (1.0_rt - frac)*reo;
 #endif
 
@@ -758,8 +764,8 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   // to determine which region we are in
   if (spout < 0.0_rt) {
       // the l or r state is on the interface
-      qint[QRHO] = ro;
-      qint[iu] = uo;
+      qint.rho = ro;
+      qint.un = uo;
 #ifdef RADIATION
       pgdnv_t = po;
       pgdnv_g = po_g;
@@ -768,15 +774,15 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
           regdnv_r[g] = reo_r[g];
       }
 #else
-      qint[QPRES] = po;
+      qint.p = po;
       regdnv = reo;
 #endif
   }
 
   if (spin >= 0.0_rt) {
       // the star state is on the interface
-      qint[QRHO] = rstar;
-      qint[iu] = ustar;
+      qint.rho = rstar;
+      qint.un = ustar;
 #ifdef RADIATION
       pgdnv_t = pstar;
       pgdnv_g = pstar_g;
@@ -785,32 +791,32 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
           regdnv_r[g] = estar_r[g];
       }
 #else
-      qint[QPRES] = pstar;
+      qint.p = pstar;
       regdnv = estar;
 #endif
     }
 
 #ifdef RADIATION
   for (int g = 0; g < NGROUPS; g++) {
-      qint[QRAD+g] = amrex::max(regdnv_r[g], 0.0_rt);
+      qint.er[g] = amrex::max(regdnv_r[g], 0.0_rt);
   }
 
-  qint[QPRES] = pgdnv_g;
-  qint[QPTOT] = pgdnv_t;
-  qint[QREINT] = regdnv_g;
+  qint.p_g = pgdnv_g;
+  qint.p = pgdnv_t;
+  qint.rhoe_g = regdnv_g;
 
-  qint[QREITOT] = regdnv_g;
+  qint.rhoe = regdnv_g;
   for (int g = 0; g < NGROUPS; g++) {
-      qint[QREITOT] += regdnv_r[g];
+      qint.rhoe += regdnv_r[g];
   }
 
 #else
-  qint[QPRES] = amrex::max(qint[QPRES], small_pres);
-  qint[QREINT] = regdnv;
+  qint.p = amrex::max(qint.p, small_pres);
+  qint.rhoe = regdnv;
 #endif
 
   // Enforce that fluxes through a symmetry plane or wall are hard zero.
-  qint[iu] = qint[iu] * raux.bnd_fac;
+  qint.un = qint.un * raux.bnd_fac;
 
   // we'll do the passive scalars separately
 
@@ -1260,10 +1266,7 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real> const& qm,
               Array4<Real> const& qp,
               Array4<Real const> const& qaux_arr,
-              GpuArray<Real, NQ>& qint,
-#ifdef RADIATION
-              GpuArray<Real, NGROUPS>& lambda_int,
-#endif
+              RiemannState& qint,
               const GeometryData& geom,
               const bool special_bnd_lo, const bool special_bnd_hi,
               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
@@ -1365,9 +1368,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
       riemannus(ql, qr, raux,
                 qint,
-#ifdef RADIATION
-                lambda_int,
-#endif
                 idir);
 
   } else if (riemann_solver == 1) {
@@ -1385,22 +1385,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
 #endif
   }
 
-
-  // the passives are always just upwinded, so we do that here
-  // regardless of the solver
-
-  Real sgnm = std::copysign(1.0_rt, qint[QU+idir]);
-  if (qint[QU+idir] == 0.0_rt) {
-      sgnm = 0.0_rt;
-  }
-
-  Real fp = 0.5_rt*(1.0_rt + sgnm);
-  Real fm = 0.5_rt*(1.0_rt - sgnm);
-
-  for (int ipassive = 0; ipassive < npassive; ipassive++) {
-      int nqp = qpassmap(ipassive);
-      qint[nqp] = fp * qm(i,j,k,nqp) + fm * qp(i,j,k,nqp);
-  }
 
 }
 
