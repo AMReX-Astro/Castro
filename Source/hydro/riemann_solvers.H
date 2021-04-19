@@ -15,7 +15,7 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 compute_flux_q(const int i, const int j, const int k, const int idir,
                const GeometryData& geomdata,
-               const RiemannState qint,
+               const RiemannState& qint,
                Array4<Real> const& F,
 #ifdef RADIATION
                Array4<Real> const& rF,
