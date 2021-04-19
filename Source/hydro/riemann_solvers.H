@@ -57,11 +57,13 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
     F(i,j,k,URHO) = qint.rho * qint.un;
 
     F(i,j,k,im1) = F(i,j,k,URHO) * qint.un;
+    F(i,j,k,im2) = F(i,j,k,URHO) * qint.ut;
+    F(i,j,k,im3) = F(i,j,k,URHO) * qint.utt;
+
+#ifndef RADIATION
     if (mom_check) {
       F(i,j,k,im1) += qint.p;
     }
-    F(i,j,k,im2) = F(i,j,k,URHO) * qint.ut;
-    F(i,j,k,im3) = F(i,j,k,URHO) * qint.utt;
 
     Real rhoetot = qint.rhoe + 0.5_rt * qint.rho *
         (qint.un * qint.un +
@@ -70,6 +72,19 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
 
     F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p);
     F(i,j,k,UEINT) = qint.un * qint.rhoe;
+#else
+    if (mom_check) {
+      F(i,j,k,im1) += qint.p_g;
+    }
+
+    Real rhoetot = qint.rhoe_g + 0.5_rt * qint.rho *
+        (qint.un * qint.un +
+         qint.ut * qint.ut +
+         qint.utt * qint.utt);
+
+    F(i,j,k,UEDEN) = qint.un * (rhoetot + qint.p_g);
+    F(i,j,k,UEINT) = qint.un * qint.rhoe_g;
+#endif
 
     F(i,j,k,UTEMP) = 0.0;
 #ifdef SHOCK_VAR
@@ -184,8 +199,10 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
             qgdnv(i,j,k,GDU) = qint.ut;
             qgdnv(i,j,k,GDV) = qint.utt;
         }
+#ifndef RADIATION
         qgdnv(i,j,k,GDPRES) = qint.p;
-#ifdef RADIATION
+#else
+        qgdnv(i,j,k,GDPRES) = qint.p_g;
         for (int g = 0; g < NGROUPS; g++) {
             qgdnv(i,j,k,GDLAMS+g) = qint.lam[g];
             qgdnv(i,j,k,GDERADS+g) = qint.er[g];
