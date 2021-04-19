@@ -584,9 +584,6 @@ AMREX_GPU_HOST_DEVICE AMREX_INLINE
 void
 riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux,
           RiemannState& qint,
-#ifdef RADIATION
-          GpuArray<Real, NGROUPS>& lambda_int,
-#endif
           const int idir) {
 
   // Colella, Glaz, and Ferguson solver
@@ -638,13 +635,13 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real gamco = fp * ql.gamc + fm * qr.gamc;
 #ifdef RADIATION
   for (int g = 0; g < NGROUPS; g++) {
-      lambda_int[g] = fp * ql.lam[g] + fm * qr.lam[g];
+      qint.lam[g] = fp * ql.lam[g] + fm * qr.lam[g];
   }
 
   if (ustar == 0) {
       // harmonic average
       for (int g = 0; g < NGROUPS; g++) {
-          lambda_int[g] = 2.0_rt * (ql.lam[g] * qr.lam[g]) / (ql.lam[g] + qr.lam[g] + 1.e-50_rt);
+          qint.lam[g] = 2.0_rt * (ql.lam[g] * qr.lam[g]) / (ql.lam[g] + qr.lam[g] + 1.e-50_rt);
       }
   }
 
@@ -653,7 +650,7 @@ riemannus(const RiemannState& ql, const RiemannState& qr, const RiemannAux& raux
   Real po_r[NGROUPS];
   for (int g = 0; g < NGROUPS; g++) {
       reo_r[g] = fp * ql.er[g] + fm * qr.er[g];
-      po_r[g] = lambda_int[g] * reo_r[g];
+      po_r[g] = qint.lam[g] * reo_r[g];
   }
   Real reo_g = fp * ql.rhoe_g + fm * qr.rhoe_g;
   Real gamco_g = fp * ql.gamcg + fm * qr.gamcg;
@@ -1253,9 +1250,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
               Array4<Real> const& qp,
               Array4<Real const> const& qaux_arr,
               RiemannState& qint,
-#ifdef RADIATION
-              GpuArray<Real, NGROUPS>& lambda_int,
-#endif
               const GeometryData& geom,
               const bool special_bnd_lo, const bool special_bnd_hi,
               GpuArray<int, 3> const& domlo, GpuArray<int, 3> const& domhi) {
@@ -1357,9 +1351,6 @@ riemann_state(const int i, const int j, const int k, const int idir,
 
       riemannus(ql, qr, raux,
                 qint,
-#ifdef RADIATION
-                lambda_int,
-#endif
                 idir);
 
   } else if (riemann_solver == 1) {
