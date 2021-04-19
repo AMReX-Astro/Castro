@@ -70,22 +70,17 @@ Castro::cmpflx_plus_godunov(const Box& bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
 
-        GpuArray<Real, NQ> qint_local;
-#ifdef RADIATION
-        GpuArray<Real, NGROUPS> lambda_int_local;
-#endif
 
         if (riemann_solver == 0 || riemann_solver == 1) {
             // approximate state Riemann solvers
 
             // first find the interface state on the current interface
 
+            RiemannState qint;
+
             riemann_state(i, j, k, idir,
                           qm, qp, qaux_arr,
-                          qint_local,
-#ifdef RADIATION
-                          lambda_int_local,
-#endif
+                          qint,
                           geomdata,
                           special_bnd_lo, special_bnd_hi,
                           domlo, domhi);
@@ -94,12 +89,37 @@ Castro::cmpflx_plus_godunov(const Box& bx,
 
             compute_flux_q(i, j, k, idir,
                            geomdata,
-                           qint_local, flx,
+                           qint, flx,
 #ifdef RADIATION
-                           lambda_int_local, rflx,
+                           rflx,
 #endif
                            qgdnv, store_full_state);
 
+            // now do the passives -- we didn't include them in qint, qgdnv, or flux above
+
+            // the passives are always just upwinded, so we do that here
+            // regardless of the solver
+
+            Real sgnm = std::copysign(1.0_rt, qint.un);
+            if (qint.un == 0.0_rt) {
+                sgnm = 0.0_rt;
+            }
+
+            Real fp = 0.5_rt*(1.0_rt + sgnm);
+            Real fm = 0.5_rt*(1.0_rt - sgnm);
+
+            for (int ipassive = 0; ipassive < npassive; ipassive++) {
+                int nqp = qpassmap(ipassive);
+                int n  = upassmap(ipassive);
+
+                Real X_int = fp * qm(i,j,k,nqp) + fm * qp(i,j,k,nqp);
+
+                flx(i,j,k,n) = flx(i,j,k,URHO) * X_int;
+
+                if (store_full_state) {
+                    qgdnv(i,j,k,nqp) = X_int;
+                }
+            }
 
         } else if (riemann_solver == 2) {
             // HLLC
