@@ -101,7 +101,7 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
         qgdnv_zone[GDW] = qint.utt;
     } else if (idir == 1) {
         qgdnv_zone[GDV] = qint.un;
-        qgdnv_zone[GDU] = qint.uy;
+        qgdnv_zone[GDU] = qint.ut;
         qgdnv_zone[GDW] = qint.utt;
     } else {
         qgdnv_zone[GDW] = qint.un;
