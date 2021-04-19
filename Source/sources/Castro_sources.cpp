@@ -472,7 +472,8 @@ Castro::sum_of_sources(MultiFab& source)
 
   // this computes advective_source + 1/2 (old source + new source)
   //
-  // Note: the advective source is defined as -div{F}
+  // Note: the advective source is defined as -div{F} and is already
+  // in old_source
   //
   // the time-centering is accomplished since new source is defined
   // to be 1/2 (new source - old source) generally.
@@ -485,9 +486,6 @@ Castro::sum_of_sources(MultiFab& source)
   MultiFab& new_sources = get_new_data(Source_Type);
 
   MultiFab::Add(source, old_sources, 0, 0, old_sources.nComp(), ng);
-
-  MultiFab::Add(source, hydro_source, 0, 0, NUM_STATE, ng);
-
   MultiFab::Add(source, new_sources, 0, 0, new_sources.nComp(), ng);
 
 }

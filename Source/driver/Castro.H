@@ -1328,13 +1328,6 @@ protected:
 
 
 ///
-/// Source term representing hydrodynamics update - this should just be
-///     \f$-\nabla\cdot \{F(U)\}\f$ - no source terms
-///
-    amrex::MultiFab hydro_source;
-
-
-///
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;

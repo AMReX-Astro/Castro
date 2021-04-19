@@ -248,11 +248,11 @@ Castro::react_state(Real time, Real dt)
 
     // The goal is to update S_old to S_new with the effects of both
     // advection and reactions.  We come into this routine with the
-    // -div{F} stored in hydro_source, and the old and new-time
+    // -div{F} stored together with the time n sources and new-time
     // sources stored in Source_Type.  Together we create an advective
-    // update of the form: -div{F} + 0.5 (old_source + new_source) and
-    // pass this to the reaction integrator where it is applied
-    // together with the reactions to update the full state.
+    // update of the form: -div{F} + 0.5 (S^n + S^{n+1} and pass this
+    // to the reaction integrator where it is applied together with
+    // the reactions to update the full state.
 
     // Note: S_new actually is already updated with just advection, so
     // in the event that we do not react on a zone (e.g., because it

@@ -348,19 +348,6 @@ Various source ``MultiFabs``
 There are a number of different ``MultiFabs`` (and arrays of ``MultiFabs``)
 that hold source term information.
 
--  ``hydro_source`` : this is a ``MultiFab`` that holds the
-   update to the hydrodynamics (basically the divergence of the
-   fluxes). This is filled in the conservative update routine of the
-   hydrodynamics.
-
-   As this is expressed as a source term, what is actually stored is
-
-   .. math:: \Sb_\mathrm{flux} = -\nabla \cdot {\bf F}
-
-   So the update of the conserved state appears as:
-
-   .. math:: \frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}
-
 -  ``sources_for_hydro`` : a single ``MultiFab`` that stores
    the sum of sources over each physical process.
 
