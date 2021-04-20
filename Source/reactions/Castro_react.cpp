@@ -289,7 +289,7 @@ Castro::react_state(Real time, Real dt)
     // This is the term A = -div{F} + 0.5 * (old_source + new_source)
 
     MultiFab A_src(grids, dmap, NUM_STATE, ng);
-    sum_of_sources(A_src);
+    make_sdc_hydro_plus_sources(A_src, dt);
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 
