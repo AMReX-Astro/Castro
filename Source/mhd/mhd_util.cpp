@@ -120,7 +120,7 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
 
 
 void
-Castro::consup_mhd(const Box& bx,
+Castro::consup_mhd(const Box& bx, const Real dt,
                    Array4<Real> const& update,
                    Array4<Real const> const& flux0,
                    Array4<Real const> const& flux1,
@@ -151,12 +151,12 @@ Castro::consup_mhd(const Box& bx,
       update(i,j,k,n) = 0.0_rt;
 #endif
     } else {
-      update(i,j,k,n) = (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv;
+      update(i,j,k,n) += dt * (flux0(i,j,k,n) - flux0(i+1,j,k,n)) * dxinv;
 #if AMREX_SPACEDIM >= 2
-      update(i,j,k,n) += (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv;
+      update(i,j,k,n) += dt * (flux1(i,j,k,n) - flux1(i,j+1,k,n)) * dyinv;
 #endif
 #if AMREX_SPACEDIM == 3
-      update(i,j,k,n) += (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
+      update(i,j,k,n) += dt * (flux2(i,j,k,n) - flux2(i,j,k+1,n)) * dzinv;
 #endif
     }
 
