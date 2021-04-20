@@ -88,7 +88,6 @@ Castro::consup_hydro(const Box& bx,
       if (!mom_flux_has_p(0, 0, coord)) {
         update(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
-
     }
   });
 }

@@ -84,9 +84,9 @@ Castro::ctu_rad_consup(const Box& bx,
          ) / vol(i,j,k);
   });
 
-  // Add gradp term to momentum equation -- only for axisymmetry coords
-  // (and only for the radial flux);  also add the radiation pressure gradient
-  // to the momentum for all directions
+  // add the radiation pressure gradient to the momentum for all
+  // directions
+
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
