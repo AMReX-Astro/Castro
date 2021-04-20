@@ -1256,7 +1256,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       ctu_rad_consup(bx,
                      update_arr,
                      Erborder.array(mfi),
-                     S_new.array(mfi),
                      Er_new.array(mfi),
                      (rad_flux[0]).array(),
                      (qe[0]).array(),
