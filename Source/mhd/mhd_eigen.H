@@ -668,9 +668,14 @@ check_evecs(Array2D<Real, 0, NEIGN-1, 0, NEIGN-1>& leig,
         dot += leig(m, p) * reig(p, n);
       }
 
+#ifndef AMREX_USE_GPU
       std::cout << "l(" << m << ") . r(" << n << ") = " << dot << std::endl;
+#endif
+
     }
+#ifndef AMREX_USE_GPU
     std::cout << std::endl;
+#endif
   }
 }
 #endif
