@@ -468,20 +468,19 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 void
 Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
 {
-  BL_PROFILE("Castro::sum_of_sources()");
+  BL_PROFILE("Castro::make_sdc_hydro_plus_sources()");
 
   // this computes advective_source + 1/2 (old source + new source)
   //
   //
   // we have the following:
   //
-  // S_new :      U^n - dt div{F} + dt S^n
+  // S_new :      U^n - dt div{F} + dt/2 (S^n + S^{n+1})
   // Sborder:     U^n
-  // new_sources: 1/2 (S^{n+1} - S^n)
   //
   // so we can compute:
   //
-  //   (1 / dt) * (S_new - S_border + dt * new_sources)
+  //   (1 / dt) * (S_new - S_border)
   //
   // to get:
   //
@@ -492,12 +491,10 @@ Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
 
   source.setVal(0.0, ng);
 
-  MultiFab& new_sources = get_new_data(Source_Type);
   MultiFab& S_new = get_new_data(State_Type);
 
   MultiFab::Add(source, S_new, 0, 0, S_new.nComp(), ng);
   MultiFab::Subtract(source, Sborder, 0, 0, Sborder.nComp(), ng);
-  MultiFab::Saxpy(source, dt, new_sources, 0, 0, new_sources.nComp(), ng);
   source.mult(1.0_rt / dt, ng);
 
 }
@@ -518,22 +515,13 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 
     int ng = 0;
 
-    // Carries the contribution of all non-reacting source terms to
-    // the conserved state (including the hydro update)
-
-    MultiFab A(grids, dmap, NUM_STATE, ng);
-
-    make_sdc_hydro_plus_sources(A, dt);
-
-    // Compute the state that has effectively only been updated with advection.
-    // U* = U_old + dt A
+    // before the SDC burn, we stashed the state:
+    //    U* = U_old + dt A
     // where A = -div U + S_hydro
-    MultiFab S_noreact(grids, dmap, NUM_STATE, ng);
+    // into Simplified_SDC_React_Type.  Let's get that now
+    // as the starting point of finding the primitive react source
 
-    MultiFab::Copy(S_noreact, S_old, 0, 0, NUM_STATE, ng);
-    MultiFab::Saxpy(S_noreact, dt, A, 0, 0, NUM_STATE, ng);
-
-    clean_state(S_noreact, state[State_Type].curTime(), S_noreact.nGrow());
+    MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
 
     // Compute its primitive counterpart, q*
 
