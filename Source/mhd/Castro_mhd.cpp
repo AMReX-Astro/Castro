@@ -9,8 +9,6 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
       if (verbose && ParallelDescriptor::IOProcessor())
         std::cout << "... mhd ...!!! " << std::endl << std::endl;
 
-      hydro_source.setVal(0.0);
-
       const auto dx = geom.CellSizeArray();
 
       MultiFab& S_new = get_new_data(State_Type);
@@ -90,7 +88,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
           FArrayBox &source_in  = sources_for_hydro[mfi];
           auto src_arr = source_in.array();
 
-          FArrayBox &hydro_update = hydro_source[mfi];
+          FArrayBox &hydro_update = S_new[mfi];
           auto update_arr = hydro_update.array();
 
           FArrayBox& Bx  = Bx_old_tmp[mfi];
@@ -630,7 +628,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
 
           // Conservative update
 
-          consup_mhd(bx, update_arr, flxx_arr, flxy_arr, flxz_arr);
+          consup_mhd(bx, dt, update_arr, flxx_arr, flxy_arr, flxz_arr);
 
           // magnetic update
 

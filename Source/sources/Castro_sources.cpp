@@ -466,27 +466,39 @@ Castro::print_all_source_changes(Real dt, bool is_new)
 // Obtain the sum of all source terms.
 
 void
-Castro::sum_of_sources(MultiFab& source)
+Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
 {
   BL_PROFILE("Castro::sum_of_sources()");
 
   // this computes advective_source + 1/2 (old source + new source)
   //
-  // Note: the advective source is defined as -div{F} and is already
-  // in old_source
   //
-  // the time-centering is accomplished since new source is defined
-  // to be 1/2 (new source - old source) generally.
+  // we have the following:
+  //
+  // S_new :      U^n - dt div{F} + dt S^n
+  // Sborder:     U^n
+  // new_sources: 1/2 (S^{n+1} - S^n)
+  //
+  // so we can compute:
+  //
+  //   (1 / dt) * (S_new - S_border + dt * new_sources)
+  //
+  // to get:
+  //
+  //     -div{F} + (1/2) (S^n + S^{n+1})
+  //
 
   int ng = source.nGrow();
 
-  source.setVal(0.0);
+  source.setVal(0.0, ng);
 
-  MultiFab& old_sources = get_old_data(Source_Type);
   MultiFab& new_sources = get_new_data(Source_Type);
+  MultiFab& S_new = get_new_data(State_Type);
 
-  MultiFab::Add(source, old_sources, 0, 0, old_sources.nComp(), ng);
-  MultiFab::Add(source, new_sources, 0, 0, new_sources.nComp(), ng);
+  MultiFab::Add(source, S_new, 0, 0, S_new.nComp(), ng);
+  MultiFab::Subtract(source, Sborder, 0, 0, Sborder.nComp(), ng);
+  MultiFab::Saxpy(source, dt, new_sources, 0, 0, new_sources.nComp(), ng);
+  source.mult(1.0_rt / dt, ng);
 
 }
 
@@ -511,7 +523,7 @@ Castro::get_react_source_prim(MultiFab& react_src, Real time, Real dt)
 
     MultiFab A(grids, dmap, NUM_STATE, ng);
 
-    sum_of_sources(A);
+    make_sdc_hydro_plus_sources(A, dt);
 
     // Compute the state that has effectively only been updated with advection.
     // U* = U_old + dt A
