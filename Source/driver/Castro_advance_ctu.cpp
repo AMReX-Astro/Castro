@@ -327,7 +327,7 @@ Castro::do_advance_ctu(Real time,
             // to figure out just the effect of reactions
 
             MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
-            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), S_noreact.nGrow());
+            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
 
             // Do the ODE integration to capture the reaction source terms.
 
