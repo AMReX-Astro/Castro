@@ -54,6 +54,23 @@
 ///
     void construct_mol_hydro_source(amrex::Real time, amrex::Real dt, amrex::MultiFab& A_update);
 
+
+///
+/// when using simplified-SDC, add the species source term predictor to
+/// the interface states
+///
+/// @param bx      the box to operate over
+/// @param idir    coordinate direction
+/// @param dt      timestep
+/// @param qleft   left state at the interface
+/// @param qright  right state at the interface
+/// @param src_q   primitive variable source array
+///
+    void add_species_source_to_states(const Box& bx, const int idir, const Real dt,
+                                      Array4<Real> const& qleft,
+                                      Array4<Real> const& qright,
+                                      Array4<Real const> const& src_q);
+
 ///
 /// convert the conserved form of the source terms, S(U), into source terms
 /// for the primitive variable equations, S(q).

@@ -493,6 +493,16 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 1
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      // if we are doing species sources, add them here
+
+      add_species_source_to_states(xbx, 0, dt,
+                                   qxm_arr, qxp_arr, src_q_arr);
+#endif
+
+      // compute the fluxes through the x-interface
+
       cmpflx_plus_godunov(xbx,
                           qxm_arr, qxp_arr,
                           flux0_arr,
@@ -619,6 +629,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
                           flux0_arr,
@@ -655,6 +671,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // solve the final Riemann problem axross the y-interfaces
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
 
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
@@ -979,6 +1001,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(xbx, qr.array());
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
+
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
                           flux0_arr,
@@ -1049,6 +1078,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       reset_edge_state_thermo(ybx, ql.array());
 
       reset_edge_state_thermo(ybx, qr.array());
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
 
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
@@ -1122,6 +1158,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       reset_edge_state_thermo(zbx, ql.array());
 
       reset_edge_state_thermo(zbx, qr.array());
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(zbx, 2, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
 
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]

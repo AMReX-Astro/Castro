@@ -438,6 +438,37 @@ Castro::ctu_plm_states(const Box& bx, const Box& vbx,
 
 
 void
+Castro::add_species_source_to_states(const Box& bx, const int idir, const Real dt,
+                                     Array4<Real> const& qleft,
+                                     Array4<Real> const& qright,
+                                     Array4<Real const> const& src_q)
+{
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+
+        for (int ipassive = 0; ipassive < npassive; ipassive++) {
+
+            int n = qpassmap(ipassive);
+
+            if (idir == 0) {
+                qleft(i,j,k,n) += 0.5 * dt * src_q(i-1,j,k,n);
+            } else if (idir == 1) {
+                qleft(i,j,k,n) += 0.5 * dt * src_q(i,j-1,k,n);
+            } else {
+                qleft(i,j,k,n) += 0.5 * dt * src_q(i,j,k-1,n);
+            }
+
+            qright(i,j,k,n) += 0.5 * dt * src_q(i,j,k,n);
+
+        }
+
+    });
+
+}
+
+void
 Castro::src_to_prim(const Box& bx,
                     Array4<Real const> const& q_arr,
                     Array4<Real const> const& src,
