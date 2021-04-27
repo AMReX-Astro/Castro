@@ -3,8 +3,6 @@
 
 #include <prob_parameters.H>
 
-#include <initial_model.H>
-
 AMREX_GPU_HOST_DEVICE AMREX_INLINE
 Real A_x (int i, int j, int k,
           const GeometryData& geomdata)
@@ -35,18 +33,18 @@ Real A_x (int i, int j, int k,
 
     Real A;
 
-    if (problem::mass_P > 0.0_rt && (dist_P < initial_model::model_P.radius)) {
+    if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P)) {
 
         // Vector potential inside the primary star
 
-        A = -problem::m_0 * dist_P * std::sin(theta_P) * std::sin(phi_P) / std::pow(initial_model::model_P.radius, 3);
+        A = -problem::m_0 * dist_P * std::sin(theta_P) * std::sin(phi_P) / std::pow(problem::radius_P, 3);
 
     }
-    else if (problem::mass_S > 0.0_rt && (dist_S < initial_model::model_S.radius)) {
+    else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S)) {
 
         // Vector potential inside the secondary star
 
-        A = -problem::m_0 * dist_S * std::sin(theta_S) * std::sin(phi_S) / std::pow(initial_model::model_S.radius, 3);
+        A = -problem::m_0 * dist_S * std::sin(theta_S) * std::sin(phi_S) / std::pow(problem::radius_S, 3);
 
     }          
     else  {
@@ -94,18 +92,18 @@ Real A_y (int i, int j, int k,
 
     Real A;
 
-    if (problem::mass_P > 0.0_rt && (dist_P < initial_model::model_P.radius)) {
+    if (problem::mass_P > 0.0_rt && (dist_P < problem::radius_P)) {
 
         // Vector potential inside the primary star
 
-        A = -problem::m_0 * dist_P * std::sin(theta_P) * std::cos(phi_P) / std::pow(initial_model::model_P.radius, 3);
+        A = -problem::m_0 * dist_P * std::sin(theta_P) * std::cos(phi_P) / std::pow(problem::radius_P, 3);
 
     }
-    else if (problem::mass_S > 0.0_rt && (dist_S < initial_model::model_S.radius)) {
+    else if (problem::mass_S > 0.0_rt && (dist_S < problem::radius_S)) {
 
         // Vector potential inside the secondary star
 
-        A = -problem::m_0 * dist_S * std::sin(theta_S) * std::cos(phi_S) / std::pow(initial_model::model_S.radius, 3);
+        A = -problem::m_0 * dist_S * std::sin(theta_S) * std::cos(phi_S) / std::pow(problem::radius_S, 3);
 
     }          
     else  {
