@@ -480,7 +480,7 @@ Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
   //
   // so we can compute:
   //
-  //   (1 / dt) * (S_new - S_border)
+  //   (1 / dt) * (S_new - S_old)
   //
   // to get:
   //
@@ -495,7 +495,7 @@ Castro::make_sdc_hydro_plus_sources(MultiFab& source, Real dt)
   MultiFab& S_new = get_new_data(State_Type);
 
   MultiFab::Add(source, S_new, 0, 0, S_new.nComp(), ng);
-  MultiFab::Subtract(source, S_old, 0, 0, Sborder.nComp(), ng);
+  MultiFab::Subtract(source, S_old, 0, 0, S_old.nComp(), ng);
   source.mult(1.0_rt / dt, ng);
 
 }
