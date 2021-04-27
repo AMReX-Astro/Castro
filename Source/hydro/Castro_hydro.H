@@ -189,7 +189,6 @@
     ctu_rad_consup(const amrex::Box& bx,
                    amrex::Array4<amrex::Real> const& update,
                    amrex::Array4<amrex::Real const> const& Erin,
-                   amrex::Array4<amrex::Real> const& uout,
                    amrex::Array4<amrex::Real> const& Erout,
                    amrex::Array4<amrex::Real const> const& radflux1,
                    amrex::Array4<amrex::Real const> const& qx,

@@ -27,8 +27,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
 
-  hydro_source.setVal(0.0);
-
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
 #endif
@@ -40,6 +38,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   const Real *dx = geom.CellSize();
 
   MultiFab& S_new = get_new_data(State_Type);
+
+  // we will treat the hydro source as any other source term
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -161,7 +161,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
-          hydro_source[mfi].prefetchToDevice();
+          S_new[mfi].prefetchToDevice();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
               area[i][mfi].prefetchToDevice();
               (*fluxes[i])[mfi].prefetchToDevice();
@@ -1239,7 +1239,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // conservative update
-      Array4<Real> const update_arr = hydro_source.array(mfi);
+      Array4<Real> const update_arr = S_new.array(mfi);
 
       Array4<Real> const flx_arr = (flux[0]).array();
       Array4<Real> const qx_arr = (qe[0]).array();
@@ -1287,9 +1287,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;
 
-          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];
+          update_arr(i,j,k,UMR) -= dt * (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];
 #if AMREX_SPACEDIM >= 2
-          update_arr(i,j,k,UMR) -= (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1];
+          update_arr(i,j,k,UMR) -= dt * (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1];
 #endif
       });
 #endif
@@ -1298,7 +1298,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       ctu_rad_consup(bx,
                      update_arr,
                      Erborder.array(mfi),
-                     S_new.array(mfi),
                      Er_new.array(mfi),
                      (rad_flux[0]).array(),
                      (qe[0]).array(),
@@ -1457,7 +1456,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
-          hydro_source[mfi].prefetchToHost();
+          S_new[mfi].prefetchToHost();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
               area[i][mfi].prefetchToHost();
               (*fluxes[i])[mfi].prefetchToHost();

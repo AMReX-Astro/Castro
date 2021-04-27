@@ -247,12 +247,11 @@ Castro::react_state(Real time, Real dt)
 {
 
     // The goal is to update S_old to S_new with the effects of both
-    // advection and reactions.  We come into this routine with the
-    // -div{F} stored in hydro_source, and the old and new-time
-    // sources stored in Source_Type.  Together we create an advective
-    // update of the form: -div{F} + 0.5 (old_source + new_source) and
-    // pass this to the reaction integrator where it is applied
-    // together with the reactions to update the full state.
+    // advection and reactions.  We come into this S_new having seen
+    // the effects of advection and sources.  We create an advective
+    // update of the form: -div{F} + 0.5 (S^n + S^{n+1} and pass this
+    // to the reaction integrator where it is applied together with
+    // the reactions to update the full state.
 
     // Note: S_new actually is already updated with just advection, so
     // in the event that we do not react on a zone (e.g., because it
@@ -289,7 +288,7 @@ Castro::react_state(Real time, Real dt)
     // This is the term A = -div{F} + 0.5 * (old_source + new_source)
 
     MultiFab A_src(grids, dmap, NUM_STATE, ng);
-    sum_of_sources(A_src);
+    make_sdc_hydro_plus_sources(A_src, dt);
 
     MultiFab& reactions = get_new_data(Reactions_Type);
 

@@ -179,14 +179,12 @@ Castro::do_advance_ctu(Real time,
       }
 
       construct_ctu_hydro_source(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
 
-      if (print_update_diagnostics) {
-          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
-      }
+//      if (print_update_diagnostics) {
+//          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
+//      }
 #else
       construct_ctu_mhd_source(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
 #endif
 
       // Check for small/negative densities.
@@ -323,6 +321,13 @@ Castro::do_advance_ctu(Real time,
     if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
 
         if (do_react) {
+
+            // store the current conserved state (without burning) into
+            // Simplified_SDC_React_Type -- this will be used after the burn
+            // to figure out just the effect of reactions
+
+            MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
+            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
 
             // Do the ODE integration to capture the reaction source terms.
 

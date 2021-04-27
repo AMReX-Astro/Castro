@@ -13,7 +13,7 @@ Castro::consup_hydro(const Box& bx,
 #ifdef SHOCK_VAR
                      Array4<Real const> const& shk,
 #endif
-                     Array4<Real> const& update,
+                     Array4<Real> const& U_new,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
                      Array4<Real const> const& area0,
@@ -34,10 +34,6 @@ Castro::consup_hydro(const Box& bx,
 
   const auto dx = geom.CellSizeArray();
 
-  // For hydro, we will create an update source term that is
-  // essentially the flux divergence.  This can be added with dt to
-  // get the update
-
   int coord = geom.Coord();
 
   amrex::ParallelFor(bx, NUM_STATE,
@@ -46,7 +42,7 @@ Castro::consup_hydro(const Box& bx,
 
     Real volinv = 1.0 / vol(i,j,k);
 
-    update(i,j,k,n) = update(i,j,k,n) +
+    U_new(i,j,k,n) = U_new(i,j,k,n) + dt *
       ( flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k)
 #if AMREX_SPACEDIM >= 2
       + flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k)
@@ -74,11 +70,11 @@ Castro::consup_hydro(const Box& bx,
 
       pdu = 0.5 * pdu * volinv;
 
-      update(i,j,k,n) = update(i,j,k,n) - pdu;
+      U_new(i,j,k,n) = U_new(i,j,k,n) - dt * pdu;
 
 #ifdef SHOCK_VAR
     } else if (n == USHK) {
-      update(i,j,k,USHK) = shk(i,j,k) / dt;
+      U_new(i,j,k,USHK) = shk(i,j,k);
 #endif
 
     } else if (n == UMX) {
@@ -86,7 +82,7 @@ Castro::consup_hydro(const Box& bx,
       // coords (and only for the radial flux).
 
       if (!mom_flux_has_p(0, 0, coord)) {
-        update(i,j,k,UMX) += - (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
+        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
       }
     }
   });
