@@ -391,7 +391,8 @@
 <span id="_CPPv314sum_of_sourcesRN5amrex8MultiFabE"></span><span id="_CPPv214sum_of_sourcesRN5amrex8MultiFabE"></span><span id="sum_of_sources__amrex::MultiFabR"></span><span class="target" id="Castro__sources_8H_1ad602aa97b7a58d447e8783be01f771d4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">sum_of_sources</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414sum_of_sourcesRN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Obtain the sum of all source terms.</p>
 <p>this computes advective_source + 1/2 (old source + new source)</p>
-<p>the time-centering is accomplished since new source is defined to be 1/2 (new source - old source) generally.</p>
+<p>
+the time-centering is accomplished since new source is defined to be 1/2 (new source - old source) generally.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>the advective source is defined as <span class="math notranslate nohighlight">\(-\nabla\cdot F\)</span></p>
