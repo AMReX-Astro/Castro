@@ -12,7 +12,7 @@ using namespace amrex;
 
 void
 Castro::ctu_rad_consup(const Box& bx,
-                       Array4<Real> const& update,
+                       Array4<Real> const& U_new,
                        Array4<Real const> const& Erin,
                        Array4<Real> const& Erout,
                        Array4<Real const> const& radflux1,
@@ -67,8 +67,8 @@ Castro::ctu_rad_consup(const Box& bx,
   int limiter = Radiation::limiter;
   int closure = Radiation::closure;
 
-  // radiation energy update.  For the moment, we actually update things
-  // fully here, instead of creating a source term for the update
+  // radiation energy update. 
+
   amrex::ParallelFor(bx, NGROUPS,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int g)
   {
@@ -128,12 +128,12 @@ Castro::ctu_rad_consup(const Box& bx,
     // note, we need to include the Z component here too (even
     // for 1- and 2-d), since rotation might be in play
 
-    Real urho_new = update(i,j,k,URHO);
+    Real urho_new = U_new(i,j,k,URHO);
 
     // this update includes the hydro fluxes and grad{p} from hydro
-    Real umx_new1 = update(i,j,k,UMX);
-    Real umy_new1 = update(i,j,k,UMY);
-    Real umz_new1 = update(i,j,k,UMZ);
+    Real umx_new1 = U_new(i,j,k,UMX);
+    Real umy_new1 = U_new(i,j,k,UMY);
+    Real umz_new1 = U_new(i,j,k,UMZ);
 
     Real ek1 = (umx_new1 * umx_new1 +
                 umy_new1 * umy_new1 +
@@ -141,13 +141,13 @@ Castro::ctu_rad_consup(const Box& bx,
 
 
     // now add the radiation pressure gradient
-    update(i,j,k,UMX) -= dt * dprdx;
-    update(i,j,k,UMY) -= dt * dprdy;
-    update(i,j,k,UMZ) -= dt * dprdz;
+    U_new(i,j,k,UMX) -= dt * dprdx;
+    U_new(i,j,k,UMY) -= dt * dprdy;
+    U_new(i,j,k,UMZ) -= dt * dprdz;
 
-    Real umx_new2 = update(i,j,k,UMX);
-    Real umy_new2 = update(i,j,k,UMY);
-    Real umz_new2 = update(i,j,k,UMZ);
+    Real umx_new2 = U_new(i,j,k,UMX);
+    Real umy_new2 = U_new(i,j,k,UMY);
+    Real umz_new2 = U_new(i,j,k,UMZ);
 
     Real ek2 = (umx_new2 * umx_new2 +
                 umy_new2 * umy_new2 +
@@ -157,7 +157,7 @@ Castro::ctu_rad_consup(const Box& bx,
 
     // update the kinetic energy with the radiation contribution
 
-    update(i,j,k,UEDEN) = update(i,j,k,UEDEN) + dek;
+    U_new(i,j,k,UEDEN) = U_new(i,j,k,UEDEN) + dek;
 
     if (! comov) {
       // ! mixed-frame (single group only)
