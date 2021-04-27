@@ -33,8 +33,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -387,21 +385,9 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt id="_CPPv414sum_of_sourcesRN5amrex8MultiFabE">
-<span id="_CPPv314sum_of_sourcesRN5amrex8MultiFabE"></span><span id="_CPPv214sum_of_sourcesRN5amrex8MultiFabE"></span><span id="sum_of_sources__amrex::MultiFabR"></span><span class="target" id="Castro__sources_8H_1ad602aa97b7a58d447e8783be01f771d4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">sum_of_sources</span></code><span class="sig-paren">(</span><a class="reference internal" href="Castro__util_8H.html#_CPPv45amrex" title="amrex"><span class="pre">amrex</span></a><span class="pre">::</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414sum_of_sourcesRN5amrex8MultiFabE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Obtain the sum of all source terms.</p>
-<p>this computes advective_source + 1/2 (old source + new source)</p>
-<p>
-the time-centering is accomplished since new source is defined to be 1/2 (new source - old source) generally.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>the advective source is defined as <span class="math notranslate nohighlight">\(-\nabla\cdot F\)</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>source</strong> – MultiFab of source terms to be summed </p>
-</dd>
-</dl>
+<dt id="_CPPv427make_sdc_hydro_plus_sourcesR8MultiFab4Real">
+<span id="_CPPv327make_sdc_hydro_plus_sourcesR8MultiFab4Real"></span><span id="_CPPv227make_sdc_hydro_plus_sourcesR8MultiFab4Real"></span><span id="make_sdc_hydro_plus_sources__MultiFabR.Real"></span><span class="target" id="Castro__sources_8H_1a4aa044fb2d723b37bdd6fa90ac107a2a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">make_sdc_hydro_plus_sources</span></code><span class="sig-paren">(</span><span class="pre">MultiFab</span> <span class="pre">&amp;</span><em><span class="pre">source</span></em>, <span class="pre">Real</span> <em><span class="pre">dt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427make_sdc_hydro_plus_sourcesR8MultiFab4Real" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>For simplified-SDC, compute -div{F} + 1/2 (S^n + S^{n+1}) </p>
 </dd></dl>
 
 <dl class="cpp function">
