@@ -292,7 +292,7 @@ void generate_initial_model (Real mass_want, Real surface_temperature_want,
             // Check if we have converged.
 
             if (std::abs(mass - mass_want) / mass_want < mass_tol &&
-                (surface_temperature_want - surface_temperature) / surface_temperature_want < temp_tol) {
+                std::abs(surface_temperature_want - surface_temperature) / surface_temperature_want < temp_tol) {
                 mass_converged = true;
                 break;
             }
