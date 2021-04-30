@@ -110,8 +110,19 @@ void problem_initialize ()
 
     Real r_crit = target_radius + impactor_radius;
     Real v_esc_targ = std::sqrt(2.0_rt * C::Gconst * problem::target_mass / r_crit);
-    Real v_imp = std::sqrt(problem::impact_velocity * problem::impact_velocity + v_esc_targ * v_esc_targ);
-    Real b_imp = (problem::impact_parameter * problem::impact_velocity) / (v_imp * r_crit);
+    Real v_esc_sys = std::sqrt(2.0_rt * C::Gconst * (problem::target_mass + problem::impactor_mass) / r_crit);
+
+    Real theta = (v_esc_targ * v_esc_targ) / ((problem::impact_velocity * v_esc_sys) *
+                                              (problem::impact_velocity * v_esc_sys));
+    Real b_max = r_crit * std::sqrt(1.0_rt + theta);
+
+    // Now calculate the effective impact parameter and impact velocity at the current location (in physical units).
+
+    Real v_imp = std::sqrt((problem::impact_velocity * v_esc_sys) *
+                           (problem::impact_velocity * v_esc_sys) +
+                           v_esc_targ * v_esc_targ);
+
+    Real b_imp = (problem::impact_parameter * b_max  * problem::impact_velocity * v_esc_sys) / (v_imp * r_crit);
 
     const Real impactor_mass_ratio = problem::target_mass / (problem::target_mass + problem::impactor_mass);
 
@@ -154,6 +165,24 @@ void problem_initialize ()
                    << problem::target_initial_center[0] << ", "
                    << problem::target_initial_center[1] << ", "
                    << problem::target_initial_center[2] << ")"
+                   << std::endl;
+
+    amrex::Print() << "Target velocity: (" << std::setprecision(3) << std::scientific
+                   << problem::target_initial_velocity[0] << ", "
+                   << problem::target_initial_velocity[1] << ", "
+                   << problem::target_initial_velocity[2] << ")"
+                   << std::endl;
+
+    amrex::Print() << "Impactor location: (" << std::setprecision(3) << std::scientific
+                   << problem::impactor_initial_center[0] << ", "
+                   << problem::impactor_initial_center[1] << ", "
+                   << problem::impactor_initial_center[2] << ")"
+                   << std::endl;
+
+    amrex::Print() << "Impactor velocity: (" << std::setprecision(3) << std::scientific
+                   << problem::impactor_initial_velocity[0] << ", "
+                   << problem::impactor_initial_velocity[1] << ", "
+                   << problem::impactor_initial_velocity[2] << ")"
                    << std::endl;
 
     amrex::Print() << std::endl;
