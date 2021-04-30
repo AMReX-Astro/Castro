@@ -6,6 +6,8 @@ target_mass                     real                  0.525e0_rt               y
 impactor_mass                   real                  0.525e0_rt               y
 target_temperature              real                  1.000e3_rt               y
 impactor_temperature            real                  1.000e3_rt               y
+target_radius                   real                  0.000e0_rt               n
+impactor_radius                 real                  0.000e0_rt               n
 
 # 1D initial model parameters
 

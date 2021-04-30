@@ -38,10 +38,10 @@ void problem_initialize ()
     }
     target_comp[0] = 1.0_rt;
 
-    Real target_central_density, target_radius;
+    Real target_central_density;
 
     generate_initial_model(problem::target_mass, problem::target_temperature,
-                           target_central_density, target_radius,
+                           target_central_density, problem::target_radius,
                            target_comp, problem::initial_model_dx,
                            0);
 
@@ -54,7 +54,7 @@ void problem_initialize ()
 
     amrex::Print() << "Generated initial model for target of mass " << std::setprecision(3) << problem::target_mass / M_earth
                    << " earth masses, central density " << std::setprecision(3) << std::scientific << target_central_density
-                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << target_radius << " cm."
+                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::target_radius << " cm."
                    << std::endl << std::endl;
 
     Real impactor_comp[NumSpec];
@@ -66,16 +66,16 @@ void problem_initialize ()
     }
     impactor_comp[0] = 1.0_rt;
 
-    Real impactor_central_density, impactor_radius;
+    Real impactor_central_density;
 
     generate_initial_model(problem::impactor_mass, problem::impactor_temperature,
-                           impactor_central_density, impactor_radius,
+                           impactor_central_density, problem::impactor_radius,
                            impactor_comp, problem::initial_model_dx,
                            1);
 
     amrex::Print() << "Generated initial model for impactor of mass " << std::setprecision(3) << problem::impactor_mass / M_earth
                    << " earth masses, central density " << std::setprecision(3) << std::scientific << impactor_central_density
-                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << impactor_radius << " cm."
+                   << " g cm**-3, and radius " << std::setprecision(3) << std::scientific << problem::impactor_radius << " cm."
                    << std::endl << std::endl;
 
     // Set ambient properties
@@ -108,7 +108,7 @@ void problem_initialize ()
     // that we have the center of mass at the system located at the origin and use
     // the center of mass frame such that the total momentum is zero.
 
-    Real r_crit = target_radius + impactor_radius;
+    Real r_crit = problem::target_radius + problem::impactor_radius;
     Real v_esc_targ = std::sqrt(2.0_rt * C::Gconst * problem::target_mass / r_crit);
     Real v_esc_sys = std::sqrt(2.0_rt * C::Gconst * (problem::target_mass + problem::impactor_mass) / r_crit);
 
@@ -149,15 +149,15 @@ void problem_initialize ()
     const Real* problo = DefaultGeometry().ProbLo();
     const Real* probhi = DefaultGeometry().ProbHi();
 
-    if (problem::target_initial_center[0] - target_radius <= problo[0] ||
-        problem::target_initial_center[1] - target_radius <= problo[1] ||
-        problem::target_initial_center[2] - target_radius <= problo[2]) {
+    if (problem::target_initial_center[0] - problem::target_radius <= problo[0] ||
+        problem::target_initial_center[1] - problem::target_radius <= problo[1] ||
+        problem::target_initial_center[2] - problem::target_radius <= problo[2]) {
         amrex::Error("ERROR: The domain width is too small to include the target.");
     }
 
-    if (problem::impactor_initial_center[0] + impactor_radius >= probhi[0] ||
-        problem::impactor_initial_center[1] + impactor_radius >= probhi[1] ||
-        problem::impactor_initial_center[2] + impactor_radius >= probhi[2]) {
+    if (problem::impactor_initial_center[0] + problem::impactor_radius >= probhi[0] ||
+        problem::impactor_initial_center[1] + problem::impactor_radius >= probhi[1] ||
+        problem::impactor_initial_center[2] + problem::impactor_radius >= probhi[2]) {
         amrex::Error("ERROR: The domain width is too small to include the impactor.");
     }
 
