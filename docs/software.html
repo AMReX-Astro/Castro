@@ -558,18 +558,7 @@ at the new time.</p>
 <h3>Various source <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code><a class="headerlink" href="#various-source-multifabs" title="Permalink to this headline">¶</a></h3>
 <p>There are a number of different <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> (and arrays of <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code>)
 that hold source term information.</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">hydro_source</span></code> : this is a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that holds the
-update to the hydrodynamics (basically the divergence of the
-fluxes). This is filled in the conservative update routine of the
-hydrodynamics.</p>
-<p>As this is expressed as a source term, what is actually stored is</p>
-<div class="math notranslate nohighlight">
-\[\Sb_\mathrm{flux} = -\nabla \cdot {\bf F}\]</div>
-<p>So the update of the conserved state appears as:</p>
-<div class="math notranslate nohighlight">
-\[\frac{\partial \Ub}{\partial t} = \Sb_\mathrm{flux}\]</div>
-</li>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code> : a single <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that stores
 the sum of sources over each physical process.</p></li>
 </ul>

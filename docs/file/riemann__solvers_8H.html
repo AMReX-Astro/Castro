@@ -244,22 +244,87 @@
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
 <dt>
-<span class="target" id="riemann__solvers_8H_1a9f4099280b0a984034e0a3a9a14cf881"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">void</span> <span class="pre">HLL</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*ql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cr,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">Real</span> <span class="pre">*flux_hll)</span></code></dt>
-<dd><p>A simple HLL Riemann solver for pure hydrodynamics. This takes just a single interface’s data and returns the HLL flux</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ql</span></code>: the left interface state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qr</span></code>: the right interface state </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cl</span></code>: sound speed on the left interface </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cr</span></code>: sound speed on the right interface </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">idir</span></code>: coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">coord</span></code>: geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">f</span></code>: the HLL fluxes </p></li>
+<span class="target" id="riemann__solvers_8H_1a6626f315c1ba17ee87c446db004912de"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">compute_flux_q</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;F,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;rF,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qgdnv,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">store_full_state)</span></code></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann__solvers_8H_1adb078c979533d08d54505a1bbb99b61d"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemanncg</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir)</span></code></dt>
+<dd><p>The Colella-Glaz Riemann solver for pure hydrodynamics. This is a two shock approximate state Riemann solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxillary state </p></li>
+<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann__solvers_8H_1aec3b0b360711e99e651f5effcb1bf98a"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemannus</span> <span class="pre">(const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;ql,</span> <span class="pre">const</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qr,</span> <span class="pre">const</span> <span class="pre">RiemannAux</span> <span class="pre">&amp;raux,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir)</span></code></dt>
+<dd><p>The Colella-Glaz-Ferguson Riemann solver for hydrodynamics and radiation hydrodynamics. This is a two shock approximate state Riemann solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bx</strong> – the box to operate over </p></li>
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxillary state </p></li>
+<li><p><strong>qint</strong> – the full Godunov state on the interface </p></li>
+<li><p><strong>lambda_int</strong> – the radiation flux limiter on the interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann__solvers_8H_1a6d10b9741ac69f876d8ef22c3867fba7"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">HLL</span> <span class="pre">(const</span> <span class="pre">Real</span> <span class="pre">*ql,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">*qr,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cl,</span> <span class="pre">const</span> <span class="pre">Real</span> <span class="pre">cr,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">coord,</span> <span class="pre">Real</span> <span class="pre">*flux_hll)</span></code></dt>
+<dd><p>A simple HLL Riemann solver for pure hydrodynamics. This takes just a single interface’s data and returns the HLL flux</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>cl</strong> – sound speed on the left interface </p></li>
+<li><p><strong>cr</strong> – sound speed on the right interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+<li><p><strong>coord</strong> – geometry type (0 = Cartesian, 1 = axisymmetric, 2 = spherical) </p></li>
+<li><p><strong>f</strong> – the HLL fluxes </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann__solvers_8H_1ae3c8b12e0a44e06095216d91f6b0a08d"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">HLLC</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;ql,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;uflx,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qgdnv,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">store_full_state,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geom,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_lo,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_hi,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domlo,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domhi)</span></code></dt>
+<dd><p>A HLLC Riemann solver for pure hydrodynamics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ql</strong> – the left interface state </p></li>
+<li><p><strong>qr</strong> – the right interface state </p></li>
+<li><p><strong>qaux_arr</strong> – the auxillary state </p></li>
+<li><p><strong>uflx</strong> – the flux through the interface </p></li>
+<li><p><strong>qint</strong> – an approximate Godunov state on the interface </p></li>
+<li><p><strong>idir</strong> – coordinate direction for the solve (0 = x, 1 = y, 2 = z) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt>
+<span class="target" id="riemann__solvers_8H_1ac316cad71a8bb0692a3aa8aeb725af6a"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_INLINE</span> <span class="pre">void</span> <span class="pre">riemann_state</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qm,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qp,</span> <span class="pre">Array4&lt;</span> <span class="pre">Real</span> <span class="pre">const</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;qaux_arr,</span> <span class="pre">RiemannState</span> <span class="pre">&amp;qint,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geom,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_lo,</span> <span class="pre">const</span> <span class="pre">bool</span> <span class="pre">special_bnd_hi,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domlo,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">int,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">const</span> <span class="pre">&amp;domhi)</span></code></dt>
+<dd></dd></dl>
 
 </div>
 </div>
