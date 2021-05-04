@@ -147,8 +147,6 @@ extern "C"
      const amrex::Real& dt);
 #endif
 
-  void flush_output();
-
 #ifdef AUX_UPDATE
   void ca_auxupdate
     (BL_FORT_FAB_ARG(state_old),
