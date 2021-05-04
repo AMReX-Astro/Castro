@@ -113,6 +113,7 @@ if ``itag = CLEAR`` (these are mapped to ``1`` and ``0``, respectively).
         call errfunc[k](itag)
     end for
 
+
 In particular, notice that there is an order dependence of this
 operation; if ``errfunc[2]`` ``CLEAR`` s a zone and then
 ``errfunc[3]`` ``SET`` s that zone, the final operation will be to tag
