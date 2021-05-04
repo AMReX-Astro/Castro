@@ -251,10 +251,10 @@ end subroutine ca_set_method_params
 
 
 
-subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-     coord_type_in, &
-     problo_in, probhi_in) &
-     bind(C, name="ca_set_problem_params")
+subroutine ca_set_problem_params(dm, &
+                                 coord_type_in, &
+                                 problo_in, probhi_in) &
+                                 bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
      ! Binds to C function `ca_set_problem_params`
@@ -271,22 +271,12 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   implicit none
 
   integer,  intent(in) :: dm
-  integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
   allocate(dim)
 
   dim = dm
-
-  allocate(physbc_lo(3))
-  allocate(physbc_hi(3))
-
-  physbc_lo(:) = 0
-  physbc_hi(:) = 0
-
-  physbc_lo(1:dm) = physbc_lo_in(1:dm)
-  physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
   allocate(coord_type)
   allocate(problo(3))
@@ -319,7 +309,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 #endif
 
 
-  !$acc update device(physbc_lo, physbc_hi)
   !$acc update device(dim)
   !$acc update device(dg)
   !$acc update device(coord_type)

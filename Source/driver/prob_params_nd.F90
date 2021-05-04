@@ -8,10 +8,6 @@ module prob_params_module
 
   implicit none
 
-  ! boundary condition information
-  integer, allocatable :: physbc_lo(:)
-  integer, allocatable :: physbc_hi(:)
-
   ! geometry information
   integer,  allocatable, save :: coord_type
   real(rt), allocatable :: problo(:), probhi(:)

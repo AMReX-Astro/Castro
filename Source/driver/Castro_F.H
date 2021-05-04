@@ -39,7 +39,6 @@ extern "C"
 
   void ca_set_problem_params
     (const int& dm,
-     const int* physbc_lo, const int* physbc_hi,
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
 

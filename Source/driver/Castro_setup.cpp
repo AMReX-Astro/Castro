@@ -311,9 +311,9 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
+  ca_set_problem_params(dm,
                         coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi());
+                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
