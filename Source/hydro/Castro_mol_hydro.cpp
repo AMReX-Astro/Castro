@@ -742,12 +742,6 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
   BL_PROFILE_VAR_STOP(CA_UMDRV);
 
-  // Flush Fortran output
-
-  if (verbose)
-    flush_output();
-
-
   if (print_update_diagnostics) {
       evaluate_and_print_source_change(A_update, dt, "hydro source");
     }

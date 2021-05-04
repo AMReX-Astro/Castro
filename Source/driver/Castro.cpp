@@ -2045,11 +2045,6 @@ Castro::post_timestep (int iteration_local)
                 S_new, state[State_Type].curTime(), S_new.nGrow());
 
 
-    // Flush Fortran output
-
-    if (verbose)
-        flush_output();
-
 #ifdef DO_PROBLEM_POST_TIMESTEP
 
     // Provide a hook for the user to do things after all of
