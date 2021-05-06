@@ -322,13 +322,16 @@ if <code class="docutils literal notranslate"><span class="pre">itag</span> <spa
 <span class="n">end</span> <span class="k">for</span>
 </pre></div>
 </div>
-<p>In particular, notice that there is an order dependence of this operation; if <code class="docutils literal notranslate"><span class="pre">errfunc[2]</span></code>
-<code class="docutils literal notranslate"><span class="pre">CLEAR``s</span> <span class="pre">a</span> <span class="pre">zone</span> <span class="pre">and</span> <span class="pre">then</span> <span class="pre">``errfunc[3]</span></code> <code class="docutils literal notranslate"><span class="pre">SET``s</span> <span class="pre">that</span> <span class="pre">zone,</span> <span class="pre">the</span> <span class="pre">final</span> <span class="pre">operation</span> <span class="pre">will</span>
-<span class="pre">be</span> <span class="pre">to</span> <span class="pre">tag</span> <span class="pre">that</span> <span class="pre">zone</span> <span class="pre">(and</span> <span class="pre">vice</span> <span class="pre">versa).</span> <span class="pre">In</span> <span class="pre">practice</span> <span class="pre">by</span> <span class="pre">default</span> <span class="pre">this</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">matter,</span> <span class="pre">because</span> <span class="pre">the</span>
-<span class="pre">built-in</span> <span class="pre">tagging</span> <span class="pre">routines</span> <span class="pre">never</span> <span class="pre">explicitly</span> <span class="pre">perform</span> <span class="pre">a</span> <span class="pre">``CLEAR</span></code>. However,
-it is possible to overwrite the <code class="docutils literal notranslate"><span class="pre">Tagging_nd.F90</span></code> file if you want to change how
-<code class="docutils literal notranslate"><span class="pre">ca_denerror</span></code>, <code class="docutils literal notranslate"><span class="pre">ca_temperror</span></code>, etc. operate. This is not recommended, and if you do so
-be aware that <a href="#id1"><span class="problematic" id="id2">``</span></a>CLEAR``ing a zone this way may not have the desired effect.</p>
+<p>In particular, notice that there is an order dependence of this
+operation; if <code class="docutils literal notranslate"><span class="pre">errfunc[2]</span></code> <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code> s a zone and then
+<code class="docutils literal notranslate"><span class="pre">errfunc[3]</span></code> <code class="docutils literal notranslate"><span class="pre">SET</span></code> s that zone, the final operation will be to tag
+that zone (and vice versa). In practice by default this does not
+matter, because the built-in tagging routines never explicitly perform
+a <code class="docutils literal notranslate"><span class="pre">CLEAR</span></code>. However, it is possible to overwrite the
+<code class="docutils literal notranslate"><span class="pre">Tagging_nd.F90</span></code> file if you want to change how <code class="docutils literal notranslate"><span class="pre">ca_denerror</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ca_temperror</span></code>, etc. operate. This is not recommended, and if you do
+so be aware that <a href="#id1"><span class="problematic" id="id2">``</span></a>CLEAR``ing a zone this way may not have the desired
+effect.</p>
 <p id="index-0">We provide also the ability for the user to define their own tagging criteria.
 This is done through the C++ function <code class="docutils literal notranslate"><span class="pre">problem_tagging</span></code>
 in the file <code class="docutils literal notranslate"><span class="pre">problem_tagging.H</span></code>. This function is provided the entire
@@ -359,10 +362,8 @@ describing when to tag. These are:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">gradient</span></code> : absolute value of the difference between adjacent cells above which we refine</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">field_name</span></code> : name of the string defining the field in the code</p></li>
 </ul>
-<blockquote>
-<div><p>If a refinement indicator is added, either</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
+<p>If a refinement indicator is added, either
+<code class="docutils literal notranslate"><span class="pre">value_greater</span></code>, <code class="docutils literal notranslate"><span class="pre">value_less</span></code>, or <code class="docutils literal notranslate"><span class="pre">gradient</span></code> must be provided.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Zones adjacent to a physical boundary cannot be tagged for refinement when
