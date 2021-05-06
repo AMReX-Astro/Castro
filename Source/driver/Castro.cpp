@@ -4474,21 +4474,21 @@ Castro::define_new_center(MultiFab& S, Real time)
         // x_vertex = -b / 2a
 
         // ... in x-direction
-        Real a = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) + data(mi[0]-1, mi[1], mi[2])) - cen;
-        Real b = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) - data(mi[0]-1, mi[1], mi[2])) - cen;
+        Real a = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) + data(mi[0]-1, mi[1], mi[2]));
+        Real b = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) - data(mi[0]-1, mi[1], mi[2]));
         Real x = -b / (2.0_rt * a);
         problem::center[0] = new_center[0] + x * dx[0];
 
         // ... in y-direction
-        a = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) + data(mi[0], mi[1]-1, mi[2])) - cen;
-        b = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) - data(mi[0], mi[1]-1, mi[2])) - cen;
+        a = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) + data(mi[0], mi[1]-1, mi[2]));
+        b = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) - data(mi[0], mi[1]-1, mi[2]));
         Real y = -b / (2.0_rt * a);
         problem::center[1] = new_center[1] + y * dx[1];
 
 #if AMREX_SPACEDIM == 3
         // ... in z-direction
-        a = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) + data(mi[0], mi[1], mi[2]-1)) - cen;
-        b = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) - data(mi[0], mi[1], mi[2]-1)) - cen;
+        a = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) + data(mi[0], mi[1], mi[2]-1));
+        b = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) - data(mi[0], mi[1], mi[2]-1));
         Real z = -b / (2.0_rt * a);
         problem::center[2] = new_center[2] + z * dx[2];
 #endif
