@@ -36,9 +36,15 @@ void problem_initialize_state_data (int i, int j, int k,
     state(i,j,k,UEINT) = problem::rhoe;
     state(i,j,k,UTEMP) = problem::T;
 
-    Real r2 = (std::pow(x - 0.5_rt, 2) +
-               std::pow(y - 0.5_rt, 2) +
-               std::pow(z - 0.5_rt, 2)) / 0.01_rt;
+    Real r2 = std::pow(x - 0.5_rt, 2);
+#if AMREX_SPACEDIM >= 2
+    r2 += std::pow(y - 0.5_rt, 2);
+#endif
+#if AMREX_SPACEDIM == 3
+    r2 += std::pow(z - 0.5_rt, 2);
+#endif
+    r2 /= 0.01_rt;
+
     for (int n = 0; n < NumSpec; n++) {
         state(i,j,k,UFS+n) = 0.0_rt;
     }
