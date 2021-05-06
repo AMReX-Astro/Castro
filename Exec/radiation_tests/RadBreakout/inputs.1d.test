@@ -90,8 +90,6 @@ radiation.SolverType = 5
 
 radiation.comoving = 1
 
-#radiation.surface_average = 2  # default is 2
-
 radiation.filter_lambda_T = 4
 radiation.filter_lambda_S = 0
 
