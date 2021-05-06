@@ -1,4 +1,3 @@
-
 #include <AMReX_LO_BCTYPES.H>
 #include <AMReX_ParmParse.H>
 #include <Radiation.H>
@@ -387,7 +386,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("update_limiter", update_limiter);
 
   dT  = 1.0;                 pp.query("delta_temp", dT);
-  surface_average = 2;       pp.query("surface_average", surface_average);
 
   // for inner iterations of neutrino J equation
   relInTol = 1.e-4;          pp.query("relInTol", relInTol);
@@ -445,11 +443,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     if (ParallelDescriptor::IOProcessor()) std::cout << "Spot: " << spot << std::endl;
   }
 
-  // This call stores the value of surface_average in the kavg
-  // routine.  The first three arguments are irrelevant here.
-  Real foo=0.0;
-  FORT_KAVG(foo, foo, foo, surface_average);
-
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
     std::cout << "Creating Radiation object" << std::endl;
   }
@@ -473,7 +466,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "update_planck    = " << update_planck << std::endl;
     std::cout << "update_rosseland = " << update_rosseland << std::endl;
     std::cout << "delta_temp = " << dT << std::endl;
-    std::cout << "surface_average = " << surface_average << std::endl;
     std::cout << "underfac = " << underfac << std::endl;
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;

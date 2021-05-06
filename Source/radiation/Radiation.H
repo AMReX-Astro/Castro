@@ -87,7 +87,6 @@ public:
                             ///< Stop updating limiter after ? inner iterations
                             ///< 0 means lagging by one outer iteration
   amrex::Real dT;               ///< temperature step for derivative estimate
-  int surface_average;   ///< 0 = arithmetic, 1 = harmonic, 2 = surface formula
   amrex::Real underfac;         ///< factor controlling progressive underrelaxation
   int do_sync;               ///< perform sync (if false zero out sync source)
   int do_kappa_stm_emission;

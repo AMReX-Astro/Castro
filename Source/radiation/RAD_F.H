@@ -4,14 +4,12 @@
 #include <AMReX_ArrayLim.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
-#  define   FORT_KAVG    kavg_
 #  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
-#  define   FORT_KAVG    KAVG
 #  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
@@ -203,8 +201,6 @@ extern "C" {
 
   void sphe(amrex::Real* r, amrex::Real* s, const int& idim, 
             ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const amrex::Real* dx);
-
-  amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
