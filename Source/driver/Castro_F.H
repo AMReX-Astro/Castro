@@ -103,9 +103,6 @@ extern "C"
      BL_FORT_FAB_ARG_3D(edge),
      const amrex::Real* dx, const int coord_type, const int idir);
 
-  void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
-                      const amrex::Real* dx, const amrex::Real* problo);
-
   AMREX_GPU_DEVICE
   void ca_clamp_temp
     (int i, int j, int k, BL_FORT_FAB_ARG_3D(state));

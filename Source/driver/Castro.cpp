@@ -4440,15 +4440,61 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
-    int mi[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    int mi[3] = {0};
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       mi[i] = max_index[i];
     }
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
-        ca_find_center(mf[mfi].dataPtr(),&problem::center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
+
+#if AMREX_SPACEDIM >= 2
+        // it only makes sense for the center to move in 2- or 3-d
+
+        const Box& box = mfi.validbox();
+        auto data = mf.array(mfi);
+
+        Real cen = data(mi[0], mi[1], mi[2]);
+
+        amrex::ParallelFor(bx,
+        [=] (int i, int j, int k) {
+            data(i,j,k) -= cen;
+        });
+
+        // This puts the "center" at the cell center
+        Real new_center[3];
+        for (int d = 0; d < AMREX_SPACEDIM; d++) {
+            new_center[d] = geom.ProbLo(d) +  (static_cast<Real>(mi[d]) + 0.5_rt) * dx[d];
+        }
+
+        // Fit parabola y = a x^2  + b x + c through three points
+        // a = 1/2 ( y_1 + y_-1)
+        // b = 1/2 ( y_1 - y_-1)
+        // x_vertex = -b / 2a
+
+        // ... in x-direction
+        Real a = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) + data(mi[0]-1, mi[1], mi[2])) - cen;
+        Real b = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) - data(mi[0]-1, mi[1], mi[2])) - cen;
+        Real x = -b / (2.0_rt * a);
+        problem::center[0] = new_center[0] + x * dx[0];
+
+        // ... in y-direction
+        a = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) + data(mi[0], mi[1]-1, mi[2])) - cen;
+        b = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) - data(mi[0], mi[1]-1, mi[2])) - cen;
+        Real y = -b / (2.0_rt * a);
+        problem::center[1] = new_center[1] + y * dx[1];
+
+#if AMREX_SPACEDIM == 3
+        // ... in z-direction
+        a = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) + data(mi[0], mi[1], mi[2]-1)) - cen;
+        b = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) - data(mi[0], mi[1], mi[2]-1)) - cen;
+        Real z = -b / (2.0_rt * a);
+        problem::center[2] = new_center[2] + z * dx[2];
+#endif
+
+#endif
+
     }
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&problem::center[0], BL_SPACEDIM, owner);
