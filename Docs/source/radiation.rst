@@ -222,13 +222,6 @@ The parameters describing the opacity include:
       \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
           \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
 
--  radiation.surface_average = 2
-
-   How the averaging of opacity is done from faces to center for
-   the radiation solver. 0 is arithmetic averaging, 1
-   is harmonic averaging, and 2 is a combination of the two.
-   This is implemented in ``RAD_?D.F`` in kavg.
-
 Note that the unit for opacities is :math:`\mathrm{cm}^{-1}`. For
 the gray solver, the total opacity in the diffusion coefficient is the sum
 of kappa_r and scattering, whereas for the MG solver,
