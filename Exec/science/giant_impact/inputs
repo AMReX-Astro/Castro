@@ -46,8 +46,9 @@ stop_time = 1000.0
 # CFL number for hyperbolic system
 castro.cfl = 0.5
 
-# Scale back initial timestep by this factor
-castro.init_shrink = 0.01
+# Scale back initial timestep by a large factor; there is a steep density
+# gradient at the edge of the objects and the hydro needs to be able to adjust
+castro.init_shrink = 0.000001
 
 # Factor by which dt is allowed to change each timestep
 castro.change_max = 1.05
