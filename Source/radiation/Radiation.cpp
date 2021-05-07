@@ -308,10 +308,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   {
     Real stefbol;
 
-    int J_is_used = 0;
-
     ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg, J_is_used);
+                        Avogadro, convert_MeV_erg);
 
     aRad = 4.*stefbol/clight;
 
