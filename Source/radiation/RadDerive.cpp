@@ -1,6 +1,7 @@
 #include <AMReX_REAL.H>
+#include <AMReX.H>
 
-#include <Derive.H>
+#include <RadDerive.H>
 #include <Castro.H>
 
 #include <Radiation.H>
