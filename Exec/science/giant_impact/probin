@@ -11,6 +11,9 @@
 
 &tagging
 
+  denerr = 1.0d0
+  max_denerr_lev = 20
+
 /
 
 &sponge
