@@ -288,7 +288,7 @@ interruption by the user and system. What signals are handed to
 AMReX are controlled by AMReX(e.g., using interruption by the
 user, this was once used to find an MPI deadlock.) It also includes
 the <code class="docutils literal notranslate"><span class="pre">AMREX_ASSERTION</span></code> statements if <code class="docutils literal notranslate"><span class="pre">USE_ASSERTION=TRUE</span></code> or
-DEBUG=TRUE.</p>
+<code class="docutils literal notranslate"><span class="pre">DEBUG=TRUE</span></code>.</p>
 <p>The AMReX parameters that affect the behavior are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">amrex.fpe_trap_invalid</span></code></p></li>
@@ -312,6 +312,7 @@ Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 <p>The “print” prints to a stack of string, not stdout. When it hits
 the segfault, you will only see the last print out in the backtrace
 file (e.g. <code class="docutils literal notranslate"><span class="pre">BackTrace.0</span></code>).</p>
+<p>You may need to include the header <code class="docutils literal notranslate"><span class="pre">AMReX_BLBackTrace.H</span></code>.</p>
 </li>
 <li><p><em>How can I monitor the state in a zone from the C side
 at various points in the evolution?</em></p>
