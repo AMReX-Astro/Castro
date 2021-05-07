@@ -150,7 +150,6 @@ Castro::initialize_do_advance(Real time)
 
 #if (BL_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
-       swap_outflow_data();
        int is_new = 0;
        make_radial_data(is_new);
     }
