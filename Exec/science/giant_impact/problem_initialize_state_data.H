@@ -84,9 +84,9 @@ void problem_initialize_state_data (int i, int j, int k,
         state(i,j,k,UFS+n) = zone_state.rho * zone_state.xn[n];
     }
 
-    state(i,j,k,UEDEN) = 0.5_rt * (state(i,j,k,UMX) * state(i,j,k,UMX) +
-                                   state(i,j,k,UMY) * state(i,j,k,UMY) +
-                                   state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
+    state(i,j,k,UEDEN) += 0.5_rt * (state(i,j,k,UMX) * state(i,j,k,UMX) +
+                                    state(i,j,k,UMY) * state(i,j,k,UMY) +
+                                    state(i,j,k,UMZ) * state(i,j,k,UMZ)) / state(i,j,k,URHO);
 }
 
 #endif
