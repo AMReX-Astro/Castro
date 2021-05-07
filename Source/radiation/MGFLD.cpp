@@ -1069,7 +1069,7 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
         }
 #endif
 
-        amrex::ParallelFor(box,
+        amrex::ParallelFor(gPr.box(),
         [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
         AMREX_GPU_DEVICE (int i, int j, int k)
         {
