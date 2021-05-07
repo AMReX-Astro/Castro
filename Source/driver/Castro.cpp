@@ -1626,13 +1626,12 @@ Castro::estTimeStep ()
 
                 for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
                 {
-                    const Box& tbox = mfi.tilebox();
-                    const Box& vbox = mfi.validbox();
+                    const Box& box = mfi.tilebox();
 
-                    gPr.resize(tbox);
-                    radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
+                    gPr.resize(box);
+                    radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, box);
 
-                    ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
+                    ca_estdt_rad(box.loVect(), box.hiVect(),
                                  BL_TO_FORTRAN(stateMF[mfi]),
                                  BL_TO_FORTRAN(gPr),
                                  dx,&dt);
