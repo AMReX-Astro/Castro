@@ -127,9 +127,6 @@ subroutine ca_set_problem_params(dm, &
   use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
-#ifdef ROTATION
-  use meth_params_module, only: rot_axis
-#endif
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
@@ -165,13 +162,6 @@ subroutine ca_set_problem_params(dm, &
   if (dim .lt. 3) then
      dg(3) = 0
   endif
-
-#ifdef ROTATION
-  if (coord_type == 1) then
-     rot_axis = 2
-  endif
-#endif
-
 
   !$acc update device(dim)
   !$acc update device(dg)
