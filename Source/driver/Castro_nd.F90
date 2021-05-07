@@ -208,12 +208,6 @@ subroutine ca_set_method_params(dm) &
 
   call bl_pd_is_ioproc(ioproc)
 
-#ifdef ROTATION
-  rot_vec = ZERO
-  rot_vec(rot_axis) = ONE
-#endif
-
-
   !---------------------------------------------------------------------
   ! safety checks
   !---------------------------------------------------------------------
