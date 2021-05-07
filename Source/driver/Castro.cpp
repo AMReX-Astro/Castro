@@ -4439,8 +4439,8 @@ Castro::define_new_center(MultiFab& S, Real time)
 
         Real cen = data(mi[0], mi[1], mi[2]);
 
-        amrex::ParallelFor(bx,
-        [=] (int i, int j, int k) {
+        amrex::ParallelFor(box,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) {
             data(i,j,k) -= cen;
         });
 
