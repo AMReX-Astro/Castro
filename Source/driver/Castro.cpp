@@ -1448,7 +1448,6 @@ Castro::initData ()
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
-       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -4400,23 +4399,6 @@ Castro::make_radial_data(int is_new)
            np_max = i;
            first  = 1;
        }
-   }
-
-   Vector<Real> radial_state_short(np_max * nc, 0.0_rt);
-
-   for (int i = 0; i < np_max; i++) {
-       for (int j = 0; j < nc; j++) {
-           radial_state_short[nc*i+j] = radial_state[nc*i+j];
-       }
-   }
-
-   if (is_new == 1) {
-       const Real new_time = state[State_Type].curTime();
-       set_new_outflow_data(radial_state_short.dataPtr(), &new_time, &np_max, &nc);
-   }
-   else {
-       const Real old_time = state[State_Type].prevTime();
-       set_old_outflow_data(radial_state_short.dataPtr(), &old_time, &np_max, &nc);
    }
 
 #endif

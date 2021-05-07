@@ -32,13 +32,6 @@ module meth_params_module
 
   integer, save :: numpts_1d
 
-  real(rt), save, allocatable :: outflow_data_old(:,:)
-  real(rt), save, allocatable :: outflow_data_new(:,:)
-  real(rt), save :: outflow_data_old_time
-  real(rt), save :: outflow_data_new_time
-  logical,  save :: outflow_data_allocated
-  real(rt), save :: max_dist
-
   ! these flags are for interpreting the EXT_DIR BCs
   integer, parameter :: EXT_UNDEFINED = -1
   integer, parameter :: EXT_HSE = 1

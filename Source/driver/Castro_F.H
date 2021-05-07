@@ -19,17 +19,6 @@ extern "C"
 
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-  void allocate_outflow_data(const int* n1d, const int* nc);
-  void set_old_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-                            const int* numpts, const int* nc);
-  void set_new_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-                            const int* numpts, const int* nc);
-  void swap_outflow_data();
-#endif
-#endif
-
   void ca_set_method_params
     (const int& dm);
 
