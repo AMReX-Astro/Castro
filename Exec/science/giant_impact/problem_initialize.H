@@ -8,6 +8,16 @@
 
 const Real M_earth = 5.9722e27_rt;
 
+// Given the total mass of a binary system, obtain the velocity at a
+// given separation assuming the point masses fell in from infinity
+// starting from zero velocity. Note this is in the center of mass frame.
+
+AMREX_INLINE
+Real freefall_velocity (Real mass, Real distance)
+{
+    return std::sqrt(2.0_rt * C::Gconst * mass / distance);
+}
+
 AMREX_INLINE
 void problem_initialize ()
 {
@@ -104,45 +114,48 @@ void problem_initialize ()
     ambient::ambient_state[UEDEN] = ambient::ambient_state[UEINT];
 
     // Set up the initial distances and velocities.
-    // This follows the prescription of Meier, Reinhardt and Stadel (2021) except
-    // that we have the center of mass at the system located at the origin and use
-    // the center of mass frame such that the total momentum is zero.
 
-    Real r_crit = problem::target_radius + problem::impactor_radius;
-    Real v_esc_targ = std::sqrt(2.0_rt * C::Gconst * problem::target_mass / r_crit);
-    Real v_esc_sys = std::sqrt(2.0_rt * C::Gconst * (problem::target_mass + problem::impactor_mass) / r_crit);
+    // Scale the initial distances by the radius of the target. This assumes that
+    // the target's radius is larger than the impactor's.
 
-    Real theta = (v_esc_targ * v_esc_targ) / ((problem::impact_velocity * v_esc_sys) *
-                                              (problem::impact_velocity * v_esc_sys));
-    Real b_max = r_crit * std::sqrt(1.0_rt + theta);
+    AMREX_ALWAYS_ASSERT(problem::target_radius >= problem::impactor_radius);
 
-    // Now calculate the effective impact parameter and impact velocity at the current location (in physical units).
+    Real initial_distance_x = problem::initial_distance * problem::target_radius;
+    Real initial_distance_y = problem::impact_parameter * problem::target_radius;
 
-    Real v_imp = std::sqrt((problem::impact_velocity * v_esc_sys) *
-                           (problem::impact_velocity * v_esc_sys) +
-                           v_esc_targ * v_esc_targ);
+    // Compute the initial velocity of the impactor with respect to the target.
+    // This has two components: the freefall velocity due to the gravitational
+    // force (assumed to have started acting at a distance of infinity) and also
+    // the initial velocity at infinity.
 
-    Real b_imp = (problem::impact_parameter * b_max  * problem::impact_velocity * v_esc_sys) / (v_imp * r_crit);
+    Real total_mass = problem::target_mass + problem::impactor_mass;
+    Real v_ff = freefall_velocity(total_mass, initial_distance_x);
 
-    const Real impactor_mass_ratio = problem::target_mass / (problem::target_mass + problem::impactor_mass);
+    // The initial velocity is provided as a fraction of the escape velocity of the
+    // system, as defined by Meier, Reinhardt and Stadel (2021). This happens to be
+    // the same formula as the freefall velocity evaluated at a distance of the
+    // critical radius for impact (the sum of the target and impactor radii).
 
-    problem::target_initial_center[0] = -impactor_mass_ratio * b_imp * r_crit;
-    problem::target_initial_center[1] =  impactor_mass_ratio * r_crit * std::sqrt(1.0_rt - b_imp * b_imp);
-    problem::target_initial_center[2] =  0.0_rt;
+    Real critical_radius = problem::target_radius + problem::impactor_radius;
+    Real v_esc = freefall_velocity(total_mass, critical_radius);
 
-    problem::target_initial_velocity[0] =  0.0_rt;
-    problem::target_initial_velocity[1] = -impactor_mass_ratio * v_imp;
-    problem::target_initial_velocity[2] =  0.0_rt;
+    Real impact_velocity = v_ff + problem::initial_velocity * v_esc;
 
-    const Real target_mass_ratio = 1.0_rt - impactor_mass_ratio;
+    // Set the velocity in the center of mass frame. Note that the fraction of the
+    // velocity for each object is inversely proportional to the fraction of the system
+    // mass it has.
 
-    problem::impactor_initial_center[0] =  target_mass_ratio * b_imp * r_crit;
-    problem::impactor_initial_center[1] = -target_mass_ratio * r_crit * std::sqrt(1.0_rt - b_imp * b_imp);
-    problem::impactor_initial_center[2] =  0.0_rt;
+    problem::target_initial_velocity[0] = (problem::impactor_mass / total_mass) * impact_velocity;
+    problem::impactor_initial_velocity[0] = -(problem::target_mass / total_mass) * impact_velocity;
 
-    problem::impactor_initial_velocity[0] =  0.0_rt;
-    problem::impactor_initial_velocity[1] =  target_mass_ratio * v_imp;
-    problem::impactor_initial_velocity[2] =  0.0_rt;
+    // Set the initial locations in the center of mass frame. As above, the less massive
+    // object will be further away from the center of mass.
+
+    problem::target_initial_center[0] = -(problem::impactor_mass / total_mass) * initial_distance_x;
+    problem::impactor_initial_center[0] = (problem::target_mass / total_mass) * initial_distance_x;
+
+    problem::target_initial_center[1] = -(problem::impactor_mass / total_mass) * initial_distance_y;
+    problem::impactor_initial_center[1] = (problem::target_mass / total_mass) * initial_distance_y;
 
     // Make sure the domain is big enough to hold both the target and impactor.
 

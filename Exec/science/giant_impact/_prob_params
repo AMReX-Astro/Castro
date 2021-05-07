@@ -13,13 +13,17 @@ impactor_radius                 real                  0.000e0_rt               n
 
 initial_model_dx                real                  1.00e4_rt                y
 
-# Impact parameter at infinity
+# Initial distance (in units of the target radius)
 
-impact_parameter                real                  0.95e0_rt                y
+initial_distance                real                  4.000e0_rt               y
 
-# Relative velocity at infinity
+# Impact parameter (in units of the target radius)
 
-impact_velocity                 real                  0.50e0_rt                y
+impact_parameter                real                  0.950e0_rt               y
+
+# Relative velocity at infinity (in units of the system escape velocity)
+
+initial_velocity                real                  0.000e0_rt               y
 
 # Storage for initial locations and velocities
 
