@@ -12,7 +12,7 @@ extern "C"
 
   void ca_derertot(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
                    const FArrayBox& datfab, const Geometry& /*geomdata*/,
-                   Real /*time*/, const int* /*bcrec*/, int /*level*/);
+                   amrex::Real /*time*/, const int* /*bcrec*/, int /*level*/);
 
 
 #ifdef __cplusplus
