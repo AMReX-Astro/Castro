@@ -1259,14 +1259,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    shk_arr,
 #endif
                    update_arr,
-                   flx_arr, qx_arr, areax_arr,
+                   flx_arr, qx_arr,
 #if AMREX_SPACEDIM >= 2
-                   fly_arr, qy_arr, areay_arr,
+                   fly_arr, qy_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                   flz_arr, qz_arr, areaz_arr,
+                   flz_arr, qz_arr,
 #endif
-                   vol_arr,
                    dt);
 
 

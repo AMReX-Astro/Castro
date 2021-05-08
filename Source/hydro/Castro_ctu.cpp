@@ -16,39 +16,33 @@ Castro::consup_hydro(const Box& bx,
                      Array4<Real> const& U_new,
                      Array4<Real> const& flux0,
                      Array4<Real const> const& qx,
-                     Array4<Real const> const& area0,
 #if AMREX_SPACEDIM >= 2
                      Array4<Real> const& flux1,
                      Array4<Real const> const& qy,
-                     Array4<Real const> const& area1,
 #endif
 #if AMREX_SPACEDIM == 3
                      Array4<Real> const& flux2,
                      Array4<Real const> const& qz,
-                     Array4<Real const> const& area2,
 #endif
-                     Array4<Real const> const& vol,
                      const Real dt)
 {
-
-
-  const auto dx = geom.CellSizeArray();
-
-  int coord = geom.Coord();
+  auto geomdata = geom.data();
 
   amrex::ParallelFor(bx, NUM_STATE,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
   {
-
-    Real volinv = 1.0 / vol(i,j,k);
+    Real volinv = 1.0 / geometry_util::volume(i, j, k, geomdata);
 
     U_new(i,j,k,n) = U_new(i,j,k,n) + dt *
-      ( flux0(i,j,k,n) * area0(i,j,k) - flux0(i+1,j,k,n) * area0(i+1,j,k)
+        ( flux0(i,  j,k,n) * geometry_util::area(i,   j, k, 0, geomdata)
+        - flux0(i+1,j,k,n) * geometry_util::area(i+1, j, k, 0, geomdata)
 #if AMREX_SPACEDIM >= 2
-      + flux1(i,j,k,n) * area1(i,j,k) - flux1(i,j+1,k,n) * area1(i,j+1,k)
+        + flux1(i,j,  k,n) * geometry_util::area(i, j,   k, 1, geomdata)
+        - flux1(i,j+1,k,n) * geometry_util::area(i, j+1, k, 1, geomdata)
 #endif
 #if AMREX_SPACEDIM == 3
-      + flux2(i,j,k,n) * area2(i,j,k) - flux2(i,j,k+1,n) * area2(i,j,k+1)
+        + flux2(i,j,k,  n) * geometry_util::area(i, j, k,   2, geomdata)
+        - flux2(i,j,k+1,n) * geometry_util::area(i, j, k+1, 2, geomdata)
 #endif
         ) * volinv;
 
@@ -56,16 +50,19 @@ Castro::consup_hydro(const Box& bx,
     if (n == UEINT) {
 
       Real pdu = (qx(i+1,j,k,GDPRES) + qx(i,j,k,GDPRES)) *
-                 (qx(i+1,j,k,GDU) * area0(i+1,j,k) - qx(i,j,k,GDU) * area0(i,j,k));
+          (qx(i+1,j,k,GDU) * geometry_util::area(i+1, j, k, 0, geomdata) -
+           qx(i,  j,k,GDU) * geometry_util::area(i,   j, k, 0, geomdata));
 
 #if AMREX_SPACEDIM >= 2
       pdu += (qy(i,j+1,k,GDPRES) + qy(i,j,k,GDPRES)) *
-             (qy(i,j+1,k,GDV) * area1(i,j+1,k) - qy(i,j,k,GDV) * area1(i,j,k));
+          (qy(i,j+1,k,GDV) * geometry_util::area(i, j+1, k, 1, geomdata) -
+           qy(i,j,  k,GDV) * geometry_util::area(i, j,   k, 1, geomdata));
 #endif
 
 #if AMREX_SPACEDIM == 3
       pdu += (qz(i,j,k+1,GDPRES) + qz(i,j,k,GDPRES)) *
-             (qz(i,j,k+1,GDW) * area2(i,j,k+1) - qz(i,j,k,GDW) * area2(i,j,k));
+          (qz(i,j,k+1,GDW) * geometry_util::area(i, j, k+1, 2, geomdata) -
+           qz(i,j,k  ,GDW) * geometry_util::area(i, j, k,   2, geomdata));
 #endif
 
       pdu = 0.5 * pdu * volinv;
@@ -81,8 +78,8 @@ Castro::consup_hydro(const Box& bx,
       // Add gradp term to momentum equation -- only for axisymmetric
       // coords (and only for the radial flux).
 
-      if (!mom_flux_has_p(0, 0, coord)) {
-        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / dx[0];
+      if (!mom_flux_has_p(0, 0, geomdata.Coord())) {
+        U_new(i,j,k,UMX) += - dt * (qx(i+1,j,k,GDPRES) - qx(i,j,k,GDPRES)) / geomdata.CellSize()[0];
       }
     }
   });
