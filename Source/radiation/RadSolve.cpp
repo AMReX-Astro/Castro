@@ -285,12 +285,45 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
       }
     
       if (nexttoboundary) {
-          ca_spalpha(reg.loVect(), reg.hiVect(),
-                     BL_TO_FORTRAN(spa[mfi]),
-                     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-                            BL_TO_FORTRAN(lambda[1][mfi]),
-                            BL_TO_FORTRAN(lambda[2][mfi])),
-                     &igroup);
+          auto spa_arr = spa[mfi].array();
+
+          auto lmx = lambda[0][mfi].array();
+#if AMREX_SPACEDIM >= 2
+          auto lmy = lambda[1][mfi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+          auto lmz = lambda[2][mfi].array();
+#endif
+
+          int limiter = Radiation::limiter;
+
+          amrex::ParallelFor(reg,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              Real lam;
+
+              if (i == reg.loVect()[0] || i == reg.hiVect()[0] ||
+                  j == reg.loVect()[1] || j == reg.hiVect()[1] ||
+                  k == reg.hiVect()[2] || k == reg.hiVect()[2]) {
+#if AMREX_SPACEDIM == 1
+                  if (i == reg.loVect()[0]) {
+                      lam = lmx(i,j,k,igroup);
+                  }
+                  else {
+                      lam = lmx(i+1,j,k,igroup);
+                  }
+#elif AMREX_SPACEDIM == 2
+                  lam = 0.25_rt * (lmx(i,j,k,igroup) + lmx(i+1,j  ,k,igroup) +
+                                   lmy(i,j,k,igroup) + lmy(i  ,j+1,k,igroup));
+#else
+                  lam = (lmx(i,j,k,igroup) + lmx(i+1,j  ,k  ,igroup) +
+                         lmy(i,j,k,igroup) + lmy(i  ,j+1,k  ,igroup) +
+                         lmz(i,j,k,igroup) + lmz(i  ,j  ,k+1,igroup)) / 6.e0_rt;
+#endif
+
+                  spa_arr(i,j,k) = FLDalpha(lam, limiter);
+              }
+          });
       }
   }
 

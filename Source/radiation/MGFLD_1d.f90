@@ -66,33 +66,4 @@ subroutine ca_flux_face2center( lo, hi, &
 
 end subroutine ca_flux_face2center
 
-! =======================================================================
-! used by the hyperbolic solver
-
-subroutine ca_spalpha( lo, hi, &
-     spa, spa_l1, spa_h1, &
-     lam, lam_l1, lam_h1, &
-     igroup) bind(C, name="ca_spalpha")
-
-  use rad_params_module, only : ngroups
-  use fluxlimiter_module, only : FLDalpha
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-  integer, intent(in) :: lo(1), hi(1)
-  integer, intent(in) :: spa_l1, spa_h1
-  integer, intent(in) :: lam_l1, lam_h1
-  integer, intent(in) :: igroup
-  real(rt)                     :: spa(spa_l1:spa_h1)
-  real(rt)        , intent(in) :: lam(lam_l1:lam_h1, 0:ngroups-1)
-  integer :: i
-
-  i = spa_l1
-  if (i.ge.lo(1) .and. i.le.hi(1)) &
-       spa(i) = FLDalpha(lam(i,igroup))
-
-  i = spa_h1
-  if (i.ge.lo(1) .and. i.le.hi(1)) &
-       spa(i) = FLDalpha(lam(i+1,igroup))
-end subroutine ca_spalpha
-
 
