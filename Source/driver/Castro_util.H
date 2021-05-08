@@ -162,10 +162,7 @@ Real volume(const int& i, const int& j, const int& k,
 
         // Spherical
 
-        Real r_l = static_cast<Real>(i) * dx[0];
-        Real r_r = static_cast<Real>(i + 1) * dx[0];
-
-        Real vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * dx[0] * dx[0];
+        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * dx[0] * dx[0];
 
     }
 
