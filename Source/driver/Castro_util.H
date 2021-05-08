@@ -162,7 +162,10 @@ Real volume(const int& i, const int& j, const int& k,
 
         // Spherical
 
-        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * dx[0] * dx[0];
+        Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real rr = rl + dx[0];
+
+        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr);
 
     }
 
