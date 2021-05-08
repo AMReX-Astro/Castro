@@ -164,13 +164,6 @@ extern "C"
 #endif
 // </ MGFLD>
 
-BL_FORT_PROC_DECL(CA_ER_COM2LAB, ca_er_com2lab)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(Snew),
-   const BL_FORT_FAB_ARG(Ecom), 
-   const BL_FORT_FAB_ARG(F), int& iflx, int& nflx, 
-   BL_FORT_FAB_ARG(plotvar), int& ier, int& npv);
-
 BL_FORT_PROC_DECL(CA_COMPUTE_FCC, ca_compute_fcc)
     (const int lo[], const int hi[], 
      D_DECL(const BL_FORT_FAB_ARG(lamx),
