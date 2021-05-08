@@ -181,7 +181,6 @@ Castro::restart (Amr&     papa,
 
         if (PMFile.good()) {
             PMFile >> point_mass;
-            set_pointmass(&point_mass);
             PMFile.close();
         }
 

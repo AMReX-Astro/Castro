@@ -97,11 +97,6 @@ extern "C"
 #include <Castro_sources_F.H>
 
 
-/* gravity */
-#ifdef GRAVITY
-#include <Castro_gravity_F.H>
-#endif
-
 
 /* SCF */
 #ifdef GRAVITY
