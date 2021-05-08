@@ -622,7 +622,7 @@ mass onto the acceleration from whatever other gravity type is under
 in the simulation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>the point mass have a mass &lt; 0</p>
+<p>The point mass may have a mass &lt; 0</p>
 </div>
 <p>A useful option is <code class="docutils literal notranslate"><span class="pre">point_mass_fix_solution</span></code>. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -631,7 +631,7 @@ occur after a hydro update in those zones are reset, and the mass
 deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
-<code class="docutils literal notranslate"><span class="pre">pm_compute_delta_mass()</span></code> in <code class="docutils literal notranslate"><span class="pre">Source/gravity/pointmass_nd.f90</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">pointmass_update()</span></code> in <code class="docutils literal notranslate"><span class="pre">Castro_pointmass.cpp</span></code>.</p>
 </div>
 </div>
 <div class="section" id="gr-correction">
@@ -640,7 +640,7 @@ back to the grid). This calculation is done in
 relativity (GR) effect starts to play a role <a class="footnote-reference brackets" href="#id9" id="id4">2</a>. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
-applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span></code> = TRUE is
+applied to the monopole approximation only when <code class="docutils literal notranslate"><span class="pre">USE_GR</span> <span class="pre">=</span> <span class="pre">TRUE</span></code> is
 set in the <code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code>.</p>
 <p>The formulae of GR-correction here are based on
 <span id="id5">[<a class="reference internal" href="zreferences.html#id47">45</a>]</span>. For detailed physics, please refer to
