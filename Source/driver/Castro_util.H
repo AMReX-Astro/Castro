@@ -181,8 +181,8 @@ Real volume(const int& i, const int& j, const int& k,
 
         // Cylindrical
 
-        Real r_l = geomdata.ProbLo() + static_cast<Real>(i) * dx[0];
-        Real r_r = geomdata.ProbLo() + static_cast<Real>(i+1) * dx[0];
+        Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
 
         vol = M_PI * (r_l + r_r) * dx[0] * dx[1];
 
