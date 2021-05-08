@@ -64,47 +64,6 @@ extern "C"
                   const amrex::Real* dx, const amrex::Real* problo);
 #endif
 
-  void ca_apply_metric
-    (const int* lo, const int* hi,
-     const int* xlo, const int* xhi,
-#if AMREX_SPACEDIM >= 2
-     const int* ylo, const int* yhi,
-#endif
-     BL_FORT_FAB_ARG_3D(cc),
-     const BL_FORT_FAB_ARG_3D(xedge),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(yedge),
-#endif
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_weight_cc
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cc),
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_unweight_cc
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cc),
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_unweight_edges
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(edge),
-     const amrex::Real* dx, const int coord_type, const int idir);
-
-  AMREX_GPU_DEVICE
-  void ca_clamp_temp
-    (int i, int j, int k, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_reset_internal_e
-    (const int* lo, const int* hi,
-#ifdef MHD
-     BL_FORT_FAB_ARG_3D(bx),
-     BL_FORT_FAB_ARG_3D(by),
-     BL_FORT_FAB_ARG_3D(bz),
-#endif
-     BL_FORT_FAB_ARG_3D(S_new),
-     const int verbose);
 
 #ifdef RADIATION
   void ca_estdt_rad
@@ -113,15 +72,6 @@ extern "C"
      const BL_FORT_FAB_ARG(gpr),
      const amrex::Real dx[], amrex::Real* dt);
 #endif
-
-#ifdef REACTIONS
-    void ca_estdt_burning
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_new),
-     const BL_FORT_FAB_ARG_3D(reactions_new),
-     const amrex::Real* dx, amrex::Real* dt);
-#endif
-
 
 #ifdef RADIATION
   void ca_inelastic_sct
