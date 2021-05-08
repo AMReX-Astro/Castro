@@ -598,24 +598,3 @@ subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
   ambient_state_out(:) = ambient_state(:)
 
 end subroutine get_ambient_data
-
-
-
-#ifdef GRAVITY
-
-subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
-    !
-    ! pointmass_in real(rt)
-    !
-
-  use meth_params_module, only: point_mass
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: pointmass_in
-
-  point_mass = pointmass_in
-
-end subroutine set_pointmass
-#endif
