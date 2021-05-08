@@ -42,6 +42,8 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
     int ifz = 0;
 #endif
 
+    int ier = icomp_lab_Er;
+
     Real c2 = 1.e0_rt / (Radiation::clight * Radiation::clight);
 
     GpuArray<Real, NGROUPS> dlognu = {0.0};
@@ -81,9 +83,9 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
 #endif
 
             for (int g = 0; g < NGROUPS; ++g) {
-                Elab_arr(i,j,k,g+icomp_lab_Er) = Ecom_arr(i,j,k,g) + 2.0_rt * (vxc2 * F_arr(i,j,k,ifx+g) +
-                                                                               vyc2 * F_arr(i,j,k,ify+g) +
-                                                                               vzc2 * F_arr(i,j,k,ifz+g));
+                Elab_arr(i,j,k,g+ier) = Ecom_arr(i,j,k,g) + 2.0_rt * (vxc2 * F_arr(i,j,k,ifx+g) +
+                                                                      vyc2 * F_arr(i,j,k,ify+g) +
+                                                                      vzc2 * F_arr(i,j,k,ifz+g));
             }
 
             if (NGROUPS > 1) {
@@ -103,9 +105,9 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
                 nufnuz(NGROUPS) = -nufnuz(NGROUPS-1);
 
                 for (int g = 0; g < NGROUPS; ++g) {
-                    Elab_arr(i,j,k,g+icomp_lab_Er) -= vxc2 * 0.5_rt * (nufnux(g+1) - nufnux(g-1)) +
-                                                      vyc2 * 0.5_rt * (nufnuy(g+1) - nufnuy(g-1)) +
-                                                      vzc2 * 0.5_rt * (nufnuz(g+1) - nufnuz(g-1));
+                    Elab_arr(i,j,k,g+ier) -= vxc2 * 0.5_rt * (nufnux(g+1) - nufnux(g-1)) +
+                                             vyc2 * 0.5_rt * (nufnuy(g+1) - nufnuy(g-1)) +
+                                             vzc2 * 0.5_rt * (nufnuz(g+1) - nufnuz(g-1));
                 }
             }
         });

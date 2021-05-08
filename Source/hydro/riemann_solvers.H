@@ -19,6 +19,8 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
                Array4<Real> const& F,
 #ifdef RADIATION
                Array4<Real> const& rF,
+               int fspace_t, int comov,
+               int limiter, int closure,
 #endif
                Array4<Real> const& qgdnv, const bool store_full_state) {
 
@@ -45,13 +47,6 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
         im2 = UMX;
         im3 = UMY;
     }
-
-#ifdef RADIATION
-    int fspace_t = Radiation::fspace_advection_type;
-    int comov = Radiation::comoving;
-    int limiter = Radiation::limiter;
-    int closure = Radiation::closure;
-#endif
 
     // Compute fluxes, order as conserved state (not q)
     F(i,j,k,URHO) = qint.rho * qint.un;
