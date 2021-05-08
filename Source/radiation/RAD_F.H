@@ -29,7 +29,7 @@ void ca_init_radhydro_pars
 void ca_initradconstants
   (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
    amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
-   amrex::Real& mev2erg, int& J_is_used);
+   amrex::Real& mev2erg);
 
 void ca_initsinglegroup
   (const int& ngroups);
@@ -159,14 +159,6 @@ extern "C"
            BL_FORT_FAB_ARG(lamz)),
     const int* igroup);
 
-  void ca_derertot
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
 #ifdef __cplusplus
 }
 #endif

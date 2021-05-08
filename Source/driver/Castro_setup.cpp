@@ -10,7 +10,7 @@
 #include <Derive.H>
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
+#include <RadDerive.H>
 #include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
