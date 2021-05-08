@@ -131,4 +131,156 @@ void position(int i, int j, int k,
 
 }
 
+namespace geometry_util
+{
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real volume(const int& i, const int& j, const int& k,
+            const GeometryData& geomdata)
+{
+    // Given 3D cell-centered indices (i,j,k), return the volume of the zone.
+    // Note that Castro has no support for angular coordinates, so
+    // this function only provides Cartesian in 1D/2D/3D, Cylindrical (R-Z)
+    // in 2D, and Spherical in 1D.
+
+    auto dx = geomdata.CellSize();
+
+    Real vol;
+
+#if AMREX_SPACEDIM == 1
+
+    auto coord = geomdata.Coord();
+
+    if (coord == 0) {
+
+        // Cartesian
+
+        vol = dx[0];
+
+    }
+    else {
+
+        // Spherical
+
+        Real rl = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real rr = rl + dx[0];
+
+        vol = (4.0_rt / 3.0_rt) * M_PI * dx[0] * (rl * rl + rl * rr + rr * rr);
+
+    }
+
+#elif AMREX_SPACEDIM == 2
+
+    auto coord = geomdata.Coord();
+
+    if (coord == 0) {
+
+        // Cartesian
+
+        vol = dx[0] * dx[1];
+
+    }
+    else {
+
+        // Cylindrical
+
+        Real r_l = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+        Real r_r = geomdata.ProbLo()[0] + static_cast<Real>(i+1) * dx[0];
+
+        vol = M_PI * (r_l + r_r) * dx[0] * dx[1];
+
+    }
+
+#else
+
+    // Cartesian
+
+    vol = dx[0] * dx[1] * dx[2];
+
+#endif
+
+    return vol;
+}
+
+AMREX_GPU_HOST_DEVICE AMREX_INLINE
+Real area(const int& i, const int& j, const int& k,
+          const int& idir, const GeometryData& geomdata)
+{
+    auto dx = geomdata.CellSize();
+
+    Real a;
+
+#if AMREX_SPACEDIM == 1
+
+    auto coord = geomdata.Coord();
+
+    if (coord == 0) {
+
+        // Cartesian
+
+        a = 1.0_rt;
+
+    }
+    else {
+
+        // Spherical
+
+        Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+
+        a = 4.0_rt * M_PI * r * r;
+
+    }
+
+#elif AMREX_SPACEDIM == 2
+
+    auto coord = geomdata.Coord();
+
+    if (coord == 0) {
+
+        // Cartesian
+
+        if (idir == 0) {
+            a = dx[1];
+        }
+        else {
+            a = dx[0];
+        }
+
+    }
+    else  {
+
+        // Cylindrical
+
+        if (idir == 0) {
+            Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
+            a = 2.0_rt * M_PI * r * dx[1];
+        }
+        else {
+            Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
+            a = 2.0_rt * M_PI * r * dx[0];
+        }
+
+    }
+
+#else
+
+    // Cartesian
+
+    if (idir == 0) {
+        a = dx[1] * dx[2];
+    }
+    else if (idir == 1) {
+        a = dx[0] * dx[2];
+    }
+    else {
+        a = dx[0] * dx[1];
+    }
+
+#endif
+
+    return a;
+}
+
+}
+
 #endif
