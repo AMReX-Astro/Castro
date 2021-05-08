@@ -1029,11 +1029,11 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
             SGFLD_compute_rosseland(kappa_r, state);
         }
 
-        int im = 1, ip = 1, jm = 1, jp = 1, km = 1, kp = 1;
-        Real xm = 2.0_rt, xp = 2.0_rt, ym = 2.0_rt, yp = 2.0_rt, zm = 2.0_rt, zp = 2.0_rt;
-
         // Calculate offsets for the case where we don't have enough points
         // to calculate a centered difference. In that case we'll do one-sided.
+
+        int im = 1, ip = 1;
+        Real xm = 2.0_rt, xp = 2.0_rt;
 
         if (!(gPr.box().loVect()[0] - 1 >= box.loVect()[0])) {
             im = 0;
@@ -1046,6 +1046,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
         }
 
 #if AMREX_SPACEDIM >= 2
+        int jm = 1, jp = 1;
+        Real ym = 2.0_rt, yp = 2.0_rt;
+
         if (!(gPr.box().loVect()[1] - 1 >= box.hiVect()[1])) {
             jm = 0;
             ym = 1.0_rt;
@@ -1058,6 +1061,9 @@ void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er,
 #endif
 
 #if AMREX_SPACEDIM == 3
+        int km = 1, kp = 1;
+        Real zm = 2.0_rt, zp = 2.0_rt;
+
         if (!(gPr.box().loVect()[2] - 1 >= box.hiVect()[2])) {
             km = 0;
             zm = 1.0_rt;
