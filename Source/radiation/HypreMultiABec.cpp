@@ -2211,8 +2211,6 @@ void HypreMultiABec::loadMatrix()
     stencil_indices[i] = i;
   }
 
-  Real foo = 1.e200;
-
   BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   FArrayBox smatfab;
   for (int level = crse_level; level <= fine_level; level++) {
