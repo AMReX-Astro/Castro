@@ -151,14 +151,6 @@ extern "C"
     const amrex::Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* iflx);
 
-  void ca_spalpha
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG(SPa),
-    D_DECL(BL_FORT_FAB_ARG(lamx),
-           BL_FORT_FAB_ARG(lamy),
-           BL_FORT_FAB_ARG(lamz)),
-    const int* igroup);
-
 #ifdef __cplusplus
 }
 #endif
