@@ -248,12 +248,12 @@ Real area(const int& i, const int& j, const int& k,
 
         // Cylindrical
 
-        Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
-
         if (idir == 0) {
+            Real r = geomdata.ProbLo()[0] + static_cast<Real>(i) * dx[0];
             a = 2.0_rt * M_PI * r * dx[1];
         }
         else {
+            Real r = geomdata.ProbLo()[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0];
             a = 2.0_rt * M_PI * r * dx[0];
         }
 
