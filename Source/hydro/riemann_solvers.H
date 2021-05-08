@@ -185,7 +185,9 @@ compute_flux_q(const int i, const int j, const int k, const int idir,
         // this is the reduced "Godunov" state on the interface,
         // with NGDNV components
 
+#ifdef HYBRID_MOMENTUM
         qgdnv(i,j,k,GDRHO) = qint.rho;
+#endif
         if (idir == 0) {
             qgdnv(i,j,k,GDU) = qint.un;
             qgdnv(i,j,k,GDV) = qint.ut;
@@ -1247,7 +1249,9 @@ HLLC(const int i, const int j, const int k, const int idir,
 
     } else {
 
+#ifdef HYBRID_MOMENTUM
         qgdnv(i,j,k,GDRHO) = qint[QRHO];
+#endif
         qgdnv(i,j,k,GDU) = qint[QU];
         qgdnv(i,j,k,GDV) = qint[QV];
         qgdnv(i,j,k,GDW) = qint[QW];
