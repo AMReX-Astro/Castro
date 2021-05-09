@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -243,8 +244,8 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a6d370358f779d78740c8813552a15e43"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">linear_to_hybrid</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="hybrid_8H_1a6d370358f779d78740c8813552a15e43"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">linear_to_hybrid</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom)</span></span></dt>
 <dd><p>For hybrid momentum advection, convert the linear momentum into the hybrid / angular momentum components</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -258,8 +259,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a17a4a79407b4406a49695b7be2c5b0fa"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">hybrid_to_linear</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="hybrid_8H_1a17a4a79407b4406a49695b7be2c5b0fa"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">hybrid_to_linear</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_mom,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_mom)</span></span></dt>
 <dd><p>Convert the hybrid / angular momentum back to linear momentum</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -273,8 +274,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a149cd9ca74e5e070548945a44ec4c421"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">set_hybrid_momentum_source</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_source,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_source)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="hybrid_8H_1a149cd9ca74e5e070548945a44ec4c421"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">set_hybrid_momentum_source</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;loc,</span> <span class="pre">const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;linear_source,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">3</span> <span class="pre">&gt;</span> <span class="pre">&amp;hybrid_source)</span></span></dt>
 <dd><p>Create the hydrodynamic source term for the hybrid momenta based on the input linear momentum source term</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -288,8 +289,8 @@
 </dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="hybrid_8H_1a46008e8cf94a0e92f02053e4b68fff93"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_hybrid_flux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NGDNV</span> <span class="pre">&gt;</span> <span class="pre">&amp;state,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux,</span> <span class="pre">bool</span> <span class="pre">cell_centered=false)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="hybrid_8H_1a46008e8cf94a0e92f02053e4b68fff93"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">compute_hybrid_flux</span> <span class="pre">(const</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NGDNV</span> <span class="pre">&gt;</span> <span class="pre">&amp;state,</span> <span class="pre">const</span> <span class="pre">GeometryData</span> <span class="pre">&amp;geomdata,</span> <span class="pre">int</span> <span class="pre">idir,</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">k,</span> <span class="pre">GpuArray&lt;</span> <span class="pre">Real,</span> <span class="pre">NUM_STATE</span> <span class="pre">&gt;</span> <span class="pre">&amp;flux,</span> <span class="pre">bool</span> <span class="pre">cell_centered=false)</span></span></dt>
 <dd><p>Compute and store the flux of the hybrid momentum components</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -311,8 +312,8 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-variables">Variables</p>
 <dl class="cpp var">
-<dt>
-<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><code class="sig-name descname"><span class="pre">static</span> <span class="pre">AMREX_GPU_MANAGED</span> <span class="pre">Real</span> <span class="pre">R_min</span>&#160;&#160; <span class="pre">=</span> <span class="pre">std::numeric_limits&lt;Real&gt;::min()</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="hybrid_8H_1a4408d6fa0c40546bcdd7e6d33470c78b"></span><span class="sig-name descname"><span class="pre">static</span> <span class="pre">AMREX_GPU_MANAGED</span> <span class="pre">Real</span> <span class="pre">R_min</span>&#160;&#160; <span class="pre">=</span> <span class="pre">std::numeric_limits&lt;Real&gt;::min()</span></span></dt>
 <dd></dd></dl>
 
 </div>

@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -238,33 +239,33 @@
 <div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric" id="breathe-section-title-functions">Functions</p>
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1ad3a12c84c10fcc9b02ec84ce5fcc4be5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">eos_soundspeed_mhd</span> <span class="pre">(Real</span> <span class="pre">&amp;c,</span> <span class="pre">Real</span> <span class="pre">as,</span> <span class="pre">Real</span> <span class="pre">ca,</span> <span class="pre">Real</span> <span class="pre">bd)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1ad3a12c84c10fcc9b02ec84ce5fcc4be5"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">eos_soundspeed_mhd</span> <span class="pre">(Real</span> <span class="pre">&amp;c,</span> <span class="pre">Real</span> <span class="pre">as,</span> <span class="pre">Real</span> <span class="pre">ca,</span> <span class="pre">Real</span> <span class="pre">bd)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1a855917c9a785e2d7554cc8496c9b1a66"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">qflux</span> <span class="pre">(Real</span> <span class="pre">*qflx,</span> <span class="pre">Real</span> <span class="pre">*flx,</span> <span class="pre">Real</span> <span class="pre">*q_zone)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1a855917c9a785e2d7554cc8496c9b1a66"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">qflux</span> <span class="pre">(Real</span> <span class="pre">*qflx,</span> <span class="pre">Real</span> <span class="pre">*flx,</span> <span class="pre">Real</span> <span class="pre">*q_zone)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1aa67b6dbd827b6ca7a39453f9f72d5ab5"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">electric</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">&amp;E_zone,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">comp)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1aa67b6dbd827b6ca7a39453f9f72d5ab5"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">electric</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">&amp;E_zone,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">comp)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1ac0232da89d77b416fa1690fb9c662482"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ConsToPrim</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">*U_zone)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1ac0232da89d77b416fa1690fb9c662482"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">ConsToPrim</span> <span class="pre">(Real</span> <span class="pre">*q_zone,</span> <span class="pre">Real</span> <span class="pre">*U_zone)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1a3b05da58ba84c2861fb5b7db888361c4"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">PToC</span> <span class="pre">(Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NQ-1</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NUM_STATE+2</span> <span class="pre">&gt;</span> <span class="pre">&amp;U,</span> <span class="pre">Real</span> <span class="pre">&amp;gam1)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1a3b05da58ba84c2861fb5b7db888361c4"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">void</span> <span class="pre">PToC</span> <span class="pre">(Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NQ-1</span> <span class="pre">&gt;</span> <span class="pre">&amp;q,</span> <span class="pre">Array1D&lt;</span> <span class="pre">Real,</span> <span class="pre">0,</span> <span class="pre">NUM_STATE+2</span> <span class="pre">&gt;</span> <span class="pre">&amp;U,</span> <span class="pre">Real</span> <span class="pre">&amp;gam1)</span></span></dt>
 <dd></dd></dl>
 
 <dl class="cpp function">
-<dt>
-<span class="target" id="mhd__util_8H_1a281eca2175c8fa658d384d3bbeb40e54"></span><code class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">epsilon_ijk</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k)</span></code></dt>
+<dt class="sig sig-object cpp">
+<span class="target" id="mhd__util_8H_1a281eca2175c8fa658d384d3bbeb40e54"></span><span class="sig-name descname"><span class="pre">AMREX_GPU_HOST_DEVICE</span> <span class="pre">AMREX_FORCE_INLINE</span> <span class="pre">int</span> <span class="pre">epsilon_ijk</span> <span class="pre">(const</span> <span class="pre">int</span> <span class="pre">i,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">const</span> <span class="pre">int</span> <span class="pre">k)</span></span></dt>
 <dd></dd></dl>
 
 </div>
