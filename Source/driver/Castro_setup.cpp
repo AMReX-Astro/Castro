@@ -463,7 +463,7 @@ Castro::variableSetUp ()
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW, NQSRC,
+                             StateDescriptor::Point, 0, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
