@@ -451,7 +451,7 @@ Castro::variableSetUp ()
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = true;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
+                         StateDescriptor::Point, 0, NumSpec+NumAux+2,
                          interp,state_data_extrap,store_in_checkpoint);
 #endif
 
@@ -463,7 +463,7 @@ Castro::variableSetUp ()
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, 0, NQSRC,
+                             StateDescriptor::Point, NUM_GROW, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
