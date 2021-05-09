@@ -180,6 +180,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // the conserved variables.
 
       const Box& qbx = amrex::grow(bx, NUM_GROW);
+      const Box& qbx3 = amrex::grow(bx, 3);
 
       q.resize(qbx, NQ);
       Elixir elix_q = q.elixir();
@@ -299,14 +300,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx, NQSRC);
+      src_q.resize(qbx3, NQSRC);
       Elixir elix_src_q = src_q.elixir();
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
       Array4<Real> const src_arr = sources_for_hydro.array(mfi);
 
-      src_to_prim(qbx, q_arr, src_arr, src_q_arr);
+      src_to_prim(qbx3, q_arr, src_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC
@@ -318,7 +319,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
 
             if (do_react)
-              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx, 0, 0, NQSRC);
+              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx3, qbx3, 0, 0, NQSRC);
 
         }
 #endif

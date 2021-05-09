@@ -791,8 +791,6 @@ public:
                  amrex::MultiFab&          mf,
                  int                dcomp) override;
 
-    static int numGrow();
-
 
 #ifdef REACTIONS
 #include <Castro_react.H>
@@ -1449,6 +1447,7 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
@@ -1546,13 +1545,6 @@ public:
 //
 // Inlines.
 //
-
-inline
-int
-Castro::numGrow()
-{
-    return NUM_GROW;
-}
 
 inline
 amrex::MultiFab*
