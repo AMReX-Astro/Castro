@@ -301,7 +301,11 @@ Castro::variableSetUp ()
 #ifdef MHD
   NUM_GROW_SRC = 6;
 #else
-  NUM_GROW_SRC = 3;
+  if (time_integration_method == SpectralDeferredCorrections) {
+      NUM_GROW_SRC = NUM_GROW;
+  } else {
+      NUM_GROW_SRC = 3;
+  }
 #endif
 
   const Real run_strt = ParallelDescriptor::second() ;
@@ -433,7 +437,7 @@ Castro::variableSetUp ()
   }
   else if (time_integration_method == SpectralDeferredCorrections) {
     if (sdc_order == 2 && use_pslope) {
-      source_ng = NUM_GROW;
+      source_ng = NUM_GROW_SRC;
     } else {
       source_ng = 1;
     }
