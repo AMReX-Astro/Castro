@@ -1337,14 +1337,14 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
     if (need_old_data) {
       sold_tmp.define(grids, dmap, 1, n_grow);
       sold_tmp.setVal(0.0); // need legal numbers for linComb below
-      sold_tmp.copy(S_old, Rad, 0, 1);
+      MultiFab::Copy(sold_tmp, S_old, Rad, 0, 1, 0);
       sold_tmp.FillBoundary(geom.periodicity());
     }
 
     if (need_new_data) {
       snew_tmp.define(grids, dmap, 1, n_grow);
       snew_tmp.setVal(0.0); // need legal numbers for linComb below
-      snew_tmp.copy(S_new, Rad, 0, 1);
+      MultiFab::Copy(snew_tmp, S_new, Rad, 0, 1, 0);
       snew_tmp.FillBoundary(geom.periodicity());
     }
 
