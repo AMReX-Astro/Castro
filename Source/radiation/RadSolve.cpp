@@ -895,16 +895,31 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
       for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
           const Box& bx = fi.tilebox();
-          int scomp = 0;
-          int dcomp = 0;
-          int ncomp = 1;
-          int nf = 1;
-          int nc = 1;
-          ca_face2center(bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
-                         D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                BL_TO_FORTRAN(Dterm_face[2][fi])),
-                         BL_TO_FORTRAN(Dterm[fi]));
+
+          auto Dx = Dterm_face[0][fi].array();
+#if AMREX_SPACEDIM >= 2
+          auto Dy = Dterm_face[1][fi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+          auto Dz = Dterm_face[2][fi].array();
+#endif
+
+          auto D = Dterm[fi].array();
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+#if AMREX_SPACEDIM == 1
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
+#elif AMREX_SPACEDIM == 2
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                          Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
+#else
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                          Dy(i,j,k) + Dy(i,j+1,k) +
+                          Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
+#endif
+          });
       }
   }
 }

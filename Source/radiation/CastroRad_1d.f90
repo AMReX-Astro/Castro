@@ -239,30 +239,6 @@ subroutine ca_set_dterm_face( lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-subroutine ca_face2center( lo, hi, &
-     scomp, dcomp, ncomp, nx, nc, &
-     foox, foox_l1, foox_h1, &
-     fooc, fooc_l1, fooc_h1) bind(C, name="ca_face2center")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1), scomp,dcomp,ncomp,nx,nc
-  integer, intent(in) :: foox_l1, foox_h1
-  integer, intent(in) :: fooc_l1, fooc_h1
-  real(rt)        , intent(in) :: foox(foox_l1:foox_h1,0:nx-1)
-  real(rt)                     :: fooc(fooc_l1:fooc_h1,0:nc-1)
-
-  integer :: i, n
-
-  do n = 0, ncomp-1
-     do i=lo(1), hi(1)
-        fooc(i,dcomp+n) = (foox(i,scomp+n) + foox(i+1,scomp+n)) * 0.5e0_rt;
-     end do
-  end do
-
-end subroutine ca_face2center
-
 ! no tiling
 subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
      re, rc) bind(C, name="ca_correct_dterm")
