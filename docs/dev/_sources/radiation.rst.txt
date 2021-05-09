@@ -79,7 +79,7 @@ gamma-law and Helmholtz. To use the gamma-law EOS, set
 
 ::
 
-    EOS_DIR := gamma_law_general
+    EOS_DIR := gamma_law
 
 in the GNUmakefile.
 

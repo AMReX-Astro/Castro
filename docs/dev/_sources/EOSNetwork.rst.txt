@@ -25,12 +25,7 @@ EOS. This represents a gamma law gas, with equation of state:
 
 .. math:: p = (\gamma - 1) \rho e.
 
-The gas is currently assumed to be monatomic and ideal. (Only a
-restricted set of thermodynamic variables are actually calculated,
-the minimum necessary for the hydrodynamics. A fuller set of
-thermodynamic variables, for example the entropy from the
-Sackur-Tetrode equation, are calculated in the ``gamma_law_general``
-EOS inside the Microphysics repository.)
+The gas is currently assumed to be monatomic and ideal.
 
 Runtime Parameters
 ------------------
