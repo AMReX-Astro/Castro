@@ -52,7 +52,7 @@ Castro::do_advance_ctu(Real time,
 
     // Zero out the source term data.
 
-    sources_for_hydro.setVal(0.0, NUM_GROW);
+    sources_for_hydro.setVal(0.0, NUM_GROW_SRC);
 
     // Add any correctors to the source term data. This must be done
     // before the source term data is overwritten below. Note: we do
@@ -67,11 +67,11 @@ Castro::do_advance_ctu(Real time,
 
     if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
         // Add the source term predictor (scaled by dt/2).
-        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
+        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW_SRC);
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
         // Time center the sources.
-        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
+        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW_SRC);
     }
 
 #ifndef AMREX_USE_GPU
@@ -153,11 +153,11 @@ Castro::do_advance_ctu(Real time,
       // terms (e.g. the source term predictor, or the SDC source).
 
      if (do_hydro) {
-         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
+         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
      }
 
     } else {
-      old_source.setVal(0.0, NUM_GROW);
+      old_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
@@ -295,7 +295,7 @@ Castro::do_advance_ctu(Real time,
 
     } else {
 
-      new_source.setVal(0.0, NUM_GROW);
+      new_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
