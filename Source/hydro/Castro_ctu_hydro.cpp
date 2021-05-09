@@ -187,7 +187,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
 
-      qaux.resize(qbx, NQ);
+      qaux.resize(qbx, NQAUX);
       Elixir elix_qaux = qaux.elixir();
       fab_size += qaux.nBytes();
       Array4<Real> const qaux_arr = qaux.array();
