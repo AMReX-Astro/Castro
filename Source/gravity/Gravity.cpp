@@ -3016,7 +3016,7 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             S.mult(omalpha);
 
             MultiFab S_new(grids[lev],dmap[lev],NUM_STATE,0);
-            MultiFab::Copy(S, LevelData[lev]->get_new_data(State_Type), 0, 0, NUM_STATE, 0);
+            MultiFab::Copy(S_new, LevelData[lev]->get_new_data(State_Type), 0, 0, NUM_STATE, 0);
             S_new.mult(alpha);
 
             S.plus(S_new,0,NUM_STATE,0);
