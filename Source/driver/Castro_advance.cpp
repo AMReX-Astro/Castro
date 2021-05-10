@@ -213,7 +213,7 @@ Castro::finalize_do_advance()
     if (!do_hydro && Radiation::rad_hydro_combined) {
         MultiFab& Er_old = get_old_data(Rad_Type);
         MultiFab& Er_new = get_new_data(Rad_Type);
-        Er_new.copy(Er_old);
+        MultiFab::Copy(Er_new, Er_old, 0, 0, Er_old.nComp(), 0);
     }
 #endif
 

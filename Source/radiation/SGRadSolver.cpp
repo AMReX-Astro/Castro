@@ -42,7 +42,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
   MultiFab& Er_new = castro->get_new_data(Rad_Type);
 
   MultiFab Er_old(grids, dmap, Er_new.nComp(), Er_new.nGrow());
-  Er_old.copy(Er_new); // all components, including any first moments
+  MultiFab::Copy(Er_old, Er_new, 0, 0, Er_new.nComp(), 0);
 
   Array<MultiFab, BL_SPACEDIM> Ff_new;
 
@@ -158,7 +158,7 @@ void Radiation::single_group_update(int level, int iteration, int ncycle)
     it++;
 
     // get new-time temperature and opacity from frhoes:
-    temp.copy(frhoes);
+    MultiFab::Copy(temp, frhoes, 0, 0, frhoes.nComp(), 0);
 
     if (it == 1 || it <= update_planck + 1) {
       get_planck_and_temp(fkp, temp, S_new);

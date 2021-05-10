@@ -1192,14 +1192,14 @@ Gravity::create_comp_minus_level_grad_phi(int level,
                                 LevelData[level]->DistributionMap(),
                                 1, 0);
 
-    comp_minus_level_phi.copy(comp_phi, 0, 0, 1);
+    MultiFab::Copy(comp_minus_level_phi, comp_phi, 0, 0, 1, 0);
     comp_minus_level_phi.minus(parent->getLevel(level).get_old_data(PhiGrav_Type), 0, 1, 0);
 
     comp_minus_level_grad_phi.resize(BL_SPACEDIM);
     for (int n = 0; n < BL_SPACEDIM; ++n) {
         comp_minus_level_grad_phi[n].reset(new MultiFab(LevelData[level]->getEdgeBoxArray(n),
                                                         LevelData[level]->DistributionMap(), 1, 0));
-        comp_minus_level_grad_phi[n]->copy(*comp_gphi[n], 0, 0, 1);
+        MultiFab::Copy(*comp_minus_level_grad_phi[n], *comp_gphi[n], 0, 0, 1, 0);
         comp_minus_level_grad_phi[n]->minus(*grad_phi_prev[level][n], 0, 1, 0);
     }
 
@@ -1241,7 +1241,7 @@ Gravity::average_fine_ec_onto_crse_ec(int level, int is_new)
 
     for (int n = 0; n < BL_SPACEDIM; ++n)
     {
-        grad_phi[level][n]->copy(*crse_gphi_fine[n], cgeom.periodicity());
+        grad_phi[level][n]->ParallelCopy(*crse_gphi_fine[n], cgeom.periodicity());
     }
 }
 
@@ -2996,26 +2996,26 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
             // dt is smaller than roundoff compared to the current time,
             // in which case we're probably in trouble anyway,
             // but we will still handle it gracefully here.
-            S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
+            MultiFab::Copy(S, LevelData[lev]->get_new_data(State_Type), 0, 0, NUM_STATE, 0);
         }
         else if ( std::abs(time-t_old) < eps)
         {
-            S.copy(LevelData[lev]->get_old_data(State_Type),0,0,NUM_STATE);
+            MultiFab::Copy(S, LevelData[lev]->get_old_data(State_Type), 0, 0, NUM_STATE, 0);
         }
         else if ( std::abs(time-t_new) < eps)
         {
-            S.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
+            MultiFab::Copy(S, LevelData[lev]->get_new_data(State_Type), 0, 0, NUM_STATE, 0);
         }
         else if (time > t_old && time < t_new)
         {
             Real alpha   = (time - t_old)/(t_new - t_old);
             Real omalpha = 1.0 - alpha;
 
-            S.copy(LevelData[lev]->get_old_data(State_Type),0,0,NUM_STATE);
+            MultiFab::Copy(S, LevelData[lev]->get_old_data(State_Type), 0, 0, NUM_STATE, 0);
             S.mult(omalpha);
 
             MultiFab S_new(grids[lev],dmap[lev],NUM_STATE,0);
-            S_new.copy(LevelData[lev]->get_new_data(State_Type),0,0,NUM_STATE);
+            MultiFab::Copy(S_new, LevelData[lev]->get_new_data(State_Type), 0, 0, NUM_STATE, 0);
             S_new.mult(alpha);
 
             S.plus(S_new,0,NUM_STATE,0);
