@@ -13,13 +13,35 @@ void Radiation::save_lambda_in_plotvar(int level, const Array<MultiFab,BL_SPACED
 #endif
     for (MFIter mfi(*plotvar[level],true); mfi.isValid(); ++mfi) {
         const Box& bx = mfi.tilebox();
-        int scomp = 0;
-        ca_face2center(bx.loVect(), bx.hiVect(),
-                       scomp, icomp_lambda, nlambda, nlambda, nplotvar,
-                       D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-                              BL_TO_FORTRAN(lambda[1][mfi]),
-                              BL_TO_FORTRAN(lambda[2][mfi])),
-                       BL_TO_FORTRAN((*plotvar[level])[mfi]));
+
+        auto lamx = lambda[0][mfi].array();
+#if AMREX_SPACEDIM >= 2
+        auto lamy = lambda[1][mfi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+        auto lamz = lambda[2][mfi].array();
+#endif
+
+        auto lamc = (*plotvar[level])[mfi].array();
+
+        int dcomp = icomp_lambda;
+
+        amrex::ParallelFor(bx,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+        {
+            for (int n = 0; n < nlambda; ++n) {
+#if AMREX_SPACEDIM == 1
+                lamc(i,j,k,dcomp+n) = (lamx(i,j,k,n) + lamx(i+1,j,k,n)) * 0.5_rt;
+#elif AMREX_SPACEDIM == 2
+                lamc(i,j,k,dcomp+n) = (lamx(i,j,k,n) + lamx(i+1,j,k,n) +
+                                       lamy(i,j,k,n) + lamy(i,j+1,k,n)) * 0.25_rt;
+#else
+                lamc(i,j,k,dcomp+n) = (lamx(i,j,k,n) + lamx(i+1,j,k,n) +
+                                       lamy(i,j,k,n) + lamy(i,j+1,k,n) +
+                                       lamz(i,j,k,n) + lamz(i,j,k+1,n)) * (1.0_rt / 6.0_rt);
+#endif
+            }
+        });
     }
 }
 

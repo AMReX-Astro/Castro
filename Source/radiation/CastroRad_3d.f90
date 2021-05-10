@@ -968,44 +968,6 @@ subroutine ca_set_dterm_face(lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-
-subroutine ca_face2center(lo, hi, &
-                          scomp, dcomp, ncomp, nf, nc, &
-                          foox, foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3, &
-                          fooy, fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3, &
-                          fooz, fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3, &
-                          fooc, fooc_l1, fooc_l2, fooc_l3, fooc_h1, fooc_h2, fooc_h3) bind(C, name="ca_face2center")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3), scomp,dcomp,ncomp,nf,nc
-  integer, intent(in) :: foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3
-  integer, intent(in) :: fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3
-  integer, intent(in) :: fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3
-  integer, intent(in) :: fooc_l1, fooc_l2, fooc_l3, fooc_h1, fooc_h2, fooc_h3
-  real(rt)        , intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2,foox_l3:foox_h3,0:nf-1)
-  real(rt)        , intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2,fooy_l3:fooy_h3,0:nf-1)
-  real(rt)        , intent(in)  :: fooz(fooz_l1:fooz_h1,fooz_l2:fooz_h2,fooz_l3:fooz_h3,0:nf-1)
-  real(rt)                      :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,fooc_l3:fooc_h3,0:nc-1)
-
-  integer :: i,j,k,n
-
-  do n = 0, ncomp-1
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              fooc(i,j,k,dcomp+n) = (foox(i,j,k,scomp+n) + foox(i+1,j,k,scomp+n) &
-                   &               + fooy(i,j,k,scomp+n) + fooy(i,j+1,k,scomp+n) &
-                   &               + fooz(i,j,k,scomp+n) + fooz(i,j,k+1,scomp+n) ) * (1.e0_rt/6.e0_rt);
-           end do
-        end do
-     end do
-  end do
-
-end subroutine ca_face2center
-
-
 subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_l3, dfx_h1, dfx_h2, dfx_h3, &
                             dfy, dfy_l1, dfy_l2, dfy_l3, dfy_h1, dfy_h2, dfy_h3, &

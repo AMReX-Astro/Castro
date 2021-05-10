@@ -78,14 +78,6 @@ extern "C" {
     BL_FORT_FAB_ARG(dterm_face), 
     const amrex::Real* dx, const int* idir);
 
-  void ca_face2center
-    (const int lo[], const int hi[], 
-     const int& scomp, const int& dcomp, const int& ncomp, const int& nf, const int& nc,
-     D_DECL(const BL_FORT_FAB_ARG(foox),
-            const BL_FORT_FAB_ARG(fooy),
-            const BL_FORT_FAB_ARG(fooz)),
-     BL_FORT_FAB_ARG(fooc));
-
   void ca_correct_dterm
     (D_DECL(BL_FORT_FAB_ARG(dfx),
             BL_FORT_FAB_ARG(dfy),
