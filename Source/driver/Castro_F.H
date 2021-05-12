@@ -66,14 +66,6 @@ extern "C"
 
 
 #ifdef RADIATION
-  void ca_estdt_rad
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(state),
-     const BL_FORT_FAB_ARG(gpr),
-     const amrex::Real dx[], amrex::Real* dt);
-#endif
-
-#ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
      BL_FORT_FAB_ARG_3D(stateout),
