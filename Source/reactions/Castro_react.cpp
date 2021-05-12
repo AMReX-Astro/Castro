@@ -139,21 +139,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
                 if (do_burn) {
 
-                    // update the state
-
-                    if (U.contains(i,j,k)) {
-                        for (int n = 0; n < NumSpec; ++n) {
-                            U(i,j,k,UFS+n) += U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv);
-                        }
-#if NAUX_NET > 0
-                        for (int n = 0; n < NumAux; ++n) {
-                            U(i,j,k,UFX+n) += U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv);
-                        }
-#endif
-                        U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
-                        U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
-                    }
-
                     // Add burning rates to reactions MultiFab, but be
                     // careful because the reactions and state MFs may
                     // not have the same number of ghost cells.
@@ -176,6 +161,19 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                             }
                         }
                     }
+
+                    // update the state
+
+                    for (int n = 0; n < NumSpec; ++n) {
+                        U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
+                    }
+#if NAUX_NET > 0
+                    for (int n = 0; n < NumAux; ++n) {
+                        U(i,j,k,UFX+n) = U(i,j,k,URHO) * burn_state.aux[n];
+                    }
+#endif
+                    U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
+                    U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
 
                 }
                 else {
