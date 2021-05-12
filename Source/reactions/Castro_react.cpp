@@ -185,7 +185,7 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                         reactions(i,j,k,1) = 1.0_rt;
 
                         if (store_omegadot == 1) {
-                            for (int n = 0; n < NumSpec + NumAux + 1; ++n) {
+                            for (int n = 0; n < NumSpec + NumAux; ++n) {
                                 reactions(i,j,k,2+n) = 0.0_rt;
                             }
                         }
