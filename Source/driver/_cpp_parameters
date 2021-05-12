@@ -571,8 +571,9 @@ reset_checkpoint_time        Real          -1.e200
 # and you set it to value greater than this default value.
 reset_checkpoint_step        int           -1
 
-
-
+# Do we store the species creation rates in the plotfile.  Note, if this option is
+# enabled then more memory will be allocated to hold the results of the burn
+store_omegadot               int            0
 
 
 #-----------------------------------------------------------------------------

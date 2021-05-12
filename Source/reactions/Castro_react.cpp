@@ -139,32 +139,53 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
                 if (do_burn) {
 
+                    // update the state
+
+                    if (U.contains(i,j,k)) {
+                        for (int n = 0; n < NumSpec; ++n) {
+                            U(i,j,k,UFS+n) += U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv);
+                        }
+#if NAUX_NET > 0
+                        for (int n = 0; n < NumAux; ++n) {
+                            U(i,j,k,UFX+n) += U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv);
+                        }
+#endif
+                        U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
+                        U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
+                    }
+
                     // Add burning rates to reactions MultiFab, but be
                     // careful because the reactions and state MFs may
                     // not have the same number of ghost cells.
 
-                    if (reactions.contains(i,j,k)) {
-                        for (int n = 0; n < NumSpec; ++n) {
-                            reactions(i,j,k,n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
-                        }
+                    reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
+                    reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+
+                    if (store_omegadot == 1) {
+                        if (reactions.contains(i,j,k)) {
+                            for (int n = 0; n < NumSpec; ++n) {
+                                reactions(i,j,k,n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
+                            }
 #if NAUX_NET > 0
-                        for (int n = 0; n < NumAux; ++n) {
-                            reactions(i,j,k,n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
-                        }
+                            for (int n = 0; n < NumAux; ++n) {
+                                reactions(i,j,k,n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
+                            }
 #endif
-                        reactions(i,j,k,NumSpec+NumAux  ) = U(i,j,k,URHO) * burn_state.e / dt;
-                        reactions(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                        }
                     }
 
                 }
                 else {
 
                     if (reactions.contains(i,j,k)) {
-                        for (int n = 0; n < NumSpec + NumAux + 1; ++n) {
-                            reactions(i,j,k,n) = 0.0_rt;
-                        }
+                        reactions(i,j,k,0) = 0.0_rt;
+                        reactions(i,j,k,1) = 1.0_rt;
 
-                        reactions(i,j,k,NumSpec+NumAux+1) = 1.0_rt;
+                        if (store_omegadot == 1) {
+                            for (int n = 0; n < NumSpec + NumAux + 1; ++n) {
+                                reactions(i,j,k,n) = 0.0_rt;
+                            }
+                        }
                     }
 
                 }
@@ -174,25 +195,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
             });
 
         }
-
-        // Now update the state with the reactions data.
-
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-            if (U.contains(i,j,k) && reactions.contains(i,j,k)) {
-                for (int n = 0; n < NumSpec; ++n) {
-                    U(i,j,k,UFS+n) += reactions(i,j,k,n) * dt;
-                }
-#if NAUX_NET > 0
-                for (int n = 0; n < NumAux; ++n) {
-                    U(i,j,k,UFX+n) += reactions(i,j,k,n+NumSpec) * dt;
-                }
-#endif
-                U(i,j,k,UEINT) += reactions(i,j,k,NumSpec+NumAux) * dt;
-                U(i,j,k,UEDEN) += reactions(i,j,k,NumSpec+NumAux) * dt;
-            }
-        });
 
     }
 
@@ -422,22 +424,25 @@ Castro::react_state(Real time, Real dt)
                      // portion here, so we subtract off the advective
                      // part.
 
-                     // rho omegadot_k
-                     for (int n = 0; n < NumSpec; ++n) {
-                         react_src(i,j,k,n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
-                     }
-#if NAUX_NET > 0
-                     // rho auxdot_k
-                     for (int n = 0; n < NumAux; ++n) {
-                         react_src(i,j,k,n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
-                     }
-#endif
-
                      // rho enuc
-                     react_src(i,j,k,NumSpec+NumAux) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
+                     react_src(i,j,k,0) = (U_new(i,j,k,UEINT) - U_old(i,j,k,UEINT)) / dt - asrc(i,j,k, UEINT);
 
                      // burn weights
-                     react_src(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                     react_src(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+
+                     if (store_omegadot) {
+                         // rho omegadot_k
+                         for (int n = 0; n < NumSpec; ++n) {
+                             react_src(i,j,k,n) = (U_new(i,j,k,UFS+n) - U_old(i,j,k,UFS+n)) / dt - asrc(i,j,k,UFS+n);
+                         }
+#if NAUX_NET > 0
+                         // rho auxdot_k
+                         for (int n = 0; n < NumAux; ++n) {
+                             react_src(i,j,k,n+NumSpec) = (U_new(i,j,k,UFX+n) - U_old(i,j,k,UFX+n)) / dt - asrc(i,j,k,UFX+n);
+                         }
+#endif
+                     }
+
                  }
 
              }
