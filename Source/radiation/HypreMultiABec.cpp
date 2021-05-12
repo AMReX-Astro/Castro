@@ -1343,6 +1343,8 @@ void HypreMultiABec::hmac (const Box& bx,
                            Array4<Real const> const& a,
                            Real alpha)
 {
+    BL_PROFILE("HypreMultiABec::hmac");
+
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
@@ -1362,6 +1364,8 @@ void HypreMultiABec::hmbc (const Box& bx,
                            Array4<Real const> const& b,
                            Real beta, const Real* dx, int n)
 {
+    BL_PROFILE("HypreMultiABec::hmbc");
+
     if (n == 0) {
 
         const Real fac = beta / (dx[0] * dx[0]);
@@ -1627,6 +1631,8 @@ HypreMultiABec::hmmat3 (const Box& bx,
                         const GeometryData& geomdata, Real c,
                         Array4<Real const> const& spa)
 {
+    BL_PROFILE("HypreMultiABec::hmmat3");
+
     bool xlo = false;
     bool ylo = false;
     bool zlo = false;
@@ -2627,6 +2633,8 @@ void HypreMultiABec::loadLevelVectorX(int level,
                                       MultiFab& dest,
                                       int icomp)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorX");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2658,6 +2666,8 @@ void HypreMultiABec::loadLevelVectorB(int level,
                                       MultiFab& rhs, // will be altered
                                       BC_Mode inhom)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorB");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2736,12 +2746,16 @@ void HypreMultiABec::loadLevelVectorB(int level,
 
 void HypreMultiABec::finalizeVectors()
 {
+  BL_PROFILE("HypreMultiABec::finalizeVectors");
+
   HYPRE_SStructVectorAssemble(b);
   HYPRE_SStructVectorAssemble(x);
 }
 
 void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
+  BL_PROFILE("HypreMultiABec::setupSolver");
+
   reltol = _reltol;
   abstol = _abstol; // may be used to change tolerance for solve
 
@@ -3777,6 +3791,8 @@ void HypreMultiABec::solve()
 
 void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 {
+  BL_PROFILE("HypreMultiABec::getSolution");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -3808,6 +3824,8 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
 Real HypreMultiABec::getAbsoluteResidual()
 {
+  BL_PROFILE("HypreMultiABec::getAbsoluteResidual");
+
   Real bnorm;
   hypre_SStructInnerProd((hypre_SStructVector *) b,
                          (hypre_SStructVector *) b,
@@ -3958,6 +3976,8 @@ void HypreMultiABec::boundaryFlux(int level,
 
 void HypreMultiABec::getProduct(int level, MultiFab& product)
 {
+  BL_PROFILE("HypreMultiABec::getProduct");
+
   int part = level - crse_level;
 
   for (MFIter mfi(product); mfi.isValid(); ++mfi) {
