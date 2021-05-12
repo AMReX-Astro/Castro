@@ -596,6 +596,13 @@ public:
     amrex::Real estdt_burning();
 #endif
 
+#ifdef RADIATION
+///
+/// Radiation hydro timestep
+///
+    amrex::Real estdt_rad ();
+#endif
+
 ///
 /// Compute initial time step.
 ///

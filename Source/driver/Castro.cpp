@@ -1608,38 +1608,9 @@ Castro::estTimeStep ()
     {
 
 #ifdef RADIATION
-        const Real* dx = geom.CellSize();
-
         if (Radiation::rad_hydro_combined) {
 
-            const MultiFab& stateMF = get_new_data(State_Type);
-
-            // Compute radiation + hydro limited timestep.
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-            {
-                Real dt = max_dt / cfl;
-
-                const MultiFab& radMF = get_new_data(Rad_Type);
-                FArrayBox gPr;
-
-                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-                {
-                    const Box& tbox = mfi.tilebox();
-                    const Box& vbox = mfi.validbox();
-
-                    gPr.resize(tbox);
-                    radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
-
-                    ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
-                                 BL_TO_FORTRAN(stateMF[mfi]),
-                                 BL_TO_FORTRAN(gPr),
-                                 dx,&dt);
-                }
-                estdt_hydro = std::min(estdt_hydro, dt);
-            }
+            estdt_hydro = estdt_rad();
 
         }
         else
