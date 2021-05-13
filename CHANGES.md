@@ -1,3 +1,8 @@
+# 21.06
+
+   * We no longer store Reactions_Type in checkpoint files.  This means
+     that newer versions of Castro will not restart from old version.
+     
 # 21.05
 
    * The parameter use_eos_in_riemann was removed -- we found no
