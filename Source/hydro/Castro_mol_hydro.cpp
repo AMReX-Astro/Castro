@@ -77,6 +77,8 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 #endif
     FArrayBox avis;
 
+    MultiFab& old_source = get_old_data(Source_Type);
+
     // The fourth order stuff cannot do tiling because of the Laplacian corrections
     for (MFIter mfi(S_new, (sdc_order == 4) ? no_tile_size : hydro_tile_size); mfi.isValid(); ++mfi)
       {
@@ -90,7 +92,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
         FArrayBox &stateout = S_new[mfi];
 
-        FArrayBox &source_in  = sources_for_hydro[mfi];
+        FArrayBox &source_in  = old_source[mfi];
         auto source_in_arr = source_in.array();
 
         // the output of this will be stored in the correct stage MF
@@ -470,14 +472,12 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
 
                 // for well-balancing, we need to primitive variable
                 // source terms
-                const Box& qbx = amrex::grow(bx, NUM_GROW);
+                const Box& qbx = amrex::grow(bx, NUM_GROW_SRC);
                 src_q.resize(qbx, NQSRC);
                 Elixir elix_src_q = src_q.elixir();
                 Array4<Real> const src_q_arr = src_q.array();
 
-                Array4<Real> const src_arr = sources_for_hydro.array(mfi);
-
-                src_to_prim(qbx, q_arr, src_arr, src_q_arr);
+                src_to_prim(qbx, q_arr, source_in_arr, src_q_arr);
 
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,
