@@ -134,6 +134,11 @@ Castro::do_advance_ctu(Real time,
 #endif                
                       old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
+      if (do_hydro) {
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, Source_Type, 0, NSRC);
+      }
+
+
     } else {
       old_source.setVal(0.0, NUM_GROW_SRC);
 
