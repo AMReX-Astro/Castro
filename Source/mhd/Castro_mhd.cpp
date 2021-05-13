@@ -174,7 +174,7 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
                   Bx_arr, By_arr, Bz_arr,
                   q_arr, qaux_arr);
 
-          src_to_prim(bx_gc, q_arr, old_src_arr, src_corr_arr, src_q_arr);
+          src_to_prim(bx_gc, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
 
           check_for_mhd_cfl_violation(bx, dt, q_arr, qaux_arr);
 
