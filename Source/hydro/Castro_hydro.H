@@ -80,9 +80,12 @@
 /// @param src     conserved source array
 /// @param srcQ    primitive variable source array
 ///
-    void src_to_prim(const amrex::Box& bx,
+    void src_to_prim(const amrex::Box& bx, const Real dt,
                      amrex::Array4<amrex::Real const> const& q_arr,
-                     amrex::Array4<amrex::Real const> const& src,
+                     amrex::Array4<amrex::Real const> const& old_src,
+#ifndef TRUE_SDC
+                     amrex::Array4<amrex::Real const> const& src_corr,
+#endif
                      amrex::Array4<amrex::Real> const& srcQ);
 
 ///

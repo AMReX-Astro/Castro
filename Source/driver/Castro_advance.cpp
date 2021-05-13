@@ -283,12 +283,6 @@ Castro::initialize_advance(Real time, Real dt, int amr_iteration, int amr_ncycle
     }
 #endif
 
-    // This array holds the sum of all source terms that affect the
-    // hydrodynamics.
-
-    sources_for_hydro.define(grids, dmap, NSRC, NUM_GROW_SRC);
-    sources_for_hydro.setVal(0.0, NUM_GROW_SRC);
-
     // This array holds the source term corrector.
 
     source_corrector.define(grids, dmap, NSRC, NUM_GROW_SRC);
@@ -443,7 +437,6 @@ Castro::finalize_advance()
 #endif
 
     source_corrector.clear();
-    sources_for_hydro.clear();
 
     if (!keep_prev_state) {
         amrex::FillNull(prev_state);

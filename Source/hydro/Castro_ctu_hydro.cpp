@@ -123,6 +123,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     size_t current_size = starting_size;
 #endif
 
+    MultiFab& old_source = get_old_data(Source_Type);
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       size_t fab_size = 0;
@@ -305,9 +307,10 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
-      Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+      Array4<Real> const old_src_arr = old_source.array(mfi);
+      Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      src_to_prim(qbx3, q_arr, src_arr, src_q_arr);
+      src_to_prim(qbx3, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC
