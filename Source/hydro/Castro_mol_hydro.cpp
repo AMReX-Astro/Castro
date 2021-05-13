@@ -477,7 +477,7 @@ Castro::construct_mol_hydro_source(Real time, Real dt, MultiFab& A_update)
                 Elixir elix_src_q = src_q.elixir();
                 Array4<Real> const src_q_arr = src_q.array();
 
-                src_to_prim(qbx, q_arr, source_in_arr, src_q_arr);
+                src_to_prim(qbx, dt, q_arr, source_in_arr, src_q_arr);
 
                 mol_plm_reconstruct(obx, idir,
                                     q_arr, flatn_arr, src_q_arr,

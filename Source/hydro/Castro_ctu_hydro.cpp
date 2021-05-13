@@ -17,6 +17,8 @@ void
 Castro::construct_ctu_hydro_source(Real time, Real dt)
 {
 
+#ifndef TRUE_SDC
+
   BL_PROFILE("Castro::construct_ctu_hydro_source()");
 
   const Real strt_time = ParallelDescriptor::second();
@@ -1520,5 +1522,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         });
 #endif
     }
+
+#endif
 
 }
