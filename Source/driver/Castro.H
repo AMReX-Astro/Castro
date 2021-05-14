@@ -1321,12 +1321,6 @@ protected:
 
 
 ///
-/// Source terms to the hydrodynamics solve.
-///
-    amrex::MultiFab sources_for_hydro;
-
-
-///
 /// Source term corrector.
 ///
     amrex::MultiFab source_corrector;
