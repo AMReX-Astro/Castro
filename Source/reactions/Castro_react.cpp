@@ -135,78 +135,53 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                 // careful because the reactions and state MFs may
                 // not have the same number of ghost cells.
 
-<<<<<<< HEAD
-                    if (reactions.contains(i,j,k)) {
+                if (reactions.contains(i,j,k)) {
 
-                        reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
-                        reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
+                    reactions(i,j,k,0) = U(i,j,k,URHO) * burn_state.e / dt;
+                    reactions(i,j,k,1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
 
-                        if (store_omegadot == 1) {
-                            if (reactions.contains(i,j,k)) {
-                                for (int n = 0; n < NumSpec; ++n) {
-                                    reactions(i,j,k,2+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
-                                }
-#if NAUX_NET > 0
-                                for (int n = 0; n < NumAux; ++n) {
-                                    reactions(i,j,k,2+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
-                                }
-#endif
+                    if (store_omegadot == 1) {
+                        if (reactions.contains(i,j,k)) {
+                            for (int n = 0; n < NumSpec; ++n) {
+                                reactions(i,j,k,2+n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
                             }
+#if NAUX_NET > 0
+                            for (int n = 0; n < NumAux; ++n) {
+                                reactions(i,j,k,2+n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
+                            }
+#endif
                         }
                     }
-
-                    // update the state
-
-                    for (int n = 0; n < NumSpec; ++n) {
-                        U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
-                    }
-#if NAUX_NET > 0
-                    for (int n = 0; n < NumAux; ++n) {
-                        U(i,j,k,UFX+n) = U(i,j,k,URHO) * burn_state.aux[n];
-                    }
-#endif
-                    U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
-                    U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
-
-=======
-                if (reactions.contains(i,j,k)) {
-                    for (int n = 0; n < NumSpec; ++n) {
-                        reactions(i,j,k,n) = U(i,j,k,URHO) * (burn_state.xn[n] - U(i,j,k,UFS+n) * rhoInv) / dt;
-                    }
-#if NAUX_NET > 0
-                    for (int n = 0; n < NumAux; ++n) {
-                        reactions(i,j,k,n+NumSpec) = U(i,j,k,URHO) * (burn_state.aux[n] - U(i,j,k,UFX+n) * rhoInv) / dt;
-                    }
-#endif
-                    reactions(i,j,k,NumSpec+NumAux  ) = U(i,j,k,URHO) * burn_state.e / dt;
-                    reactions(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
->>>>>>> development
                 }
 
-<<<<<<< HEAD
-                    if (reactions.contains(i,j,k)) {
-                        reactions(i,j,k,0) = 0.0_rt;
-                        reactions(i,j,k,1) = 1.0_rt;
+                // update the state
 
-                        if (store_omegadot == 1) {
-                            for (int n = 0; n < NumSpec + NumAux; ++n) {
-                                reactions(i,j,k,2+n) = 0.0_rt;
-                            }
-                        }
-=======
-            }
-            else {
+                for (int n = 0; n < NumSpec; ++n) {
+                    U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    U(i,j,k,UFX+n) = U(i,j,k,URHO) * burn_state.aux[n];
+                }
+#endif
+                U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
+                U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
+
+            } else {
 
                 if (reactions.contains(i,j,k)) {
-                    for (int n = 0; n < NumSpec + NumAux + 1; ++n) {
-                        reactions(i,j,k,n) = 0.0_rt;
->>>>>>> development
-                    }
+                    reactions(i,j,k,0) = 0.0_rt;
+                    reactions(i,j,k,1) = 1.0_rt;
 
-                    reactions(i,j,k,NumSpec+NumAux+1) = 1.0_rt;
+                    if (store_omegadot == 1) {
+                        for (int n = 0; n < NumSpec + NumAux; ++n) {
+                            reactions(i,j,k,2+n) = 0.0_rt;
+                        }
+                    }
                 }
 
             }
+
 
             return {burn_failed};
 
