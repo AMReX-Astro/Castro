@@ -135,6 +135,8 @@ Castro::do_advance_ctu(Real time,
                       old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
       if (do_hydro) {
+          // Fill the ghost cells of old_source / Source_Type
+
           AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
       }
 
