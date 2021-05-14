@@ -463,7 +463,8 @@ Castro::variableSetUp ()
   // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
   // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
-  store_in_checkpoint = true;
+  store_in_checkpoint = false;
+
   int num_react = 0;
   if (store_omegadot == 1) {
       num_react = NumSpec+NumAux+2;
