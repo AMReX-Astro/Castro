@@ -114,7 +114,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#box-and-farraybox"><code class="docutils literal notranslate"><span class="pre">Box</span></code> and <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multifab"><code class="docutils literal notranslate"><span class="pre">MultiFab</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#statedata"><code class="docutils literal notranslate"><span class="pre">StateData</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#various-source-multifabs">Various source <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a><ul>
@@ -554,15 +553,6 @@ with the <code class="docutils literal notranslate"><span class="pre">StateData<
 </div>
 <p>gets a pointer to the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> containing the hydrodynamics state data
 at the new time.</p>
-</div>
-<div class="section" id="various-source-multifabs">
-<h3>Various source <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code><a class="headerlink" href="#various-source-multifabs" title="Permalink to this headline">¶</a></h3>
-<p>There are a number of different <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> (and arrays of <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code>)
-that hold source term information.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code> : a single <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that stores
-the sum of sources over each physical process.</p></li>
-</ul>
 </div>
 </div>
 <div class="section" id="mfiter-and-interacting-with-fortran">

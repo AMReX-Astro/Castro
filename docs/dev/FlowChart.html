@@ -492,14 +492,8 @@ reconstruction will work from.</p></li>
 <code class="docutils literal notranslate"><span class="pre">S_old</span></code>, to the new time, <code class="docutils literal notranslate"><span class="pre">S_new</span></code>.</p>
 <ol class="arabic">
 <li><p><em>Initialize</em></p>
-<ol class="upperalpha">
+<ol class="upperalpha simple">
 <li><p>In <code class="docutils literal notranslate"><span class="pre">initialize_do_advance()</span></code>, create <code class="docutils literal notranslate"><span class="pre">Sborder</span></code>, initialized from <code class="docutils literal notranslate"><span class="pre">S_old</span></code></p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">source_term_predictor</span> <span class="pre">==</span> <span class="pre">1</span></code>, then aply
-<code class="docutils literal notranslate"><span class="pre">source_corrector</span></code> to <code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code>.  For Strang+CTU,
-this was the effect of initializing the source terms as:</p>
-<div class="math notranslate nohighlight">
-\[\Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}\]</div>
-</li>
 <li><p>Check for NaNs in the initial state, <code class="docutils literal notranslate"><span class="pre">S_old</span></code>.</p></li>
 </ol>
 </li>
@@ -926,7 +920,6 @@ iteration.</p>
 <li><p>Call <code class="docutils literal notranslate"><span class="pre">do_old_sources</span></code> filling the <code class="docutils literal notranslate"><span class="pre">Source_Type</span></code>
 <code class="docutils literal notranslate"><span class="pre">StateData</span></code>, <code class="docutils literal notranslate"><span class="pre">old_source</span></code>.</p></li>
 <li><p>Convert the sources to 4th order averages if needed.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sources_for_hydro</span></code> <span class="math notranslate nohighlight">\(\leftarrow\)</span> <code class="docutils literal notranslate"><span class="pre">old_source</span></code></p></li>
 <li><p>Convert the conserved variables to primitive variables</p></li>
 <li><p>Call <code class="docutils literal notranslate"><span class="pre">construct_mol_hydro_source</span></code> to get the advective update
 at the current time node, stored in <code class="docutils literal notranslate"><span class="pre">A_new[m]</span></code>.</p></li>
