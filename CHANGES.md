@@ -1,5 +1,7 @@
 # 21.06
 
+   * The update_sponge_params hook has been removed. (#1716)
+
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
      
