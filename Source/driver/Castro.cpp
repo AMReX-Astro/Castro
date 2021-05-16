@@ -44,10 +44,6 @@
 #include <omp.h>
 #endif
 
-#ifdef AMREX_USE_CUDA
-#include <cuda_profiler_api.h>
-#endif
-
 #include <extern_parameters.H>
 #include <prob_parameters.H>
 
@@ -354,10 +350,10 @@ Castro::read_params ()
       amrex::Error("Invalid CFL factor; must be between zero and one.");
     }
 
-    // SDC does not support CUDA yet
+    // SDC does not support GPUs yet
 #ifdef AMREX_USE_GPU
     if (time_integration_method == SpectralDeferredCorrections) {
-        amrex::Error("CUDA SDC is currently disabled.");
+        amrex::Error("SDC is currently not enabled on GPUs.");
     }
 #endif
 
@@ -495,7 +491,7 @@ Castro::read_params ()
 
 #ifdef AMREX_USE_GPU
    if (do_scf_initial_model) {
-       amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
+       amrex::Error("SCF initial model construction is currently not permitted if using GPUs.");
    }
 #endif
 
@@ -4319,7 +4315,7 @@ Castro::make_radial_data(int is_new)
 
            int index = int(r / dr);
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
            if (index > numpts_1d-1) {
                std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
                std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";

@@ -288,11 +288,9 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_dxnuc_lev = -1
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call castro_error('probin file name too long')
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -309,9 +307,7 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
      call castro_error('ERROR: problem in the tagging namelist')
-#endif
   endif
 
   close (unit=un)
@@ -379,11 +375,9 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
   sponge_timescale    = -1.e0_rt
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call castro_error('probin file name too long')
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -399,9 +393,7 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
      call castro_error('ERROR: problem in the sponge namelist')
-#endif
   endif
 
   close (unit=un)
@@ -412,7 +404,6 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
 
   ! Sanity check
 
-#ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
      call castro_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
@@ -420,7 +411,6 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
      call castro_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
-#endif
 
 end subroutine ca_read_sponge_params
 

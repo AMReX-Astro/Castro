@@ -60,7 +60,7 @@ Castro::check_for_mhd_cfl_violation(const Box& bx,
     Real coury = (cy + std::abs(q_arr(i,j,k,QV))) * dtdy;
     Real courz = (cz + std::abs(q_arr(i,j,k,QW))) * dtdz;
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (verbose == 1) {
 
       if (courx > 1.0_rt) {
