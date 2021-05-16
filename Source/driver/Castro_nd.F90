@@ -27,8 +27,6 @@ subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
 
   call microphysics_init(small_dens=small_dens, small_temp=small_temp)
 
-  !$acc update device(small_dens, small_temp)
-
 end subroutine ca_microphysics_init
 
 
@@ -104,8 +102,6 @@ subroutine ca_set_method_params(dm) &
      small_ener = 1.e-200_rt
   endif
 
-  !$acc update device(small_dens, small_temp, small_pres, small_ener)
-
 end subroutine ca_set_method_params
 
 
@@ -162,11 +158,6 @@ subroutine ca_set_problem_params(dm, &
   if (dim .lt. 3) then
      dg(3) = 0
   endif
-
-  !$acc update device(dim)
-  !$acc update device(dg)
-  !$acc update device(coord_type)
-  !$acc update device(problo, probhi)
 
 end subroutine ca_set_problem_params
 

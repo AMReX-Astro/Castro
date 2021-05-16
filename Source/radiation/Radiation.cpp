@@ -3,7 +3,7 @@
 #include <Radiation.H>
 #include <RadSolve.H>
 #include <rad_util.H>
-
+#include <filt_prim.H>
 #include <Castro_F.H>
 
 #include <RAD_F.H>
@@ -2634,44 +2634,12 @@ void Radiation::set_current_group(int igroup)
 void Radiation::filter_prim(int level, MultiFab& State)
 {
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
-  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom = parent->Geom(level);
-
-  const int*  domain_lo = geom.Domain().loVect();
-  const int*  domain_hi = geom.Domain().hiVect();
-  const Real* dx        = geom.CellSize();
-  const Real* prob_lo   = geom.ProbLo();
+  auto geomdata = geom.data();
 
   int ngrow = filter_prim_T;
   int ncomp = State.nComp();
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  MultiFab mask(grids,dmap,1,ngrow);
-  mask.setVal(-1.0,ngrow);
-  mask.setVal( 0.0,0);
-  mask.FillBoundary(geom.periodicity());
-
-  if (level < parent->finestLevel())
-  {
-      BoxArray baf = parent->boxArray(level+1);
-      baf.coarsen(parent->refRatio(level));
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(mask); mfi.isValid(); ++mfi)
-      {
-          FArrayBox& mask_fab = mask[mfi];
-          const Box& mask_box = mask_fab.box();
-
-          const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
-
-          for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
-          }
-      }
-  }
 
   FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,0,ncomp);
   MultiFab& S_fp = fpi.get_mf();
@@ -2683,16 +2651,19 @@ void Radiation::filter_prim(int level, MultiFab& State)
   {
       const Box& bx = mfi.tilebox();
 
-      const RealBox& gridloc = RealBox(bx, dx, prob_lo);
-      const Real* xlo = gridloc.lo();
+      auto S_fp_arr = S_fp[mfi].array();
+      auto State_arr = State[mfi].array();
 
-      ca_filt_prim(bx.loVect(), bx.hiVect(),
-                   BL_TO_FORTRAN( S_fp[mfi]),
-                   BL_TO_FORTRAN(State[mfi]),
-                   BL_TO_FORTRAN( mask[mfi]),
-                   &filter_prim_T, &filter_prim_S,
-                   domain_lo, domain_hi,
-                   dx, xlo, prob_lo,
-                   &time, &level);
+      int T = filter_prim_T;
+      int S = filter_prim_S;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          filt_prim(i, j, k,
+                    S_fp_arr, State_arr,
+                    T, S,
+                    geomdata, time);
+      });
   }
 }

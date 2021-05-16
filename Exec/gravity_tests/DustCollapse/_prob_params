@@ -1,7 +1,3 @@
-r_old                  real            6.5e8_rt       y
-
-r_old_s                real            0.0_rt
-
 rho_0                  real            1.e9_rt        y
 
 rho_ambient            real            1.e0_rt        y
