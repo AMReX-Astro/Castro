@@ -12,6 +12,11 @@ void filt_prim (int i, int j, int k,
                 const GeometryData& geomdata,
                 Real time)
 {
+#ifndef AMREX_USE_GPU
+    // This filtering is only implemented in 1D today
+    AMREX_ALWAYS_ASSERT(AMREX_SPACEDIM == 1);
+#endif
+
     using namespace filter;
 
     bool filtered = false;
