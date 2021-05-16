@@ -46,13 +46,13 @@ void problem_initialize_state_data (int i, int j, int k, Array4<Real> const& sta
 
     Real avg_rho = 0.0_rt;
 
-    for (int kk = 0; kk < dg2 * problem::nsub; ++kk) {
+    for (int kk = 0; kk <= dg2 * (problem::nsub - 1); ++kk) {
         Real zz = zl + (static_cast<Real>(kk) + 0.5_rt) * dz_sub;
 
-        for (int jj = 0; jj < dg1 * problem::nsub; ++jj) {
+        for (int jj = 0; jj <= dg1 * (problem::nsub - 1); ++jj) {
             Real yy = yl + (static_cast<Real>(jj) + 0.5_rt) * dy_sub;
 
-            for (int ii = 0; ii < problem::nsub; ++ii) {
+            for (int ii = 0; ii <= (problem::nsub - 1); ++ii) {
                 Real xx = xl + (static_cast<Real>(ii) + 0.5_rt) * dx_sub;
 
                 Real dist = std::sqrt((xx - problem::center[0]) * (xx - problem::center[0]) +
