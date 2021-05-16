@@ -659,30 +659,41 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDI
     int nflx = flx.nComp();
     
     const Geometry& geom = parent->Geom(level);
+    auto geomdata = geom.data();
 
+    for (int idim = 0; idim < BL_SPACEDIM; idim++)
+    {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
-        Vector<Real> r, s;
-    
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-            for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
+        for (MFIter mfi(flx,true); mfi.isValid(); ++mfi)
+        {
+            const Box& bx = mfi.tilebox();
+
+            auto t = flx[mfi].array();
+            auto f = Flux[idim][mfi].array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
-                const Box &ccbx  = mfi.tilebox();
-                const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
+                int it = idim * NGROUPS + iflx;
 
-                getEdgeMetric(idim, geom, ndbx, r, s);
+                Real r_left, s_left;
+                edge_center_metric(i, j, k, idim, geomdata, r_left, s_left);
 
-                int rlo = ndbx.smallEnd(0);
-                int rhi = rlo + r.size() - 1;
+                Real r_right, s_right;
+                edge_center_metric(i+1, j, k, idim, geomdata, r_right, s_right);
 
-                ca_flux_face2center(ccbx.loVect(), ccbx.hiVect(),
-                                    BL_TO_FORTRAN(flx[mfi]),
-                                    BL_TO_FORTRAN(Flux[idim][mfi]),
-                                    r.dataPtr(), &rlo, &rhi, 
-                                    &nflx, &idim, &iflx);
-            }
+                if (idim == 0) {
+                    t(i,j,k,it) = (f(i,j,k) / (r_left + 1.e-50_rt) + f(i+1,j,k) / r_right) * 0.5_rt;
+                }
+                else if (idim == 1) {
+                    t(i,j,k,it) = (f(i,j,k) / r_left + f(i,j+1,k) / r_left) * 0.5_rt;
+                }
+                else {
+                    t(i,j,k,it) = (f(i,j,k) + f(i,j,k+1)) * 0.5_rt;
+                }
+            });
         }
     }
 }
