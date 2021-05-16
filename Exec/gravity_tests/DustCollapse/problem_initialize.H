@@ -27,12 +27,18 @@ void problem_initialize ()
     if (problo[0] != 0.0_rt) {
         amrex::Error("ERROR: xmin should be 0!");
     }
+
+#if AMREX_SPACEDIM >= 2
     if (problo[1] != 0.0_rt) {
         amrex::Error("ERROR: ymin should be 0!");
     }
+#endif
+
+#if AMREX_SPACEDIM == 3
     if (problo[2] != 0.0_rt) {
         amrex::Error("ERROR: zmin should be 0!");
     }
+#endif
 
     // set the composition to be uniform
     for (int n = 0; n < NumSpec; ++n) {
