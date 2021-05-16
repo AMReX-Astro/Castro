@@ -982,9 +982,8 @@ Castro::initData ()
 
     // Don't profile for this code, since there will be a lot of host
     // activity and GPU page faults that we're uninterested in.
-#ifdef AMREX_USE_CUDA
-    AMREX_GPU_SAFE_CALL(cudaProfilerStop());
-#endif
+
+    Gpu::Device::profilerStop();
 
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
@@ -1475,9 +1474,7 @@ Castro::initData ()
     }
 #endif
 
-#ifdef AMREX_USE_CUDA
-    AMREX_GPU_SAFE_CALL(cudaProfilerStart());
-#endif
+    Gpu::Device::profilerStart();
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Done initializing the level " << level << " data " << std::endl;
