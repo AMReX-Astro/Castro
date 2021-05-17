@@ -146,7 +146,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                     if (! converged_hse) {
                         std::cout << "ii, j, k, domlo[0]: " << ii << " " << j << " " << k << " " << domlo[0] << std::endl;
                         std::cout << "p_want:    " << p_want << std::endl;
@@ -331,7 +331,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "ii, j, k, domhi[0]: " << ii << " " << j << " " << k << " " << domhi[0] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -523,7 +523,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domlo[1]: " << i << " " << jj << " " << k << " " << domlo[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -709,7 +709,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, jj, k, domhi[1]: " << i << " " << jj << " " << k << " " << domhi[1] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -900,7 +900,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
 
                     }
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
                    if (! converged_hse) {
                        std::cout << "i, j, kk, domlo[2]: " << i << " " << j << " " << kk << " " << domlo[2] << std::endl;
                        std::cout << "p_want:    " << p_want << std::endl;
@@ -986,7 +986,7 @@ hse_fill(const Box& bx, Array4<Real> const& adv,
     if (bcr[URHO].hi(2) == EXT_DIR && hi[2] > domhi[2]) {
 
         if (zr_ext_bc_type == EXT_HSE) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
             amrex::Error("ERROR: HSE boundaries not implemented for +Z");
 #endif
         }

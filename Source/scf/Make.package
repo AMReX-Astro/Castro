@@ -1,7 +1,7 @@
 
 ifeq ($(USE_GRAV),TRUE)
 ifeq ($(USE_ROTATION),TRUE)
-ifneq ($(USE_CUDA),TRUE)
+ifneq ($(USE_GPU),TRUE)
   CEXE_sources += scf_relax.cpp
   FEXE_headers += scf_relax_F.H
 
