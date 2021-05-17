@@ -20,10 +20,4 @@ module prob_params_module
   ! the format is dg(1:dim) = 1, dg(dim+1:3) = 0
   integer, save, allocatable :: dg(:)
 
-  !$acc declare create(physbc_lo, physbc_hi)
-  !$acc declare create(dim)
-  !$acc declare create(dg)
-  !$acc declare create(coord_type)
-  !$acc declare create(problo, probhi)
-
 end module prob_params_module

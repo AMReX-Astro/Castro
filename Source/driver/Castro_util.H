@@ -7,6 +7,19 @@
 
 using namespace amrex;
 
+#if AMREX_SPACEDIM == 1
+constexpr int dg0 = 1;
+constexpr int dg1 = 0;
+constexpr int dg2 = 0;
+#elif AMREX_SPACEDIM == 2
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 0;
+#else
+constexpr int dg0 = 1;
+constexpr int dg1 = 1;
+constexpr int dg2 = 1;
+#endif
 
 AMREX_GPU_HOST_DEVICE AMREX_FORCE_INLINE
 int upassmap (int ipassive)
