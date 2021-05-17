@@ -70,4 +70,4 @@ amr.plot_int        = 10000    # number of timesteps between plotfiles
 amr.derive_plot_vars = NONE
 
 #PROBIN FILENAME
-amr.probin_file = probin.fullstar
+amr.probin_file = probin.fullstar.1d
