@@ -490,7 +490,7 @@ Castro::trace_ppm(const Box& bx,
 
       // Set the reference state
       // This will be the fastest moving state to the right
-      Real rho_ref = Ip_rho[2] + hdt * Ip_src_un_2;
+      Real rho_ref = Ip_rho[2] + hdt * Ip_src_rho_2;
       Real un_ref = Ip_un_2 + hdt * Ip_src_un_2;
 
       Real p_ref = Ip_p[2] + hdt * Ip_src_p[2];
