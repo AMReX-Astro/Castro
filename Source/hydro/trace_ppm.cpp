@@ -228,8 +228,14 @@ Castro::trace_ppm(const Box& bx,
 
     // density
 
+    Real Ip_src_rho_0 = 0.0_rt;
+    Real Im_src_rho_0 = 0.0_rt;
+
     Real Ip_src_rho_1 = 0.0_rt;
     Real Im_src_rho_1 = 0.0_rt;
+
+    Real Ip_src_rho_2 = 0.0_rt;
+    Real Im_src_rho_2 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QRHO];
@@ -240,7 +246,9 @@ Castro::trace_ppm(const Box& bx,
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QRHO, s);
         ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_rho_1, Im_src_rho_1);
+        ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdx, Ip_src_rho_0, Im_src_rho_0);
+        ppm_int_profile_single(sm, sp, s[i0], un,    dtdx, Ip_src_rho_1, Im_src_rho_1);
+        ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdx, Ip_src_rho_2, Im_src_rho_2);
     }
 
     // normal velcoity
@@ -282,8 +290,14 @@ Castro::trace_ppm(const Box& bx,
 
     // rho e
 
+    Real Ip_src_rhoe_0 = 0.0_rt;
+    Real Im_src_rhoe_0 = 0.0_rt;
+
     Real Ip_src_rhoe_1 = 0.0_rt;
     Real Im_src_rhoe_1 = 0.0_rt;
+
+    Real Ip_src_rhoe_2 = 0.0_rt;
+    Real Im_src_rhoe_2 = 0.0_rt;
 
 #ifndef AMREX_USE_GPU
     do_trace = do_source_trace[QREINT];
@@ -294,7 +308,9 @@ Castro::trace_ppm(const Box& bx,
     if (do_trace) {
         load_stencil(srcQ, idir, i, j, k, QREINT, s);
         ppm_reconstruct(s, flat, sm, sp);
-        ppm_int_profile_single(sm, sp, s[i0], un, dtdx, Ip_src_rhoe_1, Im_src_rhoe_1);
+        ppm_int_profile_single(sm, sp, s[i0], un-cc, dtdx, Ip_src_rhoe_0, Im_src_rhoe_0);
+        ppm_int_profile_single(sm, sp, s[i0], un,    dtdx, Ip_src_rhoe_1, Im_src_rhoe_1);
+        ppm_int_profile_single(sm, sp, s[i0], un+cc, dtdx, Ip_src_rhoe_2, Im_src_rhoe_2);
     }
 
     // transverse velocities
@@ -386,12 +402,18 @@ Castro::trace_ppm(const Box& bx,
       // Set the reference state
       // This will be the fastest moving state to the left --
       // this is the method that Miller & Colella and Colella &
-      // Woodward use
-      Real rho_ref = Im_rho[0];
-      Real un_ref = Im_un_0;
+      // Woodward use. These papers don't include the effect of
+      // the source term in constructing the reference state, but
+      // we do because the source term could be large relative to
+      // the current state (for example, consider the gravity term
+      // acting on a fluid that is initially uniformly at rest --
+      // the dt * g term will be the only non-zero contribution).
+      // We ignore the effect of the source term for gamma.
+      Real rho_ref = Im_rho[0] + hdt * Im_src_rho_0;
+      Real un_ref = Im_un_0 + hdt * Im_src_un_0;
 
-      Real p_ref = Im_p[0];
-      Real rhoe_g_ref = Im_rhoe[0];
+      Real p_ref = Im_p[0] + hdt * Im_src_p[0];
+      Real rhoe_g_ref = Im_rhoe[0] + hdt * Im_src_rhoe_0;
 
       Real gam_g_ref = Im_gc_0;
 
@@ -468,11 +490,11 @@ Castro::trace_ppm(const Box& bx,
 
       // Set the reference state
       // This will be the fastest moving state to the right
-      Real rho_ref = Ip_rho[2];
-      Real un_ref = Ip_un_2;
+      Real rho_ref = Ip_rho[2] + hdt * Ip_src_un_2;
+      Real un_ref = Ip_un_2 + hdt * Ip_src_un_2;
 
-      Real p_ref = Ip_p[2];
-      Real rhoe_g_ref = Ip_rhoe[2];
+      Real p_ref = Ip_p[2] + hdt * Ip_src_p[2];
+      Real rhoe_g_ref = Ip_rhoe[2] + hdt * Ip_src_rhoe_2;
 
       Real gam_g_ref = Ip_gc_2;
 
