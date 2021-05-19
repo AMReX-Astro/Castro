@@ -50,11 +50,7 @@ Castro::do_advance_ctu(Real time,
 
     initialize_do_advance(time);
 
-    // Zero out the source term data.
-
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
-    // Add any correctors to the source term data. This must be done
+    // Create any correctors to the source term data. This must be done
     // before the source term data is overwritten below. Note: we do
     // not create the corrector source if we're currently retrying the
     // step; we will already have done it, and aside from avoiding
@@ -63,15 +59,6 @@ Castro::do_advance_ctu(Real time,
 
     if (!in_retry) {
         create_source_corrector();
-    }
-
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        // Add the source term predictor (scaled by dt/2).
-        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        // Time center the sources.
-        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
     }
 
 #ifndef AMREX_USE_GPU
@@ -147,17 +134,15 @@ Castro::do_advance_ctu(Real time,
 #endif                
                       old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
-      // Apply the old sources to the sources for the hydro.
-      // Note that we are doing an add here, not a copy,
-      // in case we have already started with some source
-      // terms (e.g. the source term predictor, or the SDC source).
+      if (do_hydro) {
+          // Fill the ghost cells of old_source / Source_Type
 
-     if (do_hydro) {
-         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-     }
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+      }
+
 
     } else {
-      old_source.setVal(0.0, NUM_GROW);
+      old_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
@@ -295,7 +280,7 @@ Castro::do_advance_ctu(Real time,
 
     } else {
 
-      new_source.setVal(0.0, NUM_GROW);
+      new_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 

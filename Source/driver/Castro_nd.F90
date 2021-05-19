@@ -27,8 +27,6 @@ subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
 
   call microphysics_init(small_dens=small_dens, small_temp=small_temp)
 
-  !$acc update device(small_dens, small_temp)
-
 end subroutine ca_microphysics_init
 
 
@@ -50,136 +48,6 @@ subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abo
 
 end subroutine ca_set_abort_on_failure
 #endif
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine allocate_outflow_data(np,nc) &
-     bind(C, name="allocate_outflow_data")
-     !
-     ! Binds to C function `allocate_outflow_data`
-
-  use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: np,nc
-
-  if (.not. outflow_data_allocated) then
-     allocate(outflow_data_old(nc,np))
-     allocate(outflow_data_new(nc,np))
-  end if
-
-  outflow_data_allocated = .true.
-
-end subroutine allocate_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine set_old_outflow_data(radial,time,np,nc) &
-     bind(C, name="set_old_outflow_data")
-     ! Passing data from C++ to f90
-     !
-     ! Binds to C function `set_old_outflow_data`
-
-  use meth_params_module, only: outflow_data_old, outflow_data_old_time
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: radial(nc,np)
-  real(rt), intent(in) :: time
-  integer,  intent(in) :: np,nc
-
-  ! Do this so the routine has the right size
-  deallocate(outflow_data_old)
-  allocate(outflow_data_old(nc,np))
-
-  outflow_data_old(1:nc,1:np) = radial(1:nc,1:np)
-
-  outflow_data_old_time = time
-
-end subroutine set_old_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine set_new_outflow_data(radial,time,np,nc) &
-     bind(C, name="set_new_outflow_data")
-     ! Passing data from C++ to f90
-     !
-     ! Binds to C function `set_new_outflow_data`
-
-  use meth_params_module, only: outflow_data_new, outflow_data_new_time
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: radial(nc,np)
-  real(rt), intent(in) :: time
-  integer,  intent(in) :: np,nc
-
-  ! Do this so the routine has the right size
-  deallocate(outflow_data_new)
-  allocate(outflow_data_new(nc,np))
-
-  outflow_data_new(1:nc,1:np) = radial(1:nc,1:np)
-
-  outflow_data_new_time = time
-
-end subroutine set_new_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
-    !
-    ! Binds to C function `swap_outflow_data`
-    !
-
-  use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
-       outflow_data_old, outflow_data_old_time
-  use castro_error_module
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer :: np, nc
-
-  nc = size(outflow_data_new,dim=1)
-  np = size(outflow_data_new,dim=2)
-
-  if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
-     ! Do this so the routine has the right size
-     deallocate(outflow_data_old)
-     allocate(outflow_data_old(nc,np))
-  end if
-
-#ifndef AMREX_USE_CUDA
-  if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
-     print *,'size of old and new dont match in swap_outflow_data '
-     call castro_error("Error:: Castro_nd.f90 :: swap_outflow_data")
-  end if
-#endif
-
-  outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
-
-  if (outflow_data_new_time .ge. 0.e0_rt) &
-       outflow_data_old_time = outflow_data_new_time
-  outflow_data_new_time = -1.e0_rt
-
-end subroutine swap_outflow_data
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -208,12 +76,6 @@ subroutine ca_set_method_params(dm) &
 
   call bl_pd_is_ioproc(ioproc)
 
-#ifdef ROTATION
-  rot_vec = ZERO
-  rot_vec(rot_axis) = ONE
-#endif
-
-
   !---------------------------------------------------------------------
   ! safety checks
   !---------------------------------------------------------------------
@@ -240,8 +102,6 @@ subroutine ca_set_method_params(dm) &
      small_ener = 1.e-200_rt
   endif
 
-  !$acc update device(small_dens, small_temp, small_pres, small_ener)
-
 end subroutine ca_set_method_params
 
 
@@ -251,10 +111,10 @@ end subroutine ca_set_method_params
 
 
 
-subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-     coord_type_in, &
-     problo_in, probhi_in) &
-     bind(C, name="ca_set_problem_params")
+subroutine ca_set_problem_params(dm, &
+                                 coord_type_in, &
+                                 problo_in, probhi_in) &
+                                 bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
      ! Binds to C function `ca_set_problem_params`
@@ -263,30 +123,17 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
-#ifdef ROTATION
-  use meth_params_module, only: rot_axis
-#endif
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   integer,  intent(in) :: dm
-  integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
   allocate(dim)
 
   dim = dm
-
-  allocate(physbc_lo(3))
-  allocate(physbc_hi(3))
-
-  physbc_lo(:) = 0
-  physbc_hi(:) = 0
-
-  physbc_lo(1:dm) = physbc_lo_in(1:dm)
-  physbc_hi(1:dm) = physbc_hi_in(1:dm)
 
   allocate(coord_type)
   allocate(problo(3))
@@ -311,19 +158,6 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   if (dim .lt. 3) then
      dg(3) = 0
   endif
-
-#ifdef ROTATION
-  if (coord_type == 1) then
-     rot_axis = 2
-  endif
-#endif
-
-
-  !$acc update device(physbc_lo, physbc_hi)
-  !$acc update device(dim)
-  !$acc update device(dg)
-  !$acc update device(coord_type)
-  !$acc update device(problo, probhi)
 
 end subroutine ca_set_problem_params
 
@@ -454,11 +288,9 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_dxnuc_lev = -1
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call castro_error('probin file name too long')
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -475,9 +307,7 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
      call castro_error('ERROR: problem in the tagging namelist')
-#endif
   endif
 
   close (unit=un)
@@ -545,11 +375,9 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
   sponge_timescale    = -1.e0_rt
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call castro_error('probin file name too long')
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -565,9 +393,7 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
      call castro_error('ERROR: problem in the sponge namelist')
-#endif
   endif
 
   close (unit=un)
@@ -578,7 +404,6 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
 
   ! Sanity check
 
-#ifndef AMREX_USE_CUDA
   if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
      call castro_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
   endif
@@ -586,7 +411,6 @@ subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_para
   if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
      call castro_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
   endif
-#endif
 
 end subroutine ca_read_sponge_params
 
@@ -755,24 +579,3 @@ subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
   ambient_state_out(:) = ambient_state(:)
 
 end subroutine get_ambient_data
-
-
-
-#ifdef GRAVITY
-
-subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
-    !
-    ! pointmass_in real(rt)
-    !
-
-  use meth_params_module, only: point_mass
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: pointmass_in
-
-  point_mass = pointmass_in
-
-end subroutine set_pointmass
-#endif

@@ -968,44 +968,6 @@ subroutine ca_set_dterm_face(lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-
-subroutine ca_face2center(lo, hi, &
-                          scomp, dcomp, ncomp, nf, nc, &
-                          foox, foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3, &
-                          fooy, fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3, &
-                          fooz, fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3, &
-                          fooc, fooc_l1, fooc_l2, fooc_l3, fooc_h1, fooc_h2, fooc_h3) bind(C, name="ca_face2center")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(3), hi(3), scomp,dcomp,ncomp,nf,nc
-  integer, intent(in) :: foox_l1, foox_l2, foox_l3, foox_h1, foox_h2, foox_h3
-  integer, intent(in) :: fooy_l1, fooy_l2, fooy_l3, fooy_h1, fooy_h2, fooy_h3
-  integer, intent(in) :: fooz_l1, fooz_l2, fooz_l3, fooz_h1, fooz_h2, fooz_h3
-  integer, intent(in) :: fooc_l1, fooc_l2, fooc_l3, fooc_h1, fooc_h2, fooc_h3
-  real(rt)        , intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2,foox_l3:foox_h3,0:nf-1)
-  real(rt)        , intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2,fooy_l3:fooy_h3,0:nf-1)
-  real(rt)        , intent(in)  :: fooz(fooz_l1:fooz_h1,fooz_l2:fooz_h2,fooz_l3:fooz_h3,0:nf-1)
-  real(rt)                      :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,fooc_l3:fooc_h3,0:nc-1)
-
-  integer :: i,j,k,n
-
-  do n = 0, ncomp-1
-     do k = lo(3), hi(3)
-        do j = lo(2), hi(2)
-           do i = lo(1), hi(1)
-              fooc(i,j,k,dcomp+n) = (foox(i,j,k,scomp+n) + foox(i+1,j,k,scomp+n) &
-                   &               + fooy(i,j,k,scomp+n) + fooy(i,j+1,k,scomp+n) &
-                   &               + fooz(i,j,k,scomp+n) + fooz(i,j,k+1,scomp+n) ) * (1.e0_rt/6.e0_rt);
-           end do
-        end do
-     end do
-  end do
-
-end subroutine ca_face2center
-
-
 subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_l3, dfx_h1, dfx_h2, dfx_h3, &
                             dfy, dfy_l1, dfy_l2, dfy_l3, dfy_h1, dfy_h2, dfy_h3, &
@@ -1024,61 +986,3 @@ subroutine ca_correct_dterm(  &
   real(rt)        , intent(in) :: re(1), rc(1)
 
 end subroutine ca_correct_dterm
-
-
-subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_l3,u_h1,u_h2,u_h3, &
-     gpr,gpr_l1,gpr_l2,gpr_l3,gpr_h1,gpr_h2,gpr_h3, &
-     dx,dt) bind(C)
-
-  use network, only : nspec, naux
-  use eos_module, only : eos
-  use eos_type_module, only: eos_t, eos_input_re
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UMZ, UEINT, UTEMP, UFS, &
-       UFX
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer          :: u_l1,u_l2,u_l3,u_h1,u_h2,u_h3
-  integer          :: gpr_l1,gpr_l2,gpr_l3,gpr_h1,gpr_h2,gpr_h3
-  integer          :: lo(3), hi(3)
-  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,u_l3:u_h3,NVAR)
-  real(rt)         :: gpr(gpr_l1:gpr_h1,gpr_l2:gpr_h2,gpr_l3:gpr_h3)
-  real(rt)         :: dx(3), dt
-
-  real(rt)         :: rhoInv,ux,uy,uz,dt1,dt2,dt3,c
-  integer          :: i,j,k
-  type(eos_t) :: eos_state
-
-  ! Translate to primitive variables, compute sound speed (call eos)
-  do k = lo(3),hi(3)
-     do j = lo(2),hi(2)
-        do i = lo(1),hi(1)
-
-           rhoInv = 1.e0_rt/u(i,j,k,URHO)
-
-           eos_state % rho = u(i,j,k,URHO)
-           eos_state % T   = u(i,j,k,UTEMP)
-           eos_state % e   = u(i,j,k,UEINT)*rhoInv
-           eos_state % xn  = u(i,j,k,UFS:UFS+nspec-1) * rhoInv
-           eos_state % aux = u(i,j,k,UFX:UFX+naux -1) * rhoInv
-
-           call eos(eos_input_re, eos_state)
-           c = eos_state % cs
-
-           c = sqrt(c**2 + gpr(i,j,k)*rhoInv)
-
-           ux = u(i,j,k,UMX)*rhoInv
-           uy = u(i,j,k,UMY)*rhoInv
-           uz = u(i,j,k,UMZ)*rhoInv
-
-           dt1 = dx(1)/(c + abs(ux))
-           dt2 = dx(2)/(c + abs(uy))
-           dt3 = dx(3)/(c + abs(uz))
-           dt = min(dt,dt1,dt2,dt3)
-
-        enddo
-     enddo
-  enddo
-
-end subroutine ca_estdt_rad

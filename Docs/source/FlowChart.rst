@@ -324,15 +324,7 @@ In the code, the objective is to evolve the state from the old time,
 
    A. In ``initialize_do_advance()``, create ``Sborder``, initialized from ``S_old``
 
-   B. If ``source_term_predictor == 1``, then aply
-      ``source_corrector`` to ``sources_for_hydro``.  For Strang+CTU,
-      this was the effect of initializing the source terms as:
-
-      .. math::
-
-         \Sb = \frac{dt}{2} (d\Sb/dt)^{n-1/2}
-
-   C. Check for NaNs in the initial state, ``S_old``.
+   B. Check for NaNs in the initial state, ``S_old``.
 
 
 #. *React* :math:`\Delta t/2` [``strang_react_first_half()`` ]
@@ -746,8 +738,6 @@ do ``FillPatch`` operations.
        ``StateData``, ``old_source``.
 
      * Convert the sources to 4th order averages if needed.
-
-     * ``sources_for_hydro`` :math:`\leftarrow` ``old_source``
 
      * Convert the conserved variables to primitive variables
 

@@ -52,7 +52,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             for (int n = 0; n < BL_SPACEDIM; ++n) {
                 comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
-                comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
+                MultiFab::Copy(*comp_gphi[n], *gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
             }
 
         }
@@ -87,8 +87,9 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-            for (int n = 0; n < BL_SPACEDIM; ++n)
-                gravity->get_grad_phi_prev(level)[n]->copy(*comp_gphi[n], 0, 0, 1);
+            for (int n = 0; n < BL_SPACEDIM; ++n) {
+                MultiFab::Copy(*gravity->get_grad_phi_prev(level)[n], *comp_gphi[n], 0, 0, 1, 0);
+            }
 
         }
 

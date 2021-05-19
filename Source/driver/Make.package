@@ -7,7 +7,7 @@ CEXE_sources += runparams_defaults.cpp
 CEXE_sources += Castro_advance.cpp
 CEXE_sources += Castro_advance_ctu.cpp
 ifeq ($(USE_TRUE_SDC), TRUE)
-ifneq ($(USE_CUDA), TRUE)
+ifneq ($(USE_GPU), TRUE)
   CEXE_sources += Castro_advance_sdc.cpp
 endif
 endif
@@ -35,8 +35,6 @@ CEXE_sources += Castro_generic_fill.cpp
 
 ca_F90EXE_sources += Castro_nd.F90
 CEXE_headers      += Castro_util.H
-ca_F90EXE_sources += Castro_util_nd.F90
-ca_F90EXE_sources += io_nd.F90
 CEXE_headers      += math.H
 ca_F90EXE_sources += meth_params_nd.F90
 ca_F90EXE_sources += state_indices_nd.F90

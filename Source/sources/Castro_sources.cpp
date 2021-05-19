@@ -177,7 +177,7 @@ Castro::do_new_sources(
 
     const Real strt_time = ParallelDescriptor::second();
 
-    source.setVal(0.0, NUM_GROW);
+    source.setVal(0.0, NUM_GROW_SRC);
 
     // Construct the new-time source terms.
 

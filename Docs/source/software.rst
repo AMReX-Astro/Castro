@@ -342,15 +342,6 @@ with the ``StateData`` using one of these keys. For instance::
 gets a pointer to the ``MultiFab`` containing the hydrodynamics state data
 at the new time.
 
-Various source ``MultiFabs``
-----------------------------
-
-There are a number of different ``MultiFabs`` (and arrays of ``MultiFabs``)
-that hold source term information.
-
--  ``sources_for_hydro`` : a single ``MultiFab`` that stores
-   the sum of sources over each physical process.
-
 ``MFIter`` and interacting with Fortran
 =======================================
 

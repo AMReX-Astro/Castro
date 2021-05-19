@@ -239,30 +239,6 @@ subroutine ca_set_dterm_face( lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-subroutine ca_face2center( lo, hi, &
-     scomp, dcomp, ncomp, nx, nc, &
-     foox, foox_l1, foox_h1, &
-     fooc, fooc_l1, fooc_h1) bind(C, name="ca_face2center")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1), scomp,dcomp,ncomp,nx,nc
-  integer, intent(in) :: foox_l1, foox_h1
-  integer, intent(in) :: fooc_l1, fooc_h1
-  real(rt)        , intent(in) :: foox(foox_l1:foox_h1,0:nx-1)
-  real(rt)                     :: fooc(fooc_l1:fooc_h1,0:nc-1)
-
-  integer :: i, n
-
-  do n = 0, ncomp-1
-     do i=lo(1), hi(1)
-        fooc(i,dcomp+n) = (foox(i,scomp+n) + foox(i+1,scomp+n)) * 0.5e0_rt;
-     end do
-  end do
-
-end subroutine ca_face2center
-
 ! no tiling
 subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
      re, rc) bind(C, name="ca_correct_dterm")
@@ -281,50 +257,3 @@ subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
   end do
 
 end subroutine ca_correct_dterm
-
-subroutine ca_estdt_rad(lo, hi, u,u_l1,u_h1, gpr,gpr_l1,gpr_h1, &
-  dx,dt) bind(C)
-
-  use network, only : nspec, naux
-  use eos_module, only : eos
-  use eos_type_module, only : eos_t, eos_input_re
-  use meth_params_module, only : NVAR, URHO, UMX, UEINT, UTEMP, UFS, UFX
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer u_l1,u_h1
-  integer gpr_l1,gpr_h1
-  integer lo(1), hi(1)
-  real(rt)         u(u_l1:u_h1,NVAR)
-  real(rt)         gpr(gpr_l1:gpr_h1)
-  real(rt)         dx(1), dt
-
-  real(rt)         :: rhoInv,ux,dt1,c
-  integer          :: i
-  type(eos_t) :: eos_state
-
-  !     Translate to primitive variables, compute sound speed (call eos), get dtmax
-  do i = lo(1),hi(1)
-
-     rhoInv = 1.e0_rt / u(i,URHO)
-
-     eos_state % rho = u(i,URHO)
-     eos_state % T   = u(i,UTEMP)
-     eos_state % e   = u(i,UEINT)*rhoInv
-     eos_state % xn  = u(i,UFS:UFS+nspec-1) * rhoInv
-     eos_state % aux = u(i,UFX:UFX+naux-1) * rhoInv
-
-     call eos(eos_input_re, eos_state)
-     c = eos_state % cs
-
-     c = sqrt(c**2 + gpr(i)*rhoInv)
-
-     ux = u(i,UMX)*rhoInv
-
-     dt1 = dx(1) /( c + abs(ux) )
-     dt  = min(dt,dt1)
-
-  enddo
-
-end subroutine ca_estdt_rad
-

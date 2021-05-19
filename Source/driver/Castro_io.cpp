@@ -54,11 +54,12 @@ using namespace amrex;
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
+// 10: Reactions_Type was removed from checkpoints
 
 namespace
 {
     int input_version = -1;
-    int current_version = 9;
+    int current_version = 10;
 }
 
 // I/O routines for Castro
@@ -181,7 +182,6 @@ Castro::restart (Amr&     papa,
 
         if (PMFile.good()) {
             PMFile >> point_mass;
-            set_pointmass(&point_mass);
             PMFile.close();
         }
 
@@ -318,7 +318,6 @@ Castro::restart (Amr&     papa,
        MultiFab& S_new = get_new_data(State_Type);
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
-       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }

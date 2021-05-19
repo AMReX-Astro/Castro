@@ -106,14 +106,13 @@ ifeq ($(USE_MPI), TRUE)
   MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
 endif
 
-ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DCUDA
+ifeq ($(USE_GPU),TRUE)
   CUDA_VERBOSE = FALSE
 
   # We don't currently support host-side OpenMP being enabled
-  # when using CUDA. Throw an error to prevent this case.
+  # when using GPUs. Throw an error to prevent this case.
   ifeq ($(USE_OMP),TRUE)
-    $(error OpenMP is not supported by Castro when building with CUDA)
+    $(error OpenMP is not supported by Castro when building with GPU support)
   endif
 endif
 

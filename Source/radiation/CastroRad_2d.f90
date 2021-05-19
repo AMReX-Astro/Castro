@@ -495,38 +495,6 @@ subroutine ca_set_dterm_face(lo, hi, &
 
 end subroutine ca_set_dterm_face
 
-
-subroutine ca_face2center(lo, hi, &
-                          scomp, dcomp, ncomp, nf, nc, &
-                          foox, foox_l1, foox_l2, foox_h1, foox_h2, &
-                          fooy, fooy_l1, fooy_l2, fooy_h1, fooy_h2, &
-                          fooc, fooc_l1, fooc_l2, fooc_h1, fooc_h2) bind(C, name="ca_face2center")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(2), hi(2), scomp,dcomp,ncomp,nf,nc
-  integer, intent(in) :: foox_l1, foox_l2, foox_h1, foox_h2
-  integer, intent(in) :: fooy_l1, fooy_l2, fooy_h1, fooy_h2
-  integer, intent(in) :: fooc_l1, fooc_l2, fooc_h1, fooc_h2
-  real(rt)        , intent(in)  :: foox(foox_l1:foox_h1,foox_l2:foox_h2,0:nf-1)
-  real(rt)        , intent(in)  :: fooy(fooy_l1:fooy_h1,fooy_l2:fooy_h2,0:nf-1)
-  real(rt)                      :: fooc(fooc_l1:fooc_h1,fooc_l2:fooc_h2,0:nc-1)
-
-  integer :: i,j,n
-
-  do n = 0, ncomp-1
-     do j=lo(2), hi(2)
-        do i=lo(1), hi(1)
-           fooc(i,j,dcomp+n) = (foox(i,j,scomp+n) + foox(i+1,j,scomp+n) &
-                &             + fooy(i,j,scomp+n) + fooy(i,j+1,scomp+n)) * 0.25e0_rt
-        end do
-     end do
-  end do
-
-end subroutine ca_face2center
-
-
 ! no tiling
 subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_h1, dfx_h2, &
@@ -557,55 +525,3 @@ subroutine ca_correct_dterm(  &
   end do
 
 end subroutine ca_correct_dterm
-
-
-subroutine ca_estdt_rad(lo, hi, u,u_l1,u_l2,u_h1,u_h2, &
-                        gpr,gpr_l1,gpr_l2,gpr_h1,gpr_h2, &
-                        dx,dt) bind(C)
-
-  use network, only : nspec, naux
-  use eos_module, only : eos
-  use eos_type_module, only: eos_t, eos_input_re
-  use meth_params_module, only : NVAR, URHO, UMX, UMY, UEINT, UTEMP, UFS, UFX
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer          :: u_l1,u_l2,u_h1,u_h2
-  integer          :: gpr_l1,gpr_l2,gpr_h1,gpr_h2
-  integer          :: lo(2), hi(2)
-  real(rt)         :: u(u_l1:u_h1,u_l2:u_h2,NVAR)
-  real(rt)         :: gpr(gpr_l1:gpr_h1,gpr_l2:gpr_h2)
-  real(rt)         :: dx(2),dt
-
-  real(rt)         :: rhoInv,ux,uy,dt1,dt2,c
-  integer          :: i,j
-  type(eos_t) :: eos_state
-
-  !    Translate to primitive variables, compute sound speed (call eos), get dtmax
-  do j = lo(2),hi(2)
-     do i = lo(1),hi(1)
-
-        rhoInv = 1.e0_rt / u(i,j,URHO)
-
-        eos_state % rho = u(i,j,URHO)
-        eos_state % T   = u(i,j,UTEMP)
-        eos_state % e   = u(i,j,UEINT)*rhoInv
-        eos_state % xn  = u(i,j,UFS:UFS+nspec-1) * rhoInv
-        eos_state % aux = u(i,j,UFX:UFX+naux -1) * rhoInv
-
-        call eos(eos_input_re, eos_state)
-        c = eos_state % cs
-
-        c = sqrt(c**2 + gpr(i,j)*rhoInv)
-
-        ux = u(i,j,UMX)*rhoInv
-        uy = u(i,j,UMY)*rhoInv
-
-        dt1 = dx(1)/(c + abs(ux))
-        dt2 = dx(2)/(c + abs(uy))
-        dt = min(dt,dt1,dt2)
-     enddo
-  enddo
-
-end subroutine ca_estdt_rad

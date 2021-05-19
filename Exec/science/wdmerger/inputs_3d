@@ -223,9 +223,6 @@ integrator.call_eos_in_rhs = 1
 integrator.rtol_spec = 1.0e-6
 integrator.atol_spec = 1.0e-6
 
-integrator.rtol_temp = 1.0e-6
-integrator.atol_temp = 1.0e-6
-
 integrator.rtol_enuc = 1.0e-6
 integrator.atol_enuc = 1.0e-6
 

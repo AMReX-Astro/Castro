@@ -11,6 +11,7 @@
 #include <castro_params.H>
 #include <prob_parameters.H>
 #include <prob_parameters_F.H>
+#include <Castro_util.H>
 
 using namespace castro;
 
@@ -125,25 +126,6 @@ enum int_method { CornerTransportUpwind = 0,
                   SpectralDeferredCorrections,
                   SimplifiedSpectralDeferredCorrections
                 };
-
-
-#if AMREX_SPACEDIM == 1
-constexpr int dg0 = 1;
-constexpr int dg1 = 0;
-constexpr int dg2 = 0;
-
-#elif AMREX_SPACEDIM == 2
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 0;
-
-#else
-constexpr int dg0 = 1;
-constexpr int dg1 = 1;
-constexpr int dg2 = 1;
-
-#endif
-
 
 // Struct that returns information about
 // why an advance failed.
@@ -596,6 +578,13 @@ public:
     amrex::Real estdt_burning();
 #endif
 
+#ifdef RADIATION
+///
+/// Radiation hydro timestep
+///
+    amrex::Real estdt_rad ();
+#endif
+
 ///
 /// Compute initial time step.
 ///
@@ -790,8 +779,6 @@ public:
                  amrex::Real               time,
                  amrex::MultiFab&          mf,
                  int                dcomp) override;
-
-    static int numGrow();
 
 
 #ifdef REACTIONS
@@ -1316,12 +1303,6 @@ protected:
 
 
 ///
-/// Source terms to the hydrodynamics solve.
-///
-    amrex::MultiFab sources_for_hydro;
-
-
-///
 /// Source term corrector.
 ///
     amrex::MultiFab source_corrector;
@@ -1449,6 +1430,7 @@ protected:
     static int              num_err_list_default;
     static amrex::BCRec     phys_bc;
     static int       NUM_GROW;
+    static int       NUM_GROW_SRC;
 
     static int         lastDtPlotLimited;
     static amrex::Real lastDtBeforePlotLimiting;
@@ -1546,13 +1528,6 @@ public:
 //
 // Inlines.
 //
-
-inline
-int
-Castro::numGrow()
-{
-    return NUM_GROW;
-}
 
 inline
 amrex::MultiFab*

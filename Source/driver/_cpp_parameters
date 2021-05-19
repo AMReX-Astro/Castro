@@ -245,43 +245,43 @@ ambient_safety_factor        Real          1.1e0
 
 # integration order for SDC integration
 # valid options are 2 and 4
-sdc_order                    int           2                  y
+sdc_order                    int           2
 
 # which quadrature type to use with SDC?  0 = Gauss-Lobatto, 1 = Radau
-sdc_quadrature               int           0                  y
+sdc_quadrature               int           0
 
 # number of extra SDC iterations to take beyond the order.  This only applies
 # for true SDC.
-sdc_extra                    int           0                  y
+sdc_extra                    int           0
 
 # which SDC nonlinear solver to use?  1 = Newton, 2 = VODE, 3 = VODE for first iter
-sdc_solver                   int           1                  y
+sdc_solver                   int           1
 
 # relative tolerance for the nonlinear solve on rho with SDC
-sdc_solver_tol_dens           Real          1.e-6              y
+sdc_solver_tol_dens           Real          1.e-6
 
 # relative tolerance for the nonlinear solve on rho X_k with SDC
-sdc_solver_tol_spec           Real          1.e-6              y
+sdc_solver_tol_spec           Real          1.e-6
 
 # relative tolerance for the nonlinear solve on (rho e) or (rho E) with SDC
-sdc_solver_tol_ener           Real          1.e-6              y
+sdc_solver_tol_ener           Real          1.e-6
 
 # absolute tolerance for species with SDC (this will be multiplied by
 # the current rho in the zone to define the absolute tolerance on (rho
 # X)).
-sdc_solver_atol               Real          1.e-10              y
+sdc_solver_atol               Real          1.e-10
 
 # factor by which to reduce the SDC solver tol for each iteration before the last
 # (e.g., for iteration k out of kmax iterations, the tol is
 # :math:`\epsilon/f^{(k_\mathrm{max} - k)}`
-sdc_solver_relax_factor      Real          1.0                y
+sdc_solver_relax_factor      Real          1.0
 
 # do we solve for (rho e) or (rho E) in the SDC nonlinear solve?
-sdc_solve_for_rhoe           int           1                  y
+sdc_solve_for_rhoe           int           1
 
 # do we use the analytic or numerical Jacobian for the Newton-Raphson solver?
 # for the VODE solver, we use integrator.jacobian instead
-sdc_use_analytic_jac         int           1                  y
+sdc_use_analytic_jac         int           1
 
 # for 2-d axisymmetry, do we include the geometry source terms from Bernand-Champmartin?
 use_axisymmetric_geom_source int           1
@@ -370,16 +370,16 @@ dtnuc_X_threshold            Real          1.e-3
 do_react                     int          -1
 
 # minimum temperature for allowing reactions to occur in a zone
-react_T_min                  Real          0.0                y
+react_T_min                  Real          0.0
 
 # maximum temperature for allowing reactions to occur in a zone
-react_T_max                  Real          1.e200             y
+react_T_max                  Real          1.e200
 
 # minimum density for allowing reactions to occur in a zone
-react_rho_min                Real          0.0                y
+react_rho_min                Real          0.0
 
 # maximum density for allowing reactions to occur in a zone
-react_rho_max                Real          1.e200             y
+react_rho_max                Real          1.e200
 
 # disable burning inside hydrodynamic shock regions
 disable_shock_burning        int           0
@@ -387,9 +387,6 @@ disable_shock_burning        int           0
 # initial guess for the temperature when inverting the EoS (e.g. when
 # calling eos_input_re)
 T_guess                     Real           1.e8               y
-
-# maximum level to do an explicit burn on (above this, we interpolate the reactions source)
-reactions_max_solve_level    int           100
 
 #-----------------------------------------------------------------------------
 # category: diffusion
@@ -453,13 +450,13 @@ rot_source_type              int           4                  n        ROTATION
 implicit_rotation_update     int           1                  n        ROTATION
 
 # the coordinate axis (:math:`x=1`, :math:`y=2`, :math:`z=3`) for the rotation vector
-rot_axis                     int           3                  y        ROTATION
+rot_axis                     int           3                  n        ROTATION
 
 # include a central point mass
 use_point_mass               int           0                  n        GRAVITY
 
 # mass of the point mass
-point_mass                   Real          0.0                y        GRAVITY
+point_mass                   Real          0.0                n        GRAVITY
 
 # if we have a central point mass, we can prevent mass from building
 # up in the zones adjacent to it by keeping their density constant and
