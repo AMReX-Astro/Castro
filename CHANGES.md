@@ -1,5 +1,11 @@
 # 21.06
 
+   * Starting with this release, problem setups written in Fortran are
+     no longer supported and will no longer work. Please consult the
+     code documentation and example problem setups in Exec/ to understand
+     the new problem setup format. If you need help converting a Fortran
+     setup to C++, please file an issue. (#1728)
+
    * The update_sponge_params hook has been removed. (#1716)
 
    * We no longer store Reactions_Type in checkpoint files.  This means
