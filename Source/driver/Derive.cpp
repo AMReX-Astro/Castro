@@ -35,7 +35,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -122,7 +122,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -157,7 +157,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -192,7 +192,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -228,7 +228,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -263,7 +263,7 @@ extern "C"
 
         Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
-        eos_t eos_state;
+        eos_rep_t eos_state;
         eos_state.rho  = dat(i,j,k,URHO);
         eos_state.T = dat(i,j,k,UTEMP);
         eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -468,7 +468,7 @@ extern "C"
           Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
 
           // calculate the sound speed
-          eos_t eos_state;
+          eos_rep_t eos_state;
           eos_state.rho  = dat(i,j,k,URHO);
           eos_state.T = dat(i,j,k,UTEMP);
           eos_state.e = dat(i,j,k,UEINT) * rhoInv;
@@ -1255,6 +1255,39 @@ extern "C"
     });
   }
 
+#endif
+
+#ifdef NSE
+  void ca_dernse(const Box& bx, FArrayBox& derfab, int /*dcomp*/, int /*ncomp*/,
+                  const FArrayBox& datfab, const Geometry& /*geomdata*/,
+                  Real /*time*/, const int* /*bcrec*/, int /*level*/)
+  {
+
+    auto const dat = datfab.array();
+    auto const der = derfab.array();
+
+    amrex::ParallelFor(bx,
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+    {
+      Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
+
+      eos_t eos_state;
+      eos_state.rho  = dat(i,j,k,URHO);
+      eos_state.T = dat(i,j,k,UTEMP);
+      eos_state.e = dat(i,j,k,UEINT) * rhoInv;
+      for (int n = 0; n < NumSpec; n++) {
+        eos_state.xn[n] = dat(i,j,k,UFS+n) * rhoInv;
+      }
+#if NAUX_NET > 0
+      for (int n = 0; n < NumAux; n++) {
+        eos_state.aux[n] = dat(i,j,k,UFX+n) * rhoInv;
+      }
+#endif
+
+      eos(eos_input_re, eos_state);
+      der(i,j,k,0) = in_nse(eos_state);
+    });
+  }
 #endif
 
 

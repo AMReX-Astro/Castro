@@ -39,14 +39,15 @@ castro.riemann_solver = 1
 
 gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
+castro.grav_source_type = 4
 
 
 castro.cfl            = 0.7     # cfl number for hyperbolic system
-castro.init_shrink    = 0.001     # scale back initial timestep by this factor
-castro.change_max     = 1.1    # factor by which dt is allowed to change each timestep
+castro.init_shrink    = 0.01     # scale back initial timestep by this factor
+castro.change_max     = 1.2    # factor by which dt is allowed to change each timestep
 castro.sum_interval   = 0       # timesteps between computing and printing volume averages
 
-castro.dtnuc_e = 0.25
+#castro.dtnuc_e = 0.25
 #castro.dtnuc_X = 0.25
 
 amr.ref_ratio       = 2 2 2 2 # refinement ratio

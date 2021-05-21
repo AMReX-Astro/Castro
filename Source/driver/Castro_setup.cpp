@@ -10,7 +10,7 @@
 #include <Derive.H>
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
+#include <RadDerive.H>
 #include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
@@ -284,17 +284,28 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  // Initialize the amr info
-  amrinfo_init();
-
 
   const int dm = BL_SPACEDIM;
 
-  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic
+  // portions -- note that this includes the flattening, which
+  // generally requires 4 ghost cells
 #ifdef MHD
   NUM_GROW = 6;
 #else
   NUM_GROW = 4;
+#endif
+
+  // NUM_GROW_SRC is for quantities that will be reconstructed, but
+  // don't need the full stencil required for flattening
+#ifdef MHD
+  NUM_GROW_SRC = 6;
+#else
+  if (time_integration_method == SpectralDeferredCorrections) {
+      NUM_GROW_SRC = NUM_GROW;
+  } else {
+      NUM_GROW_SRC = 3;
+  }
 #endif
 
   const Real run_strt = ParallelDescriptor::second() ;
@@ -314,9 +325,9 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi());
+  ca_set_problem_params(dm,
+                        coord_type,
+                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
@@ -409,12 +420,12 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
+                         StateDescriptor::Point,NUM_GROW_SRC,3,
                          interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
-  // tracing on the source terms, we need NUM_GROW ghost cells to do
+  // tracing on the source terms, we need NUM_GROW_SRC ghost cells to do
   // the reconstruction.  For SDC, on the other hand, we only
   // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
   // advance, so it behaves the same way as CTU here.
@@ -422,11 +433,11 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      source_ng = NUM_GROW;
+      source_ng = NUM_GROW_SRC;
   }
   else if (time_integration_method == SpectralDeferredCorrections) {
     if (sdc_order == 2 && use_pslope) {
-      source_ng = NUM_GROW;
+      source_ng = NUM_GROW_SRC;
     } else {
       source_ng = 1;
     }
@@ -452,7 +463,7 @@ Castro::variableSetUp ()
   // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
   // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
-  store_in_checkpoint = true;
+  store_in_checkpoint = false;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
                          interp,state_data_extrap,store_in_checkpoint);
@@ -466,7 +477,7 @@ Castro::variableSetUp ()
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW, NQSRC,
+                             StateDescriptor::Point, NUM_GROW_SRC, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
@@ -1022,6 +1033,11 @@ Castro::variableSetUp ()
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
+#endif
+
+#ifdef NSE
+  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
+  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //

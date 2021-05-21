@@ -285,12 +285,45 @@ void RadSolve::levelSPas(int level, Array<MultiFab, BL_SPACEDIM>& lambda, int ig
       }
     
       if (nexttoboundary) {
-          ca_spalpha(reg.loVect(), reg.hiVect(),
-                     BL_TO_FORTRAN(spa[mfi]),
-                     D_DECL(BL_TO_FORTRAN(lambda[0][mfi]),
-                            BL_TO_FORTRAN(lambda[1][mfi]),
-                            BL_TO_FORTRAN(lambda[2][mfi])),
-                     &igroup);
+          auto spa_arr = spa[mfi].array();
+
+          auto lmx = lambda[0][mfi].array();
+#if AMREX_SPACEDIM >= 2
+          auto lmy = lambda[1][mfi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+          auto lmz = lambda[2][mfi].array();
+#endif
+
+          int limiter = Radiation::limiter;
+
+          amrex::ParallelFor(reg,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              Real lam;
+
+              if (i == reg.loVect()[0] || i == reg.hiVect()[0] ||
+                  j == reg.loVect()[1] || j == reg.hiVect()[1] ||
+                  k == reg.hiVect()[2] || k == reg.hiVect()[2]) {
+#if AMREX_SPACEDIM == 1
+                  if (i == reg.loVect()[0]) {
+                      lam = lmx(i,j,k,igroup);
+                  }
+                  else {
+                      lam = lmx(i+1,j,k,igroup);
+                  }
+#elif AMREX_SPACEDIM == 2
+                  lam = 0.25_rt * (lmx(i,j,k,igroup) + lmx(i+1,j  ,k,igroup) +
+                                   lmy(i,j,k,igroup) + lmy(i  ,j+1,k,igroup));
+#else
+                  lam = (lmx(i,j,k,igroup) + lmx(i+1,j  ,k  ,igroup) +
+                         lmy(i,j,k,igroup) + lmy(i  ,j+1,k  ,igroup) +
+                         lmz(i,j,k,igroup) + lmz(i  ,j  ,k+1,igroup)) / 6.e0_rt;
+#endif
+
+                  spa_arr(i,j,k) = FLDalpha(lam, limiter);
+              }
+          });
       }
   }
 
@@ -626,30 +659,41 @@ void RadSolve::levelFluxFaceToCenter(int level, const Array<MultiFab, BL_SPACEDI
     int nflx = flx.nComp();
     
     const Geometry& geom = parent->Geom(level);
+    auto geomdata = geom.data();
 
+    for (int idim = 0; idim < BL_SPACEDIM; idim++)
+    {
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
-    {
-        Vector<Real> r, s;
-    
-        for (int idim = 0; idim < BL_SPACEDIM; idim++) {
-            for (MFIter mfi(flx,true); mfi.isValid(); ++mfi) 
+        for (MFIter mfi(flx,true); mfi.isValid(); ++mfi)
+        {
+            const Box& bx = mfi.tilebox();
+
+            auto t = flx[mfi].array();
+            auto f = Flux[idim][mfi].array();
+
+            amrex::ParallelFor(bx,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
-                const Box &ccbx  = mfi.tilebox();
-                const Box &ndbx = amrex::surroundingNodes(ccbx, idim);
+                int it = idim * NGROUPS + iflx;
 
-                getEdgeMetric(idim, geom, ndbx, r, s);
+                Real r_left, s_left;
+                edge_center_metric(i, j, k, idim, geomdata, r_left, s_left);
 
-                int rlo = ndbx.smallEnd(0);
-                int rhi = rlo + r.size() - 1;
+                Real r_right, s_right;
+                edge_center_metric(i+1, j, k, idim, geomdata, r_right, s_right);
 
-                ca_flux_face2center(ccbx.loVect(), ccbx.hiVect(),
-                                    BL_TO_FORTRAN(flx[mfi]),
-                                    BL_TO_FORTRAN(Flux[idim][mfi]),
-                                    r.dataPtr(), &rlo, &rhi, 
-                                    &nflx, &idim, &iflx);
-            }
+                if (idim == 0) {
+                    t(i,j,k,it) = (f(i,j,k) / (r_left + 1.e-50_rt) + f(i+1,j,k) / r_right) * 0.5_rt;
+                }
+                else if (idim == 1) {
+                    t(i,j,k,it) = (f(i,j,k) / r_left + f(i,j+1,k) / r_left) * 0.5_rt;
+                }
+                else {
+                    t(i,j,k,it) = (f(i,j,k) + f(i,j,k+1)) * 0.5_rt;
+                }
+            });
         }
     }
 }
@@ -862,16 +906,31 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
       for (MFIter fi(Dterm,true); fi.isValid(); ++fi) {
           const Box& bx = fi.tilebox();
-          int scomp = 0;
-          int dcomp = 0;
-          int ncomp = 1;
-          int nf = 1;
-          int nc = 1;
-          ca_face2center(bx.loVect(), bx.hiVect(), scomp, dcomp, ncomp, nf, nc,
-                         D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
-                                BL_TO_FORTRAN(Dterm_face[1][fi]),
-                                BL_TO_FORTRAN(Dterm_face[2][fi])),
-                         BL_TO_FORTRAN(Dterm[fi]));
+
+          auto Dx = Dterm_face[0][fi].array();
+#if AMREX_SPACEDIM >= 2
+          auto Dy = Dterm_face[1][fi].array();
+#endif
+#if AMREX_SPACEDIM == 3
+          auto Dz = Dterm_face[2][fi].array();
+#endif
+
+          auto D = Dterm[fi].array();
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+#if AMREX_SPACEDIM == 1
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k)) * 0.5_rt;
+#elif AMREX_SPACEDIM == 2
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                          Dy(i,j,k) + Dy(i,j+1,k)) * 0.25_rt;
+#else
+              D(i,j,k) = (Dx(i,j,k) + Dx(i+1,j,k) +
+                          Dy(i,j,k) + Dy(i,j+1,k) +
+                          Dz(i,j,k) + Dz(i,j,k+1)) * (1.0_rt / 6.0_rt);
+#endif
+          });
       }
   }
 }

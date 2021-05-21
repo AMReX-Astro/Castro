@@ -169,7 +169,7 @@ Castro::fill_thermo_source (MultiFab& state_in, MultiFab& thermo_src)
 
       // we now need the pressure -- we will assume that the
       // temperature is consistent with the input state
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = U(i,j,k,URHO);
       eos_state.T = U(i,j,k,UTEMP);
       for (int n = 0; n < NumSpec; n++) {

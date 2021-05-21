@@ -15,8 +15,6 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
 
     if (!do_sponge) return;
 
-    update_sponge_params(&time);
-
     const Real mult_factor = 1.0;
 
 #ifdef _OPENMP
@@ -41,7 +39,7 @@ Castro::construct_old_sponge_source(MultiFab& source, MultiFab& state_in, Real t
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
         if (ParallelDescriptor::IOProcessor()) {
-            std::cout << "Castro::construct_old_thermo_source() time = " << run_time << "\n" << "\n";
+            std::cout << "Castro::construct_old_sponge_source() time = " << run_time << "\n" << "\n";
         }
 #ifdef BL_LAZY
         });
@@ -73,10 +71,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
         apply_sponge(bx, state_old.array(mfi), source.array(mfi), dt, mult_factor_old);
     }
 
-    // Now update to the new-time sponge parameter values
-    // and then evaluate the new-time part of the corrector.
-
-    update_sponge_params(&time);
+    // Now evaluate the new-time part of the corrector.
 
 #ifdef _OPENMP
 #pragma omp parallel
@@ -100,7 +95,7 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
         ParallelDescriptor::ReduceRealMax(run_time,IOProc);
 
         if (ParallelDescriptor::IOProcessor()) {
-            std::cout << "Castro::construct_new_thermo_source() time = " << run_time << "\n" << "\n";
+            std::cout << "Castro::construct_new_sponge_source() time = " << run_time << "\n" << "\n";
         }
 #ifdef BL_LAZY
         });
@@ -245,7 +240,7 @@ Castro::apply_sponge(const Box& bx,
 
     if (lsponge_upper_pressure > 0.0_rt && lsponge_lower_pressure >= 0.0_rt) {
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
 
       eos_state.rho = state_in(i,j,k,URHO);
       eos_state.T = state_in(i,j,k,UTEMP);

@@ -17,24 +17,7 @@ extern "C"
   void ca_set_abort_on_failure(int * abort_on_failure);
 #endif
 
-  void ca_amrinfo_init();
-  void ca_amrinfo_finalize();
-
-  void ca_set_amr_info(const int& level, const int& iteration, const int& ncycle,
-                       const amrex::Real& time, const amrex::Real& dt);
-
   void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
-
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-  void allocate_outflow_data(const int* n1d, const int* nc);
-  void set_old_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-                            const int* numpts, const int* nc);
-  void set_new_outflow_data(const amrex::Real* radial, const amrex::Real* time,
-                            const int* numpts, const int* nc);
-  void swap_outflow_data();
-#endif
-#endif
 
   void ca_set_method_params
     (const int& dm);
@@ -45,18 +28,8 @@ extern "C"
 
   void ca_set_problem_params
     (const int& dm,
-     const int* physbc_lo, const int* physbc_hi,
-     const int& Interior_value, const int& Inflow_value,
-     const int& Outflow_value, const int& Symmetry_value,
-     const int& SlipWall_value, const int& NoSlipWall_value,
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
-
-  void ca_set_grid_info
-    (const int& max_level, const amrex::Real* dx_level,
-     const int* domlo_level, const int* domhi_level,
-     const int* ref_ratio, const int* n_error_buf,
-     const int* blocking_factor);
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 #ifdef SPONGE
@@ -81,17 +54,6 @@ extern "C"
 
   void get_ambient_data(Real* ambient_state);
 
-#ifdef GRAVITY
-#if (BL_SPACEDIM > 1)
-  void ca_compute_avgstate
-    (const int* lo, const int* hi,
-     const amrex::Real* dx, const amrex::Real* dr, const int* nc,
-     const BL_FORT_FAB_ARG_3D(S  ),  amrex::Real* avgden,
-     const BL_FORT_FAB_ARG_3D(Vol),  amrex::Real* avgvol,
-     const amrex::Real* problo, const int* numpts_1d);
-#endif
-#endif
-
 #ifdef GPU_COMPATIBLE_PROBLEM
   void ca_initdata(const int* lo, const int* hi,
                    BL_FORT_FAB_ARG_3D(state),
@@ -100,67 +62,6 @@ extern "C"
   void ca_initrad(const int* lo, const int* hi,
                   BL_FORT_FAB_ARG_3D(rad_state),
                   const amrex::Real* dx, const amrex::Real* problo);
-#endif
-
-  void ca_apply_metric
-    (const int* lo, const int* hi,
-     const int* xlo, const int* xhi,
-#if AMREX_SPACEDIM >= 2
-     const int* ylo, const int* yhi,
-#endif
-     BL_FORT_FAB_ARG_3D(cc),
-     const BL_FORT_FAB_ARG_3D(xedge),
-#if AMREX_SPACEDIM >= 2
-     const BL_FORT_FAB_ARG_3D(yedge),
-#endif
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_weight_cc
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cc),
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_unweight_cc
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(cc),
-     const amrex::Real* dx, const int coord_type);
-
-  void ca_unweight_edges
-    (const int* lo, const int* hi,
-     BL_FORT_FAB_ARG_3D(edge),
-     const amrex::Real* dx, const int coord_type, const int idir);
-
-  void ca_find_center(amrex::Real* data, amrex::Real* center, const int* icen,
-                      const amrex::Real* dx, const amrex::Real* problo);
-
-  AMREX_GPU_DEVICE
-  void ca_clamp_temp
-    (int i, int j, int k, BL_FORT_FAB_ARG_3D(state));
-
-  void ca_reset_internal_e
-    (const int* lo, const int* hi,
-#ifdef MHD
-     BL_FORT_FAB_ARG_3D(bx),
-     BL_FORT_FAB_ARG_3D(by),
-     BL_FORT_FAB_ARG_3D(bz),
-#endif
-     BL_FORT_FAB_ARG_3D(S_new),
-     const int verbose);
-
-#ifdef RADIATION
-  void ca_estdt_rad
-    (const int lo[], const int hi[],
-     const BL_FORT_FAB_ARG(state),
-     const BL_FORT_FAB_ARG(gpr),
-     const amrex::Real dx[], amrex::Real* dt);
-#endif
-
-#ifdef REACTIONS
-    void ca_estdt_burning
-    (const int* lo, const int* hi,
-     const BL_FORT_FAB_ARG_3D(state_new),
-     const BL_FORT_FAB_ARG_3D(reactions_new),
-     const amrex::Real* dx, amrex::Real* dt);
 #endif
 
 
@@ -172,8 +73,6 @@ extern "C"
      const BL_FORT_FAB_ARG_3D(kappa_s),
      const amrex::Real& dt);
 #endif
-
-  void flush_output();
 
 #ifdef AUX_UPDATE
   void ca_auxupdate
@@ -189,17 +88,6 @@ extern "C"
 /* sources */
 #include <Castro_sources_F.H>
 
-
-/* gravity */
-#ifdef GRAVITY
-#include <Castro_gravity_F.H>
-#endif
-
-
-/* SDC */
-#ifdef TRUE_SDC
-#include <Castro_sdc_F.H>
-#endif
 
 
 /* SCF */

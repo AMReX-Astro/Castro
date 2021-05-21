@@ -44,10 +44,6 @@
 #include <omp.h>
 #endif
 
-#ifdef AMREX_USE_CUDA
-#include <cuda_profiler_api.h>
-#endif
-
 #include <extern_parameters.H>
 #include <prob_parameters.H>
 
@@ -75,6 +71,7 @@ int          Castro::num_err_list_default = 0;
 int          Castro::radius_grow   = 1;
 BCRec        Castro::phys_bc;
 int          Castro::NUM_GROW      = -1;
+int          Castro::NUM_GROW_SRC  = -1;
 
 int          Castro::lastDtPlotLimited = 0;
 Real         Castro::lastDtBeforePlotLimiting = 0.0;
@@ -121,21 +118,21 @@ std::string  Castro::probin_file = "probin";
 
 
 #if BL_SPACEDIM == 1
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024);
 #else
 IntVect      Castro::hydro_tile_size(1048576);
 #endif
 IntVect      Castro::no_tile_size(1024);
 #elif BL_SPACEDIM == 2
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576);
 #endif
 IntVect      Castro::no_tile_size(1024,1024);
 #else
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
 IntVect      Castro::hydro_tile_size(1024,16,16);
 #else
 IntVect      Castro::hydro_tile_size(1048576,1048576,1048576);
@@ -211,7 +208,7 @@ Castro::variableCleanUp ()
 #ifdef SPONGE
     sponge_finalize();
 #endif
-    amrinfo_finalize();
+
 }
 
 void
@@ -353,10 +350,10 @@ Castro::read_params ()
       amrex::Error("Invalid CFL factor; must be between zero and one.");
     }
 
-    // SDC does not support CUDA yet
-#ifdef AMREX_USE_CUDA
+    // SDC does not support GPUs yet
+#ifdef AMREX_USE_GPU
     if (time_integration_method == SpectralDeferredCorrections) {
-        amrex::Error("CUDA SDC is currently disabled.");
+        amrex::Error("SDC is currently not enabled on GPUs.");
     }
 #endif
 
@@ -385,6 +382,35 @@ Castro::read_params ()
     }
 #endif
 
+#ifndef AMREX_USE_GPU
+
+#ifdef RADIATION
+    if (hybrid_riemann == 1) {
+        amrex::Error("ERROR: hybrid Riemann not supported for radiation");
+    }
+
+    if (riemann_solver > 0) {
+        amrex::Error("ERROR: only the CGF Riemann solver is supported for radiation");
+    }
+#endif
+
+#if AMREX_SPACEDIM == 1
+    if (riemann_solver > 1) {
+        amrex::Error("ERROR: HLLC not implemented for 1-d");
+    }
+#endif
+
+    if (riemann_solver == 1) {
+        if (cg_maxiter > HISTORY_SIZE) {
+            amrex::Error("error in riemanncg: cg_maxiter > HISTORY_SIZE");
+        }
+
+        if (cg_blend == 2 && cg_maxiter < 5) {
+            amrex::Error("Error: need cg_maxiter >= 5 to do a bisection search on secant iteration failure.");
+        }
+    }
+#endif
+
     if (hybrid_riemann == 1 && BL_SPACEDIM == 1)
       {
         std::cerr << "hybrid_riemann only implemented in 2- and 3-d\n";
@@ -397,7 +423,13 @@ Castro::read_params ()
         amrex::Error();
       }
 
-
+#ifdef ROTATION
+    if (dgeom.IsRZ() && state_in_rotating_frame == 0 && use_axisymmetric_geom_source)
+    {
+        std::cerr << "use_axisymmetric_geom_source is not compatible with state_in_rotating_frame=0\n";
+        amrex::Error();
+    }
+#endif
 
     // Make sure not to call refluxing if we're not actually doing any hydro.
     if (do_hydro == 0) {
@@ -457,9 +489,9 @@ Castro::read_params ()
    }
 #endif
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
    if (do_scf_initial_model) {
-       amrex::Error("SCF initial model construction is currently not permitted if USE_CUDA=TRUE at compile time.");
+       amrex::Error("SCF initial model construction is currently not permitted if using GPUs.");
    }
 #endif
 
@@ -597,32 +629,6 @@ Castro::Castro (Amr&            papa,
     MultiFab::RegionTag amrlevel_tag("AmrLevel_Level_" + std::to_string(lev));
 
     buildMetrics();
-
-    // initialize the C++ values of the runtime parameters
-    if (do_init_probparams == 0) {
-      init_prob_parameters();
-
-      do_init_probparams = 1;
-
-      // Copy ambient data from Fortran to C++. This should be done prior to
-      // problem_initialize() in case the C++ initialization overwrites it.
-
-      for (int n = 0; n < NUM_STATE; ++n) {
-          ambient::ambient_state[n] = 0.0_rt;
-      }
-
-      get_ambient_data(ambient::ambient_state);
-
-      // If we're doing C++ problem initialization, do it here. We have to make
-      // sure it's done after the above call to init_prob_parameters() in case
-      // any changes are made to the problem parameters.
-
-      problem_initialize();
-
-      // Sync Fortran back up with any changes we made to the problem parameters.
-      // If problem_initialize() didn't change them, this has no effect.
-      cxx_to_f90_prob_parameters();
-    }
 
     initMFs();
 
@@ -778,8 +784,6 @@ Castro::buildMetrics ()
     geom.GetDLogA(dLogArea[0],grids,dmap,0,NUM_GROW);
 #endif
 
-    if (level == 0) setGridInfo();
-
     wall_time_start = 0.0;
 }
 
@@ -890,6 +894,31 @@ Castro::initMFs()
 
     lastDt = 1.e200;
 
+    // initialize the C++ values of the runtime parameters
+    if (do_init_probparams == 0) {
+        init_prob_parameters();
+
+        do_init_probparams = 1;
+
+        // Copy ambient data from Fortran to C++. This should be done prior to
+        // problem_initialize() in case the C++ initialization overwrites it.
+
+        for (int n = 0; n < NUM_STATE; ++n) {
+            ambient::ambient_state[n] = 0.0_rt;
+        }
+
+        get_ambient_data(ambient::ambient_state);
+
+        // If we're doing C++ problem initialization, do it here. We have to make
+        // sure it's done after the above call to init_prob_parameters() in case
+        // any changes are made to the problem parameters.
+
+        problem_initialize();
+
+        // Sync Fortran back up with any changes we made to the problem parameters.
+        // If problem_initialize() didn't change them, this has no effect.
+        cxx_to_f90_prob_parameters();
+    }
 }
 
 void
@@ -900,91 +929,6 @@ Castro::setTimeLevel (Real time,
     AmrLevel::setTimeLevel(time,dt_old,dt_new);
 }
 
-void
-Castro::setGridInfo ()
-{
-
-    // Send refinement data to Fortran. We do it here
-    // because now the grids have been initialized and
-    // we need this data for setting up the problem.
-    // Note that this routine will always get called
-    // on level 0, even if we are doing a restart,
-    // so it is safe to put this here.
-
-    if (level == 0) {
-
-      const int max_level = parent->maxLevel();
-      const int nlevs = max_level + 1;
-
-      Vector<Real> dx_level(3*nlevs);
-      Vector<int> domlo_level(3*nlevs);
-      Vector<int> domhi_level(3*nlevs);
-      Vector<int> ref_ratio_to_f(3*nlevs);
-      Vector<int> n_error_buf_to_f(nlevs);
-      Vector<int> blocking_factor_to_f(nlevs);
-
-      const Real* dx_coarse = geom.CellSize();
-
-      const int* domlo_coarse = geom.Domain().loVect();
-      const int* domhi_coarse = geom.Domain().hiVect();
-
-      for (int dir = 0; dir < 3; dir++) {
-          if (dir < BL_SPACEDIM) {
-              dx_level[dir] = dx_coarse[dir];
-
-              domlo_level[dir] = domlo_coarse[dir];
-              domhi_level[dir] = domhi_coarse[dir];
-          } else {
-              dx_level[dir] = 0.0;
-
-              domlo_level[dir] = 0;
-              domhi_level[dir] = 0;
-          }
-
-        // Refinement ratio and error buffer on finest level are meaningless,
-        // and we want them to be zero on the finest level because some
-        // of the algorithms depend on this feature.
-
-        ref_ratio_to_f[dir + 3 * (nlevs - 1)] = 0;
-        n_error_buf_to_f[nlevs-1] = 0;
-      }
-
-      for (int lev = 0; lev <= max_level; lev++) {
-        blocking_factor_to_f[lev] = parent->blockingFactor(lev)[0];
-      }
-
-      for (int lev = 1; lev <= max_level; lev++) {
-        IntVect ref_ratio = parent->refRatio(lev-1);
-
-        // Note that we are explicitly calculating here what the
-        // data would be on refined levels rather than getting the
-        // data directly from those levels, because some potential
-        // refined levels may not exist at the beginning of the simulation.
-
-        for (int dir = 0; dir < 3; dir++) {
-          if (dir < BL_SPACEDIM) {
-            dx_level[3 * lev + dir] = dx_level[3 * (lev - 1) + dir] / ref_ratio[dir];
-            int ncell = (domhi_level[3 * (lev - 1) + dir] - domlo_level[3 * (lev - 1) + dir] + 1) * ref_ratio[dir];
-            domlo_level[3 * lev + dir] = domlo_level[dir];
-            domhi_level[3 * lev + dir] = domlo_level[3 * lev + dir] + ncell - 1;
-            ref_ratio_to_f[3 * (lev - 1) + dir] = ref_ratio[dir];
-          } else {
-            dx_level[3 * lev + dir] = 0.0;
-            domlo_level[3 * lev + dir] = 0;
-            domhi_level[3 * lev + dir] = 0;
-            ref_ratio_to_f[3 * (lev - 1) + dir] = 0;
-          }
-        }
-
-        n_error_buf_to_f[lev - 1] = parent->nErrorBuf(lev - 1);
-      }
-
-      ca_set_grid_info(max_level, dx_level.data(), domlo_level.data(), domhi_level.data(),
-                       ref_ratio_to_f.data(), n_error_buf_to_f.data(), blocking_factor_to_f.data());
-
-    }
-
-}
 
 void
 Castro::initData ()
@@ -1016,8 +960,6 @@ Castro::initData ()
       }
 #endif
 
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
-
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Initializing the data at level " << level << std::endl;
     }
@@ -1036,9 +978,8 @@ Castro::initData ()
 
     // Don't profile for this code, since there will be a lot of host
     // activity and GPU page faults that we're uninterested in.
-#ifdef AMREX_USE_CUDA
-    AMREX_GPU_SAFE_CALL(cudaProfilerStop());
-#endif
+
+    Gpu::Device::profilerStop();
 
 #ifdef RADIATION
     // rad quantities are in the state even if (do_radiation == 0)
@@ -1055,7 +996,7 @@ Castro::initData ()
 #ifdef REACTIONS
    if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
        MultiFab& react_src_new = get_new_data(Simplified_SDC_React_Type);
-       react_src_new.setVal(0.0, NUM_GROW);
+       react_src_new.setVal(0.0, NUM_GROW_SRC);
    }
 #endif
 #endif
@@ -1133,7 +1074,7 @@ Castro::initData ()
 
 #endif //MHD
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
 #ifdef GPU_COMPATIBLE_PROBLEM
@@ -1251,7 +1192,7 @@ Castro::initData ()
          amrex::Error("Error: initial data has T <~ small_temp");
        }
 
-#ifdef AMREX_USE_CUDA
+#ifdef AMREX_USE_GPU
 #ifndef GPU_COMPATIBLE_PROBLEM
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
            S_new.prefetchToDevice(mfi);
@@ -1280,7 +1221,7 @@ Castro::initData ()
              spec_sum += S_arr(i,j,k,UFS+n);
            }
            if (std::abs(S_arr(i,j,k,URHO) - spec_sum) > 1.e-8_rt * S_arr(i,j,k,URHO)) {
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
              std::cout << "Sum of (rho X)_i vs rho at (i,j,k): " 
                        << i << " " << j << " " << k << " " 
                        << spec_sum << " " << S_arr(i,j,k,URHO) << std::endl;
@@ -1304,7 +1245,7 @@ Castro::initData ()
          // For fourth-order, we need to convert to cell-averages now.
          // (to second-order, these are cell-averages, so we're done in that case).
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
          if (sdc_order == 4) {
            Sborder.define(grids, dmap, NUM_STATE, NUM_GROW);
            AmrLevel::FillPatch(*this, Sborder, NUM_GROW, cur_time, State_Type, 0, NUM_STATE);
@@ -1369,7 +1310,7 @@ Castro::initData ()
                Real v = S_arr(i,j,k,UMY) * rhoInv;
                Real w = S_arr(i,j,k,UMZ) * rhoInv;
 
-               eos_t eos_state;
+               eos_re_t eos_state;
                eos_state.rho = S_arr(i,j,k,URHO);
                eos_state.T = S_arr(i,j,k,UTEMP);
                eos_state.e = S_arr(i,j,k,UEINT) * rhoInv - 0.5_rt * (u*u + v*v + w*w);
@@ -1503,7 +1444,6 @@ Castro::initData ()
     if ( (level == 0) && (spherical_star == 1) ) {
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
-       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }
@@ -1530,9 +1470,7 @@ Castro::initData ()
     }
 #endif
 
-#ifdef AMREX_USE_CUDA
-    AMREX_GPU_SAFE_CALL(cudaProfilerStart());
-#endif
+    Gpu::Device::profilerStart();
 
     if (verbose && ParallelDescriptor::IOProcessor()) {
       std::cout << "Done initializing the level " << level << " data " << std::endl;
@@ -1646,8 +1584,6 @@ Castro::estTimeStep ()
       return fixed_dt;
     }
 
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
-
     Real estdt = max_dt;
 
     Real time = state[State_Type].curTime();
@@ -1665,38 +1601,9 @@ Castro::estTimeStep ()
     {
 
 #ifdef RADIATION
-        const Real* dx = geom.CellSize();
-
         if (Radiation::rad_hydro_combined) {
 
-            const MultiFab& stateMF = get_new_data(State_Type);
-
-            // Compute radiation + hydro limited timestep.
-
-#ifdef _OPENMP
-#pragma omp parallel reduction(min:estdt_hydro)
-#endif
-            {
-                Real dt = max_dt / cfl;
-
-                const MultiFab& radMF = get_new_data(Rad_Type);
-                FArrayBox gPr;
-
-                for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
-                {
-                    const Box& tbox = mfi.tilebox();
-                    const Box& vbox = mfi.validbox();
-
-                    gPr.resize(tbox);
-                    radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx, vbox);
-
-                    ca_estdt_rad(tbox.loVect(),tbox.hiVect(),
-                                 BL_TO_FORTRAN(stateMF[mfi]),
-                                 BL_TO_FORTRAN(gPr),
-                                 dx,&dt);
-                }
-                estdt_hydro = std::min(estdt_hydro, dt);
-            }
+            estdt_hydro = estdt_rad();
 
         }
         else
@@ -2053,10 +1960,6 @@ Castro::post_timestep (int iteration_local)
 {
     BL_PROFILE("Castro::post_timestep()");
 
-    // Pass some information about the state of the simulation to a Fortran module.
-
-    ca_set_amr_info(level, iteration_local, -1, -1.0, -1.0);
-
     //
     // Integration cycle on fine level grids is complete
     // do post_timestep stuff here.
@@ -2105,11 +2008,6 @@ Castro::post_timestep (int iteration_local)
 #endif
                 S_new, state[State_Type].curTime(), S_new.nGrow());
 
-
-    // Flush Fortran output
-
-    if (verbose)
-        flush_output();
 
 #ifdef DO_PROBLEM_POST_TIMESTEP
 
@@ -2502,7 +2400,7 @@ Castro::post_init (Real /*stop_time*/)
 
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     if (do_scf_initial_model) {
         scf_relaxation();
     }
@@ -2982,8 +2880,6 @@ Castro::reflux(int crse_level, int fine_level)
             Real dt_advance_local = getLevel(lev).dt_advance; // Note that this may be shorter than the full timestep due to subcycling.
             Real dt_amr = parent->dtLevel(lev); // The full timestep expected by the Amr class.
 
-            ca_set_amr_info(lev, -1, -1, time, dt_advance_local);
-
             if (getLevel(lev).apply_sources()) {
 
                 getLevel(lev).apply_source_to_state(S_new, source, -dt_advance_local, 0);
@@ -3116,8 +3012,20 @@ Castro::normalize_species (MultiFab& S_new, int ng)
         [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rhoX_sum = 0.0_rt;
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
             for (int n = 0; n < NumSpec; ++n) {
+#ifndef AMREX_USE_GPU
+                const Real X_failure_tolerance = 1.e-2_rt;
+
+                // Abort if X is unphysically large.
+                Real X = u(i,j,k,UFS+n) * rhoInv;
+
+                if (X < -X_failure_tolerance || X > 1.0_rt + X_failure_tolerance) {
+                    std::cout << "(i, j, k) = " << i << " " << j << " " << k << " " << ", X[" << n << "] = " << X << std::endl;
+                    amrex::Error("Invalid mass fraction in Castro::normalize_species()");
+                }
+#endif
                 u(i,j,k,UFS+n) = amrex::max(lsmall_x * u(i,j,k,URHO), amrex::min(u(i,j,k,URHO), u(i,j,k,UFS+n)));
                 rhoX_sum += u(i,j,k,UFS+n);
             }
@@ -3319,8 +3227,6 @@ Castro::errorEst (TagBoxArray& tags,
                   int          /*ngrow*/)
 {
     BL_PROFILE("Castro::errorEst()");
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     Real ltime = time;
 
@@ -3763,18 +3669,6 @@ Castro::derive (const std::string& name,
 }
 
 void
-Castro::amrinfo_init ()
-{
-   ca_amrinfo_init();
-}
-
-void
-Castro::amrinfo_finalize()
-{
-   ca_amrinfo_finalize();
-}
-
-void
 Castro::extern_init ()
 {
   // initialize the external runtime parameters -- these will
@@ -3824,7 +3718,7 @@ Castro::reset_internal_energy(const Box& bx,
         Real Wp = u(i,j,k,UMZ) * rhoInv;
         Real ke = 0.5_rt * (Up * Up + Vp * Vp + Wp * Wp);
 
-        eos_t eos_state;
+        eos_re_t eos_state;
 
         eos_state.rho = u(i,j,k,URHO);
         eos_state.T   = lsmall_temp;
@@ -4141,7 +4035,7 @@ Castro::computeTemp(
 
           Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
 
           eos_state.rho = u(i,j,k,URHO);
           eos_state.T   = u(i,j,k,UTEMP); // Initial guess for the EOS
@@ -4267,9 +4161,9 @@ Castro::create_source_corrector()
 
         const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, UMX, 3, UMX);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, UMX, 3, UMX);
 
-        source_corrector.mult(2.0 / lastDt, NUM_GROW);
+        source_corrector.mult(2.0 / lastDt, NUM_GROW_SRC);
 
     }
     else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
@@ -4285,7 +4179,7 @@ Castro::create_source_corrector()
 
         const Real time = get_state_data(Source_Type).prevTime();
 
-        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW, time, Source_Type, 0, NSRC);
+        AmrLevel::FillPatch(*this, source_corrector, NUM_GROW_SRC, time, Source_Type, 0, NSRC);
 
     }
 
@@ -4375,98 +4269,101 @@ Castro::make_radial_data(int is_new)
 
    BL_PROFILE("Castro::make_radial_data()");
 
- // We only call this for level = 0
+   // We only call this for level = 0
    BL_ASSERT(level == 0);
 
    int numpts_1d = get_numpts();
 
-   Vector<Real> radial_vol(numpts_1d,0);
-
-   const Real* dx = geom.CellSize();
+   auto dx = geom.CellSizeArray();
    Real  dr = dx[0];
 
-   if (is_new == 1) {
-      MultiFab& S = get_new_data(State_Type);
-      const int nc = S.nComp();
-      Vector<Real> radial_state(numpts_1d*nc,0);
-      for (MFIter mfi(S); mfi.isValid(); ++mfi)
-      {
-         Box bx(mfi.validbox());
-         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-                             BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
-                             BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
-                             ZFILL(geom.ProbLo()),&numpts_1d);
-      }
+   auto problo = geom.ProbLoArray();
+   auto probhi = geom.ProbHiArray();
 
-      ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
-      ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(),numpts_1d*nc);
+   MultiFab& S = is_new ? get_new_data(State_Type) : get_old_data(State_Type);
+   const int nc = S.nComp();
 
-      int first = 0;
-      int np_max = 0;
-      for (int i = 0; i < numpts_1d; i++) {
-         if (radial_vol[i] > 0.)
-         {
-            for (int j = 0; j < nc; j++) {
-              radial_state[nc*i+j] /= radial_vol[i];
-            }
-         } else if (first == 0) {
-            np_max = i;
-            first  = 1;
-         }
-      }
+   Gpu::ManagedVector<Real> radial_vol(numpts_1d, 0.0_rt);
+   Real* const radial_vol_ptr = radial_vol.dataPtr();
 
-      Vector<Real> radial_state_short(np_max*nc,0);
+   Gpu::ManagedVector<Real> radial_state(numpts_1d * nc, 0.0_rt);
+   Real* const radial_state_ptr = radial_state.dataPtr();
 
-      for (int i = 0; i < np_max; i++) {
-         for (int j = 0; j < nc; j++) {
-           radial_state_short[nc*i+j] = radial_state[nc*i+j];
-         }
-      }
-
-      const Real new_time = state[State_Type].curTime();
-      set_new_outflow_data(radial_state_short.dataPtr(),&new_time,&np_max,&nc);
-   }
-   else
+   for (MFIter mfi(S); mfi.isValid(); ++mfi)
    {
-      MultiFab& S = get_old_data(State_Type);
-      const int nc = S.nComp();
-      Vector<Real> radial_state(numpts_1d*nc,0);
-      for (MFIter mfi(S); mfi.isValid(); ++mfi)
-      {
-         Box bx(mfi.validbox());
-         ca_compute_avgstate(ARLIM_3D(bx.loVect()), ARLIM_3D(bx.hiVect()),ZFILL(dx),&dr,&nc,
-                             BL_TO_FORTRAN_ANYD(     S[mfi]),radial_state.dataPtr(),
-                             BL_TO_FORTRAN_ANYD(volume[mfi]),radial_vol.dataPtr(),
-                             ZFILL(geom.ProbLo()),&numpts_1d);
-      }
+       Box bx(mfi.validbox());
 
-      ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(),numpts_1d);
-      ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(),numpts_1d*nc);
+       auto state_arr = S[mfi].array();
+       auto vol_arr   = volume[mfi].array();
 
-      int first = 0;
-      int np_max = 0;
-      for (int i = 0; i < numpts_1d; i++) {
-         if (radial_vol[i] > 0.)
-         {
-            for (int j = 0; j < nc; j++) {
-              radial_state[nc*i+j] /= radial_vol[i];
-            }
-         } else if (first == 0) {
-            np_max = i;
-            first  = 1;
-         }
-      }
+       amrex::ParallelFor(bx,
+       [=] AMREX_GPU_DEVICE(int i, int j, int k)
+       {
+           Real x = problo[0] + (static_cast<Real>(i) + 0.5_rt) * dx[0] - problem::center[0];
 
-      Vector<Real> radial_state_short(np_max*nc,0);
+           Real y = 0.0_rt;
+#if AMREX_SPACEDIM >= 2
+           y = problo[1] + (static_cast<Real>(j) + 0.5_rt) * dx[1] - problem::center[1];
+#endif
 
-      for (int i = 0; i < np_max; i++) {
-         for (int j = 0; j < nc; j++) {
-           radial_state_short[nc*i+j] = radial_state[nc*i+j];
-         }
-      }
+           Real z = 0.0_rt;
+#if AMREX_SPACEDIM == 3
+           z = problo[2] + (static_cast<Real>(k) + 0.5_rt) * dx[2] - problem::center[2];
+#endif
 
-      const Real old_time = state[State_Type].prevTime();
-      set_old_outflow_data(radial_state_short.dataPtr(),&old_time,&np_max,&nc);
+           Real r = std::sqrt(x * x + y * y + z * z);
+
+           int index = int(r / dr);
+
+#ifndef AMREX_USE_GPU
+           if (index > numpts_1d-1) {
+               std::cout << "COMPUTE_AVGSTATE: INDEX TOO BIG " << index << " > " << numpts_1d-1 << "\n";
+               std::cout << "AT (i,j,k) " << i << " " << j << " " << k << "\n";
+               std::cout << "R / DR " << r << " " << dr << "\n";
+               amrex::Error("Error:: Castro_util.H :: compute_avgstate");
+           }
+#endif
+
+           Gpu::Atomic::Add(&radial_state_ptr[URHO + index * nc],
+                            vol_arr(i,j,k) * state_arr(i,j,k,URHO));
+
+           // Store the radial component of the momentum in the
+           // UMX, UMY and UMZ components for now.
+
+           Real x_mom = state_arr(i,j,k,UMX);
+           Real y_mom = state_arr(i,j,k,UMY);
+           Real z_mom = state_arr(i,j,k,UMZ);
+           Real radial_mom = x_mom * (x / r) + y_mom * (y / r) + z_mom * (z / r);
+
+           Gpu::Atomic::Add(&radial_state_ptr[UMX + index * nc], vol_arr(i,j,k) * radial_mom);
+           Gpu::Atomic::Add(&radial_state_ptr[UMY + index * nc], vol_arr(i,j,k) * radial_mom);
+           Gpu::Atomic::Add(&radial_state_ptr[UMZ + index * nc], vol_arr(i,j,k) * radial_mom);
+
+           for (int n = UMZ + 1; n <= nc; ++n) {
+               Gpu::Atomic::Add(&radial_state_ptr[n + index * nc],
+                                vol_arr(i,j,k) * state_arr(i,j,k,n));
+           }
+
+           Gpu::Atomic::Add(&radial_vol_ptr[index], vol_arr(i,j,k));
+       });
+   }
+
+   ParallelDescriptor::ReduceRealSum(radial_vol.dataPtr(), numpts_1d);
+   ParallelDescriptor::ReduceRealSum(radial_state.dataPtr(), numpts_1d * nc);
+
+   int first = 0;
+   int np_max = 0;
+   for (int i = 0; i < numpts_1d; i++) {
+       if (radial_vol[i] > 0.)
+       {
+           for (int j = 0; j < nc; j++) {
+               radial_state[nc*i+j] /= radial_vol[i];
+           }
+       }
+       else if (first == 0) {
+           np_max = i;
+           first  = 1;
+       }
    }
 
 #endif
@@ -4490,15 +4387,61 @@ Castro::define_new_center(MultiFab& S, Real time)
     // Define a cube 3-on-a-side around the point with the maximum density
     FillPatch(*this,mf,0,time,State_Type,URHO,1);
 
-    int mi[BL_SPACEDIM];
-    for (int i = 0; i < BL_SPACEDIM; i++) {
+    int mi[3] = {0};
+    for (int i = 0; i < AMREX_SPACEDIM; i++) {
       mi[i] = max_index[i];
     }
 
     // Find the position of the "center" by interpolating from data at cell centers
     for (MFIter mfi(mf); mfi.isValid(); ++mfi)
     {
-        ca_find_center(mf[mfi].dataPtr(),&problem::center[0],ARLIM_3D(mi),ZFILL(dx),ZFILL(geom.ProbLo()));
+
+#if AMREX_SPACEDIM >= 2
+        // it only makes sense for the center to move in 2- or 3-d
+
+        const Box& box = mfi.validbox();
+        auto data = mf.array(mfi);
+
+        Real cen = data(mi[0], mi[1], mi[2]);
+
+        amrex::ParallelFor(box,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) {
+            data(i,j,k) -= cen;
+        });
+
+        // This puts the "center" at the cell center
+        Real new_center[3];
+        for (int d = 0; d < AMREX_SPACEDIM; d++) {
+            new_center[d] = geom.ProbLo(d) +  (static_cast<Real>(mi[d]) + 0.5_rt) * dx[d];
+        }
+
+        // Fit parabola y = a x^2  + b x + c through three points
+        // a = 1/2 ( y_1 + y_-1)
+        // b = 1/2 ( y_1 - y_-1)
+        // x_vertex = -b / 2a
+
+        // ... in x-direction
+        Real a = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) + data(mi[0]-1, mi[1], mi[2]));
+        Real b = 0.5_rt * (data(mi[0]+1, mi[1], mi[2]) - data(mi[0]-1, mi[1], mi[2]));
+        Real x = -b / (2.0_rt * a);
+        problem::center[0] = new_center[0] + x * dx[0];
+
+        // ... in y-direction
+        a = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) + data(mi[0], mi[1]-1, mi[2]));
+        b = 0.5_rt * (data(mi[0], mi[1]+1, mi[2]) - data(mi[0], mi[1]-1, mi[2]));
+        Real y = -b / (2.0_rt * a);
+        problem::center[1] = new_center[1] + y * dx[1];
+
+#if AMREX_SPACEDIM == 3
+        // ... in z-direction
+        a = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) + data(mi[0], mi[1], mi[2]-1));
+        b = 0.5_rt * (data(mi[0], mi[1], mi[2]+1) - data(mi[0], mi[1], mi[2]-1));
+        Real z = -b / (2.0_rt * a);
+        problem::center[2] = new_center[2] + z * dx[2];
+#endif
+
+#endif
+
     }
     // Now broadcast to everyone else.
     ParallelDescriptor::Bcast(&problem::center[0], BL_SPACEDIM, owner);

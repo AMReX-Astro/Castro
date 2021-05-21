@@ -84,7 +84,7 @@ Debugging
    AMReX are controlled by AMReX(e.g., using interruption by the
    user, this was once used to find an MPI deadlock.) It also includes
    the ``AMREX_ASSERTION`` statements if ``USE_ASSERTION=TRUE`` or
-   DEBUG=TRUE.
+   ``DEBUG=TRUE``.
 
    The AMReX parameters that affect the behavior are:
 
@@ -94,27 +94,27 @@ Debugging
 
    -  ``amrex.fpe_trap_overflow``
 
-   For further capabilities, defining ``BACKTRACE=TRUE`` enables you
-   to get more information than the backtrace of the call stack info by
-   instrumenting the code. (This is in C code only). Here is an
+   For further capabilities, you can get 
+   more information than the backtrace of the call stack info by
+   instrumenting the code.  Here is an
    example. You know the line ``Real rho = state(cell,0);`` is
    causing a segfault. You could add a print statement before that.
    But it might print out thousands (or even millions) of line before
-   it hits the segfault. With ``BACKTRACE``, you could do
+   it hits the segfault. Instead, you could
 
-   ::
+   .. code:: c++
 
-             #ifdef AMREX_BACKTRACING
-                std::ostringstream ss;
-                ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
-                BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
-             #endif
+             std::ostringstream ss;
+             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.
 
-   The “print” prints to a stack of string, not stdout. When it hits
+   The "print" prints to a stack of string, not stdout. When it hits
    the segfault, you will only see the last print out in the backtrace
    file (e.g. ``BackTrace.0``).
+
+   You may need to include the header ``AMReX_BLBackTrace.H``.
 
 #. *How can I monitor the state in a zone from the C side
    at various points in the evolution?*

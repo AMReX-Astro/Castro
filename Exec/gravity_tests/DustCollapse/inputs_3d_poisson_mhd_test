@@ -37,7 +37,6 @@ castro.small_dens    = 1.e-6
 # MHD 
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-#castro.castro.apply_sources_consecutively = 1
 
 
 # TIME STEP CONTROL

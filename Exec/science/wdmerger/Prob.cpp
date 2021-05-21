@@ -99,8 +99,6 @@ Castro::wd_update (Real time, Real dt)
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
-
       Castro& c_lev = getLevel(lev);
 
       GeometryData geomdata = c_lev.geom.data();
@@ -276,8 +274,6 @@ Castro::wd_update (Real time, Real dt)
 
     }
 
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
-
     // Compute effective radii of stars at various density cutoffs
 
     bool local_flag = true;
@@ -421,8 +417,6 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
     for (int lev = 0; lev <= parent->finestLevel(); lev++) {
 
-      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
-
       Castro& c_lev = getLevel(lev);
 
       const auto dx = c_lev.geom.CellSizeArray();
@@ -501,8 +495,6 @@ void Castro::volInBoundary (Real time, Real& vol_P, Real& vol_S, Real rho_cutoff
 
     if (!local)
       amrex::ParallelDescriptor::ReduceRealSum({vol_P, vol_S});
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
 }
 

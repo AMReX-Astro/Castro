@@ -17,6 +17,8 @@ void
 Castro::construct_ctu_hydro_source(Real time, Real dt)
 {
 
+#ifndef TRUE_SDC
+
   BL_PROFILE("Castro::construct_ctu_hydro_source()");
 
   const Real strt_time = ParallelDescriptor::second();
@@ -26,8 +28,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
   if (verbose && ParallelDescriptor::IOProcessor())
     std::cout << "... Entering construct_ctu_hydro_source()" << std::endl << std::endl;
-
-  hydro_source.setVal(0.0);
 
 #ifdef HYBRID_MOMENTUM
   GeometryData geomdata = geom.data();
@@ -40,6 +40,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
   const Real *dx = geom.CellSize();
 
   MultiFab& S_new = get_new_data(State_Type);
+
+  // we will treat the hydro source as any other source term
 
 #ifdef RADIATION
   MultiFab& Er_new = get_new_data(Rad_Type);
@@ -94,10 +96,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     FArrayBox qzm, qzp;
 #endif
     FArrayBox div;
-    FArrayBox q_int;
-#ifdef RADIATION
-    FArrayBox lambda_int;
-#endif
 #if AMREX_SPACEDIM >= 2
     FArrayBox ftmp1, ftmp2;
 #ifdef RADIATION
@@ -127,6 +125,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
     size_t current_size = starting_size;
 #endif
 
+    MultiFab& old_source = get_old_data(Source_Type);
+
     for (MFIter mfi(S_new, hydro_tile_size); mfi.isValid(); ++mfi) {
 
       size_t fab_size = 0;
@@ -151,15 +151,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // all the data we will need, and then prefetching it out at the end. This at least
       // improves performance by mitigating the number of unified memory page faults.
 
-      // Unfortunately in CUDA there is no easy way to see actual current memory usage when
-      // using unified memory; querying CUDA for free memory usage will only tell us whether
-      // we've oversubscribed at any point, not whether we're currently oversubscribing, but
-      // this is still a good heuristic in most cases.
+      // An empirical threshold on NVIDIA GPUs is that we're probably oversubscribing if
+      // there are less than 10 MB left.
 
       bool oversubscribed = false;
 
-#ifdef AMREX_USE_CUDA
-      if (Gpu::Device::freeMemAvailable() < 0.005 * Gpu::Device::totalGlobalMem()) {
+#ifdef AMREX_USE_GPU
+      if (Gpu::Device::freeMemAvailable() < 10000000) {
           oversubscribed = true;
       }
 #endif
@@ -167,7 +165,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           volume[mfi].prefetchToDevice();
           Sborder[mfi].prefetchToDevice();
-          hydro_source[mfi].prefetchToDevice();
+          S_new[mfi].prefetchToDevice();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
               area[i][mfi].prefetchToDevice();
               (*fluxes[i])[mfi].prefetchToDevice();
@@ -186,13 +184,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // the conserved variables.
 
       const Box& qbx = amrex::grow(bx, NUM_GROW);
+      const Box& qbx3 = amrex::grow(bx, 3);
 
       q.resize(qbx, NQ);
       Elixir elix_q = q.elixir();
       fab_size += q.nBytes();
       Array4<Real> const q_arr = q.array();
 
-      qaux.resize(qbx, NQ);
+      qaux.resize(qbx, NQAUX);
       Elixir elix_qaux = qaux.elixir();
       fab_size += qaux.nBytes();
       Array4<Real> const qaux_arr = qaux.array();
@@ -305,14 +304,15 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // get the primitive variable hydro sources
 
-      src_q.resize(qbx, NQSRC);
+      src_q.resize(qbx3, NQSRC);
       Elixir elix_src_q = src_q.elixir();
       fab_size += src_q.nBytes();
       Array4<Real> const src_q_arr = src_q.array();
 
-      Array4<Real> const src_arr = sources_for_hydro.array(mfi);
+      Array4<Real> const old_src_arr = old_source.array(mfi);
+      Array4<Real> const src_corr_arr = source_corrector.array(mfi);
 
-      src_to_prim(qbx, q_arr, src_arr, src_q_arr);
+      src_to_prim(qbx3, dt, q_arr, old_src_arr, src_corr_arr, src_q_arr);
 
 #ifndef RADIATION
 #ifdef SIMPLIFIED_SDC
@@ -324,7 +324,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
             MultiFab& SDC_react_source = get_new_data(Simplified_SDC_React_Type);
 
             if (do_react)
-              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx, qbx, 0, 0, NQSRC);
+              src_q.plus<RunOn::Device>(SDC_react_source[mfi], qbx3, qbx3, 0, 0, NQSRC);
 
         }
 #endif
@@ -435,18 +435,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // compute divu -- we'll use this later when doing the artifical viscosity
       divu(obx, q_arr, div_arr);
 
-      q_int.resize(obx, NQ);
-      Elixir elix_q_int = q_int.elixir();
-      fab_size += q_int.nBytes();
-      Array4<Real> const q_int_arr = q_int.array();
-
-#ifdef RADIATION
-      lambda_int.resize(obx, Radiation::nGroups);
-      Elixir elix_lambda_int = lambda_int.elixir();
-      fab_size += lambda_int.nBytes();
-      Array4<Real> const lambda_int_arr = lambda_int.array();
-#endif
-
       flux[0].resize(gxbx, NUM_STATE);
       Elixir elix_flux_x = flux[0].elixir();
       fab_size += flux[0].nBytes();
@@ -511,16 +499,26 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #endif
 
 #if AMREX_SPACEDIM == 1
+
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      // if we are doing species sources, add them here
+
+      add_species_source_to_states(xbx, 0, dt,
+                                   qxm_arr, qxp_arr, src_q_arr);
+#endif
+
+      // compute the fluxes through the x-interface
+
       cmpflx_plus_godunov(xbx,
                           qxm_arr, qxp_arr,
-                          flux0_arr, q_int_arr,
+                          flux0_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                          rad_flux0_arr,
 #endif
                           qex_arr,
                           qaux_arr,
                           shk_arr,
-                          0);
+                          0, false);
 
 #endif // 1-d
 
@@ -589,13 +587,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnxv
       cmpflx_plus_godunov(cxbx,
                           qxm_arr, qxp_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
 
       // compute F^y
       // [lo(1)-1, lo(2), 0], [hi(1)+1, hi(2)+1, 0]
@@ -605,13 +603,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // rftmp2 = rfy
       cmpflx_plus_godunov(cybx,
                           qym_arr, qyp_arr,
-                          ftmp2_arr, q_int_arr,
+                          ftmp2_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                          rftmp2_arr,
 #endif
                           qey_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 
       // add the transverse flux difference in y to the x states
       // [lo(1), lo(2), 0], [hi(1)+1, hi(2), 0]
@@ -637,15 +635,21 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the x-interfaces
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
-                          flux0_arr, q_int_arr,
+                          flux0_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                          rad_flux0_arr,
 #endif
                           qex_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
 
       // add the transverse flux difference in x to the y states
       // [lo(1), lo(2), 0], [hi(1), hi(2)+1, 0]
@@ -674,15 +678,21 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       // solve the final Riemann problem axross the y-interfaces
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
-                          flux1_arr, q_int_arr,
+                          flux1_arr,
 #ifdef RADIATION
-                          rad_flux1_arr, lambda_int_arr,
+                          rad_flux1_arr,
 #endif
                           qey_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 #endif // 2-d
 
 
@@ -708,13 +718,14 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnxv
       cmpflx_plus_godunov(cxbx,
                           qxm_arr, qxp_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
+
 
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+1, hi(3)+1]
       const Box& tyxbx = amrex::grow(ybx, IntVect(AMREX_D_DECL(0,0,1)));
@@ -784,13 +795,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvy
       cmpflx_plus_godunov(cybx,
                           qym_arr, qyp_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 
       // [lo(1), lo(2), lo(3)-1], [hi(1)+1, hi(2), lo(3)+1]
       const Box& txybx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,0,1)));
@@ -863,13 +874,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvz
       cmpflx_plus_godunov(czbx,
                           qzm_arr, qzp_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          2);
+                          2, false);
 
       // [lo(1)-1, lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, lo(3)]
       const Box& txzbx = amrex::grow(xbx, IntVect(AMREX_D_DECL(0,1,0)));
@@ -948,13 +959,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvyz
       cmpflx_plus_godunov(cyzbx,
                           qmyz_arr, qpyz_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 
       // compute F^{z|y}
       // [lo(1)-1, lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)+1]
@@ -965,13 +976,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvzy
       cmpflx_plus_godunov(czybx,
                           qmzy_arr, qpzy_arr,
-                          ftmp2_arr, q_int_arr,
+                          ftmp2_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                          rftmp2_arr,
 #endif
                           qgdnvtmp2_arr,
                           qaux_arr, shk_arr,
-                          2);
+                          2, false);
 
       // compute the corrected x interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1)+1, hi(2), hi(3)]
@@ -996,15 +1007,22 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(xbx, qr.array());
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(xbx, 0, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
+
       cmpflx_plus_godunov(xbx,
                           ql_arr, qr_arr,
-                          flux0_arr, q_int_arr,
+                          flux0_arr,
 #ifdef RADIATION
-                          rad_flux0_arr, lambda_int_arr,
+                          rad_flux0_arr,
 #endif
                           qex_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
 
       //
       // Use qy?, q?zx, q?xz to compute final y-flux
@@ -1019,13 +1037,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvzx
       cmpflx_plus_godunov(czxbx,
                           qmzx_arr, qpzx_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          2);
+                          2, false);
 
       // compute F^{x|z}
       // [lo(1), lo(2)-1, lo(3)], [hi(1)+1, hi(2)+1, hi(3)]
@@ -1036,13 +1054,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvxz
       cmpflx_plus_godunov(cxzbx,
                           qmxz_arr, qpxz_arr,
-                          ftmp2_arr, q_int_arr,
+                          ftmp2_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                          rftmp2_arr,
 #endif
                           qgdnvtmp2_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
 
       // Compute the corrected y interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
@@ -1067,17 +1085,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(ybx, qr.array());
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(ybx, 1, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
+
       // Compute the final F^y
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2)+1, hi(3)]
       cmpflx_plus_godunov(ybx,
                           ql_arr, qr_arr,
-                          flux1_arr, q_int_arr,
+                          flux1_arr,
 #ifdef RADIATION
-                          rad_flux1_arr, lambda_int_arr,
+                          rad_flux1_arr,
 #endif
                           qey_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 
       //
       // Use qz?, q?xy, q?yx to compute final z-flux
@@ -1092,13 +1117,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp1 = qgdnvxy
       cmpflx_plus_godunov(cxybx,
                           qmxy_arr, qpxy_arr,
-                          ftmp1_arr, q_int_arr,
+                          ftmp1_arr,
 #ifdef RADIATION
-                          rftmp1_arr, lambda_int_arr,
+                          rftmp1_arr,
 #endif
                           qgdnvtmp1_arr,
                           qaux_arr, shk_arr,
-                          0);
+                          0, false);
 
       // compute F^{y|x}
       // [lo(1), lo(2), lo(3)-1], [hi(1), hi(2)+dg(2), hi(3)+1]
@@ -1109,13 +1134,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       // qgdnvtmp2 = qgdnvyx
       cmpflx_plus_godunov(cyxbx,
                           qmyx_arr, qpyx_arr,
-                          ftmp2_arr, q_int_arr,
+                          ftmp2_arr,
 #ifdef RADIATION
-                          rftmp2_arr, lambda_int_arr,
+                          rftmp2_arr,
 #endif
                           qgdnvtmp2_arr,
                           qaux_arr, shk_arr,
-                          1);
+                          1, false);
 
       // compute the corrected z interface states and fluxes
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
@@ -1140,18 +1165,24 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
       reset_edge_state_thermo(zbx, qr.array());
 
+#ifdef PRIM_SPECIES_HAVE_SOURCES
+      add_species_source_to_states(zbx, 2, dt,
+                                   ql_arr, qr_arr, src_q_arr);
+
+#endif
+
       // compute the final z fluxes F^z
       // [lo(1), lo(2), lo(3)], [hi(1), hi(2), hi(3)+1]
 
       cmpflx_plus_godunov(zbx,
                           ql_arr, qr_arr,
-                          flux2_arr, q_int_arr,
+                          flux2_arr,
 #ifdef RADIATION
-                          rad_flux2_arr, lambda_int_arr,
+                          rad_flux2_arr,
 #endif
                           qez_arr,
                           qaux_arr, shk_arr,
-                          2);
+                          2, false);
 
 #endif // 3-d
 
@@ -1214,7 +1245,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
 
       // conservative update
-      Array4<Real> const update_arr = hydro_source.array(mfi);
+      Array4<Real> const update_arr = S_new.array(mfi);
 
       Array4<Real> const flx_arr = (flux[0]).array();
       Array4<Real> const qx_arr = (qe[0]).array();
@@ -1234,14 +1265,13 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                    shk_arr,
 #endif
                    update_arr,
-                   flx_arr, qx_arr, areax_arr,
+                   flx_arr, qx_arr,
 #if AMREX_SPACEDIM >= 2
-                   fly_arr, qy_arr, areay_arr,
+                   fly_arr, qy_arr,
 #endif
 #if AMREX_SPACEDIM == 3
-                   flz_arr, qz_arr, areaz_arr,
+                   flz_arr, qz_arr,
 #endif
-                   vol_arr,
                    dt);
 
 
@@ -1262,9 +1292,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
           Real R = amrex::max(std::sqrt(loc[0] * loc[0] + loc[1] * loc[1]), R_min);
           Real RInv = 1.0_rt / R;
 
-          update_arr(i,j,k,UMR) = update_arr(i,j,k,UMR) - (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];
+          update_arr(i,j,k,UMR) -= dt * (loc[0] * RInv) * (qx_arr(i+1,j,k,GDPRES) - qx_arr(i,j,k,GDPRES)) / dx_arr[0];
 #if AMREX_SPACEDIM >= 2
-          update_arr(i,j,k,UMR) -= (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1];
+          update_arr(i,j,k,UMR) -= dt * (loc[1] * RInv) * (qy_arr(i,j+1,k,GDPRES) - qy_arr(i,j,k,GDPRES)) / dx_arr[1];
 #endif
       });
 #endif
@@ -1273,7 +1303,6 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       ctu_rad_consup(bx,
                      update_arr,
                      Erborder.array(mfi),
-                     S_new.array(mfi),
                      Er_new.array(mfi),
                      (rad_flux[0]).array(),
                      (qe[0]).array(),
@@ -1351,9 +1380,9 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 
             Array4<Real> const flux_fab = (flux[idir]).array();
             Array4<Real> fluxes_fab = (*fluxes[idir]).array(mfi);
-            const int numcomp = NUM_STATE;
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), numcomp, i, j, k, n,
+            amrex::ParallelFor(mfi.nodaltilebox(idir), NUM_STATE,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
             {
                 fluxes_fab(i,j,k,n) += flux_fab(i,j,k,n);
             });
@@ -1361,13 +1390,12 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
 #ifdef RADIATION
             Array4<Real> const rad_flux_fab = (rad_flux[idir]).array();
             Array4<Real> rad_fluxes_fab = (*rad_fluxes[idir]).array(mfi);
-            const int radcomp = Radiation::nGroups;
 
-            AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), radcomp, i, j, k, n,
+            amrex::ParallelFor(mfi.nodaltilebox(idir), Radiation::nGroups,
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k, int n)
             {
                 rad_fluxes_fab(i,j,k,n) += rad_flux_fab(i,j,k,n);
             });
-
 #endif
 
 #if AMREX_SPACEDIM <= 2
@@ -1380,7 +1408,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
                 Array4<Real> pradial_fab = pradial.array();
                 Array4<Real> P_radial_fab = P_radial.array(mfi);
 
-                AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(0), 1, i, j, k, n,
+                amrex::ParallelFor(mfi.nodaltilebox(0),
+                [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                 {
                     P_radial_fab(i,j,k,0) += pradial_fab(i,j,k,0);
                 });
@@ -1393,7 +1422,8 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         Array4<Real> const flux_fab = (flux[idir]).array();
         Array4<Real> mass_fluxes_fab = (*mass_fluxes[idir]).array(mfi);
 
-        AMREX_HOST_DEVICE_FOR_4D(mfi.nodaltilebox(idir), 1, i, j, k, n,
+        amrex::ParallelFor(mfi.nodaltilebox(idir),
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             // This is a copy, not an add, since we need mass_fluxes to be
             // only this subcycle's data when we evaluate the gravitational
@@ -1431,7 +1461,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
       if (oversubscribed) {
           volume[mfi].prefetchToHost();
           Sborder[mfi].prefetchToHost();
-          hydro_source[mfi].prefetchToHost();
+          S_new[mfi].prefetchToHost();
           for (int i = 0; i < AMREX_SPACEDIM; ++i) {
               area[i][mfi].prefetchToHost();
               (*fluxes[i])[mfi].prefetchToHost();
@@ -1492,5 +1522,7 @@ Castro::construct_ctu_hydro_source(Real time, Real dt)
         });
 #endif
     }
+
+#endif
 
 }

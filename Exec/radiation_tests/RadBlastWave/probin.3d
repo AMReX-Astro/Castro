@@ -1,0 +1,33 @@
+&fortin
+
+  rho0 = 5.0d-6
+  rho1 = 5.0d-6
+  T0 = 1.0d3
+  T1 = 1.0d7
+  r1 = 0.02d0
+
+/
+
+&tagging
+
+  max_denerr_lev = 2
+  denerr = 5.01d-6
+
+  max_temperr_lev = 2
+  temperr = 9.d6
+
+/
+
+&extern
+
+  eos_gamma = 1.6666666667d0
+
+  const_kappa_p = 2.d-16
+  kappa_p_exp_m = 0.0
+  kappa_p_exp_n = 0.0
+
+  const_kappa_r = 2.d-10
+  kappa_r_exp_m = 0.0
+  kappa_r_exp_n = 0.0
+
+/
