@@ -26,6 +26,11 @@ amr.plot_file       = plt
 amr.plot_int        = 100      # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
+amr.refinement_indicators = tempgrad_rel
+
+amr.refine.tempgrad_rel.max_level = 4
+amr.refine.tempgrad_rel.relative_gradient = 0.2
+amr.refine.tempgrad_rel.field_name = Temp
 
 amr.grid_log        = grdlog  # name of grid logging file
 amr.v = 1

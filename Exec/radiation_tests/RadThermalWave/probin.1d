@@ -5,12 +5,6 @@
   rexp =3.125
 /
 
-
-&tagging
-  max_tempgrad_lev = 4
-  tempgrad_rel = 0.2
-/
-
 &extern
 
   eos_gamma = 1.4

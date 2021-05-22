@@ -603,6 +603,13 @@ Castro::read_params ()
             ppr.get("field_name", field);
             custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
         }
+        else if (int nval = ppr.countval("relative_gradient")) {
+            Vector<Real> value;
+            ppr.getarr("relative_gradient", value, 0, nval);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
+        }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
         }
