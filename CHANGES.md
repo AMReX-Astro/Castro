@@ -6,6 +6,9 @@
      the new problem setup format. If you need help converting a Fortran
      setup to C++, please file an issue. (#1728, #1732)
 
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
    * The update_sponge_params hook has been removed. (#1716)
 
    * We no longer store Reactions_Type in checkpoint files.  This means

@@ -1418,11 +1418,6 @@ protected:
     // Static data members.
     //
 
-#ifdef SPONGE
-#include <sponge_params.H>
-#endif
-
-
     static bool      signalStopJob;
     static int       radius_grow;
     static std::vector<std::string> err_list_names;
