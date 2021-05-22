@@ -22,7 +22,6 @@ ifeq ($(USE_GRAV),TRUE)
   CEXE_sources += hse_fill.cpp
 endif
 ifeq ($(USE_MHD),TRUE)
-  ca_F90EXE_sources += Prob_mhd_nd.F90
   CEXE_headers += problem_initialize_mhd_data.H
 endif
 ca_F90EXE_sources += problem_tagging_nd.F90

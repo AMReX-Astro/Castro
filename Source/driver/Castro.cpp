@@ -1057,19 +1057,6 @@ Castro::initData ()
               problem_initialize_mhd_data(i, j, k, Bz_arr, 2, geomdata);
           });
 
-          const Box& box = mfi.validbox();
-          const int* lo  = box.loVect();
-          const int* hi  = box.hiVect();
-
-          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
-             (level, cur_time, lo, hi,
-              nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
-              nby, BL_TO_FORTRAN_3D(By_new[mfi]),
-              nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
-              dx, gridloc.lo(),gridloc.hi());
-
        }
 
 #endif //MHD
@@ -1104,23 +1091,6 @@ Castro::initData ()
               // by a problem setup (defaults to an empty routine).
               problem_initialize_state_data(i, j, k, s, geomdata);
           });
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-          ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                      AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-          (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-           BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-           ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
-
        }
 
 
@@ -1413,24 +1383,6 @@ Castro::initData ()
               problem_initialize_rad_data(i, j, k, r, xnu_pass, nugroup_pass, dnugroup_pass, geomdata);
 
           });
-
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-          ca_initrad
-              (AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-               BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
-               AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
-              (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
-               BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
-               ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
 
       }
     }

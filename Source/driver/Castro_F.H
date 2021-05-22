@@ -54,17 +54,6 @@ extern "C"
 
   void get_ambient_data(Real* ambient_state);
 
-#ifdef GPU_COMPATIBLE_PROBLEM
-  void ca_initdata(const int* lo, const int* hi,
-                   BL_FORT_FAB_ARG_3D(state),
-                   const amrex::Real* dx, const amrex::Real* problo);
-
-  void ca_initrad(const int* lo, const int* hi,
-                  BL_FORT_FAB_ARG_3D(rad_state),
-                  const amrex::Real* dx, const amrex::Real* problo);
-#endif
-
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,
@@ -100,16 +89,6 @@ extern "C"
 #endif
 
 
-#ifndef GPU_COMPATIBLE_PROBLEM
-BL_FORT_PROC_DECL(CA_INITDATA,ca_initdata)
-    (const int& level, const amrex::Real& time,
-     const int* lo, const int* hi,
-     const int& num_state,
-     BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
-#endif
-
-
 #ifdef MAESTRO_INIT
 BL_FORT_PROC_DECL(CA_INITDATA_MAESTRO,ca_initdata_maestro)
   (const int* lo, const int* hi, const int& MAESTRO_init_type,
@@ -129,17 +108,6 @@ BL_FORT_PROC_DECL(CA_INITDATA_OVERWRITE,ca_initdata_overwrite)
    const amrex::Real model[], const int& model_size, const int& MAESTRO_npts_model,
    const amrex::Real dx[], const amrex::Real& dr, const amrex::Real xlo[], const amrex::Real xhi[],
    const int& r_model_start);
-#endif
-
-#ifdef RADIATION
-#ifndef GPU_COMPATIBLE_PROBLEM
-BL_FORT_PROC_DECL(CA_INITRAD,ca_initrad)
-  (const int& level, const amrex::Real& time,
-   const int* lo, const int* hi,
-   const int& num_state,
-   BL_FORT_FAB_ARG_3D(state),
-   const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real* xhi);
-#endif
 #endif
 
 #ifdef MHD
