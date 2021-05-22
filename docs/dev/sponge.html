@@ -217,9 +217,10 @@
 we are not interested in the dynamics, to prevent them from
 dominating the timestep constraint.  Often these are buffer regions
 between the domain of interest and the boundary conditions.</p>
-<p>The sponge parameters are set in your <code class="docutils literal notranslate"><span class="pre">probin</span></code> file, in the
-<code class="docutils literal notranslate"><span class="pre">&amp;sponge</span></code> namelist.  The timescale of the damping is set through
-<code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code>.</p>
+<p>The sponge parameters are set in the inputs file. The timescale of the
+damping is set through <code class="docutils literal notranslate"><span class="pre">castro.sponge_timescale</span></code>, while factors such as
+the radius/density/pressure at which the sponge starts to begin being applied
+are described below.</p>
 <p>The sponge value, <span class="math notranslate nohighlight">\(f_\mathrm{sponge}\)</span> is computed as described below
 and then the sponge factor, <span class="math notranslate nohighlight">\(f\)</span> is computed as:</p>
 <div class="math notranslate nohighlight">

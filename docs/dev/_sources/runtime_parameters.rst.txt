@@ -451,6 +451,43 @@ namespace: ``castro``
 
 
 
+**sponge**
+
+.. index:: castro.sponge_lower_radius, castro.sponge_upper_radius, castro.sponge_lower_density, castro.sponge_upper_density, castro.sponge_lower_pressure, castro.sponge_upper_pressure, castro.sponge_lower_factor, castro.sponge_upper_factor, castro.sponge_target_x_velocity, castro.sponge_target_y_velocity, castro.sponge_target_z_velocity, castro.sponge_timescale
+
+
++----------------------------------------+---------------------------------------------------------+---------------+
+| parameter                              | description                                             | default value |
++========================================+=========================================================+===============+
+| ``sponge_lower_radius``                | Minimum simulation distance from center to start        | -1.0          |
+|                                        | applying the sponge                                     |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_upper_radius``                | Simulation distance from the center at which the sponge | -1.0          |
+|                                        | is fully applied                                        |               |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_lower_density``               | Minimum density at which to start applying the sponge   | -1.0          |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_upper_density``               | Density at which the sponge is fully applied            | -1.0          |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_lower_pressure``              | Minimum pressure at which to start applying the sponge  | -1.0          |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_upper_pressure``              | Pressure at which the sponge is fully applied           | -1.0          |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_lower_factor``                | Scaling factor for the sponge below the low end         | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_upper_factor``                | Scaling factor for the sponge above the high end        | 1.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_target_x_velocity``           | Target x-velocity for the sponge to drive to            | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_target_y_velocity``           | Target y-velocity for the sponge to drive to            | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_target_z_velocity``           | Target z-velocity for the sponge to drive to            | 0.0           |
++----------------------------------------+---------------------------------------------------------+---------------+
+| ``sponge_timescale``                   | Timescale on which the sponge operates                  | -1.0          |
++----------------------------------------+---------------------------------------------------------+---------------+
+
+
+
 **parallelization**
 
 .. index:: castro.do_acc, castro.bndry_func_thread_safe

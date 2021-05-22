@@ -934,8 +934,74 @@ number. A standard value in the literature is 10.0
 </tr>
 </tbody>
 </table>
-<p><strong>parallelization</strong></p>
+<p><strong>sponge</strong></p>
 <table class="docutils align-default" id="index-6">
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 51%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>parameter</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_radius</span></code></p></td>
+<td><p>Minimum simulation distance from center to start
+applying the sponge</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_radius</span></code></p></td>
+<td><p>Simulation distance from the center at which the sponge
+is fully applied</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_density</span></code></p></td>
+<td><p>Minimum density at which to start applying the sponge</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_density</span></code></p></td>
+<td><p>Density at which the sponge is fully applied</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_pressure</span></code></p></td>
+<td><p>Minimum pressure at which to start applying the sponge</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_pressure</span></code></p></td>
+<td><p>Pressure at which the sponge is fully applied</p></td>
+<td><p>-1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_lower_factor</span></code></p></td>
+<td><p>Scaling factor for the sponge below the low end</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_upper_factor</span></code></p></td>
+<td><p>Scaling factor for the sponge above the high end</p></td>
+<td><p>1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_target_x_velocity</span></code></p></td>
+<td><p>Target x-velocity for the sponge to drive to</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_target_y_velocity</span></code></p></td>
+<td><p>Target y-velocity for the sponge to drive to</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_target_z_velocity</span></code></p></td>
+<td><p>Target z-velocity for the sponge to drive to</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sponge_timescale</span></code></p></td>
+<td><p>Timescale on which the sponge operates</p></td>
+<td><p>-1.0</p></td>
+</tr>
+</tbody>
+</table>
+<p><strong>parallelization</strong></p>
+<table class="docutils align-default" id="index-7">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -960,7 +1026,7 @@ loops</p></td>
 </tbody>
 </table>
 <p><strong>embiggening</strong></p>
-<table class="docutils align-default" id="index-7">
+<table class="docutils align-default" id="index-8">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -986,7 +1052,7 @@ extend the domain</p></td>
 </tbody>
 </table>
 <p><strong>self-consistent field initialization</strong></p>
-<table class="docutils align-default" id="index-8">
+<table class="docutils align-default" id="index-9">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1027,7 +1093,7 @@ SCF</p></td>
 </tbody>
 </table>
 <p><strong>refinement</strong></p>
-<table class="docutils align-default" id="index-9">
+<table class="docutils align-default" id="index-10">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1051,7 +1117,7 @@ SCF</p></td>
 </tbody>
 </table>
 <p><strong>diagnostics, I/O</strong></p>
-<table class="docutils align-default" id="index-10">
+<table class="docutils align-default" id="index-11">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1128,7 +1194,7 @@ value greater than this default value.</p></td>
 </tbody>
 </table>
 <p><strong>particles</strong></p>
-<table class="docutils align-default" id="index-11">
+<table class="docutils align-default" id="index-12">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1151,7 +1217,7 @@ off</p></td>
 </div>
 <div class="section" id="namespace-diffusion">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">diffusion</span></code><a class="headerlink" href="#namespace-diffusion" title="Permalink to this headline">¶</a></h1>
-<table class="docutils align-default" id="index-12">
+<table class="docutils align-default" id="index-13">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1178,7 +1244,7 @@ number means more output)</p></td>
 </div>
 <div class="section" id="namespace-gravity">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">gravity</span></code><a class="headerlink" href="#namespace-gravity" title="Permalink to this headline">¶</a></h1>
-<table class="docutils align-default" id="index-13">
+<table class="docutils align-default" id="index-14">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1272,7 +1338,7 @@ the potential, rather than constructing it directly?</p></td>
 </div>
 <div class="section" id="namespace-particles">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">particles</span></code><a class="headerlink" href="#namespace-particles" title="Permalink to this headline">¶</a></h1>
-<table class="docutils align-default" id="index-14">
+<table class="docutils align-default" id="index-15">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1327,7 +1393,7 @@ particles are stored in output files</p></td>
 </div>
 <div class="section" id="namespace-radiation">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">radiation</span></code><a class="headerlink" href="#namespace-radiation" title="Permalink to this headline">¶</a></h1>
-<table class="docutils align-default" id="index-15">
+<table class="docutils align-default" id="index-16">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
@@ -1353,7 +1419,7 @@ particles are stored in output files</p></td>
 </div>
 <div class="section" id="namespace-radsolve">
 <h1>namespace: <code class="docutils literal notranslate"><span class="pre">radsolve</span></code><a class="headerlink" href="#namespace-radsolve" title="Permalink to this headline">¶</a></h1>
-<table class="docutils align-default" id="index-16">
+<table class="docutils align-default" id="index-17">
 <colgroup>
 <col style="width: 36%" />
 <col style="width: 51%" />
