@@ -34,8 +34,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"kth": "{{k_\\mathrm{th}}}", "gcc": "{\\mathrm{g~cm^{-3}}}", "cms": "{\\mathrm{cm~s^{-1}}}", "presunit": "{\\mathrm{dyn~cm^{-2}}}", "accelunit": "{\\mathrm{cm~s^{-2}}}", "ergg": "{\\mathrm{erg~g^{-1}}}", "Ab": "{{\\bf A}}", "eb": "{{\\bf e}}", "Fb": "{{\\bf F}}", "gb": "{{\\bf g}}", "Hb": "{{\\bf H}}", "ib": "{{\\bf i}}", "Ib": "{{\\bf I}}", "Kb": "{{\\bf K}}", "lb": "{{\\bf l}}", "Lb": "{{\\bf L}}", "nb": "{{\\bf n}}", "Pb": "{{\\bf P}}", "Qb": "{{\\bf Q}}", "rb": "{{\\bf r}}", "Rb": "{{\\bf R}}", "Sb": "{{\\bf S}}", "ub": "{{\\bf u}}", "Ub": "{{\\bf U}}", "xb": "{{\\bf x}}", "dt": "{\\Delta t}", "omegadot": "{\\dot\\omega}", "inp": "{{\\rm in}}", "outp": "{{\\rm out}}", "sync": "{{\\rm sync}}", "half": "{\\frac{1}{2}}", "myhalf": "{\\half}", "nph": "{{n+\\myhalf}}", "kpp": "{\\ensuremath{\\kappa_{\\mathrm{P}}}}", "kpr": "{\\ensuremath{\\kappa_{\\mathrm{R}}}}", "kpf": "{\\ensuremath{\\kappa_{\\mathrm{F}}}}", "vb": "{\\boldsymbol{v}}", "vbt": "{\\widetilde{\\vb}}", "rbt": "{\\widetilde{\\rb}}", "ob": "{\\boldsymbol{\\omega}}", "nablab": "{\\boldsymbol{\\nabla}}", "avg": ["{{\\left \\langle #1 \\right \\rangle}}", 1]}}})</script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -312,60 +310,9 @@ accepts no arguments, but for example <code class="docutils literal notranslate"
 be obtained by constructing a <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> object using <code class="docutils literal notranslate"><span class="pre">DefaultGeometry()</span></code>
 and accessing its <code class="docutils literal notranslate"><span class="pre">ProbLo()</span></code> and <code class="docutils literal notranslate"><span class="pre">ProbHi()</span></code> methods.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ca_initdata()</span></code> (Fortran) or <code class="docutils literal notranslate"><span class="pre">initialize_problem_state_data()</span></code> (C++):</p>
-<p>This routine will initialize the state data for a single grid.
-In Fortran the inputs to this routine are:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">level</span></code>: the level of refinement of the grid we are filling</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">time</span></code>: the simulation time</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lo()</span></code>, <code class="docutils literal notranslate"><span class="pre">hi()</span></code>: the integer indices of the box’s
-<em>valid data region</em> lower left and upper right corners. These
-integers refer to a global index space for the level and
-identify where in the computational domain the box lives.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">nscal</span></code>: the number of scalar quantities—this is not typically
-used in Castro.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">state()</span></code>: the main state array. This is dimensioned as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">real</span><span class="p">(</span><span class="n">rt</span><span class="p">),</span> <span class="n">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="p">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">NVAR</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <code class="docutils literal notranslate"><span class="pre">NVAR</span></code> comes from the <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>.  The
-spatial dimensions of the array come in through the arguments
-<code class="docutils literal notranslate"><span class="pre">s_lo</span></code> and <code class="docutils literal notranslate"><span class="pre">s_hi</span></code>.</p>
-<p>When accessing this array, we use the index keys provided by
-meth_params_module (e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>) to refer to specific
-quantities</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">delta()</span></code>: this is an array containing the zone width (<span class="math notranslate nohighlight">\(\Delta x\)</span>)
-in each coordinate direction: <code class="docutils literal notranslate"><span class="pre">delta(1)</span></code> = <span class="math notranslate nohighlight">\(\Delta x\)</span>,
-<code class="docutils literal notranslate"><span class="pre">delta(2)</span></code> = <span class="math notranslate nohighlight">\(\Delta y\)</span>, …</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xlo()</span></code>, <code class="docutils literal notranslate"><span class="pre">xhi()</span></code>: these are the physical coordinates of the
-lower left and upper right corners of the <em>valid region</em>
-of the box.  These should not be used, and will be removed in a future
-version of Castro.</p></li>
-</ul>
-</li>
-</ul>
-<p>Filling data is typically done in a loop like:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">do</span> <span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-   <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-
-   <span class="n">do</span> <span class="n">j</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-      <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-
-      <span class="n">do</span> <span class="n">i</span><span class="o">=</span><span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-         <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">dble</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="n">HALF</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">problo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-         <span class="n">state</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">URHO</span><span class="p">)</span> <span class="o">=</span> <span class="o">...</span>
-
-      <span class="n">end</span> <span class="n">do</span>
-   <span class="n">end</span> <span class="n">do</span>
-<span class="n">end</span> <span class="n">do</span>
-</pre></div>
-</div>
-<p>Here, we compute the coordinates of the zone center, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code>
-from the zone indices, <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, and <code class="docutils literal notranslate"><span class="pre">k</span></code>.</p>
-<blockquote>
-<div><p>In C++, the arguments passed are:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data()</span></code>:</p>
+<p>This routine will initialize the state data in a given zone.
+The arguments passed are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">j</span></code>, <code class="docutils literal notranslate"><span class="pre">k</span></code>: the index of the zone to fill the data in</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">state</span></code>: an array containing the simulation state data</p></li>
@@ -373,7 +320,8 @@ from the zone indices, <code class="docutils literal notranslate"><span class="p
 <code class="docutils literal notranslate"><span class="pre">dx</span></code>, <code class="docutils literal notranslate"><span class="pre">problo</span></code>, <code class="docutils literal notranslate"><span class="pre">probhi</span></code>, etc.</p></li>
 </ul>
 <p>Filling data is done by simply writing to <code class="docutils literal notranslate"><span class="pre">state(i,j,k,URHO)</span></code>, etc.</p>
-</div></blockquote>
+</li>
+</ul>
 </div>
 <div class="section" id="boundary-conditions">
 <span id="create-bcs"></span><h2>Boundary Conditions<a class="headerlink" href="#boundary-conditions" title="Permalink to this headline">¶</a></h2>
