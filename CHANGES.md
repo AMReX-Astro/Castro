@@ -4,7 +4,7 @@
      no longer supported and will no longer work. Please consult the
      code documentation and example problem setups in Exec/ to understand
      the new problem setup format. If you need help converting a Fortran
-     setup to C++, please file an issue. (#1728)
+     setup to C++, please file an issue. (#1728, #1732)
 
    * The update_sponge_params hook has been removed. (#1716)
 
