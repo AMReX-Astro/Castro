@@ -112,65 +112,10 @@ we will switch the whole code to C++).
   and accessing its ``ProbLo()`` and ``ProbHi()`` methods.
 
 
-* ``ca_initdata()`` (Fortran) or ``initialize_problem_state_data()`` (C++):
+* ``problem_initialize_state_data()``:
 
-  This routine will initialize the state data for a single grid.
-  In Fortran the inputs to this routine are:
-
-  -  ``level``: the level of refinement of the grid we are filling
-
-  -  ``time``: the simulation time
-
-  -  ``lo()``, ``hi()``: the integer indices of the box’s
-     *valid data region* lower left and upper right corners. These
-     integers refer to a global index space for the level and
-     identify where in the computational domain the box lives.
-
-  -  ``nscal``: the number of scalar quantities—this is not typically
-     used in Castro.
-
-  -  ``state()``: the main state array. This is dimensioned as::
-
-       real(rt), intent(inout) :: state(s_lo(1):s_hi(1), s_lo(2):s_hi(2), s_lo(3):s_hi(3), NVAR)
-
-     where ``NVAR`` comes from the ``meth_params_module``.  The
-     spatial dimensions of the array come in through the arguments
-     ``s_lo`` and ``s_hi``.
-
-     When accessing this array, we use the index keys provided by
-     meth_params_module (e.g., ``URHO``) to refer to specific
-     quantities
-
-  -  ``delta()``: this is an array containing the zone width (:math:`\Delta x`)
-     in each coordinate direction: ``delta(1)`` = :math:`\Delta x`,
-     ``delta(2)`` = :math:`\Delta y`, ...
-
-  -  ``xlo()``, ``xhi()``: these are the physical coordinates of the
-     lower left and upper right corners of the *valid region*
-     of the box.  These should not be used, and will be removed in a future
-     version of Castro.
-
-Filling data is typically done in a loop like::
-
-     do k = lo(3), hi(3)
-        z = (dble(k)+HALF)*delta(3) + problo(3)
-
-        do j=lo(2),hi(2)
-           y = (dble(j)+HALF)*delta(2) + problo(2)
-
-           do i=lo(1),hi(1)
-              x = (dble(i)+HALF)*delta(1) + problo(1)
-
-              state(i,j,k,URHO) = ...
-
-           end do
-        end do
-     end do
-
-Here, we compute the coordinates of the zone center, ``x``, ``y``, and ``z``
-from the zone indices, ``i``, ``j``, and ``k``.
-
-  In C++, the arguments passed are:
+  This routine will initialize the state data in a given zone.
+  The arguments passed are:
 
   - ``i``, ``j``, ``k``: the index of the zone to fill the data in
 

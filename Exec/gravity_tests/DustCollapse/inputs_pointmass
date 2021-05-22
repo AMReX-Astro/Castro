@@ -38,6 +38,11 @@ castro.init_shrink    = 0.01
 castro.change_max     = 1.0
 castro.limit_fluxes_on_small_dens = 1
 
+# SPONGE
+castro.sponge_lower_density = 1.0e-3
+castro.sponge_upper_density = 1.0e-3
+castro.sponge_timescale = 1.0e-3
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1
 castro.v              = 2

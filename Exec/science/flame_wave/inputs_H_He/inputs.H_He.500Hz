@@ -55,6 +55,9 @@ castro.react_rho_max = 1.5e7
 
 castro.react_T_min = 6.e7
 
+castro.sponge_upper_density = 1.e2
+castro.sponge_lower_density = 1.e0
+castro.sponge_timescale     = 1.e-7
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system
@@ -88,8 +91,8 @@ amr.derive_plot_vars = ALL
 
 amr.small_plot_file        = flame_wave_H_He_500Hz_smallplt        # root name of plotfile
 amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
-amr.small_plot_vars = density Temp enuc
-amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(h1) X(he4)
+amr.small_plot_vars = density Temp
+amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(H1) X(He4) enuc
 
 #PROBIN FILENAME
-amr.probin_file = probin.H_He.500Hz
+amr.probin_file = probin.H_He

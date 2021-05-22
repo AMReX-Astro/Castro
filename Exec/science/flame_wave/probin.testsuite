@@ -32,15 +32,6 @@
   x_refine_distance = 6.144e4
 /
 
-&sponge
-
-  sponge_upper_density = 1.d2
-  sponge_lower_density = 1.d0
-  sponge_timescale     = 1.d-7
-
-/
-
-
 &extern
 
   rtol_spec = 1.d-6

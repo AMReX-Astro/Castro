@@ -32,13 +32,6 @@
   temperr            = 2.d8
 /
 
-&sponge
-  sponge_lower_radius = 3.840d9
-  sponge_upper_radius = 4.352d9
-  sponge_timescale    = 0.01d0
-/
-
 &extern
-  use_eos_coulomb = T
-  eos_input_is_constant = T
+
 /

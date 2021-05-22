@@ -94,7 +94,7 @@ void Radiation::MGFLD_implicit_update(int level, int iteration, int ncycle)
     }
   }
   MultiFab Er_old(grids, dmap , Er_new.nComp(), 0);
-  Er_old.copy(Er_new); 
+  MultiFab::Copy(Er_old, Er_new, 0, 0, Er_new.nComp(), 0);
   MultiFab Er_pi(grids,dmap,nGroups,1);
   MultiFab Er_star(grids, dmap, nGroups, 1);
   Er_pi.setBndry(-1.0); // later we may use it to compute limiter

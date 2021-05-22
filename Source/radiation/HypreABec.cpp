@@ -931,8 +931,6 @@ void HypreABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
     stencil_indices[i] = i;
   }
 
-  Real foo=1.e200;
-
   BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   for (MFIter ai(*acoefs); ai.isValid(); ++ai) {
     i = ai.index();

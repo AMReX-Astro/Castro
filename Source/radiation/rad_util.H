@@ -96,7 +96,7 @@ void edge_center_metric (int i, int j, int k, int idir, const GeometryData& geom
             Real h2 = 0.5e0_rt * geomdata.CellSize(1);
             Real d2 = 1.e0_rt / geomdata.CellSize(1);
 
-            Real s = d2 * (std::cos(s - h2) - std::cos(s + h2));
+            s = d2 * (std::cos(s - h2) - std::cos(s + h2));
 #else
             s = 1.0_rt;
 #endif

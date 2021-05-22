@@ -9,10 +9,6 @@ extern "C"
 {
 #endif
 
-#ifdef SPONGE
-  void update_sponge_params(const amrex::Real* time);
-#endif
-
   void ca_ext_src
     (const int* lo, const int* hi,
      const BL_FORT_FAB_ARG_3D(old_state),

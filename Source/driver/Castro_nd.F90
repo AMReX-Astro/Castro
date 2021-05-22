@@ -27,8 +27,6 @@ subroutine ca_microphysics_init() bind(C, name="ca_microphysics_init")
 
   call microphysics_init(small_dens=small_dens, small_temp=small_temp)
 
-  !$acc update device(small_dens, small_temp)
-
 end subroutine ca_microphysics_init
 
 
@@ -50,228 +48,6 @@ subroutine ca_set_abort_on_failure(abort_on_failure_in) bind(C, name="ca_set_abo
 
 end subroutine ca_set_abort_on_failure
 #endif
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_amrinfo_init() bind(C, name="ca_amrinfo_init")
-    !
-    ! Binds to C function `ca_amrinfo_init`
-    !
-
-  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
-  use amrex_fort_module, only: rt => amrex_real
-
-  allocate(amr_level)
-  amr_level = 0
-  allocate(amr_iteration)
-  amr_iteration = 0
-  allocate(amr_ncycle)
-  amr_ncycle = 0
-  allocate(amr_time)
-  amr_time = 0.0e0_rt
-  allocate(amr_dt)
-  amr_dt = 0.0e0_rt
-
-end subroutine ca_amrinfo_init
-
-
-
-subroutine ca_amrinfo_finalize() bind(C, name="ca_amrinfo_finalize")
-    !
-    ! Binds to C function `ca_amrinfo_finalize`
-    !
-
-  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
-
-  deallocate(amr_level)
-  deallocate(amr_iteration)
-  deallocate(amr_ncycle)
-  deallocate(amr_time)
-  deallocate(amr_dt)
-
-end subroutine ca_amrinfo_finalize
-
-
-
-
-subroutine ca_set_amr_info(level_in, iteration_in, ncycle_in, time_in, dt_in) &
-     bind(C, name="ca_set_amr_info")
-     !
-     ! Binds to C function `ca_set_amr_info`
-     !
-     ! level_in integer
-     ! iteration_in integer
-     ! ncycle_in integer
-     ! time_in real(rt)
-     ! dt_in real(rt)
-     !
-
-  use amrinfo_module, only: amr_level, amr_iteration, amr_ncycle, amr_time, amr_dt
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in) :: level_in, iteration_in, ncycle_in
-  real(rt), intent(in) :: time_in, dt_in
-
-  if (level_in .ge. 0) then
-     amr_level = level_in
-  endif
-
-  if (iteration_in .ge. 0) then
-     amr_iteration = iteration_in
-  endif
-
-  if (ncycle_in .ge. 0) then
-     amr_ncycle = ncycle_in
-  endif
-
-  if (time_in .ge. 0.0e0_rt) then
-     amr_time = time_in
-  endif
-
-  if (dt_in .ge. 0.0e0_rt) then
-     amr_dt = dt_in
-  endif
-
-
-end subroutine ca_set_amr_info
-
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine allocate_outflow_data(np,nc) &
-     bind(C, name="allocate_outflow_data")
-     !
-     ! Binds to C function `allocate_outflow_data`
-
-  use meth_params_module, only: outflow_data_old, outflow_data_new, outflow_data_allocated
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: np,nc
-
-  if (.not. outflow_data_allocated) then
-     allocate(outflow_data_old(nc,np))
-     allocate(outflow_data_new(nc,np))
-  end if
-
-  outflow_data_allocated = .true.
-
-end subroutine allocate_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine set_old_outflow_data(radial,time,np,nc) &
-     bind(C, name="set_old_outflow_data")
-     ! Passing data from C++ to f90
-     !
-     ! Binds to C function `set_old_outflow_data`
-
-  use meth_params_module, only: outflow_data_old, outflow_data_old_time
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: radial(nc,np)
-  real(rt), intent(in) :: time
-  integer,  intent(in) :: np,nc
-
-  ! Do this so the routine has the right size
-  deallocate(outflow_data_old)
-  allocate(outflow_data_old(nc,np))
-
-  outflow_data_old(1:nc,1:np) = radial(1:nc,1:np)
-
-  outflow_data_old_time = time
-
-end subroutine set_old_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine set_new_outflow_data(radial,time,np,nc) &
-     bind(C, name="set_new_outflow_data")
-     ! Passing data from C++ to f90
-     !
-     ! Binds to C function `set_new_outflow_data`
-
-  use meth_params_module, only: outflow_data_new, outflow_data_new_time
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: radial(nc,np)
-  real(rt), intent(in) :: time
-  integer,  intent(in) :: np,nc
-
-  ! Do this so the routine has the right size
-  deallocate(outflow_data_new)
-  allocate(outflow_data_new(nc,np))
-
-  outflow_data_new(1:nc,1:np) = radial(1:nc,1:np)
-
-  outflow_data_new_time = time
-
-end subroutine set_new_outflow_data
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-subroutine swap_outflow_data() bind(C, name="swap_outflow_data")
-    !
-    ! Binds to C function `swap_outflow_data`
-    !
-
-  use meth_params_module, only: outflow_data_new, outflow_data_new_time, &
-       outflow_data_old, outflow_data_old_time
-  use castro_error_module
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer :: np, nc
-
-  nc = size(outflow_data_new,dim=1)
-  np = size(outflow_data_new,dim=2)
-
-  if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
-     ! Do this so the routine has the right size
-     deallocate(outflow_data_old)
-     allocate(outflow_data_old(nc,np))
-  end if
-
-#ifndef AMREX_USE_CUDA
-  if (size(outflow_data_old,dim=2) .ne. size(outflow_data_new,dim=2)) then
-     print *,'size of old and new dont match in swap_outflow_data '
-     call castro_error("Error:: Castro_nd.f90 :: swap_outflow_data")
-  end if
-#endif
-
-  outflow_data_old(1:nc,1:np) = outflow_data_new(1:nc,1:np)
-
-  if (outflow_data_new_time .ge. 0.e0_rt) &
-       outflow_data_old_time = outflow_data_new_time
-  outflow_data_new_time = -1.e0_rt
-
-end subroutine swap_outflow_data
 
 ! :::
 ! ::: ----------------------------------------------------------------
@@ -300,12 +76,6 @@ subroutine ca_set_method_params(dm) &
 
   call bl_pd_is_ioproc(ioproc)
 
-#ifdef ROTATION
-  rot_vec = ZERO
-  rot_vec(rot_axis) = ONE
-#endif
-
-
   !---------------------------------------------------------------------
   ! safety checks
   !---------------------------------------------------------------------
@@ -332,8 +102,6 @@ subroutine ca_set_method_params(dm) &
      small_ener = 1.e-200_rt
   endif
 
-  !$acc update device(small_dens, small_temp, small_pres, small_ener)
-
 end subroutine ca_set_method_params
 
 
@@ -343,12 +111,10 @@ end subroutine ca_set_method_params
 
 
 
-subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
-     Interior_in, Inflow_in, Outflow_in, &
-     Symmetry_in, SlipWall_in, NoSlipWall_in, &
-     coord_type_in, &
-     problo_in, probhi_in) &
-     bind(C, name="ca_set_problem_params")
+subroutine ca_set_problem_params(dm, &
+                                 coord_type_in, &
+                                 problo_in, probhi_in) &
+                                 bind(C, name="ca_set_problem_params")
      ! Passing data from C++ into f90
      !
      ! Binds to C function `ca_set_problem_params`
@@ -357,16 +123,11 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   use castro_error_module
   use prob_params_module
   use meth_params_module, only: UMX, UMY, UMZ
-#ifdef ROTATION
-  use meth_params_module, only: rot_axis
-#endif
   use amrex_fort_module, only: rt => amrex_real
 
   implicit none
 
   integer,  intent(in) :: dm
-  integer,  intent(in) :: physbc_lo_in(dm),physbc_hi_in(dm)
-  integer,  intent(in) :: Interior_in, Inflow_in, Outflow_in, Symmetry_in, SlipWall_in, NoSlipWall_in
   integer,  intent(in) :: coord_type_in
   real(rt), intent(in) :: problo_in(dm), probhi_in(dm)
 
@@ -374,32 +135,9 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
 
   dim = dm
 
-  allocate(physbc_lo(3))
-  allocate(physbc_hi(3))
-
-  physbc_lo(:) = 0
-  physbc_hi(:) = 0
-
-  physbc_lo(1:dm) = physbc_lo_in(1:dm)
-  physbc_hi(1:dm) = physbc_hi_in(1:dm)
-
-  allocate(Interior)
-  allocate(Inflow)
-  allocate(Outflow)
-  allocate(Symmetry)
-  allocate(SlipWall)
-  allocate(NoSlipWall)
-
   allocate(coord_type)
   allocate(problo(3))
   allocate(probhi(3))
-
-  Interior   = Interior_in
-  Inflow     = Inflow_in
-  Outflow    = Outflow_in
-  Symmetry   = Symmetry_in
-  SlipWall   = SlipWall_in
-  NoSlipWall = NoSlipWall_in
 
   coord_type = coord_type_in
 
@@ -409,107 +147,7 @@ subroutine ca_set_problem_params(dm,physbc_lo_in,physbc_hi_in,&
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
 
-  allocate(dg(3))
-
-  dg(:) = 1
-
-  if (dim .lt. 2) then
-     dg(2) = 0
-  endif
-
-  if (dim .lt. 3) then
-     dg(3) = 0
-  endif
-
-#ifdef ROTATION
-  if (coord_type == 1) then
-     rot_axis = 2
-  endif
-#endif
-
-
-  !$acc update device(physbc_lo, physbc_hi)
-  !$acc update device(Interior, Inflow, Outflow, Symmetry, Slipwall, NoSlipWall)
-  !$acc update device(dim)
-  !$acc update device(dg)
-  !$acc update device(coord_type)
-  !$acc update device(problo, probhi)
-  !$acc update device(domlo_level, domhi_level, dx_level)
-  !$acc update device(ref_ratio, n_error_buf, blocking_factor)
-
 end subroutine ca_set_problem_params
-
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_set_grid_info(max_level_in, dx_level_in, domlo_in, domhi_in, &
-     ref_ratio_in, n_error_buf_in, blocking_factor_in) &
-     bind(C, name="ca_set_grid_info")
-     !
-     ! Sometimes this routine can get called multiple
-     ! times upon initialization; in this case, just to
-     ! be safe, we'll deallocate and start again.
-     !
-     ! Binds to C function `ca_set_grid_info`
-
-  use prob_params_module, only: max_level, dx_level, domlo_level, domhi_level, n_error_buf, ref_ratio, blocking_factor
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer,  intent(in) :: max_level_in
-  real(rt), intent(in) :: dx_level_in(3*(max_level_in+1))
-  integer,  intent(in) :: domlo_in(3*(max_level_in+1)), domhi_in(3*(max_level_in+1))
-  integer,  intent(in) :: ref_ratio_in(3*(max_level_in+1))
-  integer,  intent(in) :: n_error_buf_in(0:max_level_in)
-  integer,  intent(in) :: blocking_factor_in(0:max_level_in)
-
-  integer :: lev, dir
-
-  if (allocated(dx_level)) then
-     deallocate(dx_level)
-  endif
-  if (allocated(domlo_level)) then
-     deallocate(domlo_level)
-  endif
-  if (allocated(domhi_level)) then
-     deallocate(domhi_level)
-  endif
-
-  if (allocated(ref_ratio)) then
-     deallocate(ref_ratio)
-  endif
-  if (allocated(n_error_buf)) then
-     deallocate(n_error_buf)
-  endif
-  if (allocated(blocking_factor)) then
-     deallocate(blocking_factor)
-  endif
-
-  max_level = max_level_in
-
-  allocate(dx_level(1:3, 0:max_level))
-  allocate(domlo_level(1:3, 0:max_level))
-  allocate(domhi_level(1:3, 0:max_level))
-  allocate(ref_ratio(1:3, 0:max_level))
-  allocate(n_error_buf(0:max_level))
-  allocate(blocking_factor(0:max_level))
-
-  do lev = 0, max_level
-     do dir = 1, 3
-        dx_level(dir,lev) = dx_level_in(3*lev + dir)
-        domlo_level(dir,lev) = domlo_in(3*lev + dir)
-        domhi_level(dir,lev) = domhi_in(3*lev + dir)
-        ref_ratio(dir,lev) = ref_ratio_in(3*lev + dir)
-     enddo
-     n_error_buf(lev) = n_error_buf_in(lev)
-     blocking_factor(lev) = blocking_factor_in(lev)
-  enddo
-
-end subroutine ca_set_grid_info
 
 
 ! :::
@@ -638,11 +276,9 @@ subroutine ca_get_tagging_params(name, namlen) &
   max_dxnuc_lev = -1
 
   ! create the filename
-#ifndef AMREX_USE_CUDA
   if (namlen > maxlen) then
      call castro_error('probin file name too long')
   endif
-#endif
 
   do i = 1, namlen
      probin(i:i) = char(name(i))
@@ -659,198 +295,12 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   else if (status > 0) then
      ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
      call castro_error('ERROR: problem in the tagging namelist')
-#endif
   endif
 
   close (unit=un)
 
 end subroutine ca_get_tagging_params
-
-#ifdef SPONGE
-! :::
-! ::: ----------------------------------------------------------------
-! :::
-
-
-
-subroutine ca_read_sponge_params(name, namlen) bind(C, name="ca_read_sponge_params")
-    ! Initialize the sponge parameters
-    !
-    ! Binds to C function `ca_get_sponge_params`
-
-  use sponge_module
-  use castro_error_module
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  integer, intent(in) :: namlen
-  integer, intent(in) :: name(namlen)
-
-  integer :: un, i, status
-
-  integer, parameter :: maxlen = 256
-  character (len=maxlen) :: probin
-
-  real(rt) :: sponge_target_x_velocity
-  real(rt) :: sponge_target_y_velocity
-  real(rt) :: sponge_target_z_velocity
-
-  namelist /sponge/ &
-       sponge_lower_factor, sponge_upper_factor, &
-       sponge_lower_radius, sponge_upper_radius, &
-       sponge_lower_density, sponge_upper_density, &
-       sponge_lower_pressure, sponge_upper_pressure, &
-       sponge_target_x_velocity, &
-       sponge_target_y_velocity, &
-       sponge_target_z_velocity, &
-       sponge_timescale
-
-  ! Set namelist defaults
-
-  sponge_lower_factor = 0.e0_rt
-  sponge_upper_factor = 1.e0_rt
-
-  sponge_lower_radius = -1.e0_rt
-  sponge_upper_radius = -1.e0_rt
-
-  sponge_lower_density = -1.e0_rt
-  sponge_upper_density = -1.e0_rt
-
-  sponge_lower_pressure = -1.e0_rt
-  sponge_upper_pressure = -1.e0_rt
-
-  sponge_target_x_velocity = 0.e0_rt
-  sponge_target_y_velocity = 0.e0_rt
-  sponge_target_z_velocity = 0.e0_rt
-
-  sponge_timescale    = -1.e0_rt
-
-  ! create the filename
-#ifndef AMREX_USE_CUDA
-  if (namlen > maxlen) then
-     call castro_error('probin file name too long')
-  endif
-#endif
-
-  do i = 1, namlen
-     probin(i:i) = char(name(i))
-  end do
-
-  ! read in the namelist
-  open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
-  read (unit=un, nml=sponge, iostat=status)
-
-  if (status < 0) then
-     ! the namelist does not exist, so we just go with the defaults
-     continue
-
-  else if (status > 0) then
-     ! some problem in the namelist
-#ifndef AMREX_USE_CUDA
-     call castro_error('ERROR: problem in the sponge namelist')
-#endif
-  endif
-
-  close (unit=un)
-
-  sponge_target_velocity = [sponge_target_x_velocity, &
-       sponge_target_y_velocity, &
-       sponge_target_z_velocity]
-
-  ! Sanity check
-
-#ifndef AMREX_USE_CUDA
-  if (sponge_lower_factor < 0.e0_rt .or. sponge_lower_factor > 1.e0_rt) then
-     call castro_error('ERROR: sponge_lower_factor cannot be outside of [0, 1].')
-  endif
-
-  if (sponge_upper_factor < 0.e0_rt .or. sponge_upper_factor > 1.e0_rt) then
-     call castro_error('ERROR: sponge_upper_factor cannot be outside of [0, 1].')
-  endif
-#endif
-
-end subroutine ca_read_sponge_params
-
-
-subroutine ca_get_sponge_params(sponge_lower_factor_in, sponge_upper_factor_in, &
-                                sponge_lower_radius_in, sponge_upper_radius_in, &
-                                sponge_lower_density_in, sponge_upper_density_in, &
-                                sponge_lower_pressure_in, sponge_upper_pressure_in, &
-                                sponge_target_velocity_in, &
-                                sponge_timescale_in) bind(C, name="ca_get_sponge_params")
-
-  use sponge_module
-
-  implicit none
-
-  real(rt), intent(inout) :: sponge_lower_factor_in
-  real(rt), intent(inout) :: sponge_upper_factor_in
-  real(rt), intent(inout) :: sponge_lower_radius_in
-  real(rt), intent(inout) :: sponge_upper_radius_in
-  real(rt), intent(inout) :: sponge_lower_density_in
-  real(rt), intent(inout) :: sponge_upper_density_in
-  real(rt), intent(inout) :: sponge_lower_pressure_in
-  real(rt), intent(inout) :: sponge_upper_pressure_in
-  real(rt), intent(inout) :: sponge_target_velocity_in(3)
-  real(rt), intent(inout) :: sponge_timescale_in
-
-  sponge_lower_factor_in = sponge_lower_factor
-  sponge_upper_factor_in = sponge_upper_factor
-
-  sponge_lower_radius_in = sponge_lower_radius
-  sponge_upper_radius_in = sponge_upper_radius
-
-  sponge_lower_density_in = sponge_lower_density
-  sponge_upper_density_in = sponge_upper_density
-
-  sponge_lower_pressure_in = sponge_lower_pressure
-  sponge_upper_pressure_in = sponge_upper_pressure
-
-  sponge_target_velocity_in(:) = sponge_target_velocity(:)
-
-  sponge_timescale_in = sponge_timescale
-
-end subroutine ca_get_sponge_params
-
-
-subroutine ca_allocate_sponge_params() bind(C, name="ca_allocate_sponge_params")
-    ! allocate sponge parameters
-    !
-    ! Binds to C function `ca_allocate_sponge_params`
-    !
-
-  use sponge_module
-  allocate(sponge_lower_factor, sponge_upper_factor)
-  allocate(sponge_lower_radius, sponge_upper_radius)
-  allocate(sponge_lower_density, sponge_upper_density)
-  allocate(sponge_lower_pressure, sponge_upper_pressure)
-  allocate(sponge_target_velocity(3))
-  allocate(sponge_timescale)
-
-end subroutine ca_allocate_sponge_params
-
-
-
-subroutine ca_deallocate_sponge_params() bind(C, name="ca_deallocate_sponge_params")
-    ! deallocate sponge parameters
-    !
-    ! Binds to C function `ca_deallocate_sponge_params`
-    !
-
-  use sponge_module
-
-  deallocate(sponge_lower_factor, sponge_upper_factor)
-  deallocate(sponge_lower_radius, sponge_upper_radius)
-  deallocate(sponge_lower_density, sponge_upper_density)
-  deallocate(sponge_lower_pressure, sponge_upper_pressure)
-  deallocate(sponge_target_velocity)
-  deallocate(sponge_timescale)
-
-end subroutine ca_deallocate_sponge_params
-#endif
 
 subroutine ca_get_ambient_params(name, namlen) bind(C, name="ca_get_ambient_params")
     ! Initialize the ambient parameters
@@ -939,24 +389,3 @@ subroutine get_ambient_data(ambient_state_out) bind(C, name='get_ambient_data')
   ambient_state_out(:) = ambient_state(:)
 
 end subroutine get_ambient_data
-
-
-
-#ifdef GRAVITY
-
-subroutine set_pointmass(pointmass_in) bind(C, name='set_pointmass')
-    !
-    ! pointmass_in real(rt)
-    !
-
-  use meth_params_module, only: point_mass
-  use amrex_fort_module, only: rt => amrex_real
-
-  implicit none
-
-  real(rt), intent(in) :: pointmass_in
-
-  point_mass = pointmass_in
-
-end subroutine set_pointmass
-#endif

@@ -18,7 +18,7 @@ USE_POST_SIM = TRUE
 CASTRO_HOME := ../../..
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
-EOS_DIR     := gamma_law_general
+EOS_DIR     := gamma_law
 
 CONDUCTIVITY_DIR = constant
 

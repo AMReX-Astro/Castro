@@ -13,6 +13,7 @@ USE_MPI    = TRUE
 
 USE_GRAV   = TRUE
 USE_REACT  = TRUE
+USE_NSE    = TRUE
 
 USE_CXX_MODEL_PARSER = TRUE
 
@@ -20,7 +21,7 @@ USE_CXX_MODEL_PARSER = TRUE
 EOS_DIR     := helmholtz
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
-NETWORK_DIR := aprox21
+NETWORK_DIR := aprox19
 
 INTEGRATOR_DIR := VODE
 
