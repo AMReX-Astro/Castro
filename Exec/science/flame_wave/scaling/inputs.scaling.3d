@@ -49,6 +49,9 @@ castro.react_rho_max = 1.5e7
 
 castro.react_T_min = 6.e7
 
+castro.sponge_upper_density = 1.e2
+castro.sponge_lower_density = 1.e0
+castro.sponge_timescale     = 1.e-7
 
 # TIME STEP CONTROL
 castro.cfl            = 0.8     # cfl number for hyperbolic system

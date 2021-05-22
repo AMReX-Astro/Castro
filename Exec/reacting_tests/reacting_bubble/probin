@@ -7,14 +7,6 @@
 
 /
 
-&sponge
-
-  sponge_upper_density = 1.d6
-  sponge_lower_density = 1.d4
-  sponge_timescale     = 1.d-5
-
-/
-
 &tagging
 
   temperr = 6.e8

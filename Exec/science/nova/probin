@@ -10,10 +10,6 @@
 
 /
 
-&sponge
-
-/
-
 &extern
 
 rtol_spec = 1.e-9

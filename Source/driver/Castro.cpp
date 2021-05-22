@@ -91,11 +91,6 @@ Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
 #endif
 
-// the sponge parameters are controlled by Fortran, so
-// this just initializes them before we grab their values
-// from Fortran
-#include <sponge_defaults.H>
-
 #ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
@@ -203,11 +198,6 @@ Castro::variableCleanUp ()
 
     // C++ cleaning
     eos_finalize();
-
-
-#ifdef SPONGE
-    sponge_finalize();
-#endif
 
 }
 

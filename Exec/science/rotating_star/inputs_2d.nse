@@ -41,6 +41,9 @@ gravity.gravity_type = MonopoleGrav
 gravity.drdxfac = 2
 castro.grav_source_type = 4
 
+castro.sponge_upper_density = 1.e3
+castro.sponge_lower_density = 1.e2
+castro.sponge_timescale     = 1.e-3
 
 castro.cfl            = 0.7     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep by this factor

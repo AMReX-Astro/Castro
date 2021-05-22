@@ -104,18 +104,6 @@ Castro::construct_new_sponge_source(MultiFab& source, MultiFab& state_old, Multi
 }
 
 void
-Castro::sponge_init()
-{
-    ca_allocate_sponge_params();
-}
-
-void
-Castro::sponge_finalize()
-{
-    ca_deallocate_sponge_params();
-}
-
-void
 Castro::apply_sponge(const Box& bx,
                      Array4<Real const> const state_in,
                      Array4<Real> const source,
@@ -133,25 +121,6 @@ Castro::apply_sponge(const Box& bx,
 
   auto dx = geom.CellSizeArray();
   auto problo = geom.ProbLoArray();
-
-  const Real lsponge_upper_radius = sponge_upper_radius;
-  const Real lsponge_lower_radius = sponge_lower_radius;
-
-  const Real lsponge_upper_density = sponge_upper_density;
-  const Real lsponge_lower_density = sponge_lower_density;
-
-  const Real lsponge_upper_pressure = sponge_upper_pressure;
-  const Real lsponge_lower_pressure = sponge_lower_pressure;
-
-  const Real lsponge_upper_factor = sponge_upper_factor;
-  const Real lsponge_lower_factor = sponge_lower_factor;
-
-  const int lsponge_implicit = sponge_implicit;
-
-  GpuArray<Real, 3> lsponge_target_velocity;
-  for (int n = 0; n < 3; n++) {
-    lsponge_target_velocity[n] = sponge_target_velocity[n];
-  }
 
   amrex::ParallelFor(bx,
   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -185,32 +154,32 @@ Castro::apply_sponge(const Box& bx,
     // compute the update factor
 
     // Radial distance between upper and lower boundaries.
-    Real delta_r = lsponge_upper_radius - lsponge_lower_radius;
+    Real delta_r = sponge_upper_radius - sponge_lower_radius;
 
     // Density difference between upper and lower cutoffs.
-    Real delta_rho = lsponge_lower_density - lsponge_upper_density;
+    Real delta_rho = sponge_lower_density - sponge_upper_density;
 
     // Pressure difference between upper and lower cutoffs.
-    Real delta_p = lsponge_lower_pressure - lsponge_upper_pressure;
+    Real delta_p = sponge_lower_pressure - sponge_upper_pressure;
 
 
     // Apply radial sponge. By default sponge_lower_radius will be zero
     // so this sponge is applied only if set by the user.
     Real sponge_factor = 0.0_rt;
 
-    if (lsponge_lower_radius >= 0.0_rt && lsponge_upper_radius > lsponge_lower_radius) {
+    if (sponge_lower_radius >= 0.0_rt && sponge_upper_radius > sponge_lower_radius) {
       Real rad = std::sqrt(r[0]*r[0] + r[1]*r[1] + r[2]*r[2]);
 
-      if (rad < lsponge_lower_radius) {
-        sponge_factor = lsponge_lower_factor;
+      if (rad < sponge_lower_radius) {
+        sponge_factor = sponge_lower_factor;
 
-      } else if (rad >= lsponge_lower_radius && rad <= lsponge_upper_radius) {
-        sponge_factor = lsponge_lower_factor +
-          0.5_rt * (lsponge_upper_factor - lsponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (rad - lsponge_lower_radius) / delta_r));
+      } else if (rad >= sponge_lower_radius && rad <= sponge_upper_radius) {
+        sponge_factor = sponge_lower_factor +
+          0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
+          (1.0_rt - std::cos(M_PI * (rad - sponge_lower_radius) / delta_r));
 
       } else {
-        sponge_factor = lsponge_upper_factor;
+        sponge_factor = sponge_upper_factor;
       }
     }
 
@@ -219,17 +188,17 @@ Castro::apply_sponge(const Box& bx,
     // Note that because we do this second, the density sponge gets priority
     // over the radial sponge in cases where the two would overlap.
 
-    if (lsponge_upper_density > 0.0_rt && lsponge_lower_density > 0.0_rt) {
-      if (rho > lsponge_upper_density) {
-        sponge_factor = lsponge_lower_factor;
+    if (sponge_upper_density > 0.0_rt && sponge_lower_density > 0.0_rt) {
+      if (rho > sponge_upper_density) {
+        sponge_factor = sponge_lower_factor;
 
-      } else if (rho <= lsponge_upper_density && rho >= lsponge_lower_density) {
-        sponge_factor = lsponge_lower_factor +
-          0.5_rt * (lsponge_upper_factor - lsponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (rho - lsponge_upper_density) / delta_rho));
+      } else if (rho <= sponge_upper_density && rho >= sponge_lower_density) {
+        sponge_factor = sponge_lower_factor +
+          0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
+          (1.0_rt - std::cos(M_PI * (rho - sponge_upper_density) / delta_rho));
 
       } else {
-        sponge_factor = lsponge_upper_factor;
+        sponge_factor = sponge_upper_factor;
       }
     }
 
@@ -238,7 +207,7 @@ Castro::apply_sponge(const Box& bx,
     // Note that because we do this third, the pressure sponge gets priority
     // over the radial and density sponges in cases where the two would overlap.
 
-    if (lsponge_upper_pressure > 0.0_rt && lsponge_lower_pressure >= 0.0_rt) {
+    if (sponge_upper_pressure > 0.0_rt && sponge_lower_pressure >= 0.0_rt) {
 
       eos_rep_t eos_state;
 
@@ -257,16 +226,16 @@ Castro::apply_sponge(const Box& bx,
 
       Real p = eos_state.p;
 
-      if (p > lsponge_upper_pressure) {
-        sponge_factor = lsponge_lower_factor;
+      if (p > sponge_upper_pressure) {
+        sponge_factor = sponge_lower_factor;
 
-      } else if (p <= lsponge_upper_pressure && p >= lsponge_lower_pressure) {
-        sponge_factor = lsponge_lower_factor +
-          0.5_rt * (lsponge_upper_factor - lsponge_lower_factor) *
-          (1.0_rt - std::cos(M_PI * (p - lsponge_upper_pressure) / delta_p));
+      } else if (p <= sponge_upper_pressure && p >= sponge_lower_pressure) {
+        sponge_factor = sponge_lower_factor +
+          0.5_rt * (sponge_upper_factor - sponge_lower_factor) *
+          (1.0_rt - std::cos(M_PI * (p - sponge_upper_pressure) / delta_p));
 
       } else {
-        sponge_factor = lsponge_upper_factor;
+        sponge_factor = sponge_upper_factor;
 
       }
     }
@@ -283,7 +252,7 @@ Castro::apply_sponge(const Box& bx,
     // which yields Sr = - (rho v) * (ONE - ONE / (ONE + alpha * sponge_factor)).
 
     Real fac;
-    if (lsponge_implicit == 1) {
+    if (sponge_implicit == 1) {
        fac = -(1.0_rt - 1.0_rt / (1.0_rt + alpha * sponge_factor));
 
     } else {
@@ -294,8 +263,11 @@ Castro::apply_sponge(const Box& bx,
 
     // now compute the source
     GpuArray<Real, 3> Sr;
+    GpuArray<Real, 3> sponge_target_velocity = {sponge_target_x_velocity,
+                                                sponge_target_y_velocity,
+                                                sponge_target_z_velocity};
     for (int n = 0; n < 3; n++) {
-      Sr[n] = (state_in(i,j,k,UMX+n) - rho * lsponge_target_velocity[n]) * fac * mult_factor / dt;
+      Sr[n] = (state_in(i,j,k,UMX+n) - rho * sponge_target_velocity[n]) * fac * mult_factor / dt;
       src[UMX+n] = Sr[n];
     }
 

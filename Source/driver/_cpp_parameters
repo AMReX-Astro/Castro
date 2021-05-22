@@ -469,6 +469,48 @@ point_mass_fix_solution      int           0                  n        GRAVITY
 # in the literature is 10.0 (kpc).
 gw_dist                      Real          0.0                n        GRAVITY
 
+
+#-----------------------------------------------------------------------------
+# category: sponge
+#-----------------------------------------------------------------------------
+
+# Minimum simulation distance from center to start applying the sponge
+sponge_lower_radius          Real         -1.0                n        SPONGE
+
+# Simulation distance from the center at which the sponge is fully applied
+sponge_upper_radius          Real         -1.0                n        SPONGE
+
+# Minimum density at which to start applying the sponge
+sponge_lower_density         Real         -1.0                n        SPONGE
+
+# Density at which the sponge is fully applied
+sponge_upper_density         Real         -1.0                n        SPONGE
+
+# Minimum pressure at which to start applying the sponge
+sponge_lower_pressure        Real         -1.0                n        SPONGE
+
+# Pressure at which the sponge is fully applied
+sponge_upper_pressure        Real         -1.0                n        SPONGE
+
+# Scaling factor for the sponge below the low end
+sponge_lower_factor          Real          0.0                n        SPONGE
+
+# Scaling factor for the sponge above the high end
+sponge_upper_factor          Real          1.0                n        SPONGE
+
+# Target x-velocity for the sponge to drive to
+sponge_target_x_velocity     Real          0.0                n        SPONGE
+
+# Target y-velocity for the sponge to drive to
+sponge_target_y_velocity     Real          0.0                n        SPONGE
+
+# Target z-velocity for the sponge to drive to
+sponge_target_z_velocity     Real          0.0                n        SPONGE
+
+# Timescale on which the sponge operates
+sponge_timescale             Real         -1.0                n        SPONGE
+
+
 #-----------------------------------------------------------------------------
 # category: parallelization
 #-----------------------------------------------------------------------------

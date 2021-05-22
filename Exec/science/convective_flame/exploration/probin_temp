@@ -41,14 +41,6 @@
 
 /
 
-&sponge
-
-  sponge_upper_density = 5.0d-8
-  sponge_lower_density = 1.0d-8
-  sponge_timescale     = 1.0d-6
-
-/
-
 &extern
 
   eos_assume_neutral = T
