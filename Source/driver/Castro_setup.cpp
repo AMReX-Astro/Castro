@@ -16,7 +16,9 @@
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
+#if (defined(RADIATION) || !defined(NETWORK_HAS_CXX_IMPLEMENTATION))
 #include <microphysics_F.H>
+#endif
 #include <eos.H>
 #include <prob_parameters_F.H>
 
@@ -239,7 +241,7 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
-#if (defined(RADIATION) || !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
+#if (defined(RADIATION) || !defined(NETWORK_HAS_CXX_IMPLEMENTATION))
   // Initialize the Fortran Microphysics
   ca_microphysics_init();
 #endif
