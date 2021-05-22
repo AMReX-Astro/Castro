@@ -147,18 +147,6 @@ subroutine ca_set_problem_params(dm, &
   problo(1:dm) = problo_in(1:dm)
   probhi(1:dm) = probhi_in(1:dm)
 
-  allocate(dg(3))
-
-  dg(:) = 1
-
-  if (dim .lt. 2) then
-     dg(2) = 0
-  endif
-
-  if (dim .lt. 3) then
-     dg(3) = 0
-  endif
-
 end subroutine ca_set_problem_params
 
 
