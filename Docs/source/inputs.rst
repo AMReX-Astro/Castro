@@ -46,7 +46,7 @@ for example, has the Fortran code read a file called ``my_special_probin``.
 Working with probin Files
 =========================
 
-There are three several Fortran namelists that can be defined in the
+There are several Fortran namelists that can be defined in the
 ``probin`` file:
 
   * ``&fortin`` is the main namelist read by the problem’s
@@ -56,9 +56,6 @@ There are three several Fortran namelists that can be defined in the
 
   * ``&tagging`` is used to get the parameters (defined in
     ``tagging_module``) that affect how we tag for refinement.
-
-  * ``&sponge`` is used to set the parameters for the sponge source
-    term that is used to damp velocities.
 
 
 Common inputs Options

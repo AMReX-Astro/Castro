@@ -54,6 +54,10 @@ castro.change_max     = 1.1     # max time step growth
 
 castro.use_retry      = 1       # retry subcycled times if we detect a CFL violation
 
+castro.sponge_upper_density = 5.0e-8
+castro.sponge_lower_density = 1.0e-8
+castro.sponge_timescale     = 1.0e-6
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp

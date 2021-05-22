@@ -55,11 +55,11 @@
 
 # godunov interface states
 @set: godunov NGDNV NGDNV
-   density                GDRHO     None            1                   None
    x-velocity             GDU       None            1                   None
    y-velocity             GDV       None            1                   None
    z-velocity             GDW       None            1                   None
    pressure               GDPRES    None            1                   None
+   density                GDRHO     None            1                   HYBRID_MOMENTUM
    flux-limiter           GDLAMS    None          (ngroups, NGROUPS)    RADIATION
    radiation              GDERADS   None          (ngroups, NGROUPS)    RADIATION
 

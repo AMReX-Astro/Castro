@@ -50,11 +50,7 @@ Castro::do_advance_ctu(Real time,
 
     initialize_do_advance(time);
 
-    // Zero out the source term data.
-
-    sources_for_hydro.setVal(0.0, NUM_GROW);
-
-    // Add any correctors to the source term data. This must be done
+    // Create any correctors to the source term data. This must be done
     // before the source term data is overwritten below. Note: we do
     // not create the corrector source if we're currently retrying the
     // step; we will already have done it, and aside from avoiding
@@ -65,16 +61,7 @@ Castro::do_advance_ctu(Real time,
         create_source_corrector();
     }
 
-    if (time_integration_method == CornerTransportUpwind && source_term_predictor == 1) {
-        // Add the source term predictor (scaled by dt/2).
-        MultiFab::Saxpy(sources_for_hydro, 0.5 * dt, source_corrector, UMX, UMX, 3, NUM_GROW);
-    }
-    else if (time_integration_method == SimplifiedSpectralDeferredCorrections) {
-        // Time center the sources.
-        MultiFab::Add(sources_for_hydro, source_corrector, 0, 0, NSRC, NUM_GROW);
-    }
-
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_old);
@@ -147,17 +134,15 @@ Castro::do_advance_ctu(Real time,
 #endif                
                       old_source, Sborder, S_new, prev_time, dt, apply_sources_to_state);
 
-      // Apply the old sources to the sources for the hydro.
-      // Note that we are doing an add here, not a copy,
-      // in case we have already started with some source
-      // terms (e.g. the source term predictor, or the SDC source).
+      if (do_hydro) {
+          // Fill the ghost cells of old_source / Source_Type
 
-     if (do_hydro) {
-         AmrLevel::FillPatchAdd(*this, sources_for_hydro, NUM_GROW, time, Source_Type, 0, NSRC);
-     }
+          AmrLevel::FillPatch(*this, old_source, old_source.nGrow(), prev_time, Source_Type, 0, NSRC);
+      }
+
 
     } else {
-      old_source.setVal(0.0, NUM_GROW);
+      old_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
@@ -179,14 +164,12 @@ Castro::do_advance_ctu(Real time,
       }
 
       construct_ctu_hydro_source(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
 
-      if (print_update_diagnostics) {
-          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
-      }
+//      if (print_update_diagnostics) {
+//          evaluate_and_print_source_change(hydro_source, dt, "hydro source");
+//      }
 #else
       construct_ctu_mhd_source(time, dt);
-      apply_source_to_state(S_new, hydro_source, dt, 0);
 #endif
 
       // Check for small/negative densities.
@@ -251,7 +234,7 @@ Castro::do_advance_ctu(Real time,
 #endif
                 S_new, cur_time, 0);
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
     // Check for NaN's.
 
     check_for_nan(S_new);
@@ -297,7 +280,7 @@ Castro::do_advance_ctu(Real time,
 
     } else {
 
-      new_source.setVal(0.0, NUM_GROW);
+      new_source.setVal(0.0, NUM_GROW_SRC);
 
     }
 
@@ -324,6 +307,13 @@ Castro::do_advance_ctu(Real time,
 
         if (do_react) {
 
+            // store the current conserved state (without burning) into
+            // Simplified_SDC_React_Type -- this will be used after the burn
+            // to figure out just the effect of reactions
+
+            MultiFab& S_noreact = get_new_data(Simplified_SDC_React_Type);
+            MultiFab::Copy(S_noreact, S_new, 0, 0, S_new.nComp(), 0);
+
             // Do the ODE integration to capture the reaction source terms.
 
             bool burn_success = react_state(time, dt);
@@ -347,7 +337,7 @@ Castro::do_advance_ctu(Real time,
 
             // Check for NaN's.
 
-#ifndef AMREX_USE_CUDA
+#ifndef AMREX_USE_GPU
             check_for_nan(S_new);
 #endif
 

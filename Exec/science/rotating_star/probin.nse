@@ -19,7 +19,7 @@
   max_tempgrad_lev   = -1
 
   dengrad            = 1.e18
-  denerr             = 0.5e5
+  denerr             = 1.e4
 
   velgrad            = 1.e18
   velerr             = 1.e18
@@ -33,15 +33,6 @@
 
 /
 
-&sponge
-
-  sponge_upper_density = 1.d4
-  sponge_lower_density = 1.d2
-  sponge_timescale     = 1.d-3
-
-/
-
-
 &extern 
 
   rtol_spec = 1.d-6
@@ -50,9 +41,9 @@
   retry_burn = F
   abort_on_failure = F
 
-  jacobian = 1
+  jacobian = 2
 
-  rho_nse = 3.e8
+  rho_nse = 2.e6
   T_nse = 3.e9
 
 /

@@ -9,9 +9,10 @@ we are not interested in the dynamics, to prevent them from
 dominating the timestep constraint.  Often these are buffer regions
 between the domain of interest and the boundary conditions.
 
-The sponge parameters are set in your ``probin`` file, in the
-``&sponge`` namelist.  The timescale of the damping is set through
-``sponge_timescale``.
+The sponge parameters are set in the inputs file. The timescale of the
+damping is set through ``castro.sponge_timescale``, while factors such as
+the radius/density/pressure at which the sponge starts to begin being applied
+are described below.
 
 The sponge value, :math:`f_\mathrm{sponge}` is computed as described below
 and then the sponge factor, :math:`f` is computed as:

@@ -1,6 +1,6 @@
 &fortin
 
-  model_name =  "15m_500_sec.hse.6400"
+  model_name =  "15m_aprox19.6400"
 
 /
 
@@ -33,15 +33,6 @@
 
 /
 
-&sponge
-
-  sponge_upper_density = 1.d4
-  sponge_lower_density = 1.d2
-  sponge_timescale     = 1.d-3
-
-/
-
-
 &extern 
 
   rtol_spec = 1.d-6
@@ -50,5 +41,7 @@
   retry_burn = F
   abort_on_failure = F
 
-  jacobian = 2
+  rho_nse = 5.e7
+
+  jacobian = 1
 /

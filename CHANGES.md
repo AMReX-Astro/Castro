@@ -1,4 +1,41 @@
+# 21.06
+
+   * Starting with this release, problem setups written in Fortran are
+     no longer supported and will no longer work. Please consult the
+     code documentation and example problem setups in Exec/ to understand
+     the new problem setup format. If you need help converting a Fortran
+     setup to C++, please file an issue. (#1728, #1732)
+
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
+   * The update_sponge_params hook has been removed. (#1716)
+
+   * We no longer store Reactions_Type in checkpoint files.  This means
+     that newer versions of Castro will not restart from old version.
+     
+# 21.05
+
+   * The parameter use_eos_in_riemann was removed -- we found no
+     instances of it being used (#1623)
+
+   * The option castro.apply_sources_consecutively was removed (#1636)
+
+# 21.04
+
+   * For simplified-SDC, we now correctly store only the reactive
+     part of the update for rho_enuc, enuc, and rho_omegadot
+     plotfile variables (#1602)
+
 # 21.02
+
+   * In axisymmetric geometry, there are additional forces that arise
+     due to the changing direction of the unit vectors in the div{rho
+     U U} term. The paper by Bernand-Champmartin discusses this. See
+     issue #913. This adds those forces.  Note that the Coriolis force
+     in 2-d axisymmetry is already consistent with a right-handed
+     system despite our internal ordering of the state was r, z,
+     theta.  (#923)
 
    * We can now set any of the Microphysics runtime parameters in the
      inputs file instead of probin.  Each group of parameters has a

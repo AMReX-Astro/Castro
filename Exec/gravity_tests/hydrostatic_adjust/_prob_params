@@ -19,3 +19,5 @@ heating_rad        real             0.0_rt              y
 heating_peak       real             1.e16_rt            y
 
 heating_sigma      real             1.e7_rt             y
+
+ifuel              integer          -1

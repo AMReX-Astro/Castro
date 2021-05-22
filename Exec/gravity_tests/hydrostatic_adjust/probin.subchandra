@@ -9,11 +9,3 @@
   prob_type = 3
 
 /
-
-&sponge
-
-  sponge_upper_density = 1.d4
-  sponge_lower_density = 5.d3
-  sponge_timescale     = 1.d-3
-
-/

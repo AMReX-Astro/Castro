@@ -4,8 +4,7 @@
 #include <AMReX_BLFort.H>
 #include <Castro.H>
 
-#ifdef AMREX_USE_CUDA
-#include <cuda_runtime_api.h>
+#ifdef AMREX_USE_GPU
 #include <AMReX_Arena.H>
 #endif
 
