@@ -116,14 +116,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#statedata"><code class="docutils literal notranslate"><span class="pre">StateData</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#non-tiling-mfiter">Non-Tiling MFIter</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#amrexs-current-tiling-approach-in-c">AMReX’s Current Tiling Approach In C++</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#practical-details-in-working-with-tiling">Practical Details in Working with Tiling</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#boundaries-fillpatch-and-fillpatchiterator">Boundaries: <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> and <code class="docutils literal notranslate"><span class="pre">FillPatchIterator</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#physical-boundaries">Physical Boundaries</a></li>
@@ -398,11 +391,11 @@ directly, with the exception of the <code class="docutils literal notranslate"><
 which is defined as part of the <code class="docutils literal notranslate"><span class="pre">AmrLevel</span></code> class that <code class="docutils literal notranslate"><span class="pre">Castro</span></code>
 inherits. <code class="docutils literal notranslate"><span class="pre">grids</span></code> is used when building new <code class="docutils literal notranslate"><span class="pre">MultiFabs</span></code> to give
 the layout of the boxes at the current level.</p>
-<div class="figure align-default" id="id9">
+<div class="figure align-default" id="id7">
 <span id="fig-soft-indexspace"></span><a class="reference internal image-reference" href="_images/index_grid2.png"><img alt="_images/index_grid2.png" src="_images/index_grid2.png" style="width: 4in;" /></a>
 <p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">Three boxes that comprise a single level. At this
 resolution, the domain is 20 <span class="math notranslate nohighlight">\(\times\)</span> 18 zones. Note that the
-indexing in AMReX starts with <span class="math notranslate nohighlight">\(0\)</span>.</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+indexing in AMReX starts with <span class="math notranslate nohighlight">\(0\)</span>.</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </div>
 <p>A <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> or <em>FAB</em>, for <em>Fortran array box</em> is a data
 structure that contains a <code class="docutils literal notranslate"><span class="pre">Box</span></code> locating it in space, as well as a
@@ -558,341 +551,13 @@ at the new time.</p>
 <div class="section" id="mfiter-and-interacting-with-fortran">
 <h2><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran<a class="headerlink" href="#mfiter-and-interacting-with-fortran" title="Permalink to this headline">¶</a></h2>
 <p>The process of looping over boxes at a given level of refinement and
-operating on their data in Fortran is linked to how Castro achieves
+operating on their data is linked to how Castro achieves
 thread-level parallelism. The OpenMP approach in Castro has evolved
 considerably since the original paper was written, with the modern
 approach, called <em>tiling</em>, gearing up to meet the demands of
-many-core processors in the next-generation of supercomputers. We
-discuss the original and new approach together here.</p>
-<p>In both cases, the key construct is the <code class="docutils literal notranslate"><span class="pre">MFiter</span></code>—this is a
-C++ iterator that knows how to loop over the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> es in the
-<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> that are local to the processor (in this way, a lot of the
-parallelism is hidden from view).</p>
-<div class="section" id="non-tiling-mfiter">
-<span id="sec-amrex0"></span><h3>Non-Tiling MFIter<a class="headerlink" href="#non-tiling-mfiter" title="Permalink to this headline">¶</a></h3>
-<p>The non-tiling way to iterate over the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> s is <a class="footnote-reference brackets" href="#id5" id="id1">1</a>:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">mf</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="c1">// Loop over boxes</span>
-<span class="p">{</span>
-  <span class="c1">// Get the index space of this iteration</span>
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">box</span> <span class="o">=</span> <span class="n">mfi</span><span class="p">.</span><span class="n">validbox</span><span class="p">();</span>
-
-  <span class="c1">// Get a reference to the FAB, which contains data and box</span>
-  <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">fab</span> <span class="o">=</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
-
-  <span class="c1">// Get the index space for the data region in th FAB.</span>
-  <span class="c1">// Note &quot;abox&quot; may have ghost cells, and is thus larger than</span>
-  <span class="c1">// or equal to &quot;box&quot; obtained using mfi.validbox().</span>
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">abox</span> <span class="o">=</span> <span class="n">fab</span><span class="p">.</span><span class="n">box</span><span class="p">();</span>
-
-  <span class="c1">// We can now pass the information to a Fortran routine,</span>
-  <span class="c1">// fab.dataPtr() gives a double*, which is reshaped into</span>
-  <span class="c1">// a multi-dimensional array with dimensions specified by</span>
-  <span class="c1">// the information in &quot;abox&quot;. We will also pass &quot;box&quot;,</span>
-  <span class="c1">// which specifies our &quot;work&quot; region.</span>
-  <span class="n">do_work</span><span class="p">(</span><span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">box</span><span class="p">.</span><span class="n">loVect</span><span class="p">()),</span> <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">box</span><span class="p">.</span><span class="n">hiVect</span><span class="p">()),</span>
-          <span class="n">fab</span><span class="p">.</span><span class="n">dataPtr</span><span class="p">(),</span> <span class="n">fab</span><span class="p">.</span><span class="n">nComp</span><span class="p">(),</span>
-          <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">abox</span><span class="p">.</span><span class="n">loVect</span><span class="p">()),</span> <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">abox</span><span class="p">.</span><span class="n">hiVect</span><span class="p">())</span>
-
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>A few comments about this code</p>
-<ul>
-<li><p>In this example, we are working off of a <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> named <code class="docutils literal notranslate"><span class="pre">mf</span></code>.
-This could, for example, come from state data as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MultiFab</span><span class="o">&amp;</span> <span class="n">mf</span> <span class="o">=</span> <span class="n">get_old_data</span><span class="p">(</span><span class="n">State_Type</span><span class="p">);</span>
-</pre></div>
-</div>
-</li>
-<li><p>We are passing the data in <code class="docutils literal notranslate"><span class="pre">mf</span></code> one box at a time to the
-Fortran function <code class="docutils literal notranslate"><span class="pre">do_work</span></code>.</p></li>
-<li><p>Here the <code class="docutils literal notranslate"><span class="pre">MFIter</span></code> iterator, <code class="docutils literal notranslate"><span class="pre">mfi</span></code>, will perform the loop
-only over the boxes that are local to the MPI task. If there are 3
-boxes on the processor, then this loop has 3 iterations.</p>
-<p><code class="docutils literal notranslate"><span class="pre">++mfi</span></code> iterates to the next <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> owned by the
-<code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> <code class="docutils literal notranslate"><span class="pre">mf</span></code>, and <code class="docutils literal notranslate"><span class="pre">mfi.isValid()</span></code> returns false
-after we’ve reached the last box contained in the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>,
-terminating the loop.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">box</span></code> as returned from <code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code> does not include
-ghost cells. This is the valid data region only.
-We can get the indices of the valid zones as <code class="docutils literal notranslate"><span class="pre">box.loVect()</span></code> and
-<code class="docutils literal notranslate"><span class="pre">box.hiVect()</span></code>.</p>
-<p>In passing to the Fortran function, we use the macro
-<code class="docutils literal notranslate"><span class="pre">ARLIM_3D</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">ArrayLim.H</span></code> to pass the <code class="docutils literal notranslate"><span class="pre">lo</span></code>
-and <code class="docutils literal notranslate"><span class="pre">hi</span></code> vectors as pointers to an <code class="docutils literal notranslate"><span class="pre">int</span></code> array. This array
-is defined to always be 3D, with 0s substituted for the
-higher dimension values if we are running in 1- or 2D.</p>
-<p>Passing the data in this 3D fashion is a newer approach in Castro.
-This enables writing <em>dimension agnostic code</em>. There are many
-other approaches that will pass only the <code class="docutils literal notranslate"><span class="pre">DIM</span></code> values of
-<code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> using alternate macros in <code class="docutils literal notranslate"><span class="pre">ArrayLim.H</span></code>.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fab.dataPtr()</span></code> returns a <code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">*</span></code>—a pointer to the
-data region. This is what is passed to Fortran.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">fab.nComp()</span></code> gives an int—the number of components
-in the <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code>. This will be used for dimensioning in Fortran.</p></li>
-<li><p>To properly dimension the array in Fortran, we need the actual
-bounds of the data region, including any ghost cells. This is the
-<code class="docutils literal notranslate"><span class="pre">Box</span></code> <code class="docutils literal notranslate"><span class="pre">abox</span></code>, obtained as <code class="docutils literal notranslate"><span class="pre">fab.box()</span></code>. We pass the
-<code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> of the full data region as well.</p></li>
-</ul>
-<p>To properly compile, we need a prototype for the Fortran
-function. These are placed in the <code class="docutils literal notranslate"><span class="pre">*_F.H</span></code> files in the
-<code class="docutils literal notranslate"><span class="pre">Castro/Source/</span></code> directory. Here’s the prototype for
-our function:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">do_work</span>
-  <span class="p">(</span><span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="n">lo</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="n">hi</span><span class="p">,</span>
-   <span class="n">Real</span><span class="o">*</span> <span class="n">state</span><span class="p">,</span> <span class="k">const</span> <span class="n">Real</span><span class="o">&amp;</span> <span class="n">ncomp</span>
-   <span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="n">s_lo</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="n">s_hi</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>A few comments on the prototype:</p>
-<ul class="simple">
-<li><p>we use the <code class="docutils literal notranslate"><span class="pre">const</span></code> qualifier on the many of the arguments.
-This indicates that the data that is pointed to cannot be
-modified <a class="footnote-reference brackets" href="#id6" id="id2">2</a>, but the
-contents of the memory space that they point to can be modified.</p></li>
-<li><p>For <code class="docutils literal notranslate"><span class="pre">ncomp</span></code>, we in the calling sequence, we just did
-<code class="docutils literal notranslate"><span class="pre">fab.nComp()</span></code>. This returns a <code class="docutils literal notranslate"><span class="pre">int</span></code>. But Fortran is a
-pass-by-reference language, so we make the argument in the prototype
-a reference. This ensures that it is passed by reference.</p></li>
-</ul>
-<p>In our Fortran example, we want to loop over all of the data,
-including 1 ghost cell all around. The corresponding Fortran function
-will look like:</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">do_work</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="p">&amp;</span>
-                   <span class="n">state</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">,</span> <span class="p">&amp;</span>
-                   <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;do_work&quot;</span><span class="p">)</span>
-
-  <span class="k">use </span><span class="n">prob_params_module</span><span class="p">,</span> <span class="k">only</span> <span class="p">:</span> <span class="n">dg</span>
-
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span>
-
-  <span class="kt">real</span> <span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="n">dp_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="p">&amp;</span>
-                                           <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="p">&amp;</span>
-                                           <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span><span class="p">)</span>
-
-  <span class="c">! loop over the data</span>
-  <span class="k">do </span><span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-     <span class="k">do </span><span class="n">j</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="o">*</span><span class="n">dg</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-           <span class="c">! work on state(i,j,k,:), where the last index</span>
-           <span class="c">! is the component of the multifab</span>
-
-        <span class="k">enddo</span>
-<span class="k">     enddo</span>
-<span class="k">  enddo</span>
-
-<span class="k">end subroutine </span><span class="n">do_work</span>
-</pre></div>
-</div>
-<p>Finally, comments on the Fortran routine;</p>
-<ul>
-<li><p>We use the Fortran 2003 <code class="docutils literal notranslate"><span class="pre">bind</span></code> keyword to specify
-that we want this to be interoperable with C. Ordinarily
-we would not need to specify the optional argument name
-in the binding, but the PGI compiler requires this if our
-Fortran subroutine is part of a module.</p></li>
-<li><p>We dimension state using <code class="docutils literal notranslate"><span class="pre">s_lo</span></code> and <code class="docutils literal notranslate"><span class="pre">s_hi</span></code> —these are
-the bounds we got from the <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code>, and are for the entire data
-region, including ghost cells.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>In Fortran, the spatial indices of state don’t
-necessarily start at 1—they reflect the global index space for
-the entire domain at this level of refinement. This means that
-we know where the box is located.</p>
-</div>
-<p>Later we’ll see how to compute the spatial coordinates using this
-information.</p>
-</li>
-<li><p>Our loop uses <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code>—these are the indices
-of the valid data region (no ghost cells). Since we want a single
-ghost cell all around, we subtract 1 from <code class="docutils literal notranslate"><span class="pre">lo</span></code> and add 1
-to <code class="docutils literal notranslate"><span class="pre">hi</span></code>.</p>
-<p>Finally, since this is dimension-agnostic code (it should work
-correctly in 1-, 2-, and 3D), we need to ensure the loops over the
-higher dimensions do nothing when we compile for a lower
-dimensionality. This is the role of <code class="docutils literal notranslate"><span class="pre">dg</span></code>—dg is 1
-if our simulation includes that spatial dimension and 0
-otherwise.</p>
-<p>If we were not looping over ghost cells too, then we would not need
-to invoke <code class="docutils literal notranslate"><span class="pre">dg</span></code>, since <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> are both set to
-0 for any dimensions not represented in our simulation.</p>
-</li>
-</ul>
-<p>Up to this point, we have not said anything about threading. In this
-style of using the MFIter, we implement the OpenMP in Fortran, for
-instance by putting a pragma around the outer loop in this example.</p>
-</div>
-<div class="section" id="amrexs-current-tiling-approach-in-c">
-<span id="sec-amrex1"></span><h3>AMReX’s Current Tiling Approach In C++<a class="headerlink" href="#amrexs-current-tiling-approach-in-c" title="Permalink to this headline">¶</a></h3>
-<p>There are two types of tiling that people discuss. In <em>logical
-tiling</em>, the data storage in memory is unchanged from how we do things
-now in pure MPI. In a given box, the data region is stored
-contiguously). But when we loop in OpenMP over a box, the tiling
-changes how we loop over the data. The alternative is called
-<em>separate tiling</em>—here the data storage in memory itself is changed
-to reflect how the tiling will be performed. This is not considered
-in AMReX.</p>
-<p>We have recently introduced logical tiling into parts of AMReX.  It
-is off by default, to make the transition smooth and because not
-everything should be tiled. It can be enabled on a loop-by-loop basis
-by setting an optional argument to <code class="docutils literal notranslate"><span class="pre">MFIter</span></code>. We demonstrate this
-below. Further examples can be found at <code class="docutils literal notranslate"><span class="pre">amrex/Tutorials/Tiling_C</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">amrex/Src/LinearSolvers/C_CellMG/</span></code>.</p>
-<p>In our logical tiling approach, a box is logically split into tiles,
-and a <code class="docutils literal notranslate"><span class="pre">MFIter</span></code> loops over each tile in each box. Note that the
-non-tiling iteration approach can be considered as a special case of
-tiling with the tile size equal to the box size.</p>
-<p>Let us consider an example. Suppose there are four boxes—see
-<a class="reference internal" href="#fig-domain-tiling"><span class="std std-numref">Fig. 2</span></a>.</p>
-<div class="figure align-default" id="id10">
-<span id="fig-domain-tiling"></span><img alt="tiling of the domain" src="_images/domain-tile.png" />
-<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">A simple domain showing 4 Boxes labeled 0–3, and their tiling
-regions (dotted lines)</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
-</div>
-<p>The first box is divided into 4 logical tiles, the second and third
-are divided into 2 tiles each (because they are small), and the fourth
-into 4 tiles. So there are 12 tiles in total. The difference between
-the tiling and non-tiling version are then:</p>
-<ul class="simple">
-<li><p>In the tiling version, the loop body will be run 12 times. Note
-that <code class="docutils literal notranslate"><span class="pre">tilebox</span></code> is different for each tile, whereas <code class="docutils literal notranslate"><span class="pre">fab</span></code>
-might be referencing the same object if the tiles belong to the same
-box.</p></li>
-<li><p>In the non-tiling version (by constructing <code class="docutils literal notranslate"><span class="pre">MFIter</span></code> without
-the optional second argument or setting to false), the loop
-body will be run 4 times because there are four boxes, and a call to
-<code class="docutils literal notranslate"><span class="pre">mfi.tilebox()</span></code> will return the traditional <code class="docutils literal notranslate"><span class="pre">validbox</span></code>. The
-non-tiling case is essentially having one tile per box.</p></li>
-</ul>
-<p>The tiling implementation of the same call to our the Fortran
-do_work routine is show below:</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">bool</span> <span class="n">tiling</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-<span class="k">for</span> <span class="p">(</span><span class="n">MFIter</span> <span class="n">mfi</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">tiling</span><span class="p">);</span> <span class="n">mfi</span><span class="p">.</span><span class="n">isValid</span><span class="p">();</span> <span class="o">++</span><span class="n">mfi</span><span class="p">)</span> <span class="c1">// Loop over tiles</span>
-<span class="p">{</span>
-  <span class="c1">// Get the index space of this iteration.</span>
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">box</span> <span class="o">=</span> <span class="n">mfi</span><span class="p">.</span><span class="n">growntilebox</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-
-  <span class="c1">// Get a reference to the FAB, which contains data and box</span>
-  <span class="n">FArrayBox</span><span class="o">&amp;</span> <span class="n">fab</span> <span class="o">=</span> <span class="n">mf</span><span class="p">[</span><span class="n">mfi</span><span class="p">];</span>
-
-  <span class="c1">// Get the index space for the data pointed by the double*.</span>
-  <span class="k">const</span> <span class="n">Box</span><span class="o">&amp;</span> <span class="n">abox</span> <span class="o">=</span> <span class="n">fab</span><span class="p">.</span><span class="n">box</span><span class="p">();</span>
-
-  <span class="c1">// We can now pass the information to a Fortran routine.</span>
-  <span class="n">do_work</span><span class="p">(</span><span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">box</span><span class="p">.</span><span class="n">loVect</span><span class="p">()),</span> <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">box</span><span class="p">.</span><span class="n">hiVect</span><span class="p">()),</span>
-          <span class="n">fab</span><span class="p">.</span><span class="n">dataPtr</span><span class="p">(),</span> <span class="n">fab</span><span class="p">.</span><span class="n">nComp</span><span class="p">(),</span>
-          <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">abox</span><span class="p">.</span><span class="n">loVect</span><span class="p">()),</span> <span class="n">ARLIM_3D</span><span class="p">(</span><span class="n">abox</span><span class="p">.</span><span class="n">hiVect</span><span class="p">())</span>
-
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Note that the code is almost identical to the one in § <a class="reference internal" href="#sec-amrex0"><span class="std std-ref">Non-Tiling MFIter</span></a>.
-Some comments:</p>
-<ul>
-<li><p>The iterator now takes an extra argument to turn on tiling (set
-to <code class="docutils literal notranslate"><span class="pre">true</span></code>).</p>
-<p>There is another interface fo <code class="docutils literal notranslate"><span class="pre">MFIter</span></code> that can take an
-<code class="docutils literal notranslate"><span class="pre">IntVect</span></code> that explicitly gives the tile size in each coordinate
-direction. If we don’t explictly specify the tile size at the loop,
-then the runtime parameter <code class="docutils literal notranslate"><span class="pre">fabarray.mfiter_tile_size</span></code>
-can be used to set it globally.</p>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">.validBox()</span></code> has the same meaning as in the non-tile
-approach, so we don’t use it.
-Since in this example, we want to include a single ghost cell in our
-loop over the data, we use <code class="docutils literal notranslate"><span class="pre">.growntilebox(1)</span></code> (where the 1
-here indicates a single ghost cell) to get the <code class="docutils literal notranslate"><span class="pre">Box</span></code> (and
-corresponding <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code>) for the <em>current tile</em>, not
-the entire data region. If instead, we just wanted the valid
-region in Fortran, without any ghost cells, we would use
-<code class="docutils literal notranslate"><span class="pre">.tilebox()</span></code>.</p></li>
-<li><p>When passing into the Fortran routine, we still use the index
-space of the entire <code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> (including ghost cells), as seen in
-the <code class="docutils literal notranslate"><span class="pre">abox</span></code> construction. This is needed to properly dimension
-the array in Fortran.</p>
-<p>The Fortran routine will declare a multidimensional array that is of
-the same size as the entire box, but only work on the index space
-identified by the tile-box (<code class="docutils literal notranslate"><span class="pre">box</span></code>).</p>
-</li>
-</ul>
-<p>The Fortran code is almost the same as before, but now our loop
-simply uses <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code>, since, by construction with
-<code class="docutils literal notranslate"><span class="pre">.growntilebox(1)</span></code>, this already includes the single ghost cell
-all around:</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">do_work</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="p">&amp;</span>
-                   <span class="n">state</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">,</span> <span class="p">&amp;</span>
-                   <span class="n">s_lo</span><span class="p">,</span> <span class="n">s_hi</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;do_work&quot;</span><span class="p">)</span>
-
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-  <span class="kt">integer</span><span class="p">,</span> <span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span> <span class="kd">::</span> <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span>
-
-  <span class="kt">real</span> <span class="p">(</span><span class="nb">kind</span><span class="o">=</span><span class="n">dp_t</span><span class="p">),</span> <span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span> <span class="kd">::</span> <span class="n">state</span><span class="p">(</span><span class="n">s_lo</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="p">&amp;</span>
-                                           <span class="n">s_lo</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="p">&amp;</span>
-                                           <span class="n">s_lo</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">s_hi</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">ncomp</span><span class="p">)</span>
-
-  <span class="c">! loop over the data</span>
-  <span class="k">do </span><span class="n">k</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-     <span class="k">do </span><span class="n">j</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">do </span><span class="n">i</span> <span class="o">=</span> <span class="n">lo</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">hi</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-
-           <span class="c">! work on state(i,j,k,:), where the last index</span>
-           <span class="c">! is the component of the multifab</span>
-
-        <span class="k">enddo</span>
-<span class="k">     enddo</span>
-<span class="k">  enddo</span>
-
-<span class="k">end subroutine </span><span class="n">do_work</span>
-</pre></div>
-</div>
-<p>The function prototype is unchanged.</p>
-<p>Tiling provides us the opportunity of a coarse-grained approach for
-OpenMP. Threading can be turned on by inserting the following line
-above the for (<code class="docutils literal notranslate"><span class="pre">MFIter</span></code>…) line:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#pragma omp parallel</span>
-</pre></div>
-</div>
-<p>Note that the OpenMP pragma does not have a for—this is not
-used when working with an iterator.</p>
-<p>Assuming four threads are used in the above example, thread 0 will
-work on 3 tiles from the first box, thread 1 on 1 tile from the first
-box and 2 tiles from the second box, and so forth. Note that
-OpenMP can be used even when tiling is turned off. In that case, the
-OpenMP granularity is at the box level (and good performance would need
-many boxes per MPI task).</p>
-<p>The tile size for the three spatial dimensions can be set by a
-parameter, e.g., <code class="docutils literal notranslate"><span class="pre">fabarray.mfiter_tile_size</span> <span class="pre">=</span> <span class="pre">1024000</span> <span class="pre">8</span> <span class="pre">8</span></code>. A
-huge number like 1024000 will turn off tiling in that direction.
-As noted above, the <code class="docutils literal notranslate"><span class="pre">MFIter</span></code> constructor can also take an explicit
-tile size: <code class="docutils literal notranslate"><span class="pre">MFIter(mfi(mf,IntVect(128,16,32)))</span></code>.</p>
-<p>Note that tiling can naturally transition from all threads working
-on a single box to each thread working on a separate box as the boxes
-coarsen (e.g., in multigrid).</p>
-<p>The MFIter class provides some other useful functions:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">mfi.validbox()</span></code> : The same meaning as before independent of tiling.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mfi.tilebox()</span></code> : The standard way of getting the bounds of the
-current tile box. This will tile over the valid data region only.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mfi.growntilebox(int)</span></code> : A grown tile box that includes
-ghost cells at box boundaries only. Thus the returned boxes for a
-<code class="docutils literal notranslate"><span class="pre">FArrayBox</span></code> are non-overlapping.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mfi.nodaltilebox(int)</span></code> : Returns non-overlapping
-edge-type boxes for tiles. The argument is for direction.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">mfi.fabbox()</span></code> : Same as <code class="docutils literal notranslate"><span class="pre">mf[mfi].box()</span></code>.</p></li>
-</ul>
-<p>Finally we note that tiling is not always desired or better. The
-traditional fine-grained approach coupled with dynamic scheduling is
-more appropriate for work with unbalanced loads, such as chemistry
-burning in cells by an implicit solver. Tiling can also create extra
-work in the ghost cells of tiles.</p>
-<div class="section" id="practical-details-in-working-with-tiling">
-<h4>Practical Details in Working with Tiling<a class="headerlink" href="#practical-details-in-working-with-tiling" title="Permalink to this headline">¶</a></h4>
+many-core processors in the next-generation of supercomputers.</p>
+<p>Full details of iterating over boxes and calling compute kernels
+is given in the AMReX documentation here: <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling">https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling</a></p>
 <p>With tiling, the OpenMP is now all in C++, and not in Fortran for all
 modules except reactions and <code class="docutils literal notranslate"><span class="pre">initdata</span></code>.</p>
 <p>It is the responsibility of the coder to make sure that the routines
@@ -954,8 +619,6 @@ in <code class="docutils literal notranslate"><span class="pre">sponge_nd.f90</s
 </li>
 </ul>
 </div>
-</div>
-</div>
 <div class="section" id="boundaries-fillpatch-and-fillpatchiterator">
 <h2>Boundaries: <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> and <code class="docutils literal notranslate"><span class="pre">FillPatchIterator</span></code><a class="headerlink" href="#boundaries-fillpatch-and-fillpatchiterator" title="Permalink to this headline">¶</a></h2>
 <p>AMReX calls the act of filling ghost cells a <em>fillpatch</em>
@@ -1014,7 +677,7 @@ are part of. Note: <code class="docutils literal notranslate"><span class="pre">
 first argument, which is the object that contains the relevant
 <code class="docutils literal notranslate"><span class="pre">StateData</span></code> —that is what the this pointer indicates.
 Finally, we are copying the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code> data components 0 to
-<code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> <a class="footnote-reference brackets" href="#id7" id="id3">3</a>.</p>
+<code class="docutils literal notranslate"><span class="pre">NUM_STATE</span></code> <a class="footnote-reference brackets" href="#id5" id="id1">3</a>.</p>
 <p>The result of this operation is that <code class="docutils literal notranslate"><span class="pre">Sborder</span></code> will now have
 <code class="docutils literal notranslate"><span class="pre">NUM_GROW</span></code> ghost cells consistent with the <code class="docutils literal notranslate"><span class="pre">State_Type</span></code>
 data at the old time-level.</p>
@@ -1105,7 +768,7 @@ AMReX that can get around this, but we do not use them in Castro.</p>
 </div>
 <div class="section" id="physical-boundaries">
 <span id="soft-phys-bcs"></span><h3>Physical Boundaries<a class="headerlink" href="#physical-boundaries" title="Permalink to this headline">¶</a></h3>
-<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id8" id="id4">4</a> in
+<p id="index-0">Physical boundary conditions are specified by an integer index <a class="footnote-reference brackets" href="#id6" id="id2">4</a> in
 the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> file, using the <code class="docutils literal notranslate"><span class="pre">castro.lo_bc</span></code> and <code class="docutils literal notranslate"><span class="pre">castro.hi_bc</span></code> runtime
 parameters. The generally supported boundary conditions are, their
 corresponding integer key, and the action they take for the normal
@@ -1133,8 +796,8 @@ boundary), then you choose an <em>inflow</em> boundary at that face of
 the domain. You then need to write the implementation code for this.
 There is a centralized hydrostatic boundary condition that is implemented
 this way—see <a class="reference internal" href="creating_a_problem.html#create-bcs"><span class="std std-ref">Boundary Conditions</span></a>.</p>
-<span id="table-castro-bcs"></span><table class="docutils align-default" id="id11">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id11" title="Permalink to this table">¶</a></caption>
+<span id="table-castro-bcs"></span><table class="docutils align-default" id="id8">
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">Physical boundary conditions supported in Castro.</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 19%" />
 <col style="width: 19%" />
@@ -1294,7 +957,7 @@ velocity.</p>
 </ul>
 </div></blockquote>
 <dl class="footnote brackets">
-<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dt class="label" id="id3"><span class="brackets">1</span></dt>
 <dd><p>Note: some older code will use a special AMReX preprocessor macro,
 <code class="docutils literal notranslate"><span class="pre">BL_TO_FORTRAN</span></code>, defined in <code class="docutils literal notranslate"><span class="pre">ArrayLim.H</span></code>, that converts
 the C++ <code class="docutils literal notranslate"><span class="pre">MultiFab</span></code> into a Fortran array and its <code class="docutils literal notranslate"><span class="pre">lo</span></code> and <code class="docutils literal notranslate"><span class="pre">hi</span></code> indices.
@@ -1304,18 +967,18 @@ to handle the name mangling between Fortran and C. This later
 macro is generally not needed any more because of Fortran 2003
 interoperability with C (through the Fortran <code class="docutils literal notranslate"><span class="pre">bind</span></code> keyword).</p>
 </dd>
-<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dt class="label" id="id4"><span class="brackets">2</span></dt>
 <dd><p>the way to read these complicated
 C declarations is right-to-left. So <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">int*</span> <span class="pre">lo</span></code> means
 <code class="docutils literal notranslate"><span class="pre">lo</span></code> is a integer pointer to a memory space that is constant. See
 <a class="reference external" href="https://isocpp.org/wiki/faq/const-correctness#ptr-to-const">https://isocpp.org/wiki/faq/const-correctness#ptr-to-const</a></p>
 </dd>
-<dt class="label" id="id7"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id1">3</a></span></dt>
 <dd><p>for clarity and continuity in this
 documentation, some of the variable names have been changed
 compared to the actual code</p>
 </dd>
-<dt class="label" id="id8"><span class="brackets"><a class="fn-backref" href="#id4">4</a></span></dt>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id2">4</a></span></dt>
 <dd><p>the integer values are defined in <code class="docutils literal notranslate"><span class="pre">BC_TYPES.H</span></code></p>
 </dd>
 </dl>

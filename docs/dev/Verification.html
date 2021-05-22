@@ -296,7 +296,7 @@ kept constant. We use a CFL number of 0.9, an initial timestep shrink
 the timestep can increase (castro.change_max) of 1.05.</p>
 <div class="figure align-center" id="id12">
 <span id="fig-sod"></span><a class="reference internal image-reference" href="_images/sod_3d.png"><img alt="sod problem" src="_images/sod_3d.png" style="width: 4.75in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the newest ppm
+<p class="caption"><span class="caption-number">Fig. 10 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the newest ppm
 limiters, along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A
 coarse grid of 32 zones in the direction of propagation, with 2
 levels of refinement was used. The analytic solution appears as the
@@ -304,16 +304,16 @@ red line.</span><a class="headerlink" href="#id12" title="Permalink to this imag
 </div>
 <div class="figure align-center" id="id13">
 <span id="fig-sod-ppm0"></span><a class="reference internal image-reference" href="_images/sod_3d_ppm0.png"><img alt="sod problem" src="_images/sod_3d_ppm0.png" style="width: 4.75in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the
+<p class="caption"><span class="caption-number">Fig. 11 </span><span class="caption-text">Castro solution for Sod’s problem run in 3-d, with the
 piecewise-linear Godunov method with limiters, along the <span class="math notranslate nohighlight">\(x\)</span>,
 <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones in the
 direction of propagation, with 2 levels of refinement was used. The
 analytic solution appears as the red line.</span><a class="headerlink" href="#id13" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 11</span></a> shows the Castro solution using the newest PPM limiters
+<p><a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 10</span></a> shows the Castro solution using the newest PPM limiters
 compared to the analytic
 solution, showing the density, velocity, pressure, and internal energy.
-<a class="reference internal" href="#fig-sod-ppm0"><span class="std std-numref">Fig. 12</span></a> is the same as <a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 11</span></a>,
+<a class="reference internal" href="#fig-sod-ppm0"><span class="std std-numref">Fig. 11</span></a> is the same as <a class="reference internal" href="#fig-sod"><span class="std std-numref">Fig. 10</span></a>,
 but with the piecewise-linear Godunov method with limiters,
 shown for comparison.</p>
 <p>The Verification subdirectory includes the analytic solution for
@@ -405,12 +405,12 @@ timestep can increase (<code class="docutils literal notranslate"><span class="p
 the new limiters are used.</p>
 <div class="figure align-center" id="id14">
 <span id="fig-test2"></span><a class="reference internal image-reference" href="_images/test2_3d.png"><img alt="double rarefaction" src="_images/test2_3d.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Castro solution for the double rarefaction problem run in 3-d,
+<p class="caption"><span class="caption-number">Fig. 12 </span><span class="caption-text">Castro solution for the double rarefaction problem run in 3-d,
 along the <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid
 of 32 zones in the direction of propagation, with 2 levels of
 refinement was used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id14" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#fig-test2"><span class="std std-numref">Fig. 13</span></a> shows the Castro output, run along all 3
+<p><a class="reference internal" href="#fig-test2"><span class="std std-numref">Fig. 12</span></a> shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
@@ -473,12 +473,12 @@ the timestep can increase (<code class="docutils literal notranslate"><span clas
 solver with the new limiters are used.</p>
 <div class="figure align-center" id="id15">
 <span id="fig-test3"></span><a class="reference internal image-reference" href="_images/test3_3d.png"><img alt="strong shock" src="_images/test3_3d.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Castro solution for the strong shock problem run in 3-d, along the
+<p class="caption"><span class="caption-number">Fig. 13 </span><span class="caption-text">Castro solution for the strong shock problem run in 3-d, along the
 <span class="math notranslate nohighlight">\(x\)</span>, <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> axes. A coarse grid of 32 zones
 in the direction of propagation, with 2 levels of refinement was
 used. The analytic solution appears as the red line.</span><a class="headerlink" href="#id15" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#fig-test3"><span class="std std-numref">Fig. 14</span></a> shows the Castro output, run along all 3
+<p><a class="reference internal" href="#fig-test3"><span class="std std-numref">Fig. 13</span></a> shows the Castro output, run along all 3
 coordinate axes in 3-d, compared to the analytic solution.</p>
 <p>The comparison to the analytic solution follows the same procedure as
 described for the Sod’s problem above. The gnuplot script
@@ -598,10 +598,10 @@ explosions (with the output named <code class="docutils literal notranslate"><sp
 <code class="docutils literal notranslate"><span class="pre">sedov_3d_sph.out</span></code> respectively). Once this is done, the
 <code class="docutils literal notranslate"><span class="pre">sedov_sph.gp</span></code> gnuplot script can be used to make a plot comparing
 the 3 solutions to the analytic solution, <code class="docutils literal notranslate"><span class="pre">spherical_sedov.dat</span></code>.</p>
-<p><a class="reference internal" href="#fig-sedov-sph"><span class="std std-numref">Fig. 15</span></a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
+<p><a class="reference internal" href="#fig-sedov-sph"><span class="std std-numref">Fig. 14</span></a> shows the comparison of the 3 Castro spherical Sedov explosion simulations to the analytic solution.</p>
 <div class="figure align-center" id="id17">
 <span id="fig-sedov-sph"></span><a class="reference internal image-reference" href="_images/sedov_sph.png"><img alt="Sedov blast wave" src="_images/sedov_sph.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 1-d
+<p class="caption"><span class="caption-number">Fig. 14 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 1-d
 spherical, 2-d axisymmetric, and 3-d Cartesian coordinates.  Each
 of these geometries produces a spherical Sedov explosion.</span><a class="headerlink" href="#id17" title="Permalink to this image">¶</a></p>
 </div>
@@ -609,7 +609,7 @@ of these geometries produces a spherical Sedov explosion.</span><a class="header
 <h4>Cylindrical Blast Wave<a class="headerlink" href="#cylindrical-blast-wave" title="Permalink to this headline">¶</a></h4>
 <div class="figure align-center" id="id18">
 <a class="reference internal image-reference" href="_images/sedov_cyl.png"><img alt="Sedov in 2-d" src="_images/sedov_cyl.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 2-d
+<p class="caption"><span class="caption-number">Fig. 15 </span><span class="caption-text">Castro solution for the Sedov blast wave problem run in 2-d
 Cartesian coordinates. This corresponds to a cylindrical Sedov
 explosion.</span><a class="headerlink" href="#id18" title="Permalink to this image">¶</a></p>
 </div>
@@ -635,10 +635,10 @@ to smooth the transition between the high and low density material:</p>
 <p>Hydrostatic pressure with <span class="math notranslate nohighlight">\(p=5.0\)</span> at bottom of domain, assuming
 <span class="math notranslate nohighlight">\(\rho=1\)</span> on the lower half of the domain, and <span class="math notranslate nohighlight">\(\rho=2\)</span> on the upper
 half and no density perturbation. We run to <span class="math notranslate nohighlight">\(t=2.5\)</span> with piecewise
-linear, old PPM, and new PPM. CFL=0.9. See <a class="reference internal" href="#fig-rt"><span class="std std-numref">Fig. 17</span></a>.</p>
+linear, old PPM, and new PPM. CFL=0.9. See <a class="reference internal" href="#fig-rt"><span class="std std-numref">Fig. 16</span></a>.</p>
 <div class="figure align-center" id="id19">
 <span id="fig-rt"></span><a class="reference internal image-reference" href="_images/RT_ppm_type.png"><img alt="Rayleigh-Taylor with different PPM types." src="_images/RT_ppm_type.png" style="width: 6.5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 17 </span><span class="caption-text">Rayleigh-Taylor with different PPM types.</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 16 </span><span class="caption-text">Rayleigh-Taylor with different PPM types.</span><a class="headerlink" href="#id19" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>
@@ -695,7 +695,7 @@ thermal equilibrium is achieved.</p>
 <span id="id9">[<a class="reference internal" href="zreferences.html#id45">58</a>]</span>.</p>
 <div class="figure align-center" id="id20">
 <a class="reference internal image-reference" href="_images/radiating_source.png"><img alt="radiatin source" src="_images/radiating_source.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 18 </span><span class="caption-text">Castro solution for radiating source test problem. Heating and
+<p class="caption"><span class="caption-number">Fig. 17 </span><span class="caption-text">Castro solution for radiating source test problem. Heating and
 cooling solutions are shown as a function of time, compared to the
 analytic solution. The gray photon solver was used.</span><a class="headerlink" href="#id20" title="Permalink to this image">¶</a></p>
 </div>
@@ -718,7 +718,7 @@ follows that of <span id="id11">[<a class="reference internal" href="zreferences
 the analytic solution is provided as analytic.f90.</p>
 <div class="figure align-default" id="id21">
 <a class="reference internal image-reference" href="_images/radiating_sphere.png"><img alt="radiating sphere" src="_images/radiating_sphere.png" style="width: 5in;" /></a>
-<p class="caption"><span class="caption-number">Fig. 19 </span><span class="caption-text">Castro solution for radiating sphere problem, showing the radiation
+<p class="caption"><span class="caption-number">Fig. 18 </span><span class="caption-text">Castro solution for radiating sphere problem, showing the radiation
 energy density as a function of energy group.  This test was run
 with 64 photon energy groups.</span><a class="headerlink" href="#id21" title="Permalink to this image">¶</a></p>
 </div>
