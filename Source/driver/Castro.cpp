@@ -143,7 +143,7 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
-int          Castro::do_init_probparams = 0;
+int          Castro::do_cxx_prob_initialize = 0;
 
 
 // Castro::variableSetUp is in Castro_setup.cpp
@@ -900,31 +900,32 @@ Castro::initMFs()
 
     lastDt = 1.e200;
 
-    // initialize the C++ values of the runtime parameters
-    if (do_init_probparams == 0) {
-        init_prob_parameters();
+    if (do_cxx_prob_initialize == 0) {
 
-        do_init_probparams = 1;
+      // sync up some C++ values of the runtime parameters
 
-        // Copy ambient data from Fortran to C++. This should be done prior to
-        // problem_initialize() in case the C++ initialization overwrites it.
+      do_cxx_prob_initialize = 1;
 
-        for (int n = 0; n < NUM_STATE; ++n) {
-            ambient::ambient_state[n] = 0.0_rt;
-        }
+      // Copy ambient data from Fortran to C++. This should be done prior to
+      // problem_initialize() in case the C++ initialization overwrites it.
 
-        get_ambient_data(ambient::ambient_state);
+      for (int n = 0; n < NUM_STATE; ++n) {
+          ambient::ambient_state[n] = 0.0_rt;
+      }
 
-        // If we're doing C++ problem initialization, do it here. We have to make
-        // sure it's done after the above call to init_prob_parameters() in case
-        // any changes are made to the problem parameters.
+      get_ambient_data(ambient::ambient_state);
 
-        problem_initialize();
+      // If we're doing C++ problem initialization, do it here. We have to make
+      // sure it's done after the above call to init_prob_parameters() in case
+      // any changes are made to the problem parameters.
 
-        // Sync Fortran back up with any changes we made to the problem parameters.
-        // If problem_initialize() didn't change them, this has no effect.
-        cxx_to_f90_prob_parameters();
+      problem_initialize();
+
+      // Sync Fortran back up with any changes we made to the problem parameters.
+      // If problem_initialize() didn't change them, this has no effect.
+      cxx_to_f90_prob_parameters();
     }
+
 }
 
 void

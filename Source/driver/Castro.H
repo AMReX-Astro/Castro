@@ -1406,7 +1406,7 @@ protected:
 
 ///
 /// For initialization of the C++ values of the runtime parameters
-  static int do_init_probparams;
+  static int do_cxx_prob_initialize;
 
 
 ///

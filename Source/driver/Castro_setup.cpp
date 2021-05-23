@@ -212,9 +212,17 @@ Castro::variableSetUp ()
     probin_file_name[i] = probin_file[i];
   }
 
+  // read the problem parameters into Fortran
+
   probdata_init(probin_file_name.dataPtr(), &probin_file_length);
 
-  // Read in the input values to Fortran.
+  // initialize the C++ values of the runtime parameters.  This
+  // will copy them from the Fortran read.
+
+  init_prob_parameters();
+
+  // Read in the non-problem parameter input values to Fortran.
+
   ca_set_castro_method_params();
 
   // Initialize the runtime parameters for any of the external
