@@ -33,10 +33,6 @@ extern "C"
 
   void ca_get_tagging_params(const int* name, const int* namlen);
 
-  void ca_get_ambient_params(const int* name, const int* namlen);
-
-  void get_ambient_data(Real* ambient_state);
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,

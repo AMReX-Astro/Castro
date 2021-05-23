@@ -906,15 +906,6 @@ Castro::initMFs()
 
       do_cxx_prob_initialize = 1;
 
-      // Copy ambient data from Fortran to C++. This should be done prior to
-      // problem_initialize() in case the C++ initialization overwrites it.
-
-      for (int n = 0; n < NUM_STATE; ++n) {
-          ambient::ambient_state[n] = 0.0_rt;
-      }
-
-      get_ambient_data(ambient::ambient_state);
-
       // If we're doing C++ problem initialization, do it here. We have to make
       // sure it's done after the above call to init_prob_parameters() in case
       // any changes are made to the problem parameters.
