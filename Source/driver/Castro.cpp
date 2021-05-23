@@ -470,6 +470,22 @@ Castro::read_params ()
 #endif
 #endif
 
+#ifdef SPONGE
+    if (do_sponge) {
+        if (sponge_timescale <= 0.0) {
+            amrex::Error("If using the sponge, the sponge_timescale must be positive.");
+        }
+        if (amrex::max(sponge_upper_radius, sponge_upper_density, sponge_upper_pressure) < 0.0) {
+            amrex::Error("If using the sponge, at least one of the upper radius, density, "
+                         "or pressure must be non-negative.");
+        }
+        if (amrex::max(sponge_lower_radius, sponge_lower_density, sponge_lower_pressure) < 0.0) {
+            amrex::Error("If using the sponge, at least one of the lower radius, density, "
+                         "or pressure must be non-negative.");
+        }
+    }
+#endif
+
    // SCF initial model construction can only be done if both
    // rotation and gravity have been compiled in.
 
