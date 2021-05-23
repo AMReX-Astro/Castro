@@ -220,6 +220,8 @@ def write_probin(probin_template, prob_param_files,
 
     fout.write(HEADER)
 
+    exists_namelist = any([q.in_namelist for q in params])
+
     for line in template_lines:
 
         index = line.find("@@")
@@ -232,25 +234,25 @@ def write_probin(probin_template, prob_param_files,
 
             if keyword == "declarations":
 
-                # declaraction statements
+                if not exists_namelist:
+                    # we always make sure there is atleast one variable in the namelist
+                    fout.write(f"{indent}integer, save, public :: a_pp_dummy_var = 0\n")
+
+                # declaraction statements for both namelist and non-namelist variables
                 for p in params:
                     fout.write(f"{indent}{p.get_f90_decl_string()}")
-
-                if not params:
-                    # we always make sure there is atleast one variable
-                    fout.write(f"{indent}integer, save, public :: _pp_dummy_var = 0\n")
 
             elif keyword == "allocations":
                 for p in params:
                     fout.write(p.get_f90_default_string())
 
             elif keyword == "namelist":
-                for p in params:
-                    if p.in_namelist:
-                        fout.write(f"{indent}namelist /fortin/ {p.name}\n")
-
-                if not params:
-                    fout.write(f"{indent}namelist /fortin/ _pp_dummy_var\n")
+                if not exists_namelist:
+                    fout.write(f"{indent}namelist /fortin/ a_pp_dummy_var\n")
+                else:
+                    for p in params:
+                        if p.in_namelist:
+                            fout.write(f"{indent}namelist /fortin/ {p.name}\n")
 
             elif keyword == "printing":
 
