@@ -14,6 +14,9 @@
 
    * The update_sponge_params hook has been removed. (#1716)
 
+   * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
+     an implementation of rbndry has been removed. (#1743)
+
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
      
