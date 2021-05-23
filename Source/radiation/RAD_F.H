@@ -4,13 +4,11 @@
 #include <AMReX_ArrayLim.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
-#  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
-#  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
 
@@ -209,11 +207,6 @@ extern "C" {
   void rfface(BL_FORT_FAB_ARG(fine), 
               BL_FORT_FAB_ARG(crse), 
               const int& idim, const int* irat);
-
-  void FORT_RADBNDRY(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi),
-                     ARLIM_P(dlo), ARLIM_P(dhi), 
-                     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time,
-                     const int& dir, const int& face);
 
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),

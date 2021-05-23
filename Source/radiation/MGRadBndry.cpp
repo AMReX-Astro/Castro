@@ -226,18 +226,9 @@ void MGRadBndry::setBndryFluxConds(const BCRec& bc, const BC_Mode phys_bc_mode)
         if (bcflag[face] <= 1) {
           if (p_bc == LO_MARSHAK   || p_bc == LO_SANCHEZ_POMRANING || 
               p_bc == LO_DIRICHLET || p_bc == LO_NEUMANN) {
-            if (p_bcflag == 0) {
               for(int igroup = 0; igroup < ngroups; igroup++) {
                   bndry[face][bi].setVal<RunOn::Host>(value_nu[igroup], igroup);
               }
-            }
-            else {
-              FArrayBox& bnd_fab = bndry[face][bi];
-              int iface = face.isLow() ? 0 : 1;
-
-              FORT_RADBNDRY(BL_TO_FORTRAN(bnd_fab), 
-                            ARLIM(domain.loVect()), ARLIM(domain.hiVect()), dx, xlo, time, dir, iface);
-            }
           }
         }
         else {
