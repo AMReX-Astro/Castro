@@ -243,6 +243,15 @@ clamp_ambient_temp           int           0
 # operations that are applied to ambient material, such as clamping T.
 ambient_safety_factor        Real          1.1e0
 
+# density of the ambient material (should default to the same as small_dens)
+ambient_density              Real          -1.e200
+
+# temperature of the ambient material (should default to the same as small_temp)
+ambient_temp                 Real          -1.e200
+
+# energy of the ambient material (should default to the same as small_ener)
+ambient_energy               Real          -1.e200
+
 # integration order for SDC integration
 # valid options are 2 and 4
 sdc_order                    int           2

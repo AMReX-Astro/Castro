@@ -36,7 +36,6 @@ ca_F90EXE_sources += problem_derive_nd.F90
 
 CEXE_headers += ambient.H
 CEXE_sources += ambient.cpp
-ca_F90EXE_sources += ambient_nd.F90
 
 CEXE_sources += Castro_problem_source.cpp
 
