@@ -265,7 +265,7 @@ def write_probin(probin_template, prob_param_files,
                     if not p.in_namelist:
                         continue
 
-                    if p.dtype == "bool":
+                    if p.dtype in ["bool", "logical"]:
                         ltest = f"\n{indent}ltest = {p.name} .eqv. {p.default}\n"
                     else:
                         ltest = f"\n{indent}ltest = {p.name} == {p.default}\n"
@@ -283,7 +283,7 @@ def write_probin(probin_template, prob_param_files,
                     elif p.dtype == "integer":
                         fout.write(f"{indent}write (unit,101) {cmd}, &\n \"{p.name}\", {p.name}\n")
 
-                    elif p.dtype == "bool":
+                    elif p.dtype in ["bool", "logical"]:
                         fout.write(f"{indent}write (unit,103) {cmd}, &\n \"{p.name}\", {p.name}\n")
 
                     else:
@@ -302,7 +302,7 @@ def write_probin(probin_template, prob_param_files,
                 # to set the value of the parameters.
 
                 for p in params:
-                    if p.dtype == "bool" or p.dtype == "string":
+                    if p.dtype in ["bool", "logical"] or p.dtype == "string":
                         continue
 
                     fout.write(f"  subroutine set_f90_{p.name}({p.name}_in) bind(C, name=\"set_f90_{p.name}\")\n")
@@ -445,7 +445,7 @@ def write_probin(probin_template, prob_param_files,
         fout.write("    int slen = 0;\n\n")
 
         for p in params:
-            if p.dtype == "bool" or p.dtype == "string":
+            if p.dtype in ["bool", "logical"] or p.dtype == "string":
                 continue
 
             if p.is_array():
