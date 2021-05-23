@@ -188,6 +188,12 @@ eos.use_eos_coulomb = 1
 # Keep EOS inputs constant after EOS evaluation
 eos.eos_input_is_constant = 1
 
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################

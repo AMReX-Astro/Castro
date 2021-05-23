@@ -19,17 +19,3 @@
  
   smallu = 1.0d-12
 /
-
-&ambient
-
-  ambient_density = 1.0d-4
-  ambient_temp = 1.0d7
-
-/
-
-&tagging 
-/
-
-&extern
-
-/

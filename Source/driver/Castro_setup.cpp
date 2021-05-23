@@ -20,6 +20,7 @@
 #include <microphysics_F.H>
 #endif
 #include <eos.H>
+#include <ambient.H>
 #include <prob_parameters_F.H>
 
 using std::string;
@@ -346,9 +347,24 @@ Castro::variableSetUp ()
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
-  // Read in the ambient state parameters.
+  // Set some initial data in the ambient state for safety, though the
+  // intent is that any problems using this may override these. We use
+  // the user-specified parameters if they were set, but if they were
+  // not (which is reflected by whether ambient_density is positive)
+  // then we use the "small" quantities.
 
-  ca_get_ambient_params(probin_file_name.dataPtr(),&probin_file_length);
+  for (int n = 0; n < NUM_STATE; ++n) {
+      ambient::ambient_state[n] = 0.0;
+  }
+
+  ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
+  ambient::ambient_state[UTEMP] = amrex::max(castro::ambient_temp, castro::small_temp);
+  ambient::ambient_state[UEINT] = ambient::ambient_state[URHO] * amrex::max(castro::ambient_energy,
+                                                                            castro::small_ener);
+  ambient::ambient_state[UEDEN] = ambient::ambient_state[UEINT];
+  for (int n = 0; n < NumSpec; ++n) {
+      ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
+  }
 
   Interpolater* interp;
 

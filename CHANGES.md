@@ -9,6 +9,9 @@
    * Sponge parameters are now only accepted through the inputs file; the
      &sponge namelist in the probin file is no longer read. (#1731)
 
+   * Ambient parameters are now only accepted through the inputs file; the
+     &ambient namelist in the probin file is no longer read. (#1742)
+
    * The update_sponge_params hook has been removed. (#1716)
 
    * We no longer store Reactions_Type in checkpoint files.  This means
