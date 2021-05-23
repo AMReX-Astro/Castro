@@ -51,9 +51,6 @@
   rtol_spec = 1.d-6
   atol_spec = 1.d-6
 
-  rtol_temp = 1.d-6
-  atol_temp = 1.d-6
-
   rtol_enuc = 1.d-6
   atol_enuc = 1.d-6
 

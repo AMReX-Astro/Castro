@@ -46,6 +46,20 @@ amr.regrid_int      = 2 2 2 2   # how often to regrid
 amr.blocking_factor = 8         # block factor in grid generation
 amr.n_error_buf     = 2 2 2 2   # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad velgrad_x velgrad_y velgrad_z
+
+amr.refine.dengrad.gradient = 0.1
+amr.refine.dengrad.field_name = density
+
+amr.refine.velgrad_x.gradient = 1.0
+amr.refine.velgrad_x.field_name = x_velocity
+
+amr.refine.velgrad_y.gradient = 1.0
+amr.refine.velgrad_y.field_name = y_velocity
+
+amr.refine.velgrad_z.gradient = 1.0
+amr.refine.velgrad_z.field_name = z_velocity
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 1
 amr.check_file      = chk       # root name of checkpoint file

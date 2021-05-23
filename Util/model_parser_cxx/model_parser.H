@@ -545,6 +545,11 @@ read_model_file(std::string& model_file, const int model_index=0) {
         for (int n = 0; n < NumSpec; n++) {
             found_spec[n] = false;
         }
+#if NAUX_NET > 0
+        for (int n = 0; n < NumAux; n++) {
+            found_aux[n] = false;
+        }
+#endif
 
         for (int j = 0; j < nvars_model_file; j++) {
 

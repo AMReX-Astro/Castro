@@ -1343,8 +1343,10 @@ void HypreMultiABec::hmac (const Box& bx,
                            Array4<Real const> const& a,
                            Real alpha)
 {
+    BL_PROFILE("HypreMultiABec::hmac");
+
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         if (alpha == 0.e0_rt) {
             mat(i,j,k)[0] = 0.e0_rt;
@@ -1362,12 +1364,14 @@ void HypreMultiABec::hmbc (const Box& bx,
                            Array4<Real const> const& b,
                            Real beta, const Real* dx, int n)
 {
+    BL_PROFILE("HypreMultiABec::hmbc");
+
     if (n == 0) {
 
         const Real fac = beta / (dx[0] * dx[0]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[0] += fac * (b(i,j,k) + b(i+1,j,k));
             mat(i,j,k)[1] = -fac * b(i,j,k);
@@ -1380,7 +1384,7 @@ void HypreMultiABec::hmbc (const Box& bx,
         const Real fac = beta / (dx[1] * dx[1]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[0] += fac * (b(i,j,k) + b(i,j+1,k));
             mat(i,j,k)[3] = -fac * b(i,j,k);
@@ -1393,7 +1397,7 @@ void HypreMultiABec::hmbc (const Box& bx,
         const Real fac = beta / (dx[2] * dx[2]);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             mat(i,j,k)[0] += fac * (b(i,j,k) + b(i,j,k+1));
             mat(i,j,k)[5] = -fac * b(i,j,k);
@@ -1529,7 +1533,7 @@ HypreMultiABec::hmmat (const Box& bx,
     }
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         if (mask.contains(i-1,j,k)) {
 
@@ -1627,6 +1631,8 @@ HypreMultiABec::hmmat3 (const Box& bx,
                         const GeometryData& geomdata, Real c,
                         Array4<Real const> const& spa)
 {
+    BL_PROFILE("HypreMultiABec::hmmat3");
+
     bool xlo = false;
     bool ylo = false;
     bool zlo = false;
@@ -1713,7 +1719,7 @@ HypreMultiABec::hmmat3 (const Box& bx,
     // from the interior stencil which must be removed at the boundary.
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         Real r;
         face_metric(i, j, k, bx.loVect()[0], bx.hiVect()[0], geomdata, idir, ori_lo, r);
@@ -2211,8 +2217,6 @@ void HypreMultiABec::loadMatrix()
     stencil_indices[i] = i;
   }
 
-  Real foo = 1.e200;
-
   BaseFab<GpuArray<Real, size>> matfab; // AoS indexing
   FArrayBox smatfab;
   for (int level = crse_level; level <= fine_level; level++) {
@@ -2629,6 +2633,8 @@ void HypreMultiABec::loadLevelVectorX(int level,
                                       MultiFab& dest,
                                       int icomp)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorX");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2660,6 +2666,8 @@ void HypreMultiABec::loadLevelVectorB(int level,
                                       MultiFab& rhs, // will be altered
                                       BC_Mode inhom)
 {
+  BL_PROFILE("HypreMultiABec::loadLevelVectorB");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -2738,12 +2746,16 @@ void HypreMultiABec::loadLevelVectorB(int level,
 
 void HypreMultiABec::finalizeVectors()
 {
+  BL_PROFILE("HypreMultiABec::finalizeVectors");
+
   HYPRE_SStructVectorAssemble(b);
   HYPRE_SStructVectorAssemble(x);
 }
 
 void HypreMultiABec::setupSolver(Real _reltol, Real _abstol, int maxiter)
 {
+  BL_PROFILE("HypreMultiABec::setupSolver");
+
   reltol = _reltol;
   abstol = _abstol; // may be used to change tolerance for solve
 
@@ -3779,6 +3791,8 @@ void HypreMultiABec::solve()
 
 void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 {
+  BL_PROFILE("HypreMultiABec::getSolution");
+
   int part = level - crse_level;
 
   FArrayBox fnew;
@@ -3810,6 +3824,8 @@ void HypreMultiABec::getSolution(int level, MultiFab& dest, int icomp)
 
 Real HypreMultiABec::getAbsoluteResidual()
 {
+  BL_PROFILE("HypreMultiABec::getAbsoluteResidual");
+
   Real bnorm;
   hypre_SStructInnerProd((hypre_SStructVector *) b,
                          (hypre_SStructVector *) b,
@@ -3960,6 +3976,8 @@ void HypreMultiABec::boundaryFlux(int level,
 
 void HypreMultiABec::getProduct(int level, MultiFab& product)
 {
+  BL_PROFILE("HypreMultiABec::getProduct");
+
   int part = level - crse_level;
 
   for (MFIter mfi(product); mfi.isValid(); ++mfi) {

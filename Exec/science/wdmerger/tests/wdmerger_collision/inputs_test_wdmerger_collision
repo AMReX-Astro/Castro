@@ -79,6 +79,12 @@ castro.small_dens = 1.e-5                          # Minimum allowable density (
 castro.dual_energy_eta1 = 1.0e-3                   # Threshold for when to use the internal energy in calculating pressure
 castro.dual_energy_eta2 = 1.0e-1                   # Threshold for when to use (E - K) in updating internal energy
 
+eos.use_eos_coulomb = 1
+eos.eos_input_is_constant = 1
+
+castro.ambient_temp = 1.0e7
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -87,6 +93,14 @@ gravity.gravity_type = PoissonGrav                 # Full self-gravity with the 
 gravity.max_multipole_order = 6                    # Multipole expansion includes terms up to r**(-max_multipole_order)
 gravity.rel_tol = 1.e-10                           # Relative tolerance for multigrid solver
 gravity.no_sync = 1                                # Turn off sync solve for gravity after refluxing
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_radius = 3.840e9
+castro.sponge_upper_radius = 4.352e9
+castro.sponge_timescale    = 0.01e0
 
 ############################################################################################
 # Diagnostics and I/O

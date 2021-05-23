@@ -52,7 +52,7 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             for (int n = 0; n < BL_SPACEDIM; ++n) {
                 comp_gphi[n].reset(new MultiFab(getEdgeBoxArray(n), dmap, 1, 0));
-                comp_gphi[n]->copy(*gravity->get_grad_phi_prev(level)[n], 0, 0, 1);
+                MultiFab::Copy(*comp_gphi[n], *gravity->get_grad_phi_prev(level)[n], 0, 0, 1, 0);
             }
 
         }
@@ -87,8 +87,9 @@ Castro::construct_old_gravity(int amr_iteration, int amr_ncycle, Real time)
 
             MultiFab::Copy(phi_old, comp_phi, 0, 0, phi_old.nComp(), phi_old.nGrow());
 
-            for (int n = 0; n < BL_SPACEDIM; ++n)
-                gravity->get_grad_phi_prev(level)[n]->copy(*comp_gphi[n], 0, 0, 1);
+            for (int n = 0; n < BL_SPACEDIM; ++n) {
+                MultiFab::Copy(*gravity->get_grad_phi_prev(level)[n], *comp_gphi[n], 0, 0, 1, 0);
+            }
 
         }
 
@@ -259,7 +260,7 @@ void Castro::construct_old_gravity_source(MultiFab& source, MultiFab& state_in, 
         Array4<Real> const source_arr = source.array(mfi);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             // Temporary array for seeing what the new state would be if the update were applied here.
 
@@ -395,7 +396,7 @@ void Castro::construct_new_gravity_source(MultiFab& source, MultiFab& state_old,
             Array4<Real> const source_arr  = source.array(mfi);
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 GpuArray<Real, NSRC> src{};
 

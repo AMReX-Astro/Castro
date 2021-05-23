@@ -33,7 +33,7 @@
 #include <problem_initialize_state_data.H>
 #include <problem_checkpoint.H>
 #include <problem_restart.H>
-
+#include <extern_parameters_F.H>
 #include <AMReX_buildInfo.H>
 
 using std::string;
@@ -54,11 +54,12 @@ using namespace amrex;
 // 7: A weights field was added to Reactions_Type; number of ghost zones increased to NUM_GROW
 // 8: Reactions_Type modified to use rho * omegadot instead of omegadot; rho * auxdot added
 // 9: Rotation_Type was removed from Castro
+// 10: Reactions_Type was removed from checkpoints
 
 namespace
 {
     int input_version = -1;
-    int current_version = 9;
+    int current_version = 10;
 }
 
 // I/O routines for Castro
@@ -181,7 +182,6 @@ Castro::restart (Amr&     papa,
 
         if (PMFile.good()) {
             PMFile >> point_mass;
-            set_pointmass(&point_mass);
             PMFile.close();
         }
 
@@ -277,32 +277,12 @@ Castro::restart (Amr&     papa,
                auto geomdata = geom.data();
 
                amrex::ParallelFor(bx,
-               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+               [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
                {
                    // C++ problem initialization; has no effect if not implemented
                    // by a problem setup (defaults to an empty routine).
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-
-              RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-
-              Real cur_time = state[State_Type].curTime();
-
-              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-                 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
-
 
            }
        }
@@ -318,7 +298,6 @@ Castro::restart (Amr&     papa,
        MultiFab& S_new = get_new_data(State_Type);
        const int nc = S_new.nComp();
        const int n1d = get_numpts();
-       allocate_outflow_data(&n1d,&nc);
        int is_new = 1;
        make_radial_data(is_new);
     }

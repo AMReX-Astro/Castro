@@ -102,10 +102,6 @@ Castro::sum_integrated_quantities ()
     for (int lev = 0; lev <= finest_level; lev++)
     {
 
-      // Update the local level we're on.
-
-      ca_set_amr_info(lev, -1, -1, -1.0, -1.0);
-
       // Get the current level from Castro
 
       Castro& ca_lev = getLevel(lev);
@@ -147,10 +143,6 @@ Castro::sum_integrated_quantities ()
 #endif
 
     }
-
-    // Return to the original level.
-
-    ca_set_amr_info(level, -1, -1, -1.0, -1.0);
 
     // Do the reductions.
 
@@ -263,23 +255,6 @@ Castro::sum_integrated_quantities ()
       if (angle < 0.0) angle += 360.0;
 
     }
-
-    // Calculate wall time for the step.
-
-    Real wall_time = 0.0;
-
-    if (time > 0.0)
-        wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
-
-    // Calculate GPU memory consumption.
-
-#ifdef AMREX_USE_GPU
-    Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
-
-    Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
-    ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
-#endif
 
     // Write data out to the log.
 
@@ -464,71 +439,6 @@ Castro::sum_integrated_quantities ()
 	   log << std::endl;
 
 	 }
-      }
-
-      // Information about the AMR driver.
-
-      if (parent->NumDataLogs() > 3) {
-
-	 std::ostream& log = parent->DataLog(3);
-
-	 if ( log.good() ) {
-
-	   if (time == 0.0) {
-
-	     // Output the git commit hashes used to build the executable.
-
-	     writeGitHashes(log);
-
-             int n = 0;
-
-             std::ostringstream header;
-
-	     header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
-	     header << std::setw(fixwidth) << "                     TIME"; ++n;
-	     header << std::setw(fixwidth) << "                       DT"; ++n;
-	     header << std::setw(intwidth) << "  FINEST LEV";              ++n;
-             header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
-#ifdef AMREX_USE_GPU
-             header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
-             header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
-#endif
-
-	     header << std::endl;
-
-             log << std::setw(intwidth) << "#   COLUMN 1";
-             log << std::setw(fixwidth) << "                        2";
-
-             for (int i = 3; i < 4; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::setw(intwidth) << 4; // Handle the finest lev column
-
-             for (int i = 5; i <= n; ++i)
-                 log << std::setw(datwidth) << i;
-
-             log << std::endl;
-
-             log << header.str();
-
-	   }
-
-	   log << std::fixed;
-
-	   log << std::setw(intwidth)                                     << timestep;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << time;
-	   log << std::setw(fixwidth) << std::setprecision(dataprecision) << dt;
-	   log << std::setw(intwidth)                                     << parent->finestLevel();
-           log << std::setw(datwidth) << std::setprecision(dataprecision) << wall_time;
-#ifdef AMREX_USE_GPU
-           log << std::setw(datwidth)                                     << gpu_size_used_MB;
-           log << std::setw(datwidth)                                     << gpu_size_free_MB;
-#endif
-
-	   log << std::endl;
-
-	 }
-
       }
 
       // Primary star

@@ -5,8 +5,9 @@
 #include <Castro.H>
 #include <Castro_F.H>
 
+#include <particles_params.H>
 
-#include <particles_defaults.H>
+#include <particles_declares.H>
 
 using namespace amrex;
 
@@ -15,11 +16,6 @@ using namespace amrex;
 AmrTracerParticleContainer* Castro::TracerPC =  0;
 
 namespace {
-    std::string       particle_init_file;
-    std::string       particle_restart_file;
-    int               restart_from_nonparticle_chkfile = 0;
-    std::string       particle_output_file;
-    std::string       timestamp_dir;
     std::vector<int>  timestamp_indices;
     //
     const std::string chk_tracer_particle_file("Tracer");
@@ -32,8 +28,8 @@ Castro::read_particle_params ()
   ParmParse pp("particles");
 
     if (ParallelDescriptor::IOProcessor())
-        if (!amrex::UtilCreateDirectory(timestamp_dir, 0755))
-            amrex::CreateDirectoryFailed(timestamp_dir);
+        if (!amrex::UtilCreateDirectory(particles::timestamp_dir, 0755))
+            amrex::CreateDirectoryFailed(particles::timestamp_dir);
     //
     // Force other processors to wait till directory is built.
     //
@@ -54,11 +50,11 @@ Castro::init_particles ()
 
         TracerPC = new AmrTracerParticleContainer(parent);
 
-        TracerPC->SetVerbose(particle_verbose);
+        TracerPC->SetVerbose(particles::particle_verbose);
 
-        if (! particle_init_file.empty())
+        if (! particles::particle_init_file.empty())
         {
-            TracerPC->InitFromAsciiFile(particle_init_file,0);
+            TracerPC->InitFromAsciiFile(particles::particle_init_file,0);
         }
     }
 }
@@ -96,24 +92,24 @@ Castro::ParticlePostRestart (const std::string& restart_file)
 
             TracerPC = new AmrTracerParticleContainer(parent);
 
-            TracerPC->SetVerbose(particle_verbose);
+            TracerPC->SetVerbose(particles::particle_verbose);
             //
             // We want to be able to add new particles on a restart.
             // As well as the ability to write the particles out to an ascii file.
             //
-            if (!restart_from_nonparticle_chkfile)
+            if (!particles::restart_from_nonparticle_chkfile)
             {
                 TracerPC->Restart(parent->theRestartFile(), chk_tracer_particle_file);
             }
 
-            if (!particle_restart_file.empty())
+            if (!particles::particle_restart_file.empty())
             {
-                TracerPC->InitFromAsciiFile(particle_restart_file,0);
+                TracerPC->InitFromAsciiFile(particles::particle_restart_file,0);
             }
 
-            if (!particle_output_file.empty())
+            if (!particles::particle_output_file.empty())
             {
-                TracerPC->WriteAsciiFile(particle_output_file);
+                TracerPC->WriteAsciiFile(particles::particle_output_file);
             }
         }
     }
@@ -206,11 +202,11 @@ Castro::TimestampParticles (int ngrow)
 
         // have to do it here, not in read_particle_params, because Density, ..., are set after
         // read_particle_params is called.
-        if (timestamp_density) {
+        if (particles::timestamp_density) {
             timestamp_indices.push_back(URHO);
             std::cout << "Density = " << URHO << std::endl;
         }
-        if (timestamp_temperature) {
+        if (particles::timestamp_temperature) {
             timestamp_indices.push_back(UTEMP);
             std::cout << "Temp = " << UTEMP << std::endl;
         }
@@ -220,9 +216,9 @@ Castro::TimestampParticles (int ngrow)
         }
     }
 
-    if ( TracerPC && !timestamp_dir.empty())
+    if ( TracerPC && !particles::timestamp_dir.empty())
     {
-        std::string basename = timestamp_dir;
+        std::string basename = particles::timestamp_dir;
 
         if (basename[basename.length()-1] != '/') basename += '/';
 

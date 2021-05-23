@@ -31,17 +31,11 @@
 
 /
 
-&sponge
-
-  sponge_upper_density = 5.0d-8
-  sponge_lower_density = 1.0d-8
-  sponge_timescale     = 1.0d-6
-
-/
-
 &extern
-  rtol_spec = 1.d-10
-  atol_spec = 1.d-10
+  rtol_spec = 1.d-8
+  atol_spec = 1.d-8
 
   small_x = 1.e-10
+
+  jacobian = 2
 /

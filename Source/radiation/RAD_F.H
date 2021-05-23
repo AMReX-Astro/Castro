@@ -4,15 +4,11 @@
 #include <AMReX_ArrayLim.H>
 
 #ifdef BL_FORT_USE_UNDERSCORE
-#  define   FORT_KAVG    kavg_
-#  define   FORT_RADBNDRY  rbndry_
 #  define   FORT_RADBNDRY2 rbndr2_
 #  define   FORT_INIT_OPACITY_TABLE init_opacity_table_
 
 #elif defined(BL_FORT_USE_UPPERCASE)
 
-#  define   FORT_KAVG    KAVG
-#  define   FORT_RADBNDRY  RBNDRY
 #  define   FORT_RADBNDRY2 RBNDR2
 #  define   FORT_INIT_OPACITY_TABLE INIT_OPACITY_TABLE
 
@@ -31,7 +27,7 @@ void ca_init_radhydro_pars
 void ca_initradconstants
   (const amrex::Real& pi, amrex::Real& clight, amrex::Real& hplanck,
    amrex::Real& kboltz, amrex::Real& stefbol, amrex::Real& avogadro,
-   amrex::Real& mev2erg, int& J_is_used);
+   amrex::Real& mev2erg);
 
 void ca_initsinglegroup
   (const int& ngroups);
@@ -70,35 +66,9 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
     BL_FORT_FAB_ARG(lam),  const amrex::Real* dx, const int* ngrow, const int* limiter,
     const int* filter_lambda_T, const int* filter_lambda_S);
  
-BL_FORT_PROC_DECL(CA_EST_GPR0, ca_est_gpr0)
-   (const BL_FORT_FAB_ARG(Er),
-    BL_FORT_FAB_ARG(gPr));
-
-BL_FORT_PROC_DECL(CA_EST_GPR2, ca_est_gpr2)
-   (const BL_FORT_FAB_ARG(kap),
-    const BL_FORT_FAB_ARG(Er),
-    BL_FORT_FAB_ARG(gPr), 
-    const int lo[], const int hi[],
-    const amrex::Real* dx, const int* limiter, const int* comoving); 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_set_dterm_face
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(Er),
-    const BL_FORT_FAB_ARG(dcoef), 
-    BL_FORT_FAB_ARG(dterm_face), 
-    const amrex::Real* dx, const int* idir);
-
-  void ca_face2center
-    (const int lo[], const int hi[], 
-     const int& scomp, const int& dcomp, const int& ncomp, const int& nf, const int& nc,
-     D_DECL(const BL_FORT_FAB_ARG(foox),
-            const BL_FORT_FAB_ARG(fooy),
-            const BL_FORT_FAB_ARG(fooz)),
-     BL_FORT_FAB_ARG(fooc));
-
   void ca_correct_dterm
     (D_DECL(BL_FORT_FAB_ARG(dfx),
             BL_FORT_FAB_ARG(dfy),
@@ -128,14 +98,6 @@ extern "C"
 
 }
 
-BL_FORT_PROC_DECL(CA_STATE_UPDATE, ca_state_update)
-   (const int lo[], const int hi[],
-    BL_FORT_FAB_ARG(state),
-    const BL_FORT_FAB_ARG(rhoe),
-    const BL_FORT_FAB_ARG(temp),
-    const BL_FORT_FAB_ARG(msk),
-    amrex::Real* derat, amrex::Real* dTrat);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -164,33 +126,10 @@ extern "C"
     const amrex::Real* x, const int* xlo, const int* xhi, 
     const int* ntest, const int* idim, const int* iflx);
 
-  void ca_spalpha
-   (const int* lo, const int* hi,
-    BL_FORT_FAB_ARG(SPa),
-    D_DECL(BL_FORT_FAB_ARG(lamx),
-           BL_FORT_FAB_ARG(lamy),
-           BL_FORT_FAB_ARG(lamz)),
-    const int* igroup);
-
-  void ca_derertot
-    (BL_FORT_FAB_ARG_3D(der),const int* nvar,
-     const BL_FORT_FAB_ARG_3D(data),const int* ncomp,
-     const int* lo, const int* hi,
-     const int* domain_lo, const int* domain_hi,
-     const amrex::Real* delta, const amrex::Real* xlo,
-     const amrex::Real* time, const amrex::Real* dt, const int* bcrec, 
-     const int* level, const int* grid_no);
 #ifdef __cplusplus
 }
 #endif
 // </ MGFLD>
-
-BL_FORT_PROC_DECL(CA_ER_COM2LAB, ca_er_com2lab)
-  (const int lo[], const int hi[],
-   const BL_FORT_FAB_ARG(Snew),
-   const BL_FORT_FAB_ARG(Ecom), 
-   const BL_FORT_FAB_ARG(F), int& iflx, int& nflx, 
-   BL_FORT_FAB_ARG(plotvar), int& ier, int& npv);
 
 BL_FORT_PROC_DECL(CA_COMPUTE_FCC, ca_compute_fcc)
     (const int lo[], const int hi[], 
@@ -214,8 +153,6 @@ extern "C" {
 
   void sphe(amrex::Real* r, amrex::Real* s, const int& idim, 
             ARLIM_P(edgeboxlo), ARLIM_P(edgeboxhi), const amrex::Real* dx);
-
-  amrex::Real FORT_KAVG(const amrex::Real& a, const amrex::Real& b, const amrex::Real& d, const int& iopt);
 
   void ceupdterm(ARLIM_P(reglo), ARLIM_P(reghi), 
                  amrex::Real& relres, amrex::Real& absres,
@@ -263,11 +200,6 @@ extern "C" {
   void rfface(BL_FORT_FAB_ARG(fine), 
               BL_FORT_FAB_ARG(crse), 
               const int& idim, const int* irat);
-
-  void FORT_RADBNDRY(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi),
-                     ARLIM_P(dlo), ARLIM_P(dhi), 
-                     const amrex::Real* dx, const amrex::Real* xlo, const amrex::Real& time,
-                     const int& dir, const int& face);
 
   void FORT_RADBNDRY2(amrex::Real* bf, ARLIM_P(blo), ARLIM_P(bhi), 
                       int* tfab, ARLIM_P(dlo), ARLIM_P(dhi),

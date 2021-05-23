@@ -13,6 +13,18 @@
 #include <Rotation.H>
 #endif
 
+#ifdef REACTIONS
+#ifdef NETWORK_HAS_CXX_IMPLEMENTATION
+#include <actual_rhs.H>
+#else
+#include <fortran_to_cxx_actual_rhs.H>
+#endif
+#endif
+
+#ifdef RADIATION
+#include <Radiation.H>
+#endif
+
 using namespace amrex;
 
 Real
@@ -42,12 +54,12 @@ Castro::estdt_cfl(const Real time)
     auto u = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u(i,j,k,URHO);
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u(i,j,k,URHO);
       eos_state.T = u(i,j,k,UTEMP);
       eos_state.e = u(i,j,k,UEINT) * rhoInv;
@@ -162,7 +174,7 @@ Castro::estdt_mhd()
     auto bz_arr = bz.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
     {
 
       Real rhoInv = 1.0_rt / u_arr(i,j,k,URHO);
@@ -174,7 +186,7 @@ Castro::estdt_mhd()
       Real uy = u_arr(i,j,k,UMY) * rhoInv;
       Real uz = u_arr(i,j,k,UMZ) * rhoInv;
 
-      eos_t eos_state;
+      eos_rep_t eos_state;
       eos_state.rho = u_arr(i,j,k,URHO);
       eos_state.e = u_arr(i,j,k,UEINT) * rhoInv;
       eos_state.T = u_arr(i,j,k,UTEMP);
@@ -276,7 +288,7 @@ Castro::estdt_temp_diffusion(void)
     auto ustate = stateMF.array(mfi);
 
     reduce_op.eval(box, reduce_data,
-                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+                   [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
                    {
 
                      if (ustate(i,j,k,URHO) > ldiffuse_cutoff_density) {
@@ -285,6 +297,7 @@ Castro::estdt_temp_diffusion(void)
 
                        // we need cv
                        eos_t eos_state;
+
                        eos_state.rho = ustate(i,j,k,URHO);
                        eos_state.T = ustate(i,j,k,UTEMP);
                        eos_state.e = ustate(i,j,k,UEINT) * rho_inv;
@@ -391,7 +404,7 @@ Castro::estdt_burning()
         // But we will call in (rho, T) mode, which is inexpensive.
 
         reduce_op.eval(box, reduce_data,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
         {
             Real rhoInv = 1.0_rt / S(i,j,k,URHO);
 
@@ -411,7 +424,7 @@ Castro::estdt_burning()
 
             if (state.T < castro::react_T_min || state.T > castro::react_T_max ||
                 state.rho < castro::react_rho_min || state.rho > castro::react_rho_max) {
-                return {1.e200};
+                return {1.e200_rt};
             }
 
             Real e    = state.e;
@@ -421,12 +434,9 @@ Castro::estdt_burning()
                 X[n] = amrex::max(state.xn[n], small_x);
             }
 
-            eos_t eos_state;
-            burn_to_eos(state, eos_state);
-            eos(eos_input_rt, eos_state);
-            eos_to_burn(eos_state, state);
+            eos(eos_input_rt, state);
 
-#ifndef SIMPLIFIED_SDC
+#ifdef STRANG
             state.self_heat = true;
 #endif
             Array1D<Real, 1, neqs> ydot;
@@ -454,7 +464,22 @@ Castro::estdt_burning()
                 }
             }
 
-            Real dt_tmp = dtnuc_e * e / dedt;
+            Real dt_tmp = 1.e200_rt;
+
+#ifdef NSE
+            // we need to use the eos_state interface here because for
+            // SDC, if we come in with a burn_t, it expects to
+            // evaluate the NSE criterion based on the conserved state.
+
+            eos_t eos_state;
+            burn_to_eos(state, eos_state);
+
+            if (!in_nse(eos_state)) {
+#endif
+                dt_tmp = dtnuc_e * e / dedt;
+#ifdef NSE
+            }
+#endif
             for (int n = 0; n < NumSpec; ++n) {
                 dt_tmp = amrex::min(dt_tmp, dtnuc_X * (X[n] / dXdt[n]));
             }
@@ -466,6 +491,95 @@ Castro::estdt_burning()
 
     ReduceTuple hv = reduce_data.value();
     Real estdt = amrex::get<0>(hv);
+
+    return estdt;
+}
+#endif
+
+#ifdef RADIATION
+Real
+Castro::estdt_rad ()
+{
+    auto dx = geom.CellSizeArray();
+
+    const MultiFab& stateMF = get_new_data(State_Type);
+    const MultiFab& radMF = get_new_data(Rad_Type);
+
+    // Compute radiation + hydro limited timestep.
+
+    ReduceOps<ReduceOpMin> reduce_op;
+    ReduceData<Real> reduce_data(reduce_op);
+    using ReduceTuple = typename decltype(reduce_data)::Type;
+
+#ifdef _OPENMP
+#pragma omp parallel
+#endif
+    for (MFIter mfi(stateMF, TilingIfNotGPU()); mfi.isValid(); ++mfi)
+    {
+        const Box& tbox = mfi.tilebox();
+        const Box& vbox = mfi.validbox();
+
+        FArrayBox gPr;
+        gPr.resize(tbox);
+        radiation->estimate_gamrPr(stateMF[mfi], radMF[mfi], gPr, dx.data(), vbox);
+
+        auto u = stateMF[mfi].array();
+        auto gPr_arr = gPr.array();
+
+        // Note that we synchronize in the call to estimate_gamrPr. Ideally
+        // we would merge these into one loop later (probably by making that
+        // call occur on a zone-by-zone basis) so that we can simplify.
+
+        reduce_op.eval(tbox, reduce_data,
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+        {
+            Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+            eos_t eos_state;
+            eos_state.rho = u(i,j,k,URHO);
+            eos_state.T   = u(i,j,k,UTEMP);
+            eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+            for (int n = 0; n < NumSpec; ++n) {
+                eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+            }
+#if NAUX_NET > 0
+            for (int n = 0; n < NumAux; ++n) {
+                eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+            }
+#endif
+
+            eos(eos_input_re, eos_state);
+
+            Real c = eos_state.cs;
+            c = std::sqrt(c * c + gPr_arr(i,j,k) * rhoInv);
+
+            Real ux = u(i,j,k,UMX) * rhoInv;
+            Real uy = u(i,j,k,UMY) * rhoInv;
+            Real uz = u(i,j,k,UMZ) * rhoInv;
+
+            Real dt1 = dx[0] / (c + std::abs(ux));
+#if AMREX_SPACEDIM >= 2
+            Real dt2 = dx[1] / (c + std::abs(uy));
+#else
+            Real dt2 = std::numeric_limits<Real>::max();
+#endif
+#if AMREX_SPACEDIM == 3
+            Real dt3 = dx[2] / (c + std::abs(uz));
+#else
+            Real dt3 = std::numeric_limits<Real>::max();
+#endif
+
+            Real dt_min = amrex::min(dt1, dt2, dt3);
+
+            return {dt_min};
+        });
+
+        Gpu::synchronize();
+    }
+
+    ReduceTuple hv = reduce_data.value();
+    Real estdt = amrex::get<0>(hv);
+    estdt = std::min(estdt, max_dt / cfl);
 
     return estdt;
 }

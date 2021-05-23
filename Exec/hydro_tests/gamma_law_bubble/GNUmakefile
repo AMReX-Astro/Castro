@@ -17,7 +17,7 @@ USE_CXX_MODEL_PARSER = TRUE
 USE_MAESTRO_INIT = FALSE
 
 # This sets the EOS directory in $(MICROPHYSICS_HOME)/EOS
-EOS_DIR     := gamma_law_general
+EOS_DIR     := gamma_law
 
 # This sets the network directory in $(MICROPHYSICS_HOME)/networks
 NETWORK_DIR := general_null

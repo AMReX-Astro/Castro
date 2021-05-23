@@ -40,7 +40,7 @@ void Radiation::check_convergence_er(Real& relative, Real& absolute, Real& err_e
       const auto temp = temp_new[mfi].array();
 
       reduce_op.eval(bx, reduce_data,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
           Real chg = 0.e0_rt;
           Real tot = 0.e0_rt;
@@ -115,7 +115,7 @@ void Radiation::check_convergence_matt(const MultiFab& rhoe_new, const MultiFab&
       Real cdt = C::c_light * delta_t;
 
       reduce_op.eval(bx, reduce_data,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept -> ReduceTuple
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
       {
           Real abschg_re = std::abs(ren(i,j,k) - res(i,j,k));
           Real relchg_re = std::abs(abschg_re / (ren(i,j,k) + 1.e-50_rt));
@@ -214,7 +214,7 @@ void Radiation::compute_etat(MultiFab& etaT, MultiFab& etaTz,
         auto rho_arr = rho[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real sigma = 1.e0_rt + ptc_tau;
             Real cdt = C::c_light * delta_t;
@@ -280,7 +280,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       {
           Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = S_new_arr(i,j,k,URHO);
           eos_state.T   = temp_arr(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {
@@ -329,7 +329,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       }
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           const Real fac = 0.5e0_rt;
           const Real minfrac = 1.e-8_rt;
@@ -392,7 +392,7 @@ void Radiation::eos_opacity_emissivity(const MultiFab& S_new,
       const Box& reg = mfi.tilebox();
 
       amrex::ParallelFor(reg,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           // Integrate the Planck distribution upward from zero frequency.
           // This handles both the single-group and multi-group cases.
@@ -479,7 +479,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
     Real cdt1 = 1.e0_rt / (C::c_light * delta_t);
 
     amrex::ParallelFor(bx,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         Real epsilon[NGROUPS];
         Real sumeps = 0.0;
@@ -529,7 +529,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       const Real dt1 = (1.e0_rt + ptc_tau) / delta_t;
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real kbar = 0.0;
           for (int g = 0; g < NGROUPS; ++g) {
@@ -581,7 +581,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
           auto ccoefs_arr = ccoefs[idim][mfi].array();
 
           amrex::ParallelFor(bx,
-          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
           {
               if (idim == 0) {
                   bcoefs_arr(i,j,k) += 0.5e0_rt * (spec_arr(i-1,j,k) + spec_arr(i,j,k)) * bcgrp_arr(i,j,k);
@@ -596,7 +596,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
           
           if (nGroups > 1) {
               amrex::ParallelFor(bx,
-              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+              [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
               {
                   int ioff, joff, koff;
                   Real h1;
@@ -654,7 +654,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       auto rhs_arr = rhs[mfi].array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real rt_term = 0.0;
           for (int g = 0; g < NGROUPS; ++g) {
@@ -687,7 +687,7 @@ void Radiation::gray_accel(MultiFab& Er_new, MultiFab& Er_pi,
       auto accel_arr = accel[mfi].array();
 
       amrex::ParallelFor(reg,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           for (int n = 0; n < NGROUPS; ++n) {
               Er_new_arr(i,j,k,n) = Er_new_arr(i,j,k,n) + spec_arr(i,j,k,n) * accel_arr(i,j,k);
@@ -723,7 +723,7 @@ void Radiation::local_accel(MultiFab& Er_new, const MultiFab& Er_pi,
         Real cdt1 = 1.0_rt / (C::c_light * delta_t);
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real Hg[NGROUPS], kapt[NGROUPS];
             Real rt_term = 0.0_rt;
@@ -782,6 +782,10 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
       }
   }
 
+  ReduceOps<ReduceOpMax, ReduceOpMax> reduce_op;
+  ReduceData<Real, Real> reduce_data(reduce_op);
+  using ReduceTuple = typename decltype(reduce_data)::Type;
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -789,14 +793,34 @@ void Radiation::state_energy_update(MultiFab& state, const MultiFab& rhoe,
   {
       const Box& reg  = mfi.tilebox();
 
-      BL_FORT_PROC_CALL(CA_STATE_UPDATE, ca_state_update)
-          (reg.loVect(), reg.hiVect(),
-           BL_TO_FORTRAN(state[mfi]),
-           BL_TO_FORTRAN(rhoe[mfi]),
-           BL_TO_FORTRAN(temp[mfi]),
-           BL_TO_FORTRAN(msk[mfi]),
-           &derat, &dT);
+      auto state_arr = state[mfi].array();
+      auto temp_arr = temp[mfi].array();
+      auto rhoe_arr = rhoe[mfi].array();
+      auto msk_arr = msk[mfi].array();
+
+      reduce_op.eval(reg, reduce_data,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) -> ReduceTuple
+      {
+          Real ei = state_arr(i,j,k,UEINT);
+          Real derat_loc = std::abs((rhoe_arr(i,j,k) - ei) *
+                                    msk_arr(i,j,k) / (ei + 1.e-50_rt));
+          Real ek = state_arr(i,j,k,UEDEN) - state_arr(i,j,k,UEINT);
+          state_arr(i,j,k,UEINT) = rhoe_arr(i,j,k);
+          state_arr(i,j,k,UEDEN) = rhoe_arr(i,j,k) + ek;
+
+          Real Told = state_arr(i,j,k,UTEMP);
+          Real dTrat_loc = std::abs((temp_arr(i,j,k) - Told) *
+                                    msk_arr(i,j,k) / (Told + 1.e-50_rt));
+          state_arr(i,j,k,UTEMP) = temp_arr(i,j,k);
+
+          return {derat_loc, dTrat_loc};
+      });
+
   }
+
+  ReduceTuple hv = reduce_data.value();
+  derat = amrex::get<0>(hv);
+  dT = amrex::get<1>(hv);
 
   ParallelDescriptor::ReduceRealMax(derat);
   ParallelDescriptor::ReduceRealMax(dT);
@@ -841,7 +865,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
         if (conservative_update) {
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real H1 = eta1_arr(i,j,k);
 
@@ -861,7 +885,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
             Gpu::synchronize();
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 // Get T from rhoe (temp_new comes in with rhoe)
 
@@ -873,7 +897,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
                 {
                     Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                    eos_t eos_state;
+                    eos_re_t eos_state;
                     eos_state.rho = S_new_arr(i,j,k,URHO);
                     eos_state.T   = S_new_arr(i,j,k,UTEMP);
                     eos_state.e   = Tp_n(i,j,k) * rhoInv;
@@ -898,7 +922,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
             const Real fac = 0.01_rt;
 
             amrex::ParallelFor(bx,
-            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+            [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
             {
                 Real cpT = 0.e0_rt;
 
@@ -918,7 +942,7 @@ void Radiation::update_matter(MultiFab& rhoe_new, MultiFab& temp_new,
 
                 Real rhoInv = 1.e0_rt / S_new_arr(i,j,k,URHO);
 
-                eos_t eos_state;
+                eos_re_t eos_state;
                 eos_state.rho = S_new_arr(i,j,k,URHO);
                 eos_state.T   = Tp_n(i,j,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -998,29 +1022,451 @@ void Radiation::compute_limiter(int level, const BoxArray& grids,
 void Radiation::estimate_gamrPr(const FArrayBox& state, const FArrayBox& Er, 
                                 FArrayBox& gPr, const Real*dx, const Box& box)
 {
-  if (limiter == 0) {
-    BL_FORT_PROC_CALL(CA_EST_GPR0, ca_est_gpr0)
-      (BL_TO_FORTRAN(Er),
-       BL_TO_FORTRAN(gPr));
-  }
-  else {
+    auto gPr_arr = gPr.array();
+    auto Er_arr = Er.array();
 
-    FArrayBox kappa_r(gPr.box(), nGroups);
+    if (limiter == 0) {
 
-    if (do_multigroup) {
-      MGFLD_compute_rosseland(kappa_r, state);
+        amrex::ParallelFor(box,
+        [=] AMREX_GPU_DEVICE (int i, int j, int k)
+        {
+            gPr_arr(i,j,k) = 0.e0_rt;
+
+            for (int g = 0; g < NGROUPS; ++g) {
+                gPr_arr(i,j,k) = gPr_arr(i,j,k) + 4.e0_rt / 9.e0_rt * Er_arr(i,j,k,g);
+            }
+        });
+
+        Gpu::synchronize();
+
     }
     else {
-      SGFLD_compute_rosseland(kappa_r, state);
-    }
 
-    BL_FORT_PROC_CALL(CA_EST_GPR2, ca_est_gpr2)
-      (BL_TO_FORTRAN(kappa_r),
-       BL_TO_FORTRAN(Er),
-       BL_TO_FORTRAN(gPr), 
-       box.loVect(),box.hiVect(),
-       dx, &limiter, &comoving);
-  }
+        FArrayBox kappa_r(gPr.box(), nGroups);
+
+        auto kappa_r_arr = kappa_r.array();
+
+        if (do_multigroup) {
+            MGFLD_compute_rosseland(kappa_r, state);
+        }
+        else {
+            SGFLD_compute_rosseland(kappa_r, state);
+        }
+
+        // Calculate offsets for the case where we don't have enough points
+        // to calculate a centered difference. In that case we'll do one-sided.
+
+        int im = 1, ip = 1;
+        Real xm = 2.0_rt, xp = 2.0_rt;
+
+        if (!(gPr.box().loVect()[0] - 1 >= box.loVect()[0])) {
+            im = 0;
+            xm = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[0] + 1 <= box.hiVect()[0])) {
+            ip = 0;
+            xp = 1.0_rt;
+        }
+
+#if AMREX_SPACEDIM >= 2
+        int jm = 1, jp = 1;
+        Real ym = 2.0_rt, yp = 2.0_rt;
+
+        if (!(gPr.box().loVect()[1] - 1 >= box.hiVect()[1])) {
+            jm = 0;
+            ym = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[1] + 1 <= box.hiVect()[1])) {
+            jp = 0;
+            yp = 1.0_rt;
+        }
+#endif
+
+#if AMREX_SPACEDIM == 3
+        int km = 1, kp = 1;
+        Real zm = 2.0_rt, zp = 2.0_rt;
+
+        if (!(gPr.box().loVect()[2] - 1 >= box.hiVect()[2])) {
+            km = 0;
+            zm = 1.0_rt;
+        }
+
+        if (!(gPr.box().hiVect()[2] + 1 <= box.hiVect()[2])) {
+            kp = 0;
+            zp = 1.0_rt;
+        }
+#endif
+
+        amrex::ParallelFor(gPr.box(),
+        [=, limiter = limiter, comoving = Radiation::comoving, closure = Radiation::closure]
+        AMREX_GPU_DEVICE (int i, int j, int k)
+        {
+            gPr_arr(i,j,k) = 0.0_rt;
+
+            // Determine whether we're strictly in the interior of the box
+            // or on one of the edges. In 2D we'll always have k_interior == true
+            // and in 1D we'll always have j_interior == k_interior == true.
+
+            bool i_interior = true, j_interior = true, k_interior = true;
+            bool i_lo = false, j_lo = false, k_lo = false;
+            bool i_hi = false, j_hi = false, k_hi = false;
+
+            if (i == lbound(gPr_arr).x) {
+                i_interior = false;
+                i_lo = true;
+            }
+            if (i == ubound(gPr_arr).x) {
+                i_interior = false;
+                i_hi = true;
+            }
+
+#if AMREX_SPACEDIM >= 2
+            if (j == lbound(gPr_arr).y) {
+                j_interior = false;
+                j_lo = true;
+            }
+            if (j == ubound(gPr_arr).y) {
+                j_interior = false;
+                j_hi = true;
+            }
+#endif
+
+#if AMREX_SPACEDIM == 3
+            if (k == lbound(gPr_arr).z) {
+                k_interior = false;
+                k_lo = true;
+            }
+            if (k == ubound(gPr_arr).z) {
+                k_interior = false;
+                k_hi = true;
+            }
+#endif
+
+            for (int g = 0; g < NGROUPS; ++g) {
+
+                Real gE1 = 0.0_rt;
+                Real gE2 = 0.0_rt;
+                Real gE3 = 0.0_rt;
+
+                if (i_interior && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y lo-z
+                else if (i_lo && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x lo-y lo-z
+                else if (i_interior && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y lo-z
+                else if (i_hi && j_lo && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x med-y lo-z
+                else if (i_lo && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x med-y lo-z
+                else if (i_interior && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x med-y lo-z
+                else if (i_hi && j_interior && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y lo-z
+                else if (i_lo && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // med-x hi-y lo-z
+                else if (i_interior && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y lo-z
+                else if (i_hi && j_hi && k_lo) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-km,g)) / (zm * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y med-z
+                else if (i_lo && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // med-x lo-y med-z
+                else if (i_interior && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y med-z
+                else if (i_hi && j_lo && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x med-y med-z
+                else if (i_lo && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x med-y med-z
+                else if (i_hi && j_interior && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y med-z
+                else if (i_lo && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // med-x hi-y med-z
+                else if (i_interior && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y med-z
+                else if (i_hi && j_hi && k_interior) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+1,g) - Er_arr(i,j,k-1,g)) / (2.0_rt * dx[2]);
+#endif
+                }
+
+                // lo-x lo-y hi-z
+                else if (i_lo && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x lo-y hi-z
+                else if (i_interior && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x lo-y hi-z
+                else if (i_hi && j_lo && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-jm,k,g)) / (ym * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // lo-x med-y hi-z
+                else if (i_lo && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x med-y hi-z
+                else if (i_interior && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x med-y hi-z
+                else if (i_hi && j_interior && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+1,k,g) - Er_arr(i,j-1,k,g)) / (2.0_rt * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // lo-x hi-y hi-z
+                else if (i_lo && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-im,j,k,g)) / (xm * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // med-x hi-y hi-z
+                else if (i_interior && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+1,j,k,g) - Er_arr(i-1,j,k,g)) / (2.0_rt * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                // hi-x hi-y hi-z
+                else if (i_hi && j_hi && k_hi) {
+                    gE1 = (Er_arr(i+ip,j,k,g) - Er_arr(i-1,j,k,g)) / (xp * dx[0]);
+#if AMREX_SPACEDIM >= 2
+                    gE2 = (Er_arr(i,j+jp,k,g) - Er_arr(i,j-1,k,g)) / (yp * dx[1]);
+#endif
+#if AMREX_SPACEDIM == 3
+                    gE3 = (Er_arr(i,j,k+kp,g) - Er_arr(i,j,k-1,g)) / (zp * dx[2]);
+#endif
+                }
+
+                Real gE = std::sqrt(gE1 * gE1 + gE2 * gE2 + gE3 * gE3);
+
+                Real r = gE / (kappa_r_arr(i,j,k,g) * amrex::max(Er_arr(i,j,k,g), 1.e-50_rt));
+                Real lam = FLDlambda(r, limiter);
+
+                Real gamr;
+                if (comoving == 1) {
+                    Real f = Edd_factor(lam, limiter, closure);
+                    gamr = (3.0_rt - f) / 2.0_rt;
+                }
+                else {
+                    gamr = lam + 1.0_rt;
+                }
+
+                gPr_arr(i,j,k) = gPr_arr(i,j,k) + lam * gamr * Er_arr(i,j,k,g);
+            }
+        });
+
+        Gpu::synchronize();
+
+    }
 }
 
 
@@ -1039,7 +1485,7 @@ void Radiation::MGFLD_compute_rosseland(FArrayBox& kappa_r, const FArrayBox& sta
   }
 
   amrex::ParallelFor(kbox,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
       Real rho = state_arr(i,j,k,URHO);
       Real temp = state_arr(i,j,k,UTEMP);
@@ -1082,7 +1528,7 @@ void Radiation::MGFLD_compute_rosseland(MultiFab& kappa_r, const MultiFab& state
         auto kpr = kappa_r[mfi].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real rho = state_arr(i,j,k,URHO);
             Real temp = state_arr(i,j,k,UTEMP);
@@ -1118,7 +1564,7 @@ void Radiation::MGFLD_compute_scattering(FArrayBox& kappa_s, const FArrayBox& st
     const Real nu = nugroup[0];
 
     amrex::ParallelFor(kbox,
-    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+    [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
     {
         Real rho = sta(i,j,k,URHO);
         Real temp = sta(i,j,k,UTEMP);
@@ -1158,11 +1604,11 @@ void Radiation::bisect_matter(MultiFab& rhoe_new, MultiFab& temp_new,
       auto state = S_new[mfi].array();
 
       amrex::ParallelFor(bx,
-      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
       {
           Real rhoInv = 1.e0_rt / state(i,j,k,URHO);
 
-          eos_t eos_state;
+          eos_re_t eos_state;
           eos_state.rho = state(i,j,k,URHO);
           eos_state.T   =  temp(i,j,k);
           for (int n = 0; n < NumSpec; ++n) {
@@ -1196,7 +1642,7 @@ void Radiation::rhstoEr(MultiFab& rhs, Real dt, int level)
         auto rhs_arr = rhs[ri].array();
 
         amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
         {
             Real r, s;
             cell_center_metric(i, j, k, geomdata, r, s);

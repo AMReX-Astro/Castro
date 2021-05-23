@@ -23,7 +23,7 @@ void dertexact(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real loc[3] = {0.0};
@@ -81,7 +81,7 @@ void derterror(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   auto const der = derfab.array();
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real loc[3] = {0.0};

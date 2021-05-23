@@ -10,14 +10,17 @@
 #include <Derive.H>
 #ifdef RADIATION
 #include <Radiation.H>
-#include <RAD_F.H>
+#include <RadDerive.H>
 #include <opacity.H>
 #endif
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
+#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
 #include <microphysics_F.H>
+#endif
 #include <eos.H>
+#include <ambient.H>
 #include <prob_parameters_F.H>
 
 using std::string;
@@ -210,9 +213,17 @@ Castro::variableSetUp ()
     probin_file_name[i] = probin_file[i];
   }
 
+  // read the problem parameters into Fortran
+
   probdata_init(probin_file_name.dataPtr(), &probin_file_length);
 
-  // Read in the input values to Fortran.
+  // initialize the C++ values of the runtime parameters.  This
+  // will copy them from the Fortran read.
+
+  init_prob_parameters();
+
+  // Read in the non-problem parameter input values to Fortran.
+
   ca_set_castro_method_params();
 
   // Initialize the runtime parameters for any of the external
@@ -239,8 +250,10 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
   ca_microphysics_init();
+#endif
 
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
@@ -284,17 +297,28 @@ Castro::variableSetUp ()
 #endif
 #endif
 
-  // Initialize the amr info
-  amrinfo_init();
-
 
   const int dm = BL_SPACEDIM;
 
-  // NUM_GROW is the number of ghost cells needed for the hyperbolic portions
+  // NUM_GROW is the number of ghost cells needed for the hyperbolic
+  // portions -- note that this includes the flattening, which
+  // generally requires 4 ghost cells
 #ifdef MHD
   NUM_GROW = 6;
 #else
   NUM_GROW = 4;
+#endif
+
+  // NUM_GROW_SRC is for quantities that will be reconstructed, but
+  // don't need the full stencil required for flattening
+#ifdef MHD
+  NUM_GROW_SRC = 6;
+#else
+  if (time_integration_method == SpectralDeferredCorrections) {
+      NUM_GROW_SRC = NUM_GROW;
+  } else {
+      NUM_GROW_SRC = 3;
+  }
 #endif
 
   const Real run_strt = ParallelDescriptor::second() ;
@@ -314,37 +338,33 @@ Castro::variableSetUp ()
 
   const int coord_type = dgeom.Coord();
 
-  ca_set_problem_params(dm,phys_bc.lo(),phys_bc.hi(),
-                        Interior,Inflow,Outflow,Symmetry,SlipWall,NoSlipWall,coord_type,
-                        dgeom.ProbLo(),dgeom.ProbHi());
+  ca_set_problem_params(dm,
+                        coord_type,
+                        dgeom.ProbLo(), dgeom.ProbHi());
 
   // Read in the parameters for the tagging criteria
   // and store them in the Fortran module.
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
-#ifdef SPONGE
-  // Initialize the sponge
+  // Set some initial data in the ambient state for safety, though the
+  // intent is that any problems using this may override these. We use
+  // the user-specified parameters if they were set, but if they were
+  // not (which is reflected by whether ambient_density is positive)
+  // then we use the "small" quantities.
 
-  sponge_init();
+  for (int n = 0; n < NUM_STATE; ++n) {
+      ambient::ambient_state[n] = 0.0;
+  }
 
-  // Read in the parameters for the sponge
-  // and store them in the Fortran module.
-
-  ca_read_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
-
-  // bring the sponge parameters into C++
-  ca_get_sponge_params(sponge_lower_factor, sponge_upper_factor,
-                       sponge_lower_radius, sponge_upper_radius,
-                       sponge_lower_density, sponge_upper_density,
-                       sponge_lower_pressure, sponge_upper_pressure,
-                       sponge_target_velocity, sponge_timescale);
-
-#endif
-
-  // Read in the ambient state parameters.
-
-  ca_get_ambient_params(probin_file_name.dataPtr(),&probin_file_length);
+  ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
+  ambient::ambient_state[UTEMP] = amrex::max(castro::ambient_temp, castro::small_temp);
+  ambient::ambient_state[UEINT] = ambient::ambient_state[URHO] * amrex::max(castro::ambient_energy,
+                                                                            castro::small_ener);
+  ambient::ambient_state[UEDEN] = ambient::ambient_state[UEINT];
+  for (int n = 0; n < NumSpec; ++n) {
+      ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
+  }
 
   Interpolater* interp;
 
@@ -409,12 +429,12 @@ Castro::variableSetUp ()
 
   store_in_checkpoint = false;
   desc_lst.addDescriptor(Gravity_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point,NUM_GROW,3,
+                         StateDescriptor::Point,NUM_GROW_SRC,3,
                          interp,state_data_extrap,store_in_checkpoint);
 #endif
 
   // Source terms -- for the CTU method, because we do characteristic
-  // tracing on the source terms, we need NUM_GROW ghost cells to do
+  // tracing on the source terms, we need NUM_GROW_SRC ghost cells to do
   // the reconstruction.  For SDC, on the other hand, we only
   // need 1 (for the fourth-order stuff). Simplified SDC uses the CTU
   // advance, so it behaves the same way as CTU here.
@@ -422,11 +442,11 @@ Castro::variableSetUp ()
   store_in_checkpoint = true;
   int source_ng = 0;
   if (time_integration_method == CornerTransportUpwind || time_integration_method == SimplifiedSpectralDeferredCorrections) {
-      source_ng = NUM_GROW;
+      source_ng = NUM_GROW_SRC;
   }
   else if (time_integration_method == SpectralDeferredCorrections) {
     if (sdc_order == 2 && use_pslope) {
-      source_ng = NUM_GROW;
+      source_ng = NUM_GROW_SRC;
     } else {
       source_ng = 1;
     }
@@ -452,7 +472,7 @@ Castro::variableSetUp ()
   // Components NumSpec:NumSpec+NumAux-1   are rho * auxdot_i
   // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
-  store_in_checkpoint = true;
+  store_in_checkpoint = false;
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
                          StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
                          interp,state_data_extrap,store_in_checkpoint);
@@ -466,7 +486,7 @@ Castro::variableSetUp ()
 
       store_in_checkpoint = true;
       desc_lst.addDescriptor(Simplified_SDC_React_Type, IndexType::TheCellType(),
-                             StateDescriptor::Point, NUM_GROW, NQSRC,
+                             StateDescriptor::Point, NUM_GROW_SRC, NQSRC,
                              interp, state_data_extrap, store_in_checkpoint);
 
   }
@@ -1022,6 +1042,11 @@ Castro::variableSetUp ()
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,URHO,1);
     derive_lst.addComponent(aux_names[i],desc_lst,State_Type,UFX+i,1);
   }
+#endif
+
+#ifdef NSE
+  derive_lst.add("in_nse", IndexType::TheCellType(), 1, ca_dernse, the_same_box);
+  derive_lst.addComponent("in_nse", desc_lst, State_Type, URHO, NUM_STATE);
 #endif
 
   //

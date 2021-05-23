@@ -21,6 +21,10 @@ Castro::sum_integrated_quantities ()
 
     int finest_level = parent->finestLevel();
     Real time        = state[State_Type].curTime();
+    Real dt          = parent->dtLevel(0);
+    if (time == 0.0) {
+        dt = 0.0; // dtLevel returns the next timestep for t = 0, so overwrite
+    }
     int timestep     = parent->levelSteps(0);
     Real mass        = 0.0;
     Real mom[3]      = { 0.0 };
@@ -426,6 +430,86 @@ Castro::sum_integrated_quantities ()
 
             for (int i = 0; i < NumSpec; i++)
                 log << std::setw(datwidth) << std::setprecision(datprecision) << species_mass[i];
+
+            log << std::endl;
+
+        }
+
+    }
+
+    // Information about the AMR driver.
+
+    {
+        // Calculate wall time for the step.
+
+        Real wall_time = 0.0;
+
+        if (time > 0.0) {
+            wall_time = amrex::ParallelDescriptor::second() - wall_time_start;
+        }
+
+        // Calculate GPU memory consumption.
+
+#ifdef AMREX_USE_GPU
+        Long gpu_size_free_MB = Gpu::Device::freeMemAvailable() / (1024 * 1024);
+        ParallelDescriptor::ReduceLongMin(gpu_size_free_MB, ParallelDescriptor::IOProcessorNumber());
+
+        Long gpu_size_used_MB = (Gpu::Device::totalGlobalMem() - Gpu::Device::freeMemAvailable()) / (1024 * 1024);
+        ParallelDescriptor::ReduceLongMax(gpu_size_used_MB, ParallelDescriptor::IOProcessorNumber());
+#endif
+
+        if (ParallelDescriptor::IOProcessor()) {
+
+            std::ostream& log = *Castro::data_logs[3];
+
+            if (time == 0.0) {
+
+                int n = 0;
+
+                std::ostringstream header;
+
+                header << std::setw(intwidth) << "#   TIMESTEP";              ++n;
+                header << std::setw(fixwidth) << "                     TIME"; ++n;
+                header << std::setw(fixwidth) << "                       DT"; ++n;
+                header << std::setw(intwidth) << "  FINEST LEV";              ++n;
+                header << std::setw(fixwidth) << " COARSE TIMESTEP WALLTIME"; ++n;
+#ifdef AMREX_USE_GPU
+                header << std::setw(fixwidth) << "  MAXIMUM GPU MEMORY USED"; ++n;
+                header << std::setw(fixwidth) << "  MINIMUM GPU MEMORY FREE"; ++n;
+#endif
+
+                header << std::endl;
+
+                log << std::setw(intwidth) << "#   COLUMN 1";
+                log << std::setw(fixwidth) << "                        2";
+
+                for (int i = 3; i < 4; ++i) {
+                    log << std::setw(datwidth) << i;
+                }
+
+                log << std::setw(intwidth) << 4; // Handle the finest lev column
+
+                for (int i = 5; i <= n; ++i) {
+                    log << std::setw(datwidth) << i;
+                }
+
+                log << std::endl;
+
+                log << header.str();
+
+            }
+
+            log << std::fixed;
+
+            log << std::setw(intwidth)                                    << timestep;
+            log << std::setw(fixwidth) << std::setprecision(datprecision) << time;
+            log << std::setw(fixwidth) << std::setprecision(datprecision) << dt;
+            log << std::setw(intwidth)                                    << parent->finestLevel();
+            log << std::setw(datwidth) << std::setprecision(datprecision) << wall_time;
+#ifdef AMREX_USE_GPU
+            log << std::setw(datwidth)                                    << gpu_size_used_MB;
+            log << std::setw(datwidth)                                    << gpu_size_free_MB;
+#endif
 
             log << std::endl;
 

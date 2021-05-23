@@ -22,7 +22,6 @@ castro.hi_bc = 2
 
 castro.do_hydro = 1
 castro.do_react = 1
-castro.reactions_max_solve_level = 0
 
 castro.cfl            = 0.5
 castro.init_shrink    = 0.1

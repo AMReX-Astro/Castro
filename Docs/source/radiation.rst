@@ -41,7 +41,8 @@ to exercise radiation. The only other requirement is a copy
 of the Hypre library. Hypre provides the algebraic multigrid
 solvers used by the implicit radiation update. You can get
 a copy at https://github.com/hypre-space/hypre (the minimum
-supported release version is 2.19.0). Their install
+supported release version is 2.19.0, except for the CUDA build which
+requires the latest master branch as of January 2021). Their install
 instructions describe what to do; we recommend using the autotools
 and GNU Make build. On HPC clusters, you typically want to build
 with the same compiler you're using to build Castro, and you also
@@ -50,7 +51,7 @@ compatible with the Hypre options, in particular when it comes to
 ``USE_MPI``, ``USE_OMP``, and ``USE_CUDA``.
 
 As an example, to build Hypre on Summit with MPI and CUDA, you
-should load the ``gcc/4.8.5`` and ``spectrum-mpi`` modules and
+should load the ``gcc/7.4.0`` and ``spectrum-mpi`` modules and
 then do the following from the Hypre ``src/`` directory,
 replacing ``/path/to/Hypre/install`` with the target location
 where you want the Hypre files to be installed.
@@ -78,7 +79,7 @@ gamma-law and Helmholtz. To use the gamma-law EOS, set
 
 ::
 
-    EOS_DIR := gamma_law_general
+    EOS_DIR := gamma_law
 
 in the GNUmakefile.
 
@@ -220,13 +221,6 @@ The parameters describing the opacity include:
 
       \kappa = \mathrm{const}\ \rho^{m} T^{-n} \nu^{p}
           \left [1-\exp{\left (-\frac{h\nu}{k T} \right )} \right ].
-
--  radiation.surface_average = 2
-
-   How the averaging of opacity is done from faces to center for
-   the radiation solver. 0 is arithmetic averaging, 1
-   is harmonic averaging, and 2 is a combination of the two.
-   This is implemented in ``RAD_?D.F`` in kavg.
 
 Note that the unit for opacities is :math:`\mathrm{cm}^{-1}`. For
 the gray solver, the total opacity in the diffusion coefficient is the sum

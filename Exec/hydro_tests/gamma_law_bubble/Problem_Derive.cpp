@@ -41,7 +41,7 @@ void ca_derpi(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   // Compute pressure from the EOS
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real rhoInv = 1.0_rt / dat(i,j,k,URHO);
@@ -105,7 +105,7 @@ void ca_derpioverp0(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   gamma_law_initial_model(pressure, density, temp, eint, npts_1d, dx);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
 
     Real rhoInv = 1.0_rt/dat(i,j,k,URHO);
@@ -188,7 +188,7 @@ void ca_derrhopert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   }
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
     der(i,j,k,0) = dat(i,j,k,URHO) - density[AMREX_D_PICK(i,j,k)];
   });
@@ -224,7 +224,7 @@ void ca_dertpert(const Box& bx, FArrayBox& derfab, int dcomp, int /*ncomp*/,
   gamma_law_initial_model(pressure, density, temp, eint, npts_1d, dx);
 
   amrex::ParallelFor(bx,
-  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k) noexcept
+  [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
   {
     der(i,j,k,0) = dat(i,j,k,UTEMP) - temp[AMREX_D_PICK(i,j,k)];
   });
