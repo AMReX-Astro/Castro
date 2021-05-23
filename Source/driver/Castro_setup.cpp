@@ -20,6 +20,7 @@
 #include <microphysics_F.H>
 #endif
 #include <eos.H>
+#include <ambient.H>
 #include <prob_parameters_F.H>
 
 using std::string;
@@ -352,16 +353,17 @@ Castro::variableSetUp ()
   // not (which is reflected by whether ambient_density is positive)
   // then we use the "small" quantities.
 
-  for (int n = 0; n < NVAR; ++n) {
+  for (int n = 0; n < NUM_STATE; ++n) {
       ambient::ambient_state[n] = 0.0;
   }
 
-  ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
-  ambient_state[UTEMP] = amrex::max(castro::ambient_temp, castro::small_temp);
-  ambient_state[UEINT] = ambient_state[URHO] * amrex::max(castro::ambient_energy, castro::small_ener);
-  ambient_state[UEDEN] = ambient_state[UEINT];
+  ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
+  ambient::ambient_state[UTEMP] = amrex::max(castro::ambient_temp, castro::small_temp);
+  ambient::ambient_state[UEINT] = ambient::ambient_state[URHO] * amrex::max(castro::ambient_energy,
+                                                                            castro::small_ener);
+  ambient::ambient_state[UEDEN] = ambient::ambient_state[UEINT];
   for (int n = 0; n < NumSpec; ++n) {
-      ambient_state[UFS+n] = ambient_state[URHO] * (1.0_rt / NumSpec);
+      ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
   }
 
   Interpolater* interp;
