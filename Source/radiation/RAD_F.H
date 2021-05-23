@@ -71,13 +71,6 @@ BL_FORT_PROC_DECL(CA_COMPUTE_LAMBORDER, ca_compute_lamborder)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ca_set_dterm_face
-   (const int lo[], const int hi[],
-    const BL_FORT_FAB_ARG(Er),
-    const BL_FORT_FAB_ARG(dcoef), 
-    BL_FORT_FAB_ARG(dterm_face), 
-    const amrex::Real* dx, const int* idir);
-
   void ca_correct_dterm
     (D_DECL(BL_FORT_FAB_ARG(dfx),
             BL_FORT_FAB_ARG(dfy),
