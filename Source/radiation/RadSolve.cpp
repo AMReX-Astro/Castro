@@ -824,7 +824,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
   const BoxArray& grids = parent->boxArray(level);
   const DistributionMapping& dmap = parent->DistributionMap(level);
   const Geometry& geom = parent->Geom(level);
-  const Real* dx = parent->Geom(level).CellSize();
+  auto dx = parent->Geom(level).CellSizeArray();
   const Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
 
   Array<MultiFab, BL_SPACEDIM> Dterm_face;
@@ -847,14 +847,27 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
 
       dp = &hem->d2Coefficients(level, n);
       MultiFab &dcoef = *(MultiFab*)dp;
-      
+
       for (MFIter fi(dcoef,true); fi.isValid(); ++fi) {
           const Box& bx = fi.tilebox();
-          ca_set_dterm_face(bx.loVect(), bx.hiVect(),
-                            BL_TO_FORTRAN(Erborder[fi]),
-                            BL_TO_FORTRAN(dcoef[fi]), 
-                            BL_TO_FORTRAN(Dterm_face[n][fi]), 
-                            dx, &n);
+
+          auto Er = Erborder[fi].array();
+          auto dc = dcoef[fi].array();
+          auto dtf = Dterm_face[n][fi].array();
+
+          amrex::ParallelFor(bx,
+          [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+          {
+              if (n == 0) {
+                  dtf(i,j,k) = (Er(i,j,k) - Er(i-1,j,k)) / dx[0] * dc(i,j,k);
+              }
+              else if (n == 1) {
+                  dtf(i,j,k) = (Er(i,j,k) - Er(i,j-1,k)) / dx[1] * dc(i,j,k);
+              }
+              else {
+                  dtf(i,j,k) = (Er(i,j,k) - Er(i,j,k-1)) / dx[2] * dc(i,j,k);
+              }
+          });
       }
   }
 
@@ -876,7 +889,7 @@ void RadSolve::levelDterm(int level, MultiFab& Dterm, MultiFab& Er, int igroup)
               parent->Geom(level).GetCellLoc(s, reg, 0);
               const Box &dbox = Dterm_face[0][fi].box();
               sphe(re.dataPtr(), s.dataPtr(), 0,
-                   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx);
+                   ARLIM(dbox.loVect()), ARLIM(dbox.hiVect()), dx.data());
               
               ca_correct_dterm(D_DECL(BL_TO_FORTRAN(Dterm_face[0][fi]),
                                       BL_TO_FORTRAN(Dterm_face[1][fi]),
