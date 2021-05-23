@@ -176,17 +176,12 @@ model data.  You set this as::
 where ``ambient_fill_dir`` is the 0-based direction to fill using an
 ambient state defined by the problem setup.  In this example, we will
 override the outflow (2) boundary condition in the y-direction.  That
-problem setup needs to fill the ``ambient_state(:)`` array defined in
-``ambient_module``.  An example of using this boundary is in the
+problem setup needs to fill the ``ambient_state[:]`` array defined in
+``ambient.H``.  An example of using this boundary is in the
 ``flame_wave`` problem.
 
 The implementations of these boundary conditions is found in
-``Castro/Source/problems/bc_ext_fill_nd.F90``.
-
-If a problem requires different initial conditions, then they should
-put a version of ``bc_ext_fill_nd.F90`` into the problem directory and
-modify it as needed.  See the ``double_mach_reflection`` problem for
-an example of this.
+``Castro/Source/problems/Castro_bc_fill_nd.cpp``.
 
 Optional Files
 --------------

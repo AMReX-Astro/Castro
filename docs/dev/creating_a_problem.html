@@ -367,15 +367,11 @@ model data.  You set this as:</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">ambient_fill_dir</span></code> is the 0-based direction to fill using an
 ambient state defined by the problem setup.  In this example, we will
 override the outflow (2) boundary condition in the y-direction.  That
-problem setup needs to fill the <code class="docutils literal notranslate"><span class="pre">ambient_state(:)</span></code> array defined in
-<code class="docutils literal notranslate"><span class="pre">ambient_module</span></code>.  An example of using this boundary is in the
+problem setup needs to fill the <code class="docutils literal notranslate"><span class="pre">ambient_state[:]</span></code> array defined in
+<code class="docutils literal notranslate"><span class="pre">ambient.H</span></code>.  An example of using this boundary is in the
 <code class="docutils literal notranslate"><span class="pre">flame_wave</span></code> problem.</p>
 <p>The implementations of these boundary conditions is found in
-<code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/bc_ext_fill_nd.F90</span></code>.</p>
-<p>If a problem requires different initial conditions, then they should
-put a version of <code class="docutils literal notranslate"><span class="pre">bc_ext_fill_nd.F90</span></code> into the problem directory and
-modify it as needed.  See the <code class="docutils literal notranslate"><span class="pre">double_mach_reflection</span></code> problem for
-an example of this.</p>
+<code class="docutils literal notranslate"><span class="pre">Castro/Source/problems/Castro_bc_fill_nd.cpp</span></code>.</p>
 </div>
 <div class="section" id="optional-files">
 <h2>Optional Files<a class="headerlink" href="#optional-files" title="Permalink to this headline">¶</a></h2>
