@@ -81,12 +81,13 @@ Problem Initialization
 
 .. index:: ca_initmag
 
-There is an additional initialization routine for MHD, ``ca_initmag``
+There is an additional initialization routine for MHD,
+``problem_initialize_mhd_data()``,
 that is used to initialize the face-centered magnetic field
 components.  This is done separately from the main conserved fluid
 state.
 
-The conserved fluid state is initialized in ``ca_initdata`` just as
+The conserved fluid state is initialized in ``problem_initialize_state_data()`` just as
 with pure hydrodynamics problems. Note that you do not need to include 
 the magnetic energy contribution to the total energy density, ``UEDEN``.
 After this initialization, the driver handles the addition of the magnetic

@@ -13,12 +13,6 @@
   center_z = 0.0d0
 /
 
-&sponge
-  sponge_lower_density = 1.0d-3
-  sponge_upper_density = 1.0d-3
-  sponge_timescale = 1.0d-3
-/
-
 &extern
 
   eos_gamma = 1.66666

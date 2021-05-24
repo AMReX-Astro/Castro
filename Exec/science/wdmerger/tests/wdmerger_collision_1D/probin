@@ -24,12 +24,6 @@
 
 /
 
-&sponge
-  sponge_lower_density = 1.0d-1
-  sponge_upper_density = 1.0d0
-  sponge_timescale     = 0.01d0
-/
-
 &extern
 
 /

@@ -58,6 +58,19 @@ castro.do_reflux      = 1
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.0e3
 
+castro.sponge_lower_factor = 0.0
+castro.sponge_upper_factor = 1.0
+
+castro.sponge_lower_density = 1.1e-15
+castro.sponge_upper_density = 1.0e-13
+
+castro.sponge_target_x_velocity = 0.0
+
+castro.sponge_lower_pressure = 0.9e1
+castro.sponge_upper_pressure = 1.0e1
+
+castro.sponge_timescale    = 1.e2
+
 # TIME STEP CONTROL
 castro.cfl            = 0.01     # cfl number for hyperbolic system
 castro.init_shrink    = 0.01     # scale back initial timestep

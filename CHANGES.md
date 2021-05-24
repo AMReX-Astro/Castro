@@ -4,9 +4,18 @@
      no longer supported and will no longer work. Please consult the
      code documentation and example problem setups in Exec/ to understand
      the new problem setup format. If you need help converting a Fortran
-     setup to C++, please file an issue. (#1728)
+     setup to C++, please file an issue. (#1728, #1732)
+
+   * Sponge parameters are now only accepted through the inputs file; the
+     &sponge namelist in the probin file is no longer read. (#1731)
+
+   * Ambient parameters are now only accepted through the inputs file; the
+     &ambient namelist in the probin file is no longer read. (#1742)
 
    * The update_sponge_params hook has been removed. (#1716)
+
+   * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
+     an implementation of rbndry has been removed. (#1743)
 
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.

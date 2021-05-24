@@ -16,8 +16,11 @@
 #include <Problem_Derive_F.H>
 
 #include <AMReX_buildInfo.H>
+#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
 #include <microphysics_F.H>
+#endif
 #include <eos.H>
+#include <ambient.H>
 #include <prob_parameters_F.H>
 
 using std::string;
@@ -210,9 +213,22 @@ Castro::variableSetUp ()
     probin_file_name[i] = probin_file[i];
   }
 
+  // read the problem parameters into Fortran
+
   probdata_init(probin_file_name.dataPtr(), &probin_file_length);
 
-  // Read in the input values to Fortran.
+  // initialize the C++ values of the runtime parameters.  This
+  // will copy them from the Fortran read and also directly read
+  // any values that were set in the inputs file
+
+  init_prob_parameters();
+
+  // now sync up the Fortran -- if a parameter was defined in C++, we need
+  // to pass it back to Fortran
+
+  cxx_to_f90_prob_parameters();
+
+  // Read in the non-problem parameter input values to Fortran.
   ca_set_castro_method_params();
 
   // Initialize the runtime parameters for any of the external
@@ -239,8 +255,10 @@ Castro::variableSetUp ()
     small_ener = 1.e-200_rt;
   }
 
+#if !defined(NETWORK_HAS_CXX_IMPLEMENTATION)
   // Initialize the Fortran Microphysics
   ca_microphysics_init();
+#endif
 
   // now initialize the C++ Microphysics
 #ifdef REACTIONS
@@ -334,28 +352,24 @@ Castro::variableSetUp ()
 
   ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
 
-#ifdef SPONGE
-  // Initialize the sponge
+  // Set some initial data in the ambient state for safety, though the
+  // intent is that any problems using this may override these. We use
+  // the user-specified parameters if they were set, but if they were
+  // not (which is reflected by whether ambient_density is positive)
+  // then we use the "small" quantities.
 
-  sponge_init();
+  for (int n = 0; n < NUM_STATE; ++n) {
+      ambient::ambient_state[n] = 0.0;
+  }
 
-  // Read in the parameters for the sponge
-  // and store them in the Fortran module.
-
-  ca_read_sponge_params(probin_file_name.dataPtr(),&probin_file_length);
-
-  // bring the sponge parameters into C++
-  ca_get_sponge_params(sponge_lower_factor, sponge_upper_factor,
-                       sponge_lower_radius, sponge_upper_radius,
-                       sponge_lower_density, sponge_upper_density,
-                       sponge_lower_pressure, sponge_upper_pressure,
-                       sponge_target_velocity, sponge_timescale);
-
-#endif
-
-  // Read in the ambient state parameters.
-
-  ca_get_ambient_params(probin_file_name.dataPtr(),&probin_file_length);
+  ambient::ambient_state[URHO]  = amrex::max(castro::ambient_density, castro::small_dens);
+  ambient::ambient_state[UTEMP] = amrex::max(castro::ambient_temp, castro::small_temp);
+  ambient::ambient_state[UEINT] = ambient::ambient_state[URHO] * amrex::max(castro::ambient_energy,
+                                                                            castro::small_ener);
+  ambient::ambient_state[UEDEN] = ambient::ambient_state[UEINT];
+  for (int n = 0; n < NumSpec; ++n) {
+      ambient::ambient_state[UFS+n] = ambient::ambient_state[URHO] * (1.0_rt / NumSpec);
+  }
 
   Interpolater* interp;
 

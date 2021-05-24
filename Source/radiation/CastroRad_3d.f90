@@ -923,51 +923,6 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
   return
 end subroutine ca_compute_lamborder
 
-subroutine ca_set_dterm_face(lo, hi, &
-                             Er, Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
-                             dc, dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
-                             dtf, dtf_l1, dtf_l2, dtf_l3, dtf_h1, dtf_h2, dtf_h3, dx, idir) bind(C, name="ca_set_dterm_face")
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: Er_l1, Er_l2, Er_l3, Er_h1, Er_h2, Er_h3, &
-       dc_l1, dc_l2, dc_l3, dc_h1, dc_h2, dc_h3, &
-       dtf_l1, dtf_l2, dtf_l3, dtf_h1, dtf_h2, dtf_h3, idir
-  integer, intent(in) :: lo(3), hi(3)
-  real(rt)        , intent(in) :: dx(3)
-  real(rt)        , intent(in) :: Er(Er_l1:Er_h1,Er_l2:Er_h2,Er_l3:Er_h3)
-  real(rt)        , intent(in) :: dc(dc_l1:dc_h1,dc_l2:dc_h2,dc_l3:dc_h3)
-  real(rt)                     :: dtf(dtf_l1:dtf_h1,dtf_l2:dtf_h2,dtf_l3:dtf_h3)
-  integer :: i, j, k
-
-  if (idir .eq. 0) then
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-              dtf(i,j,k) = (Er(i,j,k) - Er(i-1,j,k)) / dx(1) * dc(i,j,k)
-           end do
-        end do
-     end do
-  else if (idir .eq. 1) then
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-              dtf(i,j,k) = (Er(i,j,k) - Er(i,j-1,k)) / dx(2) * dc(i,j,k)
-           end do
-        end do
-     end do
-  else
-  do k = lo(3), hi(3)
-     do j = lo(2), hi(2)
-        do i = lo(1), hi(1)
-              dtf(i,j,k) = (Er(i,j,k) - Er(i,j,k-1)) / dx(2) * dc(i,j,k)
-           end do
-        end do
-     end do
-  end if
-
-end subroutine ca_set_dterm_face
-
 subroutine ca_correct_dterm(  &
                             dfx, dfx_l1, dfx_l2, dfx_l3, dfx_h1, dfx_h2, dfx_h3, &
                             dfy, dfy_l1, dfy_l2, dfy_l3, dfy_h1, dfy_h2, dfy_h3, &

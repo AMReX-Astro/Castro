@@ -54,6 +54,36 @@ amr.blocking_factor = 16       # block factor in grid generation
 amr.max_grid_size   = 2048
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad velgrad_x velgrad_y velgrad_z
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 5
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 5
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 5
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 5
+
+amr.refine.velgrad_x.gradient = 0.01
+amr.refine.velgrad_x.field_name = x_velocity
+amr.refine.velgrad_x.max_level = 5
+
+amr.refine.velgrad_y.gradient = 0.01
+amr.refine.velgrad_y.field_name = y_velocity
+amr.refine.velgrad_y.max_level = 5
+
+amr.refine.velgrad_z.gradient = 0.01
+amr.refine.velgrad_z.field_name = z_velocity
+amr.refine.velgrad_z.max_level = 5
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = test2_1d_chk     # root name of checkpoint file
