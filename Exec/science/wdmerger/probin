@@ -70,28 +70,3 @@
   onemg_wd_mg_frac = 0.05d0
 
 /
-
-&ambient
-
-  ambient_density = 1.0d-4
-  ambient_temp = 1.0d7
-
-/
-
-&tagging
-
-/
-
-&sponge
-
-  sponge_lower_radius  = 0.0d0
-  sponge_upper_radius  = 0.0d0
-  sponge_lower_density = 1.0d0
-  sponge_upper_density = 1.0d0
-  sponge_timescale     = 0.01d0
-
-/
-
-&extern
-
-/

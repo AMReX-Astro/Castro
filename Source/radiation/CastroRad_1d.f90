@@ -218,27 +218,6 @@ subroutine ca_compute_lamborder(Er, Er_l1, Er_h1, &
 
 end subroutine ca_compute_lamborder
 
-subroutine ca_set_dterm_face( lo, hi, &
-     Er, Er_l1, Er_h1, dc, dc_l1, dc_h1, &
-     dtf, dtf_l1, dtf_h1, dx, idir) bind(C, name="ca_set_dterm_face")
-
-  use amrex_fort_module, only : rt => amrex_real
-  implicit none
-
-  integer, intent(in) :: lo(1), hi(1)
-  integer, intent(in) :: Er_l1, Er_h1, dc_l1, dc_h1, dtf_l1, dtf_h1, idir
-  real(rt)        , intent(in) :: dx
-  real(rt)        , intent(in) :: Er(Er_l1:Er_h1)
-  real(rt)        , intent(in) :: dc(dc_l1:dc_h1)
-  real(rt)                     :: dtf(dtf_l1:dtf_h1)
-  integer :: i
-
-  do i=lo(1),hi(1)
-     dtf(i) = (Er(i) - Er(i-1)) / dx * dc(i)
-  end do
-
-end subroutine ca_set_dterm_face
-
 ! no tiling
 subroutine ca_correct_dterm(dfx, dfx_l1, dfx_h1, &
      re, rc) bind(C, name="ca_correct_dterm")

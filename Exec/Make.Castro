@@ -106,9 +106,11 @@ ifeq ($(USE_MPI), TRUE)
   MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
 endif
 
-ifeq ($(USE_GPU),TRUE)
+ifeq ($(USE_CUDA),TRUE)
   CUDA_VERBOSE = FALSE
+endif
 
+ifeq ($(USE_GPU),TRUE)
   # We don't currently support host-side OpenMP being enabled
   # when using GPUs. Throw an error to prevent this case.
   ifeq ($(USE_OMP),TRUE)

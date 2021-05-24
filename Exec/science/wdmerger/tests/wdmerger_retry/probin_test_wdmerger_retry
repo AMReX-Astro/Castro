@@ -57,24 +57,3 @@
   onemg_wd_mg_frac = 0.05d0
 
 /
-
-&tagging 
-
-/
-
-&sponge
-
-  sponge_lower_radius = 3.840d9
-  sponge_upper_radius = 4.352d9
-  sponge_timescale    = 0.01d0
-
-/
-
-&extern
-
-/
-
-&ambient
-  ambient_density = 1.0d-4
-  ambient_temp = 1.0d7
-/

@@ -40,6 +40,11 @@ castro.cfl            = 0.5     # cfl number for hyperbolic system
 castro.init_shrink    = 0.03    # scale back initial timestep
 castro.change_max     = 1.05    # scale back initial timestep
 
+# SPONGE
+castro.sponge_lower_density = 1.0e-3
+castro.sponge_upper_density = 1.0e-3
+castro.sponge_timescale = 1.0e-3
+
 # DIAGNOSTICS & VERBOSITY
 castro.sum_interval   = 1       # timesteps between computing mass
 castro.v              = 1       # verbosity in Castro.cpp
