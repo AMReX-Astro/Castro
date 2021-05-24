@@ -71,3 +71,43 @@ amr.probin_file = probin
 
 # DATA LOG
 amr.data_log = log
+
+# problem initialization
+
+problem.model_name =  "glasner_T5_Gconst_Snone.hse"
+
+problem.apply_vel_field = 0
+problem.velpert_height_loc = 1.2e8
+problem.velpert_scale = 5.d6
+problem.velpert_amplitude = 1.d5
+problem.num_vortices = 2
+
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-9
+integrator.atol_spec = 1.e-9
+
+integrator.rtol_enuc = 1.e-5
+
+
+# refinement
+
+amr.refinement_indicators = dengrad denerr tempgrad temperr
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.denerr.value_greater = 0.1
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.tempgrad.gradient = 1000.0
+amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.max_level = 5
+
+amr.refine.temperr.value_greater = 1.e9
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 5
+
