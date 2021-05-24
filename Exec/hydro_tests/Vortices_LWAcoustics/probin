@@ -8,22 +8,6 @@
 
 /
 
-&tagging 
-  denerr = 1.d20
-  dengrad = 0.01
-  max_denerr_lev = 8
-  max_dengrad_lev = 8
-
-  presserr = 1.d20
-  pressgrad = 0.01
-  max_presserr_lev = 8
-  max_pressgrad_lev = 8
-
-  velgrad = 0.01
-  max_velgrad_lev = 8
-
-/
-
 &extern
 
   eos_gamma = 1.4d0
