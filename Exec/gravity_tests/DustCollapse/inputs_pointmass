@@ -56,6 +56,11 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 32
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad_rel
+
+amr.refine.dengrad_rel.relative_gradient = 0.001
+amr.refine.dengrad_rel.field_name = density
+
 # CHECKPOINT FILES
 amr.check_file      = chk
 amr.check_per       = 1.0e-2

@@ -13,11 +13,6 @@
   center_z = 0.0d0
 /
 
-&tagging
-  dengrad_rel = 0.001
-  max_dengrad_rel_lev = 20
-/
-
 &extern
 
   eos_gamma = 1.66666

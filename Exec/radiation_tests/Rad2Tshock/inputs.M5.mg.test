@@ -22,6 +22,12 @@ amr.n_error_buf     = 2 2 2 2 2 2 # number of buffer cells in error est
 amr.n_proper        = 1       # default value
 amr.grid_eff        = 0.7     # what constitutes an efficient grid
 
+amr.refinement_indicators = tempgrad_rel
+
+amr.refine.tempgrad_rel.max_level = 20
+amr.refine.tempgrad_rel.relative_gradient = 0.1
+amr.refine.tempgrad_rel.field_name = Temp
+
 # CHECKPOINT FILES
 amr.check_file      = chk     # root name of checkpoint file
 amr.check_int       = 1000      # number of timesteps between checkpoints
