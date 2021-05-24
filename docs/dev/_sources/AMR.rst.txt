@@ -158,6 +158,7 @@ describing when to tag. These are:
 * ``value_greater`` : value above which we refine
 *  ``value_less`` : value below which to refine
 * ``gradient`` : absolute value of the difference between adjacent cells above which we refine
+* ``relative_gradient`` : relative value of the difference between adjacent cells above which we refine
 * ``field_name`` : name of the string defining the field in the code
 
 If a refinement indicator is added, either
