@@ -63,6 +63,12 @@ amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 25600000
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 1.0e7
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.checkpoint_files_output = 0
 amr.check_file      = chk_1d_  # root name of checkpoint file
