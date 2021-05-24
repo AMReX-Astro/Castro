@@ -199,17 +199,6 @@
                       amrex::Array4<amrex::Real> const source,
                       amrex::Real dt, amrex::Real mult_factor);
 
-///
-/// Allocate sponge parameters
-///
-    static void sponge_init();
-
-
-///
-/// Deallocate sponge parameters
-///
-    static void sponge_finalize();
-
 #endif
 
 

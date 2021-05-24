@@ -10,13 +10,6 @@
    
 /
 
-&tagging
-
-  dengrad = 0.1
-  velgrad = 1.0
-
-/
-
 &extern
 
   eos_assume_neutral = T

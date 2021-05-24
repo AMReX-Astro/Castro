@@ -185,6 +185,12 @@ eos.use_eos_coulomb = 1
 # Keep EOS inputs constant after EOS evaluation
 eos.eos_input_is_constant = 1
 
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Reactions/Network
 ############################################################################################
@@ -261,6 +267,14 @@ gravity.do_composite_phi_correction = 0
 
 # Rotational period of the rotating reference frame
 castro.rotational_period = 100.0
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e0
+castro.sponge_upper_density = 1.0e0
+castro.sponge_timescale     = 0.01e0
 
 ############################################################################################
 # Load balancing

@@ -70,6 +70,13 @@ amr.derive_plot_vars=ALL
 # PROBIN FILENAME
 amr.probin_file = probin.3d.sph
 
+problem.r_init = 0.01
+problem.p_ambient = 1.e-5
+problem.exp_energy = 1.0
+problem.dens_ambient = 1.0
+problem.nsub = 10
+
 # EOS
+eos.eos_assume_neutral = 1
 eos.eos_gamma = 1.4
 

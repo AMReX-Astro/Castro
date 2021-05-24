@@ -31,21 +31,3 @@
   kappa_r_exp_p =  0.0d0
 
 /
-
-
-&sponge
-  sponge_lower_factor = 0.0
-  sponge_upper_factor = 1.0
-
-  sponge_lower_density = 1.1e-15
-  sponge_upper_density = 1.0e-13
-
-  sponge_target_x_velocity = 0.0
-  sponge_lower_pressure = 0.9e1
-  sponge_upper_pressure = 1.0e1
- 
-  sponge_timescale    = 1.e2
-
-
-
-/

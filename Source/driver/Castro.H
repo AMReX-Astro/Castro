@@ -1406,7 +1406,7 @@ protected:
 
 ///
 /// For initialization of the C++ values of the runtime parameters
-  static int do_init_probparams;
+  static int do_cxx_prob_initialize;
 
 
 ///
@@ -1417,11 +1417,6 @@ protected:
     //
     // Static data members.
     //
-
-#ifdef SPONGE
-#include <sponge_params.H>
-#endif
-
 
     static bool      signalStopJob;
     static int       radius_grow;

@@ -2,10 +2,6 @@
 
 /
 
-&tagging
-
-/
-
 &extern
 
   eos_assume_neutral = F

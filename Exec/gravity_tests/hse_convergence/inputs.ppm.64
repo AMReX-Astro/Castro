@@ -24,7 +24,7 @@ castro.xr_ext_bc_type = 1
 castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav = 1
-castro.do_sponge = 1
+castro.do_sponge = 0
 
 castro.small_temp = 1.e6
 

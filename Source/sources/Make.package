@@ -8,5 +8,3 @@ CEXE_sources += Castro_sponge.cpp
 CEXE_sources += Castro_thermo.cpp
 CEXE_sources += Castro_geom.cpp
 
-ca_F90EXE_sources += sponge_nd.F90
-

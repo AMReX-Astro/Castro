@@ -43,6 +43,16 @@ amr.max_grid_size   = 64
 
 amr.n_error_buf     = 2
 
+amr.refinement_indicators = tempgrad_rel dengrad_rel
+
+amr.refine.tempgrad_rel.max_level = 0
+amr.refine.tempgrad_rel.relative_gradient = 0.5
+amr.refine.tempgrad_rel.field_name = Temp
+
+amr.refine.dengrad_rel.max_level = 0
+amr.refine.dengrad_rel.relative_gradient = 0.5
+amr.refine.dengrad_rel.field_name = density
+
 castro.use_post_step_regrid = 1
 
 amr.check_file       = det_x_chk

@@ -284,26 +284,6 @@ Castro::restart (Amr&     papa,
                    problem_initialize_state_data(i, j, k, s, geomdata);
                });
 
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-              ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                          BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                          AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-
-              RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-
-              Real cur_time = state[State_Type].curTime();
-
-              BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-                (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-                 BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-                 ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
-
-
            }
        }
     }
