@@ -1,9 +1,6 @@
 
 ############################## CASTRO INPUTS ###############################################
 
-# Name of the probin file
-amr.probin_file = probin
-
 ############################################################################################
 # Geometry
 ############################################################################################
@@ -84,6 +81,15 @@ amr.max_grid_size = 32
 # Grid sizes must be a multiple of blocking factor
 amr.blocking_factor = 16
 
+# Refinement indicators
+amr.refinement_indicators = denerr
+
+# Indicate we are tagging on density
+amr.refine.denerr.field_name = density
+
+# Density threshold for tagging
+amr.refine.denerr.value_greater = 1.0e0
+
 ############################################################################################
 # Physics to include
 ############################################################################################
@@ -98,6 +104,16 @@ castro.do_grav = 1
 castro.do_sponge = 1
 
 ############################################################################################
+# Hydrodynamics
+############################################################################################
+
+# Reset (rho*e) if it goes negative in the transverse terms
+castro.transverse_reset_rhoe = 1
+
+# Reset rho if it goes negative in the transverse terms
+castro.transverse_reset_density = 1
+
+############################################################################################
 # Thermodynamics
 ############################################################################################
 
@@ -106,6 +122,12 @@ castro.small_temp = 1.e-5
 
 # Minimum allowable density (g / cm**3)
 castro.small_dens = 1.e-8
+
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e3
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-7
 
 ############################################################################################
 # Gravity
@@ -125,6 +147,19 @@ gravity.no_sync = 0
 
 # Disable the use of the lagged composite correction for the potential
 gravity.do_composite_phi_correction = 0
+
+############################################################################################
+# Sponge
+############################################################################################
+
+# Minimum density to start applying the sponge
+castro.sponge_lower_density = 1.0e-4
+
+# Density by which the sponge is fully applied
+castro.sponge_upper_density = 1.0e-4
+
+# Sponge damping timescale (in seconds)
+castro.sponge_timescale     = 1.0e-2
 
 ############################################################################################
 # Load balancing
