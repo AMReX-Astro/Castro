@@ -72,11 +72,36 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-amr.probin_file = probin.nse
-
 castro.small_dens   = 1.e-4
 castro.small_temp   = 1.e6
 
 castro.time_integration_method = 0
 castro.use_retry = 1
 castro.max_subcycles = 16
+
+# problem initialization
+
+problem.model_name =  "15m_aprox19.6400"
+
+# refinement
+
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.max_level = 3
+amr.refine.denerr.value_greater = 1.e4
+amr.refine.denerr.field_name = density
+
+
+# Microphysics
+
+integrator.rtol_spec = 1.e-6
+integrator.atol_spec = 1.e-6
+
+integrator.retry_burn = 0
+integrator.abort_on_failure = 0
+
+integrator.jacobian = 0
+
+network.rho_nse = 2.e6
+network.T_nse = 3.e9
+
