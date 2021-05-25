@@ -101,7 +101,7 @@ problem.dx_model = 20.e0
 problem.dens_base = 3.43e6
 
 problem.T_star = 1.e8
-problem.T_hi = 2.d8
+problem.T_hi = 2.e8
 problem.T_lo   = 8.e6
 
 problem.H_star = 2000.e0
