@@ -100,9 +100,6 @@ amr.plot_files_output = 0
 fab.format = NATIVE_32
 
 
-#PROBIN FILENAME
-amr.probin_file = probin
-
 # problem initialization
 
 problem.dtemp = 1.2e9

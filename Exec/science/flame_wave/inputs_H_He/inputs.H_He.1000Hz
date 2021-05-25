@@ -94,9 +94,6 @@ amr.small_plot_per         = 2.e-4      # number of seconds between plotfiles
 amr.small_plot_vars = density Temp
 amr.derive_small_plot_vars = abar x_velocity y_velocity z_velocity X(H1) X(He4) enuc
 
-#PROBIN FILENAME
-amr.probin_file = probin
-
 # problem initialization
 
 problem.dtemp = 1.2e9
