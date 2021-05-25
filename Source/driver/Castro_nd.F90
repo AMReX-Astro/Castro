@@ -175,6 +175,7 @@ subroutine ca_get_tagging_params(name, namlen) &
 
   integer, parameter :: maxlen = 256
   character (len=maxlen) :: probin
+  logical :: probin_exists
 
   namelist /tagging/ &
        denerr, dengrad, dengrad_rel, &
@@ -285,19 +286,23 @@ subroutine ca_get_tagging_params(name, namlen) &
   end do
 
   ! read in the namelist
-  un = 9
-  open (unit=un, file=probin(1:namlen), form='formatted', status='old')
-  read (unit=un, nml=tagging, iostat=status)
 
-  if (status < 0) then
-     ! the namelist does not exist, so we just go with the defaults
-     continue
+  inquire(file=probin(1:namlen), exist=probin_exists)
 
-  else if (status > 0) then
-     ! some problem in the namelist
-     call castro_error('ERROR: problem in the tagging namelist')
-  endif
+  if (probin_exists) then
+     open (newunit=un, file=probin(1:namlen), form='formatted', status='old')
+     read (unit=un, nml=tagging, iostat=status)
 
-  close (unit=un)
+     if (status < 0) then
+        ! the namelist does not exist, so we just go with the defaults
+        continue
+
+     else if (status > 0) then
+        ! some problem in the namelist
+        call castro_error('ERROR: problem in the tagging namelist')
+     endif
+
+     close (unit=un)
+  end if
 
 end subroutine ca_get_tagging_params
