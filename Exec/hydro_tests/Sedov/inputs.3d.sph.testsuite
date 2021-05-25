@@ -67,8 +67,7 @@ amr.plot_file       = sedov_3d_plt
 amr.plot_int        = 200
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin.3d.sph
+# problem initialization
 
 problem.r_init = 0.01
 problem.p_ambient = 1.e-5
