@@ -66,9 +66,6 @@ amr.plot_file        = plt        # root name of plotfile
 amr.plot_int         = 100        # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
-
 # DATA LOG
 amr.data_log = log
 
