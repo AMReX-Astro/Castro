@@ -71,3 +71,19 @@ amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variab
 
 #PROBIN FILENAME
 amr.probin_file = probin-sod-x
+
+# PROBLEM PARAMETERS
+problem.p_l = 1.0e0
+problem.u_l = 0.0e0
+problem.rho_l = 1.0e0
+
+problem.p_r = 0.1e0
+problem.u_r = 0.0e0
+problem.rho_r = 0.125e0
+
+problem.idir = 1
+problem.frac = 0.5e0
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4
