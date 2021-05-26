@@ -97,5 +97,5 @@ problem.frac = 0.5
 
 # Microphysics
 
-eos.eos_assume_neutral = T
+eos.eos_assume_neutral = 1
 eos.eos_gamma = 2
