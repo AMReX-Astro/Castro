@@ -357,7 +357,7 @@ is given in the AMReX documentation here: https://amrex-codes.github.io/amrex/do
 
 
 Practical Details in Working with Tiling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------
 
 With tiling, the OpenMP is now all in C++, and not in Fortran for all
 modules except reactions and ``initdata``.

@@ -262,7 +262,7 @@ style guidelines.</p>
 <ul>
 <li><p>All C to Fortran interfaces should use the ISO C binding.  The
 Fortran subroutine should use</p>
-<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span>subroutine subroutine_name(args) bind(C, name=&quot;subroutine_name)
+<div class="highlight-fortran notranslate"><div class="highlight"><pre><span></span><span class="k">subroutine </span><span class="n">subroutine_name</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="k">bind</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;subroutine_name&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>

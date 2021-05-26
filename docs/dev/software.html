@@ -116,7 +116,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#statedata"><code class="docutils literal notranslate"><span class="pre">StateData</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mfiter-and-interacting-with-fortran"><code class="docutils literal notranslate"><span class="pre">MFIter</span></code> and interacting with Fortran</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#practical-details-in-working-with-tiling">Practical Details in Working with Tiling</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#boundaries-fillpatch-and-fillpatchiterator">Boundaries: <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> and <code class="docutils literal notranslate"><span class="pre">FillPatchIterator</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#physical-boundaries">Physical Boundaries</a></li>
@@ -558,6 +561,8 @@ approach, called <em>tiling</em>, gearing up to meet the demands of
 many-core processors in the next-generation of supercomputers.</p>
 <p>Full details of iterating over boxes and calling compute kernels
 is given in the AMReX documentation here: <a class="reference external" href="https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling">https://amrex-codes.github.io/amrex/docs_html/Basics.html#mfiter-and-tiling</a></p>
+<div class="section" id="practical-details-in-working-with-tiling">
+<h3>Practical Details in Working with Tiling<a class="headerlink" href="#practical-details-in-working-with-tiling" title="Permalink to this headline">¶</a></h3>
 <p>With tiling, the OpenMP is now all in C++, and not in Fortran for all
 modules except reactions and <code class="docutils literal notranslate"><span class="pre">initdata</span></code>.</p>
 <p>It is the responsibility of the coder to make sure that the routines
@@ -618,6 +623,7 @@ in <code class="docutils literal notranslate"><span class="pre">sponge_nd.f90</s
 </ul>
 </li>
 </ul>
+</div>
 </div>
 <div class="section" id="boundaries-fillpatch-and-fillpatchiterator">
 <h2>Boundaries: <code class="docutils literal notranslate"><span class="pre">FillPatch</span></code> and <code class="docutils literal notranslate"><span class="pre">FillPatchIterator</span></code><a class="headerlink" href="#boundaries-fillpatch-and-fillpatchiterator" title="Permalink to this headline">¶</a></h2>
