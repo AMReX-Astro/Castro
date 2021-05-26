@@ -116,13 +116,13 @@ if ``itag = CLEAR`` (these are mapped to ``1`` and ``0``, respectively).
 
 In particular, notice that there is an order dependence of this
 operation; if ``errfunc[2]`` ``CLEAR`` s a zone and then
-``errfunc[3]`` ``SET`` s that zone, the final operation will be to tag
+``errfunc[3]``  ``SET`` s that zone, the final operation will be to tag
 that zone (and vice versa). In practice by default this does not
 matter, because the built-in tagging routines never explicitly perform
-a ``CLEAR``. However, it is possible to overwrite the
-``Tagging_nd.F90`` file if you want to change how ``ca_denerror``,
-``ca_temperror``, etc. operate. This is not recommended, and if you do
-so be aware that ``CLEAR``ing a zone this way may not have the desired
+a ``CLEAR`` . However, it is possible to overwrite the
+``Tagging_nd.F90`` file if you want to change how ``ca_denerror`` ,
+``ca_temperror`` , etc. operate. This is not recommended, and if you do
+so be aware that ``CLEAR`` ing a zone this way may not have the desired
 effect.
 
 .. index:: problem_tagging.H
