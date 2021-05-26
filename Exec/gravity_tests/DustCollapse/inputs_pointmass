@@ -72,5 +72,20 @@ amr.plot_per        = 1.0e-2
 amr.plot_int        = 0
 amr.derive_plot_vars = NONE
 
-#PROBIN FILENAME
-amr.probin_file = probin.pointmass
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.0e7
+problem.p_0   = 1.0e8
+problem.rho_ambient = 1.0e-4
+problem.r_0   = 4.0e8
+problem.r_offset = 1.0e8
+problem.smooth_delta = 1.0e0 # Effectively disables smoothing
+problem.offset_smooth_delta = 1.0e0
+problem.nsub = 1
+
+problem.center_x = 0.0e0
+problem.center_y = 0.0e0
+problem.center_z = 0.0e0
+
+# EOS
+eos.eos_gamma = 1.66666
+eos.eos_assume_neutral = 1
