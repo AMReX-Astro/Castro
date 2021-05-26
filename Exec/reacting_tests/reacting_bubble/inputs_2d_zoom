@@ -75,5 +75,10 @@ amr.plot_file        = plt        # root name of plotfile
 amr.plot_per         = 0.1
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin.zoom
+# Problem initialization
+
+problem.model_name =  "model.hse.cool.coulomb.6400"
+
+problem.pert_temp_factor = 1.e0
+problem.pert_rad_factor = 0.1
+
