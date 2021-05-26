@@ -71,5 +71,14 @@ amr.plot_per        = 0.1       # time between plotfiles
 
 amr.plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.problem = 3
+
+problem.rho1 = 1.0
+problem.rho2 = 2.0
+problem.pressure = 2.5
+
+problem.bulk_velocity = 0.0
+
+# EOS
+eos.eos_assume_neutral = 1
