@@ -60,5 +60,38 @@ amr.plot_file       = plt        # root name of plotfile
 amr.plot_int        = 1000
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# problem initialization
+
+problem.rho_fuel = 1.0e0
+problem.T_fuel = 1.0e0
+
+problem.pert_frac = 0.2e0
+problem.pert_delta = 0.05
+
+# refinement
+
+amr.refinement_indicators = denerr dengrad
+
+amr.refine.denerr.max_level = 5
+amr.refine.denerr.value_greater = 1.e-7
+amr.refine.denerr.field_name = density
+
+amr.refine.dengrad.max_level = 5
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+
+# Microphysics
+
+eos.eos_assume_neutral = 1
+
+network.rtilde = 40.0
+network.nu = 4.0
+network.specific_q_burn = 1.24e8
+network.T_burn_ref = 1.0
+
+network.rho_burn_ref = 1.0
+network.f_act = 1.2
+
+conductivity.const_conductivity = 5.e9
+
+
