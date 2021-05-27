@@ -148,6 +148,16 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
                     reactions(i,j,k,NumSpec+NumAux+1) = amrex::max(1.0_rt, static_cast<Real>(burn_state.n_rhs + 2 * burn_state.n_jac));
                 }
 
+                for (int n = 0; n < NumSpec; ++n) {
+                    U(i,j,k,UFS+n) = U(i,j,k,URHO) * burn_state.xn[n];
+                }
+#if NAUX_NET > 0
+                for (int n = 0; n < NumAux; ++n) {
+                    U(i,j,k,UFX+n) = U(i,j,k,URHO) * burn_state.aux[n];
+                }
+#endif
+                U(i,j,k,UEINT) += U(i,j,k,URHO) * burn_state.e;
+                U(i,j,k,UEDEN) += U(i,j,k,URHO) * burn_state.e;
             }
             else {
 
@@ -165,24 +175,6 @@ Castro::react_state(MultiFab& s, MultiFab& r, Real time, Real dt)
 
         });
 
-        // Now update the state with the reactions data.
-
-        amrex::ParallelFor(bx,
-        [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
-        {
-            if (U.contains(i,j,k) && reactions.contains(i,j,k)) {
-                for (int n = 0; n < NumSpec; ++n) {
-                    U(i,j,k,UFS+n) += reactions(i,j,k,n) * dt;
-                }
-#if NAUX_NET > 0
-                for (int n = 0; n < NumAux; ++n) {
-                    U(i,j,k,UFX+n) += reactions(i,j,k,n+NumSpec) * dt;
-                }
-#endif
-                U(i,j,k,UEINT) += reactions(i,j,k,NumSpec+NumAux) * dt;
-                U(i,j,k,UEDEN) += reactions(i,j,k,NumSpec+NumAux) * dt;
-            }
-        });
 
     }
 
