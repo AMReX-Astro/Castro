@@ -43,6 +43,24 @@ amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
 
+amr.refinement_indicators = denerr dengrad presserr pressgrad
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.check_file      = test_helm_chk  # root name of checkpoint file
 amr.check_int       = 10         # number of timesteps between checkpoints
@@ -54,3 +72,21 @@ amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variab
 
 #PROBIN FILENAME
 amr.probin_file = probin-test2-helm
+
+# PROBLEM PARAMETERS
+problem.T_l = 1.e8
+problem.u_l = -1.e8
+problem.rho_l = 1.0e7
+
+problem.T_r = 1.e8
+problem.u_r = 1.e8
+problem.rho_r = 1.e7
+
+problem.use_Tinit = 1
+
+problem.idir = 1
+problem.frac = 0.5e0
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.4

@@ -24,7 +24,7 @@ castro.xr_ext_bc_type = 1
 castro.do_hydro = 1
 castro.do_react = 0
 castro.do_grav = 1
-castro.do_sponge = 1
+castro.do_sponge = 0
 
 castro.small_temp = 1.e6
 
@@ -55,6 +55,16 @@ amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+amr.refinement_indicators = temperr tempgrad
+
+amr.refine.temperr.value_greater = 6.0e8
+amr.refine.temperr.field_name = Temp
+amr.refine.temperr.max_level = 5
+
+amr.refine.tempgrad.gradient = 1.0e9
+amr.refine.tempgrad.field_name = Temp
+amr.refine.tempgrad.max_level = 5
 
 # CHECKPOINT FILES
 amr.check_file      = hse_128_chk        # root name of checkpoint file

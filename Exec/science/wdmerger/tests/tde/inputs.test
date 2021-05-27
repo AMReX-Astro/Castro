@@ -130,6 +130,12 @@ eos.use_eos_coulomb = 1
 # Keep EOS inputs constant after EOS evaluation
 eos.eos_input_is_constant = 1
 
+# Ambient temperature (K)
+castro.ambient_temp = 1.0e7
+
+# Ambient density (g / cm**3)
+castro.ambient_density = 1.0e-4
+
 ############################################################################################
 # Gravity
 ############################################################################################
@@ -152,6 +158,14 @@ gravity.do_composite_phi_correction = 0
 # Add a black hole point mass (1000 M_sun)
 castro.point_mass = 1.9884e36
 castro.point_mass_fix_solution = 1
+
+############################################################################################
+# Sponge
+############################################################################################
+
+castro.sponge_lower_density = 1.0e0
+castro.sponge_upper_density = 1.0e0
+castro.sponge_timescale     = 0.01e0
 
 ############################################################################################
 # Diagnostics and I/O

@@ -41,6 +41,36 @@ amr.regrid_int      = 2       # how often to regrid
 amr.blocking_factor = 8       # block factor in grid generation
 amr.max_grid_size   = 256
 
+amr.refinement_indicators = denerr dengrad velerr_x velerr_y velerr_z presserr pressgrad
+
+amr.refine.denerr.value_greater = 3
+amr.refine.denerr.field_name = density
+amr.refine.denerr.max_level = 3
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 3
+
+amr.refine.velerr_x.value_greater = 0.02
+amr.refine.velerr_x.field_name = x_velocity
+amr.refine.velerr_x.max_level = 3
+
+amr.refine.velerr_y.value_greater = 0.02
+amr.refine.velerr_y.field_name = y_velocity
+amr.refine.velerr_y.max_level = 3
+
+amr.refine.velerr_z.value_greater = 0.02
+amr.refine.velerr_z.field_name = z_velocity
+amr.refine.velerr_z.max_level = 3
+
+amr.refine.presserr.value_greater = 3
+amr.refine.presserr.field_name = pressure
+amr.refine.presserr.max_level = 3
+
+amr.refine.pressgrad.gradient = 0.01
+amr.refine.pressgrad.field_name = pressure
+amr.refine.pressgrad.max_level = 3
+
 # CHECKPOINT FILES
 amr.check_file      = acoustic_pulse_128_chk   # root name of checkpoint file
 amr.check_int       = 100       # number of timesteps between checkpoints

@@ -43,7 +43,7 @@ C++ to Fortran
 
   .. code:: fortran
 
-     subroutine subroutine_name(args) bind(C, name="subroutine_name)
+     subroutine subroutine_name(args) bind(C, name="subroutine_name")
 
 * Data passed by reference from C++ should use ``*`` and not ``&``.
 

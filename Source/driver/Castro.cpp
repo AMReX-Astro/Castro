@@ -91,11 +91,6 @@ Vector<Real> Castro::dt_sdc;
 Vector<Real> Castro::node_weights;
 #endif
 
-// the sponge parameters are controlled by Fortran, so
-// this just initializes them before we grab their values
-// from Fortran
-#include <sponge_defaults.H>
-
 #ifdef GRAVITY
 // the gravity object
 Gravity*     Castro::gravity  = 0;
@@ -148,7 +143,7 @@ Real         Castro::startCPUTime = 0.0;
 int          Castro::SDC_Source_Type = -1;
 int          Castro::num_state_type = 0;
 
-int          Castro::do_init_probparams = 0;
+int          Castro::do_cxx_prob_initialize = 0;
 
 
 // Castro::variableSetUp is in Castro_setup.cpp
@@ -203,11 +198,6 @@ Castro::variableCleanUp ()
 
     // C++ cleaning
     eos_finalize();
-
-
-#ifdef SPONGE
-    sponge_finalize();
-#endif
 
 }
 
@@ -480,6 +470,22 @@ Castro::read_params ()
 #endif
 #endif
 
+#ifdef SPONGE
+    if (do_sponge) {
+        if (sponge_timescale <= 0.0) {
+            amrex::Error("If using the sponge, the sponge_timescale must be positive.");
+        }
+        if (amrex::max(sponge_upper_radius, sponge_upper_density, sponge_upper_pressure) < 0.0) {
+            amrex::Error("If using the sponge, at least one of the upper radius, density, "
+                         "or pressure must be non-negative.");
+        }
+        if (amrex::max(sponge_lower_radius, sponge_lower_density, sponge_lower_pressure) < 0.0) {
+            amrex::Error("If using the sponge, at least one of the lower radius, density, "
+                         "or pressure must be non-negative.");
+        }
+    }
+#endif
+
    // SCF initial model construction can only be done if both
    // rotation and gravity have been compiled in.
 
@@ -602,6 +608,13 @@ Castro::read_params ()
             std::string field;
             ppr.get("field_name", field);
             custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::GRAD, field, info));
+        }
+        else if (int nval = ppr.countval("relative_gradient")) {
+            Vector<Real> value;
+            ppr.getarr("relative_gradient", value, 0, nval);
+            std::string field;
+            ppr.get("field_name", field);
+            custom_error_tags.push_back(AMRErrorTag(value, AMRErrorTag::RELGRAD, field, info));
         }
         else {
             amrex::Abort("Unrecognized refinement indicator for " + refinement_indicators[i]);
@@ -894,31 +907,23 @@ Castro::initMFs()
 
     lastDt = 1.e200;
 
-    // initialize the C++ values of the runtime parameters
-    if (do_init_probparams == 0) {
-        init_prob_parameters();
+    if (do_cxx_prob_initialize == 0) {
 
-        do_init_probparams = 1;
+      // sync up some C++ values of the runtime parameters
 
-        // Copy ambient data from Fortran to C++. This should be done prior to
-        // problem_initialize() in case the C++ initialization overwrites it.
+      do_cxx_prob_initialize = 1;
 
-        for (int n = 0; n < NUM_STATE; ++n) {
-            ambient::ambient_state[n] = 0.0_rt;
-        }
+      // If we're doing C++ problem initialization, do it here. We have to make
+      // sure it's done after the above call to init_prob_parameters() in case
+      // any changes are made to the problem parameters.
 
-        get_ambient_data(ambient::ambient_state);
+      problem_initialize();
 
-        // If we're doing C++ problem initialization, do it here. We have to make
-        // sure it's done after the above call to init_prob_parameters() in case
-        // any changes are made to the problem parameters.
-
-        problem_initialize();
-
-        // Sync Fortran back up with any changes we made to the problem parameters.
-        // If problem_initialize() didn't change them, this has no effect.
-        cxx_to_f90_prob_parameters();
+      // Sync Fortran back up with any changes we made to the problem parameters.
+      // If problem_initialize() didn't change them, this has no effect.
+      cxx_to_f90_prob_parameters();
     }
+
 }
 
 void
@@ -1057,19 +1062,6 @@ Castro::initData ()
               problem_initialize_mhd_data(i, j, k, Bz_arr, 2, geomdata);
           });
 
-          const Box& box = mfi.validbox();
-          const int* lo  = box.loVect();
-          const int* hi  = box.hiVect();
-
-          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITMAG,ca_initmag)
-             (level, cur_time, lo, hi,
-              nbx, BL_TO_FORTRAN_3D(Bx_new[mfi]),
-              nby, BL_TO_FORTRAN_3D(By_new[mfi]),
-              nbz, BL_TO_FORTRAN_3D(Bz_new[mfi]),
-              dx, gridloc.lo(),gridloc.hi());
-
        }
 
 #endif //MHD
@@ -1104,23 +1096,6 @@ Castro::initData ()
               // by a problem setup (defaults to an empty routine).
               problem_initialize_state_data(i, j, k, s, geomdata);
           });
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-          ca_initdata(AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-                      BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                      AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-          RealBox gridloc = RealBox(grids[mfi.index()],geom.CellSize(),geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITDATA,ca_initdata)
-          (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), NUM_STATE,
-           BL_TO_FORTRAN_ANYD(S_new[mfi]), ZFILL(dx),
-           ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
-
        }
 
 
@@ -1413,24 +1388,6 @@ Castro::initData ()
               problem_initialize_rad_data(i, j, k, r, xnu_pass, nugroup_pass, dnugroup_pass, geomdata);
 
           });
-
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-
-          ca_initrad
-              (AMREX_ARLIM_ANYD(lo), AMREX_ARLIM_ANYD(hi),
-               BL_TO_FORTRAN_ANYD(Rad_new[mfi]),
-               AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo));
-
-#else
-          RealBox gridloc(grids[mfi.index()], geom.CellSize(), geom.ProbLo());
-
-          BL_FORT_PROC_CALL(CA_INITRAD,ca_initrad)
-              (level, cur_time, ARLIM_3D(lo), ARLIM_3D(hi), Radiation::nGroups,
-               BL_TO_FORTRAN_ANYD(Rad_new[mfi]), ZFILL(dx),
-               ZFILL(gridloc.lo()), ZFILL(gridloc.hi()));
-
-#endif
 
       }
     }

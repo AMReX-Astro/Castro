@@ -22,10 +22,3 @@
   kappa_r_exp_n = 0.0d0
 
 /
-
-&tagging
-
-  max_tempgrad_rel_lev = 20
-  tempgrad_rel = 0.1
-
-/

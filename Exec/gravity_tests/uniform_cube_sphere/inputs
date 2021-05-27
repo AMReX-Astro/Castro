@@ -15,6 +15,11 @@ amr.n_error_buf      = 0 0 0 0 0 0 0 0 0 0 0
 amr.blocking_factor  = 8
 amr.max_grid_size    = 8
 
+amr.refinement_indicators = denerr
+
+amr.refine.denerr.value_greater = 1.0e0
+amr.refine.denerr.field_name = density
+
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
 # 1 = Inflow             4 = SlipWall
