@@ -478,9 +478,17 @@ Castro::variableSetUp ()
   // Component  NumSpec+NumAux             is  rho_enuc = rho * (eout-ein)
   // Component  NumSpec+NumAux+1           is  burn_weights ~ number of RHS calls
   store_in_checkpoint = false;
+
+  int num_react = 0;
+  if (store_omegadot == 1) {
+      num_react = NumSpec+NumAux+2;
+  } else {
+      num_react = 2;
+  }
+
   desc_lst.addDescriptor(Reactions_Type,IndexType::TheCellType(),
-                         StateDescriptor::Point, NUM_GROW, NumSpec+NumAux+2,
-                         interp,state_data_extrap,store_in_checkpoint);
+                         StateDescriptor::Point, 0, num_react,
+                         interp, state_data_extrap, store_in_checkpoint);
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -658,25 +666,30 @@ Castro::variableSetUp ()
   desc_lst.setComponent(Source_Type, URHO, state_type_source_names, source_bcs, genericBndryFunc);
 
 #ifdef REACTIONS
-  std::string name_react;
-  for (int i = 0; i < NumSpec; ++i)
-    {
-      set_scalar_bc(bc,phys_bc);
-      replace_inflow_bc(bc);
-      name_react = "rho_omegadot_" + short_spec_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, i, name_react, bc,genericBndryFunc);
-    }
+  desc_lst.setComponent(Reactions_Type, 0, "rho_enuc", bc, genericBndryFunc);
+  desc_lst.setComponent(Reactions_Type, 1, "burn_weights", bc, genericBndryFunc); 
+
+  if (store_omegadot == 1) {
+
+      // Reactions_Type includes the species -- we put those after rho_enuc and burn_weights
+      std::string name_react;
+      for (int i = 0; i < NumSpec; ++i)
+      {
+          set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
+          name_react = "rho_omegadot_" + short_spec_names_cxx[i];
+          desc_lst.setComponent(Reactions_Type, 2+i, name_react, bc,genericBndryFunc);
+      }
 #if NAUX_NET > 0
-  std::string name_aux;
-  for (int i = 0; i < NumAux; ++i) {
-      set_scalar_bc(bc,phys_bc);
-      replace_inflow_bc(bc);
-      name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
-      desc_lst.setComponent(Reactions_Type, NumSpec+i, name_aux, bc, genericBndryFunc);
-  }
+      std::string name_aux;
+      for (int i = 0; i < NumAux; ++i) {
+          set_scalar_bc(bc,phys_bc);
+          replace_inflow_bc(bc);
+          name_aux = "rho_auxdot_" + short_aux_names_cxx[i];
+          desc_lst.setComponent(Reactions_Type, 2+NumSpec+i, name_aux, bc, genericBndryFunc);
+      }
 #endif
-  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux, "rho_enuc", bc, genericBndryFunc);
-  desc_lst.setComponent(Reactions_Type, NumSpec+NumAux+1, "burn_weights", bc, genericBndryFunc); 
+  }
 #endif
 
 #ifdef SIMPLIFIED_SDC
@@ -928,16 +941,16 @@ Castro::variableSetUp ()
   // Sound-crossing time t_s == dx / c_s
   // Ratio of these is t_s_t_e == t_s / t_e
   //
-  derive_lst.add("t_sound_t_enuc",IndexType::TheCellType(),1,ca_derenuctimescale,the_same_box);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,State_Type,URHO,NUM_STATE);
-  derive_lst.addComponent("t_sound_t_enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+  derive_lst.add("t_sound_t_enuc", IndexType::TheCellType(), 1, ca_derenuctimescale, the_same_box);
+  derive_lst.addComponent("t_sound_t_enuc", desc_lst, State_Type, URHO, NUM_STATE);
+  derive_lst.addComponent("t_sound_t_enuc", desc_lst, Reactions_Type, 0, 1);
 
   //
   // Nuclear energy generation rate
   //
-  derive_lst.add("enuc",IndexType::TheCellType(),1,ca_derenuc,the_same_box);
-  derive_lst.addComponent("enuc",desc_lst,State_Type,URHO,1);
-  derive_lst.addComponent("enuc",desc_lst,Reactions_Type,NumSpec+NumAux,1);
+  derive_lst.add("enuc", IndexType::TheCellType(), 1, ca_derenuc, the_same_box);
+  derive_lst.addComponent("enuc", desc_lst, State_Type, URHO, 1);
+  derive_lst.addComponent("enuc", desc_lst, Reactions_Type, 0, 1);
 #endif
 
   derive_lst.add("magvel",IndexType::TheCellType(),1,ca_dermagvel,the_same_box);
