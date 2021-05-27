@@ -495,12 +495,6 @@ Castro::read_params ()
    }
 #endif
 
-#ifdef AMREX_USE_GPU
-   if (do_scf_initial_model) {
-       amrex::Error("SCF initial model construction is currently not permitted if using GPUs.");
-   }
-#endif
-
    StateDescriptor::setBndryFuncThreadSafety(bndry_func_thread_safe);
 
    // Open up Castro data logs
@@ -2357,11 +2351,9 @@ Castro::post_init (Real /*stop_time*/)
 
 #ifdef GRAVITY
 #ifdef ROTATION
-#ifndef AMREX_USE_GPU
     if (do_scf_initial_model) {
         scf_relaxation();
     }
-#endif
 #endif
 #endif
 
