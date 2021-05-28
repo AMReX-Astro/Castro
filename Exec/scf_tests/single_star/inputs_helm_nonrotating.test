@@ -6,13 +6,13 @@ geometry.coord_sys   =  0
 geometry.is_periodic =  0 0 0
 geometry.prob_lo     = -1.6e9 -1.6e9 -1.6e9
 geometry.prob_hi     =  1.6e9  1.6e9  1.6e9
-amr.n_cell           =  128 128 128
+amr.n_cell           =  64 64 64
 
-amr.max_level        = 0
+amr.max_level        = 1
 amr.ref_ratio        = 2 2 2 2 2 2 2 2 2 2 2
-amr.n_error_buf      = 2 2 2 2 2 0 0 0 0 0 0
+amr.n_error_buf      = 2 2 2 2 2 
 amr.blocking_factor  = 16
-amr.max_grid_size    = 64
+amr.max_grid_size    = 32
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry
@@ -31,8 +31,8 @@ castro.rotational_period = 100.0
 
 castro.do_scf_initial_model = 1
 castro.scf_maximum_density = 1.3519e6
-castro.scf_equatorial_radius = 1.1e9
-castro.scf_polar_radius = 9.571e8
+castro.scf_equatorial_radius = 1.0e9
+castro.scf_polar_radius = 1.0e9
 castro.scf_relax_tol = 1.e-4
 
 # GRAVITY
@@ -70,4 +70,3 @@ amr.refinement_indicators = denerr
 amr.refine.denerr.max_level = 20
 amr.refine.denerr.value_greater = 1.e6
 amr.refine.denerr.field_name = density
-
