@@ -38,8 +38,26 @@ amr.plot_int        = 10     # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
 
-# PROBIN FILENAME
-amr.probin_file     = probin.M5
+# PROBLEM PARAMETERS
+problem.rho0 = 5.45969027775e-13
+problem.T0 = 100.0e0
+problem.v0 = 588588.075591e0
+problem.rho1 = 1.96434778127e-12
+problem.T1 = 855.719921848
+problem.v1 = 163591.632018e0
+problem.idir = 1
+
+# EOS
+eos.eos_gamma = 1.6666666667
+
+# OPACITY
+opacity.const_kappa_p = 3.92663697758e-5
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+
+opacity.const_kappa_r = 0.848902853095e0
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
 
 # VERBOSITY
 amr.v = 1
