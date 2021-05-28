@@ -169,7 +169,7 @@ factor of refinement between levels. The relevant parameters are:
     regrid (integer; must be set)
 
   * ``amr.regrid_on_restart``: should we regrid immediately after
-    restarting? (0 or 1; default: 0)
+    restarting? (0 or 1; default: 1)
 
 .. note:: if ``amr.max_level = 0`` then you do not need to set
    ``amr.ref_ratio`` or ``amr.regrid_int``.

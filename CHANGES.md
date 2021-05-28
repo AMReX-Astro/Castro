@@ -19,6 +19,11 @@
 
    * We no longer store Reactions_Type in checkpoint files.  This means
      that newer versions of Castro will not restart from old version.
+
+   * Castro now overrides the parameter amr.regrid_on_restart to default
+     to 1. The user can turn this off if desired with an explicit set of
+     amr.regrid_on_restart = 0 at the command line, however this will be
+     considered unsupported. (#1793)
      
 # 21.05
 

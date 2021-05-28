@@ -30,6 +30,18 @@ std::string inputs_name = "";
 
 amrex::LevelBld* getLevelBld ();
 
+// Any parameters we want to override the defaults for in AMReX
+
+void override_parameters ()
+{
+    ParmParse pp("amr");
+    if (!pp.contains("regrid_on_restart")) {
+        // Always force a regrid on a restart.
+        pp.add("regrid_on_restart", true);
+    }
+}
+
+
 int
 main (int   argc,
       char* argv[])
@@ -48,7 +60,7 @@ main (int   argc,
     //
     // Make sure to catch new failures.
     //
-    amrex::Initialize(argc,argv);
+    amrex::Initialize(argc, argv, true, MPI_COMM_WORLD, override_parameters);
     {
 
     // Refuse to continue if we did not provide an inputs file.
