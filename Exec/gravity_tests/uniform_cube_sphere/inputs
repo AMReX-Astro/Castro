@@ -54,5 +54,16 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 1        # timesteps between plotfiles
 amr.derive_plot_vars  = ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.density      = 1.0e3
+problem.diameter     = 2.0e0
+problem.ambient_dens = 1.0e-8
+
+# Problem 1 is the uniform sphere;
+# Problem 2 is the normalized uniform sphere;
+# Problem 3 is the uniform cube.
+
+problem.problem = 3
+
+# EOS
+eos.eos_assume_neutral = 1
