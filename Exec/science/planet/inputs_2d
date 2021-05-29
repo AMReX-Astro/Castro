@@ -117,8 +117,35 @@ amr.derive_small_plot_vars = rad pressure
 #RESTART
 amr.restart          = chk76898
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.model_name =  "newmodelcpp.hse"
+
+problem.apply_vel_field = 0
+problem.shear_vel_field = 0
+problem.velpert_height_loc = 0.0e0
+problem.velpert_scale = 0e0
+problem.velpert_amplitude = 0.0e0
+problem.num_vortices = 2
+
+problem.shear_height_loc = 0.99365234538e9
+problem.shear_amplitude  = 3.863080704e5
+problem.shear_height     = 14
+problem.shear_width_x    = 80.0
+problem.shear_width_y    = 20.0
+
+# EOS
+eos.eos_gamma = 1.4
+
+# OPACITY
+opacity.const_kappa_p =  6.35e-3
+opacity.kappa_p_exp_m =  2.0e0
+opacity.kappa_p_exp_n = -1.0e0
+opacity.kappa_p_exp_p =  0.0e0
+
+opacity.const_kappa_r =  6.35e-3
+opacity.kappa_r_exp_m =  2.0e0
+opacity.kappa_r_exp_n = -1.0e0
+opacity.kappa_r_exp_p =  0.0e0
 
 # DATA LOG
 amr.data_log = log
