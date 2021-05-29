@@ -1,9 +1,6 @@
 
 ############################## CASTRO INPUTS ###############################################
 
-# Name of the probin file
-amr.probin_file = probin
-
 ############################################################################################
 # Geometry
 ############################################################################################
@@ -374,3 +371,76 @@ amr.small_plot_vars = density
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out rotation_diag.out
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.90
+problem.mass_S = 0.90
+
+problem.central_density_P = -1.0e0
+problem.central_density_S = -1.0e0
+
+problem.nsub = 4
+
+problem.problem = 1
+
+problem.roche_radius_factor = 1.0e0
+
+problem.collision_separation = 4.0e0
+problem.collision_impact_parameter = 0.0e0
+
+problem.tde_separation = 8.0e0
+problem.tde_beta = 6.0e0
+problem.tde_initial_velocity = 1
+
+problem.interp_temp = 1
+
+problem.relaxation_damping_factor = -1.0e-1
+problem.relaxation_density_cutoff = 1.0e3
+problem.relaxation_cutoff_time = -1.0e2
+
+problem.radial_damping_factor = -1.0e3
+problem.initial_radial_velocity_factor = -1.0e-3
+
+problem.stellar_temp = 1.0e7
+
+problem.orbital_eccentricity = 0.0e0
+problem.orbital_angle = 0.0e0
+
+problem.axis_1 = 1
+problem.axis_2 = 2
+
+problem.max_stellar_tagging_level = 20
+problem.max_temperature_tagging_level = 0
+problem.stellar_density_threshold = 1.0e0
+problem.temperature_tagging_threshold = 5.0e8
+problem.max_tagging_radius = 0.75e0
+problem.roche_tagging_factor = 2.0e0
+
+problem.bulk_velx = 0.0e0
+problem.bulk_vely = 0.0e0
+problem.bulk_velz = 0.0e0
+
+problem.smallu = 0.0e0
+
+problem.center_fracx = 0.5e0
+problem.center_fracy = 0.5e0
+problem.center_fracz = 0.5e0
+
+problem.max_he_wd_mass = 0.45e0
+problem.max_hybrid_wd_mass = 0.6e0
+problem.hybrid_wd_he_shell_mass = 0.1e0
+problem.max_co_wd_mass = 1.05e0
+problem.co_wd_he_shell_mass = 0.0e0
+
+problem.hybrid_wd_c_frac = 0.50e0
+problem.hybrid_wd_o_frac = 0.50e0
+
+problem.co_wd_c_frac = 0.40e0
+problem.co_wd_o_frac = 0.60e0
+
+problem.onemg_wd_o_frac  = 0.60e0
+problem.onemg_wd_ne_frac = 0.35e0
+problem.onemg_wd_mg_frac = 0.05e0
