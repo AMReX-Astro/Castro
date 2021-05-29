@@ -19,7 +19,7 @@ space for variables that are not used.
 General Build Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_SYSTEM_BLAS, USE_HYPRE
+.. index:: USE_ALL_CASTRO, USE_AMR_CORE, USE_HYPRE
 
 These Parameters affect the build (parallelism, performance, etc.)
 Most of these are parameters from AMReX.
@@ -33,12 +33,6 @@ Most of these are parameters from AMReX.
     ``Base/``, ``AmrCore/``, ``Amr/``, and ``Boundary/``.  This defaults
     to ``TRUE`` and should be left set for Castro simulations.  The purpose
     of this flag is for unit tests that don't need all of AMReX.
-
-  * ``USE_SYSTEM_BLAS``: for the linear algebra routines provided by
-    BLAS, should we compile our own versions or should we use a system
-    library that provides the BLAS routines?  If we set
-    ``USE_SYSTEM_BLAS = TRUE``, then we need to provide the name on
-    the library in the ``BLAS_LIBRARY`` build parameter.
 
   * ``USE_MLMG``: use the AMReX multi-level multigrid solver for gravity
     and diffusion.  This should always be set to ``TRUE``.

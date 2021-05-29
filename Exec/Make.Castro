@@ -3,9 +3,6 @@ CASTRO_HOME ?= /path/to/Castro
 # radiation needs hypre
 HYPRE_DIR ?= /path/to/Hypre
 
-# system blas
-BLAS_LIBRARY ?= -lopenblas
-
 TOP := $(CASTRO_HOME)
 
 # Allow a problem setup to define a root location.
@@ -93,10 +90,6 @@ USE_MLMG = FALSE
 ifeq ($(USE_RAD), TRUE)
   USE_HYPRE := TRUE
   USE_MLMG = TRUE
-endif
-
-ifeq ($(USE_SYSTEM_BLAS), TRUE)
-  LIBRARIES += $(BLAS_LIBRARY)
 endif
 
 ifeq ($(USE_MPI), TRUE)
