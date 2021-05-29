@@ -68,5 +68,8 @@ amr.plot_int        = -1
 amr.plot_per        = 0.24
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.rho0 = 5.e5
+problem.T0 = 1.e7
+problem.dp_fact = 15.0
+problem.L_pert = 2.e7
