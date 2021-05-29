@@ -1,9 +1,6 @@
 
 ############################## CASTRO INPUTS ###############################################
 
-# Name of the probin file
-amr.probin_file = probin.test
-
 ############################################################################################
 # Geometry
 ############################################################################################
@@ -41,9 +38,6 @@ stop_time = 30.0
 
 # Whether to use our custom stopping criteria
 castro.use_stopping_criterion = 1
-
-# Level 0 timestep below which we halt
-
 
 # CFL number for hyperbolic system
 castro.cfl = 0.15
@@ -219,3 +213,21 @@ amr.derive_plot_vars = enuc rho_phiGrav angular_momentum_x angular_momentum_y an
 
 # Name of the diagnostic sum output files
 amr.data_log = grid_diag.out star_diag.out species_diag.out amr_diag.out primary_diag.out secondary_diag.out extrema_diag.out
+
+############################################################################################
+# Problem parameters
+############################################################################################
+
+problem.mass_P = 0.60
+problem.mass_S = -1.0
+
+problem.problem = 2
+
+problem.tde_separation = 8.0e0
+problem.tde_beta = 6.0e0
+
+problem.nsub = 16
+
+problem.max_stellar_tagging_level = 20
+problem.max_temperature_tagging_level = 0
+problem.stellar_density_threshold = 1.0e0

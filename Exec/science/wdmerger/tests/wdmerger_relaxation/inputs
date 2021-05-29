@@ -1,7 +1,5 @@
 FILE = ../../inputs_3d
 
-amr.probin_file = probin
-
 stop_time = 12.0
 
 castro.init_shrink = 0.1
@@ -25,3 +23,25 @@ amr.plot_per = 5.0
 
 amr.small_plot_per = 1.0
 amr.small_plot_vars = density
+
+problem.mass_P = 0.90
+problem.mass_S = 0.90
+
+problem.central_density_P = -1.0e0
+problem.central_density_S = -1.0e0
+
+problem.nsub = 4
+
+problem.problem = 1
+
+problem.roche_radius_factor = 3.0e0
+
+problem.relaxation_damping_factor = 1.0e-1
+problem.relaxation_density_cutoff = 1.0e3
+problem.relaxation_cutoff_time = -1.0e2
+
+problem.radial_damping_factor = 1.0e-1
+problem.initial_radial_velocity_factor = -1.0e-3
+
+problem.max_stellar_tagging_level = 20
+problem.stellar_density_threshold = 1.0e0
