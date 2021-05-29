@@ -76,5 +76,16 @@ amr.plot_file       = test2_helm_plt  # root name of plotfile
 amr.plot_int        = 200          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
-#PROBIN FILENAME
-amr.probin_file = probin-test2-helm
+# PROBLEM PARAMETERS
+problem.T_l = 1.e8
+problem.u_l = -1.e8
+problem.rho_l = 1.0e7
+
+problem.T_r = 1.e8
+problem.u_r = 1.e8
+problem.rho_r = 1.e7
+
+problem.use_Tinit = 1
+
+problem.idir = 1
+problem.frac = 0.5e0
