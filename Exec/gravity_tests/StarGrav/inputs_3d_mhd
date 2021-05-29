@@ -71,4 +71,4 @@ castro.v            = 1       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = density x_velocity y_velocity z_velocity Temp pressure B_x B_y B_z #Div_B
 
-amr.probin_file = probin
+problem.model_name =  "WD_rhoc_2.e9_M_1.1.hse.2560"
