@@ -18,15 +18,14 @@ in plain-text files ``_parameters`` located in the different
 directories that hold the microphysics code. At compile time, a
 a make function locates all
 of the ``_parameters`` files that are needed for the given choice
-of network, integrator, and EOS, and assembles all of the runtime
-parameters into a module named ``extern_probin_module`` (using the
-``write_probin.py`` script). The parameters are set in your
-probin file in the ``&extern`` namelist.
+of network, integrator, and EOS, and creates the ``extern_parameters.H`` and
+``extern_parameters.cpp`` files that manage the parameters.  These
+are set at runtime via the inputs file.
 
 C++ parameter format
 --------------------
 
-The C parameters take the form of::
+The C++ parameters take the form of::
 
     # comment describing the parameter
     name   type   default   need in Fortran?   ifdef
