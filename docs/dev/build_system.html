@@ -248,11 +248,6 @@ do not need all of the Castro directories compiled.</p></li>
 <code class="docutils literal notranslate"><span class="pre">Base/</span></code>, <code class="docutils literal notranslate"><span class="pre">AmrCore/</span></code>, <code class="docutils literal notranslate"><span class="pre">Amr/</span></code>, and <code class="docutils literal notranslate"><span class="pre">Boundary/</span></code>.  This defaults
 to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code> and should be left set for Castro simulations.  The purpose
 of this flag is for unit tests that don’t need all of AMReX.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code>: for the linear algebra routines provided by
-BLAS, should we compile our own versions or should we use a system
-library that provides the BLAS routines?  If we set
-<code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>, then we need to provide the name on
-the library in the <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> build parameter.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_MLMG</span></code>: use the AMReX multi-level multigrid solver for gravity
 and diffusion.  This should always be set to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">USE_HYPRE</span></code>: compile in the Hypre library.  This will be automatically enabled

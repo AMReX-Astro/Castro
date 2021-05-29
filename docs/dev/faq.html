@@ -253,13 +253,6 @@ all of the make variables are set to?</em></p>
 </div>
 <p>This will tell you the value of all the compilers and their options.</p>
 </li>
-<li><p><em>How do I use a system’s BLAS library instead of compiling and
-linking the one that comes with the StarKiller microphysics?</em></p>
-<p>To use a system’s BLAS library, set the Make variable
-<code class="docutils literal notranslate"><span class="pre">USE_SYSTEM_BLAS</span></code> to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>. This will then look at
-the Make variable <code class="docutils literal notranslate"><span class="pre">BLAS_LIBRARY</span></code> for the library to link
-(defaults to <code class="docutils literal notranslate"><span class="pre">-lopenblas</span></code>).</p>
-</li>
 <li><p><em>How can I check to make sure the function signatures defined
 in C are consistent with their implementations in Fortran?</em></p>
 <p>Use:</p>
