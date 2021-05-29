@@ -59,6 +59,11 @@ extern "C"
 #endif
 
 void probdata_init(const int* name, const int* namlen);
+
+void prob_params_pretty_print(int* jobinfo_file_name, const int* jobinfo_file_length);
+
+void update_prob_params_after_cxx();
+
 """
 
 CXX_F_FOOTER = """
@@ -82,6 +87,7 @@ CXX_FOOTER = """
 #endif
 """
 
+
 def get_next_line(fin):
     """return the next, non-blank line, with comments stripped"""
     line = fin.readline()
@@ -95,83 +101,81 @@ def get_next_line(fin):
     return line[:pos]
 
 
-def parse_param_file(prob_param_files):
+def parse_param_file(params_list, param_file):
     """read all the parameters in the prob_param_files and add valid
     parameters to the params list.  This returns the parameter list.
 
     """
 
+    namespace = "problem"
+
+    try:
+        f = open(param_file, "r")
+    except FileNotFoundError:
+        sys.exit(f"write_probdata.py: ERROR: file {param_file} does not exist")
+
+    line = get_next_line(f)
+
     err = 0
-    params_list = []
 
-    for param_file in prob_param_files:
+    while line and not err:
 
+        # this splits the line into separate fields.  A field is a
+        # single word or a pair in parentheses like "(a, b)"
+        fields = re.findall(r'[\w\"\+\./\-]+|\([\w+\./\-]+\s*,\s*[\w\+\.\-]+\)', line)
+
+        if len(fields) < 3:
+            print("write_probdata.py: ERROR: missing one or more fields in parameter definition.")
+            err = 1
+            continue
+
+        name = fields[0]
+        dtype = fields[1]
+        default = fields[2]
+
+        current_param = rp.Param(name, dtype, default,
+                                 namespace=namespace,
+                                 in_fortran=1)
+
+        # optional field: in namelist
         try:
-            f = open(param_file, "r")
-        except FileNotFoundError:
-            sys.exit(f"write_probdata.py: ERROR: file {param_file} does not exist")
+            in_namelist_in = fields[3]
+            if in_namelist_in in ["y", "Y"]:
+                in_namelist = True
+            else:
+                in_namelist = False
+
+        except IndexError:
+            in_namelist = False
+
+
+        # optional field: size
+        try:
+            size = fields[4]
+        except IndexError:
+            size = 1
+
+        current_param.in_namelist = in_namelist
+        current_param.size = size
+
+        # check to see if this parameter is defined in the current
+        # list if we delete the old one and take the new one (we
+        # assume that later files automatically have higher
+        # priority)
+        p_names = [p.name for p in params_list]
+        try:
+            idx = p_names.index(current_param.name)
+        except ValueError:
+            pass
+        else:
+            params_list.pop(idx)
+
+        if not err == 1:
+            params_list.append(current_param)
 
         line = get_next_line(f)
 
-        while line and not err:
-
-            # this splits the line into separate fields.  A field is a
-            # single word or a pair in parentheses like "(a, b)"
-            fields = re.findall(r'[\w\"\+\./\-]+|\([\w+\./\-]+\s*,\s*[\w\+\.\-]+\)', line)
-
-            if len(fields) < 3:
-                print("write_probdata.py: ERROR: missing one or more fields in parameter definition.")
-                err = 1
-                continue
-
-
-            name = fields[0]
-            dtype = fields[1]
-            default = fields[2]
-
-            # optional field: in namelist
-            try:
-                in_namelist_in = fields[3]
-                if in_namelist_in in ["y", "Y"]:
-                    in_namelist = True
-                else:
-                    in_namelist = False
-
-            except IndexError:
-                in_namelist = False
-
-
-            # optional field: size
-            try:
-                size = fields[4]
-            except IndexError:
-                size = 1
-
-            current_param = rp.Param(name, dtype, default,
-                                     namespace="problem",
-                                     in_fortran=1)
-
-            current_param.in_namelist = in_namelist
-            current_param.size = size
-
-            # check to see if this parameter is defined in the current
-            # list if we delete the old one and take the new one (we
-            # assume that later files automatically have higher
-            # priority)
-            p_names = [p.name for p in params_list]
-            try:
-                idx = p_names.index(current_param.name)
-            except ValueError:
-                pass
-            else:
-                params_list.pop(idx)
-
-            if not err == 1:
-                params_list.append(current_param)
-
-            line = get_next_line(f)
-
-    return err, params_list
+    return err
 
 
 def abort(outfile):
@@ -183,18 +187,23 @@ def abort(outfile):
     fout.close()
     sys.exit(1)
 
+
 def write_probin(probin_template, prob_param_files,
                  out_file, cxx_prefix):
     """write_probin will read through the list of parameter files and
-    output the new out_file
+    output the new out_file"""
 
-    """
+    params = []
+
+    print(" ")
+    print(f"write_probdata.py: creating {out_file}")
 
     # read the parameters defined in the parameter files
 
-    err, params = parse_param_file(prob_param_files)
-    if err:
-        abort(out_file)
+    for f in prob_param_files:
+        err = parse_param_file(params, f)
+        if err:
+            abort(out_file)
 
     # open up the template
     try:
@@ -211,6 +220,8 @@ def write_probin(probin_template, prob_param_files,
 
     fout.write(HEADER)
 
+    exists_namelist = any([q.in_namelist for q in params])
+
     for line in template_lines:
 
         index = line.find("@@")
@@ -223,7 +234,11 @@ def write_probin(probin_template, prob_param_files,
 
             if keyword == "declarations":
 
-                # declaraction statements
+                if not exists_namelist:
+                    # we always make sure there is atleast one variable in the namelist
+                    fout.write(f"{indent}integer, save, public :: a_pp_dummy_var = 0\n")
+
+                # declaraction statements for both namelist and non-namelist variables
                 for p in params:
                     fout.write(f"{indent}{p.get_f90_decl_string()}")
 
@@ -231,28 +246,13 @@ def write_probin(probin_template, prob_param_files,
                 for p in params:
                     fout.write(p.get_f90_default_string())
 
-            elif keyword == "namelist_vars":
-                for p in params:
-                    if p.in_namelist:
-                        fout.write(f"{indent}namelist /fortin/ {p.name}\n")
-
-            elif keyword == "namelist_gets":
-                # Write the bit that reads the namelist, but only if any parameter
-                # is actually in the namelist (otherwise this code wouldn't compile).
-                namelist_used = any([q.in_namelist for q in params])
-
-                if namelist_used:
-                    fout.write("  ! read in the namelist\n")
-                    fout.write("  open (newunit=un, file=probin_file(1:namlen), form='formatted', status='old')\n")
-                    fout.write("  read (unit=un, nml=fortin, iostat=status)\n\n")
-                    fout.write("  if (status < 0) then\n")
-                    fout.write("    ! the namelist does not exist, so we just go with the defaults\n")
-                    fout.write("    continue\n\n")
-                    fout.write("  else if (status > 0) then\n")
-                    fout.write("    ! some problem in the namelist\n")
-                    fout.write("    call castro_error(\"ERROR: problem in the fortin namelist\")\n")
-                    fout.write("  endif\n\n")
-                    fout.write("  close (unit=un)\n\n")
+            elif keyword == "namelist":
+                if not exists_namelist:
+                    fout.write(f"{indent}namelist /fortin/ a_pp_dummy_var\n")
+                else:
+                    for p in params:
+                        if p.in_namelist:
+                            fout.write(f"{indent}namelist /fortin/ {p.name}\n")
 
             elif keyword == "printing":
 
@@ -265,7 +265,7 @@ def write_probin(probin_template, prob_param_files,
                     if not p.in_namelist:
                         continue
 
-                    if p.dtype == "logical":
+                    if p.dtype in ["bool", "logical"]:
                         ltest = f"\n{indent}ltest = {p.name} .eqv. {p.default}\n"
                     else:
                         ltest = f"\n{indent}ltest = {p.name} == {p.default}\n"
@@ -283,7 +283,7 @@ def write_probin(probin_template, prob_param_files,
                     elif p.dtype == "integer":
                         fout.write(f"{indent}write (unit,101) {cmd}, &\n \"{p.name}\", {p.name}\n")
 
-                    elif p.dtype == "logical":
+                    elif p.dtype in ["bool", "logical"]:
                         fout.write(f"{indent}write (unit,103) {cmd}, &\n \"{p.name}\", {p.name}\n")
 
                     else:
@@ -302,7 +302,7 @@ def write_probin(probin_template, prob_param_files,
                 # to set the value of the parameters.
 
                 for p in params:
-                    if p.dtype == "logical" or p.dtype == "string":
+                    if p.dtype in ["bool", "logical"] or p.dtype == "string":
                         continue
 
                     fout.write(f"  subroutine set_f90_{p.name}({p.name}_in) bind(C, name=\"set_f90_{p.name}\")\n")
@@ -312,6 +312,17 @@ def write_probin(probin_template, prob_param_files,
                         fout.write(f"     {p.get_f90_decl()}, intent(in) :: {p.name}_in\n")
                     fout.write(f"     {p.name} = {p.name}_in\n")
                     fout.write(f"  end subroutine set_f90_{p.name}\n\n")
+
+            elif keyword == "fortran_parmparse_overrides":
+
+                fout.write(f'    call amrex_parmparse_build(pp, "problem")\n')
+
+                for p in params:
+                    if p.in_namelist:
+                        fout.write(p.get_query_string("F90"))
+
+                fout.write('    call amrex_parmparse_destroy(pp)\n')
+                fout.write("\n\n")
 
         else:
             fout.write(line)
@@ -373,11 +384,9 @@ def write_probin(probin_template, prob_param_files,
     with open(ofile, "w") as fout:
         fout.write(f"#include <{cxx_base}_parameters.H>\n")
         fout.write(f"#include <{cxx_base}_parameters_F.H>\n\n")
+        fout.write("#include <AMReX_ParmParse.H>\n\n")
 
         for p in params:
-            if p.dtype == "logical":
-                continue
-
             if p.dtype == "string":
                 fout.write(f"  std::string problem::{p.name};\n\n")
             else:
@@ -392,10 +401,13 @@ def write_probin(probin_template, prob_param_files,
         fout.write("\n")
         fout.write(f"  void init_{cxx_base}_parameters() {{\n")
 
-        for p in params:
-            if p.dtype == "logical":
-                continue
+        # first write the "get" routines to get the parameter from the
+        # Fortran read -- this will either be the default or the value
+        # from the probin
 
+        fout.write("    // get the values of the parameters from Fortran\n\n")
+
+        for p in params:
             if p.dtype == "string":
                 fout.write(f"    int slen_{p.name} = 0;\n")
                 fout.write(f"    get_f90_{p.name}_len(slen_{p.name});\n")
@@ -408,14 +420,32 @@ def write_probin(probin_template, prob_param_files,
                 else:
                     fout.write(f"    get_f90_{p.name}(&problem::{p.name});\n\n")
 
+
+        # now write the parmparse code to get the value from the C++
+        # inputs.  This will overwrite the Fortran value.
+
+        fout.write("    // get the value from the inputs file (this overwrites the Fortran value)\n\n")
+
+        # open namespace
+        fout.write("    {\n")
+        fout.write(f"      amrex::ParmParse pp(\"problem\");\n")
+        for p in params:
+            if p.in_namelist:
+                qstr = p.get_query_string("C++")
+                fout.write(f"      {qstr}")
+        fout.write("    }\n")
+
         fout.write("  }\n")
 
-        fout.write("\n")
+        # finally write the set code that is called after a problem
+        # does any C++ initialization which may have modified values
+        # -- this sends the values back to Fortran.
+
         fout.write(f"  void cxx_to_f90_{cxx_base}_parameters() {{\n")
         fout.write("    int slen = 0;\n\n")
 
         for p in params:
-            if p.dtype == "logical" or p.dtype == "string":
+            if p.dtype in ["bool", "logical"] or p.dtype == "string":
                 continue
 
             if p.is_array():

@@ -7,9 +7,8 @@
 
 &extern
 
-  eos_gamma = 1.6666666667
-
-  eos_const_c_v = 2.065d8
+  ! (3/2) k / (mu m_u) with mu = 0.6
+  eos_const_c_v = 206586826.34730542
 
   const_kappa_p = 4.0d-8
   kappa_p_exp_m = 0.0d0

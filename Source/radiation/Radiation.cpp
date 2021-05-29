@@ -1,10 +1,9 @@
-
 #include <AMReX_LO_BCTYPES.H>
 #include <AMReX_ParmParse.H>
 #include <Radiation.H>
 #include <RadSolve.H>
 #include <rad_util.H>
-
+#include <filt_prim.H>
 #include <Castro_F.H>
 
 #include <RAD_F.H>
@@ -309,10 +308,8 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   {
     Real stefbol;
 
-    int J_is_used = 0;
-
     ca_initradconstants(M_PI, clight, hPlanck, kBoltz, stefbol,
-                        Avogadro, convert_MeV_erg, J_is_used);
+                        Avogadro, convert_MeV_erg);
 
     aRad = 4.*stefbol/clight;
 
@@ -387,7 +384,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
   pp.query("update_limiter", update_limiter);
 
   dT  = 1.0;                 pp.query("delta_temp", dT);
-  surface_average = 2;       pp.query("surface_average", surface_average);
 
   // for inner iterations of neutrino J equation
   relInTol = 1.e-4;          pp.query("relInTol", relInTol);
@@ -445,11 +441,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     if (ParallelDescriptor::IOProcessor()) std::cout << "Spot: " << spot << std::endl;
   }
 
-  // This call stores the value of surface_average in the kavg
-  // routine.  The first three arguments are irrelevant here.
-  Real foo=0.0;
-  FORT_KAVG(foo, foo, foo, surface_average);
-
   if (verbose > 0 && ParallelDescriptor::IOProcessor()) {
     std::cout << "Creating Radiation object" << std::endl;
   }
@@ -473,7 +464,6 @@ Radiation::Radiation(Amr* Parent, Castro* castro, int restart)
     std::cout << "update_planck    = " << update_planck << std::endl;
     std::cout << "update_rosseland = " << update_rosseland << std::endl;
     std::cout << "delta_temp = " << dT << std::endl;
-    std::cout << "surface_average = " << surface_average << std::endl;
     std::cout << "underfac = " << underfac << std::endl;
     std::cout << "do_multigroup = " << do_multigroup << std::endl;
     std::cout << "accelerate = " << accelerate << std::endl;
@@ -1347,14 +1337,14 @@ void Radiation::filBndry(BndryRegister& bdry, int level, Real time)
     if (need_old_data) {
       sold_tmp.define(grids, dmap, 1, n_grow);
       sold_tmp.setVal(0.0); // need legal numbers for linComb below
-      sold_tmp.copy(S_old, Rad, 0, 1);
+      MultiFab::Copy(sold_tmp, S_old, Rad, 0, 1, 0);
       sold_tmp.FillBoundary(geom.periodicity());
     }
 
     if (need_new_data) {
       snew_tmp.define(grids, dmap, 1, n_grow);
       snew_tmp.setVal(0.0); // need legal numbers for linComb below
-      snew_tmp.copy(S_new, Rad, 0, 1);
+      MultiFab::Copy(snew_tmp, S_new, Rad, 0, 1, 0);
       snew_tmp.FillBoundary(geom.periodicity());
     }
 
@@ -2644,44 +2634,12 @@ void Radiation::set_current_group(int igroup)
 void Radiation::filter_prim(int level, MultiFab& State)
 {
   Castro *castro = dynamic_cast<Castro*>(&parent->getLevel(level));
-  const BoxArray& grids = castro->boxArray();
-  const DistributionMapping& dmap = castro->DistributionMap();
   const Geometry& geom = parent->Geom(level);
-
-  const int*  domain_lo = geom.Domain().loVect();
-  const int*  domain_hi = geom.Domain().hiVect();
-  const Real* dx        = geom.CellSize();
-  const Real* prob_lo   = geom.ProbLo();
+  auto geomdata = geom.data();
 
   int ngrow = filter_prim_T;
   int ncomp = State.nComp();
   Real time = castro->get_state_data(Rad_Type).curTime();
-
-  MultiFab mask(grids,dmap,1,ngrow);
-  mask.setVal(-1.0,ngrow);
-  mask.setVal( 0.0,0);
-  mask.FillBoundary(geom.periodicity());
-
-  if (level < parent->finestLevel())
-  {
-      BoxArray baf = parent->boxArray(level+1);
-      baf.coarsen(parent->refRatio(level));
-
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
-      for (MFIter mfi(mask); mfi.isValid(); ++mfi)
-      {
-          FArrayBox& mask_fab = mask[mfi];
-          const Box& mask_box = mask_fab.box();
-
-          const std::vector< std::pair<int,Box> >& isects = baf.intersections(mask_box);
-
-          for (int ii = 0; ii < isects.size(); ii++) {
-              mask_fab.setVal<RunOn::Device>(1.0, isects[ii].second, 0);
-          }
-      }
-  }
 
   FillPatchIterator fpi(*castro,State,ngrow,time,State_Type,0,ncomp);
   MultiFab& S_fp = fpi.get_mf();
@@ -2693,16 +2651,19 @@ void Radiation::filter_prim(int level, MultiFab& State)
   {
       const Box& bx = mfi.tilebox();
 
-      const RealBox& gridloc = RealBox(bx, dx, prob_lo);
-      const Real* xlo = gridloc.lo();
+      auto S_fp_arr = S_fp[mfi].array();
+      auto State_arr = State[mfi].array();
 
-      ca_filt_prim(bx.loVect(), bx.hiVect(),
-                   BL_TO_FORTRAN( S_fp[mfi]),
-                   BL_TO_FORTRAN(State[mfi]),
-                   BL_TO_FORTRAN( mask[mfi]),
-                   &filter_prim_T, &filter_prim_S,
-                   domain_lo, domain_hi,
-                   dx, xlo, prob_lo,
-                   &time, &level);
+      int T = filter_prim_T;
+      int S = filter_prim_S;
+
+      amrex::ParallelFor(bx,
+      [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
+      {
+          filt_prim(i, j, k,
+                    S_fp_arr, State_arr,
+                    T, S,
+                    geomdata, time);
+      });
   }
 }

@@ -9,7 +9,7 @@ EXEC=./Castro${DIM}d.gnu.MPI.ex
 RUNPARAMS="
 castro.ppm_type=1
 castro.time_integration_method=0
-amr.probin_file=probin-x
+problem.init_as_1d=1
 geometry.prob_hi=1 0.125 0.125"
 
 mpiexec -n 8 ${EXEC} inputs.64 amr.n_cell=64 8 8 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_ppm_plt &> 64.out
@@ -25,7 +25,7 @@ RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_64_ppm_plt00081 
 RUNPARAMS="
 castro.ppm_type=1
 castro.time_integration_method=0
-amr.probin_file=probin-y
+problem.init_as_1d=2
 geometry.prob_hi=0.125 1 0.125"
 
 mpiexec -n 8 ${EXEC} inputs.64 amr.n_cell=8 64 8 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_ppm_plt &> 64.out
@@ -42,7 +42,7 @@ RichardsonConvergenceTest${DIM}d.gnu.ex coarFile=acoustic_pulse_64_ppm_plt00081 
 RUNPARAMS="
 castro.ppm_type=1
 castro.time_integration_method=0
-amr.probin_file=probin-z
+problem.init_as_1d=3
 geometry.prob_hi=0.125 0.125 1"
 
 mpiexec -n 8 ${EXEC} inputs.64 amr.n_cell=8 8 64 ${RUNPARAMS} amr.plot_file=acoustic_pulse_64_ppm_plt &> 64.out

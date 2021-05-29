@@ -35,7 +35,7 @@
             const amrex::Real dt);
 
     void
-    consup_mhd(const amrex::Box& bx,
+    consup_mhd(const amrex::Box& bx, const Real dt,
                amrex::Array4<amrex::Real> const& update,
                amrex::Array4<amrex::Real const> const& flux0,
                amrex::Array4<amrex::Real const> const& flux1,

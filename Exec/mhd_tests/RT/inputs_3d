@@ -27,7 +27,6 @@ castro.do_grav = 1
 
 castro.mhd_plm_slope = 1
 castro.use_flattening = 0
-#castro.apply_sources_consecutively = 1
 
 gravity.gravity_type = ConstantGrav
 gravity.const_grav   = -1.0
@@ -52,6 +51,12 @@ amr.regrid_int      = 2 2 2 2 # how often to regrid
 amr.blocking_factor = 4       # block factor in grid generation
 amr.max_grid_size   = 64
 amr.n_error_buf     = 2 2 2 2 # number of buffer cells in error est
+
+amr.refinement_indicators = dengrad
+
+amr.refine.dengrad.gradient = 0.01
+amr.refine.dengrad.field_name = density
+amr.refine.dengrad.max_level = 5
 
 # CHECKPOINT FILES
 amr.check_file      = chk        # root name of checkpoint file

@@ -447,7 +447,7 @@ option works by adding the gravitational acceleration of the point
 mass onto the acceleration from whatever other gravity type is under
 in the simulation.
 
-.. note:: the point mass have a mass < 0
+.. note:: The point mass may have a mass < 0
 
 A useful option is ``point_mass_fix_solution``. If set to 1, then it
 takes all zones that are adjacent to the location of the center
@@ -456,7 +456,7 @@ occur after a hydro update in those zones are reset, and the mass
 deleted is added to the pointmass. (If there is expansion, and the
 density lowers, then the point mass is reduced and the mass is added
 back to the grid). This calculation is done in
-``pm_compute_delta_mass()`` in ``Source/gravity/pointmass_nd.f90``.
+``pointmass_update()`` in ``Castro_pointmass.cpp``.
 
 GR correction
 =============
@@ -465,7 +465,7 @@ In the cases of compact objects or very massive stars, the general
 relativity (GR) effect starts to play a role [2]_. First, we consider
 the hydrostatic equilibrium due to effects of GR then derive
 GR-correction term for Newtonian gravity.  The correction term is
-applied to the monopole approximation only when ``USE_GR`` = TRUE is
+applied to the monopole approximation only when ``USE_GR = TRUE`` is
 set in the ``GNUmakefile``.
 
 The formulae of GR-correction here are based on

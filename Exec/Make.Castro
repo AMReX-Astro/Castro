@@ -99,14 +99,22 @@ ifeq ($(USE_SYSTEM_BLAS), TRUE)
   LIBRARIES += $(BLAS_LIBRARY)
 endif
 
-ifeq ($(USE_CUDA),TRUE)
-  DEFINES += -DCUDA
-  CUDA_VERBOSE = FALSE
+ifeq ($(USE_MPI), TRUE)
+  # Use thread support in MPI to support asynchronous I/O
+  MPI_THREAD_MULTIPLE := TRUE
+  # But keep the suffix MPI, not MTMPI, for simplicity
+  MPI_THREAD_MULTIPLE_UPDATE_SUFFIX := FALSE
+endif
 
+ifeq ($(USE_CUDA),TRUE)
+  CUDA_VERBOSE = FALSE
+endif
+
+ifeq ($(USE_GPU),TRUE)
   # We don't currently support host-side OpenMP being enabled
-  # when using CUDA. Throw an error to prevent this case.
+  # when using GPUs. Throw an error to prevent this case.
   ifeq ($(USE_OMP),TRUE)
-    $(error OpenMP is not supported by Castro when building with CUDA)
+    $(error OpenMP is not supported by Castro when building with GPU support)
   endif
 endif
 
