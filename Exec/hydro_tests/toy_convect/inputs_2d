@@ -63,5 +63,11 @@ amr.plot_file        = plt        # root name of plotfile
 amr.plot_int         = 1000       # number of timesteps between plotfiles
 amr.derive_plot_vars = ALL
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.model_name =  "toy_nova_constg_tanh2.hse.smooth_3.00.1024"
+
+problem.apply_vel_field = 1
+problem.velpert_height_loc = 3.95e8
+problem.velpert_scale = 1.e6
+problem.velpert_amplitude = 1.e3
+problem.num_vortices = 6
