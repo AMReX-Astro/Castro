@@ -68,5 +68,6 @@ amr.plot_int        = 100        # number of timesteps between plotfiles
 amr.plot_vars  =  density Temp
 amr.derive_plot_vars = x_velocity y_velocity z_velocity magvel magvort pressure
 
-#PROBIN FILENAME
-amr.probin_file = probin
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.67
