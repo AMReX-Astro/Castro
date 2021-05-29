@@ -82,9 +82,6 @@ amr.plot_file       = test2_y_plt  # root name of plotfile
 amr.plot_int        = 10           # number of timesteps between plotfiles
 amr.derive_plot_vars= density xmom ymom zmom eden Temp pressure # these variables appear in the plotfile
 
-# PROBIN FILENAME
-amr.probin_file = probin-test2-y
-
 # PROBLEM PARAMETERS
 problem.p_l = 0.4
 problem.u_l = -2.0
