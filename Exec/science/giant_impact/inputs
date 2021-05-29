@@ -41,7 +41,7 @@ max_step = 10000000
 stop_time = 1000.0
 
 # CFL number for hyperbolic system
-castro.cfl = 0.5
+castro.cfl = 0.8
 
 # Scale back initial timestep by a large factor; there is a steep density
 # gradient at the edge of the objects and the hydro needs to be able to adjust
@@ -153,10 +153,10 @@ gravity.do_composite_phi_correction = 0
 ############################################################################################
 
 # Minimum density to start applying the sponge
-castro.sponge_lower_density = 1.0e-4
+castro.sponge_lower_density = 1.0e-2
 
 # Density by which the sponge is fully applied
-castro.sponge_upper_density = 1.0e-4
+castro.sponge_upper_density = 1.0e-2
 
 # Sponge damping timescale (in seconds)
 castro.sponge_timescale     = 1.0e-2
