@@ -3261,20 +3261,6 @@ Castro::apply_problem_tags (TagBoxArray& tags, Real time)
             {
                 problem_tagging(i, j, k, tag_arr, state_arr, lev, geomdata);
             });
-
-#ifdef GPU_COMPATIBLE_PROBLEM
-            set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             tagval, clearval, time, level);
-#else
-            set_problem_tags(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                             (int8_t*) BL_TO_FORTRAN_ANYD(tagfab),
-                             BL_TO_FORTRAN_ANYD(S_new[mfi]),
-                             AMREX_ZFILL(dx), AMREX_ZFILL(prob_lo),
-                             tagval, clearval, time, level);
-#endif
         }
     }
 
