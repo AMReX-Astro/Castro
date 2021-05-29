@@ -51,5 +51,6 @@ amr.plot_file         = plt      # root name of plotfile
 amr.plot_per          = 0.1      # amount of simulation time between plotfiles
 amr.derive_plot_vars  = NONE
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# EOS
+eos.eos_assume_neutral = 0
+eos.eos_gamma = 1.6666666666666666666666666

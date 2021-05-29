@@ -105,7 +105,7 @@ Debugging
    .. code:: c++
 
              std::ostringstream ss;
-             ss << ``state.box() = `` << state.box() << `` cell = `` << cell;
+             ss << "state.box() = " << state.box() << " cell = " << cell;
              BL_BACKTRACE_PUSH(ss.str()); // PUSH takes std::string
 
              Real rho = state(cell,0);  // state is a Fab, and cell is an IntVect.

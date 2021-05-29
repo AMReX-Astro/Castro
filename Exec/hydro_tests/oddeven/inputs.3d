@@ -70,5 +70,13 @@ amr.plot_file       = oddeven_plt
 amr.plot_int        = 10
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# problem initialization
+
+problem.p_ambient = 1.0
+problem.dens_ambient = 1.0
+problem.dens_pert_factor = 1.01
+problem.vel_pert = 20.0
+
+# Microphysics
+
+eos.eos_assume_neutral = 1

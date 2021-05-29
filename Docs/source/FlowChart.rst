@@ -598,7 +598,7 @@ together directly.
    The code must be compiled with ``USE_TRUE_SDC = TRUE`` to use this
    evolution type.
 
-The SDC solver follows the algorithm detailed in :cite:`castro_sdc`.
+The SDC solver follows the algorithm detailed in :cite:`castro-sdc`.
 We write our evolution equation as:
 
 .. math::
