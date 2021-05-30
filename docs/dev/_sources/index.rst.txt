@@ -35,7 +35,6 @@ https://github.com/amrex-astro/Castro
 
    build_system
    debugging
-   gpu_porting
    Hydrodynamics
    mhd
    gravity
