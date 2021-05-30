@@ -405,7 +405,7 @@ defined in the inputs file by:</p>
 <p>for example, to set the gravity to have magnitude <span class="math notranslate nohighlight">\(9.8\)</span> in the
 negative <span class="math notranslate nohighlight">\(y\)</span>-direction if in 2D, negative <span class="math notranslate nohighlight">\(z\)</span>-direction if in 3-D.
 The actual setting is done in Gravity.cpp as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grav</span><span class="o">.</span><span class="n">setVal</span><span class="p">(</span><span class="n">const_grav</span><span class="p">,</span> <span class="n">BL_SPACEDIM</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ng</span><span class="p">);</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grav</span><span class="o">.</span><span class="n">setVal</span><span class="p">(</span><span class="n">const_grav</span><span class="p">,</span> <span class="n">AMREX_SPACEDIM</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ng</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Note that at present we do not fill the gravitational potential

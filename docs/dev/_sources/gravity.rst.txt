@@ -200,7 +200,7 @@ for example, to set the gravity to have magnitude :math:`9.8` in the
 negative :math:`y`-direction if in 2D, negative :math:`z`-direction if in 3-D.
 The actual setting is done in Gravity.cpp as::
 
-     grav.setVal(const_grav, BL_SPACEDIM-1, 1, ng);
+     grav.setVal(const_grav, AMREX_SPACEDIM-1, 1, ng);
 
 Note that at present we do not fill the gravitational potential
 :math:`\phi` in this mode; it will be set to zero.
