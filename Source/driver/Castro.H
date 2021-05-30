@@ -1302,7 +1302,7 @@ protected:
 /// Hydrodynamic (and radiation) fluxes.
 ///
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > fluxes;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::MultiFab         P_radial;
 #endif
 #ifdef RADIATION
@@ -1312,7 +1312,7 @@ protected:
     amrex::Vector<std::unique_ptr<amrex::MultiFab> > mass_fluxes;
 
     amrex::FluxRegister flux_reg;
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::FluxRegister pres_reg;
 #endif
 #ifdef RADIATION
@@ -1328,7 +1328,7 @@ protected:
     amrex::Real flux_crse_scale;
     amrex::Real flux_fine_scale;
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
     amrex::Real pres_crse_scale;
     amrex::Real pres_fine_scale;
 #endif

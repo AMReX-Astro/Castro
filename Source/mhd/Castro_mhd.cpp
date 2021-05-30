@@ -20,8 +20,8 @@ Castro::construct_ctu_mhd_source(Real time, Real dt)
       MultiFab& old_source = get_old_data(Source_Type);
 
 
-      //MultiFab electric[BL_SPACEDIM];
-      //for (int j = 0; j < BL_SPACEDIM; j++)
+      //MultiFab electric[AMREX_SPACEDIM];
+      //for (int j = 0; j < AMREX_SPACEDIM; j++)
       //{
       //  electric[j].define(getEdgeBoxArray(j), dmap, 1, 0);
       //  electric[j].setVal(0.0);

@@ -5,7 +5,7 @@
 
 using namespace amrex;
 
-void Radiation::save_lambda_in_plotvar(int level, const Array<MultiFab,BL_SPACEDIM>& lambda)
+void Radiation::save_lambda_in_plotvar(int level, const Array<MultiFab,AMREX_SPACEDIM>& lambda)
 {
     int nlambda = lambda[0].nComp();
 #ifdef _OPENMP
@@ -137,7 +137,7 @@ void Radiation::save_lab_Er_in_plotvar(int level, const MultiFab& Snew,
 }
 
 void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew, 
-                                         const Array<MultiFab,BL_SPACEDIM>& lambda,
+                                         const Array<MultiFab,AMREX_SPACEDIM>& lambda,
                                          const MultiFab& Er, const MultiFab& Fr, int iflx)
 {
     const Real flag = 1.0;  // comovinng --> lab
@@ -173,7 +173,7 @@ void Radiation::save_lab_flux_in_plotvar(int level, const MultiFab& Snew,
 }
 
 void Radiation::save_com_flux_in_plotvar(int level, const MultiFab& Snew, 
-                                         const Array<MultiFab,BL_SPACEDIM>& lambda,
+                                         const Array<MultiFab,AMREX_SPACEDIM>& lambda,
                                          const MultiFab& Er, const MultiFab& Fr, int iflx)
 {
     const Real flag = -1.0;  // lab --> comoving

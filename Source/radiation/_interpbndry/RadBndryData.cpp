@@ -80,7 +80,7 @@ RadBndryData::define(const BoxArray& _grids, const DistributionMapping& _dmap,
             Box face_box = amrex::adjCell(grids[k],face,1);
 
             // extend box in directions orthogonal to face normal
-            for (int dir = 0; dir < BL_SPACEDIM; dir++) {
+            for (int dir = 0; dir < AMREX_SPACEDIM; dir++) {
                 if (dir == coord_dir) continue;
                 face_box.grow(dir,1);
             }
