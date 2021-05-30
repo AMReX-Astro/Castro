@@ -76,5 +76,19 @@ amr.plot_file       = gresho_plt
 amr.plot_int        = 500
 amr.derive_plot_vars=ALL
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.rho0 = 1.0
+
+# p0 = rho0 u_phi**2/(gamma * M**2) - 1/2  -- specify M to get p0
+
+# M ~ 0.001
+problem.p0 = 599999.5
+
+# M ~ 0.01
+# problem.p0 = 5999.5
+
+# M ~ 0.1
+# problem.p0 = 59.5
+
+# EOS
+eos.eos_assume_neutral = 1

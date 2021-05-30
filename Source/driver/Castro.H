@@ -728,7 +728,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
@@ -743,16 +743,6 @@ public:
 /// @param time         current time
 ///
     void apply_tagging_restrictions (amrex::TagBoxArray& tags, amrex::Real time);
-
-
-///
-/// Apply a given tagging function.
-///
-/// @param tags         TagBoxArray of tags
-/// @param time         current time
-/// @param j            integer
-///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
 
 
 ///
@@ -1195,9 +1185,9 @@ public:
     static amrex::Vector<std::string> source_names;
 
 ///
-/// Vector storing list of custom error tags.
+/// Vector storing list of error tags.
 ///
-    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level

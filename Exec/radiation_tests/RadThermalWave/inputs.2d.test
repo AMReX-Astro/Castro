@@ -36,7 +36,22 @@ amr.refine.tempgrad_rel.field_name = Temp
 amr.grid_log        = grdlog  # name of grid logging file
 amr.v = 1
 
-amr.probin_file     = probin.2d
+problem.rhocv = 0.05e0
+problem.T0 = 1.e-6
+problem.Eexp = 3.e7
+problem.rexp = 3.125
+
+eos.eos_gamma = 1.4
+
+opacity.const_kappa_p =  1.0e6
+opacity.kappa_p_exp_m =  0.0e0
+opacity.kappa_p_exp_n =  0.0e0
+opacity.kappa_p_exp_p =  0.0e0
+
+opacity.const_kappa_r =  1.0e-3
+opacity.kappa_r_exp_m =  0.0e0
+opacity.kappa_r_exp_n = -0.5e0
+opacity.kappa_r_exp_p =  0.0e0
 
 # >>>>>>>>>>>>>  BC FLAGS <<<<<<<<<<<<<<<<
 # 0 = Interior           3 = Symmetry

@@ -77,5 +77,18 @@ amr.plot_file       = alfven_plt  # root name of plotfile
 amr.plot_int        = 100       # number of timesteps between plotfiles
 amr.derive_plot_vars = density x_velocity y_velocity z_velocity eden Temp pressure B_x B_y B_z # these variables appear in the plotfile
 
-#PROBIN FILENAME
-amr.probin_file = probin-1_1_slow
+# PROBLEM PARAMETERS
+problem.p_0 = 1.0
+problem.u_x = 0.0
+problem.u_y = 0.0
+problem.u_z = 0.0
+problem.rho_0 = 1.0
+
+problem.k_x = 1.0
+problem.k_y = 1.0
+
+problem.type_wave = 2
+
+# EOS
+eos.eos_assume_neutral = 1
+eos.eos_gamma = 1.67

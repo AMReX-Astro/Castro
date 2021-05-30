@@ -48,5 +48,9 @@ amr.refine.dengrad_rel.field_name = density
 amr.checkpoint_files_output = 0
 amr.plot_files_output = 0
 
-# PROBIN FILENAME
-amr.probin_file = probin.mini-Castro
+# PROBLEM PARAMETERS
+problem.r_init = 1.25e8
+problem.p_ambient = 1.e21
+problem.exp_energy = 1.e52
+problem.dens_ambient = 1.e4
+problem.nsub = 10

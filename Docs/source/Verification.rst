@@ -38,17 +38,17 @@ The initial conditions are:
 
 The gamma_law equation of state is used with :math:`\gamma = 1.4`.
 The system is evolved until :math:`t = 0.2` s. Setups for 1-, 2-, and 3-d
-are provided. The following inputs files and probin files setup the
+are provided. The following inputs files setup the
 Sod’s problem:
 
 
-+------------------+------------------+-----------------------------------------+
-| ``inputs-sod-x`` | ``probin-sod-x`` | Sod’s problem along :math:`x`-direction |
-+------------------+------------------+-----------------------------------------+
-| ``inputs-sod-y`` | ``probin-sod-y`` | Sod’s problem along :math:`y`-direction |
-+------------------+------------------+-----------------------------------------+
-| ``inputs-sod-z`` | ``probin-sod-z`` | Sod’s problem along :math:`z`-direction |
-+------------------+------------------+-----------------------------------------+
++------------------+-----------------------------------------+
+| ``inputs-sod-x`` | Sod’s problem along :math:`x`-direction |
++------------------+-----------------------------------------+
+| ``inputs-sod-y`` | Sod’s problem along :math:`y`-direction |
++------------------+-----------------------------------------+
+| ``inputs-sod-z`` | Sod’s problem along :math:`z`-direction |
++------------------+-----------------------------------------+
 
 For multi-dimensional runs, the directions transverse to the jump are
 kept constant. We use a CFL number of 0.9, an initial timestep shrink
@@ -143,23 +143,23 @@ The initial conditions are:
 
 The gamma_law equation of state is used with :math:`\gamma = 1.4`.
 The system is evolved until :math:`t = 0.15` s. Setups for 1-, 2-, and 3-d
-are provided. The following inputs files and probin files setup the
-Sod’s problem:
+are provided. The following inputs files setup the
+double rarefaction problem:
 
 
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test2-x``    | ``probin-test2-x``    | Double rarefaction    |
-|                       |                       | problem along         |
-|                       |                       | :math:`x`-direction   |
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test2-y``    | ``probin-test2-y``    | Double rarefaction    |
-|                       |                       | problem along         |
-|                       |                       | :math:`y`-direction   |
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test2-z``    | ``probin-test2-z``    | Double rarefaction    |
-|                       |                       | problem along         |
-|                       |                       | :math:`z`-direction   |
-+-----------------------+-----------------------+-----------------------+
++-----------------------+-----------------------+
+| ``inputs-test2-x``    | Double rarefaction    |
+|                       | problem along         |
+|                       | :math:`x`-direction   |
++-----------------------+-----------------------+
+| ``inputs-test2-y``    | Double rarefaction    |
+|                       | problem along         |
+|                       | :math:`y`-direction   |
++-----------------------+-----------------------+
+| ``inputs-test2-z``    | Double rarefaction    |
+|                       | problem along         |
+|                       | :math:`z`-direction   |
++-----------------------+-----------------------+
 
 
 We use a CFL number of 0.8, an initial timestep shrink
@@ -212,22 +212,22 @@ The initial conditions are:
 The gamma_law equation of state is used with :math:`\gamma = 1.4`.
 The system is evolved until :math:`t = 0.012` s. Setups for 1-, 2-, and 3-d
 are provided. The following inputs files and probin files setup the
-Sod’s problem:
+strong shock problem:
 
 
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test3-x``    | ``probin-test3-x``    | Strong shock problem  |
-|                       |                       | along                 |
-|                       |                       | :math:`x`-direction   |
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test3-y``    | ``probin-test3-y``    | Strong shock problem  |
-|                       |                       | along                 |
-|                       |                       | :math:`y`-direction   |
-+-----------------------+-----------------------+-----------------------+
-| ``inputs-test3-z``    | ``probin-test3-z``    | Strong shock problem  |
-|                       |                       | along                 |
-|                       |                       | :math:`z`-direction   |
-+-----------------------+-----------------------+-----------------------+
++-----------------------+-----------------------+
+| ``inputs-test3-x``    | Strong shock problem  |
+|                       | along                 |
+|                       | :math:`x`-direction   |
++-----------------------+-----------------------+
+| ``inputs-test3-y``    | Strong shock problem  |
+|                       | along                 |
+|                       | :math:`y`-direction   |
++-----------------------+-----------------------+
+| ``inputs-test3-z``    | Strong shock problem  |
+|                       | along                 |
+|                       | :math:`z`-direction   |
++-----------------------+-----------------------+
 
 We use a CFL number of 0.9, an initial
 timestep shrink (``castro.init_shrink``) of 0.1, and the maximum factor by which
@@ -271,30 +271,30 @@ We use a publically available code, ``sedov3.f``
 :cite:`timmes_sedov_code`, to generate the analytic solutions.
 
 The Castro implementation of the Sedov problem is ``in
-Exec/hydro_tests/Sedov/``.  A number of different inputs/probin files
+Exec/hydro_tests/Sedov/``.  A number of different inputs files
 are provided, corresponding to different Sedov/Castro geometries. The
 main ones are:
 
 
 .. _table:sedov_inputs:
-.. table:: Sedov problem inputs and probin files
+.. table:: Sedov problem inputs files
 
-     +---------------------------------+--------------------------------+---------------------------------------------+
-     | inputs file                     | probin file                    | description                                 |
-     +=================================+================================+=============================================+
-     | ``inputs.1d.sph``               | ``probin.1d.sph``              |  Spherical Sedov explosion modeled          |
-     |                                 |                                |  in 1-d spherical coordinates               |
-     +---------------------------------+--------------------------------+---------------------------------------------+
-     | ``inputs.2d.sph_in_cylcoords``  | ``probin.2d.sph_in_cylcoords`` |  Spherical Sedov explosion modeled          |
-     |                                 |                                |  in 2-d cylindrical (axisymmetric)          |
-     |                                 |                                |  coordinates.                               |
-     +---------------------------------+--------------------------------+---------------------------------------------+
-     | ``inputs.2d.cyl_in_cartcoords`` | ``probin.2d.cyl_in_cartcoords``|  Cylindrical Sedov explosion modeled in     |
-     |                                 |                                |  2-d Cartesian coordinates.                 |
-     +---------------------------------+--------------------------------+---------------------------------------------+
-     | ``inputs.3d.sph``               | ``probin.3d.sph``              |  Spherical Sedov explosion modeled in       |
-     |                                 |                                |  3-d Cartesian coordinates.                 |
-     +---------------------------------+--------------------------------+---------------------------------------------+
+     +---------------------------------+---------------------------------------------+
+     | inputs file                     | description                                 |
+     +=================================+=============================================+
+     | ``inputs.1d.sph``               |  Spherical Sedov explosion modeled          |
+     |                                 |  in 1-d spherical coordinates               |
+     +---------------------------------+---------------------------------------------+
+     | ``inputs.2d.sph_in_cylcoords``  |  Spherical Sedov explosion modeled          |
+     |                                 |  in 2-d cylindrical (axisymmetric)          |
+     |                                 |  coordinates.                               |
+     +---------------------------------+---------------------------------------------+
+     | ``inputs.2d.cyl_in_cartcoords`` |  Cylindrical Sedov explosion modeled in     |
+     |                                 |  2-d Cartesian coordinates.                 |
+     +---------------------------------+---------------------------------------------+
+     | ``inputs.3d.sph``               |  Spherical Sedov explosion modeled in       |
+     |                                 |  3-d Cartesian coordinates.                 |
+     +---------------------------------+---------------------------------------------+
 
 In the Sedov problem, the explosion energy, :math:`E_\mathrm{exp}` (in units
 of energy, not energy/mass or energy/volume)
@@ -517,6 +517,6 @@ the analytic solution is provided as analytic.f90.
 Regression Testing
 ==================
 
-An automated regression test suite for Castro (or any BoxLib-based
-code) written in Python exists in BoxLib/Tools/RegressionTesting.
-Details of its use are provided in the BoxLib User’s Guide.
+An automated regression test suite for Castro (or any AMReX-based
+code) written in Python exists in the AMReX-Codes github organization.
+
