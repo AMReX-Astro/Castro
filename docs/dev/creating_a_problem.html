@@ -108,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="timestepping.html">Timestepping and Retries</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Setting Up Your Own Problem</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#runtime-parameters">Runtime Parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#problem-initialization"><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#problem-initialization">Problem Initialization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#boundary-conditions">Boundary Conditions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-files">Optional Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#model-parser">Model Parser</a></li>
@@ -219,7 +219,7 @@
 <h1>Setting Up Your Own Problem<a class="headerlink" href="#setting-up-your-own-problem" title="Permalink to this headline">¶</a></h1>
 <p>Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, …).  These groups are
-sub-directories under the <cite>Castro/Exec/</cite> directory.  Each problem is
+sub-directories under the <code class="docutils literal notranslate"><span class="pre">Castro/Exec/</span></code> directory.  Each problem is
 then placed in a sub-directory of the appropriate group (for example,
 <code class="docutils literal notranslate"><span class="pre">Castro/Exec/hydro_tests/Sedov</span></code> holds the Sedov test problem).</p>
 <p>To create a new problem, you will create a new directory under one
@@ -228,10 +228,10 @@ of the groups and place in it the following files:</p>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">GNUmakefile</span></code> : the makefile for this problem.  This will tell
 Castro what options to use and what network and EOS to build.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code> OR <code class="docutils literal notranslate"><span class="pre">problem_initialize.H</span></code> and
+<li><p><code class="docutils literal notranslate"><span class="pre">problem_initialize.H</span></code> and
 <code class="docutils literal notranslate"><span class="pre">problem_initialize_state_data.H</span></code> : this holds the problem
-initialization routines, which may be implemented either in Fortran
-or in C++.</p></li>
+initialization routines.  MHD and radiation problems require
+an additional file.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">_prob_params</span></code> (optional) : a list of runtime parameters that
 you problem will read.  These parameters are controlled by the
 set in the inputs file as <code class="docutils literal notranslate"><span class="pre">problem.param</span></code> where <code class="docutils literal notranslate"><span class="pre">param</span></code> is
@@ -275,11 +275,8 @@ added.</p></li>
 <p>The variables will all be initialized for the GPU as well.</p>
 </div>
 <div class="section" id="problem-initialization">
-<h2><code class="docutils literal notranslate"><span class="pre">Problem</span> <span class="pre">Initialization</span></code><a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
-<p>Here we describe the main problem initialization routines. There are
-two implementations, in C++ (<code class="docutils literal notranslate"><span class="pre">problem_setup.H</span></code>) and Fortran (<code class="docutils literal notranslate"><span class="pre">Prob_nd.F90</span></code>),
-and you can pick either but not both (C++ is recommended since eventually
-we will switch the whole code to C++).</p>
+<h2>Problem Initialization<a class="headerlink" href="#problem-initialization" title="Permalink to this headline">¶</a></h2>
+<p>Here we describe the main problem initialization routines.</p>
 <ul id="index-1">
 <li><p><code class="docutils literal notranslate"><span class="pre">initialize_problem()</span></code></p>
 <p>This C++ routine is primarily responsible for doing any one-time
@@ -328,12 +325,13 @@ direction, e.g., for 2-d as:</p>
 <p>The flag value 1 is traditionally named “inflow” by AMReX, but generally means that
 the boundary implementation is left to the user.  To tell Castro to use the
 hydrostatic boundary condition here, we set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">yl_ext_bc_type</span> <span class="o">=</span> <span class="s2">&quot;hse&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">castro</span><span class="o">.</span><span class="n">yl_ext_bc_type</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">castro</span><span class="o">.</span><span class="n">hse_interp_temp</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">castro</span><span class="o">.</span><span class="n">hse_reflect_vels</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-<p>The first parameter tells Castro to use the HSE boundary condition.
+<p>The first parameter tells Castro to use the HSE boundary condition for the lower
+y direction.
 In filling the ghost cells, hydrostatic equilibrum will be integrated
 from the last interior zone into the boundary.  We need one more
 equation for this integration, so we either interpolate the density or
@@ -388,18 +386,17 @@ tag variable for a zone to set. An example is provided by the <code class="docut
 problem which refines a rectangular region (fuel layer) based on
 a density parameter and the H mass fraction.</p>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Problem_Derive_F.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code></p>
+<li><p><code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>, <code class="docutils literal notranslate"><span class="pre">Problem_Derive.H</span></code>, and <code class="docutils literal notranslate"><span class="pre">Problem_Derives.cpp</span></code></p>
 <p>Together, these provide a mechanism to create derived quantities
 that can be stored in the plotfile. <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>
 provides the C++ code that defines these new plot variables. It
 does this by adding them to the <code class="docutils literal notranslate"><span class="pre">derive_lst</span></code>—a list of
 derived variables that Castro knows about. When adding new
 variables, a descriptive name, Fortran routine that does the
-deriving, and component of <code class="docutils literal notranslate"><span class="pre">StateData</span></code> are specified.</p>
-<p>The Fortran routine that does the deriving is put in the
-problem-specific <code class="docutils literal notranslate"><span class="pre">problem_derive_nd.f90</span></code> (and a prototype for
-C++ is put in <code class="docutils literal notranslate"><span class="pre">Problem_Derives.H</span></code>). A example is provided by
-the <code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code> problem, which derives several new
+deriving, and component of <code class="docutils literal notranslate"><span class="pre">StateData</span></code> are specified.</p>
+<p>The other two files provide the header and implementation of the
+function that computes the derived variable.  A example is provided
+by the <code class="docutils literal notranslate"><span class="pre">reacting_bubble</span></code> problem, which derives several new
 quantities (perturbations against a background one-dimensional
 model, in this case).</p>
 </li>

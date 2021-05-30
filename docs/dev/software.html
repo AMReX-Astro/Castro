@@ -464,10 +464,11 @@ array.</p>
 components that make up the conserved hydrodynamics state (usually
 referred to as <span class="math notranslate nohighlight">\(\Ub\)</span> in these notes. But note that this does
 not include the radiation energy density.</p>
-<p>In Fortran, the components of a FAB derived from <code class="docutils literal notranslate"><span class="pre">State_Type</span></code>
-is indexed using the integer keys defined in <code class="docutils literal notranslate"><span class="pre">Castro_nd.F90</span></code>
-and stored in <code class="docutils literal notranslate"><span class="pre">meth_params_module</span></code>, e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>, <code class="docutils literal notranslate"><span class="pre">UMX</span></code>,
-<code class="docutils literal notranslate"><span class="pre">UMY</span></code>, …</p>
+<p>We access this data using an AMReX <code class="docutils literal notranslate"><span class="pre">Array4</span></code> type which is
+of the form <code class="docutils literal notranslate"><span class="pre">data(i,j,k,n)</span></code>, where <code class="docutils literal notranslate"><span class="pre">n</span></code> is the component.
+The integer keys used to index the components are defined
+in <code class="docutils literal notranslate"><span class="pre">Source/driver/_variables</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">URHO</span></code>, <code class="docutils literal notranslate"><span class="pre">UMX</span></code>,
+<code class="docutils literal notranslate"><span class="pre">UMY</span></code>, …)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>regardless of dimensionality, we always carry around all

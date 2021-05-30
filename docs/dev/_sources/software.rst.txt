@@ -260,10 +260,11 @@ The current ``StateData`` names Castro carries are:
    referred to as :math:`\Ub` in these notes. But note that this does
    not include the radiation energy density.
 
-   In Fortran, the components of a FAB derived from ``State_Type``
-   is indexed using the integer keys defined in ``Castro_nd.F90``
-   and stored in ``meth_params_module``, e.g., ``URHO``, ``UMX``,
-   ``UMY``, ...
+   We access this data using an AMReX ``Array4`` type which is
+   of the form ``data(i,j,k,n)``, where ``n`` is the component.
+   The integer keys used to index the components are defined
+   in ``Source/driver/_variables`` (e.g., ``URHO``, ``UMX``,
+   ``UMY``, ...)
 
    .. note:: regardless of dimensionality, we always carry around all
       three velocity components. The “out-of-plane” components will
