@@ -129,6 +129,13 @@ castro.ambient_temp = 1.0e3
 # Ambient density (g / cm**3)
 castro.ambient_density = 1.0e-7
 
+# Clamp temperature of ambient material
+castro.clamp_ambient_temp = 1
+
+# We want to clamp the temperature of everything below 0.01 g / cm**3
+# Otherwise, ram pressure from the planet spuriously heats the material
+castro.ambient_safety_factor = 1.0e5
+
 ############################################################################################
 # Gravity
 ############################################################################################
