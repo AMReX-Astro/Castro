@@ -54,11 +54,6 @@ extern "C"
 
 
 
-/* SCF */
-#ifdef GRAVITY
-#include <scf_relax_F.H>
-#endif
-
 #ifdef __cplusplus
 }
 #endif
