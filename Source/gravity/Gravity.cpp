@@ -1469,6 +1469,9 @@ Gravity::compute_radial_mass(const Box& bx,
                              Array4<Real const> const u,
                              RealVector& radial_mass,
                              RealVector& radial_vol,
+#ifdef GR_GRAV
+                             RealVector& radial_pres,
+#endif
                              int n1d, int level)
 {
     const Geometry& geom = parent->Geom(level);
@@ -1520,6 +1523,9 @@ Gravity::compute_radial_mass(const Box& bx,
 
     Real* const radial_mass_ptr = radial_mass.dataPtr();
     Real* const radial_vol_ptr = radial_vol.dataPtr();
+#ifdef GR_GRAV
+    Real* const radial_pres_ptr = radial_pres.dataPtr();
+#endif
 
     amrex::ParallelFor(bx,
     [=] AMREX_GPU_HOST_DEVICE (int i, int j, int k)
@@ -1535,6 +1541,34 @@ Gravity::compute_radial_mass(const Box& bx,
 
         Real r = std::sqrt(xc * xc + yc * yc + zc * zc);
         int index = static_cast<int>(r * drinv);
+
+        // We may be coming in here with a masked out zone (in a zone on a coarse
+        // level underlying a fine level). We don't want to be calling the EOS in
+        // this case, so we'll skip these masked out zones (which will have rho
+        // exactly equal to zero).
+
+        if (u(i,j,k,URHO) == 0.0_rt) return;
+
+#ifdef GR_GRAV
+        Real rhoInv = 1.0_rt / u(i,j,k,URHO);
+
+        eos_t eos_state;
+
+        eos_state.rho = u(i,j,k,URHO);
+        eos_state.e   = u(i,j,k,UEINT) * rhoInv;
+        eos_state.T   = u(i,j,k,UTEMP);
+        for (int n = 0; n < NumSpec; ++n) {
+            eos_state.xn[n] = u(i,j,k,UFS+n) * rhoInv;
+        }
+#if NAUX_NET > 0
+        for (int n = 0; n < NumAux; ++n) {
+            eos_state.aux[n] = u(i,j,k,UFX+n) * rhoInv;
+        }
+#endif
+
+        // Compute pressure from the EOS
+        eos(eos_input_re, eos_state);
+#endif
 
         if (index > n1d - 1) {
 
@@ -1586,6 +1620,9 @@ Gravity::compute_radial_mass(const Box& bx,
                         if (index <= n1d - 1) {
                             Gpu::Atomic::Add(&radial_mass_ptr[index], vol_frac * u(i,j,k,URHO));
                             Gpu::Atomic::Add(&radial_vol_ptr[index], vol_frac);
+#ifdef GR_GRAV
+                            Gpu::Atomic::Add(&radial_pres_ptr[index], vol_frac * eos_state.p);
+#endif
                         }
 
                     }
@@ -3077,23 +3114,17 @@ Gravity::make_radial_gravity(int level, Real time, RealVector& radial_grav)
 #ifdef _OPENMP
                                     priv_radial_mass[tid],
                                     priv_radial_vol[tid],
+#ifdef GR_GRAV
+                                    priv_radial_pres[tid],
+#endif
 #else
                                     radial_mass[lev],
                                     radial_vol[lev],
+#ifdef GR_GRAV
+                                    radial_pres[lev],
+#endif
 #endif
                                     n1d, lev);
-
-#ifdef GR_GRAV
-                ca_compute_avgpres(AMREX_ARLIM_ANYD(bx.loVect()), AMREX_ARLIM_ANYD(bx.hiVect()),
-                                   dx, dr,
-                                   BL_TO_FORTRAN_ANYD(fab),
-#ifdef _OPENMP
-                                   priv_radial_pres[tid].dataPtr(),
-#else
-                                   radial_pres[lev].dataPtr(),
-#endif
-                                   ZFILL(geom.ProbLo()), n1d, gravity::drdxfac, lev);
-#endif
             }
 
 #ifdef _OPENMP
