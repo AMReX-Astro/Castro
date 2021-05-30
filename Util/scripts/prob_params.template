@@ -79,43 +79,6 @@ subroutine update_prob_params_after_cxx() bind(C, name="update_prob_params_cxx")
 
 end subroutine update_prob_params_after_cxx
 
-subroutine prob_params_pretty_print(name, namlen) bind(C, name="prob_params_pretty_print")
-
-  use amrex_constants_module
-  use probdata_module
-  use castro_error_module, only: castro_error
-
-  implicit none
-
-  integer :: unit, i
-
-  integer :: namlen
-  integer :: name(namlen)
-
-  logical :: ltest
-
-  integer, parameter :: maxlen = 256
-  character (len=maxlen) :: job_info
-
-  if (namlen > maxlen) then
-     call castro_error("job_info file name too long")
-  endif
-
-  do i = 1, namlen
-     job_info(i:i) = char(name(i))
-  end do
-
-  ! open the job info file in Fortran
-  open(newunit=unit, file=job_info(1:namlen), status="old", position="append")
-
-  write(unit, *) " "
-  write(unit, *) "fortin parameters:"
-  @@printing@@
-
-  close(unit=unit)
-
-end subroutine prob_params_pretty_print
-
 module probparam_f90_to_cxx
 
   use iso_c_binding

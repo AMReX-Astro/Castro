@@ -791,6 +791,8 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
   diffusion->output_job_info_params(jobInfoFile);
 #endif
 
+#include <prob_job_info_tests.H>
+
   jobInfoFile.close();
 
   // now the external parameters
@@ -803,7 +805,6 @@ Castro::writeJobInfo (const std::string& dir, const Real io_time)
 
   runtime_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
-  prob_params_pretty_print(jobinfo_file_name.dataPtr(), &jobinfo_file_length);
 
 }
 
