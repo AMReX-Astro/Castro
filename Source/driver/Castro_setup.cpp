@@ -347,11 +347,6 @@ Castro::variableSetUp ()
                         coord_type,
                         dgeom.ProbLo(), dgeom.ProbHi());
 
-  // Read in the parameters for the tagging criteria
-  // and store them in the Fortran module.
-
-  ca_get_tagging_params(probin_file_name.dataPtr(),&probin_file_length);
-
   // Set some initial data in the ambient state for safety, though the
   // intent is that any problems using this may override these. We use
   // the user-specified parameters if they were set, but if they were

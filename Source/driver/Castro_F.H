@@ -29,8 +29,6 @@ extern "C"
      const int& coord_type,
      const amrex::Real* problo, const amrex::Real* probhi);
 
-  void ca_get_tagging_params(const int* name, const int* namlen);
-
 #ifdef RADIATION
   void ca_inelastic_sct
     (const int* lo, const int* hi,

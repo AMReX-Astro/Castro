@@ -746,16 +746,6 @@ public:
 
 
 ///
-/// Apply a given tagging function.
-///
-/// @param tags         TagBoxArray of tags
-/// @param time         current time
-/// @param j            integer
-///
-    void apply_tagging_func (amrex::TagBoxArray& tags, amrex::Real time, int j);
-
-
-///
 /// Returns a MultiFab containing the derived data for this level.
 /// If ngrow>0 the MultiFab is built on the appropriately grown BoxArray.
 ///
@@ -1195,9 +1185,9 @@ public:
     static amrex::Vector<std::string> source_names;
 
 ///
-/// Vector storing list of custom error tags.
+/// Vector storing list of error tags.
 ///
-    static amrex::Vector<amrex::AMRErrorTag> custom_error_tags;
+    static amrex::Vector<amrex::AMRErrorTag> error_tags;
 
 ///
 /// This MultiFab is on the coarser level.  This is useful for the coarser level
