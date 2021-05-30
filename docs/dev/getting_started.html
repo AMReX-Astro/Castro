@@ -240,8 +240,7 @@ general requirements to build Castro are:</p>
 <li><p>GNU make (&gt;= 3.82)</p></li>
 </ul>
 </div></blockquote>
-<p>GCC and the PGI compilers are the main compiler suites used by the
-developers.</p>
+<p>GCC is the main compiler suite used by the developers.</p>
 <p>For running in parallel, an MPI library is required.  For running on GPUs,
 CUDA 11 or later is required.  More information on parallel builds
 is given in section <a class="reference internal" href="mpi_plus_x.html#ch-mpiplusx"><span class="std std-ref">Running Options: CPUs and GPUs</span></a>.</p>
@@ -267,9 +266,10 @@ maintained in the AMReX-Codes organization on GitHub, and the
 Microphysics repository from the starkiller-astro organization.
 AMReX adds the necessary code for the driver code for the simulation,
 while Microphysics adds the equations of state, reaction
-networks, and other microphysics needed to run Castro. If you forget
-to do a recursive clone, you can rectify the situation by running
-the following from the top-level of the Castro directory:</p>
+networks, and other microphysics needed to run Castro.</p>
+<p>If you forget to do a recursive clone, you can rectify the
+situation by running the following from the top-level of the Castro
+directory:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="o">--</span><span class="n">recursive</span>
 </pre></div>
 </div>
@@ -294,6 +294,7 @@ Add the following to your <code class="docutils literal notranslate"><span class
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">CASTRO_HOME</span><span class="o">=</span><span class="s2">&quot;/path/to/Castro/&quot;</span>
 </pre></div>
 </div>
+<p>(or use the analogous form for a different shell).</p>
 </li>
 <li><p>You can keep the code up to date with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span> <span class="o">--</span><span class="n">recurse</span><span class="o">-</span><span class="n">submodules</span>
@@ -303,7 +304,7 @@ Add the following to your <code class="docutils literal notranslate"><span class
 stable <code class="docutils literal notranslate"><span class="pre">main</span></code> branch of the code; we issue a new release of the code
 at the beginning of each month.</p>
 </li>
-<li><p>(optional, for developers) If you prefer, you can maintain AMReX and
+<li><p><em>optional, for developers</em>: If you prefer, you can maintain AMReX and
 Microphysics as standalone repositories rather than as git submodules.
 To do so, you can clone them from GitHub using:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">AMReX</span><span class="o">-</span><span class="n">Codes</span><span class="o">/</span><span class="n">amrex</span><span class="o">.</span><span class="n">git</span>
