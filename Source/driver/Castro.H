@@ -728,7 +728,7 @@ public:
 
 
 ///
-/// Apply the ::set_problem_tags routine.
+/// Apply the ::problem_tagging routine.
 ///
 /// @param tags         TagBoxArray of tags
 /// @param time         current time
