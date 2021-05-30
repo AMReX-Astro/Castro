@@ -709,15 +709,6 @@ side of Castroor perform other useful tasks.
 This provides double precision constants as Fortran parameters, like
 ``ZERO``, ``HALF``, and ``ONE``.
 
-``extern_probin_module``
-------------------------
-
-This module provides access to the runtime parameters for the
-microphysics routines (EOS, reaction network, etc.). The source for
-this module is generated at compile type via a make rule that invokes
-a python script. This will search for all of the ``_parameters`` files
-in the external sources, parse them for runtime parameters, and build
-the module.
 
 ``fundamental_constants_module``
 --------------------------------
