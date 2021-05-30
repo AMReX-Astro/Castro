@@ -153,8 +153,11 @@ Castro::do_advance_ctu(Real time,
     if (do_hydro)
     {
 #ifndef MHD
-      // Check for CFL violations.
-      check_for_cfl_violation(S_old, dt);
+      // Check for CFL violations in S_new. The new-time state has seen
+      // the effect of the old-time source terms, so it is a first-order
+      // accurate estimate of whether the advance will violate the CFL
+      // criterion.
+      check_for_cfl_violation(S_new, dt);
 
       // If we detect one, return immediately.
       if (cfl_violation) {
