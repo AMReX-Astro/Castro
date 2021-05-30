@@ -119,7 +119,7 @@ supply, if they are not input, are:
 
 -  ``eos_state.T``: the temperature
 
--  ``eos_state.P``: total pressure
+-  ``eos_state.p``: total pressure
 
 -  ``eos_state.e``: the specific energy
 
