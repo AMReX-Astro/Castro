@@ -58,6 +58,8 @@ Here:
   a runtime parameter.  If it is empty or marked with
   ``n``, then the variable will still be creates in the ``problem`` namespace,
   but it will not be able to be set via the commandline or inputs file.
+  A common usage of this is to define global variables that might be set
+  at problem initialization that are used elsewhere in Castro.
 
 * `size` is for arrays, and gives their size.  It can be any integer
   or variable that is known to the ``probdata_module``.  If you need a

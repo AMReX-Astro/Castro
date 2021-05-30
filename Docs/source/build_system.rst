@@ -241,7 +241,7 @@ This is the current build system process.
 
   .. index:: write_probin.py
 
-  * This writes the routines that manager the Microphysics runtime
+  * This writes the routines that manage the Microphysics runtime
     parameters: ``extern_parameters.cpp``, ``extern_parameters.H``, and  ``extern.F90``.  This is output in
     ``tmp_build_dir/castro_sources/``.
 

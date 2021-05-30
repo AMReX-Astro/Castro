@@ -22,8 +22,6 @@ named ``inputs``, it
    specifier is not recognized.
 
 
-Only the ``inputs`` file is specified on the commandline.
-
 .. note::
 
    Additionally, note that in Castro, all quantities are in CGS units.
