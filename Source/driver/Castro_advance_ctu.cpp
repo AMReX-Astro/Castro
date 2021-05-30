@@ -254,7 +254,7 @@ Castro::do_advance_ctu(Real time,
     // We need to make the new radial data now so that we can use it when we
     // FillPatch in creating the new source.
 
-#if (BL_SPACEDIM > 1)
+#if (AMREX_SPACEDIM > 1)
     if ( (level == 0) && (spherical_star == 1) ) {
       int is_new = 1;
       make_radial_data(is_new);
@@ -457,7 +457,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
           mass_fluxes[dir]->setVal(0.0);
         }
 
-#if (BL_SPACEDIM <= 2)
+#if (AMREX_SPACEDIM <= 2)
         if (!Geom().IsCartesian()) {
           P_radial.setVal(0.0);
         }
@@ -465,7 +465,7 @@ Castro::retry_advance_ctu(Real dt, advance_status status)
 
 #ifdef RADIATION
         if (Radiation::rad_hydro_combined) {
-          for (int dir = 0; dir < BL_SPACEDIM; ++dir) {
+          for (int dir = 0; dir < AMREX_SPACEDIM; ++dir) {
             rad_fluxes[dir]->setVal(0.0);
           }
         }

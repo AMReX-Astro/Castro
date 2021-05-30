@@ -59,7 +59,7 @@ Diffusion::applyop (int level, MultiFab& Temperature,
     applyop_mlmg(level, Temperature, CrseTemp, DiffTerm, temp_cond_coef);
 }
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 void
 Diffusion::weight_cc(int level, MultiFab& cc)
 {

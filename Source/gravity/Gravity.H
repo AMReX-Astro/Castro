@@ -391,7 +391,7 @@ public:
 ///
   void init_multipole_grav();
 
-#if (BL_SPACEDIM == 3)
+#if (AMREX_SPACEDIM == 3)
 
 ///
 /// Compute and fill direct sum boundary conditions
@@ -478,7 +478,7 @@ public:
 
   static amrex::Real max_radius_all_in_domain;
 
-#if (BL_SPACEDIM < 3)
+#if (AMREX_SPACEDIM < 3)
 
 ///
 /// Modify Rhs and coeffs with the appropriate metric terms.
