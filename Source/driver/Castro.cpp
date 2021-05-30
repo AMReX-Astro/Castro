@@ -1067,20 +1067,6 @@ Castro::initData ()
 
 #endif //MHD
 
-#ifdef AMREX_USE_GPU
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
-       {
-#ifdef GPU_COMPATIBLE_PROBLEM
-           // Prefetch data to the device to avoid page faults while we're initializing.
-           S_new.prefetchToDevice(mfi);
-#else
-           // Prefetch data to the host (and then back to the device at the end)
-           // to avoid expensive page faults while the initialization is done.
-           S_new.prefetchToHost(mfi);
-#endif
-       }
-#endif
-
        for (MFIter mfi(S_new); mfi.isValid(); ++mfi)
        {
           const Box& box     = mfi.validbox();
@@ -1167,14 +1153,6 @@ Castro::initData ()
        if (init_failed_T != 0) {
          amrex::Error("Error: initial data has T <~ small_temp");
        }
-
-#ifdef AMREX_USE_GPU
-#ifndef GPU_COMPATIBLE_PROBLEM
-       for (MFIter mfi(S_new); mfi.isValid(); ++mfi) {
-           S_new.prefetchToDevice(mfi);
-       }
-#endif
-#endif
 
 #ifdef HYBRID_MOMENTUM
        // Generate the initial hybrid momenta based on this user data.
