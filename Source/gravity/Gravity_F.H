@@ -28,14 +28,6 @@ extern "C"
     (const amrex::Real* avgden, const amrex::Real* avgmass, 
      const amrex::Real* avgpres, amrex::Real* radial_grav, 
      const amrex::Real* dr, const int* numpts_1d);
-
-  void ca_compute_avgpres
-    (const int* lo, const int* hi,
-     const amrex::Real* dx, amrex::Real dr,
-     const BL_FORT_FAB_ARG_3D(S), 
-     amrex::Real* avgpres, 
-     const amrex::Real* problo, int numpts_1d, 
-     int drdxfac, int level); 
 #endif
 
 #ifdef __cplusplus
