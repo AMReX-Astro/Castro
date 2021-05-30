@@ -4,7 +4,7 @@ Setting Up Your Own Problem
 
 Castro problems are organized loosely into groups describing their
 intent (e.g., science, hydro tests, ...).  These groups are
-sub-directories under the `Castro/Exec/` directory.  Each problem is
+sub-directories under the ``Castro/Exec/`` directory.  Each problem is
 then placed in a sub-directory of the appropriate group (for example,
 ``Castro/Exec/hydro_tests/Sedov`` holds the Sedov test problem).
 
@@ -14,10 +14,10 @@ of the groups and place in it the following files:
   * ``GNUmakefile`` : the makefile for this problem.  This will tell
     Castro what options to use and what network and EOS to build.
 
-  * ``Prob_nd.F90`` OR ``problem_initialize.H`` and
+  * ``problem_initialize.H`` and
     ``problem_initialize_state_data.H`` : this holds the problem
-    initialization routines, which may be implemented either in Fortran
-    or in C++.
+    initialization routines.  MHD and radiation problems require
+    an additional file.
 
   * ``_prob_params`` (optional) : a list of runtime parameters that
     you problem will read.  These parameters are controlled by the
@@ -71,15 +71,12 @@ Here:
 The variables will all be initialized for the GPU as well.
 
 
-``Problem Initialization``
---------------------------
+Problem Initialization
+----------------------
 
-Here we describe the main problem initialization routines. There are
-two implementations, in C++ (``problem_setup.H``) and Fortran (``Prob_nd.F90``),
-and you can pick either but not both (C++ is recommended since eventually
-we will switch the whole code to C++).
+Here we describe the main problem initialization routines. 
 
-.. index:: probdata
+.. index:: initialize_problem
 
 * ``initialize_problem()``
 
@@ -137,11 +134,12 @@ The flag value 1 is traditionally named "inflow" by AMReX, but generally means t
 the boundary implementation is left to the user.  To tell Castro to use the
 hydrostatic boundary condition here, we set::
 
-   castro.yl_ext_bc_type = "hse"
+   castro.yl_ext_bc_type = 1
    castro.hse_interp_temp = 1
    castro.hse_reflect_vels = 1
 
-The first parameter tells Castro to use the HSE boundary condition.
+The first parameter tells Castro to use the HSE boundary condition for the lower
+y direction.
 In filling the ghost cells, hydrostatic equilibrum will be integrated
 from the last interior zone into the boundary.  We need one more
 equation for this integration, so we either interpolate the density or
@@ -202,7 +200,7 @@ each of these in the main source tree.
    problem which refines a rectangular region (fuel layer) based on
    a density parameter and the H mass fraction.
 
--  ``Problem_Derive_F.H``, ``Problem_Derives.H``, ``problem_derive_nd.f90``
+-  ``Problem_Derives.H``, ``Problem_Derive.H``, and ``Problem_Derives.cpp``
 
    Together, these provide a mechanism to create derived quantities
    that can be stored in the plotfile. ``Problem_Derives.H``
@@ -210,12 +208,11 @@ each of these in the main source tree.
    does this by adding them to the ``derive_lst``—a list of
    derived variables that Castro knows about. When adding new
    variables, a descriptive name, Fortran routine that does the
-   deriving, and component of ``StateData`` are specified.
+   deriving, and component of ``StateData`` are specified.
 
-   The Fortran routine that does the deriving is put in the
-   problem-specific ``problem_derive_nd.f90`` (and a prototype for
-   C++ is put in ``Problem_Derives.H``). A example is provided by
-   the ``reacting_bubble`` problem, which derives several new
+   The other two files provide the header and implementation of the
+   function that computes the derived variable.  A example is provided
+   by the ``reacting_bubble`` problem, which derives several new
    quantities (perturbations against a background one-dimensional
    model, in this case).
 
