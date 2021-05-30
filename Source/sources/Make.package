@@ -4,6 +4,7 @@ CEXE_headers += Castro_sources.H
 FEXE_headers += Castro_sources_F.H
 
 CEXE_sources += Castro_sources.cpp
+CEXE_headers += sponge.H
 CEXE_sources += Castro_sponge.cpp
 CEXE_sources += Castro_thermo.cpp
 CEXE_sources += Castro_geom.cpp

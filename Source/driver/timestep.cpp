@@ -13,6 +13,10 @@
 #include <Rotation.H>
 #endif
 
+#ifdef SPONGE
+#include <sponge.H>
+#endif
+
 #ifdef REACTIONS
 #ifdef NETWORK_HAS_CXX_IMPLEMENTATION
 #include <actual_rhs.H>
@@ -33,7 +37,7 @@ Castro::estdt_cfl(const Real time)
 
   // Courant-condition limited timestep
 
-#ifdef ROTATION
+#if (defined(ROTATION) || defined(SPONGE))
   GeometryData geomdata = geom.data();
 #endif
 
@@ -111,6 +115,18 @@ Castro::estdt_cfl(const Real time)
       dt3 = dx[2]/(c + std::abs(uz));
 #else
       dt3 = dt1;
+#endif
+
+#ifdef SPONGE
+      // Ignore zones inside the sponge region.
+
+      if (castro::do_sponge) {
+          if (sponge::in_sponge_region(i, j, k, geomdata, eos_state.rho, eos_state.p)) {
+              dt1 = std::numeric_limits<Real>::max();
+              dt2 = std::numeric_limits<Real>::max();
+              dt3 = std::numeric_limits<Real>::max();
+          }
+      }
 #endif
 
       // The CTU method has a less restrictive timestep than MOL-based

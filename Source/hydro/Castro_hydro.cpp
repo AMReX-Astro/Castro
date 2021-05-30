@@ -5,6 +5,10 @@
 #include <Radiation.H>
 #endif
 
+#ifdef SPONGE
+#include <sponge.H>
+#endif
+
 using namespace amrex;
 
 #ifdef TRUE_SDC
@@ -237,6 +241,9 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
     BL_PROFILE("Castro::check_for_cfl_violation()");
 
     auto dx = geom.CellSizeArray();
+#ifdef SPONGE
+    auto geomdata = geom.data();
+#endif
 
     Real dtdx = dt / dx[0];
 
@@ -296,6 +303,18 @@ Castro::check_for_cfl_violation(const MultiFab& State, const Real dt)
             Real courx = (cs + std::abs(u)) * dtdx;
             Real coury = (cs + std::abs(v)) * dtdy;
             Real courz = (cs + std::abs(w)) * dtdz;
+
+#ifdef SPONGE
+            // Ignore zones inside the sponge region.
+
+            if (castro::do_sponge) {
+                if (sponge::in_sponge_region(i, j, k, geomdata, rho, eos_state.p)) {
+                    courx = 0.0;
+                    coury = 0.0;
+                    courz = 0.0;
+                }
+            }
+#endif
 
             if (castro::time_integration_method == 0) {
 
