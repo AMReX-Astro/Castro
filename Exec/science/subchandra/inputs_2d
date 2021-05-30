@@ -72,8 +72,6 @@ castro.v            = 0       # control verbosity in Castro.cpp
 
 amr.derive_plot_vars = ALL
 
-amr.probin_file = probin
-
 castro.small_dens   = 1.e-5
 castro.small_temp   = 1.e5
 

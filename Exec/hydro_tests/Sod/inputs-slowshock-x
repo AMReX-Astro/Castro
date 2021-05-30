@@ -74,9 +74,6 @@ amr.plot_file       = slowshock_x_plt  # root name of plotfile
 amr.plot_int        = 100          # number of timesteps between plotfiles
 amr.derive_plot_vars = density xmom ymom zmom eden Temp pressure  # these variables appear in the plotfile
 
-#PROBIN FILENAME
-amr.probin_file = probin-slowshock-x
-
 # PROBLEM PARAMETERS
 problem.p_l = 100.0e0
 problem.u_l = -1.4701e0

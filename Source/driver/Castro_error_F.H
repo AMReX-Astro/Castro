@@ -73,14 +73,6 @@ extern "C"
      const amrex::Real time, const int level);
 #endif
 
-  void set_problem_tags
-    (const int* lo, const int* hi,
-     int8_t* tag, const int* tag_lo, const int* tag_hi,
-     const BL_FORT_FAB_ARG_3D(state),
-     const amrex::Real* dx, const amrex::Real* problo,
-     const int8_t tagval, const int8_t clearval,
-     const amrex::Real time, const int level);
-
   void get_denerr_params
     (amrex::Real* denerr, int* max_denerr_lev,
      amrex::Real* dengrad, int* max_dengrad_lev,

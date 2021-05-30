@@ -70,5 +70,11 @@ amr.plot_file       = plt
 amr.plot_int        = 100
 amr.derive_plot_vars= density x_velocity y_velocity z_velocity eden Temp pressure B_x B_y B_z 
 
-# PROBIN FILENAME
-amr.probin_file = probin
+# PROBLEM PARAMETERS
+problem.B_0 = 0.001
+problem.u_x = 2.0
+problem.u_y = 1.0
+
+# EOS
+eos.eos_gamma = 1.666667
+eos.eos_assume_neutral = 1

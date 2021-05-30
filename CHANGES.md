@@ -14,6 +14,9 @@
 
    * The update_sponge_params hook has been removed. (#1716)
 
+   * The Fortran set_problem_tags hook has been removed. The C++ replacement
+     is `problem_tagging()` in `problem_tagging.H`. (#1828)
+
    * The custom radiation boundary using lo_bcflag and hi_bcflag coupled with
      an implementation of rbndry has been removed. (#1743)
 

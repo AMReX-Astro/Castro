@@ -32,8 +32,34 @@ amr.plot_int        = 25      # number of timesteps between plot files
 #amr.plot_int        = 1000    # number of timesteps between plot files
 amr.derive_plot_vars = ALL
 
-# PROBIN FILENAME
-amr.probin_file     = probin-heating
+# PROBLEM PARAMETERS
+problem.rho_0 = 1.e-7
+problem.rhoe_0 = 1.e2
+problem.E_rad = 1.e12
+
+# EOS
+# 3/2 k / (mu m_u) with mu = 0.6
+eos.eos_const_c_v = 206586826.34730542
+
+# OPACITY
+opacity.const_kappa_p = 4.0e-8
+opacity.kappa_p_exp_m = 0.0e0
+opacity.kappa_p_exp_n = 0.0e0
+opacity.kappa_p_exp_p = 0.0e0
+
+opacity.const_kappa_r = 1000.0e0  # set to a high value for solver stability
+opacity.kappa_r_exp_m = 0.0e0
+opacity.kappa_r_exp_n = 0.0e0
+opacity.kappa_r_exp_p = 0.0e0
+
+# As kappa_r becomes low the Marshak boundary condition becomes
+# ill-conditioned.  The following floor is enforced regardless of the
+# mechanism used to set kappa_r.  (In an ideal code this floor would
+# be nondimensionalized using a characteristic length (domain size?).
+# In the present implementation the Marshak b.c. includes a factor of
+# delta x which can cause ill-conditioning if delta x is not O(1).)
+
+opacity.kappa_floor = 1.0e-5
 
 # VERBOSITY
 amr.v = 1
